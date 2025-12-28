@@ -1,1 +1,1 @@
-## Grow Problem Solving Smarter
+## Grind Problem Solving Smarter
