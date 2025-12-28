@@ -24,14 +24,7 @@ Visit the official website: [smart-grind.algovyn.com](https://smart-grind.algovy
 1. Clone the repository:
    ```bash
    git clone https://github.com/AlgoVyn/smart-grind.git
-
-## Installation
-
-### From Source (Recommended for Developers)
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/AlgoVyn/smart-grind.git
+   ```
 2. Open Google Chrome and go to chrome://extensions/
 3. Enable Developer mode (top-right toggle)
 4. Click Load unpacked and select the cloned repository folder
