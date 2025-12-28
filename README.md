@@ -36,10 +36,9 @@ Visit the official website: [smart-grind.algovyn.com](https://smart-grind.algovy
 3. Enable Developer mode (top-right toggle)
 4. Click Load unpacked and select the cloned repository folder
 
-## Future Availability
+### Future Availability
 The extension may become available on the Chrome Web Store — check the official website for updates.
 
-```markdown
 ## Usage
 
 1. After installation, the Smart Grind icon will appear in your Chrome toolbar.
