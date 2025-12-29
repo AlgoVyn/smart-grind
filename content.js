@@ -86,7 +86,7 @@
     }
   };
 
-  const updateProblemsetPage = (ratings) => {
+  const updateProblemsPage = (ratings) => {
     const allPs = document.querySelectorAll('p[class*="text-sd-"]');
     allPs.forEach(p => {
       const text = p.textContent.trim();
@@ -105,7 +105,10 @@
 
   const ratings = await loadRatings();
   const path = window.location.pathname;
-
+  const updateRatings = () => updateProblemsPage(ratings);
+  const observer = new MutationObserver(updateRatings);
+  observer.observe(document.body, { childList: true, subtree: true });
+  
   if (path.includes('/problems/')) {
     const slug = path.split('/')[2];
     updateProblemPage(ratings, slug);
@@ -119,11 +122,7 @@
     }
   }
 
-  // Update problemset or problem-list page
   if (path.includes('/problemset') || path.includes('/problem-list')) {
-    const updateRatings = () => updateProblemsetPage(ratings);
     updateRatings();
-    const observer = new MutationObserver(updateRatings);
-    observer.observe(document.body, { childList: true, subtree: true });
   }
 })();
