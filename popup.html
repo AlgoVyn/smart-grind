@@ -6,67 +6,94 @@
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      padding: 10px;
-      background: white;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       width: 250px;
-      height: 200px;
+      min-height: 250px;
+      color: #333;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     .container {
-      padding: 0;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .logo {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 5px;
     }
     h3 {
       color: #333;
-      margin-bottom: 10px;
-      text-align: center;
-      font-size: 16px;
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
     }
     #currentRating {
       text-align: center;
-      font-size: 14px;
-      color: #555;
-      margin-bottom: 10px;
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 15px;
+      font-weight: 500;
     }
     .form-group {
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
     label {
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 6px;
       color: #555;
-      font-weight: 500;
+      font-weight: 600;
+      font-size: 14px;
     }
-    input {
+    input, select {
       width: 100%;
-      padding: 6px;
+      padding: 8px 10px;
       border: 1px solid #ddd;
-      border-radius: 4px;
+      border-radius: 6px;
       box-sizing: border-box;
       font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    input:focus {
+    input:focus, select:focus {
       outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
     button {
-      background-color: #007bff;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      padding: 8px;
+      padding: 10px;
       width: 100%;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 14px;
-      font-weight: 500;
-      transition: background-color 0.2s;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 10px;
     }
     button:hover {
-      background-color: #0056b3;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+    button:active {
+      transform: translateY(0);
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="header">
+      <img src="logo-48.png" alt="SmartGrind Logo" class="logo">
+      <h3>SmartGrind</h3>
+    </div>
     <div id="currentRating">Current Rating: --</div>
     <div class="form-group">
       <label for="minRating">Min Rating:</label>
@@ -75,6 +102,12 @@
     <div class="form-group">
       <label for="maxRating">Max Rating:</label>
       <input type="number" id="maxRating" placeholder="3000">
+    </div>
+    <div class="form-group">
+      <label for="tagSelect">Tag:</label>
+      <select id="tagSelect">
+        <option value="">All Tags</option>
+      </select>
     </div>
     <button id="randomBtn">Get Random Problem</button>
   </div>
