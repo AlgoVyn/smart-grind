@@ -1,5 +1,15 @@
 (async () => {
-  // Load ratings with caching
+  const SUBMISSION_QUERY = `
+    query($slug: String!) {
+      submissionList(offset: 0, limit: 20, questionSlug: $slug) {
+        submissions {
+          statusDisplay
+          timestamp
+        }
+      }
+    }
+  `;
+
   const loadRatings = async () => {
     try {
       const cached = await chrome.storage.local.get('ratings');
@@ -45,39 +55,27 @@
   };
 
   const checkSubmissions = async (slug) => {
-    const query = `
-      query($slug: String!) {
-        submissionList(offset: 0, limit: 20, questionSlug: $slug) {
-          submissions {
-            statusDisplay
-            timestamp
-          }
-        }
-      }
-    `;
     try {
       const response = await fetch('https://leetcode.com/graphql', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query, variables: { slug } }),
+        body: JSON.stringify({ query: SUBMISSION_QUERY, variables: { slug } }),
       });
       const data = await response.json();
       const submissions = data?.data?.submissionList?.submissions;
       if (!submissions) return;
 
-      const result = await getSyncStorage(['solvedProblems', 'openedProblems']);
-      const solved = result.solvedProblems || [];
-      const opened = result.openedProblems || [];
-      const openedEntry = opened.find(o => o.slug === slug);
-      if (solved.includes(slug) || !openedEntry) return;
+      const { solvedProblems = [], openedProblems = [] } = await getSyncStorage(['solvedProblems', 'openedProblems']);
+      const openedEntry = openedProblems.find(o => o.slug === slug);
+      if (solvedProblems.includes(slug) || !openedEntry) return;
 
       for (const sub of submissions) {
         if (sub.statusDisplay === 'Accepted' && sub.timestamp * 1000 > openedEntry.openedAt) {
-          solved.push(slug);
-          const updatedOpened = opened.filter(o => o.slug !== slug);
-          await setSyncStorage({ solvedProblems: solved, openedProblems: updatedOpened });
+          solvedProblems.push(slug);
+          const updatedOpened = openedProblems.filter(o => o.slug !== slug);
+          await setSyncStorage({ solvedProblems, openedProblems: updatedOpened });
           break;
         }
       }
@@ -108,12 +106,11 @@
   const updateRatings = () => updateProblemsPage(ratings);
   const observer = new MutationObserver(updateRatings);
   observer.observe(document.body, { childList: true, subtree: true });
-  
+
   if (path.includes('/problems/')) {
     const slug = path.split('/')[2];
     updateProblemPage(ratings, slug);
 
-    // Check after submit
     const submitButton = findSubmitButton();
     if (submitButton) {
       submitButton.addEventListener('click', () => {

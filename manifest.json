@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SmartGrind",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Displays problem ratings on LeetCode and allows random problem selection",
   "icons": {
     "16": "logo-16.png",
@@ -10,7 +10,7 @@
     "48": "logo-48.png",
     "128": "logo-128.png"
   },
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "tabs"],
   "background": {
     "service_worker": "background.js"
   },
@@ -25,7 +25,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["ratings.txt"],
+      "resources": ["ratings.txt", "tags.txt"],
       "matches": ["https://leetcode.com/*"]
     }
   ]
