@@ -10,7 +10,7 @@
     "48": "logo-48.png",
     "128": "logo-128.png"
   },
-  "permissions": ["activeTab", "storage", "tabs"],
+  "permissions": ["storage", "tabs"],
   "background": {
     "service_worker": "background.js"
   },
