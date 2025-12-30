@@ -49,11 +49,26 @@
     });
   };
 
-  const calculateCurrentRating = (problems, solvedSlugs) => {
-    const solvedRatings = problems.filter(p => solvedSlugs.includes(p.slug)).map(p => p.rating);
-    if (solvedRatings.length === 0) return '--';
-    const avgRating = solvedRatings.reduce((a, b) => a + b, 0) / solvedRatings.length;
-    return Math.round(avgRating);
+  const calculateCurrentRating = (problems, solvedProblems) => {
+    if (solvedProblems.length === 0) return '--';
+
+    // Sort by recency (most recent first)
+    const sortedSolved = [...solvedProblems].sort((a, b) => b.solvedAt - a.solvedAt);
+
+    // Calculate recency-weighted EMA
+    const alpha = 0.2;
+    let ema = problems.find(p => p.slug === sortedSolved[0].slug)?.rating || 0;
+    for (let i = 1; i < sortedSolved.length; i++) {
+      const rating = problems.find(p => p.slug === sortedSolved[i].slug)?.rating || 0;
+      ema = alpha * rating + (1 - alpha) * ema;
+    }
+
+    // Apply Bayesian smoothing
+    const globalAvg = problems.reduce((sum, p) => sum + p.rating, 0) / problems.length;
+    const confidence = Math.min(solvedProblems.length / 100, 1);
+    const bayesianRating = confidence * ema + (1 - confidence) * globalAvg;
+
+    return Math.round(bayesianRating);
   };
 
   const loadSettings = async () => {
@@ -89,7 +104,14 @@
   try {
     const { problems, tags } = await loadProblemsAndTags();
     populateTagDropdown(tags);
-    const { solvedProblems = [] } = await chrome.storage.sync.get(['solvedProblems']);
+    let { solvedProblems = [] } = await chrome.storage.sync.get(['solvedProblems']);
+
+    // Migrate old format (array of slugs) to new format (array of objects)
+    if (solvedProblems.length > 0 && typeof solvedProblems[0] === 'string') {
+      solvedProblems = solvedProblems.map(slug => ({ slug, solvedAt: Date.now() }));
+      await chrome.storage.sync.set({ solvedProblems });
+    }
+
     const currentRating = calculateCurrentRating(problems, solvedProblems);
     document.getElementById('currentRating').textContent = `Current Rating: ${currentRating}`;
     await loadSettings();

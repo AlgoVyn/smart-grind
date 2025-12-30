@@ -69,11 +69,11 @@
 
       const { solvedProblems = [], openedProblems = [] } = await getSyncStorage(['solvedProblems', 'openedProblems']);
       const openedEntry = openedProblems.find(o => o.slug === slug);
-      if (solvedProblems.includes(slug) || !openedEntry) return;
+      if (solvedProblems.some(p => p.slug === slug) || !openedEntry) return;
 
       for (const sub of submissions) {
         if (sub.statusDisplay === 'Accepted' && sub.timestamp * 1000 > openedEntry.openedAt) {
-          solvedProblems.push(slug);
+          solvedProblems.push({ slug, solvedAt: Date.now() });
           const updatedOpened = openedProblems.filter(o => o.slug !== slug);
           await setSyncStorage({ solvedProblems, openedProblems: updatedOpened });
           break;
