@@ -133,7 +133,7 @@
         }
         const randomProblem = filtered[Math.floor(Math.random() * filtered.length)];
         await trackOpenedProblem(randomProblem.slug);
-        chrome.tabs.create({ url: `https://leetcode.com/problems/${randomProblem.slug}/` });
+        window.open(`https://leetcode.com/problems/${randomProblem.slug}/`, '_blank');
       } catch (error) {
         console.error('Error selecting random problem:', error);
         alert('An error occurred while selecting a problem');
