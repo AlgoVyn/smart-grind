@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+      --theme-bg-card: #f8fafc;
+      /* Slate 50 */
+      --theme-bg-sidebar: #ffffff;
+      --theme-bg-main: #f1f5f9;
+      /* Slate 100 */
+      --theme-border: #e2e8f0;
+      /* Slate 200 */
+      --theme-text-base: #1e293b;
+      /* Slate 800 */
+      --theme-text-bold: #020617;
+      /* Slate 950 */
+      --theme-text-muted: #475569;
+      /* Slate 600 */
+  }
+
+  .dark {
+      --theme-bg-card: #1e293b;
+      /* Dark 800 */
+      --theme-bg-sidebar: #0f172a;
+      /* Dark 900 */
+      --theme-bg-main: #020617;
+      /* Dark 950 */
+      --theme-border: #1e293b;
+      /* Slate 800 */
+      --theme-text-base: #cbd5e1;
+      /* Slate 300 */
+      --theme-text-bold: #ffffff;
+      --theme-text-muted: #94a3b8;
+      /* Slate 400 */
+  }
+}
+
+@layer utilities {
+  /* Custom Scrollbar */
+  /* Hide scrollbars for Chrome, Safari and Opera */
+  ::-webkit-scrollbar {
+      display: none;
+  }
+
+  /* Hide scrollbars for IE, Edge and Firefox */
+  html,
+  body,
+  .overflow-y-auto {
+      -ms-overflow-style: none;
+      /* IE and Edge */
+      scrollbar-width: none;
+      /* Firefox */
+  }
+
+  .glass-panel {
+      background: var(--theme-bg-sidebar);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--theme-border);
+  }
+
+  .sidebar-link.active {
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border-right: 3px solid #6366f1;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+      from {
+          opacity: 0;
+      }
+
+      to {
+          opacity: 1;
+      }
+  }
+
+  .animate-fade-in {
+      animation: fadeIn 0.3s ease-out;
+  }
+}
