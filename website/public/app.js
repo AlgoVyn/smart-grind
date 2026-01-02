@@ -183,14 +183,29 @@ let activeTopicId = 'all';
 const SPACED_REPETITION_INTERVALS = [1, 3, 7, 14, 30, 60];
 const TOTAL_UNIQUE_PROBLEMS = 438; // Initial reference count
 
+// User type: 'local' or 'signed-in'
+let currentUserType = 'local';
+
+// Local user storage keys
+const LOCAL_STORAGE_KEYS = {
+    USER_TYPE: 'smartgrind-user-type',
+    PROBLEMS: 'smartgrind-local-problems',
+    DELETED_IDS: 'smartgrind-local-deleted-ids',
+    DISPLAY_NAME: 'smartgrind-local-display-name'
+};
+
 // --- DOM ELEMENTS ---
 const els = {
     setupModal: document.getElementById('setup-modal'),
     addProblemModal: document.getElementById('add-problem-modal'),
+    signinModal: document.getElementById('signin-modal'),
+    signinModalContent: document.getElementById('signin-modal-content'),
     appWrapper: document.getElementById('app-wrapper'),
     loadingScreen: document.getElementById('loading-screen'),
     googleLoginBtn: document.getElementById('google-login-button'),
+    modalGoogleLoginBtn: document.getElementById('modal-google-login-button'),
     setupError: document.getElementById('setup-error'),
+    signinError: document.getElementById('signin-error'),
     topicList: document.getElementById('topic-list'),
     problemsContainer: document.getElementById('problems-container'),
     mobileMenuBtn: document.getElementById('mobile-menu-btn'),
@@ -258,6 +273,67 @@ const addDays = (date, days) => {
     result.setDate(result.getDate() + days);
     return result.toISOString().split('T')[0];
 };
+
+// --- LOCAL USER STORAGE FUNCTIONS ---
+function loadLocalData() {
+    try {
+        const problemsData = localStorage.getItem(LOCAL_STORAGE_KEYS.PROBLEMS);
+        const deletedIdsData = localStorage.getItem(LOCAL_STORAGE_KEYS.DELETED_IDS);
+        const displayName = localStorage.getItem(LOCAL_STORAGE_KEYS.DISPLAY_NAME) || 'Local User';
+        
+        const problemsObj = problemsData ? JSON.parse(problemsData) : {};
+        const deletedIdsArr = deletedIdsData ? JSON.parse(deletedIdsData) : [];
+        
+        allProblems = new Map(Object.entries(problemsObj));
+        deletedProblemIds = new Set(deletedIdsArr);
+        
+        return { displayName };
+    } catch (e) {
+        console.error('Error loading local data:', e);
+        return { displayName: 'Local User' };
+    }
+}
+
+function saveLocalData() {
+    try {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.PROBLEMS, JSON.stringify(Object.fromEntries(allProblems)));
+        localStorage.setItem(LOCAL_STORAGE_KEYS.DELETED_IDS, JSON.stringify(Array.from(deletedProblemIds)));
+    } catch (e) {
+        console.error('Error saving local data:', e);
+    }
+}
+
+function saveLocalDisplayName(name) {
+    localStorage.setItem(LOCAL_STORAGE_KEYS.DISPLAY_NAME, name);
+}
+
+function initializeLocalUser() {
+    currentUserType = 'local';
+    localStorage.setItem(LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
+    
+    const { displayName } = loadLocalData();
+    els.userDisplay.innerText = displayName;
+    
+    // Sync with static plan to ensure all problems exist
+    syncPlan();
+    
+    // Merge dynamically added problems into topicsData structure
+    mergeStructure();
+    
+    renderSidebar();
+    renderMainView('all'); // Show all by default
+    updateStats();
+    
+    // Initialize scroll button after DOM is ready
+    initScrollButton();
+    
+    els.setupModal.classList.add('hidden');
+    els.appWrapper.classList.remove('hidden');
+    els.loadingScreen.classList.add('hidden');
+    
+    // Update auth UI
+    updateAuthUI();
+}
 
 function getNextReviewDate(today, intervalIndex) {
     const daysToAdd = SPACED_REPETITION_INTERVALS[intervalIndex];
@@ -418,6 +494,8 @@ function initScrollButton() {
 const checkAuth = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const urlUserId = urlParams.get('userId');
+    
+    // Check if user just signed in via URL
     if (urlUserId) {
         userId = urlUserId;
         localStorage.setItem('userId', userId);
@@ -425,27 +503,47 @@ const checkAuth = async () => {
         window.history.replaceState({}, document.title, '/');
         const displayName = localStorage.getItem('displayName') || 'User';
         els.userDisplay.innerText = displayName;
+        currentUserType = 'signed-in';
+        localStorage.setItem(LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
         await loadData();
+        updateAuthUI();
+        return;
+    }
+    
+    // Check if user is already signed in
+    userId = localStorage.getItem('userId');
+    if (userId) {
+        const displayName = localStorage.getItem('displayName') || 'User';
+        els.userDisplay.innerText = displayName;
+        currentUserType = 'signed-in';
+        localStorage.setItem(LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
+        await loadData();
+        updateAuthUI();
+        return;
+    }
+    
+    // Default to local user
+    currentUserType = localStorage.getItem(LOCAL_STORAGE_KEYS.USER_TYPE) || 'local';
+    
+    if (currentUserType === 'local') {
+        initializeLocalUser();
     } else {
-        userId = localStorage.getItem('userId');
-        if (userId) {
-            const displayName = localStorage.getItem('displayName') || 'User';
-            els.userDisplay.innerText = displayName;
-            await loadData();
-        } else {
-            // If not logged in, show setup and hide loading
-            els.setupModal.classList.remove('hidden');
-            els.appWrapper.classList.add('hidden');
-            els.loadingScreen.classList.add('hidden');
-
-            // Reset Login Button State
-            els.googleLoginBtn.disabled = false;
-            els.googleLoginBtn.innerHTML = GOOGLE_LOGIN_BTN_HTML;
-        }
+        // If user type is 'signed-in' but no userId, show setup modal
+        els.setupModal.classList.remove('hidden');
+        els.appWrapper.classList.add('hidden');
+        els.loadingScreen.classList.add('hidden');
+        
+        // Reset Login Button State
+        els.googleLoginBtn.disabled = false;
+        els.googleLoginBtn.innerHTML = GOOGLE_LOGIN_BTN_HTML;
+        updateAuthUI();
     }
 };
 
 checkAuth();
+
+// Initialize auth UI
+updateAuthUI();
 
 els.googleLoginBtn.addEventListener('click', () => {
     showError(null);
@@ -456,10 +554,90 @@ els.googleLoginBtn.addEventListener('click', () => {
     window.location.href = '/api/auth?action=login';
 });
 
+// Modal Google login button
+els.modalGoogleLoginBtn.addEventListener('click', () => {
+    showSigninError(null);
+    els.modalGoogleLoginBtn.disabled = true;
+    els.modalGoogleLoginBtn.innerHTML = "Connecting...";
+
+    // Redirect to auth
+    window.location.href = '/api/auth?action=login';
+});
+
+// Sign in modal functions
+function openSigninModal() {
+    els.signinModal.classList.remove('hidden');
+}
+
+function closeSigninModal() {
+    els.signinModal.classList.add('hidden');
+}
+
+// Close modal when clicking outside
+els.signinModal.addEventListener('click', (e) => {
+    if (e.target === els.signinModal) {
+        closeSigninModal();
+    }
+});
+
+// Prevent modal content clicks from closing modal
+els.signinModalContent.addEventListener('click', (e) => {
+    e.stopPropagation();
+});
+
+// Update auth UI based on current user type
+function updateAuthUI() {
+    const disconnectBtn = els.disconnectBtn;
+    if (currentUserType === 'local') {
+        disconnectBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Sign In
+        `;
+        disconnectBtn.title = 'Sign in to sync across devices';
+    } else {
+        disconnectBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Sign Out
+        `;
+        disconnectBtn.title = 'Sign out and switch to local mode';
+    }
+}
+
 async function handleLogout() {
-    localStorage.removeItem('userId');
-    userId = null;
-    checkAuth();
+    if (currentUserType === 'signed-in') {
+        // Switch to local user
+        localStorage.removeItem('userId');
+        localStorage.removeItem('token');
+        localStorage.removeItem('displayName');
+        userId = null;
+        
+        // Switch to local user
+        currentUserType = 'local';
+        localStorage.setItem(LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
+        
+        // Clear current data and reload local data
+        allProblems.clear();
+        deletedProblemIds.clear();
+        
+        // Initialize local user with fresh data
+        initializeLocalUser();
+        
+        // Update the UI to show sign in option
+        updateAuthUI();
+        
+        showToast('Switched to local mode');
+    } else {
+        // Open sign in modal for local users
+        openSigninModal();
+    }
 }
 
 els.disconnectBtn.addEventListener('click', handleLogout);
@@ -467,6 +645,11 @@ els.disconnectBtn.addEventListener('click', handleLogout);
 function showError(msg) {
     els.setupError.classList.toggle('hidden', !msg);
     els.setupError.innerText = msg || '';
+}
+
+function showSigninError(msg) {
+    els.signinError.classList.toggle('hidden', !msg);
+    els.signinError.innerText = msg || '';
 }
 
 async function loadData() {
@@ -555,15 +738,19 @@ async function syncPlan() {
     });
 
     if (changed) {
-        const token = localStorage.getItem('token');
-        await fetch(`${API_BASE}/user`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ data: { problems: saveObj, deletedIds: Array.from(deletedProblemIds) } })
-        });
+        if (currentUserType === 'local') {
+            saveLocalData();
+        } else {
+            const token = localStorage.getItem('token');
+            await fetch(`${API_BASE}/user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ data: { problems: saveObj, deletedIds: Array.from(deletedProblemIds) } })
+            });
+        }
     }
 }
 
@@ -605,16 +792,20 @@ function mergeStructure() {
 
 async function saveProblem(p) {
     try {
-        const token = localStorage.getItem('token');
-        const data = { problems: Object.fromEntries(allProblems), deletedIds: Array.from(deletedProblemIds) };
-        await fetch(`${API_BASE}/user`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ data })
-        });
+        if (currentUserType === 'local') {
+            saveLocalData();
+        } else {
+            const token = localStorage.getItem('token');
+            const data = { problems: Object.fromEntries(allProblems), deletedIds: Array.from(deletedProblemIds) };
+            await fetch(`${API_BASE}/user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ data })
+            });
+        }
         updateStats();
     } catch (e) { console.error(e); }
 }
@@ -622,32 +813,40 @@ async function saveProblem(p) {
 async function saveDeletedId(id) {
     try {
         allProblems.delete(id);
-        const token = localStorage.getItem('token');
-        const data = { problems: Object.fromEntries(allProblems), deletedIds: Array.from(deletedProblemIds) };
-        await fetch(`${API_BASE}/user`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ data })
-        });
+        if (currentUserType === 'local') {
+            saveLocalData();
+        } else {
+            const token = localStorage.getItem('token');
+            const data = { problems: Object.fromEntries(allProblems), deletedIds: Array.from(deletedProblemIds) };
+            await fetch(`${API_BASE}/user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ data })
+            });
+        }
         updateStats();
     } catch (e) { console.error(e); }
 }
 
 async function saveData() {
     try {
-        const token = localStorage.getItem('token');
-        const data = { problems: Object.fromEntries(allProblems), deletedIds: Array.from(deletedProblemIds) };
-        await fetch(`${API_BASE}/user`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ data })
-        });
+        if (currentUserType === 'local') {
+            saveLocalData();
+        } else {
+            const token = localStorage.getItem('token');
+            const data = { problems: Object.fromEntries(allProblems), deletedIds: Array.from(deletedProblemIds) };
+            await fetch(`${API_BASE}/user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ data })
+            });
+        }
         updateStats();
     } catch (e) { console.error(e); }
 }
