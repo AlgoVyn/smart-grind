@@ -213,6 +213,7 @@ const els = {
     sidebarSolvedBar: document.getElementById('sidebar-total-bar'),
 
     // Main Dashboard Stats
+    mainTotalText: document.getElementById('stat-total'),
     mainSolvedText: document.getElementById('stat-solved'),
     mainSolvedBar: document.getElementById('progress-bar-solved'),
     mainDueText: document.getElementById('stat-due'),
@@ -239,14 +240,6 @@ const els = {
 
 
     headerDisconnectBtn: document.getElementById('header-disconnect-btn'),
-
-
-    // IMPORTANT: configInput was causing error in previous turns, uncommenting it here
-    // It was removed from HTML, so this might be null. We should handle it gracefully or remove it if not needed.
-    // Since we hardcoded the config, we don't need to read this element anymore unless we want to support custom config again.
-    // But the user said "don't remove the current config", implying keep the fallback.
-    // I removed the textarea from HTML, so document.getElementById will return null.
-    // I will remove this reference to avoid errors.
 };
 
 const DEFAULT_FIREBASE_CONFIG = {
@@ -258,6 +251,17 @@ const DEFAULT_FIREBASE_CONFIG = {
     appId: "1:674226955390:web:cb870068ee7a33c18ba42f",
     measurementId: "G-SY7KTYKV7T"
 };
+
+// Google Login Button HTML Template
+const GOOGLE_LOGIN_BTN_HTML = `
+    <svg class="w-5 h-5" viewBox="0 0 24 24">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+    </svg>
+    Sign in with Google
+`;
 
 // --- HELPERS ---
 const getToday = () => new Date().toISOString().split('T')[0];
@@ -311,6 +315,79 @@ function getCleanSlug(id) {
 function formatProblemName(id) {
     const slug = getCleanSlug(id);
     return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+/**
+ * Counts unique problems for a given topic.
+ * @param {string} topicId - The topic ID or 'all' for all topics
+ * @returns {{total: number, solved: number, due: number}}
+ */
+function getUniqueProblemsForTopic(topicId) {
+    const today = getToday();
+    const uniqueIds = new Set();
+    const solvedIds = new Set();
+    let due = 0;
+
+    if (topicId === 'all') {
+        allProblems.forEach(p => {
+            uniqueIds.add(p.id);
+            if (p.status === 'solved') {
+                solvedIds.add(p.id);
+                if (p.nextReviewDate <= today) due++;
+            }
+        });
+    } else {
+        const topicObj = topicsData.find(t => t.id === topicId);
+        if (topicObj) {
+            topicObj.patterns.forEach(p => p.problems.forEach(pid => {
+                const id = typeof pid === 'string' ? pid : pid.id;
+                if (allProblems.has(id)) {
+                    uniqueIds.add(id);
+                    const problem = allProblems.get(id);
+                    if (problem.status === 'solved') {
+                        solvedIds.add(id);
+                        if (problem.nextReviewDate <= today) due++;
+                    }
+                }
+            }));
+        }
+    }
+
+    return {
+        total: uniqueIds.size,
+        solved: solvedIds.size,
+        due: due
+    };
+}
+
+/**
+ * Determines if a problem should be shown based on current filter and search.
+ * @param {Object} problem - The problem object
+ * @param {string} filter - Current filter ('all', 'solved', 'review', etc.)
+ * @param {string} searchQuery - Search query string
+ * @param {string} today - Today's date string
+ * @returns {boolean}
+ */
+function shouldShowProblem(problem, filter, searchQuery, today) {
+    const isDue = problem.status === 'solved' && problem.nextReviewDate <= today;
+
+    // Apply filter
+    let passesFilter = false;
+    if (filter === 'all') passesFilter = true;
+    else if (filter === 'unsolved') passesFilter = problem.status === 'unsolved';
+    else if (filter === 'solved') passesFilter = problem.status === 'solved';
+    else if (filter === 'review') passesFilter = isDue;
+
+    if (!passesFilter) return false;
+
+    // Apply search
+    if (searchQuery) {
+        const nameMatch = problem.name.toLowerCase().includes(searchQuery);
+        const noteMatch = problem.note && problem.note.toLowerCase().includes(searchQuery);
+        return nameMatch || noteMatch;
+    }
+
+    return true;
 }
 
 /**
@@ -372,15 +449,7 @@ onAuthStateChanged(auth, async (user) => {
 
         // Reset Login Button State
         els.googleLoginBtn.disabled = false;
-        els.googleLoginBtn.innerHTML = `
-                    <svg class="w-5 h-5" viewBox="0 0 24 24">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                    </svg>
-                    Sign in with Google
-                `;
+        els.googleLoginBtn.innerHTML = GOOGLE_LOGIN_BTN_HTML;
     }
 });
 
@@ -402,15 +471,7 @@ els.googleLoginBtn.addEventListener('click', async () => {
             showError("Login failed: " + (e.message || "Check console"));
         }
         els.googleLoginBtn.disabled = false;
-        els.googleLoginBtn.innerHTML = `
-                    <svg class="w-5 h-5" viewBox="0 0 24 24">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                    </svg>
-                    Sign in with Google
-                `;
+        els.googleLoginBtn.innerHTML = GOOGLE_LOGIN_BTN_HTML;
     }
 });
 
@@ -776,25 +837,10 @@ function renderMainView(filterTopicId) {
                 const p = allProblems.get(id);
                 if (!p) return; // Skip if deleted
 
-                const isDue = p.status === 'solved' && p.nextReviewDate <= today;
-                let show = false;
-
-                if (currentFilter === 'all') show = true;
-                else if (currentFilter === 'unsolved') show = p.status === 'unsolved';
-                else if (currentFilter === 'solved') show = p.status === 'solved';
-                else if (currentFilter === 'review') show = isDue;
-
-                if (show) {
-                    const searchQuery = els.problemSearch.value.toLowerCase().trim();
-                    if (searchQuery) {
-                        if (p.name.toLowerCase().includes(searchQuery) || (p.note && p.note.toLowerCase().includes(searchQuery))) {
-                            patternProblems.push(p);
-                        }
-                    } else {
-                        patternProblems.push(p);
-                    }
+                const searchQuery = els.problemSearch.value.toLowerCase().trim();
+                if (shouldShowProblem(p, currentFilter, searchQuery, today)) {
+                    patternProblems.push(p);
                 }
-
             });
 
             if (patternProblems.length > 0) {
@@ -969,46 +1015,13 @@ function createProblemCard(p) {
 }
 
 function updateStats() {
-    let total = 0, solved = 0, due = 0;
-    const today = getToday();
-    let targetTopicTitle = null;
+    const stats = getUniqueProblemsForTopic(activeTopicId);
+    const { total, solved, due } = stats;
 
-    if (activeTopicId !== 'all') {
-        const topicObj = topicsData.find(t => t.id === activeTopicId);
-        if (topicObj) {
-            targetTopicTitle = topicObj.title;
-
-            // Count based on pattern appearance, not stored topic
-            const uniqueIds = new Set();
-            const solvedIds = new Set();
-
-            topicObj.patterns.forEach(p => p.problems.forEach(pid => {
-                const id = typeof pid === 'string' ? pid : pid.id;
-                if (allProblems.has(id)) {
-                    uniqueIds.add(id);
-                    const problem = allProblems.get(id);
-                    if (problem.status === 'solved') {
-                        solvedIds.add(id);
-                        if (problem.nextReviewDate <= today) due++;
-                    }
-                }
-            }));
-
-            total = uniqueIds.size;
-            solved = solvedIds.size;
-        }
-    } else {
-        // For 'all', count from allProblems
-        allProblems.forEach(p => {
-            total++;
-            if (p.status === 'solved') {
-                solved++;
-                if (p.nextReviewDate <= today) due++;
-            }
-        });
-    }
+    const targetTopicTitle = activeTopicId === 'all' ? null : topicsData.find(t => t.id === activeTopicId)?.title;
 
     // Update main dashboard stats safely
+    if (els.mainTotalText) els.mainTotalText.innerText = total;
     if (els.mainSolvedText) els.mainSolvedText.innerText = `${solved} / ${total}`;
     if (els.mainDueText) els.mainDueText.innerText = due;
     if (els.mainSolvedBar) els.mainSolvedBar.style.width = `${total > 0 ? (solved / total) * 100 : 0}%`;
@@ -1023,12 +1036,9 @@ function updateStats() {
     }
 
     // Also calculate global stats for sidebar
-    let globalTotal = allProblems.size, globalSolved = 0;
-    allProblems.forEach(p => {
-        if (p.status === 'solved') globalSolved++;
-    });
-    if (els.sidebarSolvedText) els.sidebarSolvedText.innerText = globalTotal > 0 ? `${Math.round((globalSolved / globalTotal) * 100)}%` : '0%';
-    if (els.sidebarSolvedBar) els.sidebarSolvedBar.style.width = globalTotal > 0 ? `${(globalSolved / globalTotal) * 100}%` : '0%';
+    const globalStats = getUniqueProblemsForTopic('all');
+    if (els.sidebarSolvedText) els.sidebarSolvedText.innerText = globalStats.total > 0 ? `${Math.round((globalStats.solved / globalStats.total) * 100)}%` : '0%';
+    if (els.sidebarSolvedBar) els.sidebarSolvedBar.style.width = globalStats.total > 0 ? `${(globalStats.solved / globalStats.total) * 100}%` : '0%';
 
     if (due > 0) {
         els.reviewBanner.classList.remove('hidden');
@@ -1145,4 +1155,94 @@ els.topicList.addEventListener('click', (e) => {
     }
 })();
 
+// --- KEYBOARD SHORTCUTS ---
+document.addEventListener('keydown', (e) => {
+    // Skip if typing in an input/textarea
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        // Allow Escape to close modals even when focused on input
+        if (e.key === 'Escape') {
+            if (!els.setupModal.classList.contains('hidden')) return; // Don't close setup modal
+            if (!els.addProblemModal.classList.contains('hidden')) {
+                els.addProblemModal.classList.add('hidden');
+                e.preventDefault();
+            }
+        }
+        return;
+    }
 
+    // '/' - Focus search
+    if (e.key === '/') {
+        e.preventDefault();
+        els.problemSearch.focus();
+    }
+
+    // 'Escape' - Close modals
+    if (e.key === 'Escape') {
+        if (!els.setupModal.classList.contains('hidden')) return; // Don't close setup modal
+        if (!els.addProblemModal.classList.contains('hidden')) {
+            els.addProblemModal.classList.add('hidden');
+            e.preventDefault();
+        }
+    }
+
+    // 'e' or 'E' - Export progress
+    if (e.key === 'e' || e.key === 'E') {
+        e.preventDefault();
+        exportProgress();
+    }
+});
+
+// --- AI PROVIDER PREFERENCE ---
+let preferredAI = localStorage.getItem('preferred-ai') || null; // 'gemini' or 'grok'
+
+// Enhanced AI button click to support preference
+function askAI(problemName, provider) {
+    const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the intuition, optimal approach, and time/space complexity analysis.`;
+
+    // Copy prompt to clipboard
+    try {
+        const textArea = document.createElement("textarea");
+        textArea.value = aiPrompt;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('Prompt copied to clipboard', 'success');
+    } catch (err) {
+        console.error('Failed to copy text: ', err);
+        showToast('Failed to copy prompt', 'error');
+    }
+
+    // Save preference
+    localStorage.setItem('preferred-ai', provider);
+    preferredAI = provider;
+
+    // Open AI service
+    const url = provider === 'gemini' ? 'https://gemini.google.com/app' : 'https://grok.com';
+    window.open(url, '_blank');
+}
+
+// --- EXPORT PROGRESS ---
+function exportProgress() {
+    const exportData = {
+        exportDate: new Date().toISOString(),
+        version: '1.0',
+        problems: Object.fromEntries(allProblems),
+        deletedIds: Array.from(deletedProblemIds)
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `smartgrind-progress-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast('Progress exported successfully!', 'success');
+}
+
+// Make export function globally accessible for potential UI button
+window.exportProgress = exportProgress;
