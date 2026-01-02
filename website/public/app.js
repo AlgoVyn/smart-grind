@@ -186,6 +186,26 @@ const TOTAL_UNIQUE_PROBLEMS = 438; // Initial reference count
 // User type: 'local' or 'signed-in'
 let currentUserType = 'local';
 
+// Function to get URL parameter
+function getUrlParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+// Function to update URL parameter
+function updateUrlParameter(name, value) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (value) {
+        urlParams.set(name, value);
+    } else {
+        urlParams.delete(name);
+    }
+    
+    // Use history.pushState to update URL without page reload
+    const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+    window.history.pushState({ path: newUrl }, '', newUrl);
+}
+
 // Local user storage keys
 const LOCAL_STORAGE_KEYS = {
     USER_TYPE: 'smartgrind-user-type',
@@ -538,12 +558,45 @@ const checkAuth = async () => {
         els.googleLoginBtn.innerHTML = GOOGLE_LOGIN_BTN_HTML;
         updateAuthUI();
     }
+    
+    // Check for category parameter in URL and set active topic
+    const categoryParam = getUrlParameter('category');
+    if (categoryParam) {
+        // Check if this is a valid category
+        const validCategory = topicsData.some(t => t.id === categoryParam) || categoryParam === 'all';
+        if (validCategory) {
+            activeTopicId = categoryParam;
+            // Render the main view with the category from URL
+            renderMainView(activeTopicId);
+        }
+    }
 };
 
 checkAuth();
 
 // Initialize auth UI
 updateAuthUI();
+
+// Handle browser back/forward navigation
+window.addEventListener('popstate', () => {
+    const categoryParam = getUrlParameter('category');
+    if (categoryParam) {
+        // Check if this is a valid category
+        const validCategory = topicsData.some(t => t.id === categoryParam) || categoryParam === 'all';
+        if (validCategory) {
+            activeTopicId = categoryParam;
+            renderSidebar(); // Re-render sidebar to update active state
+            renderMainView(); // Re-render main view with new category
+            scrollToTop();
+        }
+    } else {
+        // No category parameter, show all
+        activeTopicId = 'all';
+        renderSidebar(); // Re-render sidebar to update active state
+        renderMainView(); // Re-render main view with all problems
+        scrollToTop();
+    }
+});
 
 els.googleLoginBtn.addEventListener('click', () => {
     showError(null);
@@ -981,7 +1034,8 @@ function renderSidebar() {
 
     // "All Problems" Link
     const allBtn = document.createElement('div');
-    allBtn.className = `sidebar-link ${activeTopicId === 'all' ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
+    const isAllActive = activeTopicId === 'all' || !activeTopicId;
+    allBtn.className = `sidebar-link ${isAllActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
 
     // Calculate total solved for "All"
     let totalSolvedAll = 0;
@@ -1005,6 +1059,8 @@ function renderSidebar() {
     allBtn.onclick = () => {
         document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
         allBtn.classList.add('active');
+        activeTopicId = 'all';
+        updateUrlParameter('category', null); // Remove category parameter for "all"
         renderMainView('all');
         scrollToTop();
     };
@@ -1045,6 +1101,8 @@ function renderSidebar() {
         btn.onclick = () => {
             document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
             btn.classList.add('active');
+            activeTopicId = topic.id;
+            updateUrlParameter('category', topic.id);
             renderMainView(topic.id);
             scrollToTop();
         };
@@ -1053,10 +1111,11 @@ function renderSidebar() {
 }
 
 function renderMainView(filterTopicId) {
-    activeTopicId = filterTopicId;
+    // Use the provided filterTopicId or fall back to activeTopicId (which may be set from URL)
+    activeTopicId = filterTopicId || activeTopicId;
     const container = els.problemsContainer;
     container.innerHTML = '';
-    els.currentViewTitle.innerText = filterTopicId === 'all' ? 'All Problems' : topicsData.find(t => t.id === filterTopicId)?.title;
+    els.currentViewTitle.innerText = activeTopicId === 'all' ? 'All Problems' : topicsData.find(t => t.id === activeTopicId)?.title;
 
     // Remove any existing delete button
     let existingBtn = els.currentViewTitle.nextElementSibling;
