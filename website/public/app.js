@@ -1022,7 +1022,7 @@ function updateStats() {
 
     // Update main dashboard stats safely
     if (els.mainTotalText) els.mainTotalText.innerText = total;
-    if (els.mainSolvedText) els.mainSolvedText.innerText = `${solved} / ${total}`;
+    if (els.mainSolvedText) els.mainSolvedText.innerText = solved;
     if (els.mainDueText) els.mainDueText.innerText = due;
     if (els.mainSolvedBar) els.mainSolvedBar.style.width = `${total > 0 ? (solved / total) * 100 : 0}%`;
     if (els.mainDueBadge) {
