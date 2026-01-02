@@ -1,0 +1,12 @@
+name = "smart-grind"
+compatibility_date = "2023-01-01"
+pages_build_output_dir = "public"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "your-kv-namespace-id"  # Replace with actual KV namespace ID
+
+[vars]
+GOOGLE_CLIENT_ID = "your-google-client-id"
+GOOGLE_CLIENT_SECRET = "your-google-client-secret"
+JWT_SECRET = "your-jwt-secret-key-change-this"

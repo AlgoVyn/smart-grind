@@ -1,7 +1,5 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, enableNetwork, setLogLevel, deleteField } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-// Import Auth is only needed for signInAnonymously to satisfy Rules
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+// Cloudflare API base
+const API_BASE = '/api';
 
 // --- DATA STRUCTURE (Flattened by Topic) ---
 let topicsData = [
@@ -242,16 +240,6 @@ const els = {
     headerDisconnectBtn: document.getElementById('header-disconnect-btn'),
 };
 
-const DEFAULT_FIREBASE_CONFIG = {
-    apiKey: "AIzaSyCe0sA8v_9HK8AhelOGVRJQzkKCcuy1Do0",
-    authDomain: "smart-grind.firebaseapp.com",
-    projectId: "smart-grind",
-    storageBucket: "smart-grind.firebasestorage.app",
-    messagingSenderId: "674226955390",
-    appId: "1:674226955390:web:cb870068ee7a33c18ba42f",
-    measurementId: "G-SY7KTYKV7T"
-};
-
 // Google Login Button HTML Template
 const GOOGLE_LOGIN_BTN_HTML = `
     <svg class="w-5 h-5" viewBox="0 0 24 24">
@@ -424,63 +412,54 @@ function initScrollButton() {
     }
 }
 
-// --- FIREBASE ---
-
-let auth;
-const provider = new GoogleAuthProvider();
-
-// Initialize Firebase
-const app = initializeApp(DEFAULT_FIREBASE_CONFIG);
-db = getFirestore(app);
-auth = getAuth(app);
-setLogLevel('error');
+// --- CLOUDFLARE AUTH ---
 
 // Monitor Auth State
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        userId = user.uid;
-        els.userDisplay.innerText = user.displayName || user.email || 'User';
+const checkAuth = async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlUserId = urlParams.get('userId');
+    if (urlUserId) {
+        userId = urlUserId;
+        localStorage.setItem('userId', userId);
+        // Clean URL
+        window.history.replaceState({}, document.title, '/');
+        const displayName = localStorage.getItem('displayName') || 'User';
+        els.userDisplay.innerText = displayName;
         await loadData();
     } else {
-        // If not logged in, show setup and hide loading
-        els.setupModal.classList.remove('hidden');
-        els.appWrapper.classList.add('hidden');
-        els.loadingScreen.classList.add('hidden');
-
-        // Reset Login Button State
-        els.googleLoginBtn.disabled = false;
-        els.googleLoginBtn.innerHTML = GOOGLE_LOGIN_BTN_HTML;
-    }
-});
-
-els.googleLoginBtn.addEventListener('click', async () => {
-    try {
-        showError(null);
-        els.googleLoginBtn.disabled = true;
-        els.googleLoginBtn.innerHTML = "Connecting...";
-
-        await signInWithPopup(auth, provider);
-        // Page will refresh auth state via onAuthStateChanged
-    } catch (e) {
-        console.error(e);
-        if (e.code === 'auth/popup-closed-by-user' ||
-            e.code === 'auth/cancelled-popup-request' ||
-            (e.message && (e.message.includes('popup-closed-by-user') || e.message.includes('cancelled-popup-request')))) {
-            showError(null);
+        userId = localStorage.getItem('userId');
+        if (userId) {
+            const displayName = localStorage.getItem('displayName') || 'User';
+            els.userDisplay.innerText = displayName;
+            await loadData();
         } else {
-            showError("Login failed: " + (e.message || "Check console"));
+            // If not logged in, show setup and hide loading
+            els.setupModal.classList.remove('hidden');
+            els.appWrapper.classList.add('hidden');
+            els.loadingScreen.classList.add('hidden');
+
+            // Reset Login Button State
+            els.googleLoginBtn.disabled = false;
+            els.googleLoginBtn.innerHTML = GOOGLE_LOGIN_BTN_HTML;
         }
-        els.googleLoginBtn.disabled = false;
-        els.googleLoginBtn.innerHTML = GOOGLE_LOGIN_BTN_HTML;
     }
+};
+
+checkAuth();
+
+els.googleLoginBtn.addEventListener('click', () => {
+    showError(null);
+    els.googleLoginBtn.disabled = true;
+    els.googleLoginBtn.innerHTML = "Connecting...";
+
+    // Redirect to auth
+    window.location.href = '/api/auth?action=login';
 });
 
 async function handleLogout() {
-    try {
-        await signOut(auth);
-    } catch (e) {
-        console.error("Logout failed", e);
-    }
+    localStorage.removeItem('userId');
+    userId = null;
+    checkAuth();
 }
 
 els.disconnectBtn.addEventListener('click', handleLogout);
@@ -494,20 +473,17 @@ async function loadData() {
     els.loadingScreen.classList.remove('hidden');
 
     try {
-        const docRef = doc(db, 'users', userId);
-        const snap = await getDoc(docRef);
-
-        if (snap.exists()) {
-            const userData = snap.data();
-            allProblems = new Map(Object.entries(userData.problems || {}));
-            const deletedArr = userData.deletedIds || [];
-            deletedProblemIds = new Set(deletedArr);
-        } else {
-            // Initialize new user doc
-            await setDoc(docRef, { problems: {}, deletedIds: [] }, { merge: true });
-            allProblems = new Map();
-            deletedProblemIds = new Set();
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/user`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) {
+            throw new Error('Failed to load data');
         }
+        const userData = await response.json();
+        allProblems = new Map(Object.entries(userData.problems || {}));
+        const deletedArr = userData.deletedIds || [];
+        deletedProblemIds = new Set(deletedArr);
 
         // Sync with static plan to ensure all problems exist
         await syncPlan();
@@ -579,7 +555,15 @@ async function syncPlan() {
     });
 
     if (changed) {
-        await setDoc(doc(db, 'users', userId), { problems: saveObj }, { merge: true });
+        const token = localStorage.getItem('token');
+        await fetch(`${API_BASE}/user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ data: { problems: saveObj, deletedIds: Array.from(deletedProblemIds) } })
+        });
     }
 }
 
@@ -621,23 +605,86 @@ function mergeStructure() {
 
 async function saveProblem(p) {
     try {
-        const path = `problems.${p.id}`;
-        await updateDoc(doc(db, 'users', userId), { [path]: p });
+        const token = localStorage.getItem('token');
+        const data = { problems: Object.fromEntries(allProblems), deletedIds: Array.from(deletedProblemIds) };
+        await fetch(`${API_BASE}/user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ data })
+        });
         updateStats();
     } catch (e) { console.error(e); }
 }
 
 async function saveDeletedId(id) {
     try {
-        // Remove from problems map
-        const deletePath = `problems.${id}`;
-        // Add to deletedIds array
-        await updateDoc(doc(db, 'users', userId), {
-            [deletePath]: deleteField(),
-            deletedIds: Array.from(deletedProblemIds)
+        allProblems.delete(id);
+        const token = localStorage.getItem('token');
+        const data = { problems: Object.fromEntries(allProblems), deletedIds: Array.from(deletedProblemIds) };
+        await fetch(`${API_BASE}/user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ data })
         });
         updateStats();
     } catch (e) { console.error(e); }
+}
+
+async function saveData() {
+    try {
+        const token = localStorage.getItem('token');
+        const data = { problems: Object.fromEntries(allProblems), deletedIds: Array.from(deletedProblemIds) };
+        await fetch(`${API_BASE}/user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ data })
+        });
+        updateStats();
+    } catch (e) { console.error(e); }
+}
+
+async function deleteCategory(topicId) {
+    const topic = topicsData.find(t => t.id === topicId);
+    if (!topic) return;
+    if (!confirm(`Are you sure you want to delete the category "${topic.title}" and all its associated problems? This action cannot be undone.`)) return;
+
+    // Remove from topicsData
+    const index = topicsData.indexOf(topic);
+    if (index > -1) topicsData.splice(index, 1);
+
+    // Remove associated problems
+    const problemsToDelete = [];
+    allProblems.forEach((p, id) => {
+        if (p.topic === topic.title) {
+            problemsToDelete.push(id);
+        }
+    });
+    problemsToDelete.forEach(id => {
+        allProblems.delete(id);
+        deletedProblemIds.add(id);
+    });
+
+    // If active, switch to all
+    if (activeTopicId === topicId) {
+        activeTopicId = 'all';
+    }
+
+    // Save
+    await saveData();
+
+    // Re-render
+    renderSidebar();
+    renderMainView(activeTopicId);
+    showToast('Category and associated problems removed');
 }
 
 // --- ADD PROBLEM LOGIC ---
@@ -689,15 +736,15 @@ els.addProbPattern.addEventListener('change', (e) => {
 
 els.saveAddBtn.addEventListener('click', async () => {
     const name = els.addProbName.value.trim();
-    const url = els.addProbUrl.value.trim() || '#';
+    const url = els.addProbUrl.value.trim();
     let category = els.addProbCategory.value;
     if (!category) category = els.addProbCategoryNew.value.trim();
 
     let pattern = els.addProbPattern.value;
     if (!pattern || !els.addProbCategory.value) pattern = els.addProbPatternNew.value.trim();
 
-    if (!name || !category || !pattern) {
-        alert("Please fill in Name, Category and Pattern.");
+    if (!name || !url || !category || !pattern) {
+        alert("Please fill in Name, URL, Category and Pattern.");
         return;
     }
 
@@ -734,8 +781,8 @@ function renderSidebar() {
     els.topicList.innerHTML = '';
 
     // "All Problems" Link
-    const allBtn = document.createElement('button');
-    allBtn.className = `sidebar-link ${activeTopicId === 'all' ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group`;
+    const allBtn = document.createElement('div');
+    allBtn.className = `sidebar-link ${activeTopicId === 'all' ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
 
     // Calculate total solved for "All"
     let totalSolvedAll = 0;
@@ -765,8 +812,8 @@ function renderSidebar() {
     els.topicList.appendChild(allBtn);
 
     topicsData.forEach(topic => {
-        const btn = document.createElement('button');
-        btn.className = `sidebar-link ${activeTopicId === topic.id ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base hover:text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group`;
+        const btn = document.createElement('div');
+        btn.className = `sidebar-link ${activeTopicId === topic.id ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base hover:text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
 
         // Calculate topic progress and total count using Sets for unique IDs
         const uniqueIds = new Set();
@@ -811,6 +858,21 @@ function renderMainView(filterTopicId) {
     const container = els.problemsContainer;
     container.innerHTML = '';
     els.currentViewTitle.innerText = filterTopicId === 'all' ? 'All Problems' : topicsData.find(t => t.id === filterTopicId)?.title;
+
+    // Remove any existing delete button
+    let existingBtn = els.currentViewTitle.nextElementSibling;
+    if (existingBtn && existingBtn.classList.contains('delete-category-btn')) {
+        existingBtn.remove();
+    }
+
+    if (filterTopicId !== 'all') {
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-category-btn ml-2 p-1 rounded hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors';
+        deleteBtn.title = 'Delete Category';
+        deleteBtn.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>';
+        deleteBtn.onclick = () => deleteCategory(filterTopicId);
+        els.currentViewTitle.insertAdjacentElement('afterend', deleteBtn);
+    }
 
     const today = getToday();
     let visibleCount = 0;
@@ -1109,6 +1171,15 @@ function toggleMobileMenu() {
 els.mobileMenuBtn.addEventListener('click', toggleMobileMenu);
 els.mobileMenuBtnMain.addEventListener('click', toggleMobileMenu);
 els.sidebarBackdrop.addEventListener('click', toggleMobileMenu);
+
+// Handle category delete
+els.topicList.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (btn && btn.dataset.action === 'delete-category') {
+        e.stopPropagation();
+        deleteCategory(btn.dataset.topicId);
+    }
+});
 
 // Close sidebar on topic click (mobile)
 els.topicList.addEventListener('click', (e) => {
