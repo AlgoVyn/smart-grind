@@ -219,6 +219,7 @@ const els = {
     mainDueBadge: document.getElementById('stat-due-badge'),
     currentFilterDisplay: document.getElementById('current-filter-display'),
 
+    contentScroll: document.getElementById('content-scroll'),
     emptyState: document.getElementById('empty-state'),
     currentViewTitle: document.getElementById('current-view-title'),
     filterBtns: document.querySelectorAll('.filter-btn'),
@@ -233,6 +234,7 @@ const els = {
     sidebarResizer: document.getElementById('sidebar-resizer'),
     sidebarBackdrop: document.getElementById('sidebar-backdrop'),
     mobileMenuBtnMain: document.getElementById('mobile-menu-btn-main'),
+    scrollToTopBtn: document.getElementById('scroll-to-top-btn'),
 
 
 
@@ -309,6 +311,40 @@ function getCleanSlug(id) {
 function formatProblemName(id) {
     const slug = getCleanSlug(id);
     return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+/**
+ * Robustly scrolls the content area to the top.
+ * @param {boolean} smooth - Whether to scroll smoothly or instantly.
+ */
+function scrollToTop(smooth = false) {
+    const behavior = smooth ? 'smooth' : 'instant';
+    const el = document.getElementById('content-scroll');
+    if (el) {
+        el.scrollTo({ top: 0, behavior: behavior });
+    }
+
+    // Fallback/Redundancy for mobile/main container
+    window.scrollTo({ top: 0, behavior: behavior });
+}
+
+// --- SCROLL BUTTON LOGIC ---
+function initScrollButton() {
+    if (els.contentScroll && els.scrollToTopBtn) {
+        els.contentScroll.addEventListener('scroll', () => {
+            if (els.contentScroll.scrollTop > 300) {
+                // Show button
+                els.scrollToTopBtn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            } else {
+                // Hide button
+                els.scrollToTopBtn.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            }
+        });
+
+        els.scrollToTopBtn.addEventListener('click', () => {
+            scrollToTop(true);
+        });
+    }
 }
 
 // --- FIREBASE ---
@@ -421,6 +457,9 @@ async function loadData() {
         renderSidebar();
         renderMainView('all'); // Show all by default
         updateStats();
+
+        // Initialize scroll button after DOM is ready
+        initScrollButton();
 
         els.setupModal.classList.add('hidden');
         els.appWrapper.classList.remove('hidden');
@@ -635,7 +674,7 @@ function renderSidebar() {
 
     // "All Problems" Link
     const allBtn = document.createElement('button');
-    allBtn.className = 'sidebar-link active w-full text-left px-5 py-3 text-sm font-medium text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group';
+    allBtn.className = `sidebar-link ${activeTopicId === 'all' ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group`;
 
     // Calculate total solved for "All"
     let totalSolvedAll = 0;
@@ -660,27 +699,32 @@ function renderSidebar() {
         document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
         allBtn.classList.add('active');
         renderMainView('all');
+        scrollToTop();
     };
     els.topicList.appendChild(allBtn);
 
     topicsData.forEach(topic => {
         const btn = document.createElement('button');
-        btn.className = 'sidebar-link w-full text-left px-5 py-3 text-sm font-medium text-theme-base hover:text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group';
+        btn.className = `sidebar-link ${activeTopicId === topic.id ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base hover:text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group`;
 
-        // Calculate topic progress and total count
-        let total = 0;
-        let solved = 0;
+        // Calculate topic progress and total count using Sets for unique IDs
+        const uniqueIds = new Set();
+        const solvedIds = new Set();
 
-        // Use patterns to count to ensure we match the view structure
+        // Use patterns to collect unique problem IDs based on where they appear
         topic.patterns.forEach(p => p.problems.forEach(pid => {
             // Check if ID or object
             const id = typeof pid === 'string' ? pid : pid.id;
             if (allProblems.has(id)) {
-                total++;
-                if (allProblems.get(id).status === 'solved') solved++;
+                uniqueIds.add(id);
+                if (allProblems.get(id).status === 'solved') {
+                    solvedIds.add(id);
+                }
             }
         }));
 
+        const total = uniqueIds.size;
+        const solved = solvedIds.size;
         const pct = total > 0 ? Math.round((solved / total) * 100) : 0;
 
         btn.innerHTML = `
@@ -695,6 +739,7 @@ function renderSidebar() {
             document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
             btn.classList.add('active');
             renderMainView(topic.id);
+            scrollToTop();
         };
         els.topicList.appendChild(btn);
     });
@@ -813,14 +858,14 @@ function createProblemCard(p) {
                     
                     <div class="flex items-center gap-2 shrink-0">
                         <!-- AI Helper Group -->
-                        <div class="flex items-center bg-dark-900 rounded-lg border border-slate-800 p-0.5 mr-1">
-                            <button class="action-btn p-1.5 rounded-md hover:bg-dark-800 text-theme-muted hover:text-blue-400 transition-colors" data-action="ask-gemini" title="Ask Gemini (Copies prompt & opens)">
+                        <div class="flex items-center bg-dark-900 rounded-lg border border-slate-800">
+                            <button class="action-btn p-2 rounded-l-lg hover:bg-dark-800 text-theme-muted hover:text-blue-400 transition-colors" data-action="ask-gemini" title="Ask Gemini (Copies prompt & opens)">
                                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68q.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58a12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68q-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96q2.19.93 3.81 2.55t2.55 3.81"/>
                                 </svg>
                             </button>
-                            <button class="action-btn p-1.5 rounded-md hover:bg-dark-800 text-theme-muted hover:text-theme-bold transition-colors" data-action="ask-grok" title="Ask Grok (Copies prompt & opens)">
-                                <svg fill="currentColor" fill-rule="evenodd" height="1em" style="flex:none;line-height:1" viewBox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M9.27 15.29l7.978-5.897c.391-.29.95-.177 1.137.272.98 2.369.542 5.215-1.41 7.169-1.951 1.954-4.667 2.382-7.149 1.406l-2.711 1.257c3.889 2.661 8.611 2.003 11.562-.953 2.341-2.344 3.066-5.539 2.388-8.42l.006.007c-.983-4.232.242-5.924 2.75-9.383.06-.082.12-.164.179-.248l-3.301 3.305v-.01L9.267 15.292M7.623 16.723c-2.792-2.67-2.31-6.801.071-9.184 1.761-1.763 4.647-2.483 7.166-1.425l2.705-1.25a7.808 7.808 0 00-1.829-1A8.975 8.975 0 005.984 5.83c-2.533 2.536-3.33 6.436-1.962 9.764 1.022 2.487-.653 4.246-2.34 6.022-.599.63-1.199 1.259-1.682 1.925l7.62-6.815"></path></svg>
+                            <button class="action-btn p-2 rounded-r-lg hover:bg-dark-800 text-theme-muted hover:text-theme-bold transition-colors border-l border-slate-800" data-action="ask-grok" title="Ask Grok (Copies prompt & opens)">
+                                <svg fill="currentColor" fill-rule="evenodd" class="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.27 15.29l7.978-5.897c.391-.29.95-.177 1.137.272.98 2.369.542 5.215-1.41 7.169-1.951 1.954-4.667 2.382-7.149 1.406l-2.711 1.257c3.889 2.661 8.611 2.003 11.562-.953 2.341-2.344 3.066-5.539 2.388-8.42l.006.007c-.983-4.232.242-5.924 2.75-9.383.06-.082.12-.164.179-.248l-3.301 3.305v-.01L9.267 15.292M7.623 16.723c-2.792-2.67-2.31-6.801.071-9.184 1.761-1.763 4.647-2.483 7.166-1.425l2.705-1.25a7.808 7.808 0 00-1.829-1A8.975 8.975 0 005.984 5.83c-2.533 2.536-3.33 6.436-1.962 9.764 1.022 2.487-.653 4.246-2.34 6.022-.599.63-1.199 1.259-1.682 1.925l7.62-6.815"></path></svg>
                             </button>
                         </div>
 
@@ -842,7 +887,7 @@ function createProblemCard(p) {
                         `}
 
                         <!-- Delete Button -->
-                         <button class="action-btn p-2 rounded-lg hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors ml-1" data-action="delete" title="Delete Problem">
+                         <button class="action-btn p-2 rounded-lg hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors" data-action="delete" title="Delete Problem">
 
                              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
@@ -930,19 +975,38 @@ function updateStats() {
 
     if (activeTopicId !== 'all') {
         const topicObj = topicsData.find(t => t.id === activeTopicId);
-        if (topicObj) targetTopicTitle = topicObj.title;
-    }
+        if (topicObj) {
+            targetTopicTitle = topicObj.title;
 
-    allProblems.forEach(p => {
-        // Filter stats by category if not 'all'
-        if (targetTopicTitle && p.topic !== targetTopicTitle) return;
+            // Count based on pattern appearance, not stored topic
+            const uniqueIds = new Set();
+            const solvedIds = new Set();
 
-        total++;
-        if (p.status === 'solved') {
-            solved++;
-            if (p.nextReviewDate <= today) due++;
+            topicObj.patterns.forEach(p => p.problems.forEach(pid => {
+                const id = typeof pid === 'string' ? pid : pid.id;
+                if (allProblems.has(id)) {
+                    uniqueIds.add(id);
+                    const problem = allProblems.get(id);
+                    if (problem.status === 'solved') {
+                        solvedIds.add(id);
+                        if (problem.nextReviewDate <= today) due++;
+                    }
+                }
+            }));
+
+            total = uniqueIds.size;
+            solved = solvedIds.size;
         }
-    });
+    } else {
+        // For 'all', count from allProblems
+        allProblems.forEach(p => {
+            total++;
+            if (p.status === 'solved') {
+                solved++;
+                if (p.nextReviewDate <= today) due++;
+            }
+        });
+    }
 
     // Update main dashboard stats safely
     if (els.mainSolvedText) els.mainSolvedText.innerText = `${solved} / ${total}`;
@@ -972,6 +1036,9 @@ function updateStats() {
     } else {
         els.reviewBanner.classList.add('hidden');
     }
+
+    // Refresh sidebar to update percentages
+    renderSidebar();
 }
 
 window.scrollToReview = () => {
@@ -1029,6 +1096,7 @@ function toggleMobileMenu() {
     }
 }
 
+els.mobileMenuBtn.addEventListener('click', toggleMobileMenu);
 els.mobileMenuBtnMain.addEventListener('click', toggleMobileMenu);
 els.sidebarBackdrop.addEventListener('click', toggleMobileMenu);
 
