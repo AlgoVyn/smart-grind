@@ -4,6 +4,52 @@
 window.SmartGrind = window.SmartGrind || {};
 
 window.SmartGrind.renderers = {
+    // Helper to render a topic section
+    _renderTopicSection: (topic, filterTopicId, today, visibleCountRef) => {
+        const topicSection = document.createElement('div');
+        topicSection.className = 'space-y-6';
+
+        // Only show header if viewing all
+        if (filterTopicId === 'all') {
+            topicSection.innerHTML = `<h3 class="text-xl font-bold text-theme-bold border-b border-theme pb-2">${topic.title}</h3>`;
+        }
+
+        let hasVisiblePattern = false;
+
+        topic.patterns.forEach(pattern => {
+            let patternProblems = [];
+
+            pattern.problems.forEach(probDef => {
+                const id = typeof probDef === 'string' ? probDef : probDef.id;
+                const p = window.SmartGrind.state.problems.get(id);
+                if (!p) return; // Skip if deleted
+
+                const searchQuery = window.SmartGrind.state.elements.problemSearch.value.toLowerCase().trim();
+                if (window.SmartGrind.utils.shouldShowProblem(p, window.SmartGrind.state.ui.currentFilter, searchQuery, today)) {
+                    patternProblems.push(p);
+                }
+            });
+
+            if (patternProblems.length > 0) {
+                hasVisiblePattern = true;
+                visibleCountRef.count += patternProblems.length;
+                const patternEl = document.createElement('div');
+                patternEl.innerHTML = `<h4 class="text-sm font-bold text-brand-400 uppercase tracking-wider mb-3 mt-6">${pattern.name}</h4>`;
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 gap-3';
+
+                patternProblems.forEach(p => {
+                    grid.appendChild(window.SmartGrind.renderers.createProblemCard(p));
+                });
+
+                patternEl.appendChild(grid);
+                topicSection.appendChild(patternEl);
+            }
+        });
+
+        return hasVisiblePattern ? topicSection : null;
+    },
+
     // Render sidebar navigation
     renderSidebar: () => {
         const topicList = window.SmartGrind.state.elements.topicList;
@@ -93,70 +139,31 @@ window.SmartGrind.renderers = {
         }
 
         const today = window.SmartGrind.utils.getToday();
-        let visibleCount = 0;
+        const visibleCountRef = { count: 0 };
 
         const relevantTopics = filterTopicId === 'all' ?
             window.SmartGrind.data.topicsData :
             window.SmartGrind.data.topicsData.filter(t => t.id === filterTopicId);
 
         relevantTopics.forEach(topic => {
-            const topicSection = document.createElement('div');
-            topicSection.className = 'space-y-6';
-
-            // Only show header if viewing all
-            if (filterTopicId === 'all') {
-                topicSection.innerHTML = `<h3 class="text-xl font-bold text-theme-bold border-b border-theme pb-2">${topic.title}</h3>`;
-            }
-
-            let hasVisiblePattern = false;
-
-            topic.patterns.forEach(pattern => {
-                let patternProblems = [];
-
-                pattern.problems.forEach(probDef => {
-                    const id = typeof probDef === 'string' ? probDef : probDef.id;
-                    const p = window.SmartGrind.state.problems.get(id);
-                    if (!p) return; // Skip if deleted
-
-                    const searchQuery = window.SmartGrind.state.elements.problemSearch.value.toLowerCase().trim();
-                    if (window.SmartGrind.utils.shouldShowProblem(p, window.SmartGrind.state.ui.currentFilter, searchQuery, today)) {
-                        patternProblems.push(p);
-                    }
-                });
-
-                if (patternProblems.length > 0) {
-                    hasVisiblePattern = true;
-                    visibleCount += patternProblems.length;
-                    const patternEl = document.createElement('div');
-                    patternEl.innerHTML = `<h4 class="text-sm font-bold text-brand-400 uppercase tracking-wider mb-3 mt-6">${pattern.name}</h4>`;
-                    const grid = document.createElement('div');
-                    grid.className = 'grid grid-cols-1 gap-3';
-
-                    patternProblems.forEach(p => {
-                        grid.appendChild(window.SmartGrind.renderers.createProblemCard(p));
-                    });
-
-                    patternEl.appendChild(grid);
-                    topicSection.appendChild(patternEl);
-                }
-            });
-
-            if (hasVisiblePattern) {
+            const topicSection = window.SmartGrind.renderers._renderTopicSection(topic, filterTopicId, today, visibleCountRef);
+            if (topicSection) {
                 container.appendChild(topicSection);
             }
         });
+
+        const visibleCount = visibleCountRef.count;
 
         window.SmartGrind.state.elements.emptyState.classList.toggle('hidden', visibleCount > 0);
         window.SmartGrind.renderers.updateStats();
     },
 
-    // Create a problem card element
-    createProblemCard: (p) => {
-        const el = document.createElement('div');
+    // Helper to generate problem card HTML
+    _generateProblemCardHTML: (p) => {
         const isSolved = p.status === 'solved';
         const isDue = isSolved && p.nextReviewDate <= window.SmartGrind.utils.getToday();
 
-        el.className = `group p-4 rounded-xl border transition-all duration-200 ${isDue ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40' :
+        const className = `group p-4 rounded-xl border transition-all duration-200 ${isDue ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40' :
             isSolved ? 'bg-dark-800 border-brand-500/20 hover:border-brand-500/40' :
                 'bg-dark-800 border-theme hover:border-slate-400'
             }`;
@@ -166,7 +173,18 @@ window.SmartGrind.renderers = {
             isSolved ?
                 `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/20 text-brand-400 uppercase tracking-wide">Solved</span>` : '';
 
-        el.innerHTML = `
+        const actionButton = isSolved ? `
+            <button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors ${isDue ? 'bg-amber-500 text-dark-950 hover:bg-amber-400' : 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold'}"
+                data-action="${isDue ? 'review' : 'reset'}">
+                ${isDue ? 'Review' : 'Reset'}
+            </button>
+        ` : `
+            <button class="action-btn px-4 py-2 rounded-lg bg-brand-600 text-white text-xs font-bold hover:bg-brand-500 shadow-lg shadow-brand-500/20 transition-all" data-action="solve">
+                Solve
+            </button>
+        `;
+
+        return { className, innerHTML: `
             <div class="flex flex-col sm:flex-row justify-between gap-4">
                 <div class="flex-1">
                     <div class="flex items-center gap-2 mb-1">
@@ -198,16 +216,7 @@ window.SmartGrind.renderers = {
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                     </button>
 
-                    ${isSolved ? `
-                        <button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors ${isDue ? 'bg-amber-500 text-dark-950 hover:bg-amber-400' : 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold'}"
-                            data-action="${isDue ? 'review' : 'reset'}">
-                            ${isDue ? 'Review' : 'Reset'}
-                        </button>
-                    ` : `
-                        <button class="action-btn px-4 py-2 rounded-lg bg-brand-600 text-white text-xs font-bold hover:bg-brand-500 shadow-lg shadow-brand-500/20 transition-all" data-action="solve">
-                            Solve
-                        </button>
-                    `}
+                    ${actionButton}
 
                     <!-- Delete Button -->
                     <button class="action-btn p-2 rounded-lg hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors" data-action="delete" title="Delete Problem">
@@ -223,7 +232,15 @@ window.SmartGrind.renderers = {
                     <button class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-md transition-colors" data-action="save-note">Save</button>
                 </div>
             </div>
-        `;
+        ` };
+    },
+
+    // Create a problem card element
+    createProblemCard: (p) => {
+        const el = document.createElement('div');
+        const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(p);
+        el.className = className;
+        el.innerHTML = innerHTML;
 
         // Add event listeners
         el.addEventListener('click', async (e) => {

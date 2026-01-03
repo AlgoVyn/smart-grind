@@ -277,40 +277,37 @@ window.SmartGrind.ui = {
         }
     },
 
+    // Keyboard shortcuts map
+    _keyboardShortcuts: {
+        '/': () => {
+            window.SmartGrind.state.elements.problemSearch.focus();
+        },
+        'Escape': () => {
+            if (!window.SmartGrind.state.elements.setupModal.classList.contains('hidden')) return; // Don't close setup modal
+            if (!window.SmartGrind.state.elements.addProblemModal.classList.contains('hidden')) {
+                window.SmartGrind.state.elements.addProblemModal.classList.add('hidden');
+            }
+        },
+        'e': () => window.SmartGrind.app.exportProgress(),
+        'E': () => window.SmartGrind.app.exportProgress()
+    },
+
     // Keyboard shortcuts
     handleKeyboard: (e) => {
         // Skip if typing in an input/textarea
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
             // Allow Escape to close modals even when focused on input
             if (e.key === 'Escape') {
-                if (!window.SmartGrind.state.elements.setupModal.classList.contains('hidden')) return; // Don't close setup modal
-                if (!window.SmartGrind.state.elements.addProblemModal.classList.contains('hidden')) {
-                    window.SmartGrind.state.elements.addProblemModal.classList.add('hidden');
-                    e.preventDefault();
-                }
+                window.SmartGrind.ui._keyboardShortcuts['Escape']();
+                e.preventDefault();
             }
             return;
         }
 
-        // '/' - Focus search
-        if (e.key === '/') {
+        const handler = window.SmartGrind.ui._keyboardShortcuts[e.key];
+        if (handler) {
             e.preventDefault();
-            window.SmartGrind.state.elements.problemSearch.focus();
-        }
-
-        // 'Escape' - Close modals
-        if (e.key === 'Escape') {
-            if (!window.SmartGrind.state.elements.setupModal.classList.contains('hidden')) return; // Don't close setup modal
-            if (!window.SmartGrind.state.elements.addProblemModal.classList.contains('hidden')) {
-                window.SmartGrind.state.elements.addProblemModal.classList.add('hidden');
-                e.preventDefault();
-            }
-        }
-
-        // 'e' or 'E' - Export progress
-        if (e.key === 'e' || e.key === 'E') {
-            e.preventDefault();
-            window.SmartGrind.app.exportProgress();
+            handler();
         }
     },
 
@@ -432,6 +429,19 @@ window.SmartGrind.app = {
 
 // --- INITIALIZATION ---
 
+// Helper to apply category from URL
+const _applyCategory = (categoryParam) => {
+    if (categoryParam) {
+        const validCategory = window.SmartGrind.data.topicsData.some(t => t.id === categoryParam) || categoryParam === 'all';
+        if (validCategory) {
+            window.SmartGrind.state.ui.activeTopicId = categoryParam;
+            window.SmartGrind.renderers.renderSidebar();
+            window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
+            window.SmartGrind.utils.scrollToTop();
+        }
+    }
+};
+
 // Check auth state and initialize app
 const checkAuth = async () => {
     // Check for category in URL path before any URL changes
@@ -458,16 +468,7 @@ const checkAuth = async () => {
         localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
         await window.SmartGrind.api.loadData();
         window.SmartGrind.ui.updateAuthUI();
-        // Apply category after loading
-        if (categoryParam) {
-            const validCategory = window.SmartGrind.data.topicsData.some(t => t.id === categoryParam) || categoryParam === 'all';
-            if (validCategory) {
-                window.SmartGrind.state.ui.activeTopicId = categoryParam;
-                window.SmartGrind.renderers.renderSidebar();
-                window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-                window.SmartGrind.utils.scrollToTop();
-            }
-        }
+        _applyCategory(categoryParam);
         return;
     }
 
@@ -480,16 +481,7 @@ const checkAuth = async () => {
         localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
         await window.SmartGrind.api.loadData();
         window.SmartGrind.ui.updateAuthUI();
-        // Apply category after loading
-        if (categoryParam) {
-            const validCategory = window.SmartGrind.data.topicsData.some(t => t.id === categoryParam) || categoryParam === 'all';
-            if (validCategory) {
-                window.SmartGrind.state.ui.activeTopicId = categoryParam;
-                window.SmartGrind.renderers.renderSidebar();
-                window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-                window.SmartGrind.utils.scrollToTop();
-            }
-        }
+        _applyCategory(categoryParam);
         return;
     }
 
@@ -498,16 +490,7 @@ const checkAuth = async () => {
 
     if (userType === 'local') {
         window.SmartGrind.app.initializeLocalUser();
-        // Apply category for local user
-        if (categoryParam) {
-            const validCategory = window.SmartGrind.data.topicsData.some(t => t.id === categoryParam) || categoryParam === 'all';
-            if (validCategory) {
-                window.SmartGrind.state.ui.activeTopicId = categoryParam;
-                window.SmartGrind.renderers.renderSidebar();
-                window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-                window.SmartGrind.utils.scrollToTop();
-            }
-        }
+        _applyCategory(categoryParam);
     } else {
         // If user type is 'signed-in' but no userId, show setup modal
         window.SmartGrind.state.elements.setupModal.classList.remove('hidden');

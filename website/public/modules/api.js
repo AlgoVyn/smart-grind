@@ -4,8 +4,8 @@
 window.SmartGrind = window.SmartGrind || {};
 
 window.SmartGrind.api = {
-    // Save problem to storage/API
-    saveProblem: async (p) => {
+    // Helper function to perform save operation
+    _performSave: async () => {
         try {
             if (window.SmartGrind.state.user.type === 'local') {
                 window.SmartGrind.state.saveToStorage();
@@ -30,28 +30,16 @@ window.SmartGrind.api = {
         }
     },
 
+    // Save problem to storage/API
+    saveProblem: async (p) => {
+        await window.SmartGrind.api._performSave();
+    },
+
     // Save deleted problem ID
     saveDeletedId: async (id) => {
         try {
             window.SmartGrind.state.problems.delete(id);
-            if (window.SmartGrind.state.user.type === 'local') {
-                window.SmartGrind.state.saveToStorage();
-            } else {
-                const token = localStorage.getItem('token');
-                const data = {
-                    problems: Object.fromEntries(window.SmartGrind.state.problems),
-                    deletedIds: Array.from(window.SmartGrind.state.deletedProblemIds)
-                };
-                await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ data })
-                });
-            }
-            window.SmartGrind.renderers.updateStats();
+            await window.SmartGrind.api._performSave();
         } catch (e) {
             console.error(e);
         }
@@ -59,28 +47,7 @@ window.SmartGrind.api = {
 
     // Save all data
     saveData: async () => {
-        try {
-            if (window.SmartGrind.state.user.type === 'local') {
-                window.SmartGrind.state.saveToStorage();
-            } else {
-                const token = localStorage.getItem('token');
-                const data = {
-                    problems: Object.fromEntries(window.SmartGrind.state.problems),
-                    deletedIds: Array.from(window.SmartGrind.state.deletedProblemIds)
-                };
-                await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ data })
-                });
-            }
-            window.SmartGrind.renderers.updateStats();
-        } catch (e) {
-            console.error(e);
-        }
+        await window.SmartGrind.api._performSave();
     },
 
     // Load data from API
@@ -131,12 +98,13 @@ window.SmartGrind.api = {
         let changed = false;
         let saveObj = Object.fromEntries(window.SmartGrind.state.problems);
 
+        // Iterate through all predefined problems in topicsData
         window.SmartGrind.data.topicsData.forEach(topic => {
             topic.patterns.forEach(pat => {
                 pat.problems.forEach(probDef => {
                     const id = probDef.id;
 
-                    // Only add if not in allProblems AND not explicitly deleted
+                    // Add new problems if not present and not deleted
                     if (!window.SmartGrind.state.problems.has(id) && !window.SmartGrind.state.deletedProblemIds.has(id)) {
                         const newProb = {
                             id: id,
@@ -153,7 +121,7 @@ window.SmartGrind.api = {
                         saveObj[id] = newProb;
                         changed = true;
                     }
-                    // If it exists, sync metadata (optional, but good for fixes)
+                    // Sync metadata for existing problems to ensure consistency
                     else if (window.SmartGrind.state.problems.has(id)) {
                         const p = window.SmartGrind.state.problems.get(id);
                         if (!p.topic || !p.url || p.url !== probDef.url || p.pattern !== pat.name) {
@@ -170,39 +138,26 @@ window.SmartGrind.api = {
             });
         });
 
+        // Save changes if any were made
         if (changed) {
-            if (window.SmartGrind.state.user.type === 'local') {
-                window.SmartGrind.state.saveToStorage();
-            } else {
-                const token = localStorage.getItem('token');
-                await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ data: { problems: saveObj, deletedIds: Array.from(window.SmartGrind.state.deletedProblemIds) } })
-                });
-            }
+            await window.SmartGrind.api._performSave();
         }
     },
 
     // Merge custom problems into topicsData structure
     mergeStructure: () => {
-        window.SmartGrind.state.problems.forEach(p => {
-            // Check if this problem is already in topicsData
-            let found = false;
-            for (let t of window.SmartGrind.data.topicsData) {
-                for (let pat of t.patterns) {
-                    if (pat.problems.some(existing => existing.id === p.id)) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (found) break;
-            }
+        // Build a set of existing problem IDs in topicsData for quick lookup
+        const existingIds = new Set();
+        window.SmartGrind.data.topicsData.forEach(topic => {
+            topic.patterns.forEach(pattern => {
+                pattern.problems.forEach(prob => {
+                    existingIds.add(prob.id);
+                });
+            });
+        });
 
-            if (!found) {
+        window.SmartGrind.state.problems.forEach(p => {
+            if (!existingIds.has(p.id)) {
                 // It's a custom problem, add to topicsData
                 let topic = window.SmartGrind.data.topicsData.find(t => t.title === p.topic);
                 if (!topic) {
