@@ -275,7 +275,8 @@ window.SmartGrind.renderers = {
                 // Smart refresh
                 window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
             } else if (action === 'delete') {
-                if (confirm(`Are you sure you want to remove "${p.name}" from your tracker?`)) {
+                const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to remove "${p.name}" from your tracker?`);
+                if (confirmed) {
                     window.SmartGrind.state.problems.delete(p.id);
                     window.SmartGrind.state.deletedProblemIds.add(p.id);
                     await window.SmartGrind.api.saveDeletedId(p.id);

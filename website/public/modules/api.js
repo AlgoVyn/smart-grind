@@ -11,11 +11,14 @@ window.SmartGrind.api = {
                 window.SmartGrind.state.saveToStorage();
             } else {
                 const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('No authentication token found. Please sign in again.');
+                }
                 const data = {
                     problems: Object.fromEntries(window.SmartGrind.state.problems),
                     deletedIds: Array.from(window.SmartGrind.state.deletedProblemIds)
                 };
-                await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
+                const response = await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -23,10 +26,21 @@ window.SmartGrind.api = {
                     },
                     body: JSON.stringify({ data })
                 });
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Authentication failed. Please sign in again.');
+                    } else if (response.status === 500) {
+                        throw new Error('Server error. Please try again later.');
+                    } else {
+                        throw new Error(`Save failed: ${response.statusText}`);
+                    }
+                }
             }
             window.SmartGrind.renderers.updateStats();
         } catch (e) {
-            console.error(e);
+            console.error('Save error:', e);
+            window.SmartGrind.ui.showAlert(`Failed to save data: ${e.message}`);
+            throw e; // Re-throw to allow caller to handle
         }
     },
 
@@ -41,7 +55,11 @@ window.SmartGrind.api = {
             window.SmartGrind.state.problems.delete(id);
             await window.SmartGrind.api._performSave();
         } catch (e) {
-            console.error(e);
+            console.error('Delete save error:', e);
+            window.SmartGrind.ui.showAlert(`Failed to delete problem: ${e.message}`);
+            // Restore the problem if save failed
+            // Note: We don't have the problem data here, so we can't restore it
+            throw e;
         }
     },
 
@@ -56,11 +74,22 @@ window.SmartGrind.api = {
 
         try {
             const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found. Please sign in again.');
+            }
             const response = await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) {
-                throw new Error('Failed to load data');
+                if (response.status === 401) {
+                    throw new Error('Authentication failed. Please sign in again.');
+                } else if (response.status === 404) {
+                    throw new Error('User data not found. Starting with fresh data.');
+                } else if (response.status >= 500) {
+                    throw new Error('Server error. Please try again later.');
+                } else {
+                    throw new Error(`Failed to load data: ${response.statusText}`);
+                }
             }
             const userData = await response.json();
             window.SmartGrind.state.problems = new Map(Object.entries(userData.problems || {}));
@@ -84,9 +113,14 @@ window.SmartGrind.api = {
             window.SmartGrind.state.elements.appWrapper.classList.remove('hidden');
 
         } catch (e) {
-            console.error(e);
-            window.SmartGrind.ui.showError("Error loading data. Check console.");
-            window.SmartGrind.state.elements.setupModal.classList.remove('hidden');
+            console.error('Load data error:', e);
+            window.SmartGrind.ui.showAlert(`Failed to load data: ${e.message}`);
+            // For auth errors, show signin modal
+            if (e.message.includes('Authentication failed') || e.message.includes('No authentication token')) {
+                window.SmartGrind.state.elements.signinModal.classList.remove('hidden');
+            } else {
+                window.SmartGrind.state.elements.setupModal.classList.remove('hidden');
+            }
             window.SmartGrind.state.elements.appWrapper.classList.add('hidden');
         } finally {
             window.SmartGrind.state.elements.loadingScreen.classList.add('hidden');
@@ -95,52 +129,58 @@ window.SmartGrind.api = {
 
     // Sync with static problem plan
     syncPlan: async () => {
-        let changed = false;
-        let saveObj = Object.fromEntries(window.SmartGrind.state.problems);
+        try {
+            let changed = false;
+            let saveObj = Object.fromEntries(window.SmartGrind.state.problems);
 
-        // Iterate through all predefined problems in topicsData
-        window.SmartGrind.data.topicsData.forEach(topic => {
-            topic.patterns.forEach(pat => {
-                pat.problems.forEach(probDef => {
-                    const id = probDef.id;
+            // Iterate through all predefined problems in topicsData
+            window.SmartGrind.data.topicsData.forEach(topic => {
+                topic.patterns.forEach(pat => {
+                    pat.problems.forEach(probDef => {
+                        const id = probDef.id;
 
-                    // Add new problems if not present and not deleted
-                    if (!window.SmartGrind.state.problems.has(id) && !window.SmartGrind.state.deletedProblemIds.has(id)) {
-                        const newProb = {
-                            id: id,
-                            name: probDef.name,
-                            url: probDef.url,
-                            status: 'unsolved',
-                            topic: topic.title,
-                            pattern: pat.name,
-                            reviewInterval: 0,
-                            nextReviewDate: null,
-                            note: ''
-                        };
-                        window.SmartGrind.state.problems.set(id, newProb);
-                        saveObj[id] = newProb;
-                        changed = true;
-                    }
-                    // Sync metadata for existing problems to ensure consistency
-                    else if (window.SmartGrind.state.problems.has(id)) {
-                        const p = window.SmartGrind.state.problems.get(id);
-                        if (!p.topic || !p.url || p.url !== probDef.url || p.pattern !== pat.name) {
-                            p.topic = topic.title;
-                            p.pattern = pat.name;
-                            p.url = probDef.url;
-                            p.name = probDef.name;
-                            window.SmartGrind.state.problems.set(id, p);
-                            saveObj[id] = p;
+                        // Add new problems if not present and not deleted
+                        if (!window.SmartGrind.state.problems.has(id) && !window.SmartGrind.state.deletedProblemIds.has(id)) {
+                            const newProb = {
+                                id: id,
+                                name: probDef.name,
+                                url: probDef.url,
+                                status: 'unsolved',
+                                topic: topic.title,
+                                pattern: pat.name,
+                                reviewInterval: 0,
+                                nextReviewDate: null,
+                                note: ''
+                            };
+                            window.SmartGrind.state.problems.set(id, newProb);
+                            saveObj[id] = newProb;
                             changed = true;
                         }
-                    }
+                        // Sync metadata for existing problems to ensure consistency
+                        else if (window.SmartGrind.state.problems.has(id)) {
+                            const p = window.SmartGrind.state.problems.get(id);
+                            if (!p.topic || !p.url || p.url !== probDef.url || p.pattern !== pat.name) {
+                                p.topic = topic.title;
+                                p.pattern = pat.name;
+                                p.url = probDef.url;
+                                p.name = probDef.name;
+                                window.SmartGrind.state.problems.set(id, p);
+                                saveObj[id] = p;
+                                changed = true;
+                            }
+                        }
+                    });
                 });
             });
-        });
 
-        // Save changes if any were made
-        if (changed) {
-            await window.SmartGrind.api._performSave();
+            // Save changes if any were made
+            if (changed) {
+                await window.SmartGrind.api._performSave();
+            }
+        } catch (e) {
+            console.error('Sync plan error:', e);
+            window.SmartGrind.ui.showAlert(`Failed to sync problem data: ${e.message}`);
+            throw e;
         }
     },
 
@@ -180,37 +220,46 @@ window.SmartGrind.api = {
 
     // Delete entire category
     deleteCategory: async (topicId) => {
-        const topic = window.SmartGrind.data.topicsData.find(t => t.id === topicId);
-        if (!topic) return;
-        if (!confirm(`Are you sure you want to delete the category "${topic.title}" and all its associated problems? This action cannot be undone.`)) return;
-
-        // Remove from topicsData
-        const index = window.SmartGrind.data.topicsData.indexOf(topic);
-        if (index > -1) window.SmartGrind.data.topicsData.splice(index, 1);
-
-        // Remove associated problems
-        const problemsToDelete = [];
-        window.SmartGrind.state.problems.forEach((p, id) => {
-            if (p.topic === topic.title) {
-                problemsToDelete.push(id);
+        try {
+            const topic = window.SmartGrind.data.topicsData.find(t => t.id === topicId);
+            if (!topic) {
+                window.SmartGrind.ui.showAlert('Category not found.');
+                return;
             }
-        });
-        problemsToDelete.forEach(id => {
-            window.SmartGrind.state.problems.delete(id);
-            window.SmartGrind.state.deletedProblemIds.add(id);
-        });
+            const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to delete the category "${topic.title}" and all its associated problems? This action cannot be undone.`);
+            if (!confirmed) return;
 
-        // If active, switch to all
-        if (window.SmartGrind.state.ui.activeTopicId === topicId) {
-            window.SmartGrind.state.ui.activeTopicId = 'all';
+            // Remove from topicsData
+            const index = window.SmartGrind.data.topicsData.indexOf(topic);
+            if (index > -1) window.SmartGrind.data.topicsData.splice(index, 1);
+
+            // Remove associated problems
+            const problemsToDelete = [];
+            window.SmartGrind.state.problems.forEach((p, id) => {
+                if (p.topic === topic.title) {
+                    problemsToDelete.push(id);
+                }
+            });
+            problemsToDelete.forEach(id => {
+                window.SmartGrind.state.problems.delete(id);
+                window.SmartGrind.state.deletedProblemIds.add(id);
+            });
+
+            // If active, switch to all
+            if (window.SmartGrind.state.ui.activeTopicId === topicId) {
+                window.SmartGrind.state.ui.activeTopicId = 'all';
+            }
+
+            // Save
+            await window.SmartGrind.api.saveData();
+
+            // Re-render
+            window.SmartGrind.renderers.renderSidebar();
+            window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
+            window.SmartGrind.utils.showToast('Category and associated problems removed');
+        } catch (e) {
+            console.error('Delete category error:', e);
+            window.SmartGrind.ui.showAlert(`Failed to delete category: ${e.message}`);
         }
-
-        // Save
-        await window.SmartGrind.api.saveData();
-
-        // Re-render
-        window.SmartGrind.renderers.renderSidebar();
-        window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-        window.SmartGrind.utils.showToast('Category and associated problems removed');
     }
 };

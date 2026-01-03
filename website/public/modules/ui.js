@@ -28,6 +28,23 @@ window.SmartGrind.ui = {
             e.stopPropagation();
         });
 
+        // Alert modal
+        window.SmartGrind.state.elements.alertModal?.addEventListener('click', (e) => {
+            if (e.target === window.SmartGrind.state.elements.alertModal) {
+                window.SmartGrind.ui.closeAlertModal();
+            }
+        });
+        window.SmartGrind.state.elements.alertOkBtn?.addEventListener('click', window.SmartGrind.ui.closeAlertModal);
+
+        // Confirm modal
+        window.SmartGrind.state.elements.confirmModal?.addEventListener('click', (e) => {
+            if (e.target === window.SmartGrind.state.elements.confirmModal) {
+                window.SmartGrind.ui.closeConfirmModal(false);
+            }
+        });
+        window.SmartGrind.state.elements.confirmOkBtn?.addEventListener('click', () => window.SmartGrind.ui.closeConfirmModal(true));
+        window.SmartGrind.state.elements.confirmCancelBtn?.addEventListener('click', () => window.SmartGrind.ui.closeConfirmModal(false));
+
         // Disconnect button
         window.SmartGrind.state.elements.disconnectBtn?.addEventListener('click', window.SmartGrind.ui.handleLogout);
 
@@ -159,6 +176,35 @@ window.SmartGrind.ui = {
         window.SmartGrind.state.elements.addProblemModal.classList.add('hidden');
     },
 
+    // Alert modal functions
+    showAlert: (message) => {
+        window.SmartGrind.state.elements.alertMessage.textContent = message;
+        window.SmartGrind.state.elements.alertModal.classList.remove('hidden');
+    },
+
+    closeAlertModal: () => {
+        window.SmartGrind.state.elements.alertModal.classList.add('hidden');
+    },
+
+    // Confirm modal functions
+    showConfirm: (message) => {
+        return new Promise((resolve) => {
+            window.SmartGrind.state.elements.confirmMessage.textContent = message;
+            window.SmartGrind.state.elements.confirmModal.classList.remove('hidden');
+
+            // Store the resolve function to be called when modal is closed
+            window.SmartGrind.ui._confirmResolve = resolve;
+        });
+    },
+
+    closeConfirmModal: (result) => {
+        window.SmartGrind.state.elements.confirmModal.classList.add('hidden');
+        if (window.SmartGrind.ui._confirmResolve) {
+            window.SmartGrind.ui._confirmResolve(result);
+            window.SmartGrind.ui._confirmResolve = null;
+        }
+    },
+
     handleCategoryChange: (e) => {
         const val = e.target.value;
         if (val) {
@@ -192,7 +238,7 @@ window.SmartGrind.ui = {
         if (!pattern || !window.SmartGrind.state.elements.addProbCategory.value) pattern = window.SmartGrind.state.elements.addProbPatternNew.value.trim();
 
         if (!name || !url || !category || !pattern) {
-            alert("Please fill in Name, URL, Category and Pattern.");
+            window.SmartGrind.ui.showAlert("Please fill in Name, URL, Category and Pattern.");
             return;
         }
 
@@ -360,11 +406,17 @@ window.SmartGrind.ui = {
 
     // Error display
     showError: (msg) => {
+        if (msg) {
+            window.SmartGrind.ui.showAlert(msg);
+        }
         window.SmartGrind.state.elements.setupError.classList.toggle('hidden', !msg);
         window.SmartGrind.state.elements.setupError.innerText = msg || '';
     },
 
     showSigninError: (msg) => {
+        if (msg) {
+            window.SmartGrind.ui.showAlert(msg);
+        }
         window.SmartGrind.state.elements.signinError.classList.toggle('hidden', !msg);
         window.SmartGrind.state.elements.signinError.innerText = msg || '';
     }
