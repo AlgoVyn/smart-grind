@@ -5,7 +5,7 @@
 
 **Smart Grind** is a web application designed to help you master coding patterns through structured practice and spaced repetition. It complements the Chrome extension by providing a comprehensive platform for tracking progress across various algorithmic patterns.
 
-Visit the official website: [smart-grind.algovyn.com](https://smart-grind.algovyn.com)
+Visit the official website: [algovyn.com/smartgrind](https://algovyn.com/smartgrind)
 
 ## Features
 
@@ -184,7 +184,7 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 ## Support
 
 For questions, feedback, or support:
-- Visit the official site: [smart-grind.algovyn.com](https://smart-grind.algovyn.com)
+- Visit the official site: [algovyn.com/smartgrind](https://algovyn.com/smartgrind)
 - Open an issue on this repository
 
 Happy practicing! 🚀

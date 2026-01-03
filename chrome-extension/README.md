@@ -5,7 +5,7 @@
 
 **Smart Grind** is a Chrome extension designed to help you grind LeetCode and other coding problems optimally. It enhances your problem-solving experience by injecting smart features directly into supported platforms like LeetCode.
 
-Visit the official website: [smart-grind.algovyn.com](https://smart-grind.algovyn.com)
+Visit the official website: [algovyn.com/smartgrind](https://algovyn.com/smartgrind)
 
 ## Related Projects
 
@@ -121,7 +121,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 For questions, feedback, or support:
 
-- Visit the official site: [smart-grind.algovyn.com](https://smart-grind.algovyn.com)
+- Visit the official site: [algovyn.com/smartgrind](https://algovyn.com/smartgrind)
 - Open an issue on this repository
 
 Happy grinding! 🚀

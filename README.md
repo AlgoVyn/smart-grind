@@ -4,7 +4,7 @@
 
 **Smart Grind** is a comprehensive platform designed to help you master coding problems through optimal practice and intelligent tracking. It consists of two main components: a Chrome extension for enhanced LeetCode experience and a web application for structured pattern-based learning.
 
-Visit the official website: [smart-grind.algovyn.com](https://smart-grind.algovyn.com)
+Visit the official website: [algovyn.com/smartgrind](https://algovyn.com/smartgrind)
 
 ## Components
 
@@ -81,7 +81,7 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 ## Support
 
 For questions, feedback, or support:
-- Visit the official site: [smart-grind.algovyn.com](https://smart-grind.algovyn.com)
+- Visit the official site: [algovyn.com/smartgrind](https://algovyn.com/smartgrind)
 - Open an issue in the appropriate component repository
 
 Happy grinding! 🚀

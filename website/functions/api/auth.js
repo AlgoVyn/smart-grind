@@ -26,7 +26,7 @@ export async function onRequestGet({ request, env }) {
     // Redirect to Google OAuth
     const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
       `client_id=${env.GOOGLE_CLIENT_ID}&` +
-      `redirect_uri=${encodeURIComponent('https://smart-grind.algovyn.com/api/auth')}&` +
+      `redirect_uri=${encodeURIComponent('https://algovyn.com/smartgrind/api/auth')}&` +
       `response_type=code&` +
       `scope=openid%20email%20profile&` +
       `state=callback`;
@@ -49,7 +49,7 @@ export async function onRequestGet({ request, env }) {
         client_secret: env.GOOGLE_CLIENT_SECRET,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: 'https://smart-grind.algovyn.com/api/auth'
+        redirect_uri: 'https://algovyn.com/smartgrind/api/auth'
       })
     });
 
@@ -96,11 +96,11 @@ export async function onRequestGet({ request, env }) {
       localStorage.setItem('token', '${token}');
       localStorage.setItem('userId', '${userId}');
       localStorage.setItem('displayName', '${displayName.replace(/'/g, "\\'")}');
-      window.location.href = '/';
+      window.location.href = '/smartgrind';
     </script>
     </body>
     </html>`;
-    return new Response(html, { headers: { 'Content-Type': 'text/html' } });
+    return new Response(html, { headers: { 'Content-Type': 'text/html', 'Content-Security-Policy': 'base-uri \'self\' https://accounts.google.com' } });
   }
 
   return new Response('Invalid action', { status: 400 });

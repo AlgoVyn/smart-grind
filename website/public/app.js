@@ -1,5 +1,5 @@
 // Cloudflare API base
-const API_BASE = '/api';
+const API_BASE = '/smartgrind/api';
 
 // --- DATA STRUCTURE (Flattened by Topic) ---
 let topicsData = [
@@ -194,16 +194,26 @@ function getUrlParameter(name) {
 
 // Function to update URL parameter
 function updateUrlParameter(name, value) {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (value) {
-        urlParams.set(name, value);
+    if (name === 'category') {
+        if (value && value !== 'all') {
+            const newPath = `/smartgrind/c/${value}`;
+            window.history.pushState({ path: newPath }, '', newPath);
+        } else {
+            const newPath = '/smartgrind';
+            window.history.pushState({ path: newPath }, '', newPath);
+        }
     } else {
-        urlParams.delete(name);
+        const urlParams = new URLSearchParams(window.location.search);
+        if (value) {
+            urlParams.set(name, value);
+        } else {
+            urlParams.delete(name);
+        }
+
+        // Use history.pushState to update URL without page reload
+        const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+        window.history.pushState({ path: newUrl }, '', newUrl);
     }
-    
-    // Use history.pushState to update URL without page reload
-    const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
-    window.history.pushState({ path: newUrl }, '', newUrl);
 }
 
 // Local user storage keys
@@ -512,9 +522,18 @@ function initScrollButton() {
 
 // Monitor Auth State
 const checkAuth = async () => {
+    // Check for category in URL path before any URL changes
+    const path = window.location.pathname;
+    let categoryParam = null;
+    if (path === '/smartgrind/') {
+        categoryParam = 'all';
+    } else if (path.startsWith('/smartgrind/c/')) {
+        categoryParam = path.split('/smartgrind/c/')[1];
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const urlUserId = urlParams.get('userId');
-    
+
     // Check if user just signed in via URL
     if (urlUserId) {
         userId = urlUserId;
@@ -527,9 +546,19 @@ const checkAuth = async () => {
         localStorage.setItem(LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
         await loadData();
         updateAuthUI();
+        // Apply category after loading
+        if (categoryParam) {
+            const validCategory = topicsData.some(t => t.id === categoryParam) || categoryParam === 'all';
+            if (validCategory) {
+                activeTopicId = categoryParam;
+                renderSidebar();
+                renderMainView(activeTopicId);
+                scrollToTop();
+            }
+        }
         return;
     }
-    
+
     // Check if user is already signed in
     userId = localStorage.getItem('userId');
     if (userId) {
@@ -539,36 +568,44 @@ const checkAuth = async () => {
         localStorage.setItem(LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
         await loadData();
         updateAuthUI();
+        // Apply category after loading
+        if (categoryParam) {
+            const validCategory = topicsData.some(t => t.id === categoryParam) || categoryParam === 'all';
+            if (validCategory) {
+                activeTopicId = categoryParam;
+                renderSidebar();
+                renderMainView(activeTopicId);
+                scrollToTop();
+            }
+        }
         return;
     }
-    
+
     // Default to local user
     currentUserType = localStorage.getItem(LOCAL_STORAGE_KEYS.USER_TYPE) || 'local';
-    
+
     if (currentUserType === 'local') {
         initializeLocalUser();
+        // Apply category for local user
+        if (categoryParam) {
+            const validCategory = topicsData.some(t => t.id === categoryParam) || categoryParam === 'all';
+            if (validCategory) {
+                activeTopicId = categoryParam;
+                renderSidebar();
+                renderMainView(activeTopicId);
+                scrollToTop();
+            }
+        }
     } else {
         // If user type is 'signed-in' but no userId, show setup modal
         els.setupModal.classList.remove('hidden');
         els.appWrapper.classList.add('hidden');
         els.loadingScreen.classList.add('hidden');
-        
+
         // Reset Login Button State
         els.googleLoginBtn.disabled = false;
         els.googleLoginBtn.innerHTML = GOOGLE_LOGIN_BTN_HTML;
         updateAuthUI();
-    }
-    
-    // Check for category parameter in URL and set active topic
-    const categoryParam = getUrlParameter('category');
-    if (categoryParam) {
-        // Check if this is a valid category
-        const validCategory = topicsData.some(t => t.id === categoryParam) || categoryParam === 'all';
-        if (validCategory) {
-            activeTopicId = categoryParam;
-            // Render the main view with the category from URL
-            renderMainView(activeTopicId);
-        }
     }
 };
 
@@ -604,7 +641,7 @@ els.googleLoginBtn.addEventListener('click', () => {
     els.googleLoginBtn.innerHTML = "Connecting...";
 
     // Redirect to auth
-    window.location.href = '/api/auth?action=login';
+    window.location.href = '/smartgrind/api/auth?action=login';
 });
 
 // Modal Google login button
@@ -614,7 +651,7 @@ els.modalGoogleLoginBtn.addEventListener('click', () => {
     els.modalGoogleLoginBtn.innerHTML = "Connecting...";
 
     // Redirect to auth
-    window.location.href = '/api/auth?action=login';
+    window.location.href = '/smartgrind/api/auth?action=login';
 });
 
 // Sign in modal functions

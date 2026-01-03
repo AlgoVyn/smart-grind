@@ -4,15 +4,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartGrind - Pattern Practice</title>
+    <meta name="description" content="Master coding patterns with SmartGrind's spaced repetition system. Practice LeetCode problems efficiently, track progress, and improve algorithmic skills with AI-assisted learning.">
+    <meta name="keywords" content="coding patterns, LeetCode practice, spaced repetition, algorithm training, programming problems, AI coding assistant">
+    <title>SmartGrind: Master Coding Patterns with Spaced Repetition</title>
+    <link rel="canonical" href="https://algovyn.com/smartgrind/">
+    <!-- Open Graph -->
+    <meta property="og:title" content="SmartGrind: Master Coding Patterns with Spaced Repetition">
+    <meta property="og:description" content="Practice LeetCode problems efficiently with AI assistance and track progress across devices.">
+    <meta property="og:image" content="https://algovyn.com/smartgrind/logo.webp">
+    <meta property="og:url" content="https://algovyn.com/smartgrind/">
+    <meta property="og:type" content="website">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SmartGrind: Master Coding Patterns with Spaced Repetition">
+    <meta name="twitter:description" content="Practice LeetCode problems efficiently with AI assistance and track progress across devices.">
+    <meta name="twitter:image" content="https://algovyn.com/smartgrind/logo.webp">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
-    <link rel="icon" type="image/png" href="/logo.webp">
-    <link href="./styles.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/smartgrind/logo.webp">
+    <link rel="manifest" href="/smartgrind/manifest.json">
+    <link href="/smartgrind/styles.css" rel="stylesheet">
 
     <script>
         // Theme Initialization (Prevent Flash)
@@ -24,6 +39,28 @@
                 document.documentElement.classList.remove('dark');
             }
         })();
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "SmartGrind",
+      "description": "A web app for mastering coding patterns through spaced repetition.",
+      "url": "https://algovyn.com/smartgrind/",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "AlgoVyn"
+      }
+    }
     </script>
 </head>
 
@@ -38,7 +75,7 @@
         <div class="bg-dark-800 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/50 overflow-hidden">
             <div class="p-8">
                 <div class="flex items-center gap-3 mb-6">
-                    <img src="/logo.webp" alt="SmartGrind Logo" class="w-10 h-10 object-contain">
+                    <img src="/smartgrind/logo.webp" alt="SmartGrind Logo" class="w-10 h-10 object-contain">
                     <h2 class="text-2xl font-bold text-theme-bold">SmartGrind</h2>
                 </div>
                 <div class="flex flex-col items-center justify-center space-y-6">
@@ -140,7 +177,7 @@
         <div class="bg-dark-800 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/50 overflow-hidden" id="signin-modal-content">
             <div class="p-8">
                 <div class="flex items-center gap-3 mb-6">
-                    <img src="/logo.webp" alt="SmartGrind Logo" class="w-10 h-10 object-contain">
+                    <img src="/smartgrind/logo.webp" alt="SmartGrind Logo" class="w-10 h-10 object-contain">
                     <h2 class="text-2xl font-bold text-theme-bold">Sign In</h2>
                 </div>
                 <div class="flex flex-col items-center justify-center space-y-6">
@@ -204,7 +241,7 @@
             <div
                 class="p-5 border-b border-slate-800 flex justify-between items-center bg-dark-900/50 backdrop-blur-md sticky top-0 z-10">
                 <div class="flex items-center gap-2.5">
-                    <img src="/logo.png" alt="SmartGrind Logo" class="w-8 h-8 object-contain">
+                    <img src="/smartgrind/logo.png" alt="SmartGrind Logo" class="w-8 h-8 object-contain">
                     <span class="font-bold text-theme-bold tracking-tight">SmartGrind</span>
                 </div>
                 <div class="flex items-center gap-2">
@@ -281,7 +318,7 @@
             <div
                 class="md:hidden sticky top-0 z-30 p-4 border-b border-slate-800 bg-dark-950/80 backdrop-blur-md flex justify-between items-center">
                 <div class="flex items-center gap-2.5">
-                    <img src="/logo.png" alt="SmartGrind Logo" class="w-7 h-7 object-contain">
+                    <img src="/smartgrind/logo.png" alt="SmartGrind Logo" class="w-7 h-7 object-contain">
                     <span class="font-bold text-theme-bold tracking-tight text-sm">SmartGrind</span>
                 </div>
                 <button id="mobile-menu-btn-main" class="p-2 text-theme-muted hover:text-theme-bold transition-colors">
@@ -327,6 +364,7 @@
 
             <!-- Scrollable Content Area -->
             <div id="content-scroll" class="flex-1 overflow-y-auto p-4 md:p-8">
+                <h1 class="sr-only">SmartGrind Dashboard</h1>
                 <div class="max-w-4xl mx-auto space-y-8">
 
                     <!-- Stats Overview (Main Dashboard) -->
@@ -454,7 +492,7 @@
     </div>
 
     <!-- LOGIC -->
-    <script type="module" src="./app.js" defer></script>
+    <script type="module" src="/smartgrind/app.js" defer></script>
 </body>
 
 </html>

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://algovyn.com/smartgrind/sitemap.xml
