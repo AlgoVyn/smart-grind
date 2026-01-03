@@ -435,6 +435,9 @@ window.SmartGrind.app = {
         const displayName = window.SmartGrind.state.user.displayName;
         window.SmartGrind.state.elements.userDisplay.innerText = displayName;
 
+        // Reset topicsData to original static data
+        window.SmartGrind.data.resetTopicsData();
+
         // Sync with static plan to ensure all problems exist
         window.SmartGrind.api.syncPlan();
 

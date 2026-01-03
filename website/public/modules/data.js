@@ -9,6 +9,7 @@ window.SmartGrind.data = {
     API_BASE: '/smartgrind/api',
 
     // --- DATA STRUCTURE (Flattened by Topic) ---
+    ORIGINAL_TOPICS_DATA: null, // Will be set below
     topicsData: [
 {
         id: "two-pointers", title: "Two Pointer Patterns",
@@ -181,6 +182,18 @@ window.SmartGrind.data = {
     }
     ],
 
+    // Initialize original topics data
+    init: function() {
+        if (!this.ORIGINAL_TOPICS_DATA) {
+            this.ORIGINAL_TOPICS_DATA = JSON.parse(JSON.stringify(this.topicsData));
+        }
+    },
+
+    // Reset topicsData to original
+    resetTopicsData: function() {
+        this.topicsData = JSON.parse(JSON.stringify(this.ORIGINAL_TOPICS_DATA));
+    },
+
     // Spaced repetition intervals in days
     SPACED_REPETITION_INTERVALS: [1, 3, 7, 14, 30, 60],
 
@@ -195,3 +208,6 @@ window.SmartGrind.data = {
         DISPLAY_NAME: 'smartgrind-local-display-name'
     }
 };
+
+// Initialize the data module
+window.SmartGrind.data.init();

@@ -96,6 +96,9 @@ window.SmartGrind.api = {
             const deletedArr = userData.deletedIds || [];
             window.SmartGrind.state.deletedProblemIds = new Set(deletedArr);
 
+            // Reset topicsData to original static data
+            window.SmartGrind.data.resetTopicsData();
+
             // Sync with static plan to ensure all problems exist
             await window.SmartGrind.api.syncPlan();
 
@@ -248,6 +251,7 @@ window.SmartGrind.api = {
             // If active, switch to all
             if (window.SmartGrind.state.ui.activeTopicId === topicId) {
                 window.SmartGrind.state.ui.activeTopicId = 'all';
+                window.SmartGrind.utils.updateUrlParameter('category', null);
             }
 
             // Save
