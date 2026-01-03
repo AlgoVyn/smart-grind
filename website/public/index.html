@@ -240,10 +240,10 @@
             <!-- Sidebar Header -->
             <div
                 class="p-5 border-b border-slate-800 flex justify-between items-center bg-dark-900/50 backdrop-blur-md sticky top-0 z-10">
-                <div class="flex items-center gap-2.5">
+                <button id="sidebar-logo" type="button" class="flex items-center gap-2.5 cursor-pointer">
                     <img src="/smartgrind/logo.png" alt="SmartGrind Logo" class="w-8 h-8 object-contain">
                     <span class="font-bold text-theme-bold tracking-tight">SmartGrind</span>
-                </div>
+                </button>
                 <div class="flex items-center gap-2">
                     <!-- Theme Toggle -->
                     <button id="theme-toggle-btn"
@@ -317,10 +317,10 @@
             <!-- Mobile Header -->
             <div
                 class="md:hidden sticky top-0 z-30 p-4 border-b border-slate-800 bg-dark-950/80 backdrop-blur-md flex justify-between items-center">
-                <div class="flex items-center gap-2.5">
+                <button id="mobile-logo" type="button" class="flex items-center gap-2.5 cursor-pointer">
                     <img src="/smartgrind/logo.png" alt="SmartGrind Logo" class="w-7 h-7 object-contain">
                     <span class="font-bold text-theme-bold tracking-tight text-sm">SmartGrind</span>
-                </div>
+                </button>
                 <button id="mobile-menu-btn-main" class="p-2 text-theme-muted hover:text-theme-bold transition-colors">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -364,7 +364,6 @@
 
             <!-- Scrollable Content Area -->
             <div id="content-scroll" class="flex-1 overflow-y-auto p-4 md:p-8">
-                <h1 class="sr-only">SmartGrind Dashboard</h1>
                 <div class="max-w-4xl mx-auto space-y-8">
 
                     <!-- Stats Overview (Main Dashboard) -->
@@ -492,7 +491,12 @@
     </div>
 
     <!-- LOGIC -->
-    <script type="module" src="/smartgrind/app.js" defer></script>
+    <script type="module" src="/smartgrind/modules/data.js" defer></script>
+    <script type="module" src="/smartgrind/modules/state.js" defer></script>
+    <script type="module" src="/smartgrind/modules/utils.js" defer></script>
+    <script type="module" src="/smartgrind/modules/api.js" defer></script>
+    <script type="module" src="/smartgrind/modules/renderers.js" defer></script>
+    <script type="module" src="/smartgrind/modules/ui.js" defer></script>
 </body>
 
 </html>

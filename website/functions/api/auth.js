@@ -1,21 +1,34 @@
 // Simple JWT implementation
 async function signJWT(payload, secret) {
-  const header = { alg: 'HS256', typ: 'JWT' };
-  const encodedHeader = btoa(JSON.stringify(header)).replace(/=/g, '');
-  const encodedPayload = btoa(JSON.stringify(payload)).replace(/=/g, '');
+   const header = { alg: 'HS256', typ: 'JWT' };
+   const encodedHeader = btoa(JSON.stringify(header)).replace(/=/g, '');
+   const encodedPayload = btoa(JSON.stringify(payload)).replace(/=/g, '');
 
-  const data = `${encodedHeader}.${encodedPayload}`;
-  const key = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data));
-  const encodedSignature = btoa(String.fromCharCode(...new Uint8Array(signature))).replace(/=/g, '');
+   const data = `${encodedHeader}.${encodedPayload}`;
+   const key = await crypto.subtle.importKey(
+     'raw',
+     new TextEncoder().encode(secret),
+     { name: 'HMAC', hash: 'SHA-256' },
+     false,
+     ['sign']
+   );
+   const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data));
+   const encodedSignature = btoa(String.fromCharCode(...new Uint8Array(signature))).replace(/=/g, '');
 
-  return `${data}.${encodedSignature}`;
+   return `${data}.${encodedSignature}`;
+}
+
+/**
+ * Validates OAuth callback parameters
+ * @param {URLSearchParams} params - URL search parameters
+ * @returns {string|null} - Code if valid, null otherwise
+ */
+function validateOAuthCode(params) {
+   const code = params.get('code');
+   if (!code || typeof code !== 'string' || code.length > 1000) {
+     return null;
+   }
+   return code;
 }
 
 export async function onRequestGet({ request, env }) {
@@ -35,8 +48,8 @@ export async function onRequestGet({ request, env }) {
   }
 
   if (url.searchParams.get('state') === 'callback') {
-    const code = url.searchParams.get('code');
-    if (!code || typeof code !== 'string' || code.length > 1000) {
+    const code = validateOAuthCode(url.searchParams);
+    if (!code) {
       return new Response('Invalid code', { status: 400 });
     }
 
