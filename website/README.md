@@ -21,7 +21,7 @@ Visit the official website: [algovyn.com/smartgrind](https://algovyn.com/smartgr
 - **Search and Filtering**: Search problems by name or notes, filter by status (All, Solved, Due for Review)
 - **Notes System**: Add personal notes to problems for better retention
 - **AI Integration**: Quick access to AI assistants (Gemini, Grok) with pre-filled prompts for problem explanations
-- **Export Functionality**: Export your progress data as JSON for backup
+- **Export Functionality**: Export your progress data as JSON for backup (includes problems, notes, and review schedules)
 
 ### Technical Details
 - **Authentication**: Google OAuth 2.0 with JWT tokens
@@ -100,6 +100,19 @@ JWT_SECRET=your_jwt_secret
 ### AI Assistance
 - **Quick Prompts**: Click Gemini or Grok buttons to copy solution prompts to clipboard
 - **AI Integration**: Opens the respective AI service with pre-filled prompts
+- **Prompt Content**: Automatically generates prompts asking for solution explanation, intuition, optimal approach, and complexity analysis
+
+### Additional Features
+- **Theme Toggle**: Switch between light and dark themes (top-right corner)
+- **Keyboard Shortcuts**:
+  - `/`: Focus search bar
+  - `E`: Export progress data
+  - `Escape`: Close modals
+- **Export Functionality**: Download your progress as JSON for backup (press `E` or use export button)
+- **URL-based Navigation**: Shareable URLs for specific categories (e.g., `/smartgrind/c/arrays-hashing`)
+- **Mobile Responsive**: Optimized interface for mobile devices with collapsible sidebar
+- **Scroll to Top**: Automatic scroll-to-top button appears when scrolling down
+- **Toast Notifications**: Real-time feedback for actions like saving notes or solving problems
 
 ## Architecture
 

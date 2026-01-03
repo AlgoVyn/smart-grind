@@ -65,6 +65,14 @@ The extension may become available on the Chrome Web Store — check the officia
 - Higher ratings indicate greater difficulty
 - Use rating ranges to practice at appropriate difficulty levels
 
+#### Rating Calculation Method
+Your current rating is calculated using an exponentially weighted moving average (EMA) of your solved problem ratings, with Bayesian smoothing applied for users with fewer solved problems:
+
+1. **Recency Weighting**: Problems solved more recently have higher influence on your current rating
+2. **EMA Calculation**: Uses an alpha value of 0.2 for smoothing recent performance
+3. **Bayesian Smoothing**: For users with fewer than 100 solved problems, the rating is blended with the global average to reduce volatility
+4. **Confidence Factor**: The smoothing weight decreases as you solve more problems, giving more weight to your actual performance
+
 ### Tips for Effective Use
 - **Pin the Extension**: Pin SmartGrind to your toolbar for quick access
 - **Grant Permissions**: Ensure activeTab permission is granted for full functionality

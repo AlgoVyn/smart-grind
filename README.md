@@ -12,10 +12,11 @@ Visit the official website: [algovyn.com/smartgrind](https://algovyn.com/smartgr
 A browser extension that enhances your LeetCode problem-solving experience with smart features.
 
 **Key Features:**
-- Numerical difficulty ratings instead of Easy/Medium/Hard labels
-- Estimated user rating calculation based on solved problems
-- Random problem selection with rating and tag filters
-- Automatic progress tracking
+- Numerical difficulty ratings (0-3000 scale) instead of Easy/Medium/Hard labels
+- Advanced user rating calculation using EMA and Bayesian smoothing
+- Random problem selection with rating ranges and tag filters
+- Automatic progress tracking with submission monitoring
+- Persistent settings and cross-page support
 
 📖 [View Extension Documentation](chrome-extension/README.md)
 
@@ -23,11 +24,14 @@ A browser extension that enhances your LeetCode problem-solving experience with 
 A full-featured web app for systematic pattern practice with spaced repetition.
 
 **Key Features:**
-- Organized problem collections by algorithmic patterns
-- Spaced repetition system for optimal retention
-- Progress visualization and statistics
-- Custom problem addition and note-taking
-- AI integration for solution assistance
+- Organized problem collections by algorithmic patterns (Two Pointers, Sliding Window, etc.)
+- Spaced repetition system with intervals (1, 3, 7, 14, 30, 60 days)
+- Progress visualization with statistics and review tracking
+- Custom problem addition with category/pattern organization
+- Note-taking system for personal insights
+- AI integration (Gemini/Grok) with pre-filled solution prompts
+- Theme toggle, keyboard shortcuts, and export functionality
+- Mobile-responsive design with URL-based navigation
 
 📖 [View Web App Documentation](website/README.md)
 
