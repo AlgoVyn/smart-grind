@@ -15,7 +15,12 @@ window.SmartGrind.api = {
                     throw new Error('No authentication token found. Please sign in again.');
                 }
                 const data = {
-                    problems: Object.fromEntries(window.SmartGrind.state.problems),
+                    problems: Object.fromEntries(
+                        Array.from(window.SmartGrind.state.problems.entries()).map(([id, p]) => {
+                            const { loading, ...rest } = p;
+                            return [id, rest];
+                        })
+                    ),
                     deletedIds: Array.from(window.SmartGrind.state.deletedProblemIds)
                 };
                 const response = await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
