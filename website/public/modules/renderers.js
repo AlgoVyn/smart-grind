@@ -175,7 +175,7 @@ window.SmartGrind.renderers = {
 
         const actionButton = isSolved ? `
             <button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors ${isDue ? 'bg-amber-500 text-dark-950 hover:bg-amber-400' : 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold'}" ${p.loading ? 'disabled' : ''} data-action="${isDue ? 'review' : 'reset'}">
-                ${p.loading ? '<div class="flex items-center gap-2"><span class="text-xs">Loading</span><div class="flex space-x-1"><div class="w-3 h-3 bg-white rounded-full animate-pulse"></div><div class="w-3 h-3 bg-white rounded-full animate-pulse" style="animation-delay: 0.1s"></div><div class="w-3 h-3 bg-white rounded-full animate-pulse" style="animation-delay: 0.2s"></div></div></div>' : (isDue ? 'Review' : 'Reset')}
+                ${p.loading ? '<div class="flex items-center gap-2"><span class="text-xs">Loading</span><div class="flex space-x-1"><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted)"></div><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted); animation-delay: 0.1s"></div><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted); animation-delay: 0.2s"></div></div></div>' : (isDue ? 'Review' : 'Reset')}
             </button>
         ` : `
             <button class="action-btn px-4 py-2 rounded-lg bg-brand-600 text-white text-xs font-bold hover:bg-brand-500 shadow-lg shadow-brand-500/20 transition-all" ${p.loading ? 'disabled' : ''} data-action="solve">
