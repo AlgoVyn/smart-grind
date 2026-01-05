@@ -153,7 +153,8 @@ window.SmartGrind.api = {
                                 pattern: pat.name,
                                 reviewInterval: 0,
                                 nextReviewDate: null,
-                                note: ''
+                                note: '',
+                                loading: false
                             };
                             window.SmartGrind.state.problems.set(id, newProb);
                             saveObj[id] = newProb;

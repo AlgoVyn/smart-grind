@@ -250,7 +250,8 @@ window.SmartGrind.ui = {
             status: 'unsolved',
             reviewInterval: 0,
             nextReviewDate: null,
-            note: ''
+            note: '',
+            loading: false
         };
 
         // Update State

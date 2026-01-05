@@ -174,13 +174,12 @@ window.SmartGrind.renderers = {
                 `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/20 text-brand-400 uppercase tracking-wide">Solved</span>` : '';
 
         const actionButton = isSolved ? `
-            <button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors ${isDue ? 'bg-amber-500 text-dark-950 hover:bg-amber-400' : 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold'}"
-                data-action="${isDue ? 'review' : 'reset'}">
-                ${isDue ? 'Review' : 'Reset'}
+            <button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors ${isDue ? 'bg-amber-500 text-dark-950 hover:bg-amber-400' : 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold'}" ${p.loading ? 'disabled' : ''} data-action="${isDue ? 'review' : 'reset'}">
+                ${p.loading ? '<div class="flex items-center gap-2"><span class="text-xs">Loading</span><div class="flex space-x-1"><div class="w-3 h-3 bg-white rounded-full animate-pulse"></div><div class="w-3 h-3 bg-white rounded-full animate-pulse" style="animation-delay: 0.1s"></div><div class="w-3 h-3 bg-white rounded-full animate-pulse" style="animation-delay: 0.2s"></div></div></div>' : (isDue ? 'Review' : 'Reset')}
             </button>
         ` : `
-            <button class="action-btn px-4 py-2 rounded-lg bg-brand-600 text-white text-xs font-bold hover:bg-brand-500 shadow-lg shadow-brand-500/20 transition-all" data-action="solve">
-                Solve
+            <button class="action-btn px-4 py-2 rounded-lg bg-brand-600 text-white text-xs font-bold hover:bg-brand-500 shadow-lg shadow-brand-500/20 transition-all" ${p.loading ? 'disabled' : ''} data-action="solve">
+                ${p.loading ? '<div class="flex items-center gap-2"><span class="text-xs">Loading</span><div class="flex space-x-1"><div class="w-3 h-3 bg-white rounded-full animate-pulse"></div><div class="w-3 h-3 bg-white rounded-full animate-pulse" style="animation-delay: 0.1s"></div><div class="w-3 h-3 bg-white rounded-full animate-pulse" style="animation-delay: 0.2s"></div></div></div>' : 'Solve'}
             </button>
         `;
 
@@ -261,19 +260,38 @@ window.SmartGrind.renderers = {
                 // Smart refresh
                 window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
             } else if (action === 'solve' || action === 'review' || action === 'reset') {
-                if (action === 'reset') {
-                    p.status = 'unsolved';
-                    p.nextReviewDate = null;
-                    p.reviewInterval = 0;
-                } else {
-                    p.status = 'solved';
-                    const idx = action === 'review' ? Math.min(p.reviewInterval + 1, window.SmartGrind.data.SPACED_REPETITION_INTERVALS.length - 1) : 0;
-                    p.reviewInterval = idx;
-                    p.nextReviewDate = window.SmartGrind.utils.getNextReviewDate(window.SmartGrind.utils.getToday(), idx);
-                }
-                await window.SmartGrind.api.saveProblem(p);
-                // Smart refresh
+                if (p.loading) return; // prevent multiple clicks
+                p.loading = true;
                 window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
+                try {
+                    if (action === 'reset') {
+                        p.status = 'unsolved';
+                        p.nextReviewDate = null;
+                        p.reviewInterval = 0;
+                    } else {
+                        p.status = 'solved';
+                        const idx = action === 'review' ? Math.min(p.reviewInterval + 1, window.SmartGrind.data.SPACED_REPETITION_INTERVALS.length - 1) : 0;
+                        p.reviewInterval = idx;
+                        p.nextReviewDate = window.SmartGrind.utils.getNextReviewDate(window.SmartGrind.utils.getToday(), idx);
+                    }
+                    await Promise.all([
+                        window.SmartGrind.api.saveData(),
+                        new Promise(resolve => setTimeout(resolve, 500))
+                    ]);
+                } catch (e) {
+                    // revert
+                    if (action === 'reset') {
+                        p.status = 'solved';
+                    } else {
+                        p.status = 'unsolved';
+                        p.nextReviewDate = null;
+                        p.reviewInterval = 0;
+                    }
+                    window.SmartGrind.ui.showAlert(`Failed to update problem: ${e.message}`);
+                } finally {
+                    p.loading = false;
+                    window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
+                }
             } else if (action === 'delete') {
                 const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to remove "${p.name}" from your tracker?`);
                 if (confirmed) {
