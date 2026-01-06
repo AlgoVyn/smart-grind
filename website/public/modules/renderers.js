@@ -163,7 +163,7 @@ window.SmartGrind.renderers = {
         const isSolved = p.status === 'solved';
         const isDue = isSolved && p.nextReviewDate <= window.SmartGrind.utils.getToday();
 
-        const className = `group p-4 rounded-xl border transition-all duration-200 ${isDue ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40' :
+        const className = `group p-4 rounded-xl border transition-all duration-200 overflow-hidden ${isDue ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40' :
             isSolved ? 'bg-dark-800 border-brand-500/20 hover:border-brand-500/40' :
                 'bg-dark-800 border-theme hover:border-slate-400'
             }`;
@@ -185,7 +185,7 @@ window.SmartGrind.renderers = {
 
         return { className, innerHTML: `
             <div class="flex flex-col sm:flex-row justify-between gap-4">
-                <div class="flex-1">
+                <div class="flex-1 overflow-hidden">
                     <div class="flex items-center gap-2 mb-1">
                         <a href="${p.url}" target="_blank" class="text-base font-medium text-theme-bold group-hover:text-brand-400 transition-colors truncate cursor-pointer">
                             ${p.name}
