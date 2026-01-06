@@ -89,9 +89,18 @@ window.SmartGrind.utils = {
         localStorage.setItem('preferred-ai', provider);
         window.SmartGrind.state.ui.preferredAI = provider;
 
-        // Open AI service
-        const url = provider === 'gemini' ? 'https://gemini.google.com/app' : 'https://grok.com';
-        window.open(url, '_blank');
+        // Open AI service - prefer app if installed on phone
+        let url;
+        if (provider === 'gemini') {
+            // Android intent to open Gemini app, fallback to website
+            url = 'intent://gemini.google.com/app#Intent;scheme=https;package=com.google.android.apps.ai;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end';
+        } else {
+            // Android intent to open Grok app, fallback to website
+            url = 'intent://grok.com#Intent;scheme=https;package=com.xai.grok;S.browser_fallback_url=https%3A%2F%2Fgrok.com;end';
+        }
+
+        // Use window.location.href to trigger app open or fallback
+        window.location.href = url;
     },
 
     // Toast notifications
