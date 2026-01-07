@@ -46,8 +46,10 @@ global.window.history = {
   go: jest.fn(),
 };
 
-// Mock window.location to prevent navigation errors
-global.window.location = new URL('http://localhost');
+
+// Mock window.open
+global.window.open = jest.fn();
+
 
 
 // Mock document.execCommand for clipboard fallback
@@ -59,9 +61,10 @@ jest.spyOn(global.document, 'execCommand');
 // Mock console methods to reduce noise in tests
 global.console = {
   ...console,
-  // Keep log and error, but mock warn and info
+  // Mock warn, info, and error to reduce noise
   warn: jest.fn(),
   info: jest.fn(),
+  error: jest.fn(),
 };
 
 // Mock crypto.subtle for JWT signing

@@ -248,7 +248,7 @@ describe('SmartGrind API Module', () => {
 
       await window.SmartGrind.api.loadData();
 
-      expect(window.SmartGrind.state.problems.get('1')).toEqual({ id: '1' });
+      expect(window.SmartGrind.state.problems.get('1')).toEqual({ id: '1', loading: false });
       expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(true);
       expect(mockRenderSidebar).toHaveBeenCalled();
       expect(mockRenderMainView).toHaveBeenCalledWith('all');

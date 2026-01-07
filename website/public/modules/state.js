@@ -44,6 +44,8 @@ window.SmartGrind.state = {
             const deletedIdsArr = deletedIdsData ? JSON.parse(deletedIdsData) : [];
 
             this.problems = new Map(Object.entries(problemsObj));
+            // Reset loading state for all problems on load
+            this.problems.forEach(p => p.loading = false);
             this.deletedProblemIds = new Set(deletedIdsArr);
             this.user.displayName = displayName;
             this.user.type = userType;
@@ -55,7 +57,14 @@ window.SmartGrind.state = {
     // Save state to localStorage
     saveToStorage() {
         try {
-            localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.PROBLEMS, JSON.stringify(Object.fromEntries(this.problems)));
+            // Exclude loading state as it's temporary
+            const problemsWithoutLoading = Object.fromEntries(
+                Array.from(this.problems.entries()).map(([id, p]) => {
+                    const { loading, ...rest } = p;
+                    return [id, rest];
+                })
+            );
+            localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.PROBLEMS, JSON.stringify(problemsWithoutLoading));
             localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.DELETED_IDS, JSON.stringify(Array.from(this.deletedProblemIds)));
             localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.DISPLAY_NAME, this.user.displayName);
             localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);

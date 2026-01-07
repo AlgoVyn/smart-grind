@@ -113,6 +113,8 @@ window.SmartGrind.api = {
             }
             const userData = await response.json();
             window.SmartGrind.state.problems = new Map(Object.entries(userData.problems || {}));
+            // Reset loading state for all problems on load
+            window.SmartGrind.state.problems.forEach(p => p.loading = false);
             const deletedArr = userData.deletedIds || [];
             window.SmartGrind.state.deletedProblemIds = new Set(deletedArr);
 

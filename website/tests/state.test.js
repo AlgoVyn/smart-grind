@@ -88,7 +88,7 @@ describe('SmartGrind State', () => {
 
       window.SmartGrind.state.loadFromStorage();
 
-      expect(window.SmartGrind.state.problems.get('1')).toEqual({ id: '1', name: 'Test Problem' });
+      expect(window.SmartGrind.state.problems.get('1')).toEqual({ id: '1', name: 'Test Problem', loading: false });
       expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(true);
       expect(window.SmartGrind.state.deletedProblemIds.has('3')).toBe(true);
       expect(window.SmartGrind.state.user.displayName).toBe('Test User');
