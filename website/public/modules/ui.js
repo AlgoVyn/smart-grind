@@ -4,11 +4,57 @@
 window.SmartGrind = window.SmartGrind || {};
 
 window.SmartGrind.ui = {
+    // Pull to refresh functionality
+    pullToRefresh: {
+        startY: 0,
+        isPulling: false,
+        threshold: 100, // pixels to pull before refresh
+
+        init: () => {
+            document.addEventListener('touchstart', window.SmartGrind.ui.pullToRefresh.handleTouchStart, { passive: false });
+            document.addEventListener('touchmove', window.SmartGrind.ui.pullToRefresh.handleTouchMove, { passive: false });
+            document.addEventListener('touchend', window.SmartGrind.ui.pullToRefresh.handleTouchEnd, { passive: false });
+        },
+
+        handleTouchStart: (e) => {
+            if (window.scrollY === 0 && window.SmartGrind.state.elements.contentScroll.scrollTop === 0) {
+                window.SmartGrind.ui.pullToRefresh.startY = e.touches[0].clientY;
+                window.SmartGrind.ui.pullToRefresh.isPulling = true;
+            }
+        },
+
+        handleTouchMove: (e) => {
+            if (!window.SmartGrind.ui.pullToRefresh.isPulling) return;
+            const currentY = e.touches[0].clientY;
+            const deltaY = currentY - window.SmartGrind.ui.pullToRefresh.startY;
+            if (deltaY > 0) {
+                e.preventDefault(); // prevent default scrolling
+                const appWrapper = document.getElementById('app-wrapper');
+                appWrapper.style.transform = `translateY(${deltaY}px)`;
+            } else {
+                window.SmartGrind.ui.pullToRefresh.isPulling = false;
+            }
+        },
+
+        handleTouchEnd: (e) => {
+            if (!window.SmartGrind.ui.pullToRefresh.isPulling) return;
+            const currentY = e.changedTouches[0].clientY;
+            const deltaY = currentY - window.SmartGrind.ui.pullToRefresh.startY;
+            const appWrapper = document.getElementById('app-wrapper');
+            appWrapper.style.transform = 'translateY(0)';
+            if (deltaY > window.SmartGrind.ui.pullToRefresh.threshold) {
+                window.location.reload();
+            }
+            window.SmartGrind.ui.pullToRefresh.isPulling = false;
+        }
+    },
+
     // Initialize UI components
     init: () => {
         window.SmartGrind.state.init();
         window.SmartGrind.ui.bindEvents();
         window.SmartGrind.ui.initScrollButton();
+        window.SmartGrind.ui.pullToRefresh.init();
         window.SmartGrind.ui.updateAuthUI();
     },
 
