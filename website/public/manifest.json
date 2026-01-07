@@ -3,6 +3,7 @@
   "short_name": "SmartGrind",
   "description": "Master coding patterns with spaced repetition.",
   "start_url": "/smartgrind/",
+  "scope": "/smartgrind/",
   "display": "standalone",
   "background_color": "#0f0f23",
   "theme_color": "#3b82f6",

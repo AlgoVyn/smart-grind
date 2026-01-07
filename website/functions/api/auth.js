@@ -99,17 +99,22 @@ export async function onRequestGet({ request, env }) {
       await env.KV.put(userId, JSON.stringify({ problems: {}, deletedIds: [] }));
     }
 
-    // Return HTML that sets token, userId and displayName, then redirects
+    // Return HTML that handles auth for popup or fallback
     const html = `
     <!DOCTYPE html>
     <html>
-    <head><title>Logging in...</title></head>
+    <head><title>Sign In Success</title></head>
     <body>
     <script>
-      localStorage.setItem('token', '${token}');
-      localStorage.setItem('userId', '${userId}');
-      localStorage.setItem('displayName', '${displayName.replace(/'/g, "\\'")}');
-      window.location.href = '/smartgrind';
+      if (window.opener) {
+        window.opener.postMessage({ type: 'auth-success', token: '${token}', userId: '${userId}', displayName: '${displayName}' }, window.location.origin);
+        setTimeout(() => window.close(), 500);
+      } else {
+        localStorage.setItem('token', '${token}');
+        localStorage.setItem('userId', '${userId}');
+        localStorage.setItem('displayName', '${displayName.replace(/'/g, "\\'")}');
+        window.location.href = '/smartgrind?token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}&displayName=${encodeURIComponent(displayName)}';
+      }
     </script>
     </body>
     </html>`;

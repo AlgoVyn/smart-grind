@@ -112,8 +112,43 @@ window.SmartGrind.ui = {
         window.SmartGrind.state.elements.googleLoginBtn.disabled = true;
         window.SmartGrind.state.elements.googleLoginBtn.innerHTML = "Connecting...";
 
-        // Redirect to auth
-        window.location.href = '/smartgrind/api/auth?action=login';
+        // Open popup for auth
+        const popup = window.open('/smartgrind/api/auth?action=login', 'auth', 'width=500,height=600');
+
+        // Listen for auth success message
+        const messageHandler = (event) => {
+            if (event.origin !== window.location.origin) return;
+            if (event.data.type === 'auth-success') {
+                const { token, userId, displayName } = event.data;
+                localStorage.setItem('token', token);
+                localStorage.setItem('userId', userId);
+                localStorage.setItem('displayName', displayName);
+                window.SmartGrind.state.user.id = userId;
+                window.SmartGrind.state.user.displayName = displayName;
+                window.SmartGrind.state.elements.userDisplay.innerText = displayName;
+                window.SmartGrind.state.user.type = 'signed-in';
+                localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
+                window.SmartGrind.api.loadData();
+                window.SmartGrind.ui.updateAuthUI();
+                // Close any open sign-in modals
+                window.SmartGrind.state.elements.setupModal.classList.add('hidden');
+                window.SmartGrind.state.elements.signinModal.classList.add('hidden');
+                window.removeEventListener('message', messageHandler);
+                window.SmartGrind.state.elements.googleLoginBtn.disabled = false;
+                window.SmartGrind.state.elements.googleLoginBtn.innerHTML = `
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    Sign in with Google
+                `;
+            }
+        };
+        window.addEventListener('message', messageHandler);
+
+        // Note: Cannot check popup.closed due to COOP policy when navigating to external sites
     },
 
     // Logout handler
@@ -510,18 +545,22 @@ const checkAuth = async () => {
     }
 
     const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get('token');
     const urlUserId = urlParams.get('userId');
+    const urlDisplayName = urlParams.get('displayName');
 
-    // Check if user just signed in via URL
-    if (urlUserId) {
-        window.SmartGrind.state.user.id = urlUserId;
+    // Check if user just signed in via URL (for PWA compatibility)
+    if (urlToken && urlUserId && urlDisplayName) {
+        localStorage.setItem('token', urlToken);
         localStorage.setItem('userId', urlUserId);
-        // Clean URL
-        window.history.replaceState({}, document.title, '/');
-        const displayName = localStorage.getItem('displayName') || 'User';
-        window.SmartGrind.state.elements.userDisplay.innerText = displayName;
+        localStorage.setItem('displayName', urlDisplayName);
+        window.SmartGrind.state.user.id = urlUserId;
+        window.SmartGrind.state.user.displayName = urlDisplayName;
+        window.SmartGrind.state.elements.userDisplay.innerText = urlDisplayName;
         window.SmartGrind.state.user.type = 'signed-in';
         localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
         await window.SmartGrind.api.loadData();
         window.SmartGrind.ui.updateAuthUI();
         _applyCategory(categoryParam);
