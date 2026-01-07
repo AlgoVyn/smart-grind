@@ -60,9 +60,9 @@
   }
 
   .sidebar-link.active {
-      background: rgba(99, 102, 241, 0.15);
-      color: #818cf8;
-      border-right: 3px solid #6366f1;
+      background: rgba(0, 133, 208, 0.15);
+      color: #4da6ff;
+      border-right: 3px solid #0085d0;
   }
 
   /* Animations */

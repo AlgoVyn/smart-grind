@@ -169,12 +169,12 @@ window.SmartGrind.renderers = {
             }`;
 
         const badge = isDue ?
-            `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 uppercase tracking-wide">Review</span>` :
+            `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-500 uppercase tracking-wide">Review</span>` :
             isSolved ?
                 `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/20 text-brand-400 uppercase tracking-wide">Solved</span>` : '';
 
         const actionButton = isSolved ? `
-            <button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors ${isDue ? 'bg-amber-500 text-dark-950 hover:bg-amber-400' : 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold'}" ${p.loading ? 'disabled' : ''} data-action="${isDue ? 'review' : 'reset'}">
+            <button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors ${isDue ? 'bg-amber-500 text-white hover:bg-amber-400' : 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold'}" ${p.loading ? 'disabled' : ''} data-action="${isDue ? 'review' : 'reset'}">
                 ${p.loading ? '<div class="flex items-center justify-center gap-1"><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted)"></div><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted); animation-delay: 0.1s"></div><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted); animation-delay: 0.2s"></div></div>' : (isDue ? 'Review' : 'Reset')}
             </button>
         ` : `
@@ -352,10 +352,10 @@ window.SmartGrind.renderers = {
         window.SmartGrind.state.elements.filterBtns.forEach(b => {
             if (b.dataset.filter === window.SmartGrind.state.ui.currentFilter) {
                 b.classList.add('bg-brand-600', 'text-white');
-                b.classList.remove('text-slate-400');
+                b.classList.remove('text-theme-bold');
             } else {
                 b.classList.remove('bg-brand-600', 'text-white');
-                b.classList.add('text-slate-400');
+                b.classList.add('text-theme-bold');
             }
         });
     }

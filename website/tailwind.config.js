@@ -9,15 +9,18 @@ module.exports = {
             },
             colors: {
                 brand: {
-                    50: '#eef2ff',
-                    100: '#e0e7ff',
-                    400: '#818cf8',
-                    500: '#6366f1', // Indigo
-                    600: '#4f46e5',
-                    900: '#312e81',
+                    50: '#e6f3ff',
+                    100: '#b3e0ff',
+                    400: '#4da6ff',
+                    500: '#0085d0', // Custom blue
+                    600: '#006bb3',
+                    900: '#003d66',
+                },
+                amber: {
+                    500: '#d97706', // Darker Amber
                 },
                 accent: {
-                    500: '#f59e0b', // Amber
+                    500: '#d97706', // Darker Amber
                 },
                 dark: {
                     800: 'var(--theme-bg-card)',
