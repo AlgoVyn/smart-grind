@@ -64,14 +64,21 @@ window.SmartGrind.api = {
 
     // Save deleted problem ID
     saveDeletedId: async (id) => {
+        const problem = window.SmartGrind.state.problems.get(id);
         try {
             window.SmartGrind.state.problems.delete(id);
+            window.SmartGrind.state.deletedProblemIds.add(id);
             await window.SmartGrind.api._performSave();
+            // Re-render the view to remove the deleted problem
+            window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
         } catch (e) {
             console.error('Delete save error:', e);
             window.SmartGrind.ui.showAlert(`Failed to delete problem: ${e.message}`);
             // Restore the problem if save failed
-            // Note: We don't have the problem data here, so we can't restore it
+            if (problem) {
+                window.SmartGrind.state.problems.set(id, problem);
+                window.SmartGrind.state.deletedProblemIds.delete(id);
+            }
             throw e;
         }
     },
@@ -214,7 +221,7 @@ window.SmartGrind.api = {
         });
 
         window.SmartGrind.state.problems.forEach(p => {
-            if (!existingIds.has(p.id)) {
+            if (!existingIds.has(p.id) && p.topic) {
                 // It's a custom problem, add to topicsData
                 let topic = window.SmartGrind.data.topicsData.find(t => t.title === p.topic);
                 if (!topic) {

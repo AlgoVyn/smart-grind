@@ -57,9 +57,13 @@ window.SmartGrind.utils = {
                 textArea.value = text;
                 document.body.appendChild(textArea);
                 textArea.select();
-                document.execCommand('copy');
+                const success = document.execCommand('copy');
                 document.body.removeChild(textArea);
-                window.SmartGrind.utils.showToast('Prompt copied to clipboard', 'success');
+                if (success) {
+                    window.SmartGrind.utils.showToast('Prompt copied to clipboard', 'success');
+                } else {
+                    throw new Error('execCommand returned false');
+                }
             } catch (fallbackErr) {
                 console.error('Fallback copy failed: ', fallbackErr);
                 window.SmartGrind.utils.showToast('Failed to copy prompt', 'error');
@@ -78,18 +82,33 @@ window.SmartGrind.utils = {
         localStorage.setItem('preferred-ai', provider);
         window.SmartGrind.state.ui.preferredAI = provider;
 
-        // Open AI service - prefer app if installed on phone
+        // Open AI service - use web URL on desktop, intent on mobile
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         let url;
         if (provider === 'gemini') {
-            // Android intent to open Gemini app, fallback to website
-            url = 'intent://gemini.google.com/app#Intent;scheme=https;package=com.google.android.apps.ai;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end';
+            if (isMobile) {
+                // Android intent to open Gemini app, fallback to website
+                url = 'intent://gemini.google.com/app#Intent;scheme=https;package=com.google.android.apps.ai;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end';
+            } else {
+                // Direct web URL for desktop
+                url = 'https://gemini.google.com/app';
+            }
         } else {
-            // Android intent to open Grok app, fallback to website
-            url = 'intent://grok.com#Intent;scheme=https;package=com.xai.grok;S.browser_fallback_url=https%3A%2F%2Fgrok.com;end';
+            if (isMobile) {
+                // Android intent to open Grok app, fallback to website
+                url = 'intent://grok.com#Intent;scheme=https;package=com.xai.grok;S.browser_fallback_url=https%3A%2F%2Fgrok.com;end';
+            } else {
+                // Direct web URL for desktop
+                url = 'https://grok.com';
+            }
         }
 
-        // Use window.location.href to trigger app open or fallback
-        window.location.href = url;
+        // Use window.open for desktop to open in new tab, window.location.href for mobile intents
+        if (isMobile) {
+            window.location.href = url;
+        } else {
+            window.open(url, '_blank');
+        }
     },
 
     // Toast notifications

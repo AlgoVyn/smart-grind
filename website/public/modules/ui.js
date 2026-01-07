@@ -63,8 +63,10 @@ window.SmartGrind.ui = {
     // Generic modal handler factory
     createModalHandler: (modalEl, contentEl, closeCallback) => {
         return (e) => {
-            if (e && e.target !== modalEl) return;
-            if (contentEl) e?.stopPropagation();
+            if (e && e.target !== modalEl) {
+                if (contentEl) e?.stopPropagation();
+                return;
+            }
             modalEl.classList.add('hidden');
             closeCallback?.();
         };
@@ -257,6 +259,26 @@ window.SmartGrind.ui = {
                 window.SmartGrind.ui.toggleMobileMenu();
             }
         });
+
+        // Event delegation for problem card buttons
+        window.SmartGrind.state.elements.problemsContainer?.addEventListener('click', (e) => {
+            const button = e.target.closest('button[data-action]');
+            if (!button) return;
+
+            const card = button.closest('.group');
+            if (!card) return;
+
+            const problemId = card.dataset.problemId;
+            if (!problemId) return;
+
+            const foundProblem = window.SmartGrind.state.problems.get(problemId);
+
+            if (foundProblem) {
+                // Create a mock event object with the button as target
+                const mockEvent = { target: button, stopPropagation: () => {} };
+                window.SmartGrind.renderers.handleProblemCardClick(mockEvent, foundProblem);
+            }
+        });
     },
 
     // Google login handler
@@ -264,13 +286,13 @@ window.SmartGrind.ui = {
         window.SmartGrind.ui.showError(null);
         const btn = window.SmartGrind.state.elements.googleLoginBtn;
         const modalBtn = window.SmartGrind.state.elements.modalGoogleLoginBtn;
-        
+
         const setLoading = (button, loading) => {
             if (!button) return;
             button.disabled = loading;
             button.innerHTML = loading ? "Connecting..." : window.SmartGrind.GOOGLE_BUTTON_HTML;
         };
-        
+
         setLoading(btn, true);
         setLoading(modalBtn, true);
 
@@ -285,26 +307,33 @@ window.SmartGrind.ui = {
                 localStorage.setItem('token', token);
                 localStorage.setItem('userId', userId);
                 localStorage.setItem('displayName', displayName);
-                
+
                 window.SmartGrind.state.user.id = userId;
                 window.SmartGrind.state.user.displayName = displayName;
                 window.SmartGrind.state.elements.userDisplay.innerText = displayName;
                 window.SmartGrind.state.user.type = 'signed-in';
                 localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
-                
+
                 window.SmartGrind.api.loadData();
                 window.SmartGrind.ui.updateAuthUI();
-                
+
                 // Close any open sign-in modals
                 window.SmartGrind.state.elements.setupModal.classList.add('hidden');
                 window.SmartGrind.state.elements.signinModal.classList.add('hidden');
-                
+
                 window.removeEventListener('message', messageHandler);
                 setLoading(btn, false);
                 setLoading(modalBtn, false);
             }
         };
         window.addEventListener('message', messageHandler);
+
+        // Timeout to reset buttons if no auth response received (popup closed or failed)
+        setTimeout(() => {
+            window.removeEventListener('message', messageHandler);
+            setLoading(btn, false);
+            setLoading(modalBtn, false);
+        }, 30000);
     },
 
     // Logout handler
@@ -755,6 +784,10 @@ const checkAuth = async () => {
     }
 };
 
-window.SmartGrind.state.init();
-checkAuth();
-window.SmartGrind.ui.init();
+if (typeof jest === 'undefined') {
+  window.SmartGrind.state.init();
+  checkAuth();
+  window.SmartGrind.ui.init();
+}
+
+export default window.SmartGrind.ui;

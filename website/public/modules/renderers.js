@@ -246,15 +246,106 @@ window.SmartGrind.renderers = {
         ` };
     },
 
+    // Handle clicks on problem card buttons
+    handleProblemCardClick: (e, p) => {
+        const button = e.target.closest('button');
+        if (!button) return;
+
+        const action = button.dataset.action;
+        if (!action) return;
+
+        const today = window.SmartGrind.utils.getToday();
+
+        switch (action) {
+            case 'solve':
+                p.status = 'solved';
+                p.reviewInterval = 0;
+                p.nextReviewDate = window.SmartGrind.utils.getNextReviewDate(today, 0);
+                p.loading = true;
+                window.SmartGrind.api.saveProblem(p).finally(() => {
+                    p.loading = false;
+                    // Re-render the card after API call
+                    const card = button.closest('.group');
+                    if (card) {
+                        const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(p);
+                        card.className = className;
+                        card.innerHTML = innerHTML;
+                    }
+                });
+                break;
+            case 'review':
+                p.reviewInterval = (p.reviewInterval || 0) + 1;
+                p.nextReviewDate = window.SmartGrind.utils.getNextReviewDate(today, p.reviewInterval);
+                p.loading = true;
+                window.SmartGrind.api.saveProblem(p).finally(() => {
+                    p.loading = false;
+                    // Re-render the card after API call
+                    const card = button.closest('.group');
+                    if (card) {
+                        const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(p);
+                        card.className = className;
+                        card.innerHTML = innerHTML;
+                    }
+                });
+                break;
+            case 'reset':
+                p.status = 'unsolved';
+                p.reviewInterval = 0;
+                p.nextReviewDate = null;
+                p.loading = true;
+                window.SmartGrind.api.saveProblem(p).finally(() => {
+                    p.loading = false;
+                    // Re-render the card after API call
+                    const card = button.closest('.group');
+                    if (card) {
+                        const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(p);
+                        card.className = className;
+                        card.innerHTML = innerHTML;
+                    }
+                });
+                break;
+            case 'delete':
+                window.SmartGrind.api.saveDeletedId(p.id);
+                break;
+            case 'note':
+                const noteArea = button.closest('.group').querySelector('.note-area');
+                if (noteArea) {
+                    noteArea.classList.toggle('hidden');
+                }
+                break;
+            case 'save-note':
+                const textarea = button.closest('.note-area').querySelector('textarea');
+                if (textarea) {
+                    p.note = textarea.value.trim();
+                    p.loading = true;
+                    window.SmartGrind.api.saveProblem(p).finally(() => {
+                        p.loading = false;
+                        // Re-render the card after API call
+                        const card = button.closest('.group');
+                        if (card) {
+                            const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(p);
+                            card.className = className;
+                            card.innerHTML = innerHTML;
+                        }
+                    });
+                }
+                break;
+            case 'ask-gemini':
+                window.SmartGrind.utils.askAI(p.name, 'gemini');
+                break;
+            case 'ask-grok':
+                window.SmartGrind.utils.askAI(p.name, 'grok');
+                break;
+        }
+    },
+
     // Create a problem card element
     createProblemCard: (p) => {
         const el = document.createElement('div');
         const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(p);
         el.className = className;
+        el.dataset.problemId = p.id;
         el.innerHTML = innerHTML;
-
-        // Add event listeners
-        el.addEventListener('click', (e) => window.SmartGrind.renderers.handleProblemCardClick(e, p));
 
         return el;
     },
