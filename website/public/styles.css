@@ -1665,6 +1665,29 @@ html,
   border-right: 3px solid #0085d0;
 }
 
+/* Sidebar Resizing State */
+body.sidebar-resizing {
+  user-select: none;
+}
+
+body.sidebar-resizing #main-sidebar {
+  transition: none;
+}
+
+#main-sidebar {
+  width: 18rem; /* Default width */
+  transition: width 0.1s ease-out; /* Smooth transition when not resizing */
+}
+
+#sidebar-resizer {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+#main-sidebar:hover #sidebar-resizer {
+  opacity: 1;
+}
+
 /* Animations */
 
 @keyframes fadeIn {

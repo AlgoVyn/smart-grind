@@ -44,22 +44,27 @@ window.SmartGrind.utils = {
         }
     },
 
-    // Problem ID helpers
-    getCleanSlug: (id) => {
-        const suffixes = [
-            '-two-pointers', '-sliding-window', '-lists', '-heap', '-bs', '-dfs', '-bfs',
-            '-dsu', '-scc', '-bridges', '-dp', '-greedy', '-cyclic', '-bit', '-check',
-            '-design', '-trie', '-monotonic', '-string', '-array', '-merge', '-impl',
-            '-kmp', '-rep', '-tree', '-graph', '-topo', '-stack', '-matrix'
-        ];
-
-        return suffixes.reduce((slug, suffix) =>
-            slug.endsWith(suffix) ? slug.substring(0, slug.length - suffix.length) : slug, id);
-    },
-
-    formatProblemName: (id) => {
-        const slug = window.SmartGrind.utils.getCleanSlug(id);
-        return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    // Clipboard helper
+    copyToClipboard: async (text) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            window.SmartGrind.utils.showToast('Prompt copied to clipboard', 'success');
+        } catch (err) {
+            console.error('Clipboard API failed, trying fallback: ', err);
+            // Fallback for older browsers or when clipboard API fails
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                window.SmartGrind.utils.showToast('Prompt copied to clipboard', 'success');
+            } catch (fallbackErr) {
+                console.error('Fallback copy failed: ', fallbackErr);
+                window.SmartGrind.utils.showToast('Failed to copy prompt', 'error');
+            }
+        }
     },
 
     // AI helper
@@ -67,23 +72,7 @@ window.SmartGrind.utils = {
         const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the intuition, optimal approach, and time/space complexity analysis.`;
 
         // Copy prompt to clipboard
-        try {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(aiPrompt);
-            } else {
-                // Fallback for older browsers
-                const textArea = document.createElement("textarea");
-                textArea.value = aiPrompt;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-            }
-            window.SmartGrind.utils.showToast('Prompt copied to clipboard', 'success');
-        } catch (err) {
-            console.error('Failed to copy text: ', err);
-            window.SmartGrind.utils.showToast('Failed to copy prompt', 'error');
-        }
+        await window.SmartGrind.utils.copyToClipboard(aiPrompt);
 
         // Save preference
         localStorage.setItem('preferred-ai', provider);
@@ -179,23 +168,13 @@ window.SmartGrind.utils = {
 
     shouldShowProblem: (problem, filter, searchQuery, today) => {
         // Apply filter
-        let passesFilter;
-        switch (filter) {
-            case 'all':
-                passesFilter = true;
-                break;
-            case 'unsolved':
-                passesFilter = problem.status === 'unsolved';
-                break;
-            case 'solved':
-                passesFilter = problem.status === 'solved';
-                break;
-            case 'review':
-                passesFilter = problem.status === 'solved' && problem.nextReviewDate <= today;
-                break;
-            default:
-                passesFilter = false;
-        }
+        const filterFunctions = {
+            'all': () => true,
+            'unsolved': (p) => p.status === 'unsolved',
+            'solved': (p) => p.status === 'solved',
+            'review': (p, t) => p.status === 'solved' && p.nextReviewDate <= t
+        };
+        const passesFilter = filterFunctions[filter] ? filterFunctions[filter](problem, today) : false;
 
         if (!passesFilter) return false;
 

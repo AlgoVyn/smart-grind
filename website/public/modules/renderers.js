@@ -3,6 +3,12 @@
 
 window.SmartGrind = window.SmartGrind || {};
 
+// Shared icon templates
+window.SmartGrind.ICONS = {
+    delete: '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>',
+    note: '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>'
+};
+
 window.SmartGrind.renderers = {
     // Helper to render a topic section
     _renderTopicSection: (topic, filterTopicId, today, visibleCountRef) => {
@@ -49,31 +55,49 @@ window.SmartGrind.renderers = {
 
         return hasVisiblePattern ? topicSection : null;
     },
-
-    // Render sidebar navigation
+    
+    // Helper to generate badge HTML
+    _generateBadge: (p, today) => {
+        const isSolved = p.status === 'solved';
+        const isDue = isSolved && p.nextReviewDate <= today;
+        return isDue ?
+            `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-500 uppercase tracking-wide">Review</span>` :
+            isSolved ?
+                `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/20 text-brand-400 uppercase tracking-wide">Solved</span>` : '';
+    },
+    
+    // Helper to generate action button HTML
+    _generateActionButton: (p) => {
+        const isSolved = p.status === 'solved';
+        const isDue = isSolved && p.nextReviewDate <= window.SmartGrind.utils.getToday();
+        const action = isSolved ? (isDue ? 'review' : 'reset') : 'solve';
+        const buttonClass = isSolved ? (isDue ? 'bg-amber-500 text-white hover:bg-amber-400' : 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold') : 'bg-brand-600 text-white hover:bg-brand-500 shadow-lg shadow-brand-500/20';
+        const buttonText = p.loading ? '<div class="flex items-center justify-center gap-1"><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted)"></div><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted); animation-delay: 0.1s"></div><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted); animation-delay: 0.2s"></div></div>' : (isDue ? 'Review' : isSolved ? 'Reset' : 'Solve');
+        return `<button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors ${buttonClass}" ${p.loading ? 'disabled' : ''} data-action="${action}">${buttonText}</button>`;
+    },
+    
+    // Render sidebar navigation (consolidated click handlers)
     renderSidebar: () => {
         const topicList = window.SmartGrind.state.elements.topicList;
         topicList.innerHTML = '';
 
-        // "All Problems" Link
-        const allBtn = window.SmartGrind.renderers.createTopicButton('all', 'All Problems');
-        allBtn.onclick = () => {
-            window.SmartGrind.renderers.setActiveTopic('all');
-            window.SmartGrind.utils.updateUrlParameter('category', null);
-            window.SmartGrind.renderers.renderMainView('all');
+        // Helper for topic navigation
+        const navigateToTopic = (topicId) => {
+            window.SmartGrind.renderers.setActiveTopic(topicId);
+            window.SmartGrind.utils.updateUrlParameter('category', topicId === 'all' ? null : topicId);
+            window.SmartGrind.renderers.renderMainView(topicId);
             window.SmartGrind.utils.scrollToTop();
         };
+
+        // "All Problems" Link
+        const allBtn = window.SmartGrind.renderers.createTopicButton('all', 'All Problems');
+        allBtn.onclick = () => navigateToTopic('all');
         topicList.appendChild(allBtn);
 
         // Topic buttons
         window.SmartGrind.data.topicsData.forEach(topic => {
             const btn = window.SmartGrind.renderers.createTopicButton(topic.id, topic.title);
-            btn.onclick = () => {
-                window.SmartGrind.renderers.setActiveTopic(topic.id);
-                window.SmartGrind.utils.updateUrlParameter('category', topic.id);
-                window.SmartGrind.renderers.renderMainView(topic.id);
-                window.SmartGrind.utils.scrollToTop();
-            };
+            btn.onclick = () => navigateToTopic(topic.id);
             topicList.appendChild(btn);
         });
     },
@@ -133,7 +157,7 @@ window.SmartGrind.renderers = {
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-category-btn ml-2 p-1 rounded hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors';
             deleteBtn.title = 'Delete Category';
-            deleteBtn.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>';
+            deleteBtn.innerHTML = window.SmartGrind.ICONS.delete;
             deleteBtn.onclick = () => window.SmartGrind.api.deleteCategory(filterTopicId);
             window.SmartGrind.state.elements.currentViewTitle.insertAdjacentElement('afterend', deleteBtn);
         }
@@ -168,20 +192,8 @@ window.SmartGrind.renderers = {
                 'bg-dark-800 border-theme hover:border-slate-400'
             }`;
 
-        const badge = isDue ?
-            `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-500 uppercase tracking-wide">Review</span>` :
-            isSolved ?
-                `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/20 text-brand-400 uppercase tracking-wide">Solved</span>` : '';
-
-        const actionButton = isSolved ? `
-            <button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors ${isDue ? 'bg-amber-500 text-white hover:bg-amber-400' : 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold'}" ${p.loading ? 'disabled' : ''} data-action="${isDue ? 'review' : 'reset'}">
-                ${p.loading ? '<div class="flex items-center justify-center gap-1"><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted)"></div><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted); animation-delay: 0.1s"></div><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted); animation-delay: 0.2s"></div></div>' : (isDue ? 'Review' : 'Reset')}
-            </button>
-        ` : `
-            <button class="action-btn px-4 py-2 rounded-lg bg-brand-600 text-white text-xs font-bold hover:bg-brand-500 shadow-lg shadow-brand-500/20 transition-all" ${p.loading ? 'disabled' : ''} data-action="solve">
-                ${p.loading ? '<div class="flex items-center justify-center gap-1"><div class="w-3 h-3 bg-white rounded-full animate-pulse"></div><div class="w-3 h-3 bg-white rounded-full animate-pulse" style="animation-delay: 0.1s"></div><div class="w-3 h-3 bg-white rounded-full animate-pulse" style="animation-delay: 0.2s"></div></div>' : 'Solve'}
-            </button>
-        `;
+        const badge = window.SmartGrind.renderers._generateBadge(p, window.SmartGrind.utils.getToday());
+        const actionButton = window.SmartGrind.renderers._generateActionButton(p);
 
         return { className, innerHTML: `
             <div class="flex flex-col sm:flex-row justify-between gap-4">
@@ -212,14 +224,14 @@ window.SmartGrind.renderers = {
                     </div>
 
                     <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        ${window.SmartGrind.ICONS.note}
                     </button>
 
                     ${actionButton}
 
                     <!-- Delete Button -->
                     <button class="action-btn p-2 rounded-lg hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors" data-action="delete" title="Delete Problem">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        ${window.SmartGrind.ICONS.delete}
                     </button>
                 </div>
             </div>
@@ -242,68 +254,7 @@ window.SmartGrind.renderers = {
         el.innerHTML = innerHTML;
 
         // Add event listeners
-        el.addEventListener('click', async (e) => {
-            const btn = e.target.closest('button');
-            if (!btn) return;
-            const action = btn.dataset.action;
-
-            if (action === 'ask-gemini' || action === 'ask-grok') {
-                window.SmartGrind.utils.askAI(p.name, action === 'ask-gemini' ? 'gemini' : 'grok');
-            } else if (action === 'note') {
-                el.querySelector('.note-area').classList.toggle('hidden');
-            } else if (action === 'save-note') {
-                const val = el.querySelector('textarea').value;
-                p.note = val;
-                await window.SmartGrind.api.saveProblem(p);
-                window.SmartGrind.utils.showToast('Note saved');
-                el.querySelector('.note-area').classList.add('hidden');
-                // Smart refresh
-                window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-            } else if (action === 'solve' || action === 'review' || action === 'reset') {
-                if (p.loading) return; // prevent multiple clicks
-                p.loading = true;
-                window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-                try {
-                    if (action === 'reset') {
-                        p.status = 'unsolved';
-                        p.nextReviewDate = null;
-                        p.reviewInterval = 0;
-                    } else {
-                        p.status = 'solved';
-                        const idx = action === 'review' ? Math.min(p.reviewInterval + 1, window.SmartGrind.data.SPACED_REPETITION_INTERVALS.length - 1) : 0;
-                        p.reviewInterval = idx;
-                        p.nextReviewDate = window.SmartGrind.utils.getNextReviewDate(window.SmartGrind.utils.getToday(), idx);
-                    }
-                    await Promise.all([
-                        window.SmartGrind.api.saveData(),
-                        new Promise(resolve => setTimeout(resolve, 500))
-                    ]);
-                } catch (e) {
-                    // revert
-                    if (action === 'reset') {
-                        p.status = 'solved';
-                    } else {
-                        p.status = 'unsolved';
-                        p.nextReviewDate = null;
-                        p.reviewInterval = 0;
-                    }
-                    window.SmartGrind.ui.showAlert(`Failed to update problem: ${e.message}`);
-                } finally {
-                    p.loading = false;
-                    window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-                }
-            } else if (action === 'delete') {
-                const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to remove "${p.name}" from your tracker?`);
-                if (confirmed) {
-                    window.SmartGrind.state.problems.delete(p.id);
-                    window.SmartGrind.state.deletedProblemIds.add(p.id);
-                    await window.SmartGrind.api.saveDeletedId(p.id);
-                    window.SmartGrind.utils.showToast("Problem removed");
-                    window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-                    window.SmartGrind.renderers.renderSidebar();
-                }
-            }
-        });
+        el.addEventListener('click', (e) => window.SmartGrind.renderers.handleProblemCardClick(e, p));
 
         return el;
     },

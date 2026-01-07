@@ -4,48 +4,56 @@
 window.SmartGrind = window.SmartGrind || {};
 
 window.SmartGrind.api = {
+    // Save data locally
+    _saveLocally: () => {
+        window.SmartGrind.state.saveToStorage();
+    },
+
+    // Save data remotely
+    _saveRemotely: async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('No authentication token found. Please sign in again.');
+        }
+        const data = {
+            problems: Object.fromEntries(
+                Array.from(window.SmartGrind.state.problems.entries()).map(([id, p]) => {
+                    const { loading, ...rest } = p;
+                    return [id, rest];
+                })
+            ),
+            deletedIds: Array.from(window.SmartGrind.state.deletedProblemIds)
+        };
+        const response = await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ data })
+        });
+        if (!response.ok) {
+            const errorMessages = {
+                401: 'Authentication failed. Please sign in again.',
+                500: 'Server error. Please try again later.'
+            };
+            throw new Error(errorMessages[response.status] || `Save failed: ${response.statusText}`);
+        }
+    },
+
     // Helper function to perform save operation
     _performSave: async () => {
         try {
             if (window.SmartGrind.state.user.type === 'local') {
-                window.SmartGrind.state.saveToStorage();
+                window.SmartGrind.api._saveLocally();
             } else {
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    throw new Error('No authentication token found. Please sign in again.');
-                }
-                const data = {
-                    problems: Object.fromEntries(
-                        Array.from(window.SmartGrind.state.problems.entries()).map(([id, p]) => {
-                            const { loading, ...rest } = p;
-                            return [id, rest];
-                        })
-                    ),
-                    deletedIds: Array.from(window.SmartGrind.state.deletedProblemIds)
-                };
-                const response = await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ data })
-                });
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        throw new Error('Authentication failed. Please sign in again.');
-                    } else if (response.status === 500) {
-                        throw new Error('Server error. Please try again later.');
-                    } else {
-                        throw new Error(`Save failed: ${response.statusText}`);
-                    }
-                }
+                await window.SmartGrind.api._saveRemotely();
             }
             window.SmartGrind.renderers.updateStats();
         } catch (e) {
             console.error('Save error:', e);
             window.SmartGrind.ui.showAlert(`Failed to save data: ${e.message}`);
-            throw e; // Re-throw to allow caller to handle
+            throw e;
         }
     },
 

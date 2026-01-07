@@ -3,6 +3,17 @@
 
 window.SmartGrind = window.SmartGrind || {};
 
+// Shared Google button HTML template
+window.SmartGrind.GOOGLE_BUTTON_HTML = `
+    <svg class="w-5 h-5" viewBox="0 0 24 24">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+    </svg>
+    Sign in with Google
+`;
+
 window.SmartGrind.ui = {
     // Pull to refresh functionality
     pullToRefresh: {
@@ -49,13 +60,116 @@ window.SmartGrind.ui = {
         }
     },
 
+    // Generic modal handler factory
+    createModalHandler: (modalEl, contentEl, closeCallback) => {
+        return (e) => {
+            if (e && e.target !== modalEl) return;
+            if (contentEl) e?.stopPropagation();
+            modalEl.classList.add('hidden');
+            closeCallback?.();
+        };
+    },
+
+    // --- SIDEBAR RESIZER FUNCTIONALITY ---
+    sidebarResizer: {
+        isResizing: false,
+        startX: 0,
+        startWidth: 0,
+        minWidth: 200,  // Minimum sidebar width in pixels
+        maxWidth: 500,  // Maximum sidebar width in pixels
+
+        init: () => {
+            const resizer = document.getElementById('sidebar-resizer');
+            if (resizer) {
+                resizer.addEventListener('mousedown', window.SmartGrind.ui.sidebarResizer.startResize);
+                // Touch support
+                resizer.addEventListener('touchstart', window.SmartGrind.ui.sidebarResizer.startResize, { passive: false });
+            }
+            // Load saved width from localStorage
+            window.SmartGrind.ui.sidebarResizer.loadWidth();
+        },
+
+        startResize: (e) => {
+            e.preventDefault();
+            window.SmartGrind.ui.sidebarResizer.isResizing = true;
+            window.SmartGrind.ui.sidebarResizer.startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+            
+            const sidebar = document.getElementById('main-sidebar');
+            window.SmartGrind.ui.sidebarResizer.startWidth = sidebar.offsetWidth;
+
+            // Add event listeners for dragging
+            document.addEventListener('mousemove', window.SmartGrind.ui.sidebarResizer.resize);
+            document.addEventListener('mouseup', window.SmartGrind.ui.sidebarResizer.stopResize);
+            document.addEventListener('touchmove', window.SmartGrind.ui.sidebarResizer.resize, { passive: false });
+            document.addEventListener('touchend', window.SmartGrind.ui.sidebarResizer.stopResize);
+
+            // Add resizing class for visual feedback
+            document.body.classList.add('sidebar-resizing');
+        },
+
+        resize: (e) => {
+            if (!window.SmartGrind.ui.sidebarResizer.isResizing) return;
+            e.preventDefault();
+
+            const currentX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+            const diff = currentX - window.SmartGrind.ui.sidebarResizer.startX;
+            let newWidth = window.SmartGrind.ui.sidebarResizer.startWidth + diff;
+
+            // Apply min/max constraints
+            newWidth = Math.max(window.SmartGrind.ui.sidebarResizer.minWidth, Math.min(window.SmartGrind.ui.sidebarResizer.maxWidth, newWidth));
+
+            const sidebar = document.getElementById('main-sidebar');
+            sidebar.style.width = newWidth + 'px';
+        },
+
+        stopResize: () => {
+            if (!window.SmartGrind.ui.sidebarResizer.isResizing) return;
+            window.SmartGrind.ui.sidebarResizer.isResizing = false;
+
+            // Remove event listeners
+            document.removeEventListener('mousemove', window.SmartGrind.ui.sidebarResizer.resize);
+            document.removeEventListener('mouseup', window.SmartGrind.ui.sidebarResizer.stopResize);
+            document.removeEventListener('touchmove', window.SmartGrind.ui.sidebarResizer.resize);
+            document.removeEventListener('touchend', window.SmartGrind.ui.sidebarResizer.stopResize);
+
+            // Remove resizing class
+            document.body.classList.remove('sidebar-resizing');
+
+            // Save width to localStorage
+            window.SmartGrind.ui.sidebarResizer.saveWidth();
+        },
+
+        saveWidth: () => {
+            const sidebar = document.getElementById('main-sidebar');
+            if (sidebar) {
+                localStorage.setItem('sidebarWidth', sidebar.offsetWidth);
+            }
+        },
+
+        loadWidth: () => {
+            const savedWidth = localStorage.getItem('sidebarWidth');
+            if (savedWidth) {
+                const sidebar = document.getElementById('main-sidebar');
+                if (sidebar) {
+                    const width = parseInt(savedWidth, 10);
+                    // Apply min/max constraints when loading
+                    const constrainedWidth = Math.max(window.SmartGrind.ui.sidebarResizer.minWidth, Math.min(window.SmartGrind.ui.sidebarResizer.maxWidth, width));
+                    sidebar.style.width = constrainedWidth + 'px';
+                }
+            }
+        }
+    },
+
     // Initialize UI components
     init: () => {
         window.SmartGrind.state.init();
         window.SmartGrind.ui.bindEvents();
         window.SmartGrind.ui.initScrollButton();
         window.SmartGrind.ui.pullToRefresh.init();
+        window.SmartGrind.ui.sidebarResizer.init();
         window.SmartGrind.ui.updateAuthUI();
+        // Ensure "All" filter is visually selected on page load
+        window.SmartGrind.renderers.updateFilterBtns();
     },
 
     // Bind all event listeners
@@ -64,30 +178,23 @@ window.SmartGrind.ui = {
         window.SmartGrind.state.elements.googleLoginBtn?.addEventListener('click', window.SmartGrind.ui.handleGoogleLogin);
         window.SmartGrind.state.elements.modalGoogleLoginBtn?.addEventListener('click', window.SmartGrind.ui.handleGoogleLogin);
 
-        // Sign in modal
-        window.SmartGrind.state.elements.signinModal?.addEventListener('click', (e) => {
-            if (e.target === window.SmartGrind.state.elements.signinModal) {
-                window.SmartGrind.ui.closeSigninModal();
-            }
-        });
-        window.SmartGrind.state.elements.signinModalContent?.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
+        // Modal close handlers (generic)
+        window.SmartGrind.state.elements.signinModal?.addEventListener('click', window.SmartGrind.ui.createModalHandler(
+            window.SmartGrind.state.elements.signinModal,
+            window.SmartGrind.state.elements.signinModalContent,
+            null
+        ));
 
-        // Alert modal
-        window.SmartGrind.state.elements.alertModal?.addEventListener('click', (e) => {
-            if (e.target === window.SmartGrind.state.elements.alertModal) {
-                window.SmartGrind.ui.closeAlertModal();
-            }
-        });
+        window.SmartGrind.state.elements.alertModal?.addEventListener('click', window.SmartGrind.ui.createModalHandler(
+            window.SmartGrind.state.elements.alertModal
+        ));
         window.SmartGrind.state.elements.alertOkBtn?.addEventListener('click', window.SmartGrind.ui.closeAlertModal);
 
-        // Confirm modal
-        window.SmartGrind.state.elements.confirmModal?.addEventListener('click', (e) => {
-            if (e.target === window.SmartGrind.state.elements.confirmModal) {
-                window.SmartGrind.ui.closeConfirmModal(false);
-            }
-        });
+        window.SmartGrind.state.elements.confirmModal?.addEventListener('click', window.SmartGrind.ui.createModalHandler(
+            window.SmartGrind.state.elements.confirmModal,
+            null,
+            () => window.SmartGrind.ui.closeConfirmModal(false)
+        ));
         window.SmartGrind.state.elements.confirmOkBtn?.addEventListener('click', () => window.SmartGrind.ui.closeConfirmModal(true));
         window.SmartGrind.state.elements.confirmCancelBtn?.addEventListener('click', () => window.SmartGrind.ui.closeConfirmModal(false));
 
@@ -155,8 +262,17 @@ window.SmartGrind.ui = {
     // Google login handler
     handleGoogleLogin: () => {
         window.SmartGrind.ui.showError(null);
-        window.SmartGrind.state.elements.googleLoginBtn.disabled = true;
-        window.SmartGrind.state.elements.googleLoginBtn.innerHTML = "Connecting...";
+        const btn = window.SmartGrind.state.elements.googleLoginBtn;
+        const modalBtn = window.SmartGrind.state.elements.modalGoogleLoginBtn;
+        
+        const setLoading = (button, loading) => {
+            if (!button) return;
+            button.disabled = loading;
+            button.innerHTML = loading ? "Connecting..." : window.SmartGrind.GOOGLE_BUTTON_HTML;
+        };
+        
+        setLoading(btn, true);
+        setLoading(modalBtn, true);
 
         // Open popup for auth
         const popup = window.open('/smartgrind/api/auth?action=login', 'auth', 'width=500,height=600');
@@ -169,32 +285,26 @@ window.SmartGrind.ui = {
                 localStorage.setItem('token', token);
                 localStorage.setItem('userId', userId);
                 localStorage.setItem('displayName', displayName);
+                
                 window.SmartGrind.state.user.id = userId;
                 window.SmartGrind.state.user.displayName = displayName;
                 window.SmartGrind.state.elements.userDisplay.innerText = displayName;
                 window.SmartGrind.state.user.type = 'signed-in';
                 localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
+                
                 window.SmartGrind.api.loadData();
                 window.SmartGrind.ui.updateAuthUI();
+                
                 // Close any open sign-in modals
                 window.SmartGrind.state.elements.setupModal.classList.add('hidden');
                 window.SmartGrind.state.elements.signinModal.classList.add('hidden');
+                
                 window.removeEventListener('message', messageHandler);
-                window.SmartGrind.state.elements.googleLoginBtn.disabled = false;
-                window.SmartGrind.state.elements.googleLoginBtn.innerHTML = `
-                    <svg class="w-5 h-5" viewBox="0 0 24 24">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                    </svg>
-                    Sign in with Google
-                `;
+                setLoading(btn, false);
+                setLoading(modalBtn, false);
             }
         };
         window.addEventListener('message', messageHandler);
-
-        // Note: Cannot check popup.closed due to COOP policy when navigating to external sites
     },
 
     // Logout handler
@@ -463,27 +573,21 @@ window.SmartGrind.ui = {
     // Update auth UI
     updateAuthUI: () => {
         const disconnectBtn = window.SmartGrind.state.elements.disconnectBtn;
-        if (window.SmartGrind.state.user.type === 'local') {
-            disconnectBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Sign In
-            `;
-            disconnectBtn.title = 'Sign in to sync across devices';
-        } else {
-            disconnectBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Sign Out
-            `;
-            disconnectBtn.title = 'Sign out and switch to local mode';
-        }
+        const isLocal = window.SmartGrind.state.user.type === 'local';
+        
+        disconnectBtn.innerHTML = isLocal ? `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Sign In
+        ` : `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Sign Out
+        `;
+        
+        disconnectBtn.title = isLocal ? 'Sign in to sync across devices' : 'Sign out and switch to local mode';
     },
 
     // Error display
@@ -568,20 +672,42 @@ window.SmartGrind.app = {
 
 // Helper to apply category from URL
 const _applyCategory = (categoryParam) => {
-    if (categoryParam) {
-        const validCategory = window.SmartGrind.data.topicsData.some(t => t.id === categoryParam) || categoryParam === 'all';
+    if (categoryParam && categoryParam !== 'all') {
+        const validCategory = window.SmartGrind.data.topicsData.some(t => t.id === categoryParam);
         if (validCategory) {
             window.SmartGrind.state.ui.activeTopicId = categoryParam;
-            window.SmartGrind.renderers.renderSidebar();
-            window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-            window.SmartGrind.utils.scrollToTop();
         }
     }
+    window.SmartGrind.renderers.renderSidebar();
+    window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
+    window.SmartGrind.utils.scrollToTop();
+};
+
+// Helper to setup signed-in user
+const _setupSignedInUser = async (userId, displayName, categoryParam) => {
+    localStorage.setItem('userId', userId);
+    localStorage.setItem('displayName', displayName);
+    
+    window.SmartGrind.state.user.id = userId;
+    window.SmartGrind.state.user.displayName = displayName;
+    window.SmartGrind.state.elements.userDisplay.innerText = displayName;
+    window.SmartGrind.state.user.type = 'signed-in';
+    localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
+    
+    await window.SmartGrind.api.loadData();
+    window.SmartGrind.ui.updateAuthUI();
+    _applyCategory(categoryParam);
+};
+
+// Helper to setup local user
+const _setupLocalUser = (categoryParam) => {
+    window.SmartGrind.app.initializeLocalUser();
+    _applyCategory(categoryParam);
 };
 
 // Check auth state and initialize app
 const checkAuth = async () => {
-    // Check for category in URL path before any URL changes
+    // Extract category from URL path
     const path = window.location.pathname;
     let categoryParam = null;
     if (path === '/smartgrind/') {
@@ -590,65 +716,41 @@ const checkAuth = async () => {
         categoryParam = path.split('/smartgrind/c/')[1];
     }
 
+    // Check URL params for PWA auth callback
     const urlParams = new URLSearchParams(window.location.search);
     const urlToken = urlParams.get('token');
     const urlUserId = urlParams.get('userId');
     const urlDisplayName = urlParams.get('displayName');
 
-    // Check if user just signed in via URL (for PWA compatibility)
+    // Handle PWA auth callback
     if (urlToken && urlUserId && urlDisplayName) {
         localStorage.setItem('token', urlToken);
-        localStorage.setItem('userId', urlUserId);
-        localStorage.setItem('displayName', urlDisplayName);
-        window.SmartGrind.state.user.id = urlUserId;
-        window.SmartGrind.state.user.displayName = urlDisplayName;
-        window.SmartGrind.state.elements.userDisplay.innerText = urlDisplayName;
-        window.SmartGrind.state.user.type = 'signed-in';
-        localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
-        // Clean URL
         window.history.replaceState({}, document.title, window.location.pathname);
-        await window.SmartGrind.api.loadData();
-        window.SmartGrind.ui.updateAuthUI();
-        _applyCategory(categoryParam);
+        await _setupSignedInUser(urlUserId, urlDisplayName, categoryParam);
         return;
     }
 
-    // Check if user is already signed in
+    // Check for existing session
     const userId = localStorage.getItem('userId');
     if (userId) {
         const displayName = localStorage.getItem('displayName') || 'User';
-        window.SmartGrind.state.elements.userDisplay.innerText = displayName;
-        window.SmartGrind.state.user.type = 'signed-in';
-        localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
-        await window.SmartGrind.api.loadData();
-        window.SmartGrind.ui.updateAuthUI();
-        _applyCategory(categoryParam);
+        await _setupSignedInUser(userId, displayName, categoryParam);
         return;
     }
 
     // Default to local user
     const userType = localStorage.getItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE) || 'local';
-
+    
     if (userType === 'local') {
-        window.SmartGrind.app.initializeLocalUser();
-        _applyCategory(categoryParam);
+        _setupLocalUser(categoryParam);
     } else {
-        // If user type is 'signed-in' but no userId, show setup modal
+        // Show setup modal for orphaned signed-in state
         window.SmartGrind.state.elements.setupModal.classList.remove('hidden');
         window.SmartGrind.state.elements.appWrapper.classList.add('hidden');
         window.SmartGrind.state.elements.loadingScreen.classList.add('hidden');
-
-        // Reset Login Button State
+        
         window.SmartGrind.state.elements.googleLoginBtn.disabled = false;
-        window.SmartGrind.state.elements.googleLoginBtn.innerHTML = `
-            <svg class="w-5 h-5" viewBox="0 0 24 24">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            Sign in with Google
-        `;
+        window.SmartGrind.state.elements.googleLoginBtn.innerHTML = window.SmartGrind.GOOGLE_BUTTON_HTML;
         window.SmartGrind.ui.updateAuthUI();
     }
 };
