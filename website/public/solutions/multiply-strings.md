@@ -1,0 +1,66 @@
+# Multiply Strings
+
+## Problem Description
+[Link to problem](https://leetcode.com/problems/multiply-strings/)
+
+Given two non-negative integers num1 and num2 represented as strings, return the product of num1 and num2, also represented as a string.
+Note: You must not use any built-in BigInteger library or convert the inputs to integer directly.
+ 
+Example 1:
+Input: num1 = "2", num2 = "3"
+Output: "6"
+Example 2:
+Input: num1 = "123", num2 = "456"
+Output: "56088"
+
+ 
+Constraints:
+
+1 <= num1.length, num2.length <= 200
+num1 and num2 consist of digits only.
+Both num1 and num2 do not contain any leading zero, except the number 0 itself.
+
+
+## Solution
+
+```python
+class Solution:
+    def multiply(self, num1: str, num2: str) -> str:
+        if num1 == "0" or num2 == "0":
+            return "0"
+        m, n = len(num1), len(num2)
+        result = [0] * (m + n)
+        for i in range(m - 1, -1, -1):
+            for j in range(n - 1, -1, -1):
+                mul = (ord(num1[i]) - ord('0')) * (ord(num2[j]) - ord('0'))
+                p1, p2 = i + j, i + j + 1
+                sum_val = mul + result[p2]
+                result[p2] = sum_val % 10
+                result[p1] += sum_val // 10
+        # Handle carry
+        for i in range(m + n - 1, 0, -1):
+            if result[i] >= 10:
+                result[i - 1] += result[i] // 10
+                result[i] %= 10
+        # Convert to string
+        start = 0
+        while start < m + n and result[start] == 0:
+            start += 1
+        return ''.join(str(d) for d in result[start:])
+```
+
+## Explanation
+This problem requires multiplying two large numbers given as strings.
+
+Treat the strings as arrays of digits.
+
+Initialize a result array of size m + n.
+
+For each digit in num1 and num2, multiply and add to the corresponding position in result (i + j).
+
+Handle carry by iterating through the result array.
+
+Convert the result array to string, removing leading zeros.
+
+**Time Complexity:** O(m * n), where m and n are the lengths of the strings.
+**Space Complexity:** O(m + n), for the result array.

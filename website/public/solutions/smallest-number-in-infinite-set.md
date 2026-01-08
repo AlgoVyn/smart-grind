@@ -1,0 +1,87 @@
+# Smallest Number In Infinite Set
+
+## Problem Description
+[Link to problem](https://leetcode.com/problems/smallest-number-in-infinite-set/)
+
+You have a set which contains all positive integers [1, 2, 3, 4, 5, ...].
+Implement the SmallestInfiniteSet class:
+
+SmallestInfiniteSet() Initializes the SmallestInfiniteSet object to contain all positive integers.
+int popSmallest() Removes and returns the smallest integer contained in the infinite set.
+void addBack(int num) Adds a positive integer num back into the infinite set, if it is not already in the infinite set.
+
+ 
+Example 1:
+
+Input
+["SmallestInfiniteSet", "addBack", "popSmallest", "popSmallest", "popSmallest", "addBack", "popSmallest", "popSmallest", "popSmallest"]
+[[], [2], [], [], [], [1], [], [], []]
+Output
+[null, null, 1, 2, 3, null, 1, 4, 5]
+
+Explanation
+SmallestInfiniteSet smallestInfiniteSet = new SmallestInfiniteSet();
+smallestInfiniteSet.addBack(2);    // 2 is already in the set, so no change is made.
+smallestInfiniteSet.popSmallest(); // return 1, since 1 is the smallest number, and remove it from the set.
+smallestInfiniteSet.popSmallest(); // return 2, and remove it from the set.
+smallestInfiniteSet.popSmallest(); // return 3, and remove it from the set.
+smallestInfiniteSet.addBack(1);    // 1 is added back to the set.
+smallestInfiniteSet.popSmallest(); // return 1, since 1 was added back to the set and
+                                   // is the smallest number, and remove it from the set.
+smallestInfiniteSet.popSmallest(); // return 4, and remove it from the set.
+smallestInfiniteSet.popSmallest(); // return 5, and remove it from the set.
+
+ 
+Constraints:
+
+1 <= num <= 1000
+At most 1000 calls will be made in total to popSmallest and addBack.
+
+
+## Solution
+
+```python
+import heapq
+
+class SmallestInfiniteSet:
+
+    def __init__(self):
+        self.heap = []
+        self.present = set()
+        self.next = 1
+
+    def popSmallest(self) -> int:
+        if self.heap:
+            num = heapq.heappop(self.heap)
+            self.present.remove(num)
+            return num
+        else:
+            num = self.next
+            self.next += 1
+            return num
+
+    def addBack(self, num: int) -> None:
+        if num >= self.next or num in self.present:
+            return
+        heapq.heappush(self.heap, num)
+        self.present.add(num)
+```
+
+## Explanation
+
+To manage an infinite set of positive integers, allowing pop smallest and add back.
+
+### Step-by-Step Approach:
+
+1. **Data Structures**: Use a minheap for added back numbers, a set to track them, and a counter for the next number.
+
+2. **Pop Smallest**: If heap has numbers, pop the smallest. Else, return next and increment.
+
+3. **Add Back**: If num is not already present and less than next, add to heap and set.
+
+### Time Complexity:
+- Pop: O(log n)
+- Add: O(log n)
+
+### Space Complexity:
+- O(n), for heap and set.

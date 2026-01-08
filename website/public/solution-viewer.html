@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solution Viewer - SmartGrind</title>
+    <link href="/smartgrind/styles.css" rel="stylesheet">
+    <style>
+        :root {
+            --theme-base: #cbd5e1;
+            --theme-muted: #94a3b8;
+            --theme-bold: #f1f5f9;
+            --brand-400: #60a5fa;
+            --brand-500: #3b82f6;
+            --dark-900: #0f172a;
+            --dark-950: #020617;
+            --theme: #334155;
+        }
+        .light-theme {
+            --theme-base: #334155;
+            --theme-muted: #64748b;
+            --theme-bold: #0f172a;
+            --brand-400: #2563eb;
+            --brand-500: #1d4ed8;
+            --dark-900: #f1f5f9;
+            --dark-950: #e2e8f0;
+            --theme: #cbd5e1;
+        }
+        .light-theme body {
+            background: #f8fafc;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--theme-base);
+            word-wrap: break-word;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--dark-950);
+        }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 0.5em;
+            border-bottom: 1px solid var(--theme);
+            padding-bottom: 0.3em;
+            color: var(--theme-bold);
+        }
+        h2 {
+            font-size: 1.5em;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            border-bottom: 1px solid var(--theme);
+            padding-bottom: 0.3em;
+            color: var(--theme-bold);
+        }
+        h3 {
+            font-size: 1.25em;
+            margin-top: 1.25em;
+            margin-bottom: 0.5em;
+            color: var(--theme-bold);
+        }
+        p {
+            margin: 1em 0;
+        }
+        pre {
+            background: var(--dark-900);
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1em 0;
+            border: 1px solid var(--theme);
+        }
+        code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.9em;
+            background: var(--dark-900);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 2em;
+            margin: 1em 0;
+        }
+        li {
+            margin: 0.25em 0;
+        }
+        blockquote {
+            border-left: 4px solid var(--brand-500);
+            padding-left: 1em;
+            margin: 1em 0;
+            color: var(--theme-muted);
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid var(--theme);
+            padding: 0.5em 1em;
+            text-align: left;
+        }
+        th {
+            background: var(--dark-900);
+        }
+        a {
+            color: var(--brand-400);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            color: var(--theme-muted);
+        }
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--theme);
+            border-top-color: var(--brand-500);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Prism syntax highlighting styles */
+        code[class*="language-"] {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        .light-theme code[class*="language-"] {
+            color: #212529;
+        }
+        .token.comment,
+        .token.prolog,
+        .token.doctype,
+        .token.cdata {
+            color: var(--theme-muted);
+        }
+        .light-theme .token.comment,
+        .light-theme .token.prolog,
+        .light-theme .token.doctype,
+        .light-theme .token.cdata {
+            color: #6c757d;
+        }
+        .token.punctuation {
+            color: var(--theme-base);
+        }
+        .light-theme .token.punctuation {
+            color: #212529;
+        }
+        .token.property,
+        .token.tag,
+        .token.constant,
+        .token.symbol,
+        .token.deleted {
+            color: #e83e8c;
+        }
+        .light-theme .token.property,
+        .light-theme .token.tag,
+        .light-theme .token.constant,
+        .light-theme .token.symbol,
+        .light-theme .token.deleted {
+            color: #d73a49;
+        }
+        .token.boolean,
+        .token.number {
+            color: #ffc107;
+        }
+        .light-theme .token.boolean,
+        .light-theme .token.number {
+            color: #005cc5;
+        }
+        .token.selector,
+        .token.attr-name,
+        .token.string,
+        .token.char,
+        .token.builtin,
+        .token.inserted {
+            color: #28a745;
+        }
+        .light-theme .token.selector,
+        .light-theme .token.attr-name,
+        .light-theme .token.string,
+        .light-theme .token.char,
+        .light-theme .token.builtin,
+        .light-theme .token.inserted {
+            color: #032f62;
+        }
+        .token.operator,
+        .token.entity,
+        .token.url,
+        .token.variable {
+            color: #6f42c1;
+        }
+        .light-theme .token.operator,
+        .light-theme .token.entity,
+        .light-theme .token.url,
+        .light-theme .token.variable {
+            color: #e36209;
+        }
+        .token.atrule,
+        .token.attr-value,
+        .token.function,
+        .token.class-name {
+            color: var(--brand-500);
+        }
+        .token.keyword {
+            color: var(--brand-400);
+        }
+        .light-theme .token.keyword {
+            color: #d73a49;
+        }
+        .token.regex,
+        .token.important {
+            color: #fd7e14;
+        }
+        .light-theme .token.regex,
+        .light-theme .token.important {
+            color: #e36209;
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <div class="loading">
+            <div class="spinner"></div>
+            <span>Loading solution...</span>
+        </div>
+    </div>
+    <script>
+        // Theme initialization
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'light') {
+                document.documentElement.classList.add('light-theme');
+            }
+        })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script>
+        window.onload = function() {
+            // Get the solution file from URL params
+            const urlParams = new URLSearchParams(window.location.search);
+            const solutionFile = urlParams.get('file');
+            
+            if (!solutionFile) {
+                document.getElementById('content').innerHTML = '<p>No solution file specified.</p>';
+                return;
+            }
+            
+            // Fetch and render the markdown file
+            fetch(solutionFile)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load solution file (status: ' + response.status + ')');
+                    }
+                    return response.text();
+                })
+                .then(markdown => {
+                    // Check if marked.js is loaded
+                    if (typeof marked === 'undefined') {
+                        document.getElementById('content').innerHTML = '<p>Error: Markdown renderer not loaded. Please check your internet connection.</p>';
+                        return;
+                    }
+                    
+                    // Configure marked for security and rendering
+                    marked.setOptions({
+                        breaks: true,
+                        gfm: true
+                    });
+
+                    const html = marked.parse(markdown);
+                    document.getElementById('content').innerHTML = html;
+
+                    // Apply syntax highlighting
+                    Prism.highlightAll();
+                })
+                .catch(error => {
+                    document.getElementById('content').innerHTML = '<p>Error loading solution: ' + error.message + '</p>' +
+                        '<p>File: ' + solutionFile + '</p>';
+                });
+        };
+    </script>
+</body>
+</html>

@@ -231,6 +231,16 @@ window.SmartGrind.renderers = {
                         ${window.SmartGrind.ICONS.note}
                     </button>
 
+                    <a class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center" href="/smartgrind/solution-viewer.html?file=/smartgrind/solutions/${p.id}.md" target="_blank" title="View Solution" onclick="event.stopPropagation();">
+                        <svg fill="currentColor" class="w-4 h-4" viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10,9 9,9 8,9"/>
+                        </svg>
+                    </a>
+
                     ${actionButton}
 
                     <!-- Delete Button -->
@@ -361,6 +371,9 @@ window.SmartGrind.renderers = {
             case 'ask-grok':
                 const provider = action.split('-')[1];
                 window.SmartGrind.utils.askAI(p.name, provider);
+                break;
+            case 'solution':
+                window.open(`/smartgrind/solution-viewer.html?file=/smartgrind/solutions/${p.id}.md`, '_blank');
                 break;
         }
     },

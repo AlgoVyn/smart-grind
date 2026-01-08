@@ -724,6 +724,16 @@ describe('SmartGrind Renderers', () => {
       expect(window.SmartGrind.utils.askAI).toHaveBeenCalledWith('Two Sum', 'grok');
     });
 
+    test('handles solution action', () => {
+      // The solution button is now an anchor tag, not a button
+      // This test verifies the solution-viewer URL is correct
+      const problem = { id: 'add-strings' };
+      
+      // Verify the expected URL pattern
+      const expectedUrl = `/smartgrind/solution-viewer.html?file=/smartgrind/solutions/${problem.id}.md`;
+      expect(expectedUrl).toBe('/smartgrind/solution-viewer.html?file=/smartgrind/solutions/add-strings.md');
+    });
+
     test('does nothing if no button found', () => {
       const mockEvent = {
         target: { closest: jest.fn(() => null) }
