@@ -301,6 +301,9 @@ describe('SmartGrind UI', () => {
 
   describe('pullToRefresh', () => {
     test('handles touch start when at top', () => {
+      // Mock sidebar not open
+      window.SmartGrind.state.elements.mainSidebar.classList.contains = jest.fn(() => false);
+
       const event = {
         touches: [{ clientY: 100 }],
         preventDefault: jest.fn(),
@@ -552,7 +555,7 @@ describe('SmartGrind UI', () => {
 
   describe('toggleMobileMenu', () => {
     test('opens mobile menu when closed', () => {
-      mockClassListContains.mockReturnValue(false);
+      window.SmartGrind.state.elements.mainSidebar.classList.contains = jest.fn(() => false);
 
       window.SmartGrind.ui.toggleMobileMenu();
 
@@ -562,7 +565,7 @@ describe('SmartGrind UI', () => {
     });
 
     test('closes mobile menu when open', () => {
-      mockClassListContains.mockReturnValue(true);
+      window.SmartGrind.state.elements.mainSidebar.classList.contains = jest.fn(() => true);
 
       window.SmartGrind.ui.toggleMobileMenu();
 
