@@ -134,21 +134,15 @@ window.SmartGrind.renderers = {
         window.SmartGrind.state.ui.activeTopicId = topicId;
     },
 
-    // Render main problem view
-    renderMainView: (filterTopicId) => {
-        window.SmartGrind.state.ui.activeTopicId = filterTopicId || window.SmartGrind.state.ui.activeTopicId;
-        const container = window.SmartGrind.state.elements.problemsContainer;
-        container.innerHTML = '';
-
-        const title = window.SmartGrind.state.ui.activeTopicId === 'all' ?
-            'All Problems' :
-            window.SmartGrind.data.topicsData.find(t => t.id === window.SmartGrind.state.ui.activeTopicId)?.title;
-
+    // Helper to set view title and delete button
+    _setViewTitle: (filterTopicId) => {
+        const title = filterTopicId === 'all' ? 'All Problems' :
+            window.SmartGrind.data.topicsData.find(t => t.id === filterTopicId)?.title || 'Unknown Topic';
         window.SmartGrind.state.elements.currentViewTitle.innerText = title;
 
         // Remove existing delete button
-        let existingBtn = window.SmartGrind.state.elements.currentViewTitle.nextElementSibling;
-        if (existingBtn && existingBtn.classList.contains('delete-category-btn')) {
+        const existingBtn = window.SmartGrind.state.elements.currentViewTitle.nextElementSibling;
+        if (existingBtn?.classList.contains('delete-category-btn')) {
             existingBtn.remove();
         }
 
@@ -161,24 +155,29 @@ window.SmartGrind.renderers = {
             deleteBtn.onclick = () => window.SmartGrind.api.deleteCategory(filterTopicId);
             window.SmartGrind.state.elements.currentViewTitle.insertAdjacentElement('afterend', deleteBtn);
         }
+    },
+
+    // Render main problem view
+    renderMainView: (filterTopicId) => {
+        window.SmartGrind.state.ui.activeTopicId = filterTopicId || window.SmartGrind.state.ui.activeTopicId;
+        const container = window.SmartGrind.state.elements.problemsContainer;
+        container.innerHTML = '';
+
+        window.SmartGrind.renderers._setViewTitle(window.SmartGrind.state.ui.activeTopicId);
 
         const today = window.SmartGrind.utils.getToday();
         const visibleCountRef = { count: 0 };
 
-        const relevantTopics = filterTopicId === 'all' ?
+        const relevantTopics = window.SmartGrind.state.ui.activeTopicId === 'all' ?
             window.SmartGrind.data.topicsData :
-            window.SmartGrind.data.topicsData.filter(t => t.id === filterTopicId);
+            window.SmartGrind.data.topicsData.filter(t => t.id === window.SmartGrind.state.ui.activeTopicId);
 
         relevantTopics.forEach(topic => {
-            const topicSection = window.SmartGrind.renderers._renderTopicSection(topic, filterTopicId, today, visibleCountRef);
-            if (topicSection) {
-                container.appendChild(topicSection);
-            }
+            const topicSection = window.SmartGrind.renderers._renderTopicSection(topic, window.SmartGrind.state.ui.activeTopicId, today, visibleCountRef);
+            if (topicSection) container.appendChild(topicSection);
         });
 
-        const visibleCount = visibleCountRef.count;
-
-        window.SmartGrind.state.elements.emptyState.classList.toggle('hidden', visibleCount > 0);
+        window.SmartGrind.state.elements.emptyState.classList.toggle('hidden', visibleCountRef.count > 0);
         window.SmartGrind.renderers.updateStats();
     },
 
@@ -251,6 +250,78 @@ window.SmartGrind.renderers = {
         ` };
     },
 
+    // Helper to re-render a problem card
+    _reRenderCard: (button, p) => {
+        const card = button.closest('.group');
+        if (card) {
+            const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(p);
+            card.className = className;
+            card.innerHTML = innerHTML;
+        }
+    },
+
+    // Helper to handle problem status changes
+    _handleStatusChange: async (p, newStatus, interval = 0, nextDate = null) => {
+        p.status = newStatus;
+        p.reviewInterval = interval;
+        p.nextReviewDate = nextDate;
+        p.loading = true;
+        await window.SmartGrind.api.saveProblem(p);
+        p.loading = false;
+    },
+
+    // Handle solve action
+    _handleSolve: async (button, p) => {
+        const today = window.SmartGrind.utils.getToday();
+        await window.SmartGrind.renderers._handleStatusChange(p, 'solved', 0, window.SmartGrind.utils.getNextReviewDate(today, 0));
+        window.SmartGrind.renderers._reRenderCard(button, p);
+    },
+
+    // Handle review action
+    _handleReview: async (button, p) => {
+        const today = window.SmartGrind.utils.getToday();
+        const newInterval = (p.reviewInterval || 0) + 1;
+        await window.SmartGrind.renderers._handleStatusChange(p, 'solved', newInterval, window.SmartGrind.utils.getNextReviewDate(today, newInterval));
+
+        if (window.SmartGrind.state.ui.currentFilter === 'review') {
+            window.SmartGrind.renderers._hideCardIfDueFilter(button);
+        } else {
+            window.SmartGrind.renderers._reRenderCard(button, p);
+        }
+    },
+
+    // Handle reset action
+    _handleReset: async (button, p) => {
+        await window.SmartGrind.renderers._handleStatusChange(p, 'unsolved', 0, null);
+        window.SmartGrind.renderers._reRenderCard(button, p);
+    },
+
+    // Helper to hide card when due filter is active
+    _hideCardIfDueFilter: (button) => {
+        const card = button.closest('.group');
+        if (!card) return;
+
+        card.style.display = 'none';
+
+        // Check if pattern section should be hidden
+        const grid = card.parentElement;
+        if (grid && grid.querySelectorAll('.group:not([style*="display: none"])').length === 0) {
+            const patternSection = grid.parentElement;
+            if (patternSection) {
+                patternSection.style.display = 'none';
+
+                // Check if topic section should be hidden
+                const topicSection = patternSection.parentElement;
+                if (topicSection && topicSection.querySelectorAll(':scope > div:not([style*="display: none"])').length === 0) {
+                    topicSection.style.display = 'none';
+                    window.SmartGrind.state.elements.emptyState.classList.remove('hidden');
+                }
+            }
+        }
+
+        window.SmartGrind.renderers.updateStats();
+    },
+
     // Handle clicks on problem card buttons
     handleProblemCardClick: (e, p) => {
         const button = e.target.closest('button');
@@ -259,126 +330,37 @@ window.SmartGrind.renderers = {
         const action = button.dataset.action;
         if (!action) return;
 
-        const today = window.SmartGrind.utils.getToday();
-
         switch (action) {
             case 'solve':
-                p.status = 'solved';
-                p.reviewInterval = 0;
-                p.nextReviewDate = window.SmartGrind.utils.getNextReviewDate(today, 0);
-                p.loading = true;
-                window.SmartGrind.api.saveProblem(p).finally(() => {
-                    p.loading = false;
-                    // Re-render the card after API call
-                    const card = button.closest('.group');
-                    if (card) {
-                        const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(p);
-                        card.className = className;
-                        card.innerHTML = innerHTML;
-                    }
-                });
+                window.SmartGrind.renderers._handleSolve(button, p);
                 break;
             case 'review':
-                p.reviewInterval = (p.reviewInterval || 0) + 1;
-                p.nextReviewDate = window.SmartGrind.utils.getNextReviewDate(today, p.reviewInterval);
-                p.loading = true;
-                window.SmartGrind.api.saveProblem(p).finally(() => {
-                    p.loading = false;
-                    // Check if the Due filter is currently selected
-                    if (window.SmartGrind.state.ui.currentFilter === 'review') {
-                        // Hide the card since it's no longer due
-                        const card = button.closest('.group');
-                        if (card) {
-                            card.style.display = 'none';
-                            
-                            // Check if this was the last card in the pattern grid
-                            const grid = card.parentElement;
-                            if (grid) {
-                                const remainingCards = grid.querySelectorAll('.group:not([style*="display: none"])');
-                                if (remainingCards.length === 0) {
-                                    // Hide the pattern section (h4 + grid)
-                                    const patternSection = grid.parentElement;
-                                    if (patternSection) {
-                                        patternSection.style.display = 'none';
-                                        
-                                        // Check if this was the last pattern in the topic
-                                        const topicSection = patternSection.parentElement;
-                                        if (topicSection) {
-                                            const remainingPatterns = topicSection.querySelectorAll(':scope > div:not([style*="display: none"])');
-                                            if (remainingPatterns.length === 0) {
-                                                topicSection.style.display = 'none';
-                                                // Show empty state if no problems are visible
-                                                window.SmartGrind.state.elements.emptyState.classList.remove('hidden');
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            // Update stats
-                            window.SmartGrind.renderers.updateStats();
-                        }
-                    } else {
-                        // Re-render the card after API call
-                        const card = button.closest('.group');
-                        if (card) {
-                            const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(p);
-                            card.className = className;
-                            card.innerHTML = innerHTML;
-                        }
-                    }
-                });
+                window.SmartGrind.renderers._handleReview(button, p);
                 break;
             case 'reset':
-                p.status = 'unsolved';
-                p.reviewInterval = 0;
-                p.nextReviewDate = null;
-                p.loading = true;
-                window.SmartGrind.api.saveProblem(p).finally(() => {
-                    p.loading = false;
-                    // Re-render the card after API call
-                    const card = button.closest('.group');
-                    if (card) {
-                        const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(p);
-                        card.className = className;
-                        card.innerHTML = innerHTML;
-                    }
-                });
+                window.SmartGrind.renderers._handleReset(button, p);
                 break;
             case 'delete':
                 window.SmartGrind.api.saveDeletedId(p.id);
                 break;
             case 'note':
                 const noteArea = button.closest('.group').querySelector('.note-area');
-                if (noteArea) {
-                    noteArea.classList.toggle('hidden');
-                }
+                if (noteArea) noteArea.classList.toggle('hidden');
                 break;
             case 'save-note':
                 const textarea = button.closest('.note-area').querySelector('textarea');
                 if (textarea) {
                     p.note = textarea.value.trim();
-                    p.loading = true;
-                    window.SmartGrind.api.saveProblem(p).finally(() => {
-                        p.loading = false;
-                        // Re-render the card after API call
-                        const card = button.closest('.group');
-                        if (card) {
-                            const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(p);
-                            card.className = className;
-                            card.innerHTML = innerHTML;
-                        }
+                    window.SmartGrind.renderers._handleStatusChange(p, p.status, p.reviewInterval, p.nextReviewDate).then(() => {
+                        window.SmartGrind.renderers._reRenderCard(button, p);
                     });
                 }
                 break;
             case 'ask-chatgpt':
-                window.SmartGrind.utils.askAI(p.name, 'chatgpt');
-                break;
             case 'ask-gemini':
-                window.SmartGrind.utils.askAI(p.name, 'gemini');
-                break;
             case 'ask-grok':
-                window.SmartGrind.utils.askAI(p.name, 'grok');
+                const provider = action.split('-')[1];
+                window.SmartGrind.utils.askAI(p.name, provider);
                 break;
         }
     },

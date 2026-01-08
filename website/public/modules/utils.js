@@ -71,45 +71,25 @@ window.SmartGrind.utils = {
         }
     },
 
+    // AI provider configurations
+    _aiProviders: {
+        chatgpt: { mobileIntent: 'intent://chat.openai.com#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchatgpt.com%2F;end', desktopUrl: 'https://chatgpt.com' },
+        gemini: { mobileIntent: 'intent://gemini.google.com/app#Intent;scheme=https;package=com.google.android.apps.ai;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end', desktopUrl: 'https://gemini.google.com/app' },
+        grok: { mobileIntent: 'intent://grok.com#Intent;scheme=https;package=com.xai.grok;S.browser_fallback_url=https%3A%2F%2Fgrok.com;end', desktopUrl: 'https://grok.com' }
+    },
+
     // AI helper
     askAI: async (problemName, provider) => {
         const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the intuition, optimal approach, and time/space complexity analysis.`;
 
-        // Copy prompt to clipboard
         await window.SmartGrind.utils.copyToClipboard(aiPrompt);
-
-        // Save preference
         localStorage.setItem('preferred-ai', provider);
         window.SmartGrind.state.ui.preferredAI = provider;
 
-        // Open AI service - use web URL on desktop, intent on mobile
+        const config = window.SmartGrind.utils._aiProviders[provider];
         const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        let url;
-        if (provider === 'chatgpt') {
-            if (isMobile) {
-                url = 'intent://chat.openai.com#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchatgpt.com%2F;end';
-            } else {
-                url = 'https://chatgpt.com';
-            }
-        } else if (provider === 'gemini') {
-            if (isMobile) {
-                // Android intent to open Gemini app, fallback to website
-                url = 'intent://gemini.google.com/app#Intent;scheme=https;package=com.google.android.apps.ai;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end';
-            } else {
-                // Direct web URL for desktop
-                url = 'https://gemini.google.com/app';
-            }
-        } else {
-            if (isMobile) {
-                // Android intent to open Grok app, fallback to website
-                url = 'intent://grok.com#Intent;scheme=https;package=com.xai.grok;S.browser_fallback_url=https%3A%2F%2Fgrok.com;end';
-            } else {
-                // Direct web URL for desktop
-                url = 'https://grok.com';
-            }
-        }
+        const url = isMobile ? config.mobileIntent : config.desktopUrl;
 
-        // Use window.open for desktop to open in new tab, window.location.href for mobile intents
         if (isMobile) {
             window.location.href = url;
         } else {

@@ -376,63 +376,76 @@ window.SmartGrind.ui = {
         }
     },
 
+    // Generic modal manager
+    modalManager: {
+        show: (modalEl, setupCallback) => {
+            if (setupCallback) setupCallback();
+            modalEl.classList.remove('hidden');
+        },
+
+        hide: (modalEl, cleanupCallback) => {
+            modalEl.classList.add('hidden');
+            if (cleanupCallback) cleanupCallback();
+        }
+    },
+
     // Modal functions
     openSigninModal: () => {
-        window.SmartGrind.state.elements.signinModal.classList.remove('hidden');
+        window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.signinModal);
     },
 
     closeSigninModal: () => {
-        window.SmartGrind.state.elements.signinModal.classList.add('hidden');
+        window.SmartGrind.ui.modalManager.hide(window.SmartGrind.state.elements.signinModal);
     },
 
     openAddModal: () => {
-        // Populate category dropdown
-        window.SmartGrind.state.elements.addProbCategory.innerHTML = `<option value="">-- Select or Type New --</option>` +
-            window.SmartGrind.data.topicsData.map(t => `<option value="${t.title}">${t.title}</option>`).join('');
+        window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.addProblemModal, () => {
+            // Populate category dropdown
+            window.SmartGrind.state.elements.addProbCategory.innerHTML = `<option value="">-- Select or Type New --</option>` +
+                window.SmartGrind.data.topicsData.map(t => `<option value="${t.title}">${t.title}</option>`).join('');
 
-        // Clear inputs
-        window.SmartGrind.state.elements.addProbName.value = '';
-        window.SmartGrind.state.elements.addProbUrl.value = '';
-        window.SmartGrind.state.elements.addProbCategoryNew.value = '';
-        window.SmartGrind.state.elements.addProbPatternNew.value = '';
-        window.SmartGrind.state.elements.addProbCategoryNew.classList.remove('hidden');
-        window.SmartGrind.state.elements.addProbPattern.innerHTML = '<option value="">-- Select Category First --</option>';
-        window.SmartGrind.state.elements.addProbPatternNew.classList.remove('hidden');
-
-        window.SmartGrind.state.elements.addProblemModal.classList.remove('hidden');
+            // Clear inputs
+            ['addProbName', 'addProbUrl', 'addProbCategoryNew', 'addProbPatternNew'].forEach(id => {
+                window.SmartGrind.state.elements[id].value = '';
+            });
+            window.SmartGrind.state.elements.addProbCategoryNew.classList.remove('hidden');
+            window.SmartGrind.state.elements.addProbPattern.innerHTML = '<option value="">-- Select Category First --</option>';
+            window.SmartGrind.state.elements.addProbPatternNew.classList.remove('hidden');
+        });
     },
 
     closeAddModal: () => {
-        window.SmartGrind.state.elements.addProblemModal.classList.add('hidden');
+        window.SmartGrind.ui.modalManager.hide(window.SmartGrind.state.elements.addProblemModal);
     },
 
     // Alert modal functions
     showAlert: (message) => {
-        window.SmartGrind.state.elements.alertMessage.textContent = message;
-        window.SmartGrind.state.elements.alertModal.classList.remove('hidden');
+        window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.alertModal, () => {
+            window.SmartGrind.state.elements.alertMessage.textContent = message;
+        });
     },
 
     closeAlertModal: () => {
-        window.SmartGrind.state.elements.alertModal.classList.add('hidden');
+        window.SmartGrind.ui.modalManager.hide(window.SmartGrind.state.elements.alertModal);
     },
 
     // Confirm modal functions
     showConfirm: (message) => {
         return new Promise((resolve) => {
-            window.SmartGrind.state.elements.confirmMessage.textContent = message;
-            window.SmartGrind.state.elements.confirmModal.classList.remove('hidden');
-
-            // Store the resolve function to be called when modal is closed
+            window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.confirmModal, () => {
+                window.SmartGrind.state.elements.confirmMessage.textContent = message;
+            });
             window.SmartGrind.ui._confirmResolve = resolve;
         });
     },
 
     closeConfirmModal: (result) => {
-        window.SmartGrind.state.elements.confirmModal.classList.add('hidden');
-        if (window.SmartGrind.ui._confirmResolve) {
-            window.SmartGrind.ui._confirmResolve(result);
-            window.SmartGrind.ui._confirmResolve = null;
-        }
+        window.SmartGrind.ui.modalManager.hide(window.SmartGrind.state.elements.confirmModal, () => {
+            if (window.SmartGrind.ui._confirmResolve) {
+                window.SmartGrind.ui._confirmResolve(result);
+                window.SmartGrind.ui._confirmResolve = null;
+            }
+        });
     },
 
     handleCategoryChange: (e) => {

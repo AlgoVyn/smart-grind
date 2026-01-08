@@ -88,64 +88,61 @@ window.SmartGrind.api = {
         await window.SmartGrind.api._performSave();
     },
 
+    // Helper to handle API response errors
+    _handleApiError: (response) => {
+        const errorMap = {
+            401: 'Authentication failed. Please sign in again.',
+            404: 'User data not found. Starting with fresh data.',
+            500: 'Server error. Please try again later.'
+        };
+        throw new Error(errorMap[response.status] || `Failed to load data: ${response.statusText}`);
+    },
+
+    // Helper to process loaded user data
+    _processUserData: (userData) => {
+        window.SmartGrind.state.problems = new Map(Object.entries(userData.problems || {}));
+        window.SmartGrind.state.problems.forEach(p => p.loading = false);
+        window.SmartGrind.state.deletedProblemIds = new Set(userData.deletedIds || []);
+    },
+
+    // Helper to initialize UI after data load
+    _initializeUI: () => {
+        window.SmartGrind.renderers.renderSidebar();
+        window.SmartGrind.renderers.renderMainView('all');
+        window.SmartGrind.renderers.updateStats();
+        window.SmartGrind.ui.initScrollButton();
+        window.SmartGrind.state.elements.setupModal.classList.add('hidden');
+        window.SmartGrind.state.elements.appWrapper.classList.remove('hidden');
+    },
+
     // Load data from API
     loadData: async () => {
         window.SmartGrind.state.elements.loadingScreen.classList.remove('hidden');
 
         try {
             const token = localStorage.getItem('token');
-            if (!token) {
-                throw new Error('No authentication token found. Please sign in again.');
-            }
+            if (!token) throw new Error('No authentication token found. Please sign in again.');
+
             const response = await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (!response.ok) {
-                if (response.status === 401) {
-                    throw new Error('Authentication failed. Please sign in again.');
-                } else if (response.status === 404) {
-                    throw new Error('User data not found. Starting with fresh data.');
-                } else if (response.status >= 500) {
-                    throw new Error('Server error. Please try again later.');
-                } else {
-                    throw new Error(`Failed to load data: ${response.statusText}`);
-                }
-            }
+
+            if (!response.ok) window.SmartGrind.api._handleApiError(response);
+
             const userData = await response.json();
-            window.SmartGrind.state.problems = new Map(Object.entries(userData.problems || {}));
-            // Reset loading state for all problems on load
-            window.SmartGrind.state.problems.forEach(p => p.loading = false);
-            const deletedArr = userData.deletedIds || [];
-            window.SmartGrind.state.deletedProblemIds = new Set(deletedArr);
+            window.SmartGrind.api._processUserData(userData);
 
-            // Reset topicsData to original static data
             window.SmartGrind.data.resetTopicsData();
-
-            // Sync with static plan to ensure all problems exist
             await window.SmartGrind.api.syncPlan();
-
-            // Merge dynamically added problems into topicsData structure
             window.SmartGrind.api.mergeStructure();
 
-            window.SmartGrind.renderers.renderSidebar();
-            window.SmartGrind.renderers.renderMainView('all'); // Show all by default
-            window.SmartGrind.renderers.updateStats();
-
-            // Initialize scroll button after DOM is ready
-            window.SmartGrind.ui.initScrollButton();
-
-            window.SmartGrind.state.elements.setupModal.classList.add('hidden');
-            window.SmartGrind.state.elements.appWrapper.classList.remove('hidden');
+            window.SmartGrind.api._initializeUI();
 
         } catch (e) {
             console.error('Load data error:', e);
             window.SmartGrind.ui.showAlert(`Failed to load data: ${e.message}`);
-            // For auth errors, show signin modal
-            if (e.message.includes('Authentication failed') || e.message.includes('No authentication token')) {
-                window.SmartGrind.state.elements.signinModal.classList.remove('hidden');
-            } else {
-                window.SmartGrind.state.elements.setupModal.classList.remove('hidden');
-            }
+            const isAuthError = e.message.includes('Authentication failed') || e.message.includes('No authentication token');
+            window.SmartGrind.state.elements[isAuthError ? 'signinModal' : 'setupModal'].classList.remove('hidden');
             window.SmartGrind.state.elements.appWrapper.classList.add('hidden');
         } finally {
             window.SmartGrind.state.elements.loadingScreen.classList.add('hidden');
