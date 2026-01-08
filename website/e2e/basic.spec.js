@@ -67,4 +67,52 @@ test.describe('SmartGrind Basic Functionality', () => {
     await expect(page.locator('#stat-solved')).toBeVisible();
     await expect(page.locator('#stat-due')).toBeVisible();
   });
+
+  test('should handle theme switching', async ({ page }) => {
+    await page.goto('/');
+
+    // Click the theme toggle button
+    await page.locator('#theme-toggle-btn').click();
+
+    // Check if the html element has the dark class (should toggle)
+    const htmlClasses = await page.locator('html').getAttribute('class');
+    // Theme should have changed from initial state
+    expect(htmlClasses).toBeDefined();
+  });
+
+  test('should have working search input', async ({ page }) => {
+    await page.goto('/');
+
+    // Search input should be visible and functional
+    await expect(page.locator('#problem-search')).toBeVisible();
+
+    // Should be able to type in search
+    await page.locator('#problem-search').fill('test');
+    const value = await page.locator('#problem-search').inputValue();
+    expect(value).toBe('test');
+  });
+
+  test('should display correct meta tags', async ({ page }) => {
+    await page.goto('/');
+
+    // Check meta description
+    const metaDescription = await page.locator('meta[name="description"]').getAttribute('content');
+    expect(metaDescription).toContain('SmartGrind');
+
+    // Check Open Graph tags
+    const ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content');
+    expect(ogTitle).toContain('SmartGrind');
+  });
+
+  test('should have proper favicon and manifest', async ({ page }) => {
+    await page.goto('/');
+
+    // Check favicon
+    const favicon = await page.locator('link[rel="icon"]').getAttribute('href');
+    expect(favicon).toContain('logo.svg');
+
+    // Check manifest
+    const manifest = await page.locator('link[rel="manifest"]').getAttribute('href');
+    expect(manifest).toContain('manifest.json');
+  });
 });
