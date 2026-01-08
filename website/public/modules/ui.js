@@ -28,7 +28,7 @@ window.SmartGrind.ui = {
         },
 
         handleTouchStart: (e) => {
-            if (window.scrollY === 0 && window.SmartGrind.state.elements.contentScroll.scrollTop === 0) {
+            if (window.scrollY === 0 && window.SmartGrind.state.elements.contentScroll.scrollTop === 0 && !window.SmartGrind.state.elements.mainSidebar.classList.contains('translate-x-0')) {
                 window.SmartGrind.ui.pullToRefresh.startY = e.touches[0].clientY;
                 window.SmartGrind.ui.pullToRefresh.isPulling = true;
             }
