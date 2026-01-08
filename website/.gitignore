@@ -71,3 +71,7 @@ node_modules/
 # Cloudflare
 wrangler.toml
 .wrangler
+
+# Tests
+playwright-report
+test-results

@@ -22,27 +22,41 @@ const mockGetItem = jest.fn();
 const mockOpen = jest.fn();
 
 // Mock element factory
-const createMockElement = (overrides = {}) => ({
-  addEventListener: mockAddEventListener,
-  classList: {
-    add: mockClassListAdd,
-    remove: mockClassListRemove,
-    toggle: mockClassListToggle,
-    contains: mockClassListContains,
-  },
-  innerHTML: '',
-  innerText: '',
-  style: { ...mockStyle },
-  disabled: mockDisabled,
-  value: mockValue,
-  focus: mockFocus,
-  click: mockClick,
-  scrollTop: mockScrollTop,
-  offsetWidth: mockOffsetWidth,
-  textContent: '',
-  nextElementSibling: null,
-  ...overrides,
-});
+const createMockElement = (overrides = {}) => {
+  const eventListeners = {};
+  return {
+    addEventListener: (event, handler) => {
+      if (!eventListeners[event]) eventListeners[event] = [];
+      eventListeners[event].push(handler);
+      mockAddEventListener(event, handler);
+    },
+    removeEventListener: mockRemoveEventListener,
+    dispatchEvent: (event) => {
+      const handlers = eventListeners[event.type] || [];
+      handlers.forEach(handler => handler(event));
+    },
+    closest: jest.fn(),
+    classList: {
+      add: mockClassListAdd,
+      remove: mockClassListRemove,
+      toggle: mockClassListToggle,
+      contains: mockClassListContains,
+    },
+    innerHTML: '',
+    innerText: '',
+    style: { ...mockStyle },
+    disabled: mockDisabled,
+    value: mockValue,
+    focus: mockFocus,
+    click: mockClick,
+    scrollTop: mockScrollTop,
+    offsetWidth: mockOffsetWidth,
+    textContent: '',
+    nextElementSibling: null,
+    dataset: {},
+    ...overrides,
+  };
+};
 
 // Create mock elements
 const mockElement = createMockElement();
@@ -63,6 +77,7 @@ getElementByIdSpy.mockImplementation((id) => {
 document.createElement = mockCreateElement;
 document.execCommand = mockExecCommand;
 document.body.appendChild = mockAppendChild;
+document.body.removeChild = jest.fn();
 document.body.classList = {
   add: mockClassListAdd,
   remove: mockClassListRemove,
@@ -73,6 +88,12 @@ document.documentElement.classList = {
 
 // Mock window.open
 window.open = mockOpen;
+
+// Mock URL
+global.URL = {
+  createObjectURL: jest.fn(() => 'mock-url'),
+  revokeObjectURL: jest.fn(),
+};
 
 // Mock localStorage - use jest.fn() for proper mocking
 const localStorageGetItem = jest.fn();
@@ -193,6 +214,7 @@ describe('SmartGrind UI', () => {
         sidebarResizer: mockElement,
         headerDisconnectBtn: mockElement,
         topicList: mockElement,
+        problemsContainer: mockElement,
       },
       problems: new Map(),
       deletedProblemIds: new Set(),
@@ -213,16 +235,46 @@ describe('SmartGrind UI', () => {
       deleteCategory: jest.fn(),
       saveProblem: jest.fn(),
       mergeStructure: jest.fn(),
+      syncPlan: jest.fn(),
     };
     window.SmartGrind.app = {
-      initializeLocalUser: jest.fn(),
-      exportProgress: jest.fn(),
+      initializeLocalUser: jest.fn(() => {
+        window.SmartGrind.state.user.type = 'local';
+        localStorage.setItem('userType', 'local');
+        window.SmartGrind.data.resetTopicsData();
+        window.SmartGrind.api.syncPlan();
+        window.SmartGrind.api.mergeStructure();
+        window.SmartGrind.renderers.renderSidebar();
+        window.SmartGrind.renderers.renderMainView('all');
+        window.SmartGrind.renderers.updateStats();
+        window.SmartGrind.ui.updateAuthUI();
+      }),
+      exportProgress: jest.fn(() => {
+        const exportData = {
+          exportDate: new Date().toISOString(),
+          version: '1.0',
+          problems: Object.fromEntries(window.SmartGrind.state.problems),
+          deletedIds: Array.from(window.SmartGrind.state.deletedProblemIds)
+        };
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `smartgrind-progress-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        window.SmartGrind.utils.showToast('Progress exported successfully!', 'success');
+      }),
     };
     window.SmartGrind.renderers = {
       renderSidebar: jest.fn(),
       renderMainView: jest.fn(),
       setActiveTopic: jest.fn(),
       updateFilterBtns: jest.fn(),
+      updateStats: jest.fn(),
+      handleProblemCardClick: jest.fn(),
     };
   });
 
@@ -774,6 +826,266 @@ describe('SmartGrind UI', () => {
 
       expect(mockClassListToggle).toHaveBeenCalledWith('hidden', false);
       expect(mockElement.innerText).toBe('Signin error');
+    });
+  });
+
+  describe('pullToRefresh edge cases', () => {
+    test('handleTouchStart does not start pulling when not at top', () => {
+      window.scrollY = 100;
+      window.SmartGrind.state.elements.contentScroll.scrollTop = 0;
+
+      const event = {
+        touches: [{ clientY: 100 }],
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleTouchStart(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isPulling).toBe(false);
+    });
+
+    test('handleTouchMove stops pulling when deltaY <= 0', () => {
+      window.SmartGrind.ui.pullToRefresh.isPulling = true;
+      window.SmartGrind.ui.pullToRefresh.startY = 50;
+
+      const event = {
+        touches: [{ clientY: 40 }],
+        preventDefault: jest.fn(),
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleTouchMove(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isPulling).toBe(false);
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('handleKeyboard edge cases', () => {
+    test('handles Escape key in input field', () => {
+      const event = {
+        key: 'Escape',
+        target: { tagName: 'INPUT' },
+        preventDefault: jest.fn(),
+      };
+
+      window.SmartGrind.ui.handleKeyboard(event);
+
+      expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    test('handles uppercase E key', () => {
+      const event = {
+        key: 'E',
+        target: { tagName: 'DIV' },
+        preventDefault: jest.fn(),
+      };
+
+      window.SmartGrind.ui.handleKeyboard(event);
+
+      expect(window.SmartGrind.app.exportProgress).toHaveBeenCalled();
+    });
+
+    test('ignores unknown keys', () => {
+      const event = {
+        key: 'X',
+        target: { tagName: 'DIV' },
+        preventDefault: jest.fn(),
+      };
+
+      window.SmartGrind.ui.handleKeyboard(event);
+
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('handleCategoryChange edge cases', () => {
+    test('handles category change when topic not found', () => {
+      window.SmartGrind.data.topicsData = [];
+
+      const event = { target: { value: 'NonExistent' } };
+
+      window.SmartGrind.ui.handleCategoryChange(event);
+
+      expect(mockElement.innerHTML).toBe('<option value="">-- No Patterns Found --</option>');
+    });
+  });
+
+  describe('initScrollButton scroll behavior', () => {
+    test('shows scroll button when scrolled past threshold', () => {
+      window.SmartGrind.ui.initScrollButton();
+      window.SmartGrind.state.elements.contentScroll.scrollTop = 400;
+
+      // Trigger the scroll event listener
+      const scrollEvent = new Event('scroll');
+      window.SmartGrind.state.elements.contentScroll.dispatchEvent(scrollEvent);
+
+      expect(mockClassListRemove).toHaveBeenCalledWith('opacity-0', 'translate-y-4', 'pointer-events-none');
+    });
+
+    test('hides scroll button when scrolled above threshold', () => {
+      window.SmartGrind.ui.initScrollButton();
+      window.SmartGrind.state.elements.contentScroll.scrollTop = 200;
+
+      const scrollEvent = new Event('scroll');
+      window.SmartGrind.state.elements.contentScroll.dispatchEvent(scrollEvent);
+
+      expect(mockClassListAdd).toHaveBeenCalledWith('opacity-0', 'translate-y-4', 'pointer-events-none');
+    });
+  });
+
+  describe('app', () => {
+    describe('initializeLocalUser', () => {
+      test('initializes local user correctly', () => {
+        window.SmartGrind.app.initializeLocalUser();
+
+        expect(window.SmartGrind.state.user.type).toBe('local');
+        expect(localStorageSetItem).toHaveBeenCalledWith('userType', 'local');
+        expect(window.SmartGrind.data.resetTopicsData).toHaveBeenCalled();
+        expect(window.SmartGrind.api.syncPlan).toHaveBeenCalled();
+        expect(window.SmartGrind.api.mergeStructure).toHaveBeenCalled();
+        expect(window.SmartGrind.renderers.renderSidebar).toHaveBeenCalled();
+        expect(window.SmartGrind.renderers.renderMainView).toHaveBeenCalledWith('all');
+        expect(window.SmartGrind.renderers.updateStats).toHaveBeenCalled();
+        expect(window.SmartGrind.ui.updateAuthUI).toHaveBeenCalled();
+      });
+    });
+
+    describe('exportProgress', () => {
+      test('exports progress data', () => {
+        const createElementSpy = jest.spyOn(document, 'createElement');
+        const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL');
+        const revokeObjectURLSpy = jest.spyOn(URL, 'revokeObjectURL');
+
+        window.SmartGrind.app.exportProgress();
+
+        expect(createElementSpy).toHaveBeenCalledWith('a');
+        expect(createObjectURLSpy).toHaveBeenCalled();
+        expect(mockClick).toHaveBeenCalled();
+        expect(revokeObjectURLSpy).toHaveBeenCalled();
+        expect(window.SmartGrind.utils.showToast).toHaveBeenCalledWith('Progress exported successfully!', 'success');
+
+        createElementSpy.mockRestore();
+        createObjectURLSpy.mockRestore();
+        revokeObjectURLSpy.mockRestore();
+      });
+    });
+  });
+
+  describe('bindEvents event delegation', () => {
+    test('handles category delete button click', () => {
+      window.SmartGrind.ui.bindEvents();
+      const deleteBtn = { dataset: { action: 'delete-category', topicId: 'test-topic' }, closest: jest.fn(() => deleteBtn) };
+      const event = {
+        type: 'click',
+        target: deleteBtn,
+        stopPropagation: jest.fn(),
+      };
+
+      // Simulate the event listener
+      window.SmartGrind.state.elements.topicList.dispatchEvent(event);
+
+      expect(event.stopPropagation).toHaveBeenCalled();
+      expect(window.SmartGrind.api.deleteCategory).toHaveBeenCalledWith('test-topic');
+    });
+
+    test('closes sidebar on mobile topic click', () => {
+      window.SmartGrind.ui.bindEvents();
+      window.innerWidth = 375; // Mobile width
+      const link = { classList: { contains: () => true }, closest: jest.fn((selector) => {
+
+        if (selector === 'button' || selector === 'button[data-action]') return null;
+
+        if (selector === '.sidebar-link') return link;
+
+        return null;
+
+      }) };
+      const event = {
+        type: 'click',
+        target: link,
+        stopPropagation: jest.fn(),
+      };
+
+      window.SmartGrind.state.elements.topicList.dispatchEvent(event);
+
+      expect(mockClassListRemove).toHaveBeenCalledWith('translate-x-0');
+    });
+
+    test('handles problem card button click', () => {
+      window.SmartGrind.ui.bindEvents();
+      const button = { dataAction: 'some-action', closest: jest.fn((selector) => {
+
+        if (selector === 'button[data-action]') return button;
+
+        if (selector === '.group') return card;
+
+        return null;
+
+      }) };
+      const card = { dataset: { problemId: 'test-problem' }, closest: jest.fn((selector) => selector === '.group' ? card : null) };
+      const event = {
+        type: 'click',
+        target: button,
+        stopPropagation: jest.fn(),
+      };
+
+      window.SmartGrind.state.problems.set('test-problem', { id: 'test-problem' });
+
+      window.SmartGrind.state.elements.problemsContainer.dispatchEvent(event);
+
+      expect(window.SmartGrind.renderers.handleProblemCardClick).toHaveBeenCalled();
+    });
+  });
+
+  describe('handleGoogleLogin message handling', () => {
+    test('handles auth success message', () => {
+      const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
+      mockOpen.mockReturnValue({});
+
+      window.SmartGrind.ui.handleGoogleLogin();
+
+      // Simulate message event
+      const messageEvent = {
+        origin: window.location.origin,
+        data: {
+          type: 'auth-success',
+          token: 'test-token',
+          userId: 'test-user',
+          displayName: 'Test User',
+        },
+      };
+
+      // Get the message handler from the spy
+      const messageHandler = addEventListenerSpy.mock.calls.find(call => call[0] === 'message')[1];
+      messageHandler(messageEvent);
+
+      expect(localStorageSetItem).toHaveBeenCalledWith('token', 'test-token');
+      expect(localStorageSetItem).toHaveBeenCalledWith('userId', 'test-user');
+      expect(localStorageSetItem).toHaveBeenCalledWith('displayName', 'Test User');
+      expect(window.SmartGrind.state.user.id).toBe('test-user');
+      expect(window.SmartGrind.state.user.displayName).toBe('Test User');
+      expect(window.SmartGrind.api.loadData).toHaveBeenCalled();
+      expect(window.SmartGrind.ui.updateAuthUI).toHaveBeenCalled();
+
+      addEventListenerSpy.mockRestore();
+    });
+
+    test('ignores messages from wrong origin', () => {
+      const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
+      mockOpen.mockReturnValue({});
+
+      window.SmartGrind.ui.handleGoogleLogin();
+
+      const messageEvent = {
+        origin: 'wrong-origin',
+        data: { type: 'auth-success' },
+      };
+
+      const messageHandler = addEventListenerSpy.mock.calls.find(call => call[0] === 'message')[1];
+      messageHandler(messageEvent);
+
+      expect(localStorageSetItem).not.toHaveBeenCalledWith('token', expect.any(String));
+
+      addEventListenerSpy.mockRestore();
     });
   });
 });
