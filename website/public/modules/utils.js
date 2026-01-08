@@ -85,7 +85,13 @@ window.SmartGrind.utils = {
         // Open AI service - use web URL on desktop, intent on mobile
         const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         let url;
-        if (provider === 'gemini') {
+        if (provider === 'chatgpt') {
+            if (isMobile) {
+                url = 'intent://chat.openai.com#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchatgpt.com%2F;end';
+            } else {
+                url = 'https://chatgpt.com';
+            }
+        } else if (provider === 'gemini') {
             if (isMobile) {
                 // Android intent to open Gemini app, fallback to website
                 url = 'intent://gemini.google.com/app#Intent;scheme=https;package=com.google.android.apps.ai;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end';
