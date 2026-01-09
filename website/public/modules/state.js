@@ -139,6 +139,10 @@ window.SmartGrind.state = {
             sidebarLogo: document.getElementById('sidebar-logo'),
             mobileLogo: document.getElementById('mobile-logo'),
 
+            // Solution Modal
+            solutionModal: document.getElementById('solution-modal'),
+            solutionCloseBtn: document.getElementById('solution-close-btn'),
+
             headerDisconnectBtn: document.getElementById('header-disconnect-btn'),
         };
     },

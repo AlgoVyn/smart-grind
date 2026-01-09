@@ -29,6 +29,142 @@
     <link rel="apple-touch-icon" href="/smartgrind/logo.svg">
     <link rel="manifest" href="/smartgrind/manifest.json">
     <link href="/smartgrind/styles.css" rel="stylesheet">
+    <style>
+        /* Solution modal styles */
+        #solution-content h1 {
+            font-size: 2em;
+            margin-bottom: 0.5em;
+            border-bottom: 1px solid var(--theme);
+            padding-bottom: 0.3em;
+            color: var(--theme-bold);
+        }
+        #solution-content h2 {
+            font-size: 1.5em;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            border-bottom: 1px solid var(--theme);
+            padding-bottom: 0.3em;
+            color: var(--theme-bold);
+        }
+        #solution-content h3 {
+            font-size: 1.25em;
+            margin-top: 1.25em;
+            margin-bottom: 0.5em;
+            color: var(--theme-bold);
+        }
+        #solution-content p {
+            margin: 1em 0;
+        }
+        #solution-content pre {
+            background: var(--dark-900);
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1em 0;
+            border: 1px solid var(--theme);
+        }
+        #solution-content code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.9em;
+            background: var(--dark-900);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+        }
+        #solution-content pre code {
+            background: none;
+            padding: 0;
+        }
+        #solution-content ul, #solution-content ol {
+            padding-left: 2em;
+            margin: 1em 0;
+        }
+        #solution-content li {
+            margin: 0.25em 0;
+        }
+        #solution-content blockquote {
+            border-left: 4px solid var(--brand-500);
+            padding-left: 1em;
+            margin: 1em 0;
+            color: var(--theme-muted);
+        }
+        #solution-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        #solution-content th, #solution-content td {
+            border: 1px solid var(--theme);
+            padding: 0.5em 1em;
+            text-align: left;
+        }
+        #solution-content th {
+            background: var(--dark-900);
+        }
+        #solution-content a {
+            color: var(--brand-400);
+            text-decoration: none;
+        }
+        #solution-content a:hover {
+            text-decoration: underline;
+        }
+        #solution-content img {
+            max-width: 100%;
+            height: auto;
+        }
+        /* Prism syntax highlighting styles */
+        #solution-content code[class*="language-"] {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        #solution-content .token.comment,
+        #solution-content .token.prolog,
+        #solution-content .token.doctype,
+        #solution-content .token.cdata {
+            color: var(--theme-muted);
+        }
+        #solution-content .token.punctuation {
+            color: var(--theme-base);
+        }
+        #solution-content .token.property,
+        #solution-content .token.tag,
+        #solution-content .token.constant,
+        #solution-content .token.symbol,
+        #solution-content .token.deleted {
+            color: #e83e8c;
+        }
+        #solution-content .token.boolean,
+        #solution-content .token.number {
+            color: #ffc107;
+        }
+        #solution-content .token.selector,
+        #solution-content .token.attr-name,
+        #solution-content .token.string,
+        #solution-content .token.char,
+        #solution-content .token.builtin,
+        #solution-content .token.inserted {
+            color: #28a745;
+        }
+        #solution-content .token.operator,
+        #solution-content .token.entity,
+        #solution-content .token.url,
+        #solution-content .token.variable {
+            color: #6f42c1;
+        }
+        #solution-content .token.atrule,
+        #solution-content .token.attr-value,
+        #solution-content .token.function,
+        #solution-content .token.class-name {
+            color: var(--brand-500);
+        }
+        #solution-content .token.keyword {
+            color: var(--brand-400);
+        }
+        #solution-content .token.regex,
+        #solution-content .token.important {
+            color: #fd7e14;
+        }
+    </style>
 
     <script>
         // Theme Initialization (Prevent Flash)
@@ -239,6 +375,28 @@
                         class="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-all duration-200">Cancel</button>
                     <button id="confirm-ok-btn"
                         class="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOLUTION MODAL -->
+    <div id="solution-modal"
+        class="hidden fixed inset-0 z-[70] flex items-start justify-center bg-dark-950/95 backdrop-blur-sm p-4 pt-8">
+        <div class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-4xl h-[calc(100vh-4rem)] border border-slate-700/50 flex flex-col">
+            <div class="p-6 border-b border-slate-700/50 flex justify-between items-center flex-shrink-0">
+                <h3 class="text-lg font-bold text-theme-bold">Solution</h3>
+                <button id="solution-close-btn"
+                    class="p-2 rounded-lg hover:bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="solution-content" class="flex-1 overflow-y-auto p-6">
+                <div class="loading flex items-center justify-center min-h-[200px]">
+                    <div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div>
+                    <span class="ml-3 text-theme-muted">Loading solution...</span>
                 </div>
             </div>
         </div>
@@ -523,6 +681,9 @@
     </div>
 
     <!-- LOGIC -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
     <script type="module" src="/smartgrind/modules/data.js" defer></script>
     <script type="module" src="/smartgrind/modules/state.js" defer></script>
     <script type="module" src="/smartgrind/modules/utils.js" defer></script>

@@ -263,6 +263,12 @@ window.SmartGrind.ui = {
             }
         });
 
+        // Solution modal close
+        window.SmartGrind.state.elements.solutionCloseBtn?.addEventListener('click', window.SmartGrind.ui.closeSolutionModal);
+        window.SmartGrind.state.elements.solutionModal?.addEventListener('click', window.SmartGrind.ui.createModalHandler(
+            window.SmartGrind.state.elements.solutionModal
+        ));
+
         // Close sidebar on topic click (mobile)
         window.SmartGrind.state.elements.topicList?.addEventListener('click', (e) => {
             if (window.innerWidth < 768 && (e.target.closest('.sidebar-link') || e.target.closest('button'))) {
@@ -657,6 +663,59 @@ window.SmartGrind.ui = {
         }
         window.SmartGrind.state.elements.signinError.classList.toggle('hidden', !msg);
         window.SmartGrind.state.elements.signinError.innerText = msg || '';
+    },
+
+    // Open solution modal
+    openSolutionModal: (problemId) => {
+        const modal = document.getElementById('solution-modal');
+        const content = document.getElementById('solution-content');
+        if (!modal || !content) return;
+
+        // Show loading
+        content.innerHTML = '<div class="loading flex items-center justify-center min-h-[200px]"><div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div><span class="ml-3 text-theme-muted">Loading solution...</span></div>';
+        modal.classList.remove('hidden');
+
+        // Load and render solution
+        const solutionFile = `/smartgrind/solutions/${problemId}.md`;
+        fetch(solutionFile)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to load solution file (status: ' + response.status + ')');
+                }
+                return response.text();
+            })
+            .then(markdown => {
+                if (typeof marked === 'undefined') {
+                    content.innerHTML = '<p>Error: Markdown renderer not loaded. Please check your internet connection.</p>';
+                    return;
+                }
+
+                // Configure marked for security and rendering
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true
+                });
+
+                const html = marked.parse(markdown);
+                content.innerHTML = html;
+
+                // Apply syntax highlighting
+                if (typeof Prism !== 'undefined') {
+                    Prism.highlightAll();
+                }
+            })
+            .catch(error => {
+                content.innerHTML = '<p>Error loading solution: ' + error.message + '</p>' +
+                    '<p>File: ' + solutionFile + '</p>';
+            });
+    },
+
+    // Close solution modal
+    closeSolutionModal: () => {
+        const modal = document.getElementById('solution-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
     }
 };
 

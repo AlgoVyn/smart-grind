@@ -106,6 +106,9 @@ describe('SmartGrind Renderers', () => {
       saveDeletedId: jest.fn(),
       saveProblem: jest.fn(),
     };
+    window.SmartGrind.ui = {
+      openSolutionModal: jest.fn(),
+    };
 
     // Mock createElement to return new mockElement
     mockCreateElement.mockImplementation(() => createMockElement());
@@ -725,13 +728,16 @@ describe('SmartGrind Renderers', () => {
     });
 
     test('handles solution action', () => {
-      // The solution button is now an anchor tag, not a button
-      // This test verifies the solution-viewer URL is correct
+      const mockEvent = {
+        target: { closest: jest.fn(() => ({ dataset: { action: 'solution' } })) }
+      };
       const problem = { id: 'add-strings' };
-      
-      // Verify the expected URL pattern
-      const expectedUrl = `/smartgrind/solution-viewer.html?file=/smartgrind/solutions/${problem.id}.md`;
-      expect(expectedUrl).toBe('/smartgrind/solution-viewer.html?file=/smartgrind/solutions/add-strings.md');
+
+      window.SmartGrind.ui.openSolutionModal = jest.fn();
+
+      window.SmartGrind.renderers.handleProblemCardClick(mockEvent, problem);
+
+      expect(window.SmartGrind.ui.openSolutionModal).toHaveBeenCalledWith('add-strings');
     });
 
     test('does nothing if no button found', () => {

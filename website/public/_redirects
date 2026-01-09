@@ -3,6 +3,5 @@
 /smartgrind/manifest.json /manifest.json 200
 /smartgrind/styles.css /styles.css 200
 /smartgrind/modules/* /modules/:splat 200
-/smartgrind/solution-viewer.html /solution-viewer.html 200
 /smartgrind/solutions/* /solutions/:splat 200
 /smartgrind/*    /index.html   200
