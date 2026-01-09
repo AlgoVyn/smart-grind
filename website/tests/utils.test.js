@@ -305,7 +305,7 @@ describe('SmartGrind Utils', () => {
       await window.SmartGrind.utils.askAI(problemName, provider);
 
       expect(copyToClipboardSpy).toHaveBeenCalledWith(
-        'Explain the solution for LeetCode problem: "Two Sum". Provide the intuition, optimal approach, and time/space complexity analysis.'
+        'Explain the solution for LeetCode problem: "Two Sum". Provide the intuition, multiple approaches, and time/space complexity analysis.'
       );
       expect(window.SmartGrind.state.ui.preferredAI).toBe('gemini');
 
@@ -324,7 +324,7 @@ describe('SmartGrind Utils', () => {
       await window.SmartGrind.utils.askAI(problemName, provider);
 
       expect(copyToClipboardSpy).toHaveBeenCalledWith(
-        'Explain the solution for LeetCode problem: "Two Sum". Provide the intuition, optimal approach, and time/space complexity analysis.'
+        'Explain the solution for LeetCode problem: "Two Sum". Provide the intuition, multiple approaches, and time/space complexity analysis.'
       );
       expect(window.SmartGrind.state.ui.preferredAI).toBe('grok');
 
