@@ -1,6 +1,7 @@
 # Add Strings
 
 ## Problem Description
+
 Given two non-negative integers, `num1` and `num2`, represented as string, return the sum of `num1` and `num2` as a string.
 
 You must solve the problem without using any built-in library for handling large integers (such as `BigInteger`) and without converting the inputs to integers directly.
@@ -10,7 +11,7 @@ You must solve the problem without using any built-in library for handling large
 **Example 1:**
 
 **Input:**
-```
+```python
 num1 = "11", num2 = "123"
 ```
 
@@ -22,7 +23,7 @@ num1 = "11", num2 = "123"
 **Example 2:**
 
 **Input:**
-```
+```python
 num1 = "456", num2 = "77"
 ```
 
@@ -34,7 +35,7 @@ num1 = "456", num2 = "77"
 **Example 3:**
 
 **Input:**
-```
+```python
 num1 = "0", num2 = "0"
 ```
 
@@ -57,7 +58,7 @@ class Solution:
         i, j = len(num1) - 1, len(num2) - 1
         carry = 0
         result = []
-        
+
         while i >= 0 or j >= 0 or carry:
             d1 = int(num1[i]) if i >= 0 else 0
             d2 = int(num2[j]) if j >= 0 else 0
@@ -66,7 +67,7 @@ class Solution:
             carry = total // 10
             i -= 1
             j -= 1
-        
+
         result.reverse()
         return ''.join(result)
 ```
@@ -87,6 +88,8 @@ This solution manually adds the two numbers represented as strings by simulating
 - Continue until all digits are processed and there is no carry left.
 - Reverse the `result` list and join it into a string to get the final sum.
 
-**Time Complexity:** O(max(len(num1), len(num2))) - We iterate through the digits of the longer string once.
+## Time Complexity
+**O(max(len(num1), len(num2)))** - We iterate through the digits of the longer string once.
 
-**Space Complexity:** O(max(len(num1), len(num2))) - The result list stores up to the maximum length of the input strings plus one for potential carry.
+## Space Complexity
+**O(max(len(num1), len(num2)))** - The result list stores up to the maximum length of the input strings plus one for potential carry.

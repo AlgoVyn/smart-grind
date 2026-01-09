@@ -6,8 +6,6 @@ There is a new alien language that uses the English alphabet. However, the order
 
 You are given a list of strings `words` from the alien dictionary. The strings in `words` are sorted lexicographically according to the alien language. Return a string representing the unique ordering of characters that is consistent with the given list of words. If there are multiple valid orderings, return any one. If no valid ordering exists, return an empty string.
 
----
-
 ## Solution
 
 ```python
@@ -19,7 +17,7 @@ class Solution:
         # Build graph and indegree
         graph = defaultdict(list)
         indegree = {c: 0 for word in words for c in word}
-        
+
         for i in range(len(words) - 1):
             w1, w2 = words[i], words[i + 1]
             min_len = min(len(w1), len(w2))
@@ -32,11 +30,11 @@ class Solution:
                 # If w1 is prefix of w2 and longer, invalid
                 if len(w1) > len(w2):
                     return ""
-        
+
         # Kahn's algorithm
         queue = deque([c for c in indegree if indegree[c] == 0])
         order = []
-        
+
         while queue:
             curr = queue.popleft()
             order.append(curr)
@@ -44,15 +42,13 @@ class Solution:
                 indegree[nei] -= 1
                 if indegree[nei] == 0:
                     queue.append(nei)
-        
+
         # If not all letters are in order, cycle
         if len(order) != len(indegree):
             return ""
-        
+
         return "".join(order)
 ```
-
----
 
 ## Explanation
 
@@ -66,6 +62,8 @@ Next, we use Kahn's algorithm: we start with a queue of characters with indegree
 
 Finally, if the length of the order equals the number of unique letters, we return the joined order; otherwise, there's a cycle, so we return an empty string.
 
-**Time Complexity:** O(N), where N is the total number of characters in all words, as we process each character a constant number of times.
+## Time Complexity
+**O(N)**, where N is the total number of characters in all words, as we process each character a constant number of times.
 
-**Space Complexity:** O(1), since there are at most 26 letters (the English alphabet).
+## Space Complexity
+**O(1)**, since there are at most 26 letters (the English alphabet).

@@ -105,6 +105,8 @@ class Solution:
 
 This solution uses Breadth-First Search (BFS) to traverse the binary tree level by level. We maintain a queue and a flag to track the direction of traversal. For each level, we collect the node values in a list. If the direction is right-to-left (indicated by the flag), we reverse the list before adding it to the result.
 
-Time Complexity: O(n), where n is the number of nodes in the tree, since we visit each node exactly once.
+## Time Complexity
+**O(n)**, where n is the number of nodes in the tree, since we visit each node exactly once.
 
-Space Complexity: O(w), where w is the maximum width of the tree, which is the size of the queue in the worst case.
+## Space Complexity
+**O(w)**, where w is the maximum width of the tree, which is the size of the queue in the worst case.

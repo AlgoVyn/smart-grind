@@ -9,19 +9,13 @@ Given the root of a binary tree, return the postorder traversal of its nodes' va
 **Example 1:**
 
 **Input:**
-
-```
-
+```python
 root = [1,null,2,3]
-
 ```
 
 **Output:**
-
 ```
-
 [3,2,1]
-
 ```
 
 **Explanation:**
@@ -29,19 +23,13 @@ root = [1,null,2,3]
 **Example 2:**
 
 **Input:**
-
-```
-
+```python
 root = [1,2,3,4,5,null,8,null,null,6,7,9]
-
 ```
 
 **Output:**
-
 ```
-
 [4,6,7,5,2,9,8,3,1]
-
 ```
 
 **Explanation:**
@@ -49,43 +37,31 @@ root = [1,2,3,4,5,null,8,null,null,6,7,9]
 **Example 3:**
 
 **Input:**
-
-```
-
+```python
 root = []
-
 ```
 
 **Output:**
-
 ```
-
 []
-
 ```
 
 **Example 4:**
 
 **Input:**
-
-```
-
+```python
 root = [1]
-
 ```
 
 **Output:**
-
 ```
-
 [1]
-
 ```
 
 ## Constraints
 
-- The number of the nodes in the tree is in the range [0, 100].
-- -100 <= Node.val <= 100
+- The number of the nodes in the tree is in the range `[0, 100]`.
+- `-100 <= Node.val <= 100`
 
 ## Follow up
 
@@ -127,4 +103,8 @@ We use a stack initialized with the root. While the stack is not empty, we pop t
 
 This process gives the reverse of postorder, so we reverse the result list at the end.
 
-Time complexity: O(n), where n is the number of nodes, as each node is visited once. Space complexity: O(n) for the stack and result list.
+## Time Complexity
+**O(n)**, where n is the number of nodes, as each node is visited once.
+
+## Space Complexity
+**O(n)** for the stack and result list.

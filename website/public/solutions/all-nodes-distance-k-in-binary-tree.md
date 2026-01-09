@@ -1,14 +1,16 @@
 # All Nodes Distance K In Binary Tree
 
 ## Problem Description
-Given the root of a binary tree, the value of a target node target, and an integer k, return an array of the values of all nodes that have a distance k from the target node.
+
+Given the root of a binary tree, the value of a target node `target`, and an integer `k`, return an array of the values of all nodes that have a distance `k` from the target node.
 You can return the answer in any order.
+
 ## Examples
 
 **Example 1:**
 
 **Input:**
-```
+```python
 root = [3,5,1,6,2,0,8,null,null,7,4], target = 5, k = 2
 ```
 
@@ -22,7 +24,7 @@ root = [3,5,1,6,2,0,8,null,null,7,4], target = 5, k = 2
 **Example 2:**
 
 **Input:**
-```
+```python
 root = [1], target = 1, k = 3
 ```
 
@@ -33,11 +35,12 @@ root = [1], target = 1, k = 3
 
 ## Constraints
 
-- The number of nodes in the tree is in the range [1, 500].
-- 0 <= Node.val <= 500
-- All the values Node.val are unique.
-- target is the value of one of the nodes in the tree.
-- 0 <= k <= 1000
+- The number of nodes in the tree is in the range `[1, 500]`.
+- `0 <= Node.val <= 500`
+- All the values `Node.val` are unique.
+- `target` is the value of one of the nodes in the tree.
+- `0 <= k <= 1000`
+
 ## Solution
 
 ```python
@@ -55,7 +58,7 @@ class Solution:
     def distanceK(self, root: TreeNode, target: TreeNode, k: int) -> List[int]:
         if not root:
             return []
-        
+
         # Build graph
         graph = defaultdict(list)
         def build_graph(node, parent):
@@ -66,14 +69,14 @@ class Solution:
                 graph[parent].append(node)
             build_graph(node.left, node)
             build_graph(node.right, node)
-        
+
         build_graph(root, None)
-        
+
         # BFS from target
         visited = set([target])
         queue = deque([(target, 0)])
         result = []
-        
+
         while queue:
             node, dist = queue.popleft()
             if dist == k:
@@ -84,7 +87,7 @@ class Solution:
                 if nei not in visited:
                     visited.add(nei)
                     queue.append((nei, dist + 1))
-        
+
         return result
 ```
 
@@ -98,6 +101,10 @@ Once the graph is built, we perform a BFS starting from the target node. We use 
 
 During BFS, when we encounter a node at distance exactly K, we add its value to the result list. We stop adding to the queue once the distance exceeds K to optimize performance.
 
-The time complexity of BFS is O(N) in the worst case, as we might visit all nodes. Space complexity is O(N) due to the graph storage and the queue.
+## Time Complexity
+**O(N)** in the worst case, as we might visit all nodes.
+
+## Space Complexity
+**O(N)** due to the graph storage and the queue.
 
 This approach ensures we efficiently find all nodes at the required distance without redundant computations.

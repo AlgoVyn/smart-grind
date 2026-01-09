@@ -2,7 +2,7 @@
 
 ## Problem Description
 
-You are given an array prices where prices[i] is the price of a given stock on the ith day.
+You are given an array `prices` where `prices[i]` is the price of a given stock on the ith day.
 You want to maximize your profit by choosing a single day to buy one stock and choosing a different day in the future to sell that stock.
 Return the maximum profit you can achieve from this transaction. If you cannot achieve any profit, return 0.
 
@@ -11,19 +11,13 @@ Return the maximum profit you can achieve from this transaction. If you cannot a
 **Example 1:**
 
 **Input:**
-
-```
-
+```python
 prices = [7,1,5,3,6,4]
-
 ```
 
 **Output:**
-
 ```
-
 5
-
 ```
 
 **Explanation:** Buy on day 2 (price = 1) and sell on day 5 (price = 6), profit = 6-1 = 5.
@@ -32,27 +26,21 @@ Note that buying on day 2 and selling on day 1 is not allowed because you must b
 **Example 2:**
 
 **Input:**
-
-```
-
+```python
 prices = [7,6,4,3,1]
-
 ```
 
 **Output:**
-
 ```
-
 0
-
 ```
 
 **Explanation:** In this case, no transactions are done and the max profit = 0.
 
 ## Constraints
 
-- 1 <= prices.length <= 105
-- 0 <= prices[i] <= 104
+- `1 <= prices.length <= 105`
+- `0 <= prices[i] <= 104`
 
 ## Solution
 
@@ -75,6 +63,8 @@ class Solution:
 
 This solution iterates through the prices, keeping track of the minimum price encountered so far and the maximum profit that can be achieved by selling at the current price after buying at the minimum price.
 
-Time complexity: O(n), where n is the number of days, as we traverse the array once.
+## Time Complexity
+**O(n)**, where n is the number of days, as we traverse the array once.
 
-Space complexity: O(1), using only constant extra space.
+## Space Complexity
+**O(1)**, using only constant extra space.

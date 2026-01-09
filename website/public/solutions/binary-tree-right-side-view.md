@@ -122,6 +122,8 @@ class Solution:
 
 This solution uses Breadth-First Search (BFS) to traverse the binary tree level by level. We maintain a queue to process nodes in order. For each level, we keep track of the level size and append the value of the last node in that level to the result list, as it represents the rightmost node visible from the right side.
 
-Time Complexity: O(n), where n is the number of nodes in the tree, since we visit each node exactly once.
+## Time Complexity
+**O(n)**, where n is the number of nodes in the tree, since we visit each node exactly once.
 
-Space Complexity: O(w), where w is the maximum width of the tree, which is the size of the queue in the worst case.
+## Space Complexity
+**O(w)**, where w is the maximum width of the tree, which is the size of the queue in the worst case.

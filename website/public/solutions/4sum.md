@@ -2,7 +2,7 @@
 
 ## Problem Description
 
-Given an array nums of n integers, return an array of all the unique quadruplets [nums[a], nums[b], nums[c], nums[d]] such that:
+Given an array `nums` of `n` integers, return an array of all the unique quadruplets `[nums[a], nums[b], nums[c], nums[d]]` such that:
 
 - `0 <= a, b, c, d < n`
 - `a, b, c, and d are distinct.`
@@ -25,6 +25,7 @@ Output: [[2,2,2,2]]
 ```
 
 ## Constraints
+
 - `1 <= nums.length <= 200`
 - `-10^9 <= nums[i] <= 10^9`
 - `-10^9 <= target <= 10^9`
@@ -64,15 +65,16 @@ class Solution:
 ```
 
 ## Explanation
+
 To solve the 4Sum problem, we need to find all unique quadruplets that sum to the target. The optimal approach is to sort the array and use a combination of nested loops and two pointers.
 
-After sorting, we fix the first element at index i, skipping duplicates. Then, for the second element at index j (starting from i+1), we also skip duplicates.
+After sorting, we fix the first element at index `i`, skipping duplicates. Then, for the second element at index `j` (starting from `i+1`), we also skip duplicates.
 
-For each pair (i, j), we use two pointers: left at j+1 and right at the end. We calculate the sum of the four elements.
+For each pair `(i, j)`, we use two pointers: `left` at `j+1` and `right` at the end. We calculate the sum of the four elements.
 
-- If the sum equals the target, we add the quadruplet to the result and skip duplicates for left and right by moving them past equal elements.
-- If the sum is less than the target, we increment left.
-- If the sum is greater, we decrement right.
+- If the sum equals the target, we add the quadruplet to the result and skip duplicates for `left` and `right` by moving them past equal elements.
+- If the sum is less than the target, we increment `left`.
+- If the sum is greater, we decrement `right`.
 
 This ensures we find all unique quadruplets without duplicates.
 

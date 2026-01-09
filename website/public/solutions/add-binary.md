@@ -1,14 +1,15 @@
 # Add Binary
 
 ## Problem Description
-Given two binary strings a and b, return their sum as a binary string.
+
+Given two binary strings `a` and `b`, return their sum as a binary string.
 
 ## Examples
 
 **Example 1:**
 
 **Input:**
-```
+```python
 a = "11", b = "1"
 ```
 
@@ -22,7 +23,7 @@ a = "11", b = "1"
 **Example 2:**
 
 **Input:**
-```
+```python
 a = "1010", b = "1011"
 ```
 
@@ -61,6 +62,7 @@ class Solution:
 ```
 
 ## Explanation
+
 To add two binary strings, we simulate the binary addition process from the least significant bit (rightmost) to the most significant bit.
 
 We use two pointers starting from the end of each string. At each step, we add the current bits (if available) and the carry from the previous addition.
@@ -71,6 +73,8 @@ We continue until both strings are processed and there is no carry left.
 
 Finally, we reverse the result list to get the correct order.
 
-**Time Complexity:** O(max(len(a), len(b))), as we process each bit once.
+## Time Complexity
+**O(max(len(a), len(b)))**, as we process each bit once.
 
-**Space Complexity:** O(max(len(a), len(b))), for the result list.
+## Space Complexity
+**O(max(len(a), len(b)))**, for the result list.

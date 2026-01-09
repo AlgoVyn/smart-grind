@@ -1,6 +1,7 @@
 # 3Sum
 
 ## Problem Description
+
 Given an integer array `nums`, return all the triplets `[nums[i], nums[j], nums[k]]` such that `i != j`, `i != k`, and `j != k`, and `nums[i] + nums[j] + nums[k] == 0`.
 
 Notice that the solution set must not contain duplicate triplets.
@@ -26,6 +27,7 @@ Output: []
 ```
 
 ## Constraints
+
 - `0 <= nums.length <= 3000`
 - `-10^5 <= nums[i] <= 10^5`
 
@@ -61,15 +63,16 @@ class Solution:
 ```
 
 ## Explanation
+
 To solve the 3Sum problem, we need to find all unique triplets in the array that sum to zero. The optimal approach is to sort the array first, which allows us to use a two-pointer technique to efficiently find the triplets while avoiding duplicates.
 
-After sorting, we iterate through each element at index i. To skip duplicates for the first element of the triplet, we check if nums[i] is the same as nums[i-1].
+After sorting, we iterate through each element at index `i`. To skip duplicates for the first element of the triplet, we check if `nums[i]` is the same as `nums[i-1]`.
 
-For each i, we initialize two pointers: left at i+1 and right at the end of the array. We calculate the sum of nums[i], nums[left], and nums[right].
+For each `i`, we initialize two pointers: `left` at `i+1` and `right` at the end of the array. We calculate the sum of `nums[i]`, `nums[left]`, and `nums[right]`.
 
-- If the sum is less than zero, we increment left to increase the sum.
-- If the sum is greater than zero, we decrement right to decrease the sum.
-- If the sum is zero, we add the triplet to the result. To skip duplicates for the second and third elements, we move left past any equal elements and right past any equal elements, then increment left and decrement right.
+- If the sum is less than zero, we increment `left` to increase the sum.
+- If the sum is greater than zero, we decrement `right` to decrease the sum.
+- If the sum is zero, we add the triplet to the result. To skip duplicates for the second and third elements, we move `left` past any equal elements and `right` past any equal elements, then increment `left` and decrement `right`.
 
 This ensures all triplets are unique and we don't miss any.
 

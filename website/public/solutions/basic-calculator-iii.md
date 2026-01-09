@@ -2,80 +2,56 @@
 
 ## Problem Description
 
-Implement a basic calculator that can evaluate a string expression containing integers, +, -, *, /, parentheses, and handle operator precedence.
+Implement a basic calculator that can evaluate a string expression containing integers, `+`, `-`, `*`, `/`, parentheses, and handle operator precedence.
 
 ## Examples
 
 **Example 1:**
 
 **Input:**
-
-```
-
+```python
 s = "3+2*2"
-
 ```
 
 **Output:**
-
 ```
-
 7
-
 ```
 
 **Example 2:**
 
 **Input:**
-
-```
-
+```python
 s = " 3/2 "
-
 ```
 
 **Output:**
-
 ```
-
 1
-
 ```
 
 **Example 3:**
 
 **Input:**
-
-```
-
+```python
 s = " 3+5 / 2 "
-
 ```
 
 **Output:**
-
 ```
-
 5
-
 ```
 
 **Example 4:**
 
 **Input:**
-
-```
-
+```python
 s = "(1+(4+5+2)-3)+(6+8)"
-
 ```
 
 **Output:**
-
 ```
-
 23
-
 ```
 
 ## Solution
@@ -92,7 +68,7 @@ class Solution:
                 return a * b
             elif op == '/':
                 return a // b  # integer division towards zero
-        
+
         stack = []
         num = 0
         op = '+'
@@ -120,7 +96,7 @@ class Solution:
             i += 1
         self.apply_op(stack, op, num)
         return sum(stack)
-    
+
     def apply_op(self, stack, op, num):
         if op == '+':
             stack.append(num)
@@ -138,10 +114,14 @@ This problem requires evaluating a string expression with basic arithmetic opera
 
 We use a stack to store intermediate results. Iterate through the string, building numbers. When encountering an operator, apply the previous operator to the current number and push to stack. For parentheses, recursively evaluate the subexpression.
 
-The apply_op method handles the operations: for + and -, push the number with appropriate sign; for * and /, modify the last element in the stack.
+The `apply_op` method handles the operations: for + and -, push the number with appropriate sign; for * and /, modify the last element in the stack.
 
 Finally, sum the stack for the result.
 
-Time complexity is O(N) as we process each character once. Space complexity is O(N) due to the stack and recursion.
+## Time Complexity
+**O(N)** as we process each character once.
+
+## Space Complexity
+**O(N)** due to the stack and recursion.
 
 This approach correctly handles precedence and parentheses.

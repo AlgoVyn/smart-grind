@@ -6,8 +6,6 @@ Given a directed acyclic graph (DAG) with `n` nodes labeled from `0` to `n-1`, d
 
 Return `true` if all paths from the source lead to the destination, otherwise return `false`.
 
----
-
 ## Solution
 
 ```python
@@ -18,9 +16,9 @@ class Solution:
         graph = [[] for _ in range(n)]
         for u, v in edges:
             graph[u].append(v)
-        
+
         visited = [0] * n  # 0: not visited, 1: visiting, 2: visited
-        
+
         def dfs(node):
             if visited[node] == 1:
                 return False  # cycle detected
@@ -28,18 +26,16 @@ class Solution:
                 return True
             if not graph[node]:
                 return node == destination
-            
+
             visited[node] = 1
             for nei in graph[node]:
                 if not dfs(nei):
                     return False
             visited[node] = 2
             return True
-        
+
         return dfs(source)
 ```
-
----
 
 ## Explanation
 
@@ -56,6 +52,8 @@ In the DFS function:
 
 The DFS ensures all paths from source are explored, and any invalid path (cycle or dead end not at destination) causes the function to return False.
 
-**Time Complexity:** O(N + E), where N is the number of nodes and E is the number of edges, as each node and edge is visited at most once.
+## Time Complexity
+**O(N + E)**, where N is the number of nodes and E is the number of edges, as each node and edge is visited at most once.
 
-**Space Complexity:** O(N) for the graph, visited array, and recursion stack.
+## Space Complexity
+**O(N)** for the graph, visited array, and recursion stack.

@@ -10,43 +10,31 @@ A leaf is a node with no children.
 **Example 1:**
 
 **Input:**
-
-```
-
+```python
 root = [1,2,3,null,5]
-
 ```
 
 **Output:**
-
 ```
-
 ["1->2->5","1->3"]
-
 ```
 
 **Example 2:**
 
 **Input:**
-
-```
-
+```python
 root = [1]
-
 ```
 
 **Output:**
-
 ```
-
 ["1"]
-
 ```
 
 ## Constraints
 
-- The number of nodes in the tree is in the range [1, 100].
-- -100 <= Node.val <= 100
+- The number of nodes in the tree is in the range `[1, 100]`.
+- `-100 <= Node.val <= 100`
 
 ## Solution
 
@@ -71,7 +59,7 @@ class Solution:
                 path += '->'
                 dfs(node.left, path)
                 dfs(node.right, path)
-        
+
         result = []
         dfs(root, '')
         return result
@@ -81,6 +69,8 @@ class Solution:
 
 This solution uses depth-first search (DFS) to traverse from root to each leaf, building the path string along the way. When a leaf is reached, the complete path is added to the result list.
 
-Time complexity: O(n), where n is the number of nodes, as each node is visited once.
+## Time Complexity
+**O(n)**, where n is the number of nodes, as each node is visited once.
 
-Space complexity: O(h), where h is the height of the tree, due to the recursion stack and path string.
+## Space Complexity
+**O(h)**, where h is the height of the tree, due to the recursion stack and path string.

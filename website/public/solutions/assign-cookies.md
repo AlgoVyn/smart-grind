@@ -1,14 +1,16 @@
 # Assign Cookies
 
 ## Problem Description
+
 Assume you are an awesome parent and want to give your children some cookies. But, you should give each child at most one cookie.
-Each child i has a greed factor g[i], which is the minimum size of a cookie that the child will be content with; and each cookie j has a size s[j]. If s[j] >= g[i], we can assign the cookie j to the child i, and the child i will be content. Your goal is to maximize the number of your content children and output the maximum number.
+Each child `i` has a greed factor `g[i]`, which is the minimum size of a cookie that the child will be content with; and each cookie `j` has a size `s[j]`. If `s[j] >= g[i]`, we can assign the cookie `j` to the child `i`, and the child `i` will be content. Your goal is to maximize the number of your content children and output the maximum number.
+
 ## Examples
 
 **Example 1:**
 
 **Input:**
-```
+```python
 g = [1,2,3], s = [1,1]
 ```
 
@@ -24,7 +26,7 @@ You need to output 1.
 **Example 2:**
 
 **Input:**
-```
+```python
 g = [1,2], s = [1,2,3]
 ```
 
@@ -45,7 +47,8 @@ You need to output 2.
 
 ## Note
 
-Note: This question is the same as 2410: Maximum Matching of Players With Trainers.
+**Note:** This question is the same as 2410: Maximum Matching of Players With Trainers.
+
 ## Solution
 
 ```python
@@ -74,8 +77,10 @@ We sort both the greed array and the cookie sizes array. Then, use two pointers:
 
 This greedy approach works because assigning the smallest possible cookie to the smallest greed first leaves larger cookies for greedier children.
 
-**Time Complexity:** O(N log N + M log M) due to sorting, where N and M are the lengths of g and s.
+## Time Complexity
+**O(N log N + M log M)** due to sorting, where N and M are the lengths of g and s.
 
-**Space Complexity:** O(1) if sorting in place, or O(N + M) for the sort space.
+## Space Complexity
+**O(1)** if sorting in place, or O(N + M) for the sort space.
 
 This ensures optimal assignment.

@@ -2,28 +2,22 @@
 
 ## Problem Description
 
-You are given an integer array prices where prices[i] is the price of a given stock on the ith day, and an integer k.
+You are given an integer array `prices` where `prices[i]` is the price of a given stock on the ith day, and an integer `k`.
 Find the maximum profit you can achieve. You may complete at most k transactions: i.e. you may buy at most k times and sell at most k times.
-Note: You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).
+**Note:** You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).
 
 ## Examples
 
 **Example 1:**
 
 **Input:**
-
-```
-
+```python
 k = 2, prices = [2,4,1]
-
 ```
 
 **Output:**
-
 ```
-
 2
-
 ```
 
 **Explanation:** Buy on day 1 (price = 2) and sell on day 2 (price = 4), profit = 4-2 = 2.
@@ -31,28 +25,22 @@ k = 2, prices = [2,4,1]
 **Example 2:**
 
 **Input:**
-
-```
-
+```python
 k = 2, prices = [3,2,6,5,0,3]
-
 ```
 
 **Output:**
-
 ```
-
 7
-
 ```
 
 **Explanation:** Buy on day 2 (price = 2) and sell on day 3 (price = 6), profit = 6-2 = 4. Then buy on day 5 (price = 0) and sell on day 6 (price = 3), profit = 3-0 = 3.
 
 ## Constraints
 
-- 1 <= k <= 100
-- 1 <= prices.length <= 1000
-- 0 <= prices[i] <= 1000
+- `1 <= k <= 100`
+- `1 <= prices.length <= 1000`
+- `0 <= prices[i] <= 1000`
 
 ## Solution
 
@@ -82,12 +70,14 @@ class Solution:
 
 ## Explanation
 
-This solution uses dynamic programming to handle at most k transactions. We maintain two arrays: buy[i] for the maximum profit after i buys (negative), and sell[i] for the maximum profit after i sells.
+This solution uses dynamic programming to handle at most k transactions. We maintain two arrays: `buy[i]` for the maximum profit after i buys (negative), and `sell[i]` for the maximum profit after i sells.
 
 If k is large (at least half the number of days), we optimize by treating it as unlimited transactions, summing all positive price differences.
 
 Otherwise, for each price, we update the buy and sell states for each transaction count.
 
-Time complexity: O(n*k) in the worst case, but O(n) when k is large.
+## Time Complexity
+**O(n*k)** in the worst case, but **O(n)** when k is large.
 
-Space complexity: O(k), using arrays of size k+1.
+## Space Complexity
+**O(k)**, using arrays of size k+1.

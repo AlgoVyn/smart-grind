@@ -9,19 +9,13 @@ Given the root of a binary tree, return the inorder traversal of its nodes' valu
 **Example 1:**
 
 **Input:**
-
-```
-
+```python
 root = [1,null,2,3]
-
 ```
 
 **Output:**
-
 ```
-
 [1,3,2]
-
 ```
 
 **Explanation:**
@@ -29,19 +23,13 @@ root = [1,null,2,3]
 **Example 2:**
 
 **Input:**
-
-```
-
+```python
 root = [1,2,3,4,5,null,8,null,null,6,7,9]
-
 ```
 
 **Output:**
-
 ```
-
 [4,2,6,5,7,1,3,9,8]
-
 ```
 
 **Explanation:**
@@ -49,43 +37,31 @@ root = [1,2,3,4,5,null,8,null,null,6,7,9]
 **Example 3:**
 
 **Input:**
-
-```
-
+```python
 root = []
-
 ```
 
 **Output:**
-
 ```
-
 []
-
 ```
 
 **Example 4:**
 
 **Input:**
-
-```
-
+```python
 root = [1]
-
 ```
 
 **Output:**
-
 ```
-
 [1]
-
 ```
 
 ## Constraints
 
-- The number of nodes in the tree is in the range [0, 100].
-- -100 <= Node.val <= 100
+- The number of nodes in the tree is in the range `[0, 100]`.
+- `-100 <= Node.val <= 100`
 
 ## Follow up
 
@@ -118,6 +94,8 @@ class Solution:
 
 This recursive solution performs an inorder traversal: visit left subtree, then root, then right subtree. We use a helper function to append node values to the result list in the correct order.
 
-Time complexity: O(n), where n is the number of nodes, as each node is visited once.
+## Time Complexity
+**O(n)**, where n is the number of nodes, as each node is visited once.
 
-Space complexity: O(h), where h is the height of the tree, due to the recursion stack. In the worst case (skewed tree), this is O(n).
+## Space Complexity
+**O(h)**, where h is the height of the tree, due to the recursion stack. In the worst case (skewed tree), this is O(n).

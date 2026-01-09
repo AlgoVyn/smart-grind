@@ -9,61 +9,43 @@ Given the root of a binary tree, return the level order traversal of its nodes' 
 **Example 1:**
 
 **Input:**
-
-```
-
+```python
 root = [3,9,20,null,null,15,7]
-
 ```
 
 **Output:**
-
 ```
-
 [[3],[9,20],[15,7]]
-
 ```
 
 **Example 2:**
 
 **Input:**
-
-```
-
+```python
 root = [1]
-
 ```
 
 **Output:**
-
 ```
-
 [[1]]
-
 ```
 
 **Example 3:**
 
 **Input:**
-
-```
-
+```python
 root = []
-
 ```
 
 **Output:**
-
 ```
-
 []
-
 ```
 
 ## Constraints
 
-- The number of nodes in the tree is in the range [0, 2000].
-- -1000 <= Node.val <= 1000
+- The number of nodes in the tree is in the range `[0, 2000]`.
+- `-1000 <= Node.val <= 1000`
 
 ## Solution
 
@@ -100,6 +82,8 @@ class Solution:
 
 This solution uses breadth-first search (BFS) with a queue to traverse the tree level by level. For each level, we process all nodes at that level, collect their values, and enqueue their children for the next level.
 
-Time complexity: O(n), where n is the number of nodes, as each node is visited once.
+## Time Complexity
+**O(n)**, where n is the number of nodes, as each node is visited once.
 
-Space complexity: O(w), where w is the maximum width of the tree (number of nodes at the widest level), due to the queue.
+## Space Complexity
+**O(w)**, where w is the maximum width of the tree (number of nodes at the widest level), due to the queue.

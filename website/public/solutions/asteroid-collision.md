@@ -1,15 +1,17 @@
 # Asteroid Collision
 
 ## Problem Description
-We are given an array asteroids of integers representing asteroids in a row. The indices of the asteroid in the array represent their relative position in space.
+
+We are given an array `asteroids` of integers representing asteroids in a row. The indices of the asteroid in the array represent their relative position in space.
 For each asteroid, the absolute value represents its size, and the sign represents its direction (positive meaning right, negative meaning left). Each asteroid moves at the same speed.
 Find out the state of the asteroids after all collisions. If two asteroids meet, the smaller one will explode. If both are the same size, both will explode. Two asteroids moving in the same direction will never meet.
+
 ## Examples
 
 **Example 1:**
 
 **Input:**
-```
+```python
 asteroids = [5,10,-5]
 ```
 
@@ -23,7 +25,7 @@ asteroids = [5,10,-5]
 **Example 2:**
 
 **Input:**
-```
+```python
 asteroids = [8,-8]
 ```
 
@@ -37,7 +39,7 @@ asteroids = [8,-8]
 **Example 3:**
 
 **Input:**
-```
+```python
 asteroids = [10,2,-5]
 ```
 
@@ -51,8 +53,8 @@ asteroids = [10,2,-5]
 **Example 4:**
 
 **Input:**
-```
-asteroids = [3,5,-6,2,-1,4]​​​​​​​
+```python
+asteroids = [3,5,-6,2,-1,4]
 ```
 
 **Output:**
@@ -64,9 +66,10 @@ asteroids = [3,5,-6,2,-1,4]​​​​​​​
 
 ## Constraints
 
-- 2 <= asteroids.length <= 104
-- -1000 <= asteroids[i] <= 1000
-- asteroids[i] != 0
+- `2 <= asteroids.length <= 104`
+- `-1000 <= asteroids[i] <= 1000`
+- `asteroids[i] != 0`
+
 ## Solution
 
 ```python
@@ -103,6 +106,10 @@ We use a stack to keep track of surviving asteroids. For each asteroid:
 
 The stack represents the final state after all collisions.
 
-Time complexity is O(N) as each asteroid is pushed and popped at most once. Space complexity is O(N) for the stack.
+## Time Complexity
+**O(N)** as each asteroid is pushed and popped at most once.
+
+## Space Complexity
+**O(N)** for the stack.
 
 This approach efficiently handles the simulation using stack operations.

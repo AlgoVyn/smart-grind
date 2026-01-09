@@ -1,6 +1,7 @@
 # Add Two Numbers
 
 ## Problem Description
+
 You are given two non-empty linked lists representing two non-negative integers. The digits are stored in reverse order, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.
 You may assume the two numbers do not contain any leading zero, except the number 0 itself.
 
@@ -9,7 +10,7 @@ You may assume the two numbers do not contain any leading zero, except the numbe
 **Example 1:**
 
 **Input:**
-```
+```python
 l1 = [2,4,3], l2 = [5,6,4]
 ```
 
@@ -23,7 +24,7 @@ l1 = [2,4,3], l2 = [5,6,4]
 **Example 2:**
 
 **Input:**
-```
+```python
 l1 = [0], l2 = [0]
 ```
 
@@ -35,8 +36,8 @@ l1 = [0], l2 = [0]
 **Example 3:**
 
 **Input:**
-```
-l1 = [9,9,9,9,9,9,9], l2 = [9,9,9,9]
+```python
+l1 = [9,9,9,9,9,9,7], l2 = [9,9,9,9]
 ```
 
 **Output:**
@@ -46,7 +47,7 @@ l1 = [9,9,9,9,9,9,9], l2 = [9,9,9,9]
 
 ## Constraints
 
-- The number of nodes in each linked list is in the range [1, 100].
+- The number of nodes in each linked list is in the range `[1, 100]`.
 - `0 <= Node.val <= 9`
 - It is guaranteed that the list represents a number that does not have leading zeros.
 
@@ -80,9 +81,10 @@ class Solution:
 ```
 
 ## Explanation
+
 To add two numbers represented as linked lists, we simulate the addition process digit by digit, starting from the least significant digit.
 
-We use a dummy node to build the result list. For each position, we add the values from l1 and l2 (if available) plus the carry from the previous addition.
+We use a dummy node to build the result list. For each position, we add the values from `l1` and `l2` (if available) plus the carry from the previous addition.
 
 The sum modulo 10 becomes the new node's value, and the quotient becomes the new carry.
 
@@ -90,6 +92,8 @@ We continue until both lists are exhausted and there is no carry left.
 
 This handles numbers of different lengths and potential carry propagation.
 
-**Time Complexity:** O(max(m, n)), where m and n are the lengths of the two linked lists.
+## Time Complexity
+**O(max(m, n))**, where m and n are the lengths of the two linked lists.
 
-**Space Complexity:** O(max(m, n)), for the result linked list.
+## Space Complexity
+**O(max(m, n))**, for the result linked list.

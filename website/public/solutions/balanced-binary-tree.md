@@ -9,61 +9,43 @@ Given a binary tree, determine if it is height-balanced.
 **Example 1:**
 
 **Input:**
-
-```
-
+```python
 root = [3,9,20,null,null,15,7]
-
 ```
 
 **Output:**
-
 ```
-
 true
-
 ```
 
 **Example 2:**
 
 **Input:**
-
-```
-
+```python
 root = [1,2,2,3,3,null,null,4,4]
-
 ```
 
 **Output:**
-
 ```
-
 false
-
 ```
 
 **Example 3:**
 
 **Input:**
-
-```
-
+```python
 root = []
-
 ```
 
 **Output:**
-
 ```
-
 true
-
 ```
 
 ## Constraints
 
-- The number of nodes in the tree is in the range [0, 5000].
-- -104 <= Node.val <= 104
+- The number of nodes in the tree is in the range `[0, 5000]`.
+- `-104 <= Node.val <= 104`
 
 ## Solution
 
@@ -100,6 +82,10 @@ We use a recursive helper function that returns the height of the subtree if bal
 
 The main function checks if the root's check result is not -1.
 
-Time complexity is O(N) as we visit each node once. Space complexity is O(H) for recursion stack, where H is tree height.
+## Time Complexity
+**O(N)** as we visit each node once.
+
+## Space Complexity
+**O(H)** for recursion stack, where H is tree height.
 
 This approach efficiently checks balance in a single pass.
