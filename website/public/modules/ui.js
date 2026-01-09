@@ -36,8 +36,21 @@ window.SmartGrind.ui = {
             document.addEventListener('touchend', window.SmartGrind.ui.pullToRefresh.handleTouchEnd, { passive: false });
         },
 
+        // Helper to check if any modal is currently open
+        isAnyModalOpen: () => {
+            const modals = [
+                window.SmartGrind.state.elements.setupModal,
+                window.SmartGrind.state.elements.addProblemModal,
+                window.SmartGrind.state.elements.signinModal,
+                window.SmartGrind.state.elements.alertModal,
+                window.SmartGrind.state.elements.confirmModal,
+                window.SmartGrind.state.elements.solutionModal
+            ];
+            return modals.some(modal => modal && !modal.classList.contains('hidden'));
+        },
+
         handleTouchStart: (e) => {
-            if (window.scrollY === 0 && window.SmartGrind.state.elements.contentScroll.scrollTop === 0 && !window.SmartGrind.state.elements.mainSidebar.classList.contains('translate-x-0')) {
+            if (window.scrollY === 0 && window.SmartGrind.state.elements.contentScroll.scrollTop === 0 && !window.SmartGrind.state.elements.mainSidebar.classList.contains('translate-x-0') && !window.SmartGrind.ui.pullToRefresh.isAnyModalOpen()) {
                 window.SmartGrind.ui.pullToRefresh.startY = e.touches[0].clientY;
                 window.SmartGrind.ui.pullToRefresh.isPulling = true;
             }

@@ -304,6 +304,16 @@ describe('SmartGrind UI', () => {
       // Mock sidebar not open
       window.SmartGrind.state.elements.mainSidebar.classList.contains = jest.fn(() => false);
 
+      // Mock modals as hidden
+      const hiddenModal = createMockElement();
+      hiddenModal.classList.contains = jest.fn(() => true); // contains 'hidden' returns true
+      window.SmartGrind.state.elements.setupModal = hiddenModal;
+      window.SmartGrind.state.elements.addProblemModal = hiddenModal;
+      window.SmartGrind.state.elements.signinModal = hiddenModal;
+      window.SmartGrind.state.elements.alertModal = hiddenModal;
+      window.SmartGrind.state.elements.confirmModal = hiddenModal;
+      window.SmartGrind.state.elements.solutionModal = hiddenModal;
+
       const event = {
         touches: [{ clientY: 100 }],
         preventDefault: jest.fn(),
