@@ -333,7 +333,7 @@ window.SmartGrind.renderers = {
     },
 
     // Handle clicks on problem card buttons
-    handleProblemCardClick: (e, p) => {
+    handleProblemCardClick: async (e, p) => {
         const button = e.target.closest('button');
         if (!button) return;
 
@@ -351,7 +351,10 @@ window.SmartGrind.renderers = {
                 window.SmartGrind.renderers._handleReset(button, p);
                 break;
             case 'delete':
-                window.SmartGrind.api.saveDeletedId(p.id);
+                const confirmed = await window.SmartGrind.ui.showConfirm(`Delete "${p.name}"?`);
+                if (confirmed) {
+                    window.SmartGrind.api.saveDeletedId(p.id);
+                }
                 break;
             case 'note':
                 const noteArea = button.closest('.group').querySelector('.note-area');

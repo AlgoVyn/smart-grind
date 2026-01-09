@@ -108,6 +108,7 @@ describe('SmartGrind Renderers', () => {
     };
     window.SmartGrind.ui = {
       openSolutionModal: jest.fn(),
+      showConfirm: jest.fn(),
     };
 
     // Mock createElement to return new mockElement
@@ -641,15 +642,32 @@ describe('SmartGrind Renderers', () => {
       expect(window.SmartGrind.renderers._handleReset).toHaveBeenCalledWith({ dataset: { action: 'reset' } }, problem);
     });
 
-    test('handles delete action', () => {
+    test('handles delete action when confirmed', async () => {
       const mockEvent = {
         target: { closest: jest.fn(() => ({ dataset: { action: 'delete' } })) }
       };
-      const problem = { id: '1' };
+      const problem = { id: '1', name: 'Test Problem' };
 
-      window.SmartGrind.renderers.handleProblemCardClick(mockEvent, problem);
+      window.SmartGrind.ui.showConfirm = jest.fn().mockResolvedValue(true);
 
+      await window.SmartGrind.renderers.handleProblemCardClick(mockEvent, problem);
+
+      expect(window.SmartGrind.ui.showConfirm).toHaveBeenCalledWith('Delete "Test Problem"?');
       expect(window.SmartGrind.api.saveDeletedId).toHaveBeenCalledWith('1');
+    });
+
+    test('does not delete when confirmation is cancelled', async () => {
+      const mockEvent = {
+        target: { closest: jest.fn(() => ({ dataset: { action: 'delete' } })) }
+      };
+      const problem = { id: '1', name: 'Test Problem' };
+
+      window.SmartGrind.ui.showConfirm = jest.fn().mockResolvedValue(false);
+
+      await window.SmartGrind.renderers.handleProblemCardClick(mockEvent, problem);
+
+      expect(window.SmartGrind.ui.showConfirm).toHaveBeenCalledWith('Delete "Test Problem"?');
+      expect(window.SmartGrind.api.saveDeletedId).not.toHaveBeenCalled();
     });
 
     test('handles note action', () => {

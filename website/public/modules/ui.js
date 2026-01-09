@@ -254,15 +254,6 @@ window.SmartGrind.ui = {
         // Browser navigation
         window.addEventListener('popstate', window.SmartGrind.ui.handlePopState);
 
-        // Category delete
-        window.SmartGrind.state.elements.topicList?.addEventListener('click', (e) => {
-            const btn = e.target.closest('button');
-            if (btn && btn.dataset.action === 'delete-category') {
-                e.stopPropagation();
-                window.SmartGrind.api.deleteCategory(btn.dataset.topicId);
-            }
-        });
-
         // Solution modal close
         window.SmartGrind.state.elements.solutionCloseBtn?.addEventListener('click', window.SmartGrind.ui.closeSolutionModal);
         window.SmartGrind.state.elements.solutionModal?.addEventListener('click', window.SmartGrind.ui.createModalHandler(

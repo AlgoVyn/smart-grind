@@ -974,22 +974,6 @@ describe('SmartGrind UI', () => {
   });
 
   describe('bindEvents event delegation', () => {
-    test('handles category delete button click', () => {
-      window.SmartGrind.ui.bindEvents();
-      const deleteBtn = { dataset: { action: 'delete-category', topicId: 'test-topic' }, closest: jest.fn(() => deleteBtn) };
-      const event = {
-        type: 'click',
-        target: deleteBtn,
-        stopPropagation: jest.fn(),
-      };
-
-      // Simulate the event listener
-      window.SmartGrind.state.elements.topicList.dispatchEvent(event);
-
-      expect(event.stopPropagation).toHaveBeenCalled();
-      expect(window.SmartGrind.api.deleteCategory).toHaveBeenCalledWith('test-topic');
-    });
-
     test('closes sidebar on mobile topic click', () => {
       window.SmartGrind.ui.bindEvents();
       window.innerWidth = 375; // Mobile width
