@@ -15,11 +15,11 @@ You are given an API bool isBadVersion(version) which returns whether version is
 **Output:** 4
 
 **Explanation:**
-```
+```python
 call isBadVersion(3) -> false
 call isBadVersion(5) -> true
 call isBadVersion(4) -> true
-```
+```python
 Then 4 is the first bad version.
 
 **Example 2:**
@@ -34,7 +34,7 @@ Then 4 is the first bad version.
 
 ## Solution
 
-```python
+```
 # The isBadVersion API is already defined for you.
 # def isBadVersion(version: int) -> bool:
 

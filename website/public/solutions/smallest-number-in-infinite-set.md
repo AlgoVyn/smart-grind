@@ -12,7 +12,7 @@ Design a data structure that contains all positive integers starting from 1. Sup
 ## Examples
 
 **Example 1:**
-```
+```python
 Operations: ["SmallestInfiniteSet", "addBack", "popSmallest", "popSmallest", "popSmallest", "addBack", "popSmallest", "popSmallest", "popSmallest"]
 Arguments: [[], [2], [], [], [], [1], [], [], []]
 Output: [null, null, 1, 2, 3, null, 1, 4, 5]

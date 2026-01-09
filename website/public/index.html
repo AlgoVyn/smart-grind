@@ -56,19 +56,34 @@
             margin: 1em 0;
         }
         #solution-content pre {
-            background: var(--prism-bg, #1e293b);
-            padding: 1em;
-            border-radius: 8px;
+            background: var(--prism-bg);
+            padding: 1.25em;
+            border-radius: 12px;
             overflow-x: auto;
-            margin: 1em 0;
-            border: 1px solid var(--theme);
+            margin: 1.5em 0;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                0 0 0 1px rgba(0, 133, 208, 0.1);
+            position: relative;
+        }
+        #solution-content pre::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #0085d0, #4da6ff, #77c7ff);
+            border-radius: 12px 12px 0 0;
         }
         #solution-content code {
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
             font-size: 0.9em;
-            background: var(--prism-bg, #1e293b);
+            background: var(--prism-bg);
             padding: 0.2em 0.4em;
-            border-radius: 4px;
+            border-radius: 6px;
         }
         #solution-content pre code {
             background: none;
@@ -98,7 +113,7 @@
             text-align: left;
         }
         #solution-content th {
-            background: var(--prism-bg, #1e293b);
+            background: var(--prism-bg);
         }
         #solution-content a {
             color: var(--brand-400);
@@ -111,8 +126,9 @@
             max-width: 100%;
             height: auto;
         }
-        /* Prism syntax highlighting styles - Theme-aware */
+        /* Prism syntax highlighting styles - Theme-aware - Enhanced for Python */
         :root {
+            /* Light theme - soft gray background with high-contrast syntax */
             --prism-bg: #f1f5f9;
             --prism-comment: #64748b;
             --prism-punctuation: #475569;
@@ -143,7 +159,8 @@
         }
         
         .dark {
-            --prism-bg: #1e293b;
+            /* Dark theme - dark slate background with vibrant syntax */
+            --prism-bg: #0f172a;
             --prism-comment: #64748b;
             --prism-punctuation: #94a3b8;
             --prism-property: #f472b6;
@@ -177,6 +194,30 @@
             padding: 0;
             color: inherit;
         }
+        /* Enhanced code block container with glow effect */
+        #solution-content pre[class*="language-"] {
+            background: var(--prism-bg);
+            padding: 1.25em;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 1.5em 0;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                0 0 0 1px rgba(0, 133, 208, 0.1);
+            position: relative;
+        }
+        #solution-content pre[class*="language-"]::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #0085d0, #4da6ff, #77c7ff);
+            border-radius: 12px 12px 0 0;
+        }
         #solution-content .token.comment,
         #solution-content .token.prolog,
         #solution-content .token.doctype,
@@ -200,6 +241,7 @@
         #solution-content .token.boolean,
         #solution-content .token.number {
             color: var(--prism-boolean);
+            font-weight: 600;
         }
         #solution-content .token.selector,
         #solution-content .token.attr-name,
@@ -223,6 +265,7 @@
         }
         #solution-content .token.keyword {
             color: var(--prism-keyword);
+            font-weight: 600;
         }
         #solution-content .token.regex,
         #solution-content .token.important {
@@ -238,15 +281,69 @@
         #solution-content .token.entity {
             cursor: help;
         }
-        /* Python-specific highlighting */
+        /* Python-specific enhanced highlighting */
         #solution-content .language-python .token.decorator {
             color: var(--prism-property);
+            font-weight: 600;
         }
         #solution-content .language-python .token.builtin {
             color: var(--prism-function);
+            font-weight: 500;
         }
         #solution-content .language-python .token.keyword {
             color: var(--prism-keyword);
+            font-weight: 700;
+        }
+        #solution-content .language-python .token.function {
+            color: var(--prism-function);
+            font-weight: 600;
+        }
+        #solution-content .language-python .token.class-name {
+            color: var(--prism-class-name);
+            font-weight: 700;
+        }
+        #solution-content .language-python .token.string {
+            color: var(--prism-string);
+        }
+        #solution-content .language-python .token.number {
+            color: var(--prism-number);
+            font-weight: 600;
+        }
+        #solution-content .language-python .token.comment {
+            color: var(--prism-comment);
+            font-style: italic;
+        }
+        #solution-content .language-python .token.parameter {
+            color: var(--prism-punctuation);
+        }
+        #solution-content .language-python .token.special-variable {
+            color: var(--prism-variable);
+        }
+        #solution-content .language-python .token.operator {
+            color: var(--prism-operator);
+            font-weight: 500;
+        }
+        #solution-content .language-python .token.punctuation {
+            color: var(--prism-punctuation);
+        }
+        /* Inline code styling */
+        #solution-content :not(pre) > code {
+            background: var(--prism-bg);
+            padding: 0.2em 0.5em;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.875em;
+            border: 1px solid rgba(100, 116, 139, 0.2);
+        }
+        /* Line numbers styling if enabled */
+        #solution-content code[class*="language-"] span.line-numbers {
+            color: #64748b;
+        }
+        /* Selection styling */
+        #solution-content code[class*="language-"]::selection,
+        #solution-content code[class*="language-"] ::selection {
+            background: rgba(0, 133, 208, 0.3);
+            color: inherit;
         }
     </style>
 

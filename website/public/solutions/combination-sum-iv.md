@@ -9,12 +9,12 @@ The test cases are generated so that the answer can fit in a 32-bit integer.
 **Example 1:**
 
 **Input:**
-```
+```python
 nums = [1,2,3], target = 4
 ```
 
 **Output:**
-```
+```python
 7
 ```
 
@@ -33,12 +33,12 @@ Note that different sequences are counted as different combinations.
 **Example 2:**
 
 **Input:**
-```
+```python
 nums = [9], target = 3
 ```
 
 **Output:**
-```
+```python
 0
 ```
 

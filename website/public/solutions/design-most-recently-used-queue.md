@@ -15,7 +15,7 @@ n = 4
 ```
 
 **Output:**
-```python
+```
 # MRUQueue initialized with [1, 2, 3, 4]
 ```
 

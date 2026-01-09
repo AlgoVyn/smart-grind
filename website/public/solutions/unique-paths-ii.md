@@ -13,12 +13,12 @@ The testcases are generated so that the answer will be less than or equal to `2 
 **Example 1:**
 
 **Input:**
-```
+```python
 obstacleGrid = [[0,0,0],[0,1,0],[0,0,0]]
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -29,12 +29,12 @@ obstacleGrid = [[0,0,0],[0,1,0],[0,0,0]]
 **Example 2:**
 
 **Input:**
-```
+```python
 obstacleGrid = [[0,1],[0,0]]
 ```
 
 **Output:**
-```
+```python
 1
 ```
 

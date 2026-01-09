@@ -14,19 +14,19 @@ Given a non-empty array of integers where every element appears exactly twice ex
 ## Examples
 
 **Example 1:**
-```
+```python
 Input: nums = [2,2,1]
 Output: 1
 ```
 
 **Example 2:**
-```
+```python
 Input: nums = [4,1,2,1,2]
 Output: 4
 ```
 
 **Example 3:**
-```
+```python
 Input: nums = [1]
 Output: 1
 ```
@@ -74,7 +74,7 @@ XOR has two important properties:
 
 ### Why It Works
 
-```
+```python
 Example: [4, 1, 2, 1, 2]
 4 ^ 1 ^ 2 ^ 1 ^ 2
 = 4 ^ (1 ^ 1) ^ (2 ^ 2)

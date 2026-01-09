@@ -17,12 +17,12 @@ Your penalty is the maximum number of balls in a bag. You want to minimize your 
 ### Example 1
 
 **Input:**
-```
+```python
 nums = [9], maxOperations = 2
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
@@ -35,12 +35,12 @@ The bag with the most number of balls has 3 balls, so your penalty is 3.
 ### Example 2
 
 **Input:**
-```
+```python
 nums = [2, 4, 8, 2], maxOperations = 4
 ```
 
 **Output:**
-```
+```python
 2
 ```
 

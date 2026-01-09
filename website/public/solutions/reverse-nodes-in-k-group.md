@@ -30,7 +30,7 @@ You may not alter the values in the list's nodes; only nodes themselves may be c
 
 ## Solution
 
-```python
+```
 # Definition for singly-linked list.
 class ListNode:
     def __init__(self, val=0, next=None):

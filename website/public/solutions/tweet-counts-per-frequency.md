@@ -25,18 +25,18 @@ Implement the TweetCounts class:
 **Example:**
 
 Input:
-```
+```python
 ["TweetCounts","recordTweet","recordTweet","recordTweet","getTweetCountsPerFrequency","getTweetCountsPerFrequency","recordTweet","getTweetCountsPerFrequency"]
 [[],["tweet3",0],["tweet3",60],["tweet3",10],["minute","tweet3",0,59],["minute","tweet3",0,60],["tweet3",120],["hour","tweet3",0,210]]
 ```
 
 Output:
-```
+```python
 [null,null,null,null,[2],[2,1],null,[4]]
 ```
 
 Explanation:
-```
+```python
 TweetCounts tweetCounts = new TweetCounts();
 tweetCounts.recordTweet("tweet3", 0);                              // New tweet "tweet3" at time 0
 tweetCounts.recordTweet("tweet3", 60);                             // New tweet "tweet3" at time 60

@@ -11,12 +11,12 @@ Given a `m x n` grid filled with non-negative numbers, find a path from top left
 ### Example 1
 
 **Input:**
-```
+```python
 grid = [[1, 3, 1], [1, 5, 1], [4, 2, 1]]
 ```
 
 **Output:**
-```
+```python
 7
 ```
 
@@ -26,12 +26,12 @@ Because the path `1 → 3 → 1 → 1 → 1` minimizes the sum.
 ### Example 2
 
 **Input:**
-```
+```python
 grid = [[1, 2, 3], [4, 5, 6]]
 ```
 
 **Output:**
-```
+```python
 12
 ```
 

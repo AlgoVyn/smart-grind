@@ -10,24 +10,24 @@ Return the roots of the trees in the remaining forest. You may return the result
 **Example 1:**
 
 **Input:**
-```
+```python
 root = [1,2,3,4,5,6,7], to_delete = [3,5]
 ```
 
 **Output:**
-```
+```python
 [[1,2,null,4],[6],[7]]
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 root = [1,2,4,null,3], to_delete = [3]
 ```
 
 **Output:**
-```
+```python
 [[1,2,4]]
 ```
 
@@ -40,7 +40,7 @@ root = [1,2,4,null,3], to_delete = [3]
 
 ## Solution
 
-```python
+```
 # Python solution
 from typing import List, Optional
 

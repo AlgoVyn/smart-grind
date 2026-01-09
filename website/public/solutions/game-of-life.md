@@ -17,24 +17,24 @@ Note that you do not need to return anything.
 **Example 1:**
 
 **Input:**
-```
+```python
 board = [[0,1,0],[0,0,1],[1,1,1],[0,0,0]]
 ```
 
 **Output:**
-```
+```python
 [[0,0,0],[1,0,1],[0,1,1],[0,1,0]]
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 board = [[1,1],[1,0]]
 ```
 
 **Output:**
-```
+```python
 [[1,1],[1,1]]
 ```
 

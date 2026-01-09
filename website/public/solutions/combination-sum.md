@@ -10,12 +10,12 @@ The test cases are generated such that the number of unique combinations that su
 **Example 1:**
 
 **Input:**
-```
+```python
 candidates = [2,3,6,7], target = 7
 ```
 
 **Output:**
-```
+```python
 [[2,2,3],[7]]
 ```
 
@@ -27,24 +27,24 @@ These are the only two combinations.
 **Example 2:**
 
 **Input:**
-```
+```python
 candidates = [2,3,5], target = 8
 ```
 
 **Output:**
-```
+```python
 [[2,2,2,2],[2,3,3],[3,5]]
 ```
 
 **Example 3:**
 
 **Input:**
-```
+```python
 candidates = [2], target = 1
 ```
 
 **Output:**
-```
+```python
 []
 ```
 

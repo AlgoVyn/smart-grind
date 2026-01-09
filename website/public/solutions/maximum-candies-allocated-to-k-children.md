@@ -20,7 +20,7 @@ candies = [5, 8, 6], k = 3
 ```
 
 **Output:**
-```
+```python
 5
 ```
 
@@ -39,7 +39,7 @@ candies = [2, 5], k = 11
 ```
 
 **Output:**
-```
+```python
 0
 ```
 

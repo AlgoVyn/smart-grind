@@ -9,12 +9,12 @@ Given an array of positive integers `nums` and a positive integer `target`, retu
 ### Example 1
 
 **Input:**
-```
+```python
 target = 7, nums = [2, 3, 1, 2, 4, 3]
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -24,24 +24,24 @@ The subarray `[4, 3]` has the minimal length under the problem constraint.
 ### Example 2
 
 **Input:**
-```
+```python
 target = 4, nums = [1, 4, 4]
 ```
 
 **Output:**
-```
+```python
 1
 ```
 
 ### Example 3
 
 **Input:**
-```
+```python
 target = 11, nums = [1, 1, 1, 1, 1, 1, 1, 1]
 ```
 
 **Output:**
-```
+```python
 0
 ```
 

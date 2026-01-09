@@ -9,12 +9,12 @@ You may return the answer in any order.
 **Example 1:**
 
 **Input:**
-```
+```python
 n = 4, k = 2
 ```
 
 **Output:**
-```
+```python
 [[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]
 ```
 
@@ -24,12 +24,12 @@ Note that combinations are unordered, i.e., [1,2] and [2,1] are considered to be
 **Example 2:**
 
 **Input:**
-```
+```python
 n = 1, k = 1
 ```
 
 **Output:**
-```
+```python
 [[1]]
 ```
 

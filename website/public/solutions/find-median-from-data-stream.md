@@ -18,18 +18,18 @@ Implement the MedianFinder class:
 **Example 1:**
 
 **Input:**
-```
+```python
 ["MedianFinder", "addNum", "addNum", "findMedian", "addNum", "findMedian"]
 [[], [1], [2], [], [3], []]
 ```
 
 **Output:**
-```
+```python
 [null, null, null, 1.5, null, 2.0]
 ```
 
 **Explanation:**
-```
+```python
 MedianFinder medianFinder = new MedianFinder();
 medianFinder.addNum(1);    // arr = [1]
 medianFinder.addNum(2);    // arr = [1, 2]

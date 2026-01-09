@@ -9,24 +9,24 @@ Given an integer `n`, return the number of structurally unique BST's (binary sea
 **Example 1:**
 
 **Input:**
-```
+```python
 n = 3
 ```
 
 **Output:**
-```
+```python
 5
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 n = 1
 ```
 
 **Output:**
-```
+```python
 1
 ```
 

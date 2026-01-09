@@ -9,24 +9,24 @@ Rearrange the barcodes so that no two adjacent barcodes are equal. You may retur
 **Example 1:**
 
 **Input:**
-```
+```python
 barcodes = [1,1,1,2,2,2]
 ```
 
 **Output:**
-```
+```python
 [2,1,2,1,2,1]
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 barcodes = [1,1,1,1,2,2,3,3]
 ```
 
 **Output:**
-```
+```python
 [1,3,1,3,1,2,1,2]
 ```
 

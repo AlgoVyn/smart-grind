@@ -15,12 +15,12 @@ The height of a rooted tree is the number of edges on the longest downward path 
 ### Example 1
 
 **Input:**
-```
+```python
 n = 4, edges = [[1, 0], [1, 2], [1, 3]]
 ```
 
 **Output:**
-```
+```python
 [1]
 ```
 
@@ -30,12 +30,12 @@ As shown, the height of the tree is 1 when the root is the node with label 1 whi
 ### Example 2
 
 **Input:**
-```
+```python
 n = 6, edges = [[3, 0], [3, 1], [3, 2], [3, 4], [5, 4]]
 ```
 
 **Output:**
-```
+```python
 [3, 4]
 ```
 

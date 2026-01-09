@@ -10,12 +10,12 @@ The length of a path between two nodes is represented by the number of edges bet
 **Example 1:**
 
 **Input:**
-```
+```python
 root = [1,2,3,4,5]
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
@@ -25,12 +25,12 @@ root = [1,2,3,4,5]
 **Example 2:**
 
 **Input:**
-```
+```python
 root = [1,2]
 ```
 
 **Output:**
-```
+```python
 1
 ```
 
@@ -41,7 +41,7 @@ root = [1,2]
 
 ## Solution
 
-```python
+```
 # Definition for a binary tree node.
 # class TreeNode:
 #     def __init__(self, val=0, left=None, right=None):

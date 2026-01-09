@@ -13,12 +13,12 @@ Return the minimum number of days you need to wait to be able to make `m` bouque
 ### Example 1
 
 **Input:**
-```
+```python
 bloomDay = [1, 10, 3, 10, 2], m = 3, k = 1
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
@@ -31,12 +31,12 @@ We need 3 bouquets each should contain 1 flower.
 ### Example 2
 
 **Input:**
-```
+```python
 bloomDay = [1, 10, 3, 10, 2], m = 3, k = 2
 ```
 
 **Output:**
-```
+```python
 -1
 ```
 
@@ -46,12 +46,12 @@ We need 3 bouquets each has 2 flowers, that means we need 6 flowers. We only hav
 ### Example 3
 
 **Input:**
-```
+```python
 bloomDay = [7, 7, 7, 7, 12, 7, 7], m = 2, k = 3
 ```
 
 **Output:**
-```
+```python
 12
 ```
 

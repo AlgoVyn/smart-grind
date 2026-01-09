@@ -17,14 +17,14 @@ A subgraph is a graph whose vertices and edges are subsets of the original graph
 ### Example 1
 
 **Input:**
-```
+```python
 n = 6
 edges = [[0, 2, 2], [0, 5, 6], [1, 0, 3], [1, 4, 5], [2, 1, 1], [2, 3, 3], [2, 3, 4], [3, 4, 2], [4, 5, 1]]
 src1 = 0, src2 = 1, dest = 5
 ```
 
 **Output:**
-```
+```python
 9
 ```
 
@@ -34,14 +34,14 @@ The above figure represents the input graph. The blue edges represent one of the
 ### Example 2
 
 **Input:**
-```
+```python
 n = 3
 edges = [[0, 1, 1], [2, 1, 1]]
 src1 = 0, src2 = 1, dest = 2
 ```
 
 **Output:**
-```
+```python
 -1
 ```
 

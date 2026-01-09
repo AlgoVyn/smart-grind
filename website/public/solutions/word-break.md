@@ -11,12 +11,12 @@ Note that the same word in the dictionary may be reused multiple times in the se
 **Example 1:**
 
 **Input:**
-```
+```python
 s = "leetcode", wordDict = ["leet","code"]
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -25,12 +25,12 @@ true
 **Example 2:**
 
 **Input:**
-```
+```python
 s = "applepenapple", wordDict = ["apple","pen"]
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -39,12 +39,12 @@ true
 **Example 3:**
 
 **Input:**
-```
+```python
 s = "catsandog", wordDict = ["cats","dog","sand","and","cat"]
 ```
 
 **Output:**
-```
+```python
 false
 ```
 

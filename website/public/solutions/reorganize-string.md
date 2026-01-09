@@ -9,24 +9,24 @@ Return any possible rearrangement of `s` or return `""` if not possible.
 ### Example 1
 
 **Input:**
-```
+```python
 s = "aab"
 ```
 
 **Output:**
-```
+```python
 "aba"
 ```
 
 ### Example 2
 
 **Input:**
-```
+```python
 s = "aaab"
 ```
 
 **Output:**
-```
+```python
 ""
 ```
 

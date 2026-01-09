@@ -32,12 +32,12 @@ If all assertions pass, then your solution will be accepted.
 ### Example 1
 
 **Input:**
-```
+```python
 nums = [3,2,2,3], val = 3
 ```
 
 **Output:**
-```
+```python
 2, nums = [2,2,_,_]
 ```
 
@@ -46,12 +46,12 @@ nums = [3,2,2,3], val = 3
 ### Example 2
 
 **Input:**
-```
+```python
 nums = [0,1,2,2,3,0,4,2], val = 2
 ```
 
 **Output:**
-```
+```python
 5, nums = [0,1,4,0,3,_,_,_]
 ```
 

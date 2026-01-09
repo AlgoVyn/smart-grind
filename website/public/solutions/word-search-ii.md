@@ -11,24 +11,24 @@ Each word must be constructed from letters of sequentially adjacent cells, where
 **Example 1:**
 
 **Input:**
-```
+```python
 board = [["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]], words = ["oath","pea","eat","rain"]
 ```
 
 **Output:**
-```
+```python
 ["eat","oath"]
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 board = [["a","b"],["c","d"]], words = ["abcb"]
 ```
 
 **Output:**
-```
+```python
 []
 ```
 

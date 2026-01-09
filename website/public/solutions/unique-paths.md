@@ -13,24 +13,24 @@ The test cases are generated so that the answer will be less than or equal to `2
 **Example 1:**
 
 **Input:**
-```
+```python
 m = 3, n = 7
 ```
 
 **Output:**
-```
+```python
 28
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 m = 3, n = 2
 ```
 
 **Output:**
-```
+```python
 3
 ```
 

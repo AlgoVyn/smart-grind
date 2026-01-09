@@ -11,7 +11,7 @@ Given a sorted array `nums` in non-decreasing order, return an array of the squa
 ## Examples
 
 **Example 1:**
-```
+```python
 Input: nums = [-4,-1,0,3,10]
 Output: [0,1,9,16,100]
 
@@ -19,7 +19,7 @@ Explanation: After squaring → [16,1,0,9,100], sorted → [0,1,9,16,100]
 ```
 
 **Example 2:**
-```
+```python
 Input: nums = [-7,-3,2,3,11]
 Output: [4,9,9,49,121]
 ```

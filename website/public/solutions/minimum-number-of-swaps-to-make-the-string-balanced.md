@@ -17,12 +17,12 @@ You may swap the brackets at any two indices any number of times. Return the min
 ### Example 1
 
 **Input:**
-```
+```python
 s = "][]["
 ```
 
 **Output:**
-```
+```python
 1
 ```
 
@@ -32,12 +32,12 @@ You can make the string balanced by swapping index 0 with index 3. The resulting
 ### Example 2
 
 **Input:**
-```
+```python
 s = "]]][[["
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -49,12 +49,12 @@ You can do the following to make the string balanced:
 ### Example 3
 
 **Input:**
-```
+```python
 s = "[]"
 ```
 
 **Output:**
-```
+```python
 0
 ```
 

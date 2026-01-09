@@ -14,18 +14,18 @@ Implement the StringIterator class:
 **Example 1:**
 
 **Input:**
-```
+```python
 ["StringIterator","next","next","next","next","next","next","hasNext","next","hasNext"]
 [["L1e2t1C1o1d1e1"],[],[],[],[],[],[],[],[],[]]
 ```
 
 **Output:**
-```
+```python
 [null,"L","e","e","t","C","o",true,"d",true]
 ```
 
 **Explanation:**
-```
+```python
 StringIterator stringIterator = new StringIterator("L1e2t1C1o1d1e1");
 stringIterator.next(); // return "L"
 stringIterator.next(); // return "e"
@@ -48,7 +48,7 @@ stringIterator.hasNext(); // return True
 
 ## Solution
 
-```python
+```
 # Python solution
 class StringIterator:
 

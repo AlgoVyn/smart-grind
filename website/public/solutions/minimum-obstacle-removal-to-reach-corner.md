@@ -14,12 +14,12 @@ You can move up, down, left, or right from and to an empty cell. Return the mini
 ### Example 1
 
 **Input:**
-```
+```python
 grid = [[0, 1, 1], [1, 1, 0], [1, 1, 0]]
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -29,12 +29,12 @@ We can remove the obstacles at `(0, 1)` and `(0, 2)` to create a path from `(0, 
 ### Example 2
 
 **Input:**
-```
+```python
 grid = [[0, 1, 0, 0, 0], [0, 1, 0, 1, 0], [0, 0, 0, 1, 0]]
 ```
 
 **Output:**
-```
+```python
 0
 ```
 

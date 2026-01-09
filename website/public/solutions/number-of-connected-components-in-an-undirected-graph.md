@@ -11,12 +11,12 @@ A connected component is a set of nodes where each pair of nodes is connected by
 ### Example 1
 
 **Input:**
-```
+```python
 n = 5, edges = [[0, 1], [1, 2], [3, 4]]
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -26,12 +26,12 @@ There are two connected components: [0, 1, 2] and [3, 4].
 ### Example 2
 
 **Input:**
-```
+```python
 n = 5, edges = [[0, 1], [1, 2], [2, 3], [3, 4]]
 ```
 
 **Output:**
-```
+```python
 1
 ```
 

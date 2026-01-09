@@ -9,12 +9,12 @@ Given a positive integer n, write a function that returns the number of set bits
 ### Example 1
 
 **Input:**
-```
+```python
 n = 11
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
@@ -24,12 +24,12 @@ The input binary string 1011 has a total of three set bits.
 ### Example 2
 
 **Input:**
-```
+```python
 n = 128
 ```
 
 **Output:**
-```
+```python
 1
 ```
 
@@ -39,12 +39,12 @@ The input binary string 10000000 has a total of one set bit.
 ### Example 3
 
 **Input:**
-```
+```python
 n = 2147483645
 ```
 
 **Output:**
-```
+```python
 30
 ```
 

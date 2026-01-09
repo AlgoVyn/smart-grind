@@ -13,17 +13,17 @@ Implement the TimeMap class:
 **Example 1:**
 
 Input:
-```
+```python
 ["TimeMap", "set", "get", "get", "set", "get", "get"]
 [[], ["foo", "bar", 1], ["foo", 1], ["foo", 3], ["foo", "bar2", 4], ["foo", 4], ["foo", 5]]
-```
+```python
 Output:
-```
+```python
 [null, null, "bar", "bar", null, "bar2", "bar2"]
 ```
 
 Explanation:
-```
+```python
 TimeMap timeMap = new TimeMap();
 timeMap.set("foo", "bar", 1);  // store the key "foo" and value "bar" along with timestamp = 1.
 timeMap.get("foo", 1);         // return "bar"

@@ -9,24 +9,24 @@ Given an integer `n`, return all the structurally unique BST's (binary search tr
 **Example 1:**
 
 **Input:**
-```
+```python
 n = 3
 ```
 
 **Output:**
-```
+```python
 [[1,null,2,null,3],[1,null,3,2],[2,1,3],[3,1,null,null,2],[3,2,null,1]]
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 n = 1
 ```
 
 **Output:**
-```
+```python
 [[1]]
 ```
 

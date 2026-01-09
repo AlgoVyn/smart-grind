@@ -10,12 +10,12 @@ Return the least weight capacity of the ship that will result in all the package
 **Example 1:**
 
 **Input:**
-```
+```python
 weights = [1,2,3,4,5,6,7,8,9,10], days = 5
 ```
 
 **Output:**
-```
+```python
 15
 ```
 
@@ -31,12 +31,12 @@ Note that the cargo must be shipped in the order given, so using a ship of capac
 **Example 2:**
 
 **Input:**
-```
+```python
 weights = [3,2,2,4,1,4], days = 3
 ```
 
 **Output:**
-```
+```python
 6
 ```
 
@@ -48,12 +48,12 @@ weights = [3,2,2,4,1,4], days = 3
 **Example 3:**
 
 **Input:**
-```
+```python
 weights = [1,2,3,1,1], days = 4
 ```
 
 **Output:**
-```
+```python
 3
 ```
 

@@ -10,12 +10,12 @@ Note: The solution set must not contain duplicate combinations.
 **Example 1:**
 
 **Input:**
-```
+```python
 candidates = [10,1,2,7,6,1,5], target = 8
 ```
 
 **Output:**
-```
+```python
 [
 [1,1,6],
 [1,2,5],
@@ -27,12 +27,12 @@ candidates = [10,1,2,7,6,1,5], target = 8
 **Example 2:**
 
 **Input:**
-```
+```python
 candidates = [2,5,2,1,2], target = 5
 ```
 
 **Output:**
-```
+```python
 [
 [1,2,2],
 [5]

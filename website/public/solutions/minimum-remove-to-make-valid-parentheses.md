@@ -15,12 +15,12 @@ Formally, a parentheses string is valid if and only if:
 ### Example 1
 
 **Input:**
-```
+```python
 s = "lee(t(c)o)de)"
 ```
 
 **Output:**
-```
+```python
 "lee(t(c)o)de"
 ```
 
@@ -30,24 +30,24 @@ s = "lee(t(c)o)de)"
 ### Example 2
 
 **Input:**
-```
+```python
 s = "a)b(c)d"
 ```
 
 **Output:**
-```
+```python
 "ab(c)d"
 ```
 
 ### Example 3
 
 **Input:**
-```
+```python
 s = "))(("
 ```
 
 **Output:**
-```
+```python
 ""
 ```
 

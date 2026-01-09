@@ -14,18 +14,18 @@ Implement the CustomStack class:
 **Example 1:**
 
 **Input:**
-```
+```python
 ["CustomStack","push","push","pop","push","push","push","increment","increment","pop","pop","pop","pop"]
 [[3],[1],[2],[],[2],[3],[4],[5,100],[2,100],[],[],[],[]]
 ```
 
 **Output:**
-```
+```python
 [null,null,null,2,null,null,null,null,null,103,202,201,-1]
 ```
 
 **Explanation:**
-```
+```python
 CustomStack stk = new CustomStack(3); // Stack is Empty []
 stk.push(1);                          // stack becomes [1]
 stk.push(2);                          // stack becomes [1, 2]
@@ -49,7 +49,7 @@ stk.pop();                            // return -1 --> Stack is empty return -1.
 
 ## Solution
 
-```python
+```
 # Python solution
 class CustomStack:
 

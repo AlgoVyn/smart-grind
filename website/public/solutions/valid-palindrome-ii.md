@@ -9,24 +9,24 @@ Given a string `s`, return `true` if the `s` can be palindrome after deleting at
 **Example 1:**
 
 **Input:**
-```
+```python
 s = "aba"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 s = "abca"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -35,12 +35,12 @@ true
 **Example 3:**
 
 **Input:**
-```
+```python
 s = "abc"
 ```
 
 **Output:**
-```
+```python
 false
 ```
 

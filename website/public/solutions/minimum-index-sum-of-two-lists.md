@@ -13,13 +13,13 @@ Return all the common strings with the least index sum. Return the answer in any
 ### Example 1
 
 **Input:**
-```
+```python
 list1 = ["Shogun", "Tapioca Express", "Burger King", "KFC"]
 list2 = ["Piatti", "The Grill at Torrey Pines", "Hungry Hunter Steakhouse", "Shogun"]
 ```
 
 **Output:**
-```
+```python
 ["Shogun"]
 ```
 
@@ -29,13 +29,13 @@ The only common string is "Shogun".
 ### Example 2
 
 **Input:**
-```
+```python
 list1 = ["Shogun", "Tapioca Express", "Burger King", "KFC"]
 list2 = ["KFC", "Shogun", "Burger King"]
 ```
 
 **Output:**
-```
+```python
 ["Shogun"]
 ```
 
@@ -45,13 +45,13 @@ The common string with the least index sum is "Shogun" with index sum = (0 + 1) 
 ### Example 3
 
 **Input:**
-```
+```python
 list1 = ["happy", "sad", "good"]
 list2 = ["sad", "happy", "good"]
 ```
 
 **Output:**
-```
+```python
 ["sad", "happy"]
 ```
 

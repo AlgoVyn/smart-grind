@@ -13,7 +13,7 @@ Common use cases include:
 
 ## Solution
 
-```python
+```
 # Example: Two Sum with sorted array using two pointers
 def twoSumSorted(nums, target):
     left, right = 0, len(nums) - 1

@@ -16,7 +16,7 @@ people = [1,2], limit = 3
 ```
 
 **Output:**
-```
+```python
 1
 ```
 
@@ -30,7 +30,7 @@ people = [3,2,2,1], limit = 3
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
@@ -44,7 +44,7 @@ people = [3,5,3,4], limit = 5
 ```
 
 **Output:**
-```
+```python
 4
 ```
 

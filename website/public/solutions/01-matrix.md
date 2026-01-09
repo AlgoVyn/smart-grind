@@ -10,24 +10,24 @@ The distance between two cells sharing a common edge is 1.
 **Example 1:**
 
 **Input:**
-```
+```python
 mat = [[0,0,0],[0,1,0],[0,0,0]]
 ```
 
 **Output:**
-```
+```python
 [[0,0,0],[0,1,0],[0,0,0]]
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 mat = [[0,0,0],[0,1,0],[1,1,1]]
 ```
 
 **Output:**
-```
+```python
 [[0,0,0],[0,1,0],[1,2,1]]
 ```
 

@@ -7,24 +7,24 @@ Given the head of a sorted linked list, delete all duplicates such that each ele
 ### Example 1
 
 **Input:**
-```
+```python
 head = [1,1,2]
 ```
 
 **Output:**
-```
+```python
 [1,2]
 ```
 
 ### Example 2
 
 **Input:**
-```
+```python
 head = [1,1,2,3,3]
 ```
 
 **Output:**
-```
+```python
 [1,2,3]
 ```
 
@@ -36,7 +36,7 @@ head = [1,1,2,3,3]
 
 ## Solution
 
-```python
+```
 # Definition for singly-linked list.
 class ListNode:
     def __init__(self, val=0, next=None):

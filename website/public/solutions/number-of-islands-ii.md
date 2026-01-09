@@ -11,12 +11,12 @@ An island is a group of connected lands (1s) connected horizontally or verticall
 ### Example 1
 
 **Input:**
-```
+```python
 m = 3, n = 3, positions = [[0,0],[0,1],[1,2],[2,1]]
 ```
 
 **Output:**
-```
+```python
 [1, 1, 2, 3]
 ```
 
@@ -29,12 +29,12 @@ m = 3, n = 3, positions = [[0,0],[0,1],[1,2],[2,1]]
 ### Example 2
 
 **Input:**
-```
+```python
 m = 2, n = 2, positions = [[0,0],[0,1],[1,1]]
 ```
 
 **Output:**
-```
+```python
 [1, 2, 1]
 ```
 

@@ -12,12 +12,12 @@ Return true if you can finish all courses. Otherwise, return false.
 **Example 1:**
 
 **Input:**
-```
+```python
 numCourses = 2, prerequisites = [[1,0]]
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -26,12 +26,12 @@ true
 **Example 2:**
 
 **Input:**
-```
+```python
 numCourses = 2, prerequisites = [[1,0],[0,1]]
 ```
 
 **Output:**
-```
+```python
 false
 ```
 

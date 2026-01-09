@@ -14,10 +14,10 @@ At the end of the game, there is **at most one stone left**. Return the weight o
 ### Examples
 
 **Example 1:**
-```
+```python
 Input: stones = [2,7,4,1,8,1]
 Output: 1
-```
+```python
 1. Combine 7 and 8 to get 1 → `[2,4,1,1,1]`
 2. Combine 2 and 4 to get 2 → `[2,1,1,1]`
 3. Combine 2 and 1 to get 1 → `[1,1,1]`
@@ -25,7 +25,7 @@ Output: 1
 5. Last stone weight = 1
 
 **Example 2:**
-```
+```python
 Input: stones = [1]
 Output: 1
 ```

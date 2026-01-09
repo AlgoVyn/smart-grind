@@ -26,7 +26,7 @@ intervals = [[5,10],[6,8],[1,5],[2,3],[1,10]]
 
 ## Solution
 
-```python
+```
 # Python solution
 from typing import List
 import heapq

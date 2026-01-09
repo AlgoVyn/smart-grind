@@ -20,18 +20,18 @@ Rules of the game:
 **Example 1:**
 
 **Input:**
-```
+```python
 ["SnakeGame", "move", "move", "move", "move", "move", "move"]
 [[3, 3, [[2, 0], [0, 2]]], "R", "D", "L", "U", "R", "L"]
 ```
 
 **Output:**
-```
+```python
 [null, 0, 0, 0, 1, 1, 2]
 ```
 
 **Explanation:**
-```
+```python
 SnakeGame snake = new SnakeGame(3, 3, [[2, 0], [0, 2]]);
 snake.move("R"); // snake moves right, head at (0, 1), no food eaten, score 0
 snake.move("D"); // snake moves down, head at (1, 1), no food eaten, score 0
@@ -44,18 +44,18 @@ snake.move("L"); // snake moves left, head at (0, 0), no food eaten, score 0
 **Example 2:**
 
 **Input:**
-```
+```python
 ["SnakeGame", "move", "move", "move", "move", "move"]
 [[2, 3, [[1, 2], [0, 1]]], "R", "D", "L", "U", "R"]
 ```
 
 **Output:**
-```
+```python
 [null, 0, 0, 0, 1, -1]
 ```
 
 **Explanation:**
-```
+```python
 SnakeGame snake = new SnakeGame(2, 3, [[1, 2], [0, 1]]);
 snake.move("R"); // snake moves right, head at (0, 1), no food eaten, score 0
 snake.move("D"); // snake moves down, head at (1, 1), no food eaten, score 0

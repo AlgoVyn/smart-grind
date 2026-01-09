@@ -31,7 +31,7 @@ Output: `[2,1,3]`
 
 ## Solution
 
-```python
+```
 # Definition for singly-linked list.
 class ListNode:
     def __init__(self, val=0, next=None):

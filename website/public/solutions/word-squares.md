@@ -6,7 +6,7 @@ Given a set of words (without duplicates), return all word squares. A word squar
 
 For example, if the words are `["area","lead","wall","lady","ball"]`, then one word square is:
 
-```
+```python
 ball
 area
 lead
@@ -21,24 +21,24 @@ Each row reads the same as each column.
 **Example 1:**
 
 **Input:**
-```
+```python
 words = ["area","lead","wall","lady","ball"]
 ```
 
 **Output:**
-```
+```python
 [["ball","area","lead","wall","lady"],["wall","area","lead","lady","ball"]]
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 words = ["abat","baba","atan","atal"]
 ```
 
 **Output:**
-```
+```python
 [["baba","abat","baba","abat"],["baba","abat","baba","abat"]]
 ```
 

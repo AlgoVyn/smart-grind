@@ -11,12 +11,12 @@ Return the number of closed islands.
 ### Example 1
 
 **Input:**
-```
+```python
 grid = [[1,1,1,1,1,1,1,0],[1,0,0,0,0,1,1,0],[1,0,1,0,1,1,1,0],[1,0,0,0,0,1,0,1],[1,1,1,1,1,1,1,0]]
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -26,19 +26,19 @@ Islands in gray are closed because they are completely surrounded by water (grou
 ### Example 2
 
 **Input:**
-```
+```python
 grid = [[0,0,1,0,0],[0,1,0,1,0],[0,1,1,1,0]]
 ```
 
 **Output:**
-```
+```python
 1
 ```
 
 ### Example 3
 
 **Input:**
-```
+```python
 grid = [[1,1,1,1,1,1,1],
         [1,0,0,0,0,0,1],
         [1,0,1,1,1,0,1],
@@ -49,7 +49,7 @@ grid = [[1,1,1,1,1,1,1],
 ```
 
 **Output:**
-```
+```python
 2
 ```
 

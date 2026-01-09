@@ -9,12 +9,12 @@ Each time you can either climb 1 or 2 steps. In how many distinct ways can you c
 **Example 1:**
 
 **Input:**
-```
+```python
 n = 2
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -25,12 +25,12 @@ n = 2
 **Example 2:**
 
 **Input:**
-```
+```python
 n = 3
 ```
 
 **Output:**
-```
+```python
 3
 ```
 

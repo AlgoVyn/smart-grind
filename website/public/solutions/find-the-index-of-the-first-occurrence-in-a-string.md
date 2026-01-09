@@ -2,30 +2,37 @@
 
 ## Problem Description
 
-Given two strings needle and haystack, return the index of the first occurrence of needle in haystack, or -1 if needle is not part of haystack.
+Given two strings `needle` and `haystack`, return the index of the **first occurrence** of `needle` in `haystack`. Return `-1` if `needle` is not part of `haystack`.
 
 ### Examples
 
 **Example 1:**
 
-**Input:** haystack = "sadbutsad", needle = "sad"
+| Parameter | Value |
+|-----------|-------|
+| `haystack` | `"sadbutsad"` |
+| `needle` | `"sad"` |
+| **Output** | `0` |
 
-**Output:** 0
-
-**Explanation:** "sad" occurs at index 0 and 6. The first occurrence is at index 0, so we return 0.
+**Explanation:** `"sad"` occurs at indices 0 and 6. The first occurrence is at index 0.
 
 **Example 2:**
 
-**Input:** haystack = "leetcode", needle = "leeto"
+| Parameter | Value |
+|-----------|-------|
+| `haystack` | `"leetcode"` |
+| `needle` | `"leeto"` |
+| **Output** | `-1` |
 
-**Output:** -1
-
-**Explanation:** "leeto" did not occur in "leetcode", so we return -1.
+**Explanation:** `"leeto"` does not occur in `"leetcode"`.
 
 ### Constraints
 
-- 1 <= haystack.length, needle.length <= 10^4
-- haystack and needle consist of only lowercase English characters.
+| Constraint | Description |
+|------------|-------------|
+| `haystack.length` | `1 <= haystack.length <= 10^4` |
+| `needle.length` | `1 <= needle.length <= 10^4` |
+| Characters | Lowercase English letters only |
 
 ## Solution
 
@@ -37,10 +44,26 @@ class Solution:
 
 ### Approach
 
-Use Python's built-in find method, which returns the lowest index of the substring if found, or -1 if not found.
+Use Python's built-in `find()` method:
+- Returns the lowest index where substring is found
+- Returns `-1` if substring is not found
+- Handles edge cases (empty needle returns 0)
 
-### Complexity
+### Complexity Analysis
 
-**Time Complexity:** O(n*m), where n is haystack length, m is needle length, but in practice efficient.
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O(n × m)` — Where `n` is haystack length, `m` is needle length. Python's implementation is highly optimized |
+| **Space** | `O(1)` — Constant extra space |
 
-**Space Complexity:** O(1).
+### Alternative Implementations
+
+| Method | Description |
+|--------|-------------|
+| **Knuth-Morris-Pratt (KMP)** | `O(n + m)` time, `O(m)` space for prefix table |
+| **Rabin-Karp** | `O(n × m)` average, `O(1)` space |
+| **Manual search** | `O(n × m)` time, `O(1)` space |
+
+For typical use cases, Python's built-in `find()` is optimal and handles all edge cases correctly.
+
+---

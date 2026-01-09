@@ -7,12 +7,12 @@ Given string `num` representing a non-negative integer `num`, and an integer `k`
 ### Example 1
 
 **Input:**
-```
+```python
 num = "1432219", k = 3
 ```
 
 **Output:**
-```
+```python
 "1219"
 ```
 
@@ -21,12 +21,12 @@ num = "1432219", k = 3
 ### Example 2
 
 **Input:**
-```
+```python
 num = "10200", k = 1
 ```
 
 **Output:**
-```
+```python
 "200"
 ```
 
@@ -35,12 +35,12 @@ num = "10200", k = 1
 ### Example 3
 
 **Input:**
-```
+```python
 num = "10", k = 2
 ```
 
 **Output:**
-```
+```python
 "0"
 ```
 

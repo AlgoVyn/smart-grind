@@ -14,12 +14,12 @@ Return `true` if it is possible to obtain the string `target` by moving the piec
 ### Example 1
 
 **Input:**
-```
+```python
 start = "_L__R__R_", target = "L______RR"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -32,12 +32,12 @@ We can obtain the string `target` from `start` by doing the following moves:
 ### Example 2
 
 **Input:**
-```
+```python
 start = "R_L_", target = "__LR"
 ```
 
 **Output:**
-```
+```python
 false
 ```
 
@@ -48,12 +48,12 @@ After that, no pieces can move anymore, so it is impossible to obtain the string
 ### Example 3
 
 **Input:**
-```
+```python
 start = "_R", target = "R_"
 ```
 
 **Output:**
-```
+```python
 false
 ```
 

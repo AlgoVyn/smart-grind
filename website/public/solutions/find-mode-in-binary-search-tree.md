@@ -2,8 +2,8 @@
 
 ## Problem Description
 
-Given the root of a binary search tree (BST) with duplicates, return all the mode(s) (i.e., the most frequently occurred element) in it.
-If the tree has more than one mode, return them in any order.
+Given the root of a binary search tree (BST) with duplicates, return all the mode(s) (i.e., the most frequently occurred element) in it. If the tree has more than one mode, return them in any order.
+
 Assume a BST is defined as follows:
 
 - The left subtree of a node contains only nodes with keys less than or equal to the node's key.
@@ -14,22 +14,24 @@ Assume a BST is defined as follows:
 
 **Example 1:**
 
-**Input:** root = [1,null,2,2]
-
-**Output:** [2]
+| Input | Output |
+|-------|--------|
+| `root = [1,null,2,2]` | `[2]` |
 
 **Example 2:**
 
-**Input:** root = [0]
-
-**Output:** [0]
+| Input | Output |
+|-------|--------|
+| `root = [0]` | `[0]` |
 
 ### Constraints
 
-- The number of nodes in the tree is in the range [1, 10^4].
-- -10^5 <= Node.val <= 10^5
+| Constraint | Description |
+|------------|-------------|
+| Number of nodes | `[1, 10^4]` |
+| Node values | `-10^5 <= Node.val <= 10^5` |
 
-### Follow up
+### Follow-up
 
 Could you do that without using any extra space? (Assume that the implicit stack space incurred due to recursion does not count).
 
@@ -59,15 +61,20 @@ class Solution:
             if not node:
                 return
             inorder(node.left)
+            
+            # Count frequency of current value
             if self.prev is None or node.val != self.prev:
                 self.count = 1
             else:
                 self.count += 1
+            
+            # Update max_count and modes
             if self.count > self.max_count:
                 self.max_count = self.count
                 self.modes = [node.val]
             elif self.count == self.max_count:
                 self.modes.append(node.val)
+            
             self.prev = node.val
             inorder(node.right)
         
@@ -77,25 +84,27 @@ class Solution:
 
 ### Approach
 
-Since it's a BST, an inorder traversal visits nodes in sorted order. We can use this to count frequencies of consecutive equal values.
+Since it's a BST, an inorder traversal visits nodes in sorted order. We can use this property to count frequencies of consecutive equal values efficiently.
 
-1. Perform inorder traversal.
+1. **Perform inorder traversal** — Visits nodes in ascending order.
+2. **Track four key variables:**
+   - `prev` — Previous node value
+   - `count` — Current frequency count
+   - `max_count` — Maximum frequency encountered
+   - `modes` — List of values with maximum frequency
+3. **For each node:**
+   - If different from `prev`, reset `count` to 1
+   - Otherwise, increment `count`
+   - Update `max_count` and `modes` accordingly
+4. **Return** the `modes` list
 
-2. Track the previous value, current count, max count, and list of modes.
+**Key Insight:** In a BST, duplicate values appear consecutively during inorder traversal, making frequency counting straightforward.
 
-3. For each node:
-   - If it's different from previous, reset count to 1.
-   - Else, increment count.
-   - If count > max_count, update max_count and reset modes to [current val].
-   - If count == max_count, append current val to modes.
-   - Update previous to current val.
+### Complexity Analysis
 
-4. Return the modes list.
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O(n)` — Each node is visited exactly once |
+| **Space** | `O(h)` — Recursion stack depth, where `h` is tree height. Plus `O(k)` for modes output |
 
-This uses O(1) extra space besides the output and recursion stack.
-
-### Complexity
-
-**Time Complexity:** O(n), where n is the number of nodes.
-
-**Space Complexity:** O(h) for recursion stack, where h is tree height, plus O(k) for modes where k is number of modes.
+---

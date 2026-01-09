@@ -35,7 +35,7 @@ Implement the MyCircularDeque class:
 
 ## Solution
 
-```python
+```
 # Python solution
 class MyCircularDeque:
 

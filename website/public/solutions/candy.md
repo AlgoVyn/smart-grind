@@ -14,12 +14,12 @@ Return the minimum number of candies you need to have to distribute the candies 
 **Example 1:**
 
 **Input:**
-```
+```python
 ratings = [1,0,2]
 ```
 
 **Output:**
-```
+```python
 5
 ```
 
@@ -28,12 +28,12 @@ ratings = [1,0,2]
 **Example 2:**
 
 **Input:**
-```
+```python
 ratings = [1,2,2]
 ```
 
 **Output:**
-```
+```python
 4
 ```
 

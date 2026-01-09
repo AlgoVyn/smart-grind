@@ -56,7 +56,7 @@ mountainArr = [0,1,2,4,2,1], target = 3
 
 ## Solution
 
-```python
+```
 # """
 # This is MountainArray's API interface.
 # You should not implement it, or speculate about its implementation

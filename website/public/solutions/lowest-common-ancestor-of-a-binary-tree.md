@@ -40,7 +40,7 @@ According to the definition of LCA on Wikipedia: "The lowest common ancestor is 
 
 ## Solution
 
-```python
+```
 # Definition for a binary tree node.
 # class TreeNode:
 #     def __init__(self, x):

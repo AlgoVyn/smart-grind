@@ -16,7 +16,7 @@ s = "ab#c", t = "ad#c"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -30,7 +30,7 @@ s = "ab##", t = "c#d#"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -44,7 +44,7 @@ s = "a#c", t = "b"
 ```
 
 **Output:**
-```
+```python
 false
 ```
 

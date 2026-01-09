@@ -14,7 +14,7 @@ n = 1
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -28,7 +28,7 @@ n = 16
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -42,7 +42,7 @@ n = 3
 ```
 
 **Output:**
-```
+```python
 false
 ```
 

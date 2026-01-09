@@ -11,36 +11,36 @@ Note that backslash characters are escaped, so a `'\'` is represented as `'\\'`.
 ### Example 1
 
 **Input:**
-```
+```python
 grid = [" /","/ "]
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
 ### Example 2
 
 **Input:**
-```
+```python
 grid = [" /","  "]
 ```
 
 **Output:**
-```
+```python
 1
 ```
 
 ### Example 3
 
 **Input:**
-```
+```python
 grid = ["/\\","\\/"]
 ```
 
 **Output:**
-```
+```python
 5
 ```
 

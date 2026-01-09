@@ -14,7 +14,7 @@ root = [3,9,20,null,null,15,7]
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -26,7 +26,7 @@ root = [1,2,2,3,3,null,null,4,4]
 ```
 
 **Output:**
-```
+```python
 false
 ```
 
@@ -38,7 +38,7 @@ root = []
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -49,7 +49,7 @@ true
 
 ## Solution
 
-```python
+```
 # Definition for a binary tree node.
 class TreeNode:
     def __init__(self, val=0, left=None, right=None):

@@ -14,18 +14,18 @@ The test cases are generated so that, at any time, the product of any contiguous
 ### Example
 
 **Input**
-```
+```python
 ["ProductOfNumbers","add","add","add","add","add","getProduct","getProduct","getProduct","add","getProduct"]
 [[],[3],[0],[2],[5],[4],[2],[3],[4],[8],[2]]
 ```
 
 **Output**
-```
+```python
 [null,null,null,null,null,null,20,40,0,null,32]
 ```
 
 **Explanation**
-```
+```python
 ProductOfNumbers productOfNumbers = new ProductOfNumbers();
 productOfNumbers.add(3);        // [3]
 productOfNumbers.add(0);        // [3,0]

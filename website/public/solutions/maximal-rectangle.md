@@ -21,7 +21,7 @@ matrix = [
 ```
 
 **Output:**
-```
+```python
 6
 ```
 
@@ -35,7 +35,7 @@ matrix = [["0"]]
 ```
 
 **Output:**
-```
+```python
 0
 ```
 
@@ -47,7 +47,7 @@ matrix = [["1"]]
 ```
 
 **Output:**
-```
+```python
 1
 ```
 

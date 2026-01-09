@@ -16,12 +16,12 @@ Return the number of triplets (i, j and k) Where a == b.
 **Example 1:**
 
 **Input:**
-```
+```python
 arr = [2,3,1,6,7]
 ```
 
 **Output:**
-```
+```python
 4
 ```
 
@@ -30,12 +30,12 @@ arr = [2,3,1,6,7]
 **Example 2:**
 
 **Input:**
-```
+```python
 arr = [1,1,1,1,1]
 ```
 
 **Output:**
-```
+```python
 10
 ```
 

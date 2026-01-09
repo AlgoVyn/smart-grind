@@ -10,12 +10,12 @@ You may assume that you have an infinite number of each kind of coin.
 **Example 1:**
 
 **Input:**
-```
+```python
 coins = [1,2,5], amount = 11
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
@@ -24,24 +24,24 @@ coins = [1,2,5], amount = 11
 **Example 2:**
 
 **Input:**
-```
+```python
 coins = [2], amount = 3
 ```
 
 **Output:**
-```
+```python
 -1
 ```
 
 **Example 3:**
 
 **Input:**
-```
+```python
 coins = [1], amount = 0
 ```
 
 **Output:**
-```
+```python
 0
 ```
 

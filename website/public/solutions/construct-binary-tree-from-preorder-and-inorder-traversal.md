@@ -8,24 +8,24 @@ Given two integer arrays preorder and inorder where preorder is the preorder tra
 **Example 1:**
 
 **Input:**
-```
+```python
 preorder = [3,9,20,15,7], inorder = [9,3,15,20,7]
 ```
 
 **Output:**
-```
+```python
 [3,9,20,null,null,15,7]
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 preorder = [-1], inorder = [-1]
 ```
 
 **Output:**
-```
+```python
 [-1]
 ```
 

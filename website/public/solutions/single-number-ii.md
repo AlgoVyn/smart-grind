@@ -14,13 +14,13 @@ Given an integer array where every element appears exactly three times except fo
 ## Examples
 
 **Example 1:**
-```
+```python
 Input: nums = [2,2,3,2]
 Output: 3
 ```
 
 **Example 2:**
-```
+```python
 Input: nums = [0,1,0,1,0,1,99]
 Output: 99
 ```

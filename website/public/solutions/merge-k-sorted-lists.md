@@ -13,11 +13,11 @@ You are given an array of `k` linked-lists `lists`, where each linked-list is so
 | `lists = [[1,4,5],[1,3,4],[2,6]]` | `[1,1,2,3,4,4,5,6]` |
 
 **Explanation:** The input lists are:
-```
+```python
 1 → 4 → 5
 1 → 3 → 4
 2 → 6
-```
+```python
 Merging them produces: `1 → 1 → 2 → 3 → 4 → 4 → 5 → 6`
 
 **Example 2:**

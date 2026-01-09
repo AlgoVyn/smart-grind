@@ -15,24 +15,24 @@ Return the total number of provinces.
 ### Example 1
 
 **Input:**
-```
+```python
 isConnected = [[1,1,0],[1,1,0],[0,0,1]]
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
 ### Example 2
 
 **Input:**
-```
+```python
 isConnected = [[1,0,0],[0,1,0],[0,0,1]]
 ```
 
 **Output:**
-```
+```python
 3
 ```
 

@@ -12,12 +12,12 @@ Return the ordering of courses you should take to finish all courses. If there a
 **Example 1:**
 
 **Input:**
-```
+```python
 numCourses = 2, prerequisites = [[1,0]]
 ```
 
 **Output:**
-```
+```python
 [0,1]
 ```
 
@@ -26,12 +26,12 @@ numCourses = 2, prerequisites = [[1,0]]
 **Example 2:**
 
 **Input:**
-```
+```python
 numCourses = 4, prerequisites = [[1,0],[2,0],[3,1],[3,2]]
 ```
 
 **Output:**
-```
+```python
 [0,2,1,3]
 ```
 
@@ -41,12 +41,12 @@ So one correct course order is [0,1,2,3]. Another correct ordering is [0,2,1,3].
 **Example 3:**
 
 **Input:**
-```
+```python
 numCourses = 1, prerequisites = []
 ```
 
 **Output:**
-```
+```python
 [0]
 ```
 

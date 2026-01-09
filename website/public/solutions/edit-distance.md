@@ -11,34 +11,34 @@ Replace a character
 ### Example(s)
 
 **Input:**
-```
+```python
 word1 = "horse", word2 = "ros"
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
 **Explanation:**
-```
+```python
 horse -> rorse (replace 'h' with 'r')
 rorse -> rose (remove 'r')
 rose -> ros (remove 'e')
 ```
 
 **Input:**
-```
+```python
 word1 = "intention", word2 = "execution"
 ```
 
 **Output:**
-```
+```python
 5
 ```
 
 **Explanation:**
-```
+```python
 intention -> inention (remove 't')
 inention -> enention (replace 'i' with 'e')
 enention -> exention (replace 'n' with 'x')
@@ -53,7 +53,7 @@ exection -> execution (insert 'u')
 
 ## Solution
 
-```python
+```
 # Python solution
 class Solution:
     def minDistance(self, word1: str, word2: str) -> int:

@@ -9,12 +9,12 @@ In one step, you can delete exactly one character in either string.
 **Example 1:**
 
 **Input:**
-```
+```python
 word1 = "sea", word2 = "eat"
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -24,12 +24,12 @@ You need one step to make "sea" to "ea" and another step to make "eat" to "ea".
 **Example 2:**
 
 **Input:**
-```
+```python
 word1 = "leetcode", word2 = "etco"
 ```
 
 **Output:**
-```
+```python
 4
 ```
 
@@ -40,7 +40,7 @@ word1 = "leetcode", word2 = "etco"
 
 ## Solution
 
-```python
+```
 # Python solution
 class Solution:
     def minDistance(self, word1: str, word2: str) -> int:

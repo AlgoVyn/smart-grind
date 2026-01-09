@@ -9,36 +9,36 @@ Return a list of unique strings that are valid with the minimum number of remova
 ### Example 1
 
 **Input:**
-```
+```python
 s = "()())()"
 ```
 
 **Output:**
-```
+```python
 ["(())()","()()()"]
 ```
 
 ### Example 2
 
 **Input:**
-```
+```python
 s = "(a)())()"
 ```
 
 **Output:**
-```
+```python
 ["(a())()","(a)()()"]
 ```
 
 ### Example 3
 
 **Input:**
-```
+```python
 s = ")("
 ```
 
 **Output:**
-```
+```python
 [""]
 ```
 

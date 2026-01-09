@@ -16,13 +16,13 @@ Implement the `Logger` class:
 **Example 1:**
 
 **Input:**
-```
+```python
 ["Logger", "shouldPrintMessage", "shouldPrintMessage", "shouldPrintMessage", "shouldPrintMessage", "shouldPrintMessage", "shouldPrintMessage"]
 [[], [1, "foo"], [2, "bar"], [3, "foo"], [8, "bar"], [10, "foo"], [11, "foo"]]
 ```
 
 **Output:**
-```
+```python
 [null, true, true, false, false, false, true]
 ```
 

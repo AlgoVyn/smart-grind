@@ -7,12 +7,12 @@ Given an array of strings strs, group the anagrams together. You can return the 
 **Example 1:**
 
 **Input:**
-```
+```python
 strs = ["eat","tea","tan","ate","nat","bat"]
 ```
 
 **Output:**
-```
+```python
 [["bat"],["nat","tan"],["ate","eat","tea"]]
 ```
 
@@ -25,24 +25,24 @@ The strings "ate", "eat", and "tea" are anagrams as they can be rearranged to fo
 **Example 2:**
 
 **Input:**
-```
+```python
 strs = [""]
 ```
 
 **Output:**
-```
+```python
 [[""]]
 ```
 
 **Example 3:**
 
 **Input:**
-```
+```python
 strs = ["a"]
 ```
 
 **Output:**
-```
+```python
 [["a"]]
 ```
 

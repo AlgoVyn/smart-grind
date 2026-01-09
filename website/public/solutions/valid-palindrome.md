@@ -11,12 +11,12 @@ Given a string `s`, return `true` if it is a palindrome, or `false` otherwise.
 **Example 1:**
 
 **Input:**
-```
+```python
 s = "A man, a plan, a canal: Panama"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -25,12 +25,12 @@ true
 **Example 2:**
 
 **Input:**
-```
+```python
 s = "race a car"
 ```
 
 **Output:**
-```
+```python
 false
 ```
 
@@ -39,12 +39,12 @@ false
 **Example 3:**
 
 **Input:**
-```
+```python
 s = " "
 ```
 
 **Output:**
-```
+```python
 true
 ```
 

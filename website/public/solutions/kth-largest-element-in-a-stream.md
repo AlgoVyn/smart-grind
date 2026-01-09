@@ -15,7 +15,7 @@ You need to implement a class that, for a given integer `k`, maintains a stream 
 ### Example 1
 
 **Input:**
-```
+```python
 ["KthLargest", "add", "add", "add", "add", "add"]
 [[3, [4, 5, 8, 2]], [3], [5], [10], [9], [4]]
 ```
@@ -35,7 +35,7 @@ kthLargest.add(4);  // return 8
 ### Example 2
 
 **Input:**
-```
+```python
 ["KthLargest", "add", "add", "add", "add"]
 [[4, [7, 7, 7, 7, 8, 3]], [2], [10], [9], [9]]
 ```

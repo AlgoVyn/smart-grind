@@ -14,18 +14,18 @@ Given a run-length encoded array, design an iterator that iterates through it. I
 ### Example
 
 **Input:**
-```
+```python
 ["RLEIterator", "next", "next", "next", "next"]
 [[[3, 8, 0, 9, 2, 5]], [2], [1], [1], [2]]
 ```
 
 **Output:**
-```
+```python
 [null, 8, 8, 5, -1]
 ```
 
 **Explanation:**
-```
+```python
 RLEIterator rLEIterator = new RLEIterator([3, 8, 0, 9, 2, 5]); // This maps to the sequence [8,8,8,5,5].
 rLEIterator.next(2); // exhausts 2 terms of the sequence, returning 8. The remaining sequence is now [8, 5, 5].
 rLEIterator.next(1); // exhausts 1 term of the sequence, returning 8. The remaining sequence is now [5, 5].

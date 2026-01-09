@@ -38,7 +38,7 @@ Implement the TextEditor class:
 
 ## Solution
 
-```python
+```
 # Python solution
 from collections import deque
 

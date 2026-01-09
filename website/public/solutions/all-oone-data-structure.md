@@ -17,18 +17,18 @@ Note that each function must run in O(1) average time complexity.
 **Example 1:**
 
 **Input:**
-```
+```python
 ["AllOne", "inc", "inc", "getMaxKey", "getMinKey", "inc", "getMaxKey", "getMinKey"]
 [[], ["hello"], ["hello"], [], [], ["leet"], [], []]
 ```
 
 **Output:**
-```
+```python
 [null, null, null, "hello", "hello", null, "hello", "leet"]
 ```
 
 **Explanation:**
-```
+```python
 AllOne allOne = new AllOne();
 allOne.inc("hello");
 allOne.inc("hello");

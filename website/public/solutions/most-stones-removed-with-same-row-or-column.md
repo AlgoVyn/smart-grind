@@ -13,12 +13,12 @@ Given an array `stones` of length `n` where `stones[i] = [xi, yi]` represents th
 ### Example 1
 
 **Input:**
-```
+```python
 stones = [[0, 0], [0, 1], [1, 0], [1, 2], [2, 1], [2, 2]]
 ```
 
 **Output:**
-```
+```python
 5
 ```
 
@@ -36,12 +36,12 @@ Stone `[0, 0]` cannot be removed since it does not share a row/column with anoth
 ### Example 2
 
 **Input:**
-```
+```python
 stones = [[0, 0], [0, 2], [1, 1], [2, 0], [2, 2]]
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
@@ -57,12 +57,12 @@ Stones `[0, 0]` and `[1, 1]` cannot be removed.
 ### Example 3
 
 **Input:**
-```
+```python
 stones = [[0, 0]]
 ```
 
 **Output:**
-```
+```python
 0
 ```
 

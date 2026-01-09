@@ -19,18 +19,18 @@ Implement the DetectSquares class:
 **Example 1:**
 
 **Input:**
-```
+```python
 ["DetectSquares", "add", "add", "add", "count", "count", "add", "count"]
 [[], [[3, 10]], [[11, 2]], [[3, 2]], [[11, 10]], [[14, 8]], [[11, 2]], [[11, 10]]]
 ```
 
 **Output:**
-```
+```python
 [null, null, null, null, 1, 0, null, 2]
 ```
 
 **Explanation:**
-```
+```python
 DetectSquares detectSquares = new DetectSquares();
 detectSquares.add([3, 10]);
 detectSquares.add([11, 2]);

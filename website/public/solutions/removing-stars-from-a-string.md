@@ -17,12 +17,12 @@ Return the string after all stars have been removed.
 ### Example 1
 
 **Input:**
-```
+```python
 s = "leet**cod*e"
 ```
 
 **Output:**
-```
+```python
 "lecoe"
 ```
 
@@ -36,12 +36,12 @@ There are no more stars, so we return "lecoe".
 ### Example 2
 
 **Input:**
-```
+```python
 s = "erase*****"
 ```
 
 **Output:**
-```
+```python
 ""
 ```
 

@@ -15,18 +15,18 @@ Each timestamp is an integer representing the time in seconds. It is guaranteed 
 **Example 1:**
 
 **Input:**
-```
+```python
 ["HitCounter", "hit", "hit", "hit", "getHits", "hit", "getHits"]
 [[], [1], [2], [3], [4], [300], [300]]
 ```
 
 **Output:**
-```
+```python
 [null, null, null, null, 3, null, 4]
 ```
 
 **Explanation:**
-```
+```python
 HitCounter counter = new HitCounter();
 counter.hit(1);       // hit at timestamp 1
 counter.hit(2);       // hit at timestamp 2
@@ -41,18 +41,18 @@ counter.getHits(300); // get hits at timestamp 300, returns 4 (hits at 1, 2, 3, 
 **Example with older timestamps being removed:**
 
 **Input:**
-```
+```python
 ["HitCounter", "hit", "hit", "hit", "getHits", "getHits", "getHits"]
 [[], [1], [2], [3], [301], [302], [303]]
 ```
 
 **Output:**
-```
+```python
 [null, null, null, null, 2, 1, 0]
 ```
 
 **Explanation:**
-```
+```python
 HitCounter counter = new HitCounter();
 counter.hit(1);       // hit at timestamp 1
 counter.hit(2);       // hit at timestamp 2

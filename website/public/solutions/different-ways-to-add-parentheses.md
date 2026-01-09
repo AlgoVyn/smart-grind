@@ -9,17 +9,17 @@ The test cases are generated such that the output values fit in a 32-bit integer
 **Example 1:**
 
 **Input:**
-```
+```python
 expression = "2-1-1"
 ```
 
 **Output:**
-```
+```python
 [0,2]
 ```
 
 **Explanation:**
-```
+```python
 ((2-1)-1) = 0
 (2-(1-1)) = 2
 ```
@@ -27,17 +27,17 @@ expression = "2-1-1"
 **Example 2:**
 
 **Input:**
-```
+```python
 expression = "2*3-4*5"
 ```
 
 **Output:**
-```
+```python
 [-34,-14,-10,-10,10]
 ```
 
 **Explanation:**
-```
+```python
 (2*(3-(4*5))) = -34
 ((2*3)-(4*5)) = -14
 ((2*(3-4))*5) = -10

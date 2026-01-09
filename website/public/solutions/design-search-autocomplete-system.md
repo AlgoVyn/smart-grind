@@ -20,7 +20,7 @@ times = [5, 3, 2]
 ```
 
 **Output:**
-```python
+```
 # After initialization, the system is ready to accept queries
 ```
 

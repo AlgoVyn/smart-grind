@@ -29,7 +29,7 @@ Implement the MyHashMap class:
 
 ## Solution
 
-```python
+```
 # Python solution
 class MyHashMap:
 

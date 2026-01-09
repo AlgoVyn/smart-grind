@@ -22,7 +22,7 @@ Return `true` if `n` is a happy number, and `false` if not.
 
 **Explanation:**
 
-```
+```python
 1² + 9² = 82
 8² + 2² = 68
 6² + 8² = 100

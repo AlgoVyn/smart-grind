@@ -17,7 +17,7 @@ maxNumbers = 3
 ```
 
 **Output:**
-```python
+```
 # PhoneDirectory initialized with numbers [0, 1, 2]
 ```
 

@@ -11,12 +11,12 @@ A **Palindrome String** is one that reads the same backward as well as forward.
 ### Example 1
 
 **Input:**
-```
+```python
 s = "zzazz"
 ```
 
 **Output:**
-```
+```python
 0
 ```
 
@@ -26,12 +26,12 @@ The string "zzazz" is already palindrome, we do not need any insertions.
 ### Example 2
 
 **Input:**
-```
+```python
 s = "mbadm"
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -41,12 +41,12 @@ String can be "mbdadbm" or "mdbabdm".
 ### Example 3
 
 **Input:**
-```
+```python
 s = "leetcode"
 ```
 
 **Output:**
-```
+```python
 5
 ```
 

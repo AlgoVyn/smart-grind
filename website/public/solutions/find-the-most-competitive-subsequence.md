@@ -2,31 +2,46 @@
 
 ## Problem Description
 
-Given an integer array nums and a positive integer k, return the most competitive subsequence of nums of size k.
-An array's subsequence is a resulting sequence obtained by erasing some (possibly zero) elements from the array.
-We define that a subsequence a is more competitive than a subsequence b (of the same length) if in the first position where a and b differ, subsequence a has a number less than the corresponding number in b. For example, [1,3,4] is more competitive than [1,3,5] because the first position they differ is at the final number, and 4 is less than 5.
+Given an integer array `nums` and a positive integer `k`, return the **most competitive subsequence** of `nums` of size `k`.
+
+### Definition: Competitive Subsequence
+
+An array's subsequence is obtained by erasing some (possibly zero) elements from the original array.
+
+A subsequence `a` is **more competitive** than subsequence `b` (of the same length) if, at the first position where they differ, subsequence `a` has a smaller number.
+
+**Example:** `[1, 3, 4]` is more competitive than `[1, 3, 5]` because at the first differing position (index 2), `4 < 5`.
 
 ### Examples
 
 **Example 1:**
 
-**Input:** nums = [3,5,2,6], k = 2
+| Parameter | Value |
+|-----------|-------|
+| `nums` | `[3, 5, 2, 6]` |
+| `k` | `2` |
+| **Output** | `[2, 6]` |
 
-**Output:** [2,6]
+**Explanation:** Among all subsequences of size 2:
+`{[3,5], [3,2], [3,6], [5,2], [5,6], [2,6]}`
 
-**Explanation:** Among the set of every possible subsequence: {[3,5], [3,2], [3,6], [5,2], [5,6], [2,6]}, [2,6] is the most competitive.
+The most competitive is `[2, 6]`.
 
 **Example 2:**
 
-**Input:** nums = [2,4,3,3,5,4,9,6], k = 4
-
-**Output:** [2,3,3,4]
+| Parameter | Value |
+|-----------|-------|
+| `nums` | `[2, 4, 3, 3, 5, 4, 9, 6]` |
+| `k` | `4` |
+| **Output** | `[2, 3, 3, 4]` |
 
 ### Constraints
 
-- 1 <= nums.length <= 10^5
-- 0 <= nums[i] <= 10^9
-- 1 <= k <= nums.length
+| Constraint | Description |
+|------------|-------------|
+| `nums.length` | `1 <= nums.length <= 10^5` |
+| `nums[i]` | `0 <= nums[i] <= 10^9` |
+| `k` | `1 <= k <= nums.length` |
 
 ## Solution
 
@@ -36,26 +51,52 @@ from typing import List
 class Solution:
     def mostCompetitive(self, nums: List[int], k: int) -> List[int]:
         stack = []
+        
         for i, num in enumerate(nums):
-            while stack and stack[-1] > num and len(stack) - 1 + len(nums) - i >= k:
+            # Pop larger elements if we can still reach k elements
+            while (stack and stack[-1] > num and 
+                   len(stack) - 1 + len(nums) - i >= k):
                 stack.pop()
+            
+            # Add current element if we need more
             if len(stack) < k:
                 stack.append(num)
+        
         return stack
 ```
 
 ### Approach
 
-Use a monotonic stack to build the smallest possible subsequence of length k.
+We use a **monotonic stack** to build the smallest possible subsequence of length `k`.
 
-For each number, while the stack is not empty, the top is larger than current, and removing it still allows us to reach k elements with remaining numbers, pop it.
+**Key Logic:**
+1. For each element, try to remove larger elements from the stack
+2. Only pop if removing still allows us to reach `k` elements
+3. Add the current element if the stack isn't full yet
 
-Then, if stack size < k, append current.
+**Why it works:**
+- The stack maintains the smallest possible prefix
+- Each pop removes a larger element in favor of a smaller one
+- The condition `len(stack) - 1 + len(nums) - i >= k` ensures we don't pop too many elements
 
-This ensures the subsequence is as small as possible lexicographically.
+### Complexity Analysis
 
-### Complexity
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O(n)` — Each element is pushed and popped at most once |
+| **Space** | `O(k)` — Stack stores at most `k` elements |
 
-**Time Complexity:** O(n), since each element is pushed and popped at most once.
+### Step-by-Step Example
 
-**Space Complexity:** O(k) for the stack.
+For `nums = [3, 5, 2, 6]`, `k = 2`:
+
+| Step | `num` | Stack | Action |
+|------|-------|-------|--------|
+| 1 | 3 | `[3]` | Stack < k, append |
+| 2 | 5 | `[3, 5]` | Stack = k, no append |
+| 3 | 2 | `[2]` | Pop 3 and 5 (can still reach k=2), append 2 |
+| 4 | 6 | `[2, 6]` | Stack < k, append |
+
+Result: `[2, 6]` ✓
+
+---

@@ -11,12 +11,12 @@ A falling path starts at any element in the first row and chooses the element in
 ### Example 1
 
 **Input:**
-```
+```python
 matrix = [[2, 1, 3], [6, 5, 4], [7, 8, 9]]
 ```
 
 **Output:**
-```
+```python
 13
 ```
 
@@ -26,12 +26,12 @@ There are two falling paths with a minimum sum as shown.
 ### Example 2
 
 **Input:**
-```
+```python
 matrix = [[-19, 57], [-40, -5]]
 ```
 
 **Output:**
-```
+```python
 -59
 ```
 

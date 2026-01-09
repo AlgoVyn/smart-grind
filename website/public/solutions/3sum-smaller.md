@@ -9,32 +9,32 @@ Return the count of triplets.
 
 **Example 1:**
 **Input:**
-```
+```python
 nums = [-2,0,1,3], target = 2
-```
+```python
 **Output:**
-```
+```python
 2
-```
+```python
 **Explanation:** There are 2 triplets whose sum is less than 2: [-2,0,1] and [-2,0,3].
 
 **Example 2:**
 **Input:**
-```
+```python
 nums = [], target = 0
-```
+```python
 **Output:**
-```
+```python
 0
 ```
 
 **Example 3:**
 **Input:**
-```
+```python
 nums = [0], target = 0
-```
+```python
 **Output:**
-```
+```python
 0
 ```
 
@@ -76,7 +76,7 @@ If the sum is not less than the target, we decrement right to reduce the sum.
 This efficiently counts all valid triplets.
 
 ## Time Complexity
-O(n^2), where n is the length of the array, due to sorting (O(n log n)) and the two-pointer loops (O(n^2)).
+**O(n^2)**, where n is the length of the array, due to sorting (**O(n log n)**) and the two-pointer loops (**O(n^2)**).
 
 ## Space Complexity
-O(1) additional space, as sorting is done in place.
+**O(1)** additional space, as sorting is done in place.

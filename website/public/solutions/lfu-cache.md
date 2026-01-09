@@ -25,7 +25,7 @@ When the cache reaches its capacity, it should **invalidate and remove the least
 
 ### Example
 
-```
+```python
 Input
 ["LFUCache", "put", "put", "get", "put", "get", "get", "put", "get", "get", "get"]
 [[2], [1, 1], [2, 2], [1], [3, 3], [2], [3], [4, 4], [1], [3], [4]]
@@ -38,7 +38,7 @@ Output
 - `cnt(x)` = the use counter for key `x`
 - `cache=[]` will show the last used order for tiebreakers (leftmost element is most recent)
 
-```
+```python
 LFUCache lfu = new LFUCache(2);
 lfu.put(1, 1);   // cache=[1,_], cnt(1)=1
 lfu.put(2, 2);   // cache=[2,1], cnt(2)=1, cnt(1)=1

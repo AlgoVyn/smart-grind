@@ -11,17 +11,17 @@ Return the maximum points you can get.
 ### Example 1
 
 **Input:**
-```
+```python
 boxes = [1,3,2,2,2,3,4,3,1]
 ```
 
 **Output:**
-```
+```python
 23
 ```
 
 **Explanation:**
-```
+```python
 [1, 3, 2, 2, 2, 3, 4, 3, 1] 
 ----> [1, 3, 3, 4, 3, 1] (3*3=9 points) 
 ----> [1, 3, 3, 3, 1] (1*1=1 points) 
@@ -32,24 +32,24 @@ boxes = [1,3,2,2,2,3,4,3,1]
 ### Example 2
 
 **Input:**
-```
+```python
 boxes = [1,1,1]
 ```
 
 **Output:**
-```
+```python
 9
 ```
 
 ### Example 3
 
 **Input:**
-```
+```python
 boxes = [1]
 ```
 
 **Output:**
-```
+```python
 1
 ```
 

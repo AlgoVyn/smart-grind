@@ -15,7 +15,7 @@ root = [3,5,1,6,2,0,8,null,null,7,4], target = 5, k = 2
 ```
 
 **Output:**
-```
+```python
 [7,4,1]
 ```
 
@@ -29,7 +29,7 @@ root = [1], target = 1, k = 3
 ```
 
 **Output:**
-```
+```python
 []
 ```
 

@@ -11,18 +11,18 @@ Implement the WordFilter class:
 ### Example
 
 **Input**
-```
+```python
 ["WordFilter", "f"]
 [[["apple"]], ["a", "e"]]
 ```
 
 **Output**
-```
+```python
 [null, 0]
 ```
 
 **Explanation**
-```
+```python
 WordFilter wordFilter = new WordFilter(["apple"]);
 wordFilter.f("a", "e"); // return 0, because the word at index 0 has prefix = "a" and suffix = "e".
 ```

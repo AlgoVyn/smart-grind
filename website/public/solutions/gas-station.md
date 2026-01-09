@@ -9,12 +9,12 @@ Given two integer arrays gas and cost, return the starting gas station's index i
 **Example 1:**
 
 **Input:**
-```
+```python
 gas = [1,2,3,4,5], cost = [3,4,5,1,2]
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
@@ -30,12 +30,12 @@ Therefore, return 3 as the starting index.
 **Example 2:**
 
 **Input:**
-```
+```python
 gas = [2,3,4], cost = [3,4,3]
 ```
 
 **Output:**
-```
+```python
 -1
 ```
 

@@ -6,7 +6,7 @@ You are given an array `points` representing integer coordinates of points on a 
 
 The **cost** of connecting two points `[x_i, y_i]` and `[x_j, y_j]` is the **Manhattan distance** between them:
 
-```
+```python
 cost = |x_i - x_j| + |y_i - y_j|
 ```
 

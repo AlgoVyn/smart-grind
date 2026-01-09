@@ -21,12 +21,12 @@ Return the earliest hour at which the shop must be closed to incur a minimum pen
 ### Example 1
 
 **Input:**
-```
+```python
 customers = "YYNY"
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -42,12 +42,12 @@ Closing at 2nd or 4th hour gives minimum penalty. Since 2 is earlier, the answer
 ### Example 2
 
 **Input:**
-```
+```python
 customers = "NNNNN"
 ```
 
 **Output:**
-```
+```python
 0
 ```
 
@@ -57,12 +57,12 @@ It is best to close the shop at the 0th hour as no customers arrive.
 ### Example 3
 
 **Input:**
-```
+```python
 customers = "YYYY"
 ```
 
 **Output:**
-```
+```python
 4
 ```
 

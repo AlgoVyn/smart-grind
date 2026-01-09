@@ -16,12 +16,12 @@ Return an array `answer` of size `n` where `answer[i]` is the rank of the ith at
 ### Example 1
 
 **Input:**
-```
+```python
 score = [5,4,3,2,1]
 ```
 
 **Output:**
-```
+```python
 ["Gold Medal","Silver Medal","Bronze Medal","4","5"]
 ```
 
@@ -30,12 +30,12 @@ score = [5,4,3,2,1]
 ### Example 2
 
 **Input:**
-```
+```python
 score = [10,3,8,9,4]
 ```
 
 **Output:**
-```
+```python
 ["Gold Medal","5","Bronze Medal","Silver Medal","4"]
 ```
 

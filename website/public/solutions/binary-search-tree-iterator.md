@@ -22,7 +22,7 @@ You may assume that `next()` calls will always be valid. That is, there will be 
 ```
 
 **Output:**
-```
+```python
 [null, 3, 7, true, 9, true, 15, true, 20, false]
 ```
 

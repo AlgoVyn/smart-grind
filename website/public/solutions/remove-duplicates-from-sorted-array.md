@@ -28,12 +28,12 @@ If all assertions pass, then your solution will be accepted.
 ### Example 1
 
 **Input:**
-```
+```python
 nums = [1,1,2]
 ```
 
 **Output:**
-```
+```python
 2, nums = [1,2,_]
 ```
 
@@ -42,12 +42,12 @@ nums = [1,1,2]
 ### Example 2
 
 **Input:**
-```
+```python
 nums = [0,0,1,1,1,2,2,3,3,4]
 ```
 
 **Output:**
-```
+```python
 5, nums = [0,1,2,3,4,_,_,_,_,_]
 ```
 

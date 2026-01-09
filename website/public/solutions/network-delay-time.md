@@ -11,36 +11,36 @@ We will send a signal from a given node k. Return the minimum time it takes for 
 ### Example 1
 
 **Input:**
-```
+```python
 times = [[2,1,1],[2,3,1],[3,4,1]], n = 4, k = 2
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
 ### Example 2
 
 **Input:**
-```
+```python
 times = [[1,2,1]], n = 2, k = 1
 ```
 
 **Output:**
-```
+```python
 1
 ```
 
 ### Example 3
 
 **Input:**
-```
+```python
 times = [[1,2,1]], n = 2, k = 2
 ```
 
 **Output:**
-```
+```python
 -1
 ```
 

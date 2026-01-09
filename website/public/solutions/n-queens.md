@@ -13,12 +13,12 @@ Each solution contains a distinct board configuration of the n-queens' placement
 ### Example 1
 
 **Input:**
-```
+```python
 n = 4
 ```
 
 **Output:**
-```
+```python
 [[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]
 ```
 
@@ -28,12 +28,12 @@ There exist two distinct solutions to the 4-queens puzzle as shown above.
 ### Example 2
 
 **Input:**
-```
+```python
 n = 1
 ```
 
 **Output:**
-```
+```python
 [["Q"]]
 ```
 

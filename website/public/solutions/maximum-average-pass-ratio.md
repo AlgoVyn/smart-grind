@@ -17,12 +17,12 @@ Return the maximum possible average pass ratio after assigning the `extraStudent
 ### Example 1
 
 **Input:**
-```
+```python
 classes = [[1,2],[3,5],[2,2]], extraStudents = 2
 ```
 
 **Output:**
-```
+```python
 0.78333
 ```
 
@@ -31,12 +31,12 @@ classes = [[1,2],[3,5],[2,2]], extraStudents = 2
 ### Example 2
 
 **Input:**
-```
+```python
 classes = [[2,4],[3,9],[4,5],[2,10]], extraStudents = 4
 ```
 
 **Output:**
-```
+```python
 0.53485
 ```
 

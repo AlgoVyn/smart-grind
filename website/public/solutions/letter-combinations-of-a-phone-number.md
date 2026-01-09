@@ -22,13 +22,13 @@ A mapping of digits to letters (just like on the telephone buttons) is given bel
 ### Examples
 
 **Example 1:**
-```
+```python
 Input: digits = "23"
 Output: ["ad","ae","af","bd","be","bf","cd","ce","cf"]
 ```
 
 **Example 2:**
-```
+```python
 Input: digits = "2"
 Output: ["a","b","c"]
 ```

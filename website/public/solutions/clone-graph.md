@@ -5,7 +5,7 @@ Given a reference of a node in a connected undirected graph.
 Return a deep copy (clone) of the graph.
 Each node in the graph contains a value (int) and a list (List[Node]) of its neighbors.
 
-```
+```python
 class Node {
     public int val;
     public List<Node> neighbors;
@@ -22,12 +22,12 @@ The given node will always be the first node with val = 1. You must return the c
 **Example 1:**
 
 **Input:**
-```
+```python
 adjList = [[2,4],[1,3],[2,4],[1,3]]
 ```
 
 **Output:**
-```
+```python
 [[2,4],[1,3],[2,4],[1,3]]
 ```
 
@@ -40,12 +40,12 @@ adjList = [[2,4],[1,3],[2,4],[1,3]]
 **Example 2:**
 
 **Input:**
-```
+```python
 adjList = [[]]
 ```
 
 **Output:**
-```
+```python
 [[]]
 ```
 
@@ -54,12 +54,12 @@ adjList = [[]]
 **Example 3:**
 
 **Input:**
-```
+```python
 adjList = []
 ```
 
 **Output:**
-```
+```python
 []
 ```
 

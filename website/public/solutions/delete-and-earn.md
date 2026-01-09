@@ -12,12 +12,12 @@ Return the maximum number of points you can earn by applying the above operation
 **Example 1:**
 
 **Input:**
-```
+```python
 nums = [3,4,2]
 ```
 
 **Output:**
-```
+```python
 6
 ```
 
@@ -30,12 +30,12 @@ You earn a total of 6 points.
 **Example 2:**
 
 **Input:**
-```
+```python
 nums = [2,2,3,3,3,4]
 ```
 
 **Output:**
-```
+```python
 9
 ```
 
@@ -53,7 +53,7 @@ You earn a total of 9 points.
 
 ## Solution
 
-```python
+```
 # Python solution
 from typing import List
 

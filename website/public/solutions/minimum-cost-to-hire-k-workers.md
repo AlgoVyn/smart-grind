@@ -16,12 +16,12 @@ Given the integer `k`, return the least amount of money needed to form a paid gr
 ### Example 1
 
 **Input:**
-```
+```python
 quality = [10, 20, 5], wage = [70, 50, 30], k = 2
 ```
 
 **Output:**
-```
+```python
 105.00000
 ```
 
@@ -31,12 +31,12 @@ We pay 70 to the 0th worker and 35 to the 2nd worker.
 ### Example 2
 
 **Input:**
-```
+```python
 quality = [3, 1, 10, 10, 1], wage = [4, 8, 2, 2, 7], k = 3
 ```
 
 **Output:**
-```
+```python
 30.66667
 ```
 

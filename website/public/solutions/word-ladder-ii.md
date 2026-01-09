@@ -15,12 +15,12 @@ Given two words, `beginWord` and `endWord`, and a dictionary `wordList`, return 
 **Example 1:**
 
 **Input:**
-```
+```python
 beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log","cog"]
 ```
 
 **Output:**
-```
+```python
 [["hit","hot","dot","dog","cog"],["hit","hot","lot","log","cog"]]
 ```
 
@@ -31,12 +31,12 @@ beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log","c
 **Example 2:**
 
 **Input:**
-```
+```python
 beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log"]
 ```
 
 **Output:**
-```
+```python
 []
 ```
 

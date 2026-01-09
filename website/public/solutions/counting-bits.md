@@ -8,12 +8,12 @@ Given an integer n, return an array ans of length n + 1 such that for each i (0 
 **Example 1:**
 
 **Input:**
-```
+```python
 n = 2
 ```
 
 **Output:**
-```
+```python
 [0,1,1]
 ```
 
@@ -25,12 +25,12 @@ n = 2
 **Example 2:**
 
 **Input:**
-```
+```python
 n = 5
 ```
 
 **Output:**
-```
+```python
 [0,1,1,2,1,2]
 ```
 

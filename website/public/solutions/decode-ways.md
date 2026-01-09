@@ -24,12 +24,12 @@ The test cases are generated so that the answer fits in a 32-bit integer.
 **Example 1:**
 
 **Input:**
-```
+```python
 s = "12"
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -39,12 +39,12 @@ s = "12"
 **Example 2:**
 
 **Input:**
-```
+```python
 s = "226"
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
@@ -54,12 +54,12 @@ s = "226"
 **Example 3:**
 
 **Input:**
-```
+```python
 s = "06"
 ```
 
 **Output:**
-```
+```python
 0
 ```
 
@@ -73,7 +73,7 @@ s = "06"
 
 ## Solution
 
-```python
+```
 # Python solution
 class Solution:
     def numDecodings(self, s: str) -> int:

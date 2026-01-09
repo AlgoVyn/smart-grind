@@ -13,12 +13,12 @@ Return the number of land cells in grid for which we cannot walk off the boundar
 ### Example 1
 
 **Input:**
-```
+```python
 grid = [[0,0,0,0],[1,0,1,0],[0,1,1,0],[0,0,0,0]]
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
@@ -28,12 +28,12 @@ There are three 1s that are enclosed by 0s, and one 1 that is not enclosed becau
 ### Example 2
 
 **Input:**
-```
+```python
 grid = [[0,1,1,0],[0,0,1,0],[0,0,1,0],[0,0,0,0]]
 ```
 
 **Output:**
-```
+```python
 0
 ```
 

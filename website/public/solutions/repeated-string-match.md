@@ -9,12 +9,12 @@ Given two strings `a` and `b`, return the minimum number of times you should rep
 ### Example 1
 
 **Input:**
-```
+```python
 a = "abcd", b = "cdabcdab"
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
@@ -23,12 +23,12 @@ a = "abcd", b = "cdabcdab"
 ### Example 2
 
 **Input:**
-```
+```python
 a = "a", b = "aa"
 ```
 
 **Output:**
-```
+```python
 2
 ```
 

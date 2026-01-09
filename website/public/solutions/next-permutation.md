@@ -23,36 +23,36 @@ The replacement must be in place and use only constant extra memory.
 ### Example 1
 
 **Input:**
-```
+```python
 nums = [1, 2, 3]
 ```
 
 **Output:**
-```
+```python
 [1, 3, 2]
 ```
 
 ### Example 2
 
 **Input:**
-```
+```python
 nums = [3, 2, 1]
 ```
 
 **Output:**
-```
+```python
 [1, 2, 3]
 ```
 
 ### Example 3
 
 **Input:**
-```
+```python
 nums = [1, 1, 5]
 ```
 
 **Output:**
-```
+```python
 [1, 5, 1]
 ```
 

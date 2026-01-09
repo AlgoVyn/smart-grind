@@ -15,12 +15,12 @@ Return an array `ans` of length `nums1.length` such that `ans[i]` is the next gr
 ### Example 1
 
 **Input:**
-```
+```python
 nums1 = [4, 1, 2], nums2 = [1, 3, 4, 2]
 ```
 
 **Output:**
-```
+```python
 [-1, 3, -1]
 ```
 
@@ -33,12 +33,12 @@ The next greater element for each value of nums1 is as follows:
 ### Example 2
 
 **Input:**
-```
+```python
 nums1 = [2, 4], nums2 = [1, 2, 3, 4]
 ```
 
 **Output:**
-```
+```python
 [3, -1]
 ```
 

@@ -16,13 +16,13 @@ Implement the RangeModule class:
 ### Example 1
 
 **Input:**
-```
+```python
 ["RangeModule", "addRange", "removeRange", "queryRange", "queryRange", "queryRange"]
 [[], [10, 20], [14, 16], [10, 14], [13, 15], [16, 17]]
 ```
 
 **Output:**
-```
+```python
 [null, null, null, true, false, true]
 ```
 

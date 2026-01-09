@@ -18,7 +18,7 @@ root = [3, 9, 20, null, null, 15, 7]
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
@@ -32,7 +32,7 @@ root = [1, null, 2]
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -49,7 +49,7 @@ root = [1, null, 2]
 
 ## Solution
 
-```python
+```
 # Definition for a binary tree node.
 # class TreeNode:
 #     def __init__(self, val=0, left=None, right=None):
@@ -73,7 +73,7 @@ We use **recursive Depth-First Search (DFS)** to compute the depth.
 ### Key Insight
 
 For any node, the depth of the tree rooted at that node is:
-```
+```python
 1 + max(depth of left subtree, depth of right subtree)
 ```
 

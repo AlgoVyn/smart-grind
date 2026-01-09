@@ -4,13 +4,13 @@
 
 You are given the head of a singly linked-list. The list can be represented as:
 
-```
+```python
 L0 → L1 → … → Ln - 1 → Ln
 ```
 
 Reorder the list to be on the following form:
 
-```
+```python
 L0 → Ln → L1 → Ln - 1 → L2 → Ln - 2 → …
 ```
 
@@ -19,24 +19,24 @@ You may not modify the values in the list's nodes. Only nodes themselves may be 
 ### Example 1
 
 **Input:**
-```
+```python
 head = [1,2,3,4]
 ```
 
 **Output:**
-```
+```python
 [1,4,2,3]
 ```
 
 ### Example 2
 
 **Input:**
-```
+```python
 head = [1,2,3,4,5]
 ```
 
 **Output:**
-```
+```python
 [1,5,2,4,3]
 ```
 
@@ -47,7 +47,7 @@ head = [1,2,3,4,5]
 
 ## Solution
 
-```python
+```
 # Definition for singly-linked list.
 class ListNode:
     def __init__(self, val=0, next=None):

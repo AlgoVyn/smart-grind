@@ -7,12 +7,12 @@ Given a string `s`, check if it can be constructed by taking a substring of it a
 ### Example 1
 
 **Input:**
-```
+```python
 s = "abab"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -21,24 +21,24 @@ true
 ### Example 2
 
 **Input:**
-```
+```python
 s = "aba"
 ```
 
 **Output:**
-```
+```python
 false
 ```
 
 ### Example 3
 
 **Input:**
-```
+```python
 s = "abcabcabcabc"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 

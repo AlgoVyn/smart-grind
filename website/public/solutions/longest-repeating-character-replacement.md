@@ -18,7 +18,7 @@ s = "ABAB", k = 2
 ```
 
 **Output:**
-```
+```python
 4
 ```
 
@@ -32,7 +32,7 @@ s = "AABABBA", k = 1
 ```
 
 **Output:**
-```
+```python
 4
 ```
 
@@ -78,7 +78,7 @@ This problem is solved using a **sliding window** approach.
 
 For a window `[left, right]`, the number of changes needed to make all characters the same is:
 
-```
+```python
 window_size - max_frequency
 ```
 

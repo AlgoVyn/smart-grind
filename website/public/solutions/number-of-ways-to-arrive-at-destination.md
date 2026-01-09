@@ -15,12 +15,12 @@ Return the number of ways you can arrive at your destination in the shortest amo
 ### Example 1
 
 **Input:**
-```
+```python
 n = 7, roads = [[0,6,7],[0,1,2],[1,2,3],[1,3,3],[6,3,3],[3,5,1],[6,5,1],[2,5,1],[0,4,5],[4,6,2]]
 ```
 
 **Output:**
-```
+```python
 4
 ```
 
@@ -36,12 +36,12 @@ The four ways to get there in 7 minutes are:
 ### Example 2
 
 **Input:**
-```
+```python
 n = 2, roads = [[1,0,10]]
 ```
 
 **Output:**
-```
+```python
 1
 ```
 

@@ -24,36 +24,36 @@ An exponent is defined with an exponent notation `'e'` or `'E'` followed by an i
 **Example 1:**
 
 **Input:**
-```
+```python
 s = "0"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 s = "e"
 ```
 
 **Output:**
-```
+```python
 false
 ```
 
 **Example 3:**
 
 **Input:**
-```
+```python
 s = "."
 ```
 
 **Output:**
-```
+```python
 false
 ```
 

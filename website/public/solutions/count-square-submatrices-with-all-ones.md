@@ -8,7 +8,7 @@ Given a m * n matrix of ones and zeros, return how many square submatrices have 
 **Example 1:**
 
 **Input:**
-```
+```python
 matrix =
 [
   [0,1,1,1],
@@ -18,7 +18,7 @@ matrix =
 ```
 
 **Output:**
-```
+```python
 15
 ```
 
@@ -31,7 +31,7 @@ Total number of squares = 10 + 4 + 1 = 15.
 **Example 2:**
 
 **Input:**
-```
+```python
 matrix =
 [
   [1,0,1],
@@ -41,7 +41,7 @@ matrix =
 ```
 
 **Output:**
-```
+```python
 7
 ```
 

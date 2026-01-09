@@ -16,36 +16,36 @@ Return the number that I picked.
 **Example 1:**
 
 **Input:**
-```
+```python
 n = 10, pick = 6
 ```
 
 **Output:**
-```
+```python
 6
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 n = 1, pick = 1
 ```
 
 **Output:**
-```
+```python
 1
 ```
 
 **Example 3:**
 
 **Input:**
-```
+```python
 n = 2, pick = 1
 ```
 
 **Output:**
-```
+```python
 1
 ```
 

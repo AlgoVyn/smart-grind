@@ -11,12 +11,12 @@ The testcases will be generated such that the answer is unique.
 ### Example 1
 
 **Input:**
-```
+```python
 s = "ADOBECODEBANC", t = "ABC"
 ```
 
 **Output:**
-```
+```python
 "BANC"
 ```
 
@@ -26,12 +26,12 @@ The minimum window substring `"BANC"` includes 'A', 'B', and 'C' from string `t`
 ### Example 2
 
 **Input:**
-```
+```python
 s = "a", t = "a"
 ```
 
 **Output:**
-```
+```python
 "a"
 ```
 
@@ -41,12 +41,12 @@ The entire string `s` is the minimum window.
 ### Example 3
 
 **Input:**
-```
+```python
 s = "a", t = "aa"
 ```
 
 **Output:**
-```
+```python
 ""
 ```
 

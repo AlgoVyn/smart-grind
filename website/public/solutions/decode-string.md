@@ -11,36 +11,36 @@ The test cases are generated so that the length of the output will never exceed 
 **Example 1:**
 
 **Input:**
-```
+```python
 s = "3[a]2[bc]"
 ```
 
 **Output:**
-```
+```python
 "aaabcbc"
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 s = "3[a2[c]]"
 ```
 
 **Output:**
-```
+```python
 "accaccacc"
 ```
 
 **Example 3:**
 
 **Input:**
-```
+```python
 s = "2[abc]3[cd]ef"
 ```
 
 **Output:**
-```
+```python
 "abcabccdcdcdef"
 ```
 

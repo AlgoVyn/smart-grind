@@ -13,18 +13,18 @@ Implement the WordDictionary class:
 **Example 1:**
 
 **Input:**
-```
+```python
 ["WordDictionary","addWord","addWord","addWord","search","search","search","search"]
 [[],["bad"],["dad"],["mad"],["pad"],["bad"],[".ad"],["b.."]]
 ```
 
 **Output:**
-```
+```python
 [null,null,null,null,false,true,true,true]
 ```
 
 **Explanation:**
-```
+```python
 WordDictionary wordDictionary = new WordDictionary();
 wordDictionary.addWord("bad");
 wordDictionary.addWord("dad");
@@ -45,7 +45,7 @@ wordDictionary.search("b.."); // return True
 
 ## Solution
 
-```python
+```
 # Python solution
 class TrieNode:
     def __init__(self):

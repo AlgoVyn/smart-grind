@@ -11,12 +11,12 @@ Return the minimum number of operations to reduce `x` to exactly `0` if it is po
 ### Example 1
 
 **Input:**
-```
+```python
 nums = [1, 1, 4, 2, 3], x = 5
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -26,24 +26,24 @@ The optimal solution is to remove the last two elements to reduce `x` to zero.
 ### Example 2
 
 **Input:**
-```
+```python
 nums = [5, 6, 7, 8, 9], x = 4
 ```
 
 **Output:**
-```
+```python
 -1
 ```
 
 ### Example 3
 
 **Input:**
-```
+```python
 nums = [3, 2, 20, 1, 1, 3], x = 10
 ```
 
 **Output:**
-```
+```python
 5
 ```
 

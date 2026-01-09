@@ -2,41 +2,54 @@
 
 ## Problem Description
 
-You are given an array nums of n integers and two integers k and x.
-The x-sum of an array is calculated by the following procedure:
-- Count the occurrences of all elements in the array.
-- Keep only the occurrences of the top x most frequent elements. If two elements have the same number of occurrences, the element with the bigger value is considered more frequent.
-- Calculate the sum of the resulting array.
-Note that if an array has less than x distinct elements, its x-sum is the sum of the array.
-Return an integer array answer of length n - k + 1 where answer[i] is the x-sum of the subarray nums[i..i + k - 1].
+You are given an array `nums` of `n` integers and two integers `k` and `x`.
+
+### X-Sum Definition
+
+The **x-sum** of an array is calculated by:
+
+1. Count the occurrences of all elements in the array
+2. Keep only the occurrences of the **top `x` most frequent** elements
+   - If two elements have the same frequency, the **larger value** is considered more frequent
+3. Calculate the sum of the resulting array
+4. If the array has fewer than `x` distinct elements, the x-sum is the sum of the entire array
+
+Return an array `answer` of length `n - k + 1` where `answer[i]` is the x-sum of subarray `nums[i..i + k - 1]`.
 
 ### Examples
 
 **Example 1:**
 
-**Input:** nums = [1,1,2,2,3,4,2,3], k = 6, x = 2
-
-**Output:** [6,10,12]
+| Parameter | Value |
+|-----------|-------|
+| `nums` | `[1, 1, 2, 2, 3, 4, 2, 3]` |
+| `k` | `6` |
+| `x` | `2` |
+| **Output** | `[6, 10, 12]` |
 
 **Explanation:**
-For subarray [1, 1, 2, 2, 3, 4], only elements 1 and 2 will be kept in the resulting array. Hence, answer[0] = 1 + 1 + 2 + 2.
-For subarray [1, 2, 2, 3, 4, 2], only elements 2 and 4 will be kept in the resulting array. Hence, answer[1] = 2 + 2 + 2 + 4. Note that 4 is kept in the array since it is bigger than 3 and 1 which occur the same number of times.
-For subarray [2, 2, 3, 4, 2, 3], only elements 2 and 3 are kept in the resulting array. Hence, answer[2] = 2 + 2 + 2 + 3 + 3.
+- Subarray `[1, 1, 2, 2, 3, 4]` → Top 2: `1` (2x), `2` (2x) → Sum = `1+1+2+2 = 6`
+- Subarray `[1, 2, 2, 3, 4, 2]` → Top 2: `2` (3x), `4` (1x) → Sum = `2+2+2+4 = 10`
+- Subarray `[2, 2, 3, 4, 2, 3]` → Top 2: `2` (3x), `3` (2x) → Sum = `2+2+2+3+3 = 12`
 
 **Example 2:**
 
-**Input:** nums = [3,8,7,8,7,5], k = 2, x = 2
+| Parameter | Value |
+|-----------|-------|
+| `nums` | `[3, 8, 7, 8, 7, 5]` |
+| `k` | `2` |
+| `x` | `2` |
+| **Output** | `[11, 15, 15, 15, 12]` |
 
-**Output:** [11,15,15,15,12]
-
-**Explanation:**
-Since k == x, answer[i] is equal to the sum of the subarray nums[i..i + k - 1].
+**Explanation:** Since `k == x`, every subarray keeps all elements, so x-sum equals the subarray sum.
 
 ### Constraints
 
-- 1 <= n == nums.length <= 50
-- 1 <= nums[i] <= 50
-- 1 <= x <= k <= nums.length
+| Constraint | Description |
+|------------|-------------|
+| `n == nums.length` | `1 <= n <= 50` |
+| `nums[i]` | `1 <= nums[i] <= 50` |
+| `x` | `1 <= x <= k <= nums.length` |
 
 ## Solution
 
@@ -46,25 +59,50 @@ from collections import Counter
 
 class Solution:
     def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:
-        res = []
+        result = []
+        
         for i in range(len(nums) - k + 1):
+            # Get current subarray
             sub = nums[i:i + k]
+            
+            # Count element frequencies
             count = Counter(sub)
-            # Sort by frequency desc, then by value desc
-            candidates = sorted(count.items(), key=lambda p: (-p[1], -p[0]))[:x]
-            sum_val = sum(freq * val for val, freq in candidates)
-            res.append(sum_val)
-        return res
+            
+            # Sort by: frequency (desc), then value (desc)
+            candidates = sorted(
+                count.items(), 
+                key=lambda p: (-p[1], -p[0])
+            )[:x]
+            
+            # Calculate x-sum
+            x_sum = sum(freq * val for val, freq in candidates)
+            result.append(x_sum)
+        
+        return result
 ```
 
 ### Approach
 
-For each subarray of size k, use Counter to count frequencies.
-Sort the elements by frequency descending, then by value descending to break ties.
-Take the top x elements, and sum frequency * value for each.
+For each subarray of size `k`:
 
-### Complexity
+1. **Extract** the subarray `nums[i:i + k]`
+2. **Count frequencies** using `Counter`
+3. **Sort elements** by:
+   - Primary: Frequency descending (`-p[1]`)
+   - Secondary: Value descending (`-p[0]`)
+4. **Select top `x`** elements
+5. **Calculate sum** as `frequency × value` for each selected element
+6. **Append** to results
 
-**Time Complexity:** O((n-k+1) * k log k), since sorting k elements.
+### Complexity Analysis
 
-**Space Complexity:** O(k) for Counter.
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O((n-k+1) × k log k)` — Sorting `k` elements for each subarray |
+| **Space** | `O(k)` — Counter and sorting storage |
+
+### Optimization Note
+
+For larger inputs, maintain a sliding window with frequency counters to achieve `O(n)` or `O(n log x)` time. However, for `n <= 50`, the straightforward approach is clear and efficient.
+
+---

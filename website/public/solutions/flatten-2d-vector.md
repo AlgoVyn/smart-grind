@@ -13,18 +13,18 @@ Implement the Vector2D class:
 **Example 1:**
 
 **Input:**
-```
+```python
 ["Vector2D", "next", "next", "next", "hasNext", "hasNext", "next", "hasNext"]
 [[[[1, 2], [3], [4]]], [], [], [], [], [], [], []]
 ```
 
 **Output:**
-```
+```python
 [null, 1, 2, 3, true, true, 4, false]
 ```
 
 **Explanation:**
-```
+```python
 Vector2D vector2D = new Vector2D([[1, 2], [3], [4]]);
 vector2D.next();    // return 1
 vector2D.next();    // return 2

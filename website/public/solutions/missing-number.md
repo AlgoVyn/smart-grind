@@ -9,12 +9,12 @@ Given an array `nums` containing `n` distinct numbers in the range `[0, n]`, ret
 ### Example 1
 
 **Input:**
-```
+```python
 nums = [3, 0, 1]
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -24,12 +24,12 @@ nums = [3, 0, 1]
 ### Example 2
 
 **Input:**
-```
+```python
 nums = [0, 1]
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -39,12 +39,12 @@ nums = [0, 1]
 ### Example 3
 
 **Input:**
-```
+```python
 nums = [9, 6, 4, 2, 3, 5, 7, 0, 1]
 ```
 
 **Output:**
-```
+```python
 8
 ```
 

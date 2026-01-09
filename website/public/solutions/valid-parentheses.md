@@ -14,60 +14,60 @@ An input string is valid if:
 **Example 1:**
 
 **Input:**
-```
+```python
 s = "()"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 s = "()[]{}"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
 **Example 3:**
 
 **Input:**
-```
+```python
 s = "(]"
 ```
 
 **Output:**
-```
+```python
 false
 ```
 
 **Example 4:**
 
 **Input:**
-```
+```python
 s = "([])"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
 **Example 5:**
 
 **Input:**
-```
+```python
 s = "([)]"
 ```
 
 **Output:**
-```
+```python
 false
 ```
 

@@ -16,12 +16,12 @@ Given a string word, return true if word can be placed in board, or false otherw
 **Example 1:**
 
 **Input:**
-```
+```python
 board = [["#", " ", "#"], [" ", " ", "#"], ["#", "c", " "]], word = "abc"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
@@ -30,12 +30,12 @@ true
 **Example 2:**
 
 **Input:**
-```
+```python
 board = [[" ", "#", "a"], [" ", "#", "c"], [" ", "#", "a"]], word = "ac"
 ```
 
 **Output:**
-```
+```python
 false
 ```
 
@@ -44,12 +44,12 @@ false
 **Example 3:**
 
 **Input:**
-```
+```python
 board = [["#", " ", "#"], [" ", " ", "#"], ["#", " ", "c"]], word = "ca"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 

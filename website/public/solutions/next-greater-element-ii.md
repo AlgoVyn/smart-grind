@@ -11,12 +11,12 @@ The next greater number of a number `x` is the first greater number to its trave
 ### Example 1
 
 **Input:**
-```
+```python
 nums = [1, 2, 1]
 ```
 
 **Output:**
-```
+```python
 [2, -1, 2]
 ```
 
@@ -28,12 +28,12 @@ The second 1's next greater number needs to search circularly, which is also 2.
 ### Example 2
 
 **Input:**
-```
+```python
 nums = [1, 2, 3, 4, 3]
 ```
 
 **Output:**
-```
+```python
 [2, 3, 4, -1, 4]
 ```
 

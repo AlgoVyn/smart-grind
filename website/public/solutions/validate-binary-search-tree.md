@@ -14,24 +14,24 @@ A valid BST is defined as follows:
 **Example 1:**
 
 **Input:**
-```
+```python
 root = [2,1,3]
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 root = [5,1,4,null,null,3,6]
 ```
 
 **Output:**
-```
+```python
 false
 ```
 
@@ -44,7 +44,7 @@ false
 
 ## Solution
 
-```python
+```
 # Definition for a binary tree node.
 class TreeNode:
     def __init__(self, val=0, left=None, right=None):

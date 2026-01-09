@@ -13,12 +13,12 @@ Return the minimum time required in which you can visit the bottom-right cell of
 ### Example 1
 
 **Input:**
-```
+```python
 grid = [[0, 1, 3, 2], [5, 1, 2, 5], [4, 3, 8, 6]]
 ```
 
 **Output:**
-```
+```python
 7
 ```
 
@@ -36,12 +36,12 @@ One of the paths that we can take is:
 ### Example 2
 
 **Input:**
-```
+```python
 grid = [[0, 2, 4], [3, 2, 1], [1, 0, 4]]
 ```
 
 **Output:**
-```
+```python
 -1
 ```
 

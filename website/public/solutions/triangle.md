@@ -17,7 +17,7 @@ Explanation: The triangle looks like:
   3 4
  6 5 7
 4 1 8 3
-```
+```python
 The minimum path sum from top to bottom is `2 + 3 + 5 + 1 = 11` (underlined above).
 
 **Example 2:**

@@ -11,36 +11,36 @@ Given the head of a linked list, remove the nth node from the end of the list an
 ### Example 1
 
 **Input:**
-```
+```python
 head = [1,2,3,4,5], n = 2
 ```
 
 **Output:**
-```
+```python
 [1,2,3,5]
 ```
 
 ### Example 2
 
 **Input:**
-```
+```python
 head = [1], n = 1
 ```
 
 **Output:**
-```
+```python
 []
 ```
 
 ### Example 3
 
 **Input:**
-```
+```python
 head = [1,2], n = 1
 ```
 
 **Output:**
-```
+```python
 [1]
 ```
 

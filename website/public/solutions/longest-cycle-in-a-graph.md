@@ -20,7 +20,7 @@ edges = [3, 3, 4, 2, 3]
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
@@ -34,7 +34,7 @@ edges = [2, -1, 3, 1]
 ```
 
 **Output:**
-```
+```python
 -1
 ```
 
@@ -96,7 +96,7 @@ We perform DFS on each unvisited node while tracking:
 
 When we encounter a node that is currently being visited (`state[nei] == 1`), we've found a cycle. The cycle length is calculated as:
 
-```
+```python
 cycle_len = current_step - step[neighbor] + 1
 ```
 

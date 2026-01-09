@@ -16,12 +16,12 @@ Given an integer array `nums`, return the minimum number of elements to remove t
 ### Example 1
 
 **Input:**
-```
+```python
 nums = [1, 3, 1]
 ```
 
 **Output:**
-```
+```python
 0
 ```
 
@@ -31,12 +31,12 @@ The array itself is a mountain array so we do not need to remove any elements.
 ### Example 2
 
 **Input:**
-```
+```python
 nums = [2, 1, 1, 5, 6, 2, 3, 1]
 ```
 
 **Output:**
-```
+```python
 3
 ```
 

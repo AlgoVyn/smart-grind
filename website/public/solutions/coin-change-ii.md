@@ -11,12 +11,12 @@ The answer is guaranteed to fit into a signed 32-bit integer.
 **Example 1:**
 
 **Input:**
-```
+```python
 amount = 5, coins = [1,2,5]
 ```
 
 **Output:**
-```
+```python
 4
 ```
 
@@ -29,12 +29,12 @@ amount = 5, coins = [1,2,5]
 **Example 2:**
 
 **Input:**
-```
+```python
 amount = 3, coins = [2]
 ```
 
 **Output:**
-```
+```python
 0
 ```
 
@@ -43,12 +43,12 @@ amount = 3, coins = [2]
 **Example 3:**
 
 **Input:**
-```
+```python
 amount = 10, coins = [10]
 ```
 
 **Output:**
-```
+```python
 1
 ```
 

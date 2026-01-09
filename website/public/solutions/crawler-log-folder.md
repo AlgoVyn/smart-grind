@@ -21,12 +21,12 @@ Return the minimum number of operations needed to go back to the main folder aft
 **Example 1:**
 
 **Input:**
-```
+```python
 logs = ["d1/","d2/","../","d21/","./"]
 ```
 
 **Output:**
-```
+```python
 2
 ```
 
@@ -35,24 +35,24 @@ logs = ["d1/","d2/","../","d21/","./"]
 **Example 2:**
 
 **Input:**
-```
+```python
 logs = ["d1/","d2/","./","d3/","../","d31/"]
 ```
 
 **Output:**
-```
+```python
 3
 ```
 
 **Example 3:**
 
 **Input:**
-```
+```python
 logs = ["d1/","../","../","../"]
 ```
 
 **Output:**
-```
+```python
 0
 ```
 

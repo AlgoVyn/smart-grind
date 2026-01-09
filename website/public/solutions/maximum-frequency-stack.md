@@ -13,19 +13,19 @@ If there is a tie for the most frequent element, the element closest to the stac
 ### Example 1
 
 **Input:**
-```
+```python
 ["FreqStack", "push", "push", "push", "push", "push", "push", "pop", "pop", "pop", "pop"]
 [[], [5], [7], [5], [7], [4], [5], [], [], [], []]
 ```
 
 **Output:**
-```
+```python
 [null, null, null, null, null, null, null, 5, 7, 5, 4]
 ```
 
 **Explanation:**
 
-```
+```python
 FreqStack freqStack = new FreqStack();
 freqStack.push(5);   // The stack is [5]
 freqStack.push(7);   // The stack is [5,7]

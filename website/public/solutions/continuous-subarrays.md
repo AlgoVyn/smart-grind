@@ -13,12 +13,12 @@ A subarray is a contiguous non-empty sequence of elements within an array.
 **Example 1:**
 
 **Input:**
-```
+```python
 nums = [5,4,2,4]
 ```
 
 **Output:**
-```
+```python
 8
 ```
 
@@ -33,12 +33,12 @@ It can be shown that there are no more continuous subarrays.
 **Example 2:**
 
 **Input:**
-```
+```python
 nums = [1,2,3]
 ```
 
 **Output:**
-```
+```python
 6
 ```
 

@@ -16,18 +16,18 @@ Implement the StockSpanner class:
 ### Example
 
 **Input**
-```
+```python
 ["StockSpanner", "next", "next", "next", "next", "next", "next", "next"]
 [[], [100], [80], [60], [70], [60], [75], [85]]
 ```
 
 **Output**
-```
+```python
 [null, 1, 1, 1, 2, 1, 4, 6]
 ```
 
 **Explanation**
-```
+```python
 StockSpanner stockSpanner = new StockSpanner();
 stockSpanner.next(100); // return 1
 stockSpanner.next(80);  // return 1

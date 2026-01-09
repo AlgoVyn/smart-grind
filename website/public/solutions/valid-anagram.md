@@ -9,24 +9,24 @@ Given two strings `s` and `t`, return `true` if `t` is an anagram of `s`, and `f
 **Example 1:**
 
 **Input:**
-```
+```python
 s = "anagram", t = "nagaram"
 ```
 
 **Output:**
-```
+```python
 true
 ```
 
 **Example 2:**
 
 **Input:**
-```
+```python
 s = "rat", t = "car"
 ```
 
 **Output:**
-```
+```python
 false
 ```
 

@@ -13,12 +13,12 @@ Return the maximum amount of water a container can store. Notice that you may no
 ### Example 1
 
 **Input:**
-```
+```python
 height = [1,8,6,2,5,4,8,3,7]
 ```
 
 **Output:**
-```
+```python
 49
 ```
 

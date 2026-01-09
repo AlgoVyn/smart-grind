@@ -36,7 +36,7 @@ Given an integer, convert it to a Roman numeral.
 | `num = 3749` | `"MMMDCCXLIX"` |
 
 **Explanation:**
-```
+```python
 3000 = MMM (1000 + 1000 + 1000)
  700 = DCC (500 + 100 + 100)
   40 = XL (10 less than 50)
@@ -50,7 +50,7 @@ Given an integer, convert it to a Roman numeral.
 | `num = 58` | `"LVIII"` |
 
 **Explanation:**
-```
+```python
 50 = L
  8 = VIII
 ```
@@ -62,7 +62,7 @@ Given an integer, convert it to a Roman numeral.
 | `num = 1994` | `"MCMXCIV"` |
 
 **Explanation:**
-```
+```python
 1000 = M
  900 = CM
   90 = XC

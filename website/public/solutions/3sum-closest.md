@@ -12,24 +12,24 @@ You may assume that each input would have exactly one solution.
 
 **Example 1:**
 **Input:**
-```
+```python
 nums = [-1,2,1,-4], target = 1
-```
+```python
 **Output:**
-```
+```python
 2
-```
+```python
 **Explanation:** The sum that is closest to the target is 2. (-1 + 2 + 1 = 2).
 
 **Example 2:**
 **Input:**
-```
+```python
 nums = [0,0,0], target = 1
-```
+```python
 **Output:**
-```
+```python
 0
-```
+```python
 **Explanation:** The sum that is closest to the target is 0. (0 + 0 + 0 = 0).
 
 ## Constraints
@@ -74,7 +74,7 @@ If the current sum is less than the target, we move the left pointer to the righ
 This approach ensures we find the sum closest to the target.
 
 ## Time Complexity
-O(n^2), where n is the length of the array, due to the nested loops (one for i, one for the two pointers).
+**O(n^2)**, where n is the length of the array, due to the nested loops (one for i, one for the two pointers).
 
 ## Space Complexity
-O(1) additional space, excluding the input array, since we sort in place.
+**O(1)** additional space, excluding the input array, since we sort in place.

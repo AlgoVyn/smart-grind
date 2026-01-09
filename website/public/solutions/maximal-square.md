@@ -21,7 +21,7 @@ matrix = [
 ```
 
 **Output:**
-```
+```python
 4
 ```
 
@@ -35,7 +35,7 @@ matrix = [["0", "1"], ["1", "0"]]
 ```
 
 **Output:**
-```
+```python
 1
 ```
 
@@ -47,7 +47,7 @@ matrix = [["0"]]
 ```
 
 **Output:**
-```
+```python
 0
 ```
 
@@ -98,7 +98,7 @@ A cell `(i, j)` can extend a square if:
 - The cells above, left, and diagonal are also part of squares
 
 The recurrence relation:
-```
+```python
 dp[i][j] = min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]) + 1
 ```
 

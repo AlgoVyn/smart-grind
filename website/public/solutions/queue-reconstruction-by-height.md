@@ -9,12 +9,12 @@ Reconstruct and return the queue that is represented by the input array `people`
 ### Example 1
 
 **Input:**
-```
+```python
 people = [[7,0],[4,4],[7,1],[5,0],[6,1],[5,2]]
 ```
 
 **Output:**
-```
+```python
 [[5,0],[7,0],[5,2],[6,1],[4,4],[7,1]]
 ```
 
@@ -31,12 +31,12 @@ Hence `[[5,0],[7,0],[5,2],[6,1],[4,4],[7,1]]` is the reconstructed queue.
 ### Example 2
 
 **Input:**
-```
+```python
 people = [[6,0],[5,0],[4,0],[3,2],[2,2],[1,4]]
 ```
 
 **Output:**
-```
+```python
 [[4,0],[5,0],[2,2],[3,2],[1,4],[6,0]]
 ```
 

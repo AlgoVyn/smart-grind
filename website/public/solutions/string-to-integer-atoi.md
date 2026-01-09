@@ -16,19 +16,19 @@ Implement `myAtoi(string s)` to convert a string to a 32-bit signed integer.
 ## Examples
 
 **Example 1:**
-```
+```python
 Input: s = "42"
 Output: 42
 ```
 
 **Example 2:**
-```
+```python
 Input: s = "   -042"
 Output: -42
 ```
 
 **Example 3:**
-```
+```python
 Input: s = "1337c0d3"
 Output: 1337
 ```
