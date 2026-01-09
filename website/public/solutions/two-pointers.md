@@ -1,6 +1,7 @@
 # Two Pointers
 
 ## Problem Description
+
 The Two Pointers technique is a common algorithmic approach used to solve problems involving arrays or strings efficiently. It involves using two pointers (indices) to traverse the data structure from different ends or at different speeds.
 
 Common use cases include:
@@ -28,16 +29,18 @@ def twoSumSorted(nums, target):
 ```
 
 ## Explanation
+
 The Two Pointers technique uses two indices to scan an array from opposite ends or same direction at different speeds.
 
-1. Initialize two pointers: left at start, right at end.
+1. Initialize two pointers: `left` at start, `right` at end.
 2. Move pointers based on conditions:
-   - If sum < target, move left pointer right to increase sum.
-   - If sum > target, move right pointer left to decrease sum.
+   - If sum < target, move `left` pointer right to increase sum.
+   - If sum > target, move `right` pointer left to decrease sum.
    - If equal, found the pair.
 3. Continue until pointers meet.
 
 This is efficient for sorted arrays, achieving O(n) time and O(1) space.
 
 **Time Complexity:** O(n), linear scan.
+
 **Space Complexity:** O(1), constant extra space.

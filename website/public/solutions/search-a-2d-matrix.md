@@ -1,29 +1,31 @@
-# Search A 2d Matrix
+# Search a 2D Matrix
 
 ## Problem Description
-You are given an m x n integer matrix matrix with the following two properties:
 
-Each row is sorted in non-decreasing order.
-The first integer of each row is greater than the last integer of the previous row.
+You are given an `m x n` integer matrix with the following two properties:
 
-Given an integer target, return true if target is in matrix or false otherwise.
-You must write a solution in O(log(m * n)) time complexity.
- 
-Example 1:
-Input: matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 3
-Output: true
+1. Each row is sorted in non-decreasing order.
+2. The first integer of each row is greater than the last integer of the previous row.
 
-Example 2:
-Input: matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 13
-Output: false
+Given an integer `target`, return `true` if target is in the matrix or `false` otherwise. You must write a solution in O(log(m * n)) time complexity.
 
- 
-Constraints:
+### Examples
 
-m == matrix.length
-n == matrix[i].length
-1 <= m, n <= 100
--104 <= matrix[i][j], target <= 104
+**Example 1:**
+- Input: `matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 3`
+- Output: `true`
+
+**Example 2:**
+- Input: `matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 13`
+- Output: `false`
+
+### Constraints
+
+- `m == matrix.length`
+- `n == matrix[i].length`
+- `1 <= m, n <= 100`
+- `-10^4 <= matrix[i][j], target <= 10^4`
+
 ## Solution
 
 ```python
@@ -50,30 +52,25 @@ class Solution:
 
 ## Explanation
 
-This problem requires searching for a target in a 2D matrix that is sorted row-wise and column-wise, with O(log(m*n)) time.
+This problem requires searching for a target in a 2D matrix that is sorted row-wise and column-wise, with O(log(m*n)) time complexity.
 
 ### Approach
 
 Treat the 2D matrix as a 1D sorted array and perform binary search.
 
-### Step-by-Step Explanation
+### Algorithm Steps
 
 1. **Edge Cases**: Check if matrix is empty.
-
-2. **Dimensions**: Get m and n.
-
-3. **Binary Search**: Set left to 0, right to m*n-1.
-
-4. **Mid Calculation**: Compute row = mid // n, col = mid % n.
-
-5. **Comparison**: If equal, return true; else adjust left or right.
-
-6. **Return**: False if not found.
+2. **Dimensions**: Get `m` (rows) and `n` (columns).
+3. **Binary Search Setup**: Set `left` to `0`, `right` to `m*n-1`.
+4. **Mid Calculation**: Compute `row = mid // n`, `col = mid % n`.
+5. **Comparison**: If equal to target, return `true`; else adjust `left` or `right`.
+6. **Return**: `false` if not found.
 
 ### Time Complexity
 
-- O(log(m * n)), as binary search on m*n elements.
+- **O(log(m * n))**, as binary search on `m*n` elements.
 
 ### Space Complexity
 
-- O(1), no extra space used.
+- **O(1)**, no extra space used.

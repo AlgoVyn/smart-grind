@@ -1,36 +1,60 @@
 # Find K Th Smallest Pair Distance
 
 ## Problem Description
+
 The distance of a pair of integers a and b is defined as the absolute difference between a and b.
 Given an integer array nums and an integer k, return the kth smallest distance among all the pairs nums[i] and nums[j] where 0 <= i < j < nums.length.
- 
-Example 1:
 
-Input: nums = [1,3,1], k = 1
-Output: 0
-Explanation: Here are all the pairs:
+## Constraints
+
+- n == nums.length
+- 2 <= n <= 104
+- 0 <= nums[i] <= 106
+- 1 <= k <= n * (n - 1) / 2
+
+## Example 1
+
+**Input:**
+```python
+nums = [1,3,1], k = 1
+```
+
+**Output:**
+```python
+0
+```
+
+**Explanation:**
+Here are all the pairs:
 (1,3) -> 2
 (1,1) -> 0
 (3,1) -> 2
 Then the 1st smallest distance pair is (1,1), and its distance is 0.
 
-Example 2:
+## Example 2
 
-Input: nums = [1,1,1], k = 2
-Output: 0
+**Input:**
+```python
+nums = [1,1,1], k = 2
+```
 
-Example 3:
+**Output:**
+```python
+0
+```
 
-Input: nums = [1,6,1], k = 3
-Output: 5
+## Example 3
 
- 
-Constraints:
+**Input:**
+```python
+nums = [1,6,1], k = 3
+```
 
-n == nums.length
-2 <= n <= 104
-0 <= nums[i] <= 106
-1 <= k <= n * (n - 1) / 2
+**Output:**
+```python
+5
+```
+
 ## Solution
 
 ```python
@@ -61,7 +85,10 @@ class Solution:
 ```
 
 ## Explanation
+
 This problem requires finding the k-th smallest absolute difference between any two elements in the array.
+
+### Step-by-Step Explanation:
 
 1. **Sort the array:**
    - Sorting allows efficient pair difference calculation.
@@ -78,6 +105,10 @@ This problem requires finding the k-th smallest absolute difference between any 
    - If count >= k, the k-th smallest is <= mid, so high = mid.
    - Else, low = mid + 1.
 
-**Time Complexity:** O(N log N + N log D), where D is the max difference (10^6), due to sorting and binary search with O(N) count.
+### Time Complexity:
 
-**Space Complexity:** O(1) extra space besides the input.
+O(N log N + N log D), where D is the max difference (10^6), due to sorting and binary search with O(N) count.
+
+### Space Complexity:
+
+O(1) extra space besides the input.

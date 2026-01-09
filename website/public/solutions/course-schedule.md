@@ -6,29 +6,45 @@ There are a total of numCourses courses you have to take, labeled from 0 to numC
 For example, the pair [0, 1], indicates that to take course 0 you have to first take course 1.
 
 Return true if you can finish all courses. Otherwise, return false.
- 
-Example 1:
 
-Input: numCourses = 2, prerequisites = [[1,0]]
-Output: true
-Explanation: There are a total of 2 courses to take. 
-To take course 1 you should have finished course 0. So it is possible.
+## Examples
 
-Example 2:
+**Example 1:**
 
-Input: numCourses = 2, prerequisites = [[1,0],[0,1]]
-Output: false
-Explanation: There are a total of 2 courses to take. 
-To take course 1 you should have finished course 0, and to take course 0 you should also have finished course 1. So it is impossible.
+**Input:**
+```
+numCourses = 2, prerequisites = [[1,0]]
+```
 
- 
-Constraints:
+**Output:**
+```
+true
+```
 
-1 <= numCourses <= 2000
-0 <= prerequisites.length <= 5000
-prerequisites[i].length == 2
-0 <= ai, bi < numCourses
-All the pairs prerequisites[i] are unique.
+**Explanation:** There are a total of 2 courses to take. To take course 1 you should have finished course 0. So it is possible.
+
+**Example 2:**
+
+**Input:**
+```
+numCourses = 2, prerequisites = [[1,0],[0,1]]
+```
+
+**Output:**
+```
+false
+```
+
+**Explanation:** There are a total of 2 courses to take. To take course 1 you should have finished course 0, and to take course 0 you should also have finished course 1. So it is impossible.
+
+## Constraints
+
+- `1 <= numCourses <= 2000`
+- `0 <= prerequisites.length <= 5000`
+- `prerequisites[i].length == 2`
+- `0 <= ai, bi < numCourses`
+- All the pairs prerequisites[i] are unique.
+
 ## Solution
 
 ```python
@@ -66,5 +82,8 @@ This is a cycle detection problem in a directed graph. Use topological sort with
 3. Process each course, reduce indegree of dependents, and enqueue if indegree becomes 0.
 4. If all courses are processed (count == numCourses), no cycle; otherwise, cycle exists.
 
-**Time Complexity**: O(V + E), where V is numCourses and E is prerequisites.
-**Space Complexity**: O(V + E), for graph and indegree.
+## Time Complexity
+**O(V + E)**, where V is numCourses and E is prerequisites.
+
+## Space Complexity
+**O(V + E)**, for graph and indegree.

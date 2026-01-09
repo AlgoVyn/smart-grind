@@ -1,40 +1,63 @@
-# Maximize The Topmost Element After K Moves
+# Maximize the Topmost Element After K Moves
 
 ## Problem Description
-You are given a 0-indexed integer array nums representing the contents of a pile, where nums[0] is the topmost element of the pile.
+
+You are given a 0-indexed integer array `nums` representing the contents of a pile, where `nums[0]` is the topmost element of the pile.
+
 In one move, you can perform either of the following:
 
-If the pile is not empty, remove the topmost element of the pile.
-If there are one or more removed elements, add any one of them back onto the pile. This element becomes the new topmost element.
+1. If the pile is not empty, remove the topmost element of the pile.
+2. If there are one or more removed elements, add any one of them back onto the pile. This element becomes the new topmost element.
 
-You are also given an integer k, which denotes the total number of moves to be made.
-Return the maximum value of the topmost element of the pile possible after exactly k moves. In case it is not possible to obtain a non-empty pile after k moves, return -1.
- 
-Example 1:
+You are also given an integer `k`, which denotes the total number of moves to be made.
 
-Input: nums = [5,2,2,4,0,6], k = 4
-Output: 5
-Explanation:
-One of the ways we can end with 5 at the top of the pile after 4 moves is as follows:
-- Step 1: Remove the topmost element = 5. The pile becomes [2,2,4,0,6].
-- Step 2: Remove the topmost element = 2. The pile becomes [2,4,0,6].
-- Step 3: Remove the topmost element = 2. The pile becomes [4,0,6].
-- Step 4: Add 5 back onto the pile. The pile becomes [5,4,0,6].
-Note that this is not the only way to end with 5 at the top of the pile. It can be shown that 5 is the largest answer possible after 4 moves.
+Return the maximum value of the topmost element of the pile possible after exactly `k` moves. If it is not possible to obtain a non-empty pile after `k` moves, return `-1`.
 
-Example 2:
+---
 
-Input: nums = [2], k = 1
-Output: -1
-Explanation: 
-In the first move, our only option is to pop the topmost element of the pile.
-Since it is not possible to obtain a non-empty pile after one move, we return -1.
+## Examples
 
- 
-Constraints:
+### Example 1
 
-1 <= nums.length <= 105
-0 <= nums[i], k <= 109
+**Input:**
+```python
+nums = [5, 2, 2, 4, 0, 6], k = 4
+```
+
+**Output:**
+```
+5
+```
+
+**Explanation:** One way to end with `5` at the top after 4 moves:
+1. Remove `5` → Pile: `[2, 2, 4, 0, 6]`
+2. Remove `2` → Pile: `[2, 4, 0, 6]`
+3. Remove `2` → Pile: `[4, 0, 6]`
+4. Add `5` back → Pile: `[5, 4, 0, 6]`
+
+### Example 2
+
+**Input:**
+```python
+nums = [2], k = 1
+```
+
+**Output:**
+```
+-1
+```
+
+**Explanation:** The only move is to remove the topmost element, leaving an empty pile. Return `-1`.
+
+---
+
+## Constraints
+
+- `1 <= nums.length <= 10^5`
+- `0 <= nums[i], k <= 10^9`
+
+---
+
 ## Solution
 
 ```python
@@ -49,18 +72,30 @@ class Solution:
             return nums[0]
         if k >= n:
             return max(nums)
-        return max(nums[:k+1])
+        return max(nums[:k + 1])
 ```
 
+---
+
 ## Explanation
-If k equals the length of nums, the pile will be empty after k moves, return -1.
 
-If k is 0, return the top element.
+We analyze different cases based on the relationship between `k` and `n`:
 
-If k >= n, we can access all elements, return the maximum.
+### Case Analysis
 
-Otherwise, the possible top elements are the first k+1 elements (after removing k and possibly adding back), return their maximum.
+1. **`k == n`**: After removing all `n` elements, the pile is empty. Return `-1`.
 
-Time complexity: O(k) for k < n, O(n) otherwise.
+2. **`k == 0`**: No moves are made. Return the top element `nums[0]`.
 
-Space complexity: O(1).
+3. **`k >= n`**: We can access all elements (remove `n` elements, then add one back). Return `max(nums)`.
+
+4. **`k < n`**: We can remove `k` elements, then optionally add back one of the removed elements. The possible top elements are the first `k+1` elements. Return `max(nums[:k+1])`.
+
+---
+
+## Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O(k)` for `k < n`, `O(n)` otherwise |
+| **Space** | `O(1)` |

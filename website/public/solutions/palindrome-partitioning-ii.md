@@ -1,30 +1,32 @@
-# Palindrome Partitioning Ii
+# Palindrome Partitioning II
 
 ## Problem Description
-Given a string s, partition s such that every substring of the partition is a palindrome.
-Return the minimum cuts needed for a palindrome partitioning of s.
- 
-Example 1:
 
-Input: s = "aab"
-Output: 1
-Explanation: The palindrome partitioning ["aa","b"] could be produced using 1 cut.
+Given a string `s`, partition `s` such that every substring of the partition is a palindrome.
+Return the minimum cuts needed for a palindrome partitioning of `s`.
 
-Example 2:
+### Example 1
 
-Input: s = "a"
-Output: 0
+**Input:** `s = "aab"`  
+**Output:** `1`
 
-Example 3:
+**Explanation:** The palindrome partitioning `["aa","b"]` could be produced using 1 cut.
 
-Input: s = "ab"
-Output: 1
+### Example 2
 
- 
-Constraints:
+**Input:** `s = "a"`  
+**Output:** `0`
 
-1 <= s.length <= 2000
-s consists of lowercase English letters only.
+### Example 3
+
+**Input:** `s = "ab"`  
+**Output:** `1`
+
+### Constraints
+
+- `1 <= s.length <= 2000`
+- `s` consists of lowercase English letters only.
+
 ## Solution
 
 ```python
@@ -56,13 +58,17 @@ class Solution:
 ```
 
 ## Explanation
-To find the minimum cuts needed for palindrome partitioning, precompute all palindromic substrings, then use DP where dp[i] is the min cuts for s[0..i-1].
 
-Step-by-step approach:
+To find the minimum cuts needed for palindrome partitioning, precompute all palindromic substrings, then use DP where `dp[i]` is the min cuts for `s[0..i-1]`.
+
+### Step-by-step Approach
+
 1. Use a 2D array to mark palindromic substrings: single chars, two same chars, and longer by checking ends and middle.
-2. Initialize dp[0] = 0, dp[i] = inf.
-3. For each i, check all j < i where s[j..i-1] is palindrome, update dp[i] = min(dp[i], dp[j] + 1).
-4. Return dp[n] - 1, since no cut needed for the whole string if palindrome.
+2. Initialize `dp[0] = 0`, `dp[i] = inf`.
+3. For each `i`, check all `j < i` where `s[j..i-1]` is palindrome, update `dp[i] = min(dp[i], dp[j] + 1)`.
+4. Return `dp[n] - 1`, since no cut needed for the whole string if palindrome.
 
-Time Complexity: O(n^2) for both palindrome check and DP.
-Space Complexity: O(n^2) for is_pal matrix.
+### Complexity Analysis
+
+- **Time Complexity:** O(n^2) for both palindrome check and DP.
+- **Space Complexity:** O(n^2) for `is_pal` matrix.

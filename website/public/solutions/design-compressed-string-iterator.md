@@ -5,19 +5,27 @@ Design and implement a data structure for a compressed string iterator. The give
 
 Implement the StringIterator class:
 
-StringIterator(string s) Initializes the object with the compressed string s.
-char next() Returns the next letter of the uncompressed string. It is guaranteed that there will always be a next letter when this method is called.
-boolean hasNext() Returns true if there is any letter left to uncompressed in the string, otherwise, it returns false.
+- `StringIterator(string s)` Initializes the object with the compressed string s.
+- `char next()` Returns the next letter of the uncompressed string. It is guaranteed that there will always be a next letter when this method is called.
+- `boolean hasNext()` Returns true if there is any letter left to uncompressed in the string, otherwise, it returns false.
 
-Example:
+## Examples
 
-Input
+**Example 1:**
+
+**Input:**
+```
 ["StringIterator","next","next","next","next","next","next","hasNext","next","hasNext"]
 [["L1e2t1C1o1d1e1"],[],[],[],[],[],[],[],[],[]]
-Output
-[null,"L","e","e","t","C","o",true,"d",true]
+```
 
-Explanation
+**Output:**
+```
+[null,"L","e","e","t","C","o",true,"d",true]
+```
+
+**Explanation:**
+```
 StringIterator stringIterator = new StringIterator("L1e2t1C1o1d1e1");
 stringIterator.next(); // return "L"
 stringIterator.next(); // return "e"
@@ -28,14 +36,15 @@ stringIterator.next(); // return "o"
 stringIterator.hasNext(); // return True
 stringIterator.next(); // return "d"
 stringIterator.hasNext(); // return True
+```
 
-Constraints:
+## Constraints
 
-1 <= compressedString.length <= 1000
-compressedString consists of lower and upper case English letters and digits.
-The number after a letter will be in the range [1,10^9].
-It is guaranteed that the uncompressed string will have more than 0 letters.
-At most 100 calls will be made to next and hasNext.
+- `1 <= compressedString.length <= 1000`
+- `compressedString` consists of lower and upper case English letters and digits.
+- The number after a letter will be in the range [1,10^9].
+- It is guaranteed that the uncompressed string will have more than 0 letters.
+- At most 100 calls will be made to next and hasNext.
 
 ## Solution
 
@@ -80,5 +89,6 @@ Keep an index for the current pair and a count for remaining in current pair.
 - `next()`: If count == 0, set to current pair's count, decrement, return char, if count == 0, move to next index.
 - `hasNext()`: True if index < len or count > 0.
 
-Time complexity: Parsing O(n), each next O(1).
-Space complexity: O(number of groups).
+**Time Complexity:** Parsing O(n), each next O(1).
+
+**Space Complexity:** O(number of groups).

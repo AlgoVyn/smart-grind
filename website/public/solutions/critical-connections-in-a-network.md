@@ -5,15 +5,26 @@ There are n servers numbered from 0 to n - 1 connected by undirected server-to-s
 A critical connection is a connection that, if removed, will make some servers unable to reach some other server.
 Return all critical connections in the network in any order.
  
-Example 1:
-Input: n = 4, connections = [[0,1],[1,2],[2,0],[1,3]]
-Output: [[1,3]]
-Explanation: [[3,1]] is also accepted.
+**Example 1:**
+**Input:**
+```
+n = 4, connections = [[0,1],[1,2],[2,0],[1,3]]
+```
+**Output:**
+```
+[[1,3]]
+```
+**Explanation:** [[3,1]] is also accepted.
 
-Example 2:
-
-Input: n = 2, connections = [[0,1]]
-Output: [[0,1]]
+**Example 2:**
+**Input:**
+```
+n = 2, connections = [[0,1]]
+```
+**Output:**
+```
+[[0,1]]
+```
 
  
 Constraints:
@@ -71,5 +82,8 @@ Critical connections (bridges) are edges whose removal increases the number of c
 3. For each edge curr -> nei, if low[nei] > disc[curr], it's a bridge.
 4. Collect all such edges.
 
-**Time Complexity**: O(V + E), where V is n and E is connections.
-**Space Complexity**: O(V + E), for graph and arrays.
+## Time Complexity
+**O(V + E)**, where V is n and E is connections.
+
+## Space Complexity
+**O(V + E)**, for graph and arrays.

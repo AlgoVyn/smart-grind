@@ -1,27 +1,52 @@
 # Find Duplicate Subtrees
 
 ## Problem Description
-Given the root of a binary tree, return all duplicate subtrees.
+
+Given the root of a binary tree, return all duplicate subtrees.
 For each kind of duplicate subtrees, you only need to return the root node of any one of them.
 Two trees are duplicate if they have the same structure with the same node values.
- 
-Example 1:
-Input: root = [1,2,3,4,null,2,4,null,null,4]
-Output: [[2,4],[4]]
 
-Example 2:
-Input: root = [2,1,1]
-Output: [[1]]
+## Constraints
 
-Example 3:
-Input: root = [2,2,2,3,null,3,null]
-Output: [[2,3],[3]]
+- The number of the nodes in the tree will be in the range [1, 5000]
+- -200 <= Node.val <= 200
 
- 
-Constraints:
+## Example 1
 
-The number of the nodes in the tree will be in the range [1, 5000]
--200 <= Node.val <= 200
+**Input:**
+```python
+root = [1,2,3,4,null,2,4,null,null,4]
+```
+
+**Output:**
+```python
+[[2,4],[4]]
+```
+
+## Example 2
+
+**Input:**
+```python
+root = [2,1,1]
+```
+
+**Output:**
+```python
+[[1]]
+```
+
+## Example 3
+
+**Input:**
+```python
+root = [2,2,2,3,null,3,null]
+```
+
+**Output:**
+```python
+[[2,3],[3]]
+```
+
 ## Solution
 
 ```python
@@ -57,7 +82,10 @@ class Solution:
 ```
 
 ## Explanation
+
 This problem requires finding all duplicate subtrees in a binary tree, where duplicates have the same structure and node values.
+
+### Step-by-Step Explanation:
 
 1. **Serialization approach:**
    - Use DFS to traverse the tree and serialize each subtree into a string representation.
@@ -72,6 +100,10 @@ This problem requires finding all duplicate subtrees in a binary tree, where dup
    - Null nodes are represented as "#" in serialization.
    - The result contains root nodes of duplicate subtrees, not copies.
 
-**Time Complexity:** O(N), where N is the number of nodes, as each node is visited once and string operations are proportional to subtree size.
+### Time Complexity:
 
-**Space Complexity:** O(N), for the recursion stack, count dictionary, and result list. String storage could be O(N^2) in worst case, but typically acceptable.
+O(N), where N is the number of nodes, as each node is visited once and string operations are proportional to subtree size.
+
+### Space Complexity:
+
+O(N), for the recursion stack, count dictionary, and result list. String storage could be O(N^2) in worst case, but typically acceptable.

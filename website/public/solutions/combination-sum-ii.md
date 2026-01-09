@@ -1,36 +1,50 @@
 # Combination Sum Ii
 
 ## Problem Description
-Given a collection of candidate numbers (candidates) and a target number (target), find all unique combinations in candidates where the candidate numbers sum to target.
-Each number in candidates may only be used once in the combination.
-Note: The solution set must not contain duplicate combinations.
- 
-Example 1:
+Given a collection of candidate numbers (candidates) and a target number (target), find all unique combinations in candidates where the candidate numbers sum to target.
+Each number in candidates may only be used once in the combination.
+Note: The solution set must not contain duplicate combinations.
 
-Input: candidates = [10,1,2,7,6,1,5], target = 8
-Output: 
+## Examples
+
+**Example 1:**
+
+**Input:**
+```
+candidates = [10,1,2,7,6,1,5], target = 8
+```
+
+**Output:**
+```
 [
 [1,1,6],
 [1,2,5],
 [1,7],
 [2,6]
 ]
+```
 
-Example 2:
+**Example 2:**
 
-Input: candidates = [2,5,2,1,2], target = 5
-Output: 
+**Input:**
+```
+candidates = [2,5,2,1,2], target = 5
+```
+
+**Output:**
+```
 [
 [1,2,2],
 [5]
 ]
+```
 
- 
-Constraints:
+## Constraints
 
-1 <= candidates.length <= 100
-1 <= candidates[i] <= 50
-1 <= target <= 30
+- `1 <= candidates.length <= 100`
+- `1 <= candidates[i] <= 50`
+- `1 <= target <= 30`
+
 ## Solution
 
 ```python
@@ -65,4 +79,8 @@ We sort the candidates to handle duplicates easily. In the backtrack function, i
 
 For each valid candidate, we append it to the path, recurse with the next index and updated sum, then backtrack.
 
-Time complexity: Exponential in the worst case, but constrained by small input sizes (candidates <= 100, target <= 30). Space complexity: O(target) for the recursion stack and path.
+## Time Complexity
+Exponential in the worst case, but constrained by small input sizes (candidates <= 100, target <= 30).
+
+## Space Complexity
+**O(target)** for the recursion stack and path.

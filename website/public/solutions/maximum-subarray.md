@@ -1,34 +1,42 @@
 # Maximum Subarray
 
 ## Problem Description
-Given an integer array nums, find the subarray with the largest sum, and return its sum.
- 
-Example 1:
 
-Input: nums = [-2,1,-3,4,-1,2,1,-5,4]
-Output: 6
-Explanation: The subarray [4,-1,2,1] has the largest sum 6.
+Given an integer array `nums`, find the subarray with the largest sum, and return its sum.
 
-Example 2:
+### Example 1
 
-Input: nums = [1]
-Output: 1
-Explanation: The subarray [1] has the largest sum 1.
+**Input:** `nums = [-2,1,-3,4,-1,2,1,-5,4]`
 
-Example 3:
+**Output:** `6`
 
-Input: nums = [5,4,-1,7,8]
-Output: 23
-Explanation: The subarray [5,4,-1,7,8] has the largest sum 23.
+**Explanation:** The subarray `[4,-1,2,1]` has the largest sum `6`.
 
- 
-Constraints:
+### Example 2
 
-1 <= nums.length <= 105
--104 <= nums[i] <= 104
+**Input:** `nums = [1]`
 
- 
-Follow up: If you have figured out the O(n) solution, try coding another solution using the divide and conquer approach, which is more subtle.
+**Output:** `1`
+
+**Explanation:** The subarray `[1]` has the largest sum `1`.
+
+### Example 3
+
+**Input:** `nums = [5,4,-1,7,8]`
+
+**Output:** `23`
+
+**Explanation:** The subarray `[5,4,-1,7,8]` has the largest sum `23`.
+
+### Constraints
+
+- `1 <= nums.length <= 10^5`
+- `-10^4 <= nums[i] <= 10^4`
+
+### Follow Up
+
+If you have figured out the O(n) solution, try coding another solution using the divide and conquer approach, which is more subtle.
+
 ## Solution
 
 ```python
@@ -54,18 +62,18 @@ Use Kadane's algorithm to track the maximum sum ending at each position and upda
 
 ### Step-by-Step Explanation
 
-1. **Initialization**: Set max_current and max_global to the first element.
+1. **Initialization:** Set `max_current` and `max_global` to the first element.
 
-2. **Iteration**: For each subsequent element, update max_current as max of current element or current + element.
+2. **Iteration:** For each subsequent element, update `max_current` as max of current element or current + element.
 
-3. **Update Global**: If max_current > max_global, update max_global.
+3. **Update Global:** If `max_current > max_global`, update `max_global`.
 
-4. **Return**: max_global.
+4. **Return:** `max_global`
 
 ### Time Complexity
 
-- O(n), where n is the length of nums.
+- **O(n)**, where `n` is the length of `nums`
 
 ### Space Complexity
 
-- O(1), constant space.
+- **O(1)**, constant space

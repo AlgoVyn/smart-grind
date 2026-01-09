@@ -1,32 +1,40 @@
 # Longest Increasing Subsequence
 
 ## Problem Description
-Given an integer array nums, return the length of the longest strictly increasing subsequence.
- 
-Example 1:
 
-Input: nums = [10,9,2,5,3,7,101,18]
-Output: 4
-Explanation: The longest increasing subsequence is [2,3,7,101], therefore the length is 4.
+Given an integer array `nums`, return the length of the longest strictly increasing subsequence.
 
-Example 2:
+## Examples
 
-Input: nums = [0,1,0,3,2,3]
-Output: 4
+**Example 1:**
 
-Example 3:
+**Input:** `nums = [10,9,2,5,3,7,101,18]`
 
-Input: nums = [7,7,7,7,7,7,7]
-Output: 1
+**Output:** `4`
 
- 
-Constraints:
+**Explanation:** The longest increasing subsequence is `[2,3,7,101]`, therefore the length is `4`.
 
-1 <= nums.length <= 2500
--104 <= nums[i] <= 104
+**Example 2:**
 
- 
-Follow up: Can you come up with an algorithm that runs in O(n log(n)) time complexity?
+**Input:** `nums = [0,1,0,3,2,3]`
+
+**Output:** `4`
+
+**Example 3:**
+
+**Input:** `nums = [7,7,7,7,7,7,7]`
+
+**Output:** `1`
+
+## Constraints
+
+- `1 <= nums.length <= 2500`
+- `-10^4 <= nums[i] <= 10^4`
+
+## Follow Up
+
+Can you come up with an algorithm that runs in `O(n log(n))` time complexity?
+
 ## Solution
 
 ```python
@@ -51,11 +59,14 @@ class Solution:
 ```
 
 ## Explanation
-We use a dynamic approach with binary search. Maintain a list tails where tails[i] is the smallest tail of all increasing subsequences with length i+1.
+
+We use a dynamic approach with binary search. Maintain a list `tails` where `tails[i]` is the smallest tail of all increasing subsequences with length `i+1`.
 
 For each number, use binary search to find the position to replace or append.
 
-The length of tails is the LIS length.
+The length of `tails` is the LIS length.
 
-Time complexity: O(n log n), due to binary search for each element.
-Space complexity: O(n), for the tails list.
+## Complexity Analysis
+
+- **Time Complexity:** `O(n log n)`, due to binary search for each element.
+- **Space Complexity:** `O(n)`, for the `tails` list.

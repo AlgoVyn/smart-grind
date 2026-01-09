@@ -1,34 +1,40 @@
 # Flatten Binary Tree To Linked List
 
 ## Problem Description
+
 Given the root of a binary tree, flatten the tree into a "linked list":
+- The "linked list" should use the same TreeNode class where the right child pointer points to the next node in the list and the left child pointer is always null.
+- The "linked list" should be in the same order as a pre-order traversal of the binary tree.
 
-The "linked list" should use the same TreeNode class where the right child pointer points to the next node in the list and the left child pointer is always null.
-The "linked list" should be in the same order as a pre-order traversal of the binary tree.
+### Examples
 
- 
-Example 1:
-Input: root = [1,2,5,3,4,null,6]
-Output: [1,null,2,null,3,null,4,null,5,null,6]
+**Example 1:**
 
-Example 2:
+**Input:** root = [1,2,5,3,4,null,6]
 
-Input: root = []
-Output: []
+**Output:** [1,null,2,null,3,null,4,null,5,null,6]
 
-Example 3:
+**Example 2:**
 
-Input: root = [0]
-Output: [0]
+**Input:** root = []
 
- 
-Constraints:
+**Output:** []
 
-The number of nodes in the tree is in the range [0, 2000].
--100 <= Node.val <= 100
+**Example 3:**
 
- 
-Follow up: Can you flatten the tree in-place (with O(1) extra space)?
+**Input:** root = [0]
+
+**Output:** [0]
+
+### Constraints
+
+- The number of nodes in the tree is in the range [0, 2000].
+- -100 <= Node.val <= 100
+
+### Follow up
+
+Can you flatten the tree in-place (with O(1) extra space)?
+
 ## Solution
 
 ```python
@@ -62,16 +68,15 @@ class Solution:
         curr.right = right
 ```
 
-## Explanation
+### Approach
 
 Recursively flatten the right and left subtrees.
-
 Then, set root.right to root.left, set root.left to None.
-
 Find the end of the new right chain and attach the original right subtree.
-
 This modifies the tree in-place to a linked list in preorder.
+
+### Complexity
 
 **Time Complexity:** O(n), where n is the number of nodes.
 
-**Space Complexity:** O(h), where h is the tree height, due to recursion stack.
+**Space Complexity:** O(h), where h is tree height, due to recursion stack.

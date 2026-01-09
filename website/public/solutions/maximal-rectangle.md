@@ -1,30 +1,67 @@
 # Maximal Rectangle
 
 ## Problem Description
-Given a rows x cols binary matrix filled with 0's and 1's, find the largest rectangle containing only 1's and return its area.
- 
-Example 1:
-Input: matrix = [["1","0","1","0","0"],["1","0","1","1","1"],["1","1","1","1","1"],["1","0","0","1","0"]]
-Output: 6
-Explanation: The maximal rectangle is shown in the above picture.
 
-Example 2:
+Given an `rows x cols` binary matrix filled with `0`'s and `1`'s, find the largest rectangle containing only `1`'s and return its area.
 
-Input: matrix = [["0"]]
-Output: 0
+---
 
-Example 3:
+## Examples
 
-Input: matrix = [["1"]]
-Output: 1
+### Example 1
 
- 
-Constraints:
+**Input:**
+```python
+matrix = [
+    ["1", "0", "1", "0", "0"],
+    ["1", "0", "1", "1", "1"],
+    ["1", "1", "1", "1", "1"],
+    ["1", "0", "0", "1", "0"]
+]
+```
 
-rows == matrix.length
-cols == matrix[i].length
-1 <= rows, cols <= 200
-matrix[i][j] is '0' or '1'.
+**Output:**
+```
+6
+```
+
+**Explanation:** The maximal rectangle contains 6 cells of `1`'s.
+
+### Example 2
+
+**Input:**
+```python
+matrix = [["0"]]
+```
+
+**Output:**
+```
+0
+```
+
+### Example 3
+
+**Input:**
+```python
+matrix = [["1"]]
+```
+
+**Output:**
+```
+1
+```
+
+---
+
+## Constraints
+
+- `rows == matrix.length`
+- `cols == matrix[i].length`
+- `1 <= rows, cols <= 200`
+- `matrix[i][j]` is `'0'` or `'1'`
+
+---
+
 ## Solution
 
 ```python
@@ -37,7 +74,8 @@ class Solution:
         rows, cols = len(matrix), len(matrix[0])
         heights = [0] * cols
         max_area = 0
-        def largestRectangleArea(heights):
+        
+        def largestRectangleArea(heights: List[int]) -> int:
             stack = [-1]
             max_a = 0
             for i in range(len(heights)):
@@ -51,6 +89,7 @@ class Solution:
                 w = len(heights) - stack[-1] - 1
                 max_a = max(max_a, h * w)
             return max_a
+        
         for i in range(rows):
             for j in range(cols):
                 if matrix[i][j] == '1':
@@ -58,14 +97,44 @@ class Solution:
                 else:
                     heights[j] = 0
             max_area = max(max_area, largestRectangleArea(heights))
+        
         return max_area
 ```
 
+---
+
 ## Explanation
-We treat each row as the base of a histogram where the height is the number of consecutive 1's above it. For each row, we update the heights array and compute the largest rectangle in that histogram using a stack-based approach.
 
-The largestRectangleArea function uses a monotonic stack to find the largest rectangle for a given heights array.
+We use a **histogram-based** approach combined with the **largest rectangle in histogram** algorithm.
 
-Time complexity: O(rows * cols), as each cell is processed a constant number of times.
+### Key Idea
 
-Space complexity: O(cols), for the heights and stack.
+Treat each row as the base of a histogram:
+- `heights[j]` = number of consecutive `1`'s above (and including) the current row in column `j`
+
+For each row, we compute the largest rectangle in its histogram using a **monotonic stack**.
+
+### Largest Rectangle in Histogram
+
+The algorithm uses a monotonic increasing stack to find the largest rectangle:
+1. Push indices onto the stack
+2. When a smaller height is found, pop and calculate rectangle area
+3. At the end, pop remaining indices to calculate areas
+
+### Algorithm
+
+1. Initialize `heights` array with zeros
+2. For each row:
+   - Update `heights` based on current row values
+   - Compute largest rectangle in histogram
+   - Update `max_area`
+3. Return `max_area`
+
+---
+
+## Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O(rows * cols)` — Each cell is processed a constant number of times |
+| **Space** | `O(cols)` — For `heights` array and stack |

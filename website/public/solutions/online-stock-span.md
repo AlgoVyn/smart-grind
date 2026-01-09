@@ -1,6 +1,7 @@
 # Online Stock Span
 
 ## Problem Description
+
 Design an algorithm that collects daily price quotes for some stock and returns the span of that stock's price for the current day.
 The span of the stock's price in one day is the maximum number of consecutive days (starting from that day and going backward) for which the stock price was less than or equal to the price of that day.
 
@@ -9,19 +10,24 @@ Also, if the prices of the stock in the last four days is [7,34,1,2] and the pri
 
 Implement the StockSpanner class:
 
-StockSpanner() Initializes the object of the class.
-int next(int price) Returns the span of the stock's price given that today's price is price.
+- `StockSpanner()` Initializes the object of the class.
+- `int next(int price)` Returns the span of the stock's price given that today's price is price.
 
- 
-Example 1:
+### Example
 
-Input
+**Input**
+```
 ["StockSpanner", "next", "next", "next", "next", "next", "next", "next"]
 [[], [100], [80], [60], [70], [60], [75], [85]]
-Output
-[null, 1, 1, 1, 2, 1, 4, 6]
+```
 
-Explanation
+**Output**
+```
+[null, 1, 1, 1, 2, 1, 4, 6]
+```
+
+**Explanation**
+```
 StockSpanner stockSpanner = new StockSpanner();
 stockSpanner.next(100); // return 1
 stockSpanner.next(80);  // return 1
@@ -30,12 +36,13 @@ stockSpanner.next(70);  // return 2
 stockSpanner.next(60);  // return 1
 stockSpanner.next(75);  // return 4, because the last 4 prices (including today's price of 75) were less than or equal to today's price.
 stockSpanner.next(85);  // return 6
+```
 
- 
-Constraints:
+### Constraints
 
-1 <= price <= 105
-At most 104 calls will be made to next.
+- `1 <= price <= 10^5`
+- At most `10^4` calls will be made to `next`.
+
 ## Solution
 
 ```python
@@ -52,15 +59,19 @@ class StockSpanner:
 ```
 
 ## Explanation
+
 The stock span is the number of consecutive days with prices less than or equal to today's price. We use a monotonic stack to keep track of previous prices and their spans.
 
-Step-by-step approach:
-1. Initialize a stack to store pairs of (price, span).
+### Step-by-step Approach
+
+1. Initialize a stack to store pairs of `(price, span)`.
 2. For each new price:
-   - Start span at 1.
+   - Start `span` at 1.
    - While the stack is not empty and the top price is <= current price, pop it and add its span to current span.
    - Push the current price and its span onto the stack.
    - Return the span.
 
-Time Complexity: O(1) amortized per operation, as each price is pushed and popped at most once.
-Space Complexity: O(n), where n is the number of calls, for the stack.
+### Complexity Analysis
+
+- **Time Complexity:** O(1) amortized per operation, as each price is pushed and popped at most once.
+- **Space Complexity:** O(n), where n is the number of calls, for the stack.

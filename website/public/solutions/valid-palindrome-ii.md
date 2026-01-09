@@ -1,29 +1,54 @@
-# Valid Palindrome Ii
+# Valid Palindrome II
 
 ## Problem Description
-Given a string s, return true if the s can be palindrome after deleting at most one character from it.
- 
-Example 1:
 
-Input: s = "aba"
-Output: true
+Given a string `s`, return `true` if the `s` can be palindrome after deleting at most one character from it.
 
-Example 2:
+### Examples
 
-Input: s = "abca"
-Output: true
-Explanation: You could delete the character 'c'.
+**Example 1:**
 
-Example 3:
+**Input:**
+```
+s = "aba"
+```
 
-Input: s = "abc"
-Output: false
+**Output:**
+```
+true
+```
 
- 
-Constraints:
+**Example 2:**
 
-1 <= s.length <= 105
-s consists of lowercase English letters.
+**Input:**
+```
+s = "abca"
+```
+
+**Output:**
+```
+true
+```
+
+**Explanation:** You could delete the character `'c'`.
+
+**Example 3:**
+
+**Input:**
+```
+s = "abc"
+```
+
+**Output:**
+```
+false
+```
+
+### Constraints
+
+- `1 <= s.length <= 10^5`
+- `s` consists of lowercase English letters.
+
 ## Solution
 
 ```python
@@ -46,9 +71,11 @@ def validPalindrome(s):
 ```
 
 ## Explanation
+
 This problem checks if a string can become a palindrome by deleting at most one character using two pointers.
 
-### Step-by-Step Approach:
+### Step-by-Step Approach
+
 1. **Two Pointers:**
    - Start from both ends.
 
@@ -56,13 +83,15 @@ This problem checks if a string can become a palindrome by deleting at most one 
    - If mismatch, check if skipping left or right makes palindrome.
 
 3. **Helper Function:**
-   - is_palindrome checks substring from left to right.
+   - `is_palindrome` checks substring from left to right.
 
 4. **Return:**
-   - True if already palindrome or one skip works.
+   - `True` if already palindrome or one skip works.
 
-### Time Complexity:
-- O(n), as each character is checked at most twice.
+### Time Complexity
 
-### Space Complexity:
-- O(1), excluding recursion stack (depth 1).
+- **O(n)**, as each character is checked at most twice.
+
+### Space Complexity
+
+- **O(1)**, excluding recursion stack (depth 1).

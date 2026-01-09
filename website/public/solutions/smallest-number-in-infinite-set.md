@@ -1,50 +1,44 @@
 # Smallest Number In Infinite Set
 
 ## Problem Description
-You have a set which contains all positive integers [1, 2, 3, 4, 5, ...].
-Implement the SmallestInfiniteSet class:
 
-SmallestInfiniteSet() Initializes the SmallestInfiniteSet object to contain all positive integers.
-int popSmallest() Removes and returns the smallest integer contained in the infinite set.
-void addBack(int num) Adds a positive integer num back into the infinite set, if it is not already in the infinite set.
+Design a data structure that contains all positive integers starting from 1. Support two operations:
 
- 
-Example 1:
+1. `popSmallest()` — Remove and return the smallest number in the set
+2. `addBack(num)` — Add a number back to the set if it was previously removed
 
-Input
-["SmallestInfiniteSet", "addBack", "popSmallest", "popSmallest", "popSmallest", "addBack", "popSmallest", "popSmallest", "popSmallest"]
-[[], [2], [], [], [], [1], [], [], []]
-Output
-[null, null, 1, 2, 3, null, 1, 4, 5]
+---
 
-Explanation
-SmallestInfiniteSet smallestInfiniteSet = new SmallestInfiniteSet();
-smallestInfiniteSet.addBack(2);    // 2 is already in the set, so no change is made.
-smallestInfiniteSet.popSmallest(); // return 1, since 1 is the smallest number, and remove it from the set.
-smallestInfiniteSet.popSmallest(); // return 2, and remove it from the set.
-smallestInfiniteSet.popSmallest(); // return 3, and remove it from the set.
-smallestInfiniteSet.addBack(1);    // 1 is added back to the set.
-smallestInfiniteSet.popSmallest(); // return 1, since 1 was added back to the set and
-                                   // is the smallest number, and remove it from the set.
-smallestInfiniteSet.popSmallest(); // return 4, and remove it from the set.
-smallestInfiniteSet.popSmallest(); // return 5, and remove it from the set.
+## Examples
 
- 
-Constraints:
+**Example 1:**
+```
+Operations: ["SmallestInfiniteSet", "addBack", "popSmallest", "popSmallest", "popSmallest", "addBack", "popSmallest", "popSmallest", "popSmallest"]
+Arguments: [[], [2], [], [], [], [1], [], [], []]
+Output: [null, null, 1, 2, 3, null, 1, 4, 5]
+```
 
-1 <= num <= 1000
-At most 1000 calls will be made in total to popSmallest and addBack.
+---
+
+## Constraints
+
+| Constraint | Description |
+|------------|-------------|
+| `1 <= num <= 1000` | Number value |
+| At most 1000 calls | Total to `popSmallest` and `addBack` |
+
+---
+
 ## Solution
 
 ```python
 import heapq
 
 class SmallestInfiniteSet:
-
     def __init__(self):
-        self.heap = []
-        self.present = set()
-        self.next = 1
+        self.heap = []           # Min-heap for added-back numbers
+        self.present = set()     # Track numbers in heap
+        self.next = 1            # Next number to pop if heap empty
 
     def popSmallest(self) -> int:
         if self.heap:
@@ -63,21 +57,31 @@ class SmallestInfiniteSet:
         self.present.add(num)
 ```
 
+---
+
 ## Explanation
 
-To manage an infinite set of positive integers, allowing pop smallest and add back.
+### Data Structures
 
-### Step-by-Step Approach:
+| Structure | Purpose |
+|-----------|---------|
+| Min-heap | Store numbers that were popped and added back |
+| Set | Track numbers in heap for O(1) lookup |
+| Integer `next` | Next number to pop from infinite sequence |
 
-1. **Data Structures**: Use a minheap for added back numbers, a set to track them, and a counter for the next number.
+### Time Complexity
 
-2. **Pop Smallest**: If heap has numbers, pop the smallest. Else, return next and increment.
+| Operation | Time |
+|-----------|------|
+| `popSmallest()` | O(log n) |
+| `addBack()` | O(log n) |
 
-3. **Add Back**: If num is not already present and less than next, add to heap and set.
+### Space Complexity
 
-### Time Complexity:
-- Pop: O(log n)
-- Add: O(log n)
+- **O(n)** — Heap and set store at most n elements
 
-### Space Complexity:
-- O(n), for heap and set.
+---
+
+## Related Problems
+
+- [Smallest Number in Infinite Set](https://leetcode.com/problems/smallest-number-in-infinite-set/)

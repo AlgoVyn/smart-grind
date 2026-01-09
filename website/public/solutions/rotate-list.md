@@ -1,22 +1,29 @@
 # Rotate List
 
 ## Problem Description
-Given the head of a linked list, rotate the list to the right by k places.
- 
-Example 1:
-Input: head = [1,2,3,4,5], k = 2
-Output: [4,5,1,2,3]
 
-Example 2:
-Input: head = [0,1,2], k = 4
-Output: [2,0,1]
+Given the head of a linked list, rotate the list to the right by `k` places.
 
- 
-Constraints:
+### Examples
 
-The number of nodes in the list is in the range [0, 500].
--100 <= Node.val <= 100
-0 <= k <= 2 * 109
+**Example 1:**
+
+| Input | Output |
+|-------|--------|
+| `head = [1,2,3,4,5]`<br>`k = 2` | `[4,5,1,2,3]` |
+
+**Example 2:**
+
+| Input | Output |
+|-------|--------|
+| `head = [0,1,2]`<br>`k = 4` | `[2,0,1]` |
+
+### Constraints
+
+- The number of nodes in the list is in the range `[0, 500]`.
+- `-100 <= Node.val <= 100`
+- `0 <= k <= 2 * 10^9`
+
 ## Solution
 
 ```python
@@ -50,30 +57,31 @@ def rotateRight(head, k):
 ```
 
 ## Explanation
-This problem rotates a linked list to the right by k places. It first computes the effective rotation (k mod n), then reconnects the list to form the rotated version.
 
-### Step-by-Step Approach:
-1. **Handle Edge Cases:**
-   - If the list is empty or has one node, return head.
+This problem rotates a linked list to the right by k places. It first computes the effective rotation (`k mod n`), then reconnects the list to form the rotated version.
+
+### Approach
+
+1. **Handle Edge Cases:** If the list is empty or has one node, return head.
 
 2. **Compute Length and Connect Tail to Head:**
-   - Traverse to find the length n and the tail.
-   - Connect tail.next = head to form a cycle.
+   - Traverse to find the length `n` and the tail.
+   - Connect `tail.next = head` to form a cycle.
 
-3. **Adjust k:**
-   - Set k = k % n. If k == 0, return head.
+3. **Adjust k:** Set `k = k % n`. If `k == 0`, return head.
 
 4. **Find New Head and Tail:**
-   - The new tail is the (n - k - 1)th node from the start.
-   - Traverse steps = n - k - 1 to find new_tail.
-   - New head is new_tail.next.
-   - Set new_tail.next = None to break the cycle.
+   - The new tail is the `(n - k - 1)`th node from the start.
+   - Traverse `steps = n - k - 1` to find `new_tail`.
+   - New head is `new_tail.next`.
+   - Set `new_tail.next = None` to break the cycle.
 
-5. **Return New Head:**
-   - Return new_head.
+5. **Return New Head:** Return `new_head`.
 
-### Time Complexity:
+### Time Complexity
+
 - O(n), where n is the number of nodes, as we traverse the list up to twice.
 
-### Space Complexity:
+### Space Complexity
+
 - O(1), using only a few pointers.

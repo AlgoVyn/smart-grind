@@ -1,21 +1,39 @@
-# Unique Binary Search Trees Ii
+# Unique Binary Search Trees II
 
 ## Problem Description
-Given an integer n, return all the structurally unique BST's (binary search trees), which has exactly n nodes of unique values from 1 to n. Return the answer in any order.
- 
-Example 1:
-Input: n = 3
-Output: [[1,null,2,null,3],[1,null,3,2],[2,1,3],[3,1,null,null,2],[3,2,null,1]]
 
-Example 2:
+Given an integer `n`, return all the structurally unique BST's (binary search trees) which has exactly `n` nodes of unique values from `1` to `n`. Return the answer in any order.
 
-Input: n = 1
-Output: [[1]]
+### Examples
 
- 
-Constraints:
+**Example 1:**
 
-1 <= n <= 8
+**Input:**
+```
+n = 3
+```
+
+**Output:**
+```
+[[1,null,2,null,3],[1,null,3,2],[2,1,3],[3,1,null,null,2],[3,2,null,1]]
+```
+
+**Example 2:**
+
+**Input:**
+```
+n = 1
+```
+
+**Output:**
+```
+[[1]]
+```
+
+### Constraints
+
+- `1 <= n <= 8`
+
 ## Solution
 
 ```python
@@ -50,8 +68,13 @@ class Solution:
 ```
 
 ## Explanation
-Use recursion to generate all possible BSTs. For each possible root i from start to end, generate all left subtrees from start to i-1 and right from i+1 to end, then combine each pair to form the tree.
 
-**Time Complexity:** O(4^n / sqrt(n)), due to Catalan number growth, as each tree is generated once.
+Use recursion to generate all possible BSTs. For each possible root `i` from `start` to `end`, generate all left subtrees from `start` to `i-1` and right from `i+1` to `end`, then combine each pair to form the tree.
 
-**Space Complexity:** O(4^n / sqrt(n)), for storing all trees.
+### Time Complexity
+
+- **O(4^n / sqrt(n))**, due to Catalan number growth, as each tree is generated once.
+
+### Space Complexity
+
+- **O(4^n / sqrt(n))**, for storing all trees.

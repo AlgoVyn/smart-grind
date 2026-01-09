@@ -1,30 +1,38 @@
 # Longest Valid Parentheses
 
 ## Problem Description
-Given a string containing just the characters '(' and ')', return the length of the longest valid (well-formed) parentheses substring.
- 
-Example 1:
 
-Input: s = "(()"
-Output: 2
-Explanation: The longest valid parentheses substring is "()".
+Given a string containing just the characters `'('` and `')'`, return the length of the longest valid (well-formed) parentheses substring.
 
-Example 2:
+## Examples
 
-Input: s = ")()())"
-Output: 4
-Explanation: The longest valid parentheses substring is "()()".
+**Example 1:**
 
-Example 3:
+**Input:** `s = "(()"`
 
-Input: s = ""
-Output: 0
+**Output:** `2`
 
- 
-Constraints:
+**Explanation:** The longest valid parentheses substring is `"()"`.
 
-0 <= s.length <= 3 * 104
-s[i] is '(', or ')'.
+**Example 2:**
+
+**Input:** `s = ")()())"`
+
+**Output:** `4`
+
+**Explanation:** The longest valid parentheses substring is `"()()"`.
+
+**Example 3:**
+
+**Input:** `s = ""`
+
+**Output:** `0`
+
+## Constraints
+
+- `0 <= s.length <= 3 * 10^4`
+- `s[i]` is `'('` or `')'`.
+
 ## Solution
 
 ```python
@@ -45,14 +53,16 @@ class Solution:
 ```
 
 ## Explanation
-We use a stack to keep track of indices of unmatched opening parentheses. Initialize the stack with -1 to handle the starting point.
+
+We use a stack to keep track of indices of unmatched opening parentheses. Initialize the stack with `-1` to handle the starting point.
 
 For each character in the string:
-- If it's '(', push the current index onto the stack.
-- If it's ')', pop the top of the stack. If the stack is not empty after popping, calculate the length of the valid substring as the current index minus the new top of the stack. Update the maximum length. If the stack is empty, push the current index as a new potential start.
+- If it's `'('`, push the current index onto the stack.
+- If it's `')'`, pop the top of the stack. If the stack is not empty after popping, calculate the length of the valid substring as the current index minus the new top of the stack. Update the maximum length. If the stack is empty, push the current index as a new potential start.
 
 This approach finds the longest valid parentheses substring by tracking the boundaries of valid segments.
 
-Time complexity: O(n), where n is the length of s, as we traverse the string once.
+## Complexity Analysis
 
-Space complexity: O(n), in the worst case, for unbalanced parentheses.
+- **Time Complexity:** `O(n)`, where `n` is the length of `s`, as we traverse the string once.
+- **Space Complexity:** `O(n)`, in the worst case, for unbalanced parentheses.

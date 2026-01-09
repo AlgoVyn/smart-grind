@@ -1,27 +1,32 @@
-# Reverse Linked List Ii
+# Reverse Linked List II
 
 ## Problem Description
-Given the head of a singly linked list and two integers left and right where left <= right, reverse the nodes of the list from position left to position right, and return the reversed list.
- 
-Example 1:
-Input: head = [1,2,3,4,5], left = 2, right = 4
-Output: [1,4,3,2,5]
 
-Example 2:
+Given the head of a singly linked list and two integers `left` and `right` where `left <= right`, reverse the nodes of the list from position `left` to position `right`, and return the reversed list.
 
-Input: head = [5], left = 1, right = 1
-Output: [5]
+### Examples
 
- 
-Constraints:
+**Example 1:**
 
-The number of nodes in the list is n.
-1 <= n <= 500
--500 <= Node.val <= 500
-1 <= left <= right <= n
+| Input | Output |
+|-------|--------|
+| `head = [1,2,3,4,5]`<br>`left = 2`<br>`right = 4` | `[1,4,3,2,5]` |
 
- 
-Follow up: Could you do it in one pass?
+**Example 2:**
+
+| Input | Output |
+|-------|--------|
+| `head = [5]`<br>`left = 1`<br>`right = 1` | `[5]` |
+
+### Constraints
+
+- The number of nodes in the list is `n`.
+- `1 <= n <= 500`
+- `-500 <= Node.val <= 500`
+- `1 <= left <= right <= n`
+
+**Follow-up:** Could you do it in one pass?
+
 ## Solution
 
 ```python
@@ -48,8 +53,13 @@ class Solution:
 ```
 
 ## Explanation
-Use a dummy node to handle the head. Move prev to the node before the left position. Then, for each node from left to right-1, take the next node and insert it after prev, effectively reversing the segment in place.
 
-**Time Complexity:** O(n), where n is the list length, as we traverse to left and reverse the segment.
+Use a dummy node to handle the head. Move `prev` to the node before the left position. Then, for each node from `left` to `right-1`, take the next node and insert it after `prev`, effectively reversing the segment in place.
 
-**Space Complexity:** O(1), using constant extra space.
+### Time Complexity
+
+- O(n), where n is the list length, as we traverse to left and reverse the segment.
+
+### Space Complexity
+
+- O(1), using constant extra space.

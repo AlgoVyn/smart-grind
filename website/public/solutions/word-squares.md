@@ -1,6 +1,53 @@
 # Word Squares
 
 ## Problem Description
+
+Given a set of words (without duplicates), return all word squares. A word square is a sequence of words of length `k` such that for every `i` from `0` to `k-1`, the `i`-th row and the `i`-th column are the same word.
+
+For example, if the words are `["area","lead","wall","lady","ball"]`, then one word square is:
+
+```
+ball
+area
+lead
+wall
+lady
+```
+
+Each row reads the same as each column.
+
+### Examples
+
+**Example 1:**
+
+**Input:**
+```
+words = ["area","lead","wall","lady","ball"]
+```
+
+**Output:**
+```
+[["ball","area","lead","wall","lady"],["wall","area","lead","lady","ball"]]
+```
+
+**Example 2:**
+
+**Input:**
+```
+words = ["abat","baba","atan","atal"]
+```
+
+**Output:**
+```
+[["baba","abat","baba","abat"],["baba","abat","baba","abat"]]
+```
+
+### Constraints
+
+- `1 <= words.length <= 1000`
+- `1 <= words[i].length <= 4`
+- `words[i]` consists of lowercase English letters.
+
 ## Solution
 
 ```python
@@ -55,9 +102,11 @@ def wordSquares(words):
 ```
 
 ## Explanation
+
 This problem finds all word squares from a list of words using backtracking and a trie for efficient prefix searches.
 
-### Step-by-Step Approach:
+### Step-by-Step Approach
+
 1. **Build Trie:**
    - Insert all words into a trie where each node stores words passing through it.
 
@@ -67,10 +116,12 @@ This problem finds all word squares from a list of words using backtracking and 
    - Recurse until square is complete.
 
 3. **Collect Results:**
-   - When square has n rows, add to result.
+   - When square has `n` rows, add to result.
 
-### Time Complexity:
-- O(n * m^2), where n is number of words, m is word length, due to backtracking and trie searches.
+### Time Complexity
 
-### Space Complexity:
-- O(n * m), for trie and recursion stack.
+- **O(n * m^2)**, where `n` is number of words, `m` is word length, due to backtracking and trie searches.
+
+### Space Complexity
+
+- **O(n * m)**, for trie and recursion stack.

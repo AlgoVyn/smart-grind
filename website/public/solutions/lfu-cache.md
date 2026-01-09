@@ -1,35 +1,51 @@
 # LFU Cache
 
 ## Problem Description
-Design and implement a data structure for a Least Frequently Used (LFU) cache.
-Implement the LFUCache class:
 
-LFUCache(int capacity) Initializes the object with the capacity of the data structure.
-int get(int key) Gets the value of the key if the key exists in the cache. Otherwise, returns -1.
-void put(int key, int value) Update the value of the key if present, or inserts the key if not already present. When the cache reaches its capacity, it should invalidate and remove the least frequently used key before inserting a new item. For this problem, when there is a tie (i.e., two or more keys with the same frequency), the least recently used key would be invalidated.
+Design and implement a data structure for a **Least Frequently Used (LFU)** cache. Implement the `LFUCache` class:
 
-To determine the least frequently used key, a use counter is maintained for each key in the cache. The key with the smallest use counter is the least frequently used key.
-When a key is first inserted into the cache, its use counter is set to 1 (due to the put operation). The use counter for a key in the cache is incremented either a get or put operation is called on it.
-The functions get and put must each run in O(1) average time complexity.
- 
-Example 1:
+### Methods
 
+| Method | Description |
+|--------|-------------|
+| `LFUCache(int capacity)` | Initializes the object with the capacity of the data structure |
+| `int get(int key)` | Gets the value of the key if the key exists in the cache. Otherwise, returns `-1` |
+| `void put(int key, int value)` | Update the value of the key if present, or inserts the key if not already present |
+
+When the cache reaches its capacity, it should **invalidate and remove the least frequently used key** before inserting a new item. When there is a tie (i.e., two or more keys with the same frequency), the **least recently used key** would be invalidated.
+
+### How It Works
+
+- To determine the least frequently used key, a **use counter** is maintained for each key in the cache
+- The key with the **smallest use counter** is the least frequently used key
+- When a key is first inserted into the cache, its use counter is set to `1` (due to the put operation)
+- The use counter for a key is incremented when either a `get` or `put` operation is called on it
+
+> The functions `get` and `put` must each run in **O(1) average time complexity**.
+
+### Example
+
+```
 Input
 ["LFUCache", "put", "put", "get", "put", "get", "get", "put", "get", "get", "get"]
 [[2], [1, 1], [2, 2], [1], [3, 3], [2], [3], [4, 4], [1], [3], [4]]
+
 Output
 [null, null, null, 1, null, -1, 3, null, -1, 3, 4]
+```
 
-Explanation
-// cnt(x) = the use counter for key x
-// cache=[] will show the last used order for tiebreakers (leftmost element is  most recent)
+**Explanation:**
+- `cnt(x)` = the use counter for key `x`
+- `cache=[]` will show the last used order for tiebreakers (leftmost element is most recent)
+
+```
 LFUCache lfu = new LFUCache(2);
 lfu.put(1, 1);   // cache=[1,_], cnt(1)=1
 lfu.put(2, 2);   // cache=[2,1], cnt(2)=1, cnt(1)=1
 lfu.get(1);      // return 1
                  // cache=[1,2], cnt(2)=1, cnt(1)=2
 lfu.put(3, 3);   // 2 is the LFU key because cnt(2)=1 is the smallest, invalidate 2.
-                 // cache=[3,1], cnt(3)=1, cnt(1)=2
+                 // cache=[3,1], cnt(3)=1, cnt(1)=2
 lfu.get(2);      // return -1 (not found)
 lfu.get(3);      // return 3
                  // cache=[3,1], cnt(3)=2, cnt(1)=2
@@ -40,14 +56,15 @@ lfu.get(3);      // return 3
                  // cache=[3,4], cnt(4)=1, cnt(3)=3
 lfu.get(4);      // return 4
                  // cache=[4,3], cnt(4)=2, cnt(3)=3
+```
 
- 
-Constraints:
+### Constraints
 
-1 <= capacity <= 104
-0 <= key <= 105
-0 <= value <= 109
-At most 2 * 105 calls will be made to get and put.
+- `1 <= capacity <= 10^4`
+- `0 <= key <= 10^5`
+- `0 <= value <= 10^9`
+- At most `2 * 10^5` calls will be made to `get` and `put`
+
 ## Solution
 
 ```python
@@ -97,13 +114,21 @@ class LFUCache:
 ```
 
 ## Explanation
-We use a dictionary for key to value, key to frequency. For each frequency, an OrderedDict of keys for LRU order.
 
-When getting or putting an existing key, update its frequency by moving it to the next freq OrderedDict.
+We use:
+- A dictionary for **key to value**
+- A dictionary for **key to frequency**
+- For each frequency, an **OrderedDict** of keys for LRU order
 
-When putting a new key and at capacity, remove the first key from the min_freq OrderedDict.
+**Get/Put existing key:** Update its frequency by moving it to the next freq OrderedDict.
 
-All operations are O(1) on average.
+**Put new key at capacity:** Remove the first key from the `min_freq` OrderedDict.
 
-Time complexity: O(1) for get and put.
-Space complexity: O(capacity).
+All operations are **O(1)** on average.
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time**   | `O(1)` for `get` and `put` (amortized) |
+| **Space**  | `O(capacity)` |

@@ -1,17 +1,33 @@
-# Linked Lists
+# Reverse Linked List
 
 ## Problem Description
-Given the head of a singly linked list, reverse the list, and return the reversed list.
 
-Example 1:
+Given the head of a **singly linked list**, reverse the list, and return the reversed list.
 
+### Examples
+
+**Example 1:**
+```
 Input: head = [1,2,3,4,5]
 Output: [5,4,3,2,1]
+```
 
-Constraints:
+**Example 2:**
+```
+Input: head = [1,2]
+Output: [2,1]
+```
 
-The number of nodes in the list is the range [0, 5000].
--5000 <= Node.val <= 5000
+**Example 3:**
+```
+Input: head = []
+Output: []
+```
+
+### Constraints
+
+- The number of nodes in the list is in the range `[0, 5000]`
+- `-5000 <= Node.val <= 5000`
 
 ## Solution
 
@@ -37,11 +53,20 @@ class Solution:
 ```
 
 ## Explanation
-We use an iterative approach to reverse the linked list. Initialize prev to None, and curr to head.
 
-While curr is not None, save the next node, set curr.next to prev, move prev to curr, and curr to next_temp.
+We use an **iterative approach** to reverse the linked list:
 
-At the end, prev is the new head.
+1. Initialize `prev` to `None`, and `curr` to `head`
+2. While `curr` is not `None`:
+   - Save the next node (`next_temp`)
+   - Set `curr.next` to `prev`
+   - Move `prev` to `curr`
+   - Move `curr` to `next_temp`
+3. At the end, `prev` is the new head
 
-Time complexity: O(n), where n is the number of nodes.
-Space complexity: O(1), using constant space.
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time**   | `O(n)` — where `n` is the number of nodes |
+| **Space**  | `O(1)` — using constant space |

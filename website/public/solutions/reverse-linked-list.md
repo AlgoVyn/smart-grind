@@ -1,29 +1,36 @@
 # Reverse Linked List
 
 ## Problem Description
+
 Given the head of a singly linked list, reverse the list, and return the reversed list.
- 
-Example 1:
-Input: head = [1,2,3,4,5]
-Output: [5,4,3,2,1]
 
-Example 2:
-Input: head = [1,2]
-Output: [2,1]
+### Examples
 
-Example 3:
+**Example 1:**
 
-Input: head = []
-Output: []
+| Input | Output |
+|-------|--------|
+| `head = [1,2,3,4,5]` | `[5,4,3,2,1]` |
 
- 
-Constraints:
+**Example 2:**
 
-The number of nodes in the list is the range [0, 5000].
--5000 <= Node.val <= 5000
+| Input | Output |
+|-------|--------|
+| `head = [1,2]` | `[2,1]` |
 
- 
-Follow up: A linked list can be reversed either iteratively or recursively. Could you implement both?
+**Example 3:**
+
+| Input | Output |
+|-------|--------|
+| `head = []` | `[]` |
+
+### Constraints
+
+- The number of nodes in the list is in the range `[0, 5000]`.
+- `-5000 <= Node.val <= 5000`
+
+**Follow-up:** A linked list can be reversed either iteratively or recursively. Could you implement both?
+
 ## Solution
 
 ```python
@@ -39,25 +46,40 @@ def reverseList(head):
 ```
 
 ## Explanation
+
 This problem reverses a singly linked list iteratively by changing the next pointers.
 
-### Step-by-Step Approach:
-1. **Initialize Pointers:**
-   - prev = None, curr = head.
+### Approach
 
-2. **Traverse and Reverse:**
-   - While curr is not None:
-     - Save next_temp = curr.next.
-     - Set curr.next = prev.
-     - Move prev = curr, curr = next_temp.
+1. **Initialize Pointers:** Set `prev = None` and `curr = head`.
 
-3. **Return New Head:**
-   - When curr is None, prev is the new head.
+2. **Traverse and Reverse:** While `curr` is not None:
+   - Save `next_temp = curr.next`.
+   - Set `curr.next = prev`.
+   - Move `prev = curr` and `curr = next_temp`.
 
-### Time Complexity:
+3. **Return New Head:** When `curr` is None, `prev` is the new head.
+
+### Iterative Time Complexity
+
 - O(n), where n is the number of nodes.
 
-### Space Complexity:
+### Iterative Space Complexity
+
 - O(1), using constant extra space.
 
-For recursive approach: Base case if not head or not head.next return head. Else reverse rest, set head.next.next = head, head.next = None, return rest.
+### Recursive Approach
+
+```python
+def reverseListRecursive(head):
+    if not head or not head.next:
+        return head
+    new_head = reverseListRecursive(head.next)
+    head.next.next = head
+    head.next = None
+    return new_head
+```
+
+### Recursive Space Complexity
+
+- O(n), due to the call stack.

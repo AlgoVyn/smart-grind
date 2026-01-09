@@ -1,6 +1,48 @@
 # 3sum Smaller
 
 ## Problem Description
+Given an integer array nums of length n and an integer target, find all triplets [nums[i], nums[j], nums[k]] such that i < j < k and nums[i] + nums[j] + nums[k] < target.
+
+Return the count of triplets.
+
+## Examples
+
+**Example 1:**
+**Input:**
+```
+nums = [-2,0,1,3], target = 2
+```
+**Output:**
+```
+2
+```
+**Explanation:** There are 2 triplets whose sum is less than 2: [-2,0,1] and [-2,0,3].
+
+**Example 2:**
+**Input:**
+```
+nums = [], target = 0
+```
+**Output:**
+```
+0
+```
+
+**Example 3:**
+**Input:**
+```
+nums = [0], target = 0
+```
+**Output:**
+```
+0
+```
+
+## Constraints
+- 0 <= nums.length <= 1000
+- -1000 <= nums[i] <= 1000
+- -1000 <= target <= 1000
+
 ## Solution
 
 ```python
@@ -33,6 +75,8 @@ If the sum is not less than the target, we decrement right to reduce the sum.
 
 This efficiently counts all valid triplets.
 
-Time Complexity: O(n^2), where n is the length of the array, due to sorting (O(n log n)) and the two-pointer loops (O(n^2)).
+## Time Complexity
+O(n^2), where n is the length of the array, due to sorting (O(n log n)) and the two-pointer loops (O(n^2)).
 
-Space Complexity: O(1) additional space, as sorting is done in place.
+## Space Complexity
+O(1) additional space, as sorting is done in place.

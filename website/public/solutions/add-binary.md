@@ -2,20 +2,43 @@
 
 ## Problem Description
 Given two binary strings a and b, return their sum as a binary string.
- 
-Example 1:
-Input: a = "11", b = "1"
-Output: "100"
-Example 2:
-Input: a = "1010", b = "1011"
-Output: "10101"
 
- 
-Constraints:
+## Examples
 
-1 <= a.length, b.length <= 104
-a and b consist only of '0' or '1' characters.
-Each string does not contain leading zeros except for the zero itself.
+**Example 1:**
+
+**Input:**
+```
+a = "11", b = "1"
+```
+
+**Output:**
+```
+"100"
+```
+
+**Explanation:** Adding binary strings "11" and "1" gives "100".
+
+**Example 2:**
+
+**Input:**
+```
+a = "1010", b = "1011"
+```
+
+**Output:**
+```
+"10101"
+```
+
+**Explanation:** Adding binary strings "1010" and "1011" gives "10101".
+
+## Constraints
+
+- `1 <= a.length, b.length <= 10^4`
+- `a` and `b` consist only of '0' or '1' characters.
+- Each string does not contain leading zeros except for the zero itself.
+
 ## Solution
 
 ```python
@@ -48,6 +71,6 @@ We continue until both strings are processed and there is no carry left.
 
 Finally, we reverse the result list to get the correct order.
 
-Time Complexity: O(max(len(a), len(b))), as we process each bit once.
+**Time Complexity:** O(max(len(a), len(b))), as we process each bit once.
 
-Space Complexity: O(max(len(a), len(b))), for the result list.
+**Space Complexity:** O(max(len(a), len(b))), for the result list.

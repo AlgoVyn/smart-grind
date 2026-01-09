@@ -1,6 +1,7 @@
 # Valid Parentheses
 
 ## Problem Description
+
 Given a string `s` containing just the characters `'('`, `')'`, `'{'`, `'}'`, `'['` and `']'`, determine if the input string is valid.
 
 An input string is valid if:
@@ -8,9 +9,7 @@ An input string is valid if:
 - Open brackets must be closed in the correct order.
 - Every close bracket has a corresponding open bracket of the same type.
 
----
-
-## Examples
+### Examples
 
 **Example 1:**
 
@@ -72,9 +71,7 @@ s = "([)]"
 false
 ```
 
----
-
-## Constraints
+### Constraints
 
 - `1 <= s.length <= 10^4`
 - `s` consists of parentheses only `'()[]{}'`
@@ -97,9 +94,11 @@ class Solution:
 ```
 
 ## Explanation
+
 This problem requires checking if a string of parentheses is valid, meaning all brackets are properly closed and in the correct order.
 
-### Step-by-Step Approach:
+### Step-by-Step Approach
+
 1. **Initialize Stack and Mapping**: Use a stack to keep track of opening brackets. Create a mapping of closing to opening brackets.
 
 2. **Iterate Through String**: For each character:
@@ -108,8 +107,10 @@ This problem requires checking if a string of parentheses is valid, meaning all 
 
 3. **Check Stack**: After processing all characters, the stack should be empty for validity.
 
-### Time Complexity:
-- O(n), where n is the length of s, as we traverse the string once.
+### Time Complexity
 
-### Space Complexity:
-- O(n), in the worst case, all opening brackets are pushed to the stack.
+- **O(n)**, where `n` is the length of `s`, as we traverse the string once.
+
+### Space Complexity
+
+- **O(n)**, in the worst case, all opening brackets are pushed to the stack.

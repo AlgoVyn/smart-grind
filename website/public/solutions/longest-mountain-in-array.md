@@ -1,39 +1,44 @@
 # Longest Mountain In Array
 
 ## Problem Description
-You may recall that an array arr is a mountain array if and only if:
 
-arr.length >= 3
-There exists some index i (0-indexed) with 0 < i < arr.length - 1 such that:
-	
-arr[0] < arr[1] < ... < arr[i - 1] < arr[i]
-arr[i] > arr[i + 1] > ... > arr[arr.length - 1]
+You may recall that an array `arr` is a **mountain array** if and only if:
 
-Given an integer array arr, return the length of the longest subarray, which is a mountain. Return 0 if there is no mountain subarray.
- 
-Example 1:
+- `arr.length >= 3`
+- There exists some index `i` (0-indexed) with `0 < i < arr.length - 1` such that:
+  - `arr[0] < arr[1] < ... < arr[i - 1] < arr[i]`
+  - `arr[i] > arr[i + 1] > ... < arr[arr.length - 1]`
 
-Input: arr = [2,1,4,7,3,2,5]
-Output: 5
-Explanation: The largest mountain is [1,4,7,3,2] which has length 5.
+Given an integer array `arr`, return the length of the longest subarray which is a mountain. Return `0` if there is no mountain subarray.
 
-Example 2:
+## Examples
 
-Input: arr = [2,2,2]
-Output: 0
-Explanation: There is no mountain.
+**Example 1:**
 
- 
-Constraints:
+**Input:** `arr = [2,1,4,7,3,2,5]`
 
-1 <= arr.length <= 104
-0 <= arr[i] <= 104
+**Output:** `5`
 
- 
-Follow up:
+**Explanation:** The largest mountain is `[1,4,7,3,2]` which has length `5`.
 
-Can you solve it using only one pass?
-Can you solve it in O(1) space?
+**Example 2:**
+
+**Input:** `arr = [2,2,2]`
+
+**Output:** `0`
+
+**Explanation:** There is no mountain.
+
+## Constraints
+
+- `1 <= arr.length <= 10^4`
+- `0 <= arr[i] <= 10^4`
+
+## Follow Up
+
+- Can you solve it using only one pass?
+- Can you solve it in `O(1)` space?
+
 ## Solution
 
 ```python
@@ -58,11 +63,14 @@ class Solution:
 ```
 
 ## Explanation
-We iterate through each possible peak i where arr[i-1] < arr[i] > arr[i+1].
+
+We iterate through each possible peak `i` where `arr[i-1] < arr[i] > arr[i+1]`.
 
 For each peak, expand leftward while increasing and rightward while decreasing.
 
 Update the maximum length.
 
-Time complexity: O(n), as each element is visited at most twice.
-Space complexity: O(1), using constant space.
+## Complexity Analysis
+
+- **Time Complexity:** `O(n)`, as each element is visited at most twice.
+- **Space Complexity:** `O(1)`, using constant space.

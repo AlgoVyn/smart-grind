@@ -1,21 +1,39 @@
 # Unique Binary Search Trees
 
 ## Problem Description
-Given an integer n, return the number of structurally unique BST's (binary search trees) which has exactly n nodes of unique values from 1 to n.
- 
-Example 1:
-Input: n = 3
-Output: 5
 
-Example 2:
+Given an integer `n`, return the number of structurally unique BST's (binary search trees) which has exactly `n` nodes of unique values from `1` to `n`.
 
-Input: n = 1
-Output: 1
+### Examples
 
- 
-Constraints:
+**Example 1:**
 
-1 <= n <= 19
+**Input:**
+```
+n = 3
+```
+
+**Output:**
+```
+5
+```
+
+**Example 2:**
+
+**Input:**
+```
+n = 1
+```
+
+**Output:**
+```
+1
+```
+
+### Constraints
+
+- `1 <= n <= 19`
+
 ## Solution
 
 ```python
@@ -30,20 +48,24 @@ def numTrees(n):
 ```
 
 ## Explanation
-This problem calculates the number of unique BSTs with n nodes using dynamic programming. The solution is based on the Catalan number.
 
-### Step-by-Step Approach:
+This problem calculates the number of unique BSTs with `n` nodes using dynamic programming. The solution is based on the Catalan number.
+
+### Step-by-Step Approach
+
 1. **Initialize DP Array:**
-   - dp[0] = 1 (empty tree), dp[1] = 1 (single node).
+   - `dp[0] = 1` (empty tree), `dp[1] = 1` (single node).
 
 2. **Fill DP Array:**
-   - For i from 2 to n, dp[i] = sum of dp[j] * dp[i-1-j] for j from 0 to i-1, where j is the number of nodes in left subtree.
+   - For `i` from 2 to `n`, `dp[i] = sum of dp[j] * dp[i-1-j]` for `j` from 0 to `i-1`, where `j` is the number of nodes in left subtree.
 
 3. **Return Result:**
-   - dp[n] is the number of unique BSTs.
+   - `dp[n]` is the number of unique BSTs.
 
-### Time Complexity:
-- O(n^2), due to the nested loops.
+### Time Complexity
 
-### Space Complexity:
-- O(n), for the dp array.
+- **O(n^2)**, due to the nested loops.
+
+### Space Complexity
+
+- **O(n)**, for the dp array.

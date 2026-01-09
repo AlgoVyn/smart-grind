@@ -1,81 +1,105 @@
 # Min Stack
 
 ## Problem Description
-Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.
-Implement the MinStack class:
 
-MinStack() initializes the stack object.
-void push(int val) pushes the element val onto the stack.
-void pop() removes the element on the top of the stack.
-int top() gets the top element of the stack.
-int getMin() retrieves the minimum element in the stack.
+Design a stack that supports `push`, `pop`, `top`, and retrieving the **minimum element** in **constant time**.
 
-You must implement a solution with O(1) time complexity for each function.
- 
-Example 1:
+### Operations
 
-Input
-["MinStack","push","push","push","getMin","pop","top","getMin"]
-[[],[-2],[0],[-3],[],[],[],[]]
+| Operation | Description |
+|-----------|-------------|
+| `MinStack()` | Initializes the stack object |
+| `push(val)` | Pushes element `val` onto the stack |
+| `pop()` | Removes the element on top of the stack |
+| `top()` | Gets the top element of the stack |
+| `getMin()` | Retrieves the minimum element in the stack |
 
-Output
-[null,null,null,null,-3,null,0,-2]
+All operations must run in **O(1)** time complexity.
 
-Explanation
-MinStack minStack = new MinStack();
-minStack.push(-2);
-minStack.push(0);
-minStack.push(-3);
-minStack.getMin(); // return -3
-minStack.pop();
-minStack.top();    // return 0
-minStack.getMin(); // return -2
+## Examples
 
- 
-Constraints:
+**Example:**
 
--231 <= val <= 231 - 1
-Methods pop, top and getMin operations will always be called on non-empty stacks.
-At most 3 * 104 calls will be made to push, pop, top, and getMin.
+| Operations | Output |
+|------------|--------|
+| `["MinStack","push","push","push","getMin","pop","top","getMin"]` | `[null,null,null,null,-3,null,0,-2]` |
+| `[[],[-2],[0],[-3],[],[],[],[]]` | |
+
+**Explanation:**
+1. `minStack.push(-2)` — Stack: `[-2]`, Min: `-2`
+2. `minStack.push(0)` — Stack: `[-2, 0]`, Min: `-2`
+3. `minStack.push(-3)` — Stack: `[-2, 0, -3]`, Min: `-3`
+4. `minStack.getMin()` — Returns `-3`
+5. `minStack.pop()` — Stack: `[-2, 0]`, Min: `-2`
+6. `minStack.top()` — Returns `0`
+7. `minStack.getMin()` — Returns `-2`
+
+## Constraints
+
+- `-2^31 <= val <= 2^31 - 1`
+- Operations `pop`, `top`, and `getMin` will always be called on **non-empty** stacks
+- At most `3 * 10^4` calls will be made to `push`, `pop`, `top`, and `getMin`
+
 ## Solution
 
 ```python
 class MinStack:
-
     def __init__(self):
-        self.stack = []
-        self.min_stack = []
+        self.stack = []          # Main stack for values
+        self.min_stack = []      # Auxiliary stack for minimums
 
     def push(self, val: int) -> None:
+        """Push val onto stack and update min_stack."""
         self.stack.append(val)
+        
+        # Push to min_stack if empty or val is <= current minimum
         if not self.min_stack or val <= self.min_stack[-1]:
             self.min_stack.append(val)
         else:
+            # Push current minimum again to maintain alignment
             self.min_stack.append(self.min_stack[-1])
 
     def pop(self) -> None:
+        """Pop from both stacks."""
         self.stack.pop()
         self.min_stack.pop()
 
     def top(self) -> int:
+        """Return top element of stack."""
         return self.stack[-1]
 
     def getMin(self) -> int:
+        """Return minimum element in stack."""
         return self.min_stack[-1]
 ```
 
 ## Explanation
-This problem requires designing a stack that supports push, pop, top, and retrieving the minimum element in constant time.
 
-Use two stacks: one for the actual values, and one for the minimum values.
+We use **two stacks** to track values and their corresponding minimums:
 
-For push(val): push val to the value stack, and push min(current min, val) to the min stack.
+1. **`stack`**: Stores all pushed values.
+2. **`min_stack`**: Stores the minimum value at each position.
 
-For pop: pop from both stacks.
+**For `push(val)`**:
+- Push `val` to `stack`.
+- Push `min(val, current_min)` to `min_stack`.
 
-For top: return the top of the value stack.
+**For `pop()`**:
+- Pop from both `stack` and `min_stack`.
 
-For getMin: return the top of the min stack.
+**For `top()`**:
+- Return the top element of `stack`.
 
-**Time Complexity:** O(1) for all operations.
-**Space Complexity:** O(n), where n is the number of elements in the stack.
+**For `getMin()`**:
+- Return the top element of `min_stack`.
+
+## Complexity Analysis
+
+| Operation | Time | Space |
+|-----------|------|-------|
+| `push` | O(1) | O(1) |
+| `pop` | O(1) | O(1) |
+| `top` | O(1) | O(1) |
+| `getMin` | O(1) | O(1) |
+
+**Overall Space:** `O(n)` — where `n` is the number of elements in the stack

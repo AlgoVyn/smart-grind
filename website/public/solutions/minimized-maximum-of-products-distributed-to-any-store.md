@@ -1,47 +1,58 @@
-# Minimized Maximum Of Products Distributed To Any Store
+# Minimized Maximum of Products Distributed to Any Store
 
 ## Problem Description
-You are given an integer n indicating there are n specialty retail stores. There are m product types of varying amounts, which are given as a 0-indexed integer array quantities, where quantities[i] represents the number of products of the ith product type.
-You need to distribute all products to the retail stores following these rules:
 
-A store can only be given at most one product type but can be given any amount of it.
-After distribution, each store will have been given some number of products (possibly 0). Let x represent the maximum number of products given to any store. You want x to be as small as possible, i.e., you want to minimize the maximum number of products that are given to any store.
+You are given an integer `n` representing the number of retail stores. There are `m` product types with varying amounts given in the array `quantities`, where `quantities[i]` is the number of products of type `i`.
 
-Return the minimum possible x.
- 
-Example 1:
+Distribute all products to the stores following these rules:
 
-Input: n = 6, quantities = [11,6]
-Output: 3
-Explanation: One optimal way is:
-- The 11 products of type 0 are distributed to the first four stores in these amounts: 2, 3, 3, 3
-- The 6 products of type 1 are distributed to the other two stores in these amounts: 3, 3
-The maximum number of products given to any store is max(2, 3, 3, 3, 3, 3) = 3.
+1. A store can receive **at most one product type** but can receive any amount of that type.
+2. After distribution, let `x` be the **maximum number of products** given to any store.
+3. **Minimize `x`**.
 
-Example 2:
+Return the minimum possible value of `x`.
 
-Input: n = 7, quantities = [15,10,10]
-Output: 5
-Explanation: One optimal way is:
-- The 15 products of type 0 are distributed to the first three stores in these amounts: 5, 5, 5
-- The 10 products of type 1 are distributed to the next two stores in these amounts: 5, 5
-- The 10 products of type 2 are distributed to the last two stores in these amounts: 5, 5
-The maximum number of products given to any store is max(5, 5, 5, 5, 5, 5, 5) = 5.
+## Examples
 
-Example 3:
+**Example 1:**
 
-Input: n = 1, quantities = [100000]
-Output: 100000
-Explanation: The only optimal way is:
-- The 100000 products of type 0 are distributed to the only store.
-The maximum number of products given to any store is max(100000) = 100000.
+| Input | Output |
+|-------|--------|
+| `n = 6, quantities = [11,6]` | `3` |
 
- 
-Constraints:
+**Optimal Distribution:**
+- Type 0 (11 products): `[2, 3, 3, 3]` across 4 stores
+- Type 1 (6 products): `[3, 3]` across 2 stores
 
-m == quantities.length
-1 <= m <= n <= 105
-1 <= quantities[i] <= 105
+Maximum per store: `max(2, 3, 3, 3, 3, 3) = 3`
+
+**Example 2:**
+
+| Input | Output |
+|-------|--------|
+| `n = 7, quantities = [15,10,10]` | `5` |
+
+**Optimal Distribution:**
+- Type 0 (15 products): `[5, 5, 5]` across 3 stores
+- Type 1 (10 products): `[5, 5]` across 2 stores
+- Type 2 (10 products): `[5, 5]` across 2 stores
+
+Maximum per store: `max(5, 5, 5, 5, 5, 5, 5) = 5`
+
+**Example 3:**
+
+| Input | Output |
+|-------|--------|
+| `n = 1, quantities = [100000]` | `100000` |
+
+**Explanation:** Only one store receives all 100000 products.
+
+## Constraints
+
+- `m == quantities.length`
+- `1 <= m <= n <= 10^5`
+- `1 <= quantities[i] <= 10^5`
+
 ## Solution
 
 ```python
@@ -50,33 +61,48 @@ from typing import List
 
 class Solution:
     def minimizedMaximum(self, n: int, quantities: List[int]) -> int:
-        def can_distribute(x):
+        def can_distribute(x: int) -> bool:
+            """Check if we can distribute with max x products per store."""
             stores_needed = 0
             for q in quantities:
                 stores_needed += math.ceil(q / x)
             return stores_needed <= n
-
+        
         left, right = 1, max(quantities)
+        
         while left < right:
             mid = (left + right) // 2
             if can_distribute(mid):
-                right = mid
+                right = mid  # Can achieve, try smaller
             else:
-                left = mid + 1
+                left = mid + 1  # Need larger max
+        
         return left
 ```
 
 ## Explanation
-To minimize the maximum number of products per store, use binary search on the possible maximum x.
 
-The possible x ranges from 1 to the maximum quantity.
+We use **binary search** on the answer `x` (maximum products per store):
 
-For a candidate x, check if the total stores needed (sum of ceil(q / x) for each quantity) <= n.
+1. **Search range**:
+   - `left = 1` — minimum possible max
+   - `right = max(quantities)` — maximum possible max (one store per product type)
 
-If yes, try smaller x; else, larger.
+2. **Helper function `can_distribute(x)`**:
+   - For each quantity, calculate stores needed: `ceil(q / x)`
+   - Return `True` if total stores needed <= `n`
 
-The smallest x that works is the answer.
+3. **Binary search**:
+   - While `left < right`:
+     - Calculate `mid = (left + right) // 2`
+     - If `can_distribute(mid)`: try smaller (`right = mid`)
+     - Otherwise: need larger (`left = mid + 1`)
 
-Time Complexity: O(m log max_q), where m is number of quantities, max_q is max quantity.
+4. Return `left`, the smallest `x` that works.
 
-Space Complexity: O(1).
+## Complexity Analysis
+
+| Metric | Complexity |
+|--------|------------|
+| Time | `O(m log max_q)` — `m` quantities, binary search over max quantity |
+| Space | `O(1)` — constant extra space |

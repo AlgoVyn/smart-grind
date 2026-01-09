@@ -1,37 +1,68 @@
 # Number Of Closed Islands
 
 ## Problem Description
-Given a 2D grid consists of 0s (land) and 1s (water).  An island is a maximal 4-directionally connected group of 0s and a closed island is an island totally (all left, top, right, bottom) surrounded by 1s.
+
+Given a 2D grid consists of 0s (land) and 1s (water). An island is a maximal 4-directionally connected group of 0s and a closed island is an island totally (all left, top, right, bottom) surrounded by 1s.
+
 Return the number of closed islands.
- 
-Example 1:
-Input: grid = [[1,1,1,1,1,1,1,0],[1,0,0,0,0,1,1,0],[1,0,1,0,1,1,1,0],[1,0,0,0,0,1,0,1],[1,1,1,1,1,1,1,0]]
-Output: 2
-Explanation: 
+
+## Examples
+
+### Example 1
+
+**Input:**
+```
+grid = [[1,1,1,1,1,1,1,0],[1,0,0,0,0,1,1,0],[1,0,1,0,1,1,1,0],[1,0,0,0,0,1,0,1],[1,1,1,1,1,1,1,0]]
+```
+
+**Output:**
+```
+2
+```
+
+**Explanation:**
 Islands in gray are closed because they are completely surrounded by water (group of 1s).
-Example 2:
-Input: grid = [[0,0,1,0,0],[0,1,0,1,0],[0,1,1,1,0]]
-Output: 1
 
-Example 3:
+### Example 2
 
-Input: grid = [[1,1,1,1,1,1,1],
-               [1,0,0,0,0,0,1],
-               [1,0,1,1,1,0,1],
-               [1,0,1,0,1,0,1],
-               [1,0,1,1,1,0,1],
-               [1,0,0,0,0,0,1],
-               [1,1,1,1,1,1,1]]
-Output: 2
+**Input:**
+```
+grid = [[0,0,1,0,0],[0,1,0,1,0],[0,1,1,1,0]]
+```
 
- 
-Constraints:
+**Output:**
+```
+1
+```
 
-1 <= grid.length, grid[0].length <= 100
-0 <= grid[i][j] <=1
+### Example 3
+
+**Input:**
+```
+grid = [[1,1,1,1,1,1,1],
+        [1,0,0,0,0,0,1],
+        [1,0,1,1,1,0,1],
+        [1,0,1,0,1,0,1],
+        [1,0,1,1,1,0,1],
+        [1,0,0,0,0,0,1],
+        [1,1,1,1,1,1,1]]
+```
+
+**Output:**
+```
+2
+```
+
+## Constraints
+
+- `1 <= grid.length, grid[0].length <= 100`
+- `0 <= grid[i][j] <= 1`
+
 ## Solution
 
 ```python
+from typing import List
+
 class Solution:
     def closedIsland(self, grid: List[List[int]]) -> int:
         if not grid or not grid[0]:
@@ -66,14 +97,22 @@ class Solution:
 ```
 
 ## Explanation
+
 A closed island is an island (group of 0s) that is not connected to the boundary of the grid. To count them, we first mark all islands connected to the boundary by performing DFS from the boundary cells and setting them to 1. Then, we iterate through the interior cells and count the remaining islands (groups of 0s) using DFS.
 
-Step-by-step approach:
+### Algorithm Steps
+
 1. If the grid is empty, return 0.
+
 2. Define a DFS function to mark visited cells (set to 1) and explore adjacent cells (up, down, left, right).
+
 3. Perform DFS on all boundary cells (first and last row, first and last column) to mark boundary-connected islands.
+
 4. Iterate through all interior cells (excluding boundaries).
+
 5. For each unvisited 0, perform DFS to mark the entire island and increment the count.
 
-Time Complexity: O(m * n), where m and n are the grid dimensions, as each cell is visited at most once.
-Space Complexity: O(m * n) in the worst case for the recursion stack if the grid is filled with 0s.
+## Complexity Analysis
+
+- **Time Complexity:** O(m * n), where m and n are the grid dimensions, as each cell is visited at most once.
+- **Space Complexity:** O(m * n) in the worst case for the recursion stack if the grid is filled with 0s.

@@ -1,6 +1,31 @@
 # Graph Valid Tree
 
 ## Problem Description
+
+Given n nodes labeled from 0 to n-1 and a list of undirected edges, determine if the edges form a valid tree.
+
+A tree is a connected graph with no cycles and has exactly n-1 edges.
+
+### Examples
+
+**Example 1:**
+
+- **Input:** `n = 5`, `edges = [[0,1],[0,2],[0,3],[1,4]]`
+- **Output:** `true`
+
+**Example 2:**
+
+- **Input:** `n = 5`, `edges = [[0,1],[1,2],[2,3],[1,3]]`
+- **Output:** `false`
+
+### Constraints
+
+- `1 <= n <= 10^4`
+- `0 <= edges.length <= 10^4`
+- `edges[i].length == 2`
+- `0 <= ui, vi < n`
+- No self-loops or multiple edges
+
 ## Solution
 
 ```python
@@ -28,6 +53,7 @@ class Solution:
 ```
 
 ## Explanation
+
 This problem checks if a graph with n nodes and given edges is a valid tree (connected and acyclic).
 
 A tree has exactly n-1 edges.

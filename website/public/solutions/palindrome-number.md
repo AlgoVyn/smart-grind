@@ -1,33 +1,38 @@
 # Palindrome Number
 
 ## Problem Description
-Given an integer x, return true if x is a palindrome, and false otherwise.
- 
-Example 1:
 
-Input: x = 121
-Output: true
-Explanation: 121 reads as 121 from left to right and from right to left.
+Given an integer `x`, return `true` if `x` is a palindrome, and `false` otherwise.
 
-Example 2:
+### Example 1
 
-Input: x = -121
-Output: false
-Explanation: From left to right, it reads -121. From right to left, it becomes 121-. Therefore it is not a palindrome.
+**Input:** `x = 121`  
+**Output:** `true`
 
-Example 3:
+**Explanation:** 121 reads as 121 from left to right and from right to left.
 
-Input: x = 10
-Output: false
-Explanation: Reads 01 from right to left. Therefore it is not a palindrome.
+### Example 2
 
- 
-Constraints:
+**Input:** `x = -121`  
+**Output:** `false`
 
--231 <= x <= 231 - 1
+**Explanation:** From left to right, it reads -121. From right to left, it becomes 121-. Therefore it is not a palindrome.
 
- 
-Follow up: Could you solve it without converting the integer to a string?
+### Example 3
+
+**Input:** `x = 10`  
+**Output:** `false`
+
+**Explanation:** Reads 01 from right to left. Therefore it is not a palindrome.
+
+### Constraints
+
+- `-2^31 <= x <= 2^31 - 1`
+
+### Follow up
+
+Could you solve it without converting the integer to a string?
+
 ## Solution
 
 ```python
@@ -44,13 +49,17 @@ class Solution:
 ```
 
 ## Explanation
+
 To check if an integer is a palindrome, reverse the number and compare it with the original.
 
-Step-by-step approach:
+### Step-by-step Approach
+
 1. Negative numbers are not palindromes.
 2. Store the original number.
-3. Reverse the number by repeatedly taking the last digit (x % 10) and adding it to reversed_num * 10.
+3. Reverse the number by repeatedly taking the last digit (`x % 10`) and adding it to `reversed_num * 10`.
 4. Compare the reversed number with the original.
 
-Time Complexity: O(log n), where n is the number, as we process each digit.
-Space Complexity: O(1).
+### Complexity Analysis
+
+- **Time Complexity:** O(log n), where n is the number, as we process each digit.
+- **Space Complexity:** O(1).

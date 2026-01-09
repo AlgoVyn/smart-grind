@@ -1,42 +1,30 @@
-# Reverse String Ii
+# Reverse String II
 
-## Problem Statement
+## Problem Description
 
-Given a string s and an integer k, reverse the first k characters for every 2k characters counting from the start of the string.
+Given a string `s` and an integer `k`, reverse the first `k` characters for every `2k` characters counting from the start of the string.
 
-If there are fewer than k characters left, reverse all of them. If there are less than 2k but greater than or equal to k characters, then reverse the first k characters and leave the other as original.
+If there are fewer than `k` characters left, reverse all of them. If there are less than `2k` but greater than or equal to `k` characters, then reverse the first `k` characters and leave the rest as original.
 
- 
-Example 1:
-Input: s = "abcdefg", k = 2
-Output: "bacdfeg"
-Example 2:
-Input: s = "abcd", k = 2
-Output: "bacd"
+### Examples
 
- 
-Constraints:
+**Example 1:**
 
-	1 <= s.length <= 104
-	s consists of only lowercase English letters.
-	1 <= k <= 104
+| Input | Output |
+|-------|--------|
+| `s = "abcdefg"`<br>`k = 2` | `"bacdfeg"` |
 
-Given a string s and an integer k, reverse the first k characters for every 2k characters counting from the start of the string.
-If there are fewer than k characters left, reverse all of them. If there are less than 2k but greater than or equal to k characters, then reverse the first k characters and leave the other as original.
- 
-Example 1:
-Input: s = "abcdefg", k = 2
-Output: "bacdfeg"
-Example 2:
-Input: s = "abcd", k = 2
-Output: "bacd"
+**Example 2:**
 
- 
-Constraints:
+| Input | Output |
+|-------|--------|
+| `s = "abcd"`<br>`k = 2` | `"bacd"` |
 
-1 <= s.length <= 104
-s consists of only lowercase English letters.
-1 <= k <= 104
+### Constraints
+
+- `1 <= s.length <= 10^4`
+- `s` consists of only lowercase English letters.
+- `1 <= k <= 10^4`
 
 ## Solution
 
@@ -50,4 +38,13 @@ class Solution:
 ```
 
 ## Explanation
-Reverse every 2k characters, but only the first k in each group. This is O(n) time.
+
+Reverse every `2k` characters, but only the first `k` in each group. This is O(n) time and O(n) space for the list conversion.
+
+### Time Complexity
+
+- O(n), where n is the length of the string.
+
+### Space Complexity
+
+- O(n), for the character list.

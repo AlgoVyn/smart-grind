@@ -1,37 +1,98 @@
 # Binary Tree Inorder Traversal
 
 ## Problem Description
+
 Given the root of a binary tree, return the inorder traversal of its nodes' values.
- 
-Example 1:
 
-Input: root = [1,null,2,3]
-Output: [1,3,2]
-Explanation:
-Example 2:
+## Examples
 
-Input: root = [1,2,3,4,5,null,8,null,null,6,7,9]
-Output: [4,2,6,5,7,1,3,9,8]
-Explanation:
-Example 3:
+**Example 1:**
 
-Input: root = []
-Output: []
+**Input:**
 
-Example 4:
+```
 
-Input: root = [1]
-Output: [1]
+root = [1,null,2,3]
 
- 
-Constraints:
+```
 
-The number of nodes in the tree is in the range [0, 100].
--100 <= Node.val <= 100
+**Output:**
 
- 
-Follow up: Recursive solution is trivial, could you do it iteratively?
+```
+
+[1,3,2]
+
+```
+
+**Explanation:**
+
+**Example 2:**
+
+**Input:**
+
+```
+
+root = [1,2,3,4,5,null,8,null,null,6,7,9]
+
+```
+
+**Output:**
+
+```
+
+[4,2,6,5,7,1,3,9,8]
+
+```
+
+**Explanation:**
+
+**Example 3:**
+
+**Input:**
+
+```
+
+root = []
+
+```
+
+**Output:**
+
+```
+
+[]
+
+```
+
+**Example 4:**
+
+**Input:**
+
+```
+
+root = [1]
+
+```
+
+**Output:**
+
+```
+
+[1]
+
+```
+
+## Constraints
+
+- The number of nodes in the tree is in the range [0, 100].
+- -100 <= Node.val <= 100
+
+## Follow up
+
+Recursive solution is trivial, could you do it iteratively?
+
 ## Solution
+
 ```python
 from typing import List, Optional
 
@@ -54,6 +115,7 @@ class Solution:
 ```
 
 ## Explanation
+
 This recursive solution performs an inorder traversal: visit left subtree, then root, then right subtree. We use a helper function to append node values to the result list in the correct order.
 
 Time complexity: O(n), where n is the number of nodes, as each node is visited once.

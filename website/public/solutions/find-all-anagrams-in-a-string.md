@@ -1,30 +1,47 @@
 # Find All Anagrams In A String
 
 ## Problem Description
-Given two strings s and p, return an array of all the start indices of p's anagrams in s. You may return the answer in any order.
- 
-Example 1:
 
-Input: s = "cbaebabacd", p = "abc"
-Output: [0,6]
-Explanation:
+Given two strings s and p, return an array of all the start indices of p's anagrams in s. You may return the answer in any order.
+
+## Constraints
+
+- 1 <= s.length, p.length <= 3 * 104
+- s and p consist of lowercase English letters.
+
+## Example 1
+
+**Input:**
+```python
+s = "cbaebabacd", p = "abc"
+```
+
+**Output:**
+```python
+[0,6]
+```
+
+**Explanation:**
 The substring with start index = 0 is "cba", which is an anagram of "abc".
 The substring with start index = 6 is "bac", which is an anagram of "abc".
 
-Example 2:
+## Example 2
 
-Input: s = "abab", p = "ab"
-Output: [0,1,2]
-Explanation:
+**Input:**
+```python
+s = "abab", p = "ab"
+```
+
+**Output:**
+```python
+[0,1,2]
+```
+
+**Explanation:**
 The substring with start index = 0 is "ab", which is an anagram of "ab".
 The substring with start index = 1 is "ba", which is an anagram of "ab".
 The substring with start index = 2 is "ab", which is an anagram of "ab".
 
- 
-Constraints:
-
-1 <= s.length, p.length <= 3 * 104
-s and p consist of lowercase English letters.
 ## Solution
 
 ```python
@@ -58,9 +75,11 @@ class Solution:
 ```
 
 ## Explanation
+
 We need to find all starting indices of substrings in s that are anagrams of p. An anagram means they have the same character frequencies. We use a sliding window approach with frequency counters.
 
 ### Step-by-Step Explanation:
+
 1. **Create frequency map for p**: Use an array or counter to count occurrences of each character in p.
 
 2. **Initialize window**: Use another frequency counter for the current window of size len(p) in s.
@@ -72,7 +91,9 @@ We need to find all starting indices of substrings in s that are anagrams of p. 
 4. **Return the result list**.
 
 ### Time Complexity:
+
 - O(n), where n is the length of s, as we perform constant-time operations for each character.
 
 ### Space Complexity:
+
 - O(1), since we use fixed-size arrays (26 for lowercase letters).

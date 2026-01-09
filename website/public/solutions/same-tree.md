@@ -1,26 +1,28 @@
 # Same Tree
 
 ## Problem Description
-Given the roots of two binary trees p and q, write a function to check if they are the same or not.
-Two binary trees are considered the same if they are structurally identical, and the nodes have the same value.
- 
-Example 1:
-Input: p = [1,2,3], q = [1,2,3]
-Output: true
 
-Example 2:
-Input: p = [1,2], q = [1,null,2]
-Output: false
+Given the roots of two binary trees `p` and `q`, write a function to check if they are the same or not. Two binary trees are considered the same if they are structurally identical, and the nodes have the same value.
 
-Example 3:
-Input: p = [1,2,1], q = [1,1,2]
-Output: false
+### Examples
 
- 
-Constraints:
+**Example 1:**
+- Input: `p = [1,2,3], q = [1,2,3]`
+- Output: `true`
 
-The number of nodes in both trees is in the range [0, 100].
--104 <= Node.val <= 104
+**Example 2:**
+- Input: `p = [1,2], q = [1,null,2]`
+- Output: `false`
+
+**Example 3:**
+- Input: `p = [1,2,1], q = [1,1,2]`
+- Output: `false`
+
+### Constraints
+
+- The number of nodes in both trees is in the range `[0, 100]`
+- `-10^4 <= Node.val <= 10^4`
+
 ## Solution
 
 ```python
@@ -50,18 +52,16 @@ This problem requires checking if two binary trees are identical in structure an
 
 Use recursive traversal to compare nodes at each level.
 
-### Step-by-Step Explanation
+### Algorithm Steps
 
-1. **Base Cases**: If both None, true; if one None, false.
-
-2. **Value Check**: If values differ, false.
-
-3. **Recursive**: Check left and right subtrees.
+1. **Base Cases**: If both nodes are `None`, return `true`; if only one is `None`, return `false`.
+2. **Value Check**: If the values differ, return `false`.
+3. **Recursive Call**: Check left and right subtrees recursively.
 
 ### Time Complexity
 
-- O(n), where n is the number of nodes.
+- **O(n)**, where `n` is the number of nodes in the trees.
 
 ### Space Complexity
 
-- O(h), where h is the height of the tree.
+- **O(h)**, where `h` is the height of the tree (recursion stack).

@@ -5,8 +5,6 @@ Given two non-negative integers, `num1` and `num2`, represented as string, retur
 
 You must solve the problem without using any built-in library for handling large integers (such as `BigInteger`) and without converting the inputs to integers directly.
 
----
-
 ## Examples
 
 **Example 1:**
@@ -44,8 +42,6 @@ num1 = "0", num2 = "0"
 ```
 "0"
 ```
-
----
 
 ## Constraints
 

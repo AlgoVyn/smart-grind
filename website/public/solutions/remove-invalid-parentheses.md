@@ -1,30 +1,53 @@
 # Remove Invalid Parentheses
 
 ## Problem Description
-Given a string s that contains parentheses and letters, remove the minimum number of invalid parentheses to make the input string valid.
+
+Given a string `s` that contains parentheses and letters, remove the minimum number of invalid parentheses to make the input string valid.
+
 Return a list of unique strings that are valid with the minimum number of removals. You may return the answer in any order.
- 
-Example 1:
 
-Input: s = "()())()"
-Output: ["(())()","()()()"]
+### Example 1
 
-Example 2:
+**Input:**
+```
+s = "()())()"
+```
 
-Input: s = "(a)())()"
-Output: ["(a())()","(a)()()"]
+**Output:**
+```
+["(())()","()()()"]
+```
 
-Example 3:
+### Example 2
 
-Input: s = ")("
-Output: [""]
+**Input:**
+```
+s = "(a)())()"
+```
 
- 
-Constraints:
+**Output:**
+```
+["(a())()","(a)()()"]
+```
 
-1 <= s.length <= 25
-s consists of lowercase English letters and parentheses '(' and ')'.
-There will be at most 20 parentheses in s.
+### Example 3
+
+**Input:**
+```
+s = ")("
+```
+
+**Output:**
+```
+[""]
+```
+
+### Constraints
+
+- `1 <= s.length <= 25`
+- `s` consists of lowercase English letters and parentheses `'('` and `')'`.
+- There will be at most 20 parentheses in `s`.
+
 ## Solution
 
 ```python
@@ -33,7 +56,7 @@ from typing import List
 
 class Solution:
     def removeInvalidParentheses(self, s: str) -> List[str]:
-        def is_valid(string):
+        def is_valid(string: str) -> bool:
             count = 0
             for c in string:
                 if c == '(':
@@ -79,22 +102,18 @@ We use BFS to explore all possible strings by removing one parenthesis at a time
 
 ### Step-by-Step Explanation
 
-1. **Validity Check**: Define a helper function to check if a string has valid parentheses using a counter.
+1. **Validity Check:** Define a helper function to check if a string has valid parentheses using a counter.
 
-2. **BFS Setup**: Initialize a queue with the original string, a set for visited strings, and a list for results.
+2. **BFS Setup:** Initialize a queue with the original string, a set for visited strings, and a list for results.
 
-3. **BFS Traversal**:
+3. **BFS Traversal:**
    - Dequeue a string.
    - If it's valid, add to result and set a flag.
    - If flag is set, skip generating new strings.
    - Otherwise, for each position with a parenthesis, generate a new string by removing it, and enqueue if not visited.
 
-4. **Return Results**: Return the list of valid strings with minimum removals.
+4. **Return Results:** Return the list of valid strings with minimum removals.
 
-### Time Complexity
+**Time Complexity:** O(2^n) in the worst case, where n is the length of the string, but constrained by n <= 25 and at most 20 parentheses, making it feasible.
 
-- O(2^n) in the worst case, where n is the length of the string, but constrained by n <= 25 and at most 20 parentheses, making it feasible.
-
-### Space Complexity
-
-- O(2^n) for the queue and visited set in the worst case.
+**Space Complexity:** O(2^n) for the queue and visited set in the worst case.

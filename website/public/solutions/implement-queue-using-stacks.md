@@ -1,82 +1,101 @@
 # Implement Queue Using Stacks
 
 ## Problem Description
-Implement a first in first out (FIFO) queue using only two stacks. The implemented queue should support all the functions of a normal queue (push, peek, pop, and empty).
-Implement the MyQueue class:
 
-void push(int x) Pushes element x to the back of the queue.
-int pop() Removes the element from the front of the queue and returns it.
-int peek() Returns the element at the front of the queue.
-boolean empty() Returns true if the queue is empty, false otherwise.
+Implement a **first in first out (FIFO)** queue using only two stacks. The implemented queue should support all the functions of a normal queue:
 
-Notes:
+- `void push(int x)` - Pushes element `x` to the back of the queue.
+- `int pop()` - Removes the element from the front of the queue and returns it.
+- `int peek()` - Returns the element at the front of the queue.
+- `boolean empty()` - Returns `true` if the queue is empty, `false` otherwise.
 
-You must use only standard operations of a stack, which means only push to top, peek/pop from top, size, and is empty operations are valid.
-Depending on your language, the stack may not be supported natively. You may simulate a stack using a list or deque (double-ended queue) as long as you use only a stack's standard operations.
+> **Note:** You must use only standard operations of a stack: push to top, peek/pop from top, size, and is empty operations.
 
- 
-Example 1:
+## Examples
 
-Input
-["MyQueue", "push", "push", "peek", "pop", "empty"]
-[[], [1], [2], [], [], []]
-Output
-[null, null, null, 1, 1, false]
+**Example 1:**
 
-Explanation
+| Input | Output |
+|-------|--------|
+| `["MyQueue", "push", "push", "peek", "pop", "empty"]`<br>`[[], [1], [2], [], [], []]` | `[null, null, null, 1, 1, false]` |
+
+**Explanation:**
+```python
 MyQueue myQueue = new MyQueue();
-myQueue.push(1); // queue is: [1]
-myQueue.push(2); // queue is: [1, 2] (leftmost is front of the queue)
-myQueue.peek(); // return 1
-myQueue.pop(); // return 1, queue is [2]
-myQueue.empty(); // return false
+myQueue.push(1);    // queue is: [1]
+myQueue.push(2);    // queue is: [1, 2] (leftmost is front)
+myQueue.peek();     // return 1
+myQueue.pop();      // return 1, queue is [2]
+myQueue.empty();    // return false
+```
 
- 
-Constraints:
+**Follow-up:** Can you implement the queue such that each operation is **amortized O(1)** time complexity?
 
-1 <= x <= 9
-At most 100 calls will be made to push, pop, peek, and empty.
-All the calls to pop and peek are valid.
+## Constraints
 
- 
-Follow-up: Can you implement the queue such that each operation is amortized O(1) time complexity? In other words, performing n operations will take overall O(n) time even if one of those operations may take longer.
+- `1 <= x <= 9`
+- At most 100 calls will be made to push, pop, peek, and empty.
+- All calls to pop and peek are valid.
+
 ## Solution
 
 ```python
 class MyQueue:
 
     def __init__(self):
-        self.s1 = []
-        self.s2 = []
+        self.s1 = []  # Input stack for push operations
+        self.s2 = []  # Output stack for pop/peek operations
 
     def push(self, x: int) -> None:
+        """Push element x to the back of the queue."""
         self.s1.append(x)
 
     def pop(self) -> int:
+        """Removes the element from the front of the queue and returns it."""
         if not self.s2:
             while self.s1:
                 self.s2.append(self.s1.pop())
         return self.s2.pop()
 
     def peek(self) -> int:
+        """Returns the element at the front of the queue."""
         if not self.s2:
             while self.s1:
                 self.s2.append(self.s1.pop())
         return self.s2[-1]
 
     def empty(self) -> bool:
+        """Returns true if the queue is empty, false otherwise."""
         return not self.s1 and not self.s2
 ```
 
 ## Explanation
-This problem implements a queue using two stacks.
 
-Use s1 for push operations, s2 for pop and peek.
+This problem implements a queue using two stacks with an amortized O(1) approach.
 
-When popping or peeking, if s2 is empty, transfer all from s1 to s2.
+### Data Structure Design
 
-This ensures FIFO order.
+- **`s1` (Input Stack):** Used for push operations. Elements are added here in the order they arrive.
+- **`s2` (Output Stack):** Used for pop and peek operations. Elements are reversed here to maintain FIFO order.
 
-**Time Complexity:** Amortized O(1) per operation, as each element is moved at most twice.
+### Key Operations
 
-**Space Complexity:** O(n), for storing elements.
+1. **Push (`x`):** Simply append to `s1`. O(1) time.
+
+2. **Pop/Peek:**
+   - If `s2` is empty, transfer all elements from `s1` to `s2` (reversing order).
+   - Then pop/peek from `s2`.
+   - Each element is moved at most once from `s1` to `s2`, giving amortized O(1).
+
+3. **Empty:** Check if both stacks are empty.
+
+## Complexity Analysis
+
+| Operation | Time Complexity | Space Complexity |
+|-----------|-----------------|------------------|
+| Push | O(1) | O(1) |
+| Pop | Amortized O(1) | O(1) |
+| Peek | Amortized O(1) | O(1) |
+| Empty | O(1) | O(1) |
+
+**Overall Space:** O(n) for storing all elements.

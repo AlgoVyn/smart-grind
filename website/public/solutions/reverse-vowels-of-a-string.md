@@ -1,54 +1,31 @@
-# Reverse Vowels Of A String
+# Reverse Vowels of a String
 
-## Problem Statement
+## Problem Description
 
-Given a string s, reverse only all the vowels in the string and return it.
+Given a string `s`, reverse only all the vowels in the string and return it.
 
-The vowels are 'a', 'e', 'i', 'o', and 'u', and they can appear in both lower and upper cases, more than once.
+The vowels are 'a', 'e', 'i', 'o', and 'u', and they can appear in both lower and upper cases.
 
- 
-Example 1:
+### Examples
 
-Input: s = "IceCreAm"
+**Example 1:**
 
-Output: "AceCreIm"
+| Input | Output |
+|-------|--------|
+| `s = "IceCreAm"` | `"AceCreIm"` |
 
-Explanation:
+**Explanation:** The vowels in `s` are `['I', 'e', 'e', 'A']`. On reversing the vowels, `s` becomes `"AceCreIm"`.
 
-The vowels in s are ['I', 'e', 'e', 'A']. On reversing the vowels, s becomes "AceCreIm".
+**Example 2:**
 
-Example 2:
+| Input | Output |
+|-------|--------|
+| `s = "leetcode"` | `"leotcede"` |
 
-Input: s = "leetcode"
+### Constraints
 
-Output: "leotcede"
-
- 
-Constraints:
-
-	1 <= s.length <= 3 * 105
-	s consist of printable ASCII characters.
-
-Given a string s, reverse only all the vowels in the string and return it.
-The vowels are 'a', 'e', 'i', 'o', and 'u', and they can appear in both lower and upper cases, more than once.
- 
-Example 1:
-
-Input: s = "IceCreAm"
-Output: "AceCreIm"
-Explanation:
-The vowels in s are ['I', 'e', 'e', 'A']. On reversing the vowels, s becomes "AceCreIm".
-
-Example 2:
-
-Input: s = "leetcode"
-Output: "leotcede"
-
- 
-Constraints:
-
-1 <= s.length <= 3 * 105
-s consist of printable ASCII characters.
+- `1 <= s.length <= 3 * 10^5`
+- `s` consists of printable ASCII characters.
 
 ## Solution
 
@@ -71,4 +48,13 @@ class Solution:
 ```
 
 ## Explanation
-Use two pointers to find vowels from both ends and swap them. Skip non-vowels. This is O(n) time and O(1) space.
+
+Use two pointers to find vowels from both ends and swap them. Skip non-vowels. This is O(n) time and O(n) space for the list conversion.
+
+### Time Complexity
+
+- O(n), where n is the length of the string.
+
+### Space Complexity
+
+- O(n), for the character list.

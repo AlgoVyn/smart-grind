@@ -1,22 +1,39 @@
-# Remove Duplicates From Sorted List Ii
+# Remove Duplicates From Sorted List II
 
 ## Problem Description
+
 Given the head of a sorted linked list, delete all nodes that have duplicate numbers, leaving only distinct numbers from the original list. Return the linked list sorted as well.
- 
-Example 1:
-Input: head = [1,2,3,3,4,4,5]
-Output: [1,2,5]
 
-Example 2:
-Input: head = [1,1,1,2,3]
-Output: [2,3]
+### Example 1
 
- 
-Constraints:
+**Input:**
+```
+head = [1,2,3,3,4,4,5]
+```
 
-The number of nodes in the list is in the range [0, 300].
--100 <= Node.val <= 100
-The list is guaranteed to be sorted in ascending order.
+**Output:**
+```
+[1,2,5]
+```
+
+### Example 2
+
+**Input:**
+```
+head = [1,1,1,2,3]
+```
+
+**Output:**
+```
+[2,3]
+```
+
+### Constraints
+
+- The number of nodes in the list is in the range `[0, 300]`.
+- `-100 <= Node.val <= 100`
+- The list is guaranteed to be sorted in ascending order.
+
 ## Solution
 
 ```python
@@ -31,6 +48,7 @@ class Solution:
         dummy = ListNode(0, head)
         prev = dummy
         curr = head
+        
         while curr:
             if curr.next and curr.val == curr.next.val:
                 while curr.next and curr.val == curr.next.val:
@@ -39,6 +57,7 @@ class Solution:
             else:
                 prev = prev.next
             curr = curr.next
+        
         return dummy.next
 ```
 
@@ -52,22 +71,18 @@ Use a dummy head and iterate through the list, skipping groups of duplicates.
 
 ### Step-by-Step Explanation
 
-1. **Dummy Head**: Create dummy pointing to head.
+1. **Dummy Head:** Create `dummy` pointing to `head`.
 
-2. **Pointers**: prev = dummy, curr = head.
+2. **Pointers:** `prev = dummy`, `curr = head`.
 
-3. **Traverse**: While curr, if curr.next and equal, skip all duplicates, set prev.next to after.
+3. **Traverse:** While `curr`, if `curr.next` and equal, skip all duplicates, set `prev.next` to after.
 
-4. **Else**: Move prev to curr.
+4. **Else:** Move `prev` to `curr`.
 
-5. **Move Curr**: Always move curr.
+5. **Move Curr:** Always move `curr`.
 
-6. **Return**: dummy.next.
+6. **Return:** `dummy.next`.
 
-### Time Complexity
+**Time Complexity:** O(n), where n is the number of nodes.
 
-- O(n), where n is the number of nodes.
-
-### Space Complexity
-
-- O(1), constant space.
+**Space Complexity:** O(1)

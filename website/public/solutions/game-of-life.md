@@ -12,26 +12,40 @@ Any dead cell with exactly three live neighbors becomes a live cell, as if by re
 The next state of the board is determined by applying the above rules simultaneously to every cell in the current state of the m x n grid board. In this process, births and deaths occur simultaneously.
 Given the current state of the board, update the board to reflect its next state.
 Note that you do not need to return anything.
- 
-Example 1:
-Input: board = [[0,1,0],[0,0,1],[1,1,1],[0,0,0]]
-Output: [[0,0,0],[1,0,1],[0,1,1],[0,1,0]]
+## Examples
 
-Example 2:
-Input: board = [[1,1],[1,0]]
-Output: [[1,1],[1,1]]
+**Example 1:**
 
- 
-Constraints:
+**Input:**
+```
+board = [[0,1,0],[0,0,1],[1,1,1],[0,0,0]]
+```
 
-m == board.length
-n == board[i].length
-1 <= m, n <= 25
-board[i][j] is 0 or 1.
+**Output:**
+```
+[[0,0,0],[1,0,1],[0,1,1],[0,1,0]]
+```
 
- 
+**Example 2:**
+
+**Input:**
+```
+board = [[1,1],[1,0]]
+```
+
+**Output:**
+```
+[[1,1],[1,1]]
+```
+
+## Constraints
+
+- m == board.length
+- n == board[i].length
+- 1 <= m, n <= 25
+- board[i][j] is 0 or 1.
+
 Follow up:
-
 Could you solve it in-place? Remember that the board needs to be updated simultaneously: You cannot update some cells first and then use their updated values to update other cells.
 In this question, we represent the board using a 2D array. In principle, the board is infinite, which would cause problems when the active area encroaches upon the border of the array (i.e., live cells reach the border). How would you address these problems?
 ## Solution
@@ -100,6 +114,8 @@ After processing all cells, we iterate again to update the states:
 
 This ensures all updates are based on the original state.
 
-Time complexity: O(m * n), where m and n are the dimensions of the board, as we make two passes over the board.
+## Time Complexity
+**O(m * n)**, where m and n are the dimensions of the board, as we make two passes over the board.
 
-Space complexity: O(1), excluding the input board, since we modify in-place.
+## Space Complexity
+**O(1)**, excluding the input board, since we modify in-place.

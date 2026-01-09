@@ -1,64 +1,74 @@
 # Simplify Path
 
 ## Problem Description
-You are given an absolute path for a Unix-style file system, which always begins with a slash '/'. Your task is to transform this absolute path into its simplified canonical path.
-The rules of a Unix-style file system are as follows:
 
-A single period '.' represents the current directory.
-A double period '..' represents the previous/parent directory.
-Multiple consecutive slashes such as '//' and '///' are treated as a single slash '/'.
-Any sequence of periods that does not match the rules above should be treated as a valid directory or file name. For example, '...' and '....' are valid directory or file names.
+Given an absolute path for a Unix-style file system, simplify it to its canonical path.
 
-The simplified canonical path should follow these rules:
+In Unix-style file systems:
 
-The path must start with a single slash '/'.
-Directories within the path must be separated by exactly one slash '/'.
-The path must not end with a slash '/', unless it is the root directory.
-The path must not have any single or double periods ('.' and '..') used to denote current or parent directories.
+- A single period `.` represents the current directory
+- A double period `..` represents the parent directory
+- Multiple consecutive slashes (`//`, `///`) are treated as a single slash
+- Any sequence of periods not matching the rules above is a valid directory name
 
-Return the simplified canonical path.
- 
-Example 1:
+### Rules for Canonical Path
 
+1. The path must start with a single slash `/`
+2. Directories must be separated by exactly one slash
+3. The path must not end with a slash (except for root directory)
+4. No `.` or `..` directories that affect navigation
+
+---
+
+## Examples
+
+**Example 1:**
+```
 Input: path = "/home/"
 Output: "/home"
-Explanation:
+```
 The trailing slash should be removed.
 
-Example 2:
-
+**Example 2:**
+```
 Input: path = "/home//foo/"
 Output: "/home/foo"
-Explanation:
+```
 Multiple consecutive slashes are replaced by a single one.
 
-Example 3:
-
+**Example 3:**
+```
 Input: path = "/home/user/Documents/../Pictures"
 Output: "/home/user/Pictures"
-Explanation:
-A double period ".." refers to the directory up a level (the parent directory).
+```
+Double period `..` navigates up one directory level.
 
-Example 4:
-
+**Example 4:**
+```
 Input: path = "/../"
 Output: "/"
-Explanation:
-Going one level up from the root directory is not possible.
+```
+Cannot navigate up from the root directory.
 
-Example 5:
-
+**Example 5:**
+```
 Input: path = "/.../a/../b/c/../d/./"
 Output: "/.../b/d"
-Explanation:
-"..." is a valid name for a directory in this problem.
+```
+`...` is a valid directory name (not `..`).
 
- 
-Constraints:
+---
 
-1 <= path.length <= 3000
-path consists of English letters, digits, period '.', slash '/' or '_'.
-path is a valid absolute Unix path.
+## Constraints
+
+| Constraint | Description |
+|------------|-------------|
+| `1 <= path.length <= 3000` | Path length |
+| `path consists of` | Letters, digits, `.`, `/`, `_` |
+| | Valid absolute Unix path |
+
+---
+
 ## Solution
 
 ```python
@@ -76,18 +86,31 @@ def simplifyPath(path: str) -> str:
     return '/' + '/'.join(stack)
 ```
 
+---
+
 ## Explanation
-To simplify a Unix-style absolute path, use a stack to process directory components.
 
-1. Split the path by '/' to get parts.
-2. Use a stack for valid directories.
-3. For each part:
-   - Skip empty strings and '.' (current directory).
-   - If '..', pop from stack if not empty (parent directory).
-   - Else, push the part to stack.
-4. Join stack with '/', prepend '/'.
+The algorithm uses a stack to process directory components:
 
-This handles multiple slashes, '.', '..', and ensures canonical form.
+1. **Split the path** by `/` to get individual components
+2. **Process each component**:
+   - Skip empty strings and `.` (current directory)
+   - If `..`, pop from stack if not empty (go up one level)
+   - Otherwise, push the valid directory name to stack
+3. **Build the result** by joining stack elements with `/` and prepending `/`
 
-**Time Complexity:** O(n), n is path length.
-**Space Complexity:** O(n), for stack.
+This handles all edge cases while maintaining O(n) time complexity.
+
+### Time Complexity
+
+- **O(n)** — Each character is processed once
+
+### Space Complexity
+
+- **O(n)** — Stack stores at most n directory names
+
+---
+
+## Related Problems
+
+- [File Path Simplification](https://leetcode.com/problems/simplify-path/)

@@ -1,52 +1,43 @@
 # Sort Array By Parity
 
-## Problem Statement
+## Problem Description
 
-Given an integer array nums, move all the even integers at the beginning of the array followed by all the odd integers.
+Given an integer array `nums`, move all even integers to the front of the array followed by all odd integers.
 
 Return any array that satisfies this condition.
 
- 
-Example 1:
+---
 
+## Examples
+
+**Example 1:**
+```
 Input: nums = [3,1,2,4]
 Output: [2,4,3,1]
-Explanation: The outputs [4,2,3,1], [2,4,1,3], and [4,2,1,3] would also be accepted.
+```
 
-Example 2:
-
+**Example 2:**
+```
 Input: nums = [0]
 Output: [0]
+```
 
- 
-Constraints:
+---
 
-	1 <= nums.length <= 5000
-	0 <= nums[i] <= 5000
+## Constraints
 
-Given an integer array nums, move all the even integers at the beginning of the array followed by all the odd integers.
-Return any array that satisfies this condition.
- 
-Example 1:
+| Constraint | Description |
+|------------|-------------|
+| `1 <= nums.length <= 5000` | Array length |
+| `0 <= nums[i] <= 5000` | Element value |
 
-Input: nums = [3,1,2,4]
-Output: [2,4,3,1]
-Explanation: The outputs [4,2,3,1], [2,4,1,3], and [4,2,1,3] would also be accepted.
-
-Example 2:
-
-Input: nums = [0]
-Output: [0]
-
- 
-Constraints:
-
-1 <= nums.length <= 5000
-0 <= nums[i] <= 5000
+---
 
 ## Solution
 
 ```python
+from typing import List
+
 class Solution:
     def sortArrayByParity(self, nums: List[int]) -> List[int]:
         left, right = 0, len(nums) - 1
@@ -59,5 +50,27 @@ class Solution:
         return nums
 ```
 
+---
+
 ## Explanation
-We use two pointers starting from the beginning and end of the array. We move the left pointer right if the element is even, and swap with the right pointer if odd, then move right left. This partitions the array into even and odd numbers in O(n) time and O(1) space.
+
+### Approach: Two Pointers
+
+1. **Left pointer** moves right, skipping even numbers
+2. **Right pointer** moves left
+3. When left points to odd, swap with right
+4. Continue until pointers meet
+
+### Time Complexity
+
+- **O(n)** — Single pass through array
+
+### Space Complexity
+
+- **O(1)** — In-place modification
+
+---
+
+## Related Problems
+
+- [Sort Array By Parity](https://leetcode.com/problems/sort-array-by-parity/)

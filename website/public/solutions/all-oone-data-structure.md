@@ -4,23 +4,31 @@
 Design a data structure to store the strings' count with the ability to return the strings with minimum and maximum counts.
 Implement the AllOne class:
 
-AllOne() Initializes the object of the data structure.
-inc(String key) Increments the count of the string key by 1. If key does not exist in the data structure, insert it with count 1.
-dec(String key) Decrements the count of the string key by 1. If the count of key is 0 after the decrement, remove it from the data structure. It is guaranteed that key exists in the data structure before the decrement.
-getMaxKey() Returns one of the keys with the maximal count. If no element exists, return an empty string "".
-getMinKey() Returns one of the keys with the minimum count. If no element exists, return an empty string "".
+- `AllOne()` Initializes the object of the data structure.
+- `inc(String key)` Increments the count of the string key by 1. If key does not exist in the data structure, insert it with count 1.
+- `dec(String key)` Decrements the count of the string key by 1. If the count of key is 0 after the decrement, remove it from the data structure. It is guaranteed that key exists in the data structure before the decrement.
+- `getMaxKey()` Returns one of the keys with the maximal count. If no element exists, return an empty string "".
+- `getMinKey()` Returns one of the keys with the minimum count. If no element exists, return an empty string "".
 
 Note that each function must run in O(1) average time complexity.
- 
-Example 1:
 
-Input
+## Examples
+
+**Example 1:**
+
+**Input:**
+```
 ["AllOne", "inc", "inc", "getMaxKey", "getMinKey", "inc", "getMaxKey", "getMinKey"]
 [[], ["hello"], ["hello"], [], [], ["leet"], [], []]
-Output
-[null, null, null, "hello", "hello", null, "hello", "leet"]
+```
 
-Explanation
+**Output:**
+```
+[null, null, null, "hello", "hello", null, "hello", "leet"]
+```
+
+**Explanation:**
+```
 AllOne allOne = new AllOne();
 allOne.inc("hello");
 allOne.inc("hello");
@@ -29,14 +37,15 @@ allOne.getMinKey(); // return "hello"
 allOne.inc("leet");
 allOne.getMaxKey(); // return "hello"
 allOne.getMinKey(); // return "leet"
+```
 
- 
-Constraints:
+## Constraints
 
-1 <= key.length <= 10
-key consists of lowercase English letters.
-It is guaranteed that for each call to dec, key is existing in the data structure.
-At most 5 * 104 calls will be made to inc, dec, getMaxKey, and getMinKey.
+- `1 <= key.length <= 10`
+- `key` consists of lowercase English letters.
+- It is guaranteed that for each call to `dec`, key is existing in the data structure.
+- At most `5 * 10^4` calls will be made to `inc`, `dec`, `getMaxKey`, and `getMinKey`.
+
 ## Solution
 
 ```python
@@ -138,4 +147,6 @@ For the `dec` operation: Decrement the frequency, remove from old bucket, add to
 
 For `getMaxKey` and `getMinKey`: Return any key from the tail (highest frequency) or head.next (lowest frequency) bucket, or an empty string if no keys exist.
 
-This design ensures all operations are O(1) on average due to the use of hash maps and sets. Space complexity is O(N), where N is the number of keys, as we store each key in the frequency map and in the sets.
+**Time Complexity:** O(1) average for all operations.
+
+**Space Complexity:** O(N), where N is the number of keys, as we store each key in the frequency map and in the sets.

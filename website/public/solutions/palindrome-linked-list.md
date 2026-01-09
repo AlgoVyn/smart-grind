@@ -1,24 +1,28 @@
 # Palindrome Linked List
 
 ## Problem Description
-Given the head of a singly linked list, return true if it is a palindrome or false otherwise.
- 
-Example 1:
-Input: head = [1,2,2,1]
-Output: true
 
-Example 2:
-Input: head = [1,2]
-Output: false
+Given the head of a singly linked list, return `true` if it is a palindrome or `false` otherwise.
 
- 
-Constraints:
+### Example 1
 
-The number of nodes in the list is in the range [1, 105].
-0 <= Node.val <= 9
+**Input:** `head = [1,2,2,1]`  
+**Output:** `true`
 
- 
-Follow up: Could you do it in O(n) time and O(1) space?
+### Example 2
+
+**Input:** `head = [1,2]`  
+**Output:** `false`
+
+### Constraints
+
+- The number of nodes in the list is in the range `[1, 10^5]`
+- `0 <= Node.val <= 9`
+
+### Follow up
+
+Could you do it in O(n) time and O(1) space?
+
 ## Solution
 
 ```python
@@ -61,13 +65,17 @@ class Solution:
 ```
 
 ## Explanation
+
 To check if a linked list is a palindrome, we find the middle, reverse the second half, and compare it with the first half.
 
-Step-by-step approach:
+### Step-by-step Approach
+
 1. If the list has 0 or 1 node, it's a palindrome.
 2. Use slow and fast pointers to find the middle.
-3. Reverse the second half starting from slow.next.
+3. Reverse the second half starting from `slow.next`.
 4. Compare the first half (from head) with the reversed second half.
 
-Time Complexity: O(n), where n is the number of nodes.
-Space Complexity: O(1), excluding the space for reversing which is O(1).
+### Complexity Analysis
+
+- **Time Complexity:** O(n), where n is the number of nodes.
+- **Space Complexity:** O(1), excluding the space for reversing which is O(1).

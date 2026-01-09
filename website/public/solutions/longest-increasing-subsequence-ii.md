@@ -1,24 +1,25 @@
-# Longest Increasing Subsequence Ii
+# Longest Increasing Subsequence II
 
 ## Problem Description
+
 You are given an integer array `nums` and an integer `k`. Find the longest subsequence of `nums` that meets the following requirements:
 
-- The subsequence is strictly increasing and
-- The difference between adjacent elements in the subsequence is at most `k`.
+- The subsequence is **strictly increasing**
+- The difference between adjacent elements in the subsequence is at most `k`
 
 Return the length of the longest subsequence that meets the requirements.
 
-A subsequence is an array that can be derived from another array by deleting some or no elements without changing the order of the remaining elements.
+A **subsequence** is an array that can be derived from another array by deleting some or no elements without changing the order of the remaining elements.
 
 ---
 
 ## Examples
 
-**Example 1:**
+### Example 1
 
 **Input:**
-```
-nums = [4,2,1,4,3,4,5,8,15], k = 3
+```python
+nums = [4, 2, 1, 4, 3, 4, 5, 8, 15], k = 3
 ```
 
 **Output:**
@@ -26,13 +27,13 @@ nums = [4,2,1,4,3,4,5,8,15], k = 3
 5
 ```
 
-**Explanation:** The longest subsequence that meets the requirements is `[1,3,4,5,8]`. The subsequence has a length of 5, so we return 5. Note that the subsequence `[1,3,4,5,8,15]` does not meet the requirements because `15 - 8 = 7` is larger than 3.
+**Explanation:** The longest valid subsequence is `[1, 3, 4, 5, 8]` with length `5`. The subsequence `[1, 3, 4, 5, 8, 15]` is invalid because `15 - 8 = 7 > 3`.
 
-**Example 2:**
+### Example 2
 
 **Input:**
-```
-nums = [7,4,5,1,8,12,4,7], k = 5
+```python
+nums = [7, 4, 5, 1, 8, 12, 4, 7], k = 5
 ```
 
 **Output:**
@@ -40,13 +41,13 @@ nums = [7,4,5,1,8,12,4,7], k = 5
 4
 ```
 
-**Explanation:** The longest subsequence that meets the requirements is `[4,5,8,12]`. The subsequence has a length of 4, so we return 4.
+**Explanation:** The longest valid subsequence is `[4, 5, 8, 12]` with length `4`.
 
-**Example 3:**
+### Example 3
 
 **Input:**
-```
-nums = [1,5], k = 1
+```python
+nums = [1, 5], k = 1
 ```
 
 **Output:**
@@ -54,7 +55,7 @@ nums = [1,5], k = 1
 1
 ```
 
-**Explanation:** The longest subsequence that meets the requirements is `[1]`. The subsequence has a length of 1, so we return 1.
+**Explanation:** The longest valid subsequence is `[1]` (or `[5]`) with length `1`.
 
 ---
 
@@ -62,6 +63,8 @@ nums = [1,5], k = 1
 
 - `1 <= nums.length <= 10^5`
 - `1 <= nums[i], k <= 10^5`
+
+---
 
 ## Solution
 
@@ -75,13 +78,13 @@ class Solution:
         max_val = max(nums)
         tree = [0] * (max_val + 2)
         
-        def update(idx, val):
+        def update(idx: int, val: int) -> None:
             idx += 1
             while idx < len(tree):
                 tree[idx] = max(tree[idx], val)
                 idx += idx & -idx
         
-        def query(idx):
+        def query(idx: int) -> int:
             idx += 1
             res = 0
             while idx > 0:
@@ -99,19 +102,36 @@ class Solution:
         return ans
 ```
 
+---
+
 ## Explanation
-This problem requires finding the longest strictly increasing subsequence where adjacent elements differ by at most k.
 
-We use dynamic programming with a Fenwick tree (binary indexed tree) for efficient range maximum queries.
+This problem requires finding the longest strictly increasing subsequence where adjacent elements differ by at most `k`.
 
-`dp[i]` represents the length of the longest subsequence ending at `nums[i]`.
+### Dynamic Programming with Fenwick Tree
 
-For each num, query the maximum dp value for values in `[num - k, num - 1]`, add 1, update the tree at num with this value.
+We use dynamic programming where `dp[i]` represents the length of the longest valid subsequence ending at `nums[i]`.
 
-The Fenwick tree supports range max queries and point updates in O(log M) time, where M is the max value (10^5).
+### Fenwick Tree (Binary Indexed Tree)
 
-### Time Complexity:
-- O(n log M), where n is the length of nums and M is the maximum value
+The Fenwick tree supports:
+- **Range Maximum Query**: Find the maximum `dp` value for elements in range `[num - k, num - 1]`
+- **Point Update**: Update the tree with the new `dp` value at position `num`
 
-### Space Complexity:
-- O(M), where M is the maximum value in nums
+### Algorithm
+
+1. Initialize a Fenwick tree with size `max(nums) + 2`
+2. For each number `num` in `nums`:
+   - Query the maximum `dp` value for values in `[max(0, num - k), num - 1]`
+   - The current `dp` value is `1 + query_result`
+   - Update the tree at position `num` with this value
+3. Track and return the maximum `dp` value
+
+---
+
+## Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O(n log M)` — `n` is array length, `M` is max value (`10^5`) |
+| **Space** | `O(M)` — Fenwick tree size based on maximum value |

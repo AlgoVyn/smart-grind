@@ -1,28 +1,37 @@
 # Longest Word In Dictionary
 
 ## Problem Description
-Given an array of strings words representing an English Dictionary, return the longest word in words that can be built one character at a time by other words in words.
+
+Given an array of strings `words` representing an English Dictionary, return the longest word in `words` that can be built one character at a time by other words in `words`.
+
 If there is more than one possible answer, return the longest word with the smallest lexicographical order. If there is no answer, return the empty string.
-Note that the word should be built from left to right with each additional character being added to the end of a previous word. 
- 
-Example 1:
 
-Input: words = ["w","wo","wor","worl","world"]
-Output: "world"
-Explanation: The word "world" can be built one character at a time by "w", "wo", "wor", and "worl".
+Note that the word should be built from left to right with each additional character being added to the end of a previous word.
 
-Example 2:
+## Examples
 
-Input: words = ["a","banana","app","appl","ap","apply","apple"]
-Output: "apple"
-Explanation: Both "apply" and "apple" can be built from other words in the dictionary. However, "apple" is lexicographically smaller than "apply".
+**Example 1:**
 
- 
-Constraints:
+**Input:** `words = ["w","wo","wor","worl","world"]`
 
-1 <= words.length <= 1000
-1 <= words[i].length <= 30
-words[i] consists of lowercase English letters.
+**Output:** `"world"`
+
+**Explanation:** The word `"world"` can be built one character at a time by `"w"`, `"wo"`, `"wor"`, and `"worl"`.
+
+**Example 2:**
+
+**Input:** `words = ["a","banana","app","appl","ap","apply","apple"]`
+
+**Output:** `"apple"`
+
+**Explanation:** Both `"apply"` and `"apple"` can be built from other words in the dictionary. However, `"apple"` is lexicographically smaller than `"apply"`.
+
+## Constraints
+
+- `1 <= words.length <= 1000`
+- `1 <= words[i].length <= 30`
+- `words[i]` consists of lowercase English letters.
+
 ## Solution
 
 ```python
@@ -44,16 +53,15 @@ class Solution:
 ```
 
 ## Explanation
+
 This problem requires finding the longest word that can be built by adding one character at a time from other words in the dictionary.
 
-Put all words in a set for O(1) lookup.
+1. Put all words in a set for `O(1)` lookup.
+2. Sort the words by length descending, then lexicographical order ascending.
+3. For each word in this order, check if all its prefixes (from `1` to `len-1`) are in the set.
+4. Return the first valid word, or `""` if none.
 
-Sort the words by length descending, then lexicographical order ascending.
+## Complexity Analysis
 
-For each word in this order, check if all its prefixes (from 1 to len-1) are in the set.
-
-Return the first valid word, or "" if none.
-
-Time complexity: O(n log n) for sorting, O(n * L) for checking prefixes, where L=30.
-
-Space complexity: O(n).
+- **Time Complexity:** `O(n log n)` for sorting, `O(n * L)` for checking prefixes, where `L=30`.
+- **Space Complexity:** `O(n)`.

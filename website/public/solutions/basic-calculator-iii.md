@@ -1,6 +1,83 @@
 # Basic Calculator Iii
 
 ## Problem Description
+
+Implement a basic calculator that can evaluate a string expression containing integers, +, -, *, /, parentheses, and handle operator precedence.
+
+## Examples
+
+**Example 1:**
+
+**Input:**
+
+```
+
+s = "3+2*2"
+
+```
+
+**Output:**
+
+```
+
+7
+
+```
+
+**Example 2:**
+
+**Input:**
+
+```
+
+s = " 3/2 "
+
+```
+
+**Output:**
+
+```
+
+1
+
+```
+
+**Example 3:**
+
+**Input:**
+
+```
+
+s = " 3+5 / 2 "
+
+```
+
+**Output:**
+
+```
+
+5
+
+```
+
+**Example 4:**
+
+**Input:**
+
+```
+
+s = "(1+(4+5+2)-3)+(6+8)"
+
+```
+
+**Output:**
+
+```
+
+23
+
+```
+
 ## Solution
 
 ```python

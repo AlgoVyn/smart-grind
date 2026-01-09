@@ -1,6 +1,29 @@
-# Sentence Similarity Ii
+# Sentence Similarity II
 
 ## Problem Description
+
+Given two sentences `sentence1` and `sentence2` (each is an array of strings), and a list of word pairs `similarPairs`, where similarity is transitive, determine if the two sentences are similar.
+
+Two sentences are similar if:
+1. They have the same length.
+2. For each corresponding pair of words at the same position, the words are either identical or similar (directly or through transitivity).
+
+### Examples
+
+**Example 1:**
+- Input: `sentence1 = ["great","acting","skills"], sentence2 = ["fine","drama","talent"], similarPairs = [["great","fine"],["acting","drama"],["skills","talent"]]`
+- Output: `true`
+
+**Example 2:**
+- Input: `sentence1 = ["I","love","leetcode"], sentence2 = ["I","love","programming"], similarPairs = [["I","programming"]]`
+- Output: `false`
+
+### Constraints
+
+- `1 <= sentence1.length, sentence2.length <= 100`
+- `0 <= similarPairs.length <= 5000`
+- All words consist of lowercase English letters
+
 ## Solution
 
 ```python
@@ -39,24 +62,24 @@ class Solution:
 
 This problem checks if two sentences are similar based on given word pairs, where similarity is transitive.
 
-### Step-by-Step Approach:
+### Approach
 
-1. **Length Check**: If sentences have different lengths, return false.
+Use Union-Find (Disjoint Set Union) data structure to efficiently track and query word similarities.
 
+### Algorithm Steps
+
+1. **Length Check**: If sentences have different lengths, return `false`.
 2. **Union-Find Setup**: Use a parent dictionary for disjoint sets.
-
-3. **Find Function**: With path compression for efficiency.
-
-4. **Union Function**: Merge sets if not already connected.
-
+3. **Find Function**: Implement with path compression for efficiency.
+4. **Union Function**: Merge sets if words are not already connected.
 5. **Build Graph**: Union all similar pairs.
+6. **Check Sentences**: For each word pair in sentences, check if they are in the same set using `find`.
+7. **Return Result**: `true` if all pairs are similar, else `false`.
 
-6. **Check Sentences**: For each word pair in sentences, check if they are in the same set using find.
+### Time Complexity
 
-7. **Return Result**: True if all pairs are similar, else false.
+- **O(P * α(W) + N)**, where P is the number of pairs, W is the number of unique words, and N is the sentence length. α is the inverse Ackermann function (nearly constant).
 
-### Time Complexity:
-- O(P * α(W) + N), where P is pairs, W is words, N is sentence length, α is inverse Ackermann (nearly constant).
+### Space Complexity
 
-### Space Complexity:
-- O(W), for the parent dictionary.
+- **O(W)**, for the parent dictionary.

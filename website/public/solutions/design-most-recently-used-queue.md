@@ -1,6 +1,28 @@
 # Design Most Recently Used Queue
 
 ## Problem Description
+Design a Most Recently Used (MRU) queue that supports fetching the k-th most recently used element.
+
+Implement the MRUQueue class with the following methods:
+- `MRUQueue(n: int)`: Initialize the queue with elements [1, 2, ..., n].
+- `fetch(k: int) -> int`: Fetch the k-th element (1-indexed), remove it from its current position, and append it to the end of the queue. Return the value of the element.
+
+## Examples
+
+**Input:**
+```python
+n = 4
+```
+
+**Output:**
+```python
+# MRUQueue initialized with [1, 2, 3, 4]
+```
+
+## Constraints
+
+- `1 <= n <= 10^5`
+
 ## Solution
 
 ```python

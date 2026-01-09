@@ -11,27 +11,48 @@ You call a pre-defined API int guess(int num), which returns three possible resu
 0: your guess is equal to the number I picked (i.e. num == pick).
 
 Return the number that I picked.
- 
-Example 1:
+## Examples
 
-Input: n = 10, pick = 6
-Output: 6
+**Example 1:**
 
-Example 2:
+**Input:**
+```
+n = 10, pick = 6
+```
 
-Input: n = 1, pick = 1
-Output: 1
+**Output:**
+```
+6
+```
 
-Example 3:
+**Example 2:**
 
-Input: n = 2, pick = 1
-Output: 1
+**Input:**
+```
+n = 1, pick = 1
+```
 
- 
-Constraints:
+**Output:**
+```
+1
+```
 
-1 <= n <= 231 - 1
-1 <= pick <= n
+**Example 3:**
+
+**Input:**
+```
+n = 2, pick = 1
+```
+
+**Output:**
+```
+1
+```
+
+## Constraints
+
+- 1 <= n <= 2^31 - 1
+- 1 <= pick <= n
 ## Solution
 
 ```python
@@ -58,6 +79,8 @@ Adjust left or right based on result.
 
 Continue until found.
 
-**Time Complexity:** O(log n), as binary search.
+## Time Complexity
+**O(log n)**, as binary search.
 
-**Space Complexity:** O(1), constant space.
+## Space Complexity
+**O(1)**, constant space.

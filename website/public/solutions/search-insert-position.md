@@ -1,31 +1,30 @@
 # Search Insert Position
 
 ## Problem Description
-Given a sorted array of distinct integers and a target value, return the index if the target is found. If not, return the index where it would be if it were inserted in order.
-You must write an algorithm with O(log n) runtime complexity.
- 
-Example 1:
 
-Input: nums = [1,3,5,6], target = 5
-Output: 2
+Given a sorted array of distinct integers and a target value, return the index if the target is found. If not, return the index where it would be if it were inserted in order. You must write an algorithm with O(log n) runtime complexity.
 
-Example 2:
+### Examples
 
-Input: nums = [1,3,5,6], target = 2
-Output: 1
+**Example 1:**
+- Input: `nums = [1,3,5,6], target = 5`
+- Output: `2`
 
-Example 3:
+**Example 2:**
+- Input: `nums = [1,3,5,6], target = 2`
+- Output: `1`
 
-Input: nums = [1,3,5,6], target = 7
-Output: 4
+**Example 3:**
+- Input: `nums = [1,3,5,6], target = 7`
+- Output: `4`
 
- 
-Constraints:
+### Constraints
 
-1 <= nums.length <= 104
--104 <= nums[i] <= 104
-nums contains distinct values sorted in ascending order.
--104 <= target <= 104
+- `1 <= nums.length <= 10^4`
+- `-10^4 <= nums[i] <= 10^4`
+- `nums` contains distinct values sorted in ascending order
+- `-10^4 <= target <= 10^4`
+
 ## Solution
 
 ```python
@@ -53,18 +52,16 @@ This problem requires finding the index to insert a target in a sorted array, or
 
 Use binary search to find the target or the insertion point.
 
-### Step-by-Step Explanation
+### Algorithm Steps
 
-1. **Binary Search**: Initialize left and right.
-
-2. **Mid Check**: If equal, return mid; else adjust left or right.
-
-3. **Return**: left when loop ends, which is the insert position.
+1. **Binary Search**: Initialize `left` and `right`.
+2. **Mid Check**: If equal to target, return `mid`; else adjust `left` or `right`.
+3. **Return**: Return `left` when loop ends, which is the insertion position.
 
 ### Time Complexity
 
-- O(log n), where n is the length of nums.
+- **O(log n)**, where `n` is the length of `nums`.
 
 ### Space Complexity
 
-- O(1), constant space.
+- **O(1)**, constant space.

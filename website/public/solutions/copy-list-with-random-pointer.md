@@ -7,29 +7,55 @@ For example, if there are two nodes X and Y in the original list, where X.random
 Return the head of the copied linked list.
 The linked list is represented in the input/output as a list of n nodes. Each node is represented as a pair of [val, random_index] where:
 
-val: an integer representing Node.val
-random_index: the index of the node (range from 0 to n-1) that the random pointer points to, or null if it does not point to any node.
+- val: an integer representing Node.val
+- random_index: the index of the node (range from 0 to n-1) that the random pointer points to, or null if it does not point to any node.
 
 Your code will only be given the head of the original linked list.
- 
-Example 1:
-Input: head = [[7,null],[13,0],[11,4],[10,2],[1,0]]
-Output: [[7,null],[13,0],[11,4],[10,2],[1,0]]
 
-Example 2:
-Input: head = [[1,1],[2,1]]
-Output: [[1,1],[2,1]]
+## Examples
 
-Example 3:
-Input: head = [[3,null],[3,0],[3,null]]
-Output: [[3,null],[3,0],[3,null]]
+**Example 1:**
 
- 
-Constraints:
+**Input:**
+```
+head = [[7,null],[13,0],[11,4],[10,2],[1,0]]
+```
 
-0 <= n <= 1000
--104 <= Node.val <= 104
-Node.random is null or is pointing to some node in the linked list.
+**Output:**
+```
+[[7,null],[13,0],[11,4],[10,2],[1,0]]
+```
+
+**Example 2:**
+
+**Input:**
+```
+head = [[1,1],[2,1]]
+```
+
+**Output:**
+```
+[[1,1],[2,1]]
+```
+
+**Example 3:**
+
+**Input:**
+```
+head = [[3,null],[3,0],[3,null]]
+```
+
+**Output:**
+```
+[[3,null],[3,0],[3,null]]
+```
+
+## Constraints
+
+- `0 <= n <= 1000`
+- `-10^4 <= Node.val <= 10^4`
+- Node.random is null or is pointing to some node in the linked list.
+
 ## Solution
 
 ```python
@@ -73,5 +99,8 @@ To create a deep copy of a linked list with random pointers, we use a hash map t
 
 3. **Return the head**: The new head is the mapped node of the original head.
 
-**Time Complexity**: O(n), where n is the number of nodes, as we traverse the list twice.
-**Space Complexity**: O(n), due to the hash map storing all nodes.
+## Time Complexity
+**O(n)**, where n is the number of nodes, as we traverse the list twice.
+
+## Space Complexity
+**O(n)**, due to the hash map storing all nodes.

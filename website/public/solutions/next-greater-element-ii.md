@@ -1,27 +1,47 @@
 # Next Greater Element Ii
 
 ## Problem Description
-Given a circular integer array nums (i.e., the next element of nums[nums.length - 1] is nums[0]), return the next greater number for every element in nums.
-The next greater number of a number x is the first greater number to its traversing-order next in the array, which means you could search circularly to find its next greater number. If it doesn't exist, return -1 for this number.
- 
-Example 1:
 
-Input: nums = [1,2,1]
-Output: [2,-1,2]
-Explanation: The first 1's next greater number is 2; 
-The number 2 can't find next greater number. 
+Given a circular integer array `nums` (i.e., the next element of `nums[nums.length - 1]` is `nums[0]`), return the next greater number for every element in nums.
+
+The next greater number of a number `x` is the first greater number to its traversing-order next in the array, which means you could search circularly to find its next greater number. If it doesn't exist, return -1 for this number.
+
+## Examples
+
+### Example 1
+
+**Input:**
+```
+nums = [1, 2, 1]
+```
+
+**Output:**
+```
+[2, -1, 2]
+```
+
+**Explanation:**
+The first 1's next greater number is 2.
+The number 2 can't find next greater number.
 The second 1's next greater number needs to search circularly, which is also 2.
 
-Example 2:
+### Example 2
 
-Input: nums = [1,2,3,4,3]
-Output: [2,3,4,-1,4]
+**Input:**
+```
+nums = [1, 2, 3, 4, 3]
+```
 
- 
-Constraints:
+**Output:**
+```
+[2, 3, 4, -1, 4]
+```
 
-1 <= nums.length <= 104
--109 <= nums[i] <= 109
+## Constraints
+
+- `1 <= nums.length <= 10^4`
+- `-10^9 <= nums[i] <= 10^9`
+
 ## Solution
 
 ```python
@@ -41,17 +61,22 @@ class Solution:
 ```
 
 ## Explanation
+
 This problem requires finding the next greater element for each element in a circular array.
 
-Use a stack to keep indices.
+### Algorithm Steps
 
-Iterate through the array twice (0 to 2*n-1), using index % n.
+1. Use a stack to keep indices.
 
-For each element, while the stack is not empty and the current element is greater than the element at the top of the stack, pop the stack and set the result for that index to the current element.
+2. Iterate through the array twice (0 to 2*n-1), using `index % n`.
 
-Push the current index % n onto the stack.
+3. For each element, while the stack is not empty and the current element is greater than the element at the top of the stack, pop the stack and set the result for that index to the current element.
 
-Elements with no greater element remain -1.
+4. Push the current index `% n` onto the stack.
 
-**Time Complexity:** O(n), as each element is pushed and popped at most once.
-**Space Complexity:** O(n), for the stack and result array.
+5. Elements with no greater element remain -1.
+
+## Complexity Analysis
+
+- **Time Complexity:** O(n), as each element is pushed and popped at most once.
+- **Space Complexity:** O(n), for the stack and result array.

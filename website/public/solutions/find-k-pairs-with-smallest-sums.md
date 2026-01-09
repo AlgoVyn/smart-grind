@@ -1,30 +1,49 @@
 # Find K Pairs With Smallest Sums
 
 ## Problem Description
-You are given two integer arrays nums1 and nums2 sorted in non-decreasing order and an integer k.
+
+You are given two integer arrays nums1 and nums2 sorted in non-decreasing order and an integer k.
 Define a pair (u, v) which consists of one element from the first array and one element from the second array.
 Return the k pairs (u1, v1), (u2, v2), ..., (uk, vk) with the smallest sums.
- 
-Example 1:
 
-Input: nums1 = [1,7,11], nums2 = [2,4,6], k = 3
-Output: [[1,2],[1,4],[1,6]]
-Explanation: The first 3 pairs are returned from the sequence: [1,2],[1,4],[1,6],[7,2],[7,4],[11,2],[7,6],[11,4],[11,6]
+## Constraints
 
-Example 2:
+- 1 <= nums1.length, nums2.length <= 105
+- -109 <= nums1[i], nums2[i] <= 109
+- nums1 and nums2 both are sorted in non-decreasing order.
+- 1 <= k <= 104
+- k <= nums1.length * nums2.length
 
-Input: nums1 = [1,1,2], nums2 = [1,2,3], k = 2
-Output: [[1,1],[1,1]]
-Explanation: The first 2 pairs are returned from the sequence: [1,1],[1,1],[1,2],[2,1],[1,2],[2,2],[1,3],[1,3],[2,3]
+## Example 1
 
- 
-Constraints:
+**Input:**
+```python
+nums1 = [1,7,11], nums2 = [2,4,6], k = 3
+```
 
-1 <= nums1.length, nums2.length <= 105
--109 <= nums1[i], nums2[i] <= 109
-nums1 and nums2 both are sorted in non-decreasing order.
-1 <= k <= 104
-k <= nums1.length * nums2.length
+**Output:**
+```python
+[[1,2],[1,4],[1,6]]
+```
+
+**Explanation:**
+The first 3 pairs are returned from the sequence: [1,2],[1,4],[1,6],[7,2],[7,4],[11,2],[7,6],[11,4],[11,6]
+
+## Example 2
+
+**Input:**
+```python
+nums1 = [1,1,2], nums2 = [1,2,3], k = 2
+```
+
+**Output:**
+```python
+[[1,1],[1,1]]
+```
+
+**Explanation:**
+The first 2 pairs are returned from the sequence: [1,1],[1,1],[1,2],[2,1],[1,2],[2,2],[1,3],[1,3],[2,3]
+
 ## Solution
 
 ```python
@@ -58,7 +77,10 @@ class Solution:
 ```
 
 ## Explanation
+
 This problem requires finding the k pairs with the smallest sums from two sorted arrays.
+
+### Step-by-Step Explanation:
 
 1. **Min-heap approach:**
    - Use a priority queue (heap) to always get the smallest sum pair.
@@ -74,6 +96,10 @@ This problem requires finding the k pairs with the smallest sums from two sorted
 4. **Efficiency:**
    - Heap operations ensure we always expand from the current smallest sum.
 
-**Time Complexity:** O(k log k), as heap operations are log k and we do up to k pops.
+### Time Complexity:
 
-**Space Complexity:** O(k) for heap and visited set.
+O(k log k), as heap operations are log k and we do up to k pops.
+
+### Space Complexity:
+
+O(k) for heap and visited set.

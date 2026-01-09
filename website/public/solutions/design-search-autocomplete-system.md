@@ -1,6 +1,36 @@
 # Design Search Autocomplete System
 
 ## Problem Description
+Design a search autocomplete system that returns the top 3 hot sentences for each query character.
+
+When a character is typed, the system should return up to 3 sentences that have the prefix formed by all characters typed so far, sorted by their frequency (descending). If two sentences have the same frequency, they should be sorted lexicographically (ascending).
+
+When the character '#' is typed, it indicates the end of a sentence. The sentence should be added to the autocomplete system with a frequency count of 1.
+
+Implement the following methods:
+- `AutocompleteSystem(sentences: List[str], times: List[int])`: Initialize the system with given sentences and their initial frequencies.
+- `input(c: str) -> List[str]`: Input the next character c and return the top 3 hot sentences.
+
+## Examples
+
+**Input:**
+```python
+sentences = ["i love you", "island", "iroman"]
+times = [5, 3, 2]
+```
+
+**Output:**
+```python
+# After initialization, the system is ready to accept queries
+```
+
+## Constraints
+
+- `1 <= sentences.length <= 100`
+- `1 <= sentences[i].length <= 100`
+- `1 <= times.length == sentences.length`
+- `1 <= times[i] <= 10^3`
+
 ## Solution
 
 ```python

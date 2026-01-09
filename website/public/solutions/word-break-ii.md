@@ -1,34 +1,60 @@
-# Word Break Ii
+# Word Break II
 
 ## Problem Description
-Given a string s and a dictionary of strings wordDict, add spaces in s to construct a sentence where each word is a valid dictionary word. Return all such possible sentences in any order.
+
+Given a string `s` and a dictionary of strings `wordDict`, add spaces in `s` to construct a sentence where each word is a valid dictionary word. Return all such possible sentences in any order.
+
 Note that the same word in the dictionary may be reused multiple times in the segmentation.
- 
-Example 1:
 
-Input: s = "catsanddog", wordDict = ["cat","cats","and","sand","dog"]
-Output: ["cats and dog","cat sand dog"]
+### Examples
 
-Example 2:
+**Example 1:**
 
-Input: s = "pineapplepenapple", wordDict = ["apple","pen","applepen","pine","pineapple"]
-Output: ["pine apple pen apple","pineapple pen apple","pine applepen apple"]
-Explanation: Note that you are allowed to reuse a dictionary word.
+**Input:**
+```
+s = "catsanddog", wordDict = ["cat","cats","and","sand","dog"]
+```
 
-Example 3:
+**Output:**
+```
+["cats and dog","cat sand dog"]
+```
 
-Input: s = "catsandog", wordDict = ["cats","dog","sand","and","cat"]
-Output: []
+**Example 2:**
 
- 
-Constraints:
+**Input:**
+```
+s = "pineapplepenapple", wordDict = ["apple","pen","applepen","pine","pineapple"]
+```
 
-1 <= s.length <= 20
-1 <= wordDict.length <= 1000
-1 <= wordDict[i].length <= 10
-s and wordDict[i] consist of only lowercase English letters.
-All the strings of wordDict are unique.
-Input is generated in a way that the length of the answer doesn't exceed 105.
+**Output:**
+```
+["pine apple pen apple","pineapple pen apple","pine applepen apple"]
+```
+
+**Explanation:** Note that you are allowed to reuse a dictionary word.
+
+**Example 3:**
+
+**Input:**
+```
+s = "catsandog", wordDict = ["cats","dog","sand","and","cat"]
+```
+
+**Output:**
+```
+[]
+```
+
+### Constraints
+
+- `1 <= s.length <= 20`
+- `1 <= wordDict.length <= 1000`
+- `1 <= wordDict[i].length <= 10`
+- `s` and `wordDict[i]` consist of only lowercase English letters.
+- All the strings of `wordDict` are unique.
+- Input is generated in a way that the length of the answer doesn't exceed `10^5`.
+
 ## Solution
 
 ```python
@@ -60,8 +86,13 @@ class Solution:
 ```
 
 ## Explanation
-Use backtracking with memoization to generate all possible sentences. Convert wordDict to a set for fast lookup. The backtrack function starts from index start, tries all possible words ending at end, and recurses on the remaining string. Combine the word with the suffixes. Memoize the results for each start index to avoid recomputation.
 
-**Time Complexity:** O(n^2 * m), where n is string length, m is number of words, due to substring checks and combinations.
+Use backtracking with memoization to generate all possible sentences. Convert `wordDict` to a set for fast lookup. The `backtrack` function starts from index `start`, tries all possible words ending at `end`, and recurses on the remaining string. Combine the word with the suffixes. Memoize the results for each start index to avoid recomputation.
 
-**Space Complexity:** O(n^2) for memo and recursion stack.
+### Time Complexity
+
+- **O(n^2 * m)**, where `n` is string length, `m` is number of words, due to substring checks and combinations.
+
+### Space Complexity
+
+- **O(n^2)** for memo and recursion stack.

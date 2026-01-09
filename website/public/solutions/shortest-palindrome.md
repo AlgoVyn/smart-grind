@@ -1,21 +1,24 @@
 # Shortest Palindrome
 
 ## Problem Description
-You are given a string s. You can convert s to a palindrome by adding characters in front of it.
-Return the shortest palindrome you can find by performing this transformation.
- 
-Example 1:
-Input: s = "aacecaaa"
-Output: "aaacecaaa"
-Example 2:
-Input: s = "abcd"
-Output: "dcbabcd"
 
- 
-Constraints:
+You are given a string `s`. You can convert `s` to a palindrome by adding characters in front of it. Return the shortest palindrome you can find by performing this transformation.
 
-0 <= s.length <= 5 * 104
-s consists of lowercase English letters only.
+### Examples
+
+**Example 1:**
+- Input: `s = "aacecaaa"`
+- Output: `"aaacecaaa"`
+
+**Example 2:**
+- Input: `s = "abcd"`
+- Output: `"dcbabcd"`
+
+### Constraints
+
+- `0 <= s.length <= 5 * 10^4`
+- `s` consists of lowercase English letters only.
+
 ## Solution
 
 ```python
@@ -44,26 +47,21 @@ This problem requires making the shortest palindrome by adding characters in fro
 
 ### Approach
 
-Use KMP to find the longest prefix of s that is a palindrome when considering the reverse. Construct a temporary string s + '#' + reverse(s), compute the prefix table, and the last value gives the length of the longest palindromic prefix.
+Use KMP (Knuth-Morris-Pratt) algorithm to find the longest prefix of `s` that is also a suffix when combined with the reverse of `s`.
 
-### Step-by-Step Explanation
+### Algorithm Steps
 
-1. **Reverse**: Get reverse of s.
-
-2. **Temp String**: Create s + '#' + rev_s.
-
-3. **Prefix Table**: Compute KMP prefix table for temp.
-
-4. **Longest Prefix**: pi[-1] is the length of the longest prefix that matches suffix.
-
+1. **Reverse**: Get the reverse of `s`.
+2. **Temp String**: Create `s + '#' + rev_s`.
+3. **Prefix Table**: Compute KMP prefix table for the temp string.
+4. **Longest Prefix**: `pi[-1]` gives the length of the longest prefix that matches a suffix.
 5. **Add Characters**: Add the reverse of the non-palindromic part to the front.
-
-6. **Return**: The new string.
+6. **Return**: The new palindrome string.
 
 ### Time Complexity
 
-- O(n), where n is the length of s.
+- **O(n)**, where `n` is the length of `s`.
 
 ### Space Complexity
 
-- O(n), for the temp string and prefix array.
+- **O(n)**, for the temp string and prefix array.

@@ -1,28 +1,31 @@
 # Shortest Common Supersequence
 
 ## Problem Description
-Given two strings str1 and str2, return the shortest string that has both str1 and str2 as subsequences. If there are multiple valid strings, return any of them.
-A string s is a subsequence of string t if deleting some number of characters from t (possibly 0) results in the string s.
- 
-Example 1:
 
-Input: str1 = "abac", str2 = "cab"
-Output: "cabac"
-Explanation: 
-str1 = "abac" is a subsequence of "cabac" because we can delete the first "c".
-str2 = "cab" is a subsequence of "cabac" because we can delete the last "ac".
+Given two strings `str1` and `str2`, return the shortest string that has both `str1` and `str2` as subsequences. If there are multiple valid strings, return any of them.
+
+A string `s` is a subsequence of string `t` if deleting some number of characters from `t` (possibly 0) results in the string `s`.
+
+### Examples
+
+**Example 1:**
+- Input: `str1 = "abac", str2 = "cab"`
+- Output: `"cabac"`
+
+**Explanation:**
+- `str1 = "abac"` is a subsequence of `"cabac"` because we can delete the first `"c"`.
+- `str2 = "cab"` is a subsequence of `"cabac"` because we can delete the last `"ac"`.
 The answer provided is the shortest such string that satisfies these properties.
 
-Example 2:
+**Example 2:**
+- Input: `str1 = "aaaaaaaa", str2 = "aaaaaaaa"`
+- Output: `"aaaaaaaa"`
 
-Input: str1 = "aaaaaaaa", str2 = "aaaaaaaa"
-Output: "aaaaaaaa"
+### Constraints
 
- 
-Constraints:
+- `1 <= str1.length, str2.length <= 1000`
+- `str1` and `str2` consist of lowercase English letters only.
 
-1 <= str1.length, str2.length <= 1000
-str1 and str2 consist of lowercase English letters.
 ## Solution
 
 ```python
@@ -30,6 +33,8 @@ class Solution:
     def shortestCommonSupersequence(self, str1: str, str2: str) -> str:
         m, n = len(str1), len(str2)
         dp = [[0] * (n + 1) for _ in range(m + 1)]
+        
+        # Build DP table
         for i in range(m + 1):
             dp[i][0] = i
         for j in range(n + 1):
@@ -59,8 +64,31 @@ class Solution:
 ```
 
 ## Explanation
-Use dynamic programming to compute the length of the shortest common supersequence. dp[i][j] is the length for str1[:i] and str2[:j]. If characters match, take diagonal +1; else, min of left or up +1. Then, backtrack from dp[m][n] to build the string by appending characters from str1 or str2 based on the DP choices.
 
-**Time Complexity:** O(m * n), for DP table.
+Use dynamic programming to compute the length of the shortest common supersequence and then backtrack to construct the actual string.
 
-**Space Complexity:** O(m * n), for DP table.
+### Approach
+
+1. Build a DP table where `dp[i][j]` is the length of the shortest common supersequence for `str1[:i]` and `str2[:j]`.
+2. If characters match, take diagonal value plus 1.
+3. Otherwise, take minimum of left or top value plus 1.
+4. Backtrack from `dp[m][n]` to build the string by appending characters from `str1` or `str2` based on the DP choices.
+
+### Algorithm Steps
+
+1. **Build DP Table:**
+   - Initialize `dp[i][0] = i` and `dp[0][j] = j`.
+   - Fill the table based on character matching.
+
+2. **Backtrack to Build Result:**
+   - Start from `dp[m][n]`.
+   - If characters match, add the character and move diagonally.
+   - Otherwise, move in the direction of the smaller value.
+
+### Time Complexity
+
+- **O(m * n)**, for building the DP table.
+
+### Space Complexity
+
+- **O(m * n)**, for the DP table.

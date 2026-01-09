@@ -1,6 +1,30 @@
 # Design Phone Directory
 
 ## Problem Description
+Design a phone directory that allows you to allocate phone numbers and release them.
+
+Implement the PhoneDirectory class with the following methods:
+- `PhoneDirectory(maxNumbers: int)`: Initialize the directory with numbers from 0 to maxNumbers-1.
+- `get() -> int`: Return any available phone number. If no number is available, return -1.
+- `check(number: int) -> bool`: Check if a phone number is available.
+- `release(number: int) -> None`: Release a phone number back to the directory.
+
+## Examples
+
+**Input:**
+```python
+maxNumbers = 3
+```
+
+**Output:**
+```python
+# PhoneDirectory initialized with numbers [0, 1, 2]
+```
+
+## Constraints
+
+- `1 <= maxNumbers <= 10^3`
+
 ## Solution
 
 ```python

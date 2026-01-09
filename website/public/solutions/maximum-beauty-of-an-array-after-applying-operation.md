@@ -1,39 +1,64 @@
-# Maximum Beauty Of An Array After Applying Operation
+# Maximum Beauty of an Array After Applying Operation
 
 ## Problem Description
-You are given a 0-indexed array nums and a non-negative integer k.
-In one operation, you can do the following:
 
-Choose an index i that hasn't been chosen before from the range [0, nums.length - 1].
-Replace nums[i] with any integer from the range [nums[i] - k, nums[i] + k].
+You are given a 0-indexed array `nums` and a non-negative integer `k`.
 
-The beauty of the array is the length of the longest subsequence consisting of equal elements.
-Return the maximum possible beauty of the array nums after applying the operation any number of times.
-Note that you can apply the operation to each index only once.
-A subsequence of an array is a new array generated from the original array by deleting some elements (possibly none) without changing the order of the remaining elements.
- 
-Example 1:
+In one operation, you can:
+1. Choose an index `i` that hasn't been chosen before from `[0, nums.length - 1]`
+2. Replace `nums[i]` with any integer from `[nums[i] - k, nums[i] + k]`
 
-Input: nums = [4,6,1,2], k = 2
-Output: 3
-Explanation: In this example, we apply the following operations:
-- Choose index 1, replace it with 4 (from range [4,8]), nums = [4,4,1,2].
-- Choose index 3, replace it with 4 (from range [0,4]), nums = [4,4,1,4].
-After the applied operations, the beauty of the array nums is 3 (subsequence consisting of indices 0, 1, and 3).
-It can be proven that 3 is the maximum possible length we can achieve.
+The **beauty** of the array is the length of the longest subsequence consisting of equal elements.
 
-Example 2:
+Return the maximum possible beauty of the array after applying the operation any number of times. Each index can be used in at most one operation.
 
-Input: nums = [1,1,1,1], k = 10
-Output: 4
-Explanation: In this example we don't have to apply any operations.
-The beauty of the array nums is 4 (whole array).
+A **subsequence** is an array generated from the original array by deleting some elements (possibly none) without changing the order of the remaining elements.
 
- 
-Constraints:
+---
 
-1 <= nums.length <= 105
-0 <= nums[i], k <= 105
+## Examples
+
+### Example 1
+
+**Input:**
+```python
+nums = [4, 6, 1, 2], k = 2
+```
+
+**Output:**
+```
+3
+```
+
+**Explanation:**
+- Replace `nums[1]` (6) with 4 → `[4, 4, 1, 2]`
+- Replace `nums[3]` (2) with 4 → `[4, 4, 1, 4]`
+
+The beauty is 3 (elements at indices 0, 1, and 3 are all 4).
+
+### Example 2
+
+**Input:**
+```python
+nums = [1, 1, 1, 1], k = 10
+```
+
+**Output:**
+```
+4
+```
+
+**Explanation:** All elements are already equal, so no operations are needed.
+
+---
+
+## Constraints
+
+- `1 <= nums.length <= 10^5`
+- `0 <= nums[i], k <= 10^5`
+
+---
+
 ## Solution
 
 ```python
@@ -51,20 +76,35 @@ class Solution:
         return max_beauty
 ```
 
+---
+
 ## Explanation
-To maximize the beauty, we need the longest subsequence where all elements can be made equal by changing each to a value in [num - k, num + k]. This means for a target value, all elements in [target - k, target + k] can be made to target. The maximum number is the size of the largest subarray where max - min <= 2*k after sorting.
 
-### Step-by-Step Explanation:
-1. **Sort the array**: Sorting allows us to use a sliding window to find contiguous elements that can be made equal.
+### Key Insight
 
-2. **Sliding Window**: Use two pointers. Expand right, and move left when nums[right] - nums[left] > 2*k.
+For all elements in a valid subsequence to become equal to some target value `T`:
+- Each element `x` must satisfy `T - k <= x <= T + k`
+- This means `max - min <= 2 * k` after sorting
 
-3. **Track maximum**: Update max_beauty with the current window size.
+### Algorithm
 
-4. **Return the result**: The maximum beauty.
+1. **Sort the array**: This allows us to use a sliding window
+2. **Sliding window**: Use two pointers `left` and `right`
+   - Expand `right` to include more elements
+   - Move `left` when `nums[right] - nums[left] > 2 * k`
+   - The window `[left, right]` contains elements that can all be made equal
+3. **Track maximum**: Update `max_beauty` with the current window size
+4. Return `max_beauty`
 
-### Time Complexity:
-- O(n log n) for sorting, O(n) for sliding window.
+### Why This Works
 
-### Space Complexity:
-- O(1) auxiliary space, excluding input.
+After sorting, elements that can be made equal form a contiguous subarray where the difference between the maximum and minimum is at most `2k`.
+
+---
+
+## Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O(n log n)` — Sorting dominates; sliding window is `O(n)` |
+| **Space** | `O(1)` — In-place sorting |

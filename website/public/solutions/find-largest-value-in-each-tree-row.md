@@ -1,22 +1,38 @@
 # Find Largest Value In Each Tree Row
 
 ## Problem Description
+
 Given the root of a binary tree, return an array of the largest value in each row of the tree (0-indexed).
- 
-Example 1:
-Input: root = [1,3,2,5,3,null,9]
-Output: [1,3,9]
 
-Example 2:
+## Constraints
 
-Input: root = [1,2,3]
-Output: [1,3]
+- The number of nodes in the tree will be in the range [0, 104].
+- -231 <= Node.val <= 231 - 1
 
- 
-Constraints:
+## Example 1
 
-The number of nodes in the tree will be in the range [0, 104].
--231 <= Node.val <= 231 - 1
+**Input:**
+```python
+root = [1,3,2,5,3,null,9]
+```
+
+**Output:**
+```python
+[1,3,9]
+```
+
+## Example 2
+
+**Input:**
+```python
+root = [1,2,3]
+```
+
+**Output:**
+```python
+[1,3]
+```
+
 ## Solution
 
 ```python
@@ -59,6 +75,8 @@ class Solution:
 
 To solve this problem, we need to find the largest value in each row (level) of a binary tree. We can use a breadth-first search (BFS) approach to traverse the tree level by level.
 
+### Step-by-Step Explanation:
+
 1. If the root is None, return an empty list since there are no rows.
 
 2. Initialize a queue with the root node and an empty result list.
@@ -76,6 +94,10 @@ To solve this problem, we need to find the largest value in each row (level) of 
 
 This approach ensures we process each level separately and find the maximum value for each.
 
-**Time Complexity:** O(n), where n is the number of nodes in the tree, as we visit each node exactly once.
+### Time Complexity:
 
-**Space Complexity:** O(w), where w is the maximum width of the tree (the maximum number of nodes at any level), due to the queue used in BFS. In the worst case, for a complete binary tree, w can be up to n/2.
+O(n), where n is the number of nodes in the tree, as we visit each node exactly once.
+
+### Space Complexity:
+
+O(w), where w is the maximum width of the tree (the maximum number of nodes at any level), due to the queue used in BFS. In the worst case, for a complete binary tree, w can be up to n/2.

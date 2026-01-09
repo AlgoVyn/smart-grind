@@ -1,40 +1,45 @@
 # Flatten Nested List Iterator
 
 ## Problem Description
+
 You are given a nested list of integers nestedList. Each element is either an integer or a list whose elements may also be integers or other lists. Implement an iterator to flatten it.
 Implement the NestedIterator class:
-
-NestedIterator(List<NestedInteger> nestedList) Initializes the iterator with the nested list nestedList.
-int next() Returns the next integer in the nested list.
-boolean hasNext() Returns true if there are still some integers in the nested list and false otherwise.
-
+- NestedIterator(List<NestedInteger> nestedList) Initializes the iterator with the nested list nestedList.
+- int next() Returns the next integer in the nested list.
+- boolean hasNext() Returns true if there are still some integers in the nested list and false otherwise.
 Your code will be tested with the following pseudocode:
-
+```
 initialize iterator with nestedList
 res = []
 while iterator.hasNext()
     append iterator.next() to the end of res
 return res
-
+```
 If res matches the expected flattened list, then your code will be judged as correct.
- 
-Example 1:
 
-Input: nestedList = [[1,1],2,[1,1]]
-Output: [1,1,2,1,1]
-Explanation: By calling next repeatedly until hasNext returns false, the order of elements returned by next should be: [1,1,2,1,1].
+### Examples
 
-Example 2:
+**Example 1:**
 
-Input: nestedList = [1,[4,[6]]]
-Output: [1,4,6]
-Explanation: By calling next repeatedly until hasNext returns false, the order of elements returned by next should be: [1,4,6].
+**Input:** nestedList = [[1,1],2,[1,1]]
 
- 
-Constraints:
+**Output:** [1,1,2,1,1]
 
-1 <= nestedList.length <= 500
-The values of the integers in the nested list is in the range [-106, 106].
+**Explanation:** By calling next repeatedly until hasNext returns false, the order of elements returned by next should be: [1,1,2,1,1].
+
+**Example 2:**
+
+**Input:** nestedList = [1,[4,[6]]]
+
+**Output:** [1,4,6]
+
+**Explanation:** By calling next repeatedly until hasNext returns false, the order of elements returned by next should be: [1,4,6].
+
+### Constraints
+
+- 1 <= nestedList.length <= 500
+- The values of the integers in the nested list is in the range [-10^6, 10^6].
+
 ## Solution
 
 ```python
@@ -78,17 +83,15 @@ class NestedIterator:
         return False
 ```
 
-## Explanation
+### Approach
 
 Use a stack to store the nested list elements in reverse order.
-
 In hasNext(), while the top is a list, pop it and push its elements in reverse order onto the stack.
-
 When top is an integer, return true.
-
 In next(), call hasNext() to ensure top is integer, then pop and return it.
-
 This flattens the nested list on the fly.
+
+### Complexity
 
 **Time Complexity:** next() and hasNext() amortized O(1), total O(n) for all operations.
 

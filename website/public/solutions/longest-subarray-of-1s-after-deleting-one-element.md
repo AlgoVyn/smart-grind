@@ -1,32 +1,64 @@
-# Longest Subarray Of 1s After Deleting One Element
+# Longest Subarray of 1's After Deleting One Element
 
 ## Problem Description
-Given a binary array nums, you should delete one element from it.
-Return the size of the longest non-empty subarray containing only 1's in the resulting array. Return 0 if there is no such subarray.
- 
-Example 1:
 
-Input: nums = [1,1,0,1]
-Output: 3
-Explanation: After deleting the number in position 2, [1,1,1] contains 3 numbers with value of 1's.
+Given a binary array `nums`, delete exactly one element from it. Return the size of the longest non-empty subarray containing only `1`'s in the resulting array. Return `0` if there is no such subarray.
 
-Example 2:
+---
 
-Input: nums = [0,1,1,1,0,1,1,0,1]
-Output: 5
-Explanation: After deleting the number in position 4, [0,1,1,1,1,1,0,1] longest subarray with value of 1's is [1,1,1,1,1].
+## Examples
 
-Example 3:
+### Example 1
 
-Input: nums = [1,1,1]
-Output: 2
-Explanation: You must delete one element.
+**Input:**
+```python
+nums = [1, 1, 0, 1]
+```
 
- 
-Constraints:
+**Output:**
+```
+3
+```
 
-1 <= nums.length <= 105
-nums[i] is either 0 or 1.
+**Explanation:** After deleting the `0` at position 2, the array becomes `[1, 1, 1]` with a subarray of length 3.
+
+### Example 2
+
+**Input:**
+```python
+nums = [0, 1, 1, 1, 0, 1, 1, 0, 1]
+```
+
+**Output:**
+```
+5
+```
+
+**Explanation:** After deleting the `0` at position 4, the array becomes `[0, 1, 1, 1, 1, 1, 0, 1]`. The longest subarray of 1's is `[1, 1, 1, 1, 1]` with length 5.
+
+### Example 3
+
+**Input:**
+```python
+nums = [1, 1, 1]
+```
+
+**Output:**
+```
+2
+```
+
+**Explanation:** We must delete exactly one element. After deleting any `1`, the longest subarray of 1's has length 2.
+
+---
+
+## Constraints
+
+- `1 <= nums.length <= 10^5`
+- `nums[i]` is either `0` or `1`
+
+---
+
 ## Solution
 
 ```python
@@ -46,18 +78,41 @@ class Solution:
                 left += 1
             current_len = right - left + 1
             if zero_count == 0:
-                candidate = current_len - 1
+                candidate = current_len - 1  # Must delete one element
             else:
                 candidate = current_len if current_len > 1 else 0
             max_result = max(max_result, candidate)
         return max_result
 ```
 
+---
+
 ## Explanation
-We use a sliding window approach to find the maximum length of a subarray with at most one zero. For each possible window, we calculate the candidate length for the resulting array after deleting one element: if the window has no zeros, we must delete one 1, so the length is current_len - 1; if it has one zero, we can delete that zero, and if current_len > 1, the length is current_len, otherwise 0.
 
-We maintain the maximum candidate length.
+We use a **sliding window** to find the maximum length of a subarray with at most one `0`.
 
-Time complexity: O(n), where n is the length of nums, as each element is visited at most twice.
+### Key Insight
 
-Space complexity: O(1), using only a few variables.
+The window can contain at most one `0` (which we will delete). The resulting subarray length is:
+
+- **If window has no zeros**: `current_len - 1` (must delete one element)
+- **If window has one zero**: `current_len` (delete the zero)
+- **Otherwise**: Not valid
+
+### Algorithm
+
+1. Initialize `left` pointer and `zero_count`
+2. Expand the window by moving `right`:
+   - Count zeros in the window
+   - If more than one zero, shrink from the left
+3. Calculate candidate length for each valid window
+4. Track and return the maximum
+
+---
+
+## Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O(n)` — Each element is visited at most twice |
+| **Space** | `O(1)` — Only a few variables used |

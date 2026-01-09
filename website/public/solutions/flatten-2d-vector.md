@@ -1,23 +1,30 @@
 # Flatten 2d Vector
 
 ## Problem Description
+
 Design and implement an iterator to flatten a 2d vector. It should support the following operations: next and hasNext.
-
 Implement the Vector2D class:
+- Vector2D(List<List<Integer>> vec) initializes the object with the 2D vector vec.
+- next() returns the next element from the 2D vector and moves the pointer one step forward. You may assume that all calls to next are valid.
+- hasNext() returns true if there are still some elements in the vector, and false otherwise.
 
-Vector2D(List<List<Integer>> vec) initializes the object with the 2D vector vec.
-next() returns the next element from the 2D vector and moves the pointer one step forward. You may assume that all calls to next are valid.
-hasNext() returns true if there are still some elements in the vector, and false otherwise.
+### Examples
 
-Example:
+**Example 1:**
 
-Input
+**Input:**
+```
 ["Vector2D", "next", "next", "next", "hasNext", "hasNext", "next", "hasNext"]
 [[[[1, 2], [3], [4]]], [], [], [], [], [], [], []]
-Output
-[null, 1, 2, 3, true, true, 4, false]
+```
 
-Explanation
+**Output:**
+```
+[null, 1, 2, 3, true, true, 4, false]
+```
+
+**Explanation:**
+```
 Vector2D vector2D = new Vector2D([[1, 2], [3], [4]]);
 vector2D.next();    // return 1
 vector2D.next();    // return 2
@@ -26,13 +33,14 @@ vector2D.hasNext(); // return True
 vector2D.hasNext(); // return True
 vector2D.next();    // return 4
 vector2D.hasNext(); // return False
+```
 
-Constraints:
+### Constraints
 
-0 <= vec.length <= 200
-0 <= vec[i].length <= 500
--1000 <= vec[i][j] <= 1000
-At most 105 calls will be made to next and hasNext.
+- 0 <= vec.length <= 200
+- 0 <= vec[i].length <= 500
+- -1000 <= vec[i][j] <= 1000
+- At most 10^5 calls will be made to next and hasNext.
 
 ## Solution
 
@@ -61,13 +69,13 @@ class Vector2D:
         return self.i < len(self.vec)
 ```
 
-## Explanation
+### Approach
 
 Use two pointers i and j to track the current position in the 2D vector.
-
 In next(), return the current element and move j, if j reaches end of row, move to next row.
-
 In hasNext(), skip empty rows, check if i < len(vec).
+
+### Complexity
 
 **Time Complexity:** next() O(1), hasNext() amortized O(1)
 

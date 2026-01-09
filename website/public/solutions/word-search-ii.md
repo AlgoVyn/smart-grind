@@ -1,28 +1,48 @@
-# Word Search Ii
+# Word Search II
 
 ## Problem Description
-Given an m x n board of characters and a list of strings words, return all words on the board.
+
+Given an `m x n` board of characters and a list of strings `words`, return all words on the board.
+
 Each word must be constructed from letters of sequentially adjacent cells, where adjacent cells are horizontally or vertically neighboring. The same letter cell may not be used more than once in a word.
- 
-Example 1:
-Input: board = [["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]], words = ["oath","pea","eat","rain"]
-Output: ["eat","oath"]
 
-Example 2:
-Input: board = [["a","b"],["c","d"]], words = ["abcb"]
-Output: []
+### Examples
 
- 
-Constraints:
+**Example 1:**
 
-m == board.length
-n == board[i].length
-1 <= m, n <= 12
-board[i][j] is a lowercase English letter.
-1 <= words.length <= 3 * 104
-1 <= words[i].length <= 10
-words[i] consists of lowercase English letters.
-All the strings of words are unique.
+**Input:**
+```
+board = [["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]], words = ["oath","pea","eat","rain"]
+```
+
+**Output:**
+```
+["eat","oath"]
+```
+
+**Example 2:**
+
+**Input:**
+```
+board = [["a","b"],["c","d"]], words = ["abcb"]
+```
+
+**Output:**
+```
+[]
+```
+
+### Constraints
+
+- `m == board.length`
+- `n == board[i].length`
+- `1 <= m, n <= 12`
+- `board[i][j]` is a lowercase English letter.
+- `1 <= words.length <= 3 * 10^4`
+- `1 <= words[i].length <= 10`
+- `words[i]` consists of lowercase English letters.
+- All the strings of `words` are unique.
+
 ## Solution
 
 ```python
@@ -67,15 +87,21 @@ def findWords(board: List[List[str]], words: List[str]) -> List[str]:
 ```
 
 ## Explanation
+
 To find all words from the list that can be formed in the board using adjacent letters without reuse, use a Trie and DFS.
 
 1. Build a Trie with all words.
 2. For each cell in the board, perform DFS:
    - If current Trie node marks end of word, add to result.
-   - If cell char in current node's children, mark cell visited ('#'), recurse to adjacent cells, then backtrack.
+   - If cell char in current node's children, mark cell visited (`'#'`), recurse to adjacent cells, then backtrack.
 3. Use a set for result to avoid duplicates, return as list.
 
 This efficiently prunes invalid paths with Trie.
 
-**Time Complexity:** O(m*n*4^L), m,n board size, L max word length, but Trie reduces.
-**Space Complexity:** O(N*L + m*n), N words, for Trie and recursion.
+### Time Complexity
+
+- **O(m*n*4^L)**, m,n board size, L max word length, but Trie reduces.
+
+### Space Complexity
+
+- **O(N*L + m*n)**, N words, for Trie and recursion.

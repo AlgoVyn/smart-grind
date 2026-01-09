@@ -1,27 +1,51 @@
-# Max Consecutive Ones Iii
+# Max Consecutive Ones III
 
 ## Problem Description
-Given a binary array nums and an integer k, return the maximum number of consecutive 1's in the array if you can flip at most k 0's.
- 
-Example 1:
 
-Input: nums = [1,1,1,0,0,0,1,1,1,1,0], k = 2
-Output: 6
-Explanation: [1,1,1,0,0,1,1,1,1,1,1]
-Bolded numbers were flipped from 0 to 1. The longest subarray is underlined.
-Example 2:
+Given a binary array `nums` and an integer `k`, return the maximum number of consecutive `1`'s in the array if you can flip at most `k` `0`'s to `1`.
 
-Input: nums = [0,0,1,1,0,0,1,1,1,0,1,1,0,0,0,1,1,1,1], k = 3
-Output: 10
-Explanation: [0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1]
-Bolded numbers were flipped from 0 to 1. The longest subarray is underlined.
+---
 
- 
-Constraints:
+## Examples
 
-1 <= nums.length <= 105
-nums[i] is either 0 or 1.
-0 <= k <= nums.length
+### Example 1
+
+**Input:**
+```python
+nums = [1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0], k = 2
+```
+
+**Output:**
+```
+6
+```
+
+**Explanation:** After flipping two `0`'s to `1`, the longest subarray of consecutive `1`'s has length 6.
+
+### Example 2
+
+**Input:**
+```python
+nums = [0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1], k = 3
+```
+
+**Output:**
+```
+10
+```
+
+**Explanation:** After flipping three `0`'s to `1`, the longest subarray of consecutive `1`'s has length 10.
+
+---
+
+## Constraints
+
+- `1 <= nums.length <= 10^5`
+- `nums[i]` is either `0` or `1`
+- `0 <= k <= nums.length`
+
+---
+
 ## Solution
 
 ```python
@@ -43,11 +67,30 @@ class Solution:
         return max_len
 ```
 
+---
+
 ## Explanation
-We use a sliding window to find the maximum length of a subarray with at most k zeros. The window expands to the right, and when the number of zeros exceeds k, we shrink from the left until it's <= k.
 
-This ensures the window contains at most k zeros, and we can flip them to get all 1's.
+We use a **sliding window** to find the maximum length of a subarray with at most `k` zeros.
 
-Time complexity: O(n), where n is the length of nums.
+### Key Idea
 
-Space complexity: O(1).
+The window `[left, right]` is always valid (contains at most `k` zeros). When we add a `0` and exceed `k`, we shrink the window from the left until it's valid again.
+
+### Algorithm
+
+1. Initialize `left` pointer and `zero_count`
+2. Expand the window by moving `right`:
+   - Count zeros in the window
+   - If zeros exceed `k`, shrink from the left
+3. Update `max_len` with the current valid window size
+4. Return `max_len`
+
+---
+
+## Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O(n)` — Each element is visited at most twice |
+| **Space** | `O(1)` — Only a few variables used |

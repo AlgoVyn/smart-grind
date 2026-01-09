@@ -5,6 +5,8 @@ Given an integer array `nums`, return all the triplets `[nums[i], nums[j], nums[
 
 Notice that the solution set must not contain duplicate triplets.
 
+## Examples
+
 **Example 1:**
 ```
 Input: nums = [-1,0,1,2,-1,-4]
@@ -23,7 +25,7 @@ Input: nums = [0]
 Output: []
 ```
 
-**Constraints:**
+## Constraints
 - `0 <= nums.length <= 3000`
 - `-10^5 <= nums[i] <= 10^5`
 
@@ -71,6 +73,8 @@ For each i, we initialize two pointers: left at i+1 and right at the end of the 
 
 This ensures all triplets are unique and we don't miss any.
 
-Time Complexity: O(n^2), where n is the length of the array, due to the sorting (O(n log n)) and the nested loops (O(n^2)).
+## Time Complexity
+**O(n^2)**, where n is the length of the array, due to the sorting (O(n log n)) and the nested loops (O(n^2)).
 
-Space Complexity: O(1) additional space, excluding the space for the result list. The sorting is done in place.
+## Space Complexity
+**O(1)** additional space, excluding the space for the result list. The sorting is done in place.

@@ -1,28 +1,53 @@
 # Longest Repeating Character Replacement
 
 ## Problem Description
-You are given a string s and an integer k. You can choose any character of the string and change it to any other uppercase English character. You can perform this operation at most k times.
+
+You are given a string `s` and an integer `k`. You can choose any character of the string and change it to any other uppercase English character. You can perform this operation at most `k` times.
+
 Return the length of the longest substring containing the same letter you can get after performing the above operations.
- 
-Example 1:
 
-Input: s = "ABAB", k = 2
-Output: 4
-Explanation: Replace the two 'A's with two 'B's or vice versa.
+---
 
-Example 2:
+## Examples
 
-Input: s = "AABABBA", k = 1
-Output: 4
-Explanation: Replace the one 'A' in the middle with 'B' and form "AABBBBA".
-The substring "BBBB" has the longest repeating letters, which is 4.
-There may exists other ways to achieve this answer too.
- 
-Constraints:
+### Example 1
 
-1 <= s.length <= 105
-s consists of only uppercase English letters.
-0 <= k <= s.length
+**Input:**
+```python
+s = "ABAB", k = 2
+```
+
+**Output:**
+```
+4
+```
+
+**Explanation:** Replace the two 'A's with two 'B's (or vice versa) to get a substring of 4 identical characters.
+
+### Example 2
+
+**Input:**
+```python
+s = "AABABBA", k = 1
+```
+
+**Output:**
+```
+4
+```
+
+**Explanation:** Replace the one 'A' in the middle with 'B' to form "AABBBBA". The substring "BBBB" has length 4.
+
+---
+
+## Constraints
+
+- `1 <= s.length <= 10^5`
+- `s` consists of only uppercase English letters
+- `0 <= k <= s.length`
+
+---
+
 ## Solution
 
 ```python
@@ -43,15 +68,41 @@ class Solution:
         return max_len
 ```
 
+---
+
 ## Explanation
-This problem can be solved using a sliding window approach. We maintain a window defined by two pointers, `left` and `right`, and use a counter to track the frequency of each character in the current window.
 
-For each position `right`, we add the character `s[right]` to the counter and calculate the maximum frequency `max_freq` in the window. The number of changes needed to make all characters in the window the same is `right - left + 1 - max_freq`. If this exceeds `k`, we need to shrink the window from the left by moving `left` to the right and decrementing the count of `s[left]` until the condition is satisfied.
+This problem is solved using a **sliding window** approach.
 
-We update the maximum length `max_len` at each step with the current window size.
+### Key Insight
 
-This ensures we find the longest substring where the number of changes required is at most `k`.
+For a window `[left, right]`, the number of changes needed to make all characters the same is:
 
-Time complexity: O(n), where n is the length of the string, as each character is processed a constant number of times.
+```
+window_size - max_frequency
+```
 
-Space complexity: O(1), since the counter only stores up to 26 characters (uppercase English letters).
+Where `max_frequency` is the count of the most frequent character in the window.
+
+### Algorithm
+
+1. Initialize `left` pointer and character counter
+2. Expand the window by moving `right` from left to right:
+   - Add `s[right]` to the counter
+   - Calculate `max_freq` (most frequent character in current window)
+   - If `window_size - max_freq > k`, shrink from the left until condition is satisfied
+   - Update `max_len` with the current valid window size
+3. Return `max_len`
+
+### Why This Works
+
+The sliding window maintains the maximum valid window size. When the window becomes invalid (needs more than `k` changes), we shrink it from the left until it's valid again.
+
+---
+
+## Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O(n)` — Each character is processed at most twice (once by right, once by left) |
+| **Space** | `O(1)` — Counter stores at most 26 uppercase letters |

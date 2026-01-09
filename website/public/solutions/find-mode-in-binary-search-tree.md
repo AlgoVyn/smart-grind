@@ -1,32 +1,38 @@
 # Find Mode In Binary Search Tree
 
 ## Problem Description
+
 Given the root of a binary search tree (BST) with duplicates, return all the mode(s) (i.e., the most frequently occurred element) in it.
 If the tree has more than one mode, return them in any order.
 Assume a BST is defined as follows:
 
-The left subtree of a node contains only nodes with keys less than or equal to the node's key.
-The right subtree of a node contains only nodes with keys greater than or equal to the node's key.
-Both the left and right subtrees must also be binary search trees.
+- The left subtree of a node contains only nodes with keys less than or equal to the node's key.
+- The right subtree of a node contains only nodes with keys greater than or equal to the node's key.
+- Both the left and right subtrees must also be binary search trees.
 
- 
-Example 1:
-Input: root = [1,null,2,2]
-Output: [2]
+### Examples
 
-Example 2:
+**Example 1:**
 
-Input: root = [0]
-Output: [0]
+**Input:** root = [1,null,2,2]
 
- 
-Constraints:
+**Output:** [2]
 
-The number of nodes in the tree is in the range [1, 104].
--105 <= Node.val <= 105
+**Example 2:**
 
- 
-Follow up: Could you do that without using any extra space? (Assume that the implicit stack space incurred due to recursion does not count).
+**Input:** root = [0]
+
+**Output:** [0]
+
+### Constraints
+
+- The number of nodes in the tree is in the range [1, 10^4].
+- -10^5 <= Node.val <= 10^5
+
+### Follow up
+
+Could you do that without using any extra space? (Assume that the implicit stack space incurred due to recursion does not count).
+
 ## Solution
 
 ```python
@@ -69,7 +75,7 @@ class Solution:
         return self.modes
 ```
 
-## Explanation
+### Approach
 
 Since it's a BST, an inorder traversal visits nodes in sorted order. We can use this to count frequencies of consecutive equal values.
 
@@ -87,6 +93,8 @@ Since it's a BST, an inorder traversal visits nodes in sorted order. We can use 
 4. Return the modes list.
 
 This uses O(1) extra space besides the output and recursion stack.
+
+### Complexity
 
 **Time Complexity:** O(n), where n is the number of nodes.
 

@@ -1,26 +1,36 @@
 # Invert Binary Tree
 
 ## Problem Description
-Given the root of a binary tree, invert the tree, and return its root.
- 
-Example 1:
-Input: root = [4,2,7,1,3,6,9]
-Output: [4,7,2,9,6,3,1]
 
-Example 2:
-Input: root = [2,1,3]
-Output: [2,3,1]
+Given the root of a binary tree, **invert** the tree, and return its root.
 
-Example 3:
+Inverting a binary tree means swapping every left and right child node. This operation transforms the tree into the mirror image of itself.
 
-Input: root = []
-Output: []
+## Examples
 
- 
-Constraints:
+**Example 1:**
 
-The number of nodes in the tree is in the range [0, 100].
--100 <= Node.val <= 100
+| Input | Output |
+|-------|--------|
+| `root = [4,2,7,1,3,6,9]` | `[4,7,2,9,6,3,1]` |
+
+**Example 2:**
+
+| Input | Output |
+|-------|--------|
+| `root = [2,1,3]` | `[2,3,1]` |
+
+**Example 3:**
+
+| Input | Output |
+|-------|--------|
+| `root = []` | `[]` |
+
+## Constraints
+
+- The number of nodes in the tree is in the range `[0, 100]`.
+- `-100 <= Node.val <= 100`
+
 ## Solution
 
 ```python
@@ -36,17 +46,43 @@ class Solution:
     def invertTree(self, root: Optional[TreeNode]) -> Optional[TreeNode]:
         if not root:
             return None
+        
+        # Swap left and right children
         root.left, root.right = root.right, root.left
+        
+        # Recursively invert subtrees
         self.invertTree(root.left)
         self.invertTree(root.right)
+        
         return root
 ```
 
 ## Explanation
-This problem inverts a binary tree by swapping left and right subtrees.
 
-Use recursion: swap left and right, then invert subtrees.
+This problem inverts a binary tree by swapping left and right subtrees recursively.
 
-**Time Complexity:** O(n), visits each node.
+### Algorithm
 
-**Space Complexity:** O(h), recursion stack, h is height.
+1. **Base Case:** If `root` is `None`, return `None`.
+
+2. **Swap Children:** Exchange `root.left` and `root.right`.
+
+3. **Recursive Inversion:**
+   - Call `invertTree` on the new left child (originally right).
+   - Call `invertTree` on the new right child (originally left).
+
+4. **Return Root:** Return the inverted tree root.
+
+### Alternative Approaches
+
+- **Iterative (BFS):** Use a queue to process nodes level by level, swapping children at each node.
+- **Iterative (DFS):** Use a stack for depth-first traversal with explicit stack management.
+
+## Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(n) - visits each node exactly once |
+| **Space** | O(h) - recursion stack where h is the tree height |
+
+For a balanced tree, O(log n); for a skewed tree, O(n).

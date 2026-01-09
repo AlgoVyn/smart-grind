@@ -1,53 +1,30 @@
 # Palindromic Substrings
 
-## Problem Statement
+## Problem Description
 
-Given a string s, return the number of palindromic substrings in it.
+Given a string `s`, return the number of palindromic substrings in it.
 
 A string is a palindrome when it reads the same backward as forward.
-
 A substring is a contiguous sequence of characters within the string.
 
- 
-Example 1:
+### Example 1
 
-Input: s = "abc"
-Output: 3
-Explanation: Three palindromic strings: "a", "b", "c".
+**Input:** `s = "abc"`  
+**Output:** `3`
 
-Example 2:
+**Explanation:** Three palindromic strings: "a", "b", "c".
 
-Input: s = "aaa"
-Output: 6
-Explanation: Six palindromic strings: "a", "a", "a", "aa", "aa", "aaa".
+### Example 2
 
- 
-Constraints:
+**Input:** `s = "aaa"`  
+**Output:** `6`
 
-	1 <= s.length <= 1000
-	s consists of lowercase English letters.
+**Explanation:** Six palindromic strings: "a", "a", "a", "aa", "aa", "aaa".
 
-Given a string s, return the number of palindromic substrings in it.
-A string is a palindrome when it reads the same backward as forward.
-A substring is a contiguous sequence of characters within the string.
- 
-Example 1:
+### Constraints
 
-Input: s = "abc"
-Output: 3
-Explanation: Three palindromic strings: "a", "b", "c".
-
-Example 2:
-
-Input: s = "aaa"
-Output: 6
-Explanation: Six palindromic strings: "a", "a", "a", "aa", "aa", "aaa".
-
- 
-Constraints:
-
-1 <= s.length <= 1000
-s consists of lowercase English letters.
+- `1 <= s.length <= 1000`
+- `s` consists of lowercase English letters.
 
 ## Solution
 
@@ -70,4 +47,17 @@ class Solution:
 ```
 
 ## Explanation
-Similar to longest palindrome, count all palindromic substrings by expanding around centers. This is O(n^2) time.
+
+Similar to longest palindrome, count all palindromic substrings by expanding around centers.
+
+### Step-by-step Approach
+
+1. For each character in the string, treat it as a center for odd-length palindromes.
+2. For each position between characters, treat it as a center for even-length palindromes.
+3. Expand around each center while the characters match.
+4. Count all valid palindromic substrings.
+
+### Complexity Analysis
+
+- **Time Complexity:** O(n^2), where n is the length of the string, as we expand around n centers.
+- **Space Complexity:** O(1).

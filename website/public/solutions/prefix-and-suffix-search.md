@@ -1,32 +1,40 @@
 # Prefix And Suffix Search
 
 ## Problem Description
+
 Design a special dictionary that searches the words in it by a prefix and a suffix.
 Implement the WordFilter class:
 
-WordFilter(string[] words) Initializes the object with the words in the dictionary.
-f(string pref, string suff) Returns the index of the word in the dictionary, which has the prefix pref and the suffix suff. If there is more than one valid index, return the largest of them. If there is no such word in the dictionary, return -1.
+- `WordFilter(string[] words)` Initializes the object with the words in the dictionary.
+- `f(string pref, string suff)` Returns the index of the word in the dictionary, which has the prefix `pref` and the suffix `suff`. If there is more than one valid index, return the largest of them. If there is no such word in the dictionary, return `-1`.
 
- 
-Example 1:
+### Example
 
-Input
+**Input**
+```
 ["WordFilter", "f"]
 [[["apple"]], ["a", "e"]]
-Output
+```
+
+**Output**
+```
 [null, 0]
-Explanation
+```
+
+**Explanation**
+```
 WordFilter wordFilter = new WordFilter(["apple"]);
 wordFilter.f("a", "e"); // return 0, because the word at index 0 has prefix = "a" and suffix = "e".
+```
 
- 
-Constraints:
+### Constraints
 
-1 <= words.length <= 104
-1 <= words[i].length <= 7
-1 <= pref.length, suff.length <= 7
-words[i], pref and suff consist of lowercase English letters only.
-At most 104 calls will be made to the function f.
+- `1 <= words.length <= 10^4`
+- `1 <= words[i].length <= 7`
+- `1 <= pref.length, suff.length <= 7`
+- `words[i], pref and suff` consist of lowercase English letters only.
+- At most `10^4` calls will be made to the function `f`.
+
 ## Solution
 
 ```python
@@ -44,6 +52,16 @@ class WordFilter:
 ```
 
 ## Explanation
+
 In init, for each word, generate all prefix and suffix combinations separated by '#', store the index. Since dict overwrites, the last (largest) index is kept. Query is O(1) lookup.
 
-Time complexity: Init O(sum len(word)^2), Query O(1). Space O(sum len(word)^2).
+### Step-by-step Approach
+
+1. Precompute all prefix-suffix combinations for each word.
+2. Store the index in a dictionary with key as `prefix#suffix`.
+3. For queries, simply lookup the key in the dictionary.
+
+### Complexity Analysis
+
+- **Time Complexity:** Init O(sum len(word)^2), Query O(1).
+- **Space Complexity:** O(sum len(word)^2).

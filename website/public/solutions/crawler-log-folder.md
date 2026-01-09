@@ -6,9 +6,9 @@ The Leetcode file system keeps a log each time some user performs a change folde
 
 The operations are described below:
 
-	"../" : Move to the parent folder of the current folder. (If you are already in the main folder, remain in the same folder).
-	"./" : Remain in the same folder.
-	"x/" : Move to the child folder named x (This folder is guaranteed to always exist).
+- `"../"` : Move to the parent folder of the current folder. (If you are already in the main folder, remain in the same folder).
+- `"./"` : Remain in the same folder.
+- `"x/"` : Move to the child folder named x (This folder is guaranteed to always exist).
 
 You are given a list of strings logs where logs[i] is the operation performed by the user at the ith step.
 
@@ -16,65 +16,53 @@ The file system starts in the main folder, then the operations in logs are perfo
 
 Return the minimum number of operations needed to go back to the main folder after the change folder operations.
 
- 
-Example 1:
+## Examples
 
-Input: logs = ["d1/","d2/","../","d21/","./"]
-Output: 2
-Explanation: Use this change folder operation "../" 2 times and go back to the main folder.
+**Example 1:**
 
-Example 2:
+**Input:**
+```
+logs = ["d1/","d2/","../","d21/","./"]
+```
 
-Input: logs = ["d1/","d2/","./","d3/","../","d31/"]
-Output: 3
+**Output:**
+```
+2
+```
 
-Example 3:
+**Explanation:** Use this change folder operation "../" 2 times and go back to the main folder.
 
-Input: logs = ["d1/","../","../","../"]
-Output: 0
+**Example 2:**
 
- 
-Constraints:
+**Input:**
+```
+logs = ["d1/","d2/","./","d3/","../","d31/"]
+```
 
-	1 <= logs.length <= 103
-	2 <= logs[i].length <= 10
-	logs[i] contains lowercase English letters, digits, '.', and '/'.
-	logs[i] follows the format described in the statement.
-	Folder names consist of lowercase English letters and digits.
+**Output:**
+```
+3
+```
 
-The Leetcode file system keeps a log each time some user performs a change folder operation.
-The operations are described below:
+**Example 3:**
 
-"../" : Move to the parent folder of the current folder. (If you are already in the main folder, remain in the same folder).
-"./" : Remain in the same folder.
-"x/" : Move to the child folder named x (This folder is guaranteed to always exist).
+**Input:**
+```
+logs = ["d1/","../","../","../"]
+```
 
-You are given a list of strings logs where logs[i] is the operation performed by the user at the ith step.
-The file system starts in the main folder, then the operations in logs are performed.
-Return the minimum number of operations needed to go back to the main folder after the change folder operations.
- 
-Example 1:
-Input: logs = ["d1/","d2/","../","d21/","./"]
-Output: 2
-Explanation: Use this change folder operation "../" 2 times and go back to the main folder.
+**Output:**
+```
+0
+```
 
-Example 2:
-Input: logs = ["d1/","d2/","./","d3/","../","d31/"]
-Output: 3
+## Constraints
 
-Example 3:
-
-Input: logs = ["d1/","../","../","../"]
-Output: 0
-
- 
-Constraints:
-
-1 <= logs.length <= 103
-2 <= logs[i].length <= 10
-logs[i] contains lowercase English letters, digits, '.', and '/'.
-logs[i] follows the format described in the statement.
-Folder names consist of lowercase English letters and digits.
+- `1 <= logs.length <= 10^3`
+- `2 <= logs[i].length <= 10`
+- `logs[i]` contains lowercase English letters, digits, '.', and '/'.
+- `logs[i]` follows the format described in the statement.
+- Folder names consist of lowercase English letters and digits.
 
 ## Solution
 
@@ -92,4 +80,10 @@ class Solution:
 ```
 
 ## Explanation
-We use a counter to track the current depth in the file system. For each log entry, if it's "../", we move up one directory if not already at the root. If it's "./", we stay in the same directory. Otherwise, we move into a subdirectory. This approach achieves O(n) time complexity and O(1) space complexity.
+We use a counter to track the current depth in the file system. For each log entry, if it's "../", we move up one directory if not already at the root. If it's "./", we stay in the same directory. Otherwise, we move into a subdirectory.
+
+## Time Complexity
+**O(n)**, where n is the number of log operations.
+
+## Space Complexity
+**O(1)**, as we use only a counter variable.

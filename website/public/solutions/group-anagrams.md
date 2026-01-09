@@ -2,32 +2,55 @@
 
 ## Problem Description
 Given an array of strings strs, group the anagrams together. You can return the answer in any order.
- 
-Example 1:
+## Examples
 
-Input: strs = ["eat","tea","tan","ate","nat","bat"]
-Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
-Explanation:
+**Example 1:**
+
+**Input:**
+```
+strs = ["eat","tea","tan","ate","nat","bat"]
+```
+
+**Output:**
+```
+[["bat"],["nat","tan"],["ate","eat","tea"]]
+```
+
+**Explanation:**
 
 There is no string in strs that can be rearranged to form "bat".
 The strings "nat" and "tan" are anagrams as they can be rearranged to form each other.
 The strings "ate", "eat", and "tea" are anagrams as they can be rearranged to form each other.
-Example 2:
 
-Input: strs = [""]
-Output: [[""]]
+**Example 2:**
 
-Example 3:
+**Input:**
+```
+strs = [""]
+```
 
-Input: strs = ["a"]
-Output: [["a"]]
+**Output:**
+```
+[[""]]
+```
 
- 
-Constraints:
+**Example 3:**
 
-1 <= strs.length <= 104
-0 <= strs[i].length <= 100
-strs[i] consists of lowercase English letters.
+**Input:**
+```
+strs = ["a"]
+```
+
+**Output:**
+```
+[["a"]]
+```
+
+## Constraints
+
+- 1 <= strs.length <= 10^4
+- 0 <= strs[i].length <= 100
+- strs[i] consists of lowercase English letters.
 ## Solution
 
 ```python
@@ -52,6 +75,8 @@ Use a defaultdict to group strings by their sorted version.
 
 Return the list of groups.
 
-**Time Complexity:** O(n * k log k), where n is number of strings, k is max length, for sorting.
+## Time Complexity
+**O(n * k log k)**, where n is number of strings, k is max length, for sorting.
 
-**Space Complexity:** O(n * k) for storing the strings in groups.
+## Space Complexity
+**O(n * k)** for storing the strings in groups.

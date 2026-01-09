@@ -1,30 +1,37 @@
-# K Closest Points To Origin
+# K Closest Points to Origin
 
 ## Problem Description
-Given an array of points where points[i] = [xi, yi] represents a point on the X-Y plane and an integer k, return the k closest points to the origin (0, 0).
-The distance between two points on the X-Y plane is the Euclidean distance (i.e., √(x1 - x2)2 + (y1 - y2)2).
-You may return the answer in any order. The answer is guaranteed to be unique (except for the order that it is in).
- 
-Example 1:
-Input: points = [[1,3],[-2,2]], k = 1
-Output: [[-2,2]]
-Explanation:
-The distance between (1, 3) and the origin is sqrt(10).
-The distance between (-2, 2) and the origin is sqrt(8).
-Since sqrt(8) < sqrt(10), (-2, 2) is closer to the origin.
-We only want the closest k = 1 points from the origin, so the answer is just [[-2,2]].
 
-Example 2:
+Given an array of points where `points[i] = [xi, yi]` represents a point on the X-Y plane and an integer `k`, return the `k` closest points to the origin `(0, 0)`.
 
-Input: points = [[3,3],[5,-1],[-2,4]], k = 2
-Output: [[3,3],[-2,4]]
-Explanation: The answer [[-2,4],[3,3]] would also be accepted.
+The distance between two points on the X-Y plane is the Euclidean distance: `√((x1 - x2)² + (y1 - y2)²)`.
 
- 
-Constraints:
+You may return the answer in any order. The answer is guaranteed to be unique (except for the order).
 
-1 <= k <= points.length <= 104
--104 <= xi, yi <= 104
+### Example 1
+
+**Input:** `points = [[1,3],[-2,2]], k = 1`
+
+**Output:** `[[-2,2]]`
+
+**Explanation:**
+- The distance between `(1, 3)` and the origin is `√10`.
+- The distance between `(-2, 2)` and the origin is `√8`.
+- Since `√8 < √10`, `(-2, 2)` is closer to the origin.
+
+### Example 2
+
+**Input:** `points = [[3,3],[5,-1],[-2,4]], k = 2`
+
+**Output:** `[[3,3],[-2,4]]`
+
+**Explanation:** The answer `[[-2,4],[3,3]]` would also be accepted.
+
+## Constraints
+
+- `1 <= k <= points.length <= 10^4`
+- `-10^4 <= xi, yi <= 10^4`
+
 ## Solution
 
 ```python
@@ -43,14 +50,26 @@ class Solution:
 ```
 
 ## Explanation
-This problem can be solved using a max heap to keep track of the k closest points.
 
-We iterate through each point, calculate its squared Euclidean distance (to avoid floating point), and push it into a max heap (using negative distance since heapq is min heap).
+This problem uses a max heap to keep track of the `k` closest points.
 
-If the heap size exceeds k, we pop the largest (farthest).
+### Algorithm
 
-At the end, the heap contains the k closest points.
+1. Iterate through each point in the array.
+2. Calculate the squared Euclidean distance to avoid floating-point operations.
+3. Push the point (with negative distance) onto a max heap.
+4. If the heap size exceeds `k`, pop the element with the largest distance (the farthest point).
+5. Return all remaining points in the heap.
 
-Time complexity: O(n log k), where n is the number of points, due to heap operations.
+### Why Squared Distance?
 
-Space complexity: O(k), for the heap.
+Since the square root function is monotonically increasing, comparing squared distances gives the same result as comparing actual distances. This avoids expensive `sqrt` calculations.
+
+### Why Negative Distance?
+
+Python's `heapq` module implements a min-heap. To simulate a max-heap, we negate the distance values.
+
+## Complexity Analysis
+
+- **Time Complexity:** O(n log k) — each of the `n` points involves a heap push (and possibly a pop), both O(log k).
+- **Space Complexity:** O(k) — the heap stores at most `k` points.

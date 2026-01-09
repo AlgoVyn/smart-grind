@@ -1,35 +1,46 @@
 # Kth Smallest Element In A Sorted Matrix
 
 ## Problem Description
-Given an n x n matrix where each of the rows and columns is sorted in ascending order, return the kth smallest element in the matrix.
-Note that it is the kth smallest element in the sorted order, not the kth distinct element.
-You must find a solution with a memory complexity better than O(n2).
- 
-Example 1:
 
-Input: matrix = [[1,5,9],[10,11,13],[12,13,15]], k = 8
-Output: 13
-Explanation: The elements in the matrix are [1,5,9,10,11,12,13,13,15], and the 8th smallest number is 13
+Given an `n x n` matrix where each row and column is sorted in **ascending order**, return the kth smallest element in the matrix.
 
-Example 2:
+> **Note:** It is the kth smallest element in sorted order, not the kth distinct element.
 
-Input: matrix = [[-5]], k = 1
-Output: -5
+You must find a solution with **better than O(n²) memory**.
 
- 
-Constraints:
+---
 
-n == matrix.length == matrix[i].length
-1 <= n <= 300
--109 <= matrix[i][j] <= 109
-All the rows and columns of matrix are guaranteed to be sorted in non-decreasing order.
-1 <= k <= n2
+## Examples
 
- 
-Follow up:
+### Example 1
 
-Could you solve the problem with a constant memory (i.e., O(1) memory complexity)?
-Could you solve the problem in O(n) time complexity? The solution may be too advanced for an interview but you may find reading this paper fun.
+| Input | Output |
+|-------|--------|
+| `matrix = [[1,5,9],[10,11,13],[12,13,15]], k = 8` | `13` |
+
+**Explanation:** The elements in sorted order are `[1,5,9,10,11,12,13,13,15]`. The 8th smallest is `13`.
+
+### Example 2
+
+| Input | Output |
+|-------|--------|
+| `matrix = [[-5]], k = 1` | `-5` |
+
+---
+
+## Constraints
+
+| Constraint | Description |
+|------------|-------------|
+| `n == matrix.length == matrix[i].length` | Square matrix |
+| `1 ≤ n ≤ 300` | Matrix size |
+| `-10^9 ≤ matrix[i][j] ≤ 10^9` | Element range |
+| `1 ≤ k ≤ n²` | Valid k range |
+
+> All rows and columns are guaranteed to be sorted in non-decreasing order.
+
+---
+
 ## Solution
 
 ```python
@@ -39,34 +50,104 @@ class Solution:
     def kthSmallest(self, matrix: List[List[int]], k: int) -> int:
         n = len(matrix)
         low, high = matrix[0][0], matrix[n-1][n-1]
+        
         while low < high:
             mid = (low + high) // 2
-            count = 0
-            for row in matrix:
-                # binary search to count elements <= mid in row
-                left, right = 0, n
-                while left < right:
-                    m = (left + right) // 2
-                    if row[m] <= mid:
-                        left = m + 1
-                    else:
-                        right = m
-                count += left
+            count = self._count_less_equal(matrix, mid)
+            
             if count < k:
                 low = mid + 1
             else:
                 high = mid
+        
         return low
+    
+    def _count_less_equal(self, matrix: List[List[int]], target: int) -> int:
+        """Count elements less than or equal to target."""
+        n = len(matrix)
+        count = 0
+        row = n - 1
+        col = 0
+        
+        # Start from bottom-left corner
+        while row >= 0 and col < n:
+            if matrix[row][col] <= target:
+                count += (row + 1)  # All elements in this column up to 'row'
+                col += 1
+            else:
+                row -= 1
+        
+        return count
 ```
 
+---
+
 ## Explanation
-We use binary search on the possible values of the kth smallest element, from the smallest to the largest in the matrix.
 
-For each mid value, we count how many elements in the matrix are less than or equal to mid. Since rows are sorted, we use binary search on each row to find the count efficiently.
+We use **binary search on the value range** from smallest to largest element:
 
-If the count is less than k, we search in the higher half; otherwise, in the lower half.
+1. **Binary search bounds:**
+   - `low = matrix[0][0]` (smallest)
+   - `high = matrix[n-1][n-1]` (largest)
 
-The loop continues until low equals high, which is the kth smallest element.
+2. **Count function:**
+   - Count elements ≤ mid using a two-pointer technique
+   - Start from bottom-left corner
+   - Move right if element ≤ target, up otherwise
+   - This is `O(n)` time
 
-Time complexity: O(n log (max - min) * log n), where max - min is up to 2*10^9, so log ~30, and binary search per row is log n.
-Space complexity: O(1), excluding the input matrix.
+3. **Binary search logic:**
+   - If `count < k`: kth element is larger → search right half
+   - Otherwise: Search left half
+
+4. **Result:** When `low == high`, we found the kth smallest
+
+---
+
+## Complexity Analysis
+
+| Metric | Complexity | Description |
+|--------|------------|-------------|
+| **Time** | `O(n log(max - min))` | `n` for count, `log(max-min)` for binary search |
+| **Space** | `O(1)` | Constant extra space |
+
+---
+
+## Alternative Solution: Min-Heap
+
+For comparison, here's a heap-based approach:
+
+```python
+import heapq
+from typing import List, Tuple
+
+class Solution:
+    def kthSmallest(self, matrix: List[List[int]], k: int) -> int:
+        n = len(matrix)
+        min_heap: List[Tuple[int, int, int]] = []
+        
+        # Push first element of each row
+        for i in range(min(k, n)):
+            heapq.heappush(min_heap, (matrix[i][0], i, 0))
+        
+        # Extract k-1 times
+        count = 0
+        while min_heap:
+            val, row, col = heapq.heappop(min_heap)
+            count += 1
+            if count == k:
+                return val
+            
+            # Push next element in the same row
+            if col + 1 < n:
+                heapq.heappush(min_heap, (matrix[row][col + 1], row, col + 1))
+```
+
+**Heap approach complexity:** `O(k log n)` time, `O(n)` space
+
+---
+
+## Follow-up Challenge
+
+1. **Constant memory:** Can you solve this with `O(1)` space?
+2. **Linear time:** Can you achieve `O(n)` time? (Hint: This is an advanced technique involving selection algorithms)

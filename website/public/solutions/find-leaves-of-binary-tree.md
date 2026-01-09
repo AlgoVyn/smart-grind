@@ -1,22 +1,37 @@
 # Find Leaves Of Binary Tree
 
 ## Problem Description
+
 Given the root of a binary tree, collect and remove all leaves, repeat until the tree is empty. Return the collection of leaf values in the order they were collected. You answer should be a list of lists, where each list contains the leaf values collected at each step.
 
-Example 1:
+## Constraints
 
-Input: root = [1,2,3,4,5]
-Output: [[4,5,3],[2],[1]]
+- The number of nodes in the tree is in the range [1, 100].
+- -100 <= Node.val <= 100
 
-Example 2:
+## Example 1
 
-Input: root = [1]
-Output: [[1]]
+**Input:**
+```python
+root = [1,2,3,4,5]
+```
 
-Constraints:
+**Output:**
+```python
+[[4,5,3],[2],[1]]
+```
 
-The number of nodes in the tree is in the range [1, 100].
--100 <= Node.val <= 100
+## Example 2
+
+**Input:**
+```python
+root = [1]
+```
+
+**Output:**
+```python
+[[1]]
+```
 
 ## Solution
 
@@ -55,6 +70,8 @@ This problem requires collecting and removing all leaves of a binary tree iterat
 
 We use a depth-first search (DFS) approach with a helper function that computes the height of each subtree and collects the leaves at each level.
 
+### Step-by-Step Explanation:
+
 1. Initialize an empty list `res` to store the result.
 
 2. Define a recursive DFS function that takes a node:
@@ -71,6 +88,10 @@ We use a depth-first search (DFS) approach with a helper function that computes 
 
 This method ensures that leaves (nodes with height 1) are collected first, then nodes that become leaves after removal, and so on.
 
-**Time Complexity:** O(n), where n is the number of nodes, as each node is visited once.
+### Time Complexity:
 
-**Space Complexity:** O(h), where h is the height of the tree, due to the recursion stack. In the worst case, for a skewed tree, h can be n.
+O(n), where n is the number of nodes, as each node is visited once.
+
+### Space Complexity:
+
+O(h), where h is the height of the tree, due to the recursion stack. In the worst case, for a skewed tree, h can be n.

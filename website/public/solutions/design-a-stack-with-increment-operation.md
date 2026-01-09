@@ -4,20 +4,28 @@
 Design a stack that supports increment operations on its elements.
 Implement the CustomStack class:
 
-CustomStack(int maxSize) Initializes the object with maxSize which is the maximum number of elements in the stack.
-void push(int x) Adds x to the top of the stack if the stack has not reached the maxSize.
-int pop() Pops and returns the top of the stack or -1 if the stack is empty.
-void inc(int k, int val) Increments the bottom k elements of the stack by val. If there are less than k elements in the stack, increment all the elements in the stack.
+- `CustomStack(int maxSize)` Initializes the object with maxSize which is the maximum number of elements in the stack.
+- `void push(int x)` Adds x to the top of the stack if the stack has not reached the maxSize.
+- `int pop()` Pops and returns the top of the stack or -1 if the stack is empty.
+- `void inc(int k, int val)` Increments the bottom k elements of the stack by val. If there are less than k elements in the stack, increment all the elements in the stack.
 
- 
-Example 1:
+## Examples
 
-Input
+**Example 1:**
+
+**Input:**
+```
 ["CustomStack","push","push","pop","push","push","push","increment","increment","pop","pop","pop","pop"]
 [[3],[1],[2],[],[2],[3],[4],[5,100],[2,100],[],[],[],[]]
-Output
+```
+
+**Output:**
+```
 [null,null,null,2,null,null,null,null,null,103,202,201,-1]
-Explanation
+```
+
+**Explanation:**
+```
 CustomStack stk = new CustomStack(3); // Stack is Empty []
 stk.push(1);                          // stack becomes [1]
 stk.push(2);                          // stack becomes [1, 2]
@@ -31,13 +39,14 @@ stk.pop();                            // return 103 --> Return top of the stack 
 stk.pop();                            // return 202 --> Return top of the stack 202, stack becomes [201]
 stk.pop();                            // return 201 --> Return top of the stack 201, stack becomes []
 stk.pop();                            // return -1 --> Stack is empty return -1.
+```
 
- 
-Constraints:
+## Constraints
 
-1 <= maxSize, x, k <= 1000
-0 <= val <= 100
-At most 1000 calls will be made to each method of increment, push and pop each separately.
+- `1 <= maxSize, x, k <= 1000`
+- `0 <= val <= 100`
+- At most 1000 calls will be made to each method of increment, push and pop each separately.
+
 ## Solution
 
 ```python
@@ -77,5 +86,6 @@ We use a list for the stack and another list `inc` to keep track of increments l
 
 This lazy increment ensures that increments are only applied when popping, avoiding O(n) operations per increment.
 
-Time complexity: All operations are O(1).
-Space complexity: O(maxSize).
+**Time Complexity:** All operations are O(1).
+
+**Space Complexity:** O(maxSize).

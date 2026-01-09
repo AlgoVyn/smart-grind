@@ -12,36 +12,64 @@ There will not be any division by zero.
 The input represents a valid arithmetic expression in a reverse polish notation.
 The answer and all the intermediate calculations can be represented in a 32-bit integer.
 
- 
-Example 1:
+### Example(s)
 
-Input: tokens = ["2","1","+","3","*"]
-Output: 9
-Explanation: ((2 + 1) * 3) = 9
+**Input:**
+```
+tokens = ["2","1","+","3","*"]
+```
 
-Example 2:
+**Output:**
+```
+9
+```
 
-Input: tokens = ["4","13","5","/","+"]
-Output: 6
-Explanation: (4 + (13 / 5)) = 6
+**Explanation:**
+```
+((2 + 1) * 3) = 9
+```
 
-Example 3:
+**Input:**
+```
+tokens = ["4","13","5","/","+"]
+```
 
-Input: tokens = ["10","6","9","3","+","-11","*","/","*","17","+","5","+"]
-Output: 22
-Explanation: ((10 * (6 / ((9 + 3) * -11))) + 17) + 5
+**Output:**
+```
+6
+```
+
+**Explanation:**
+```
+(4 + (13 / 5)) = 6
+```
+
+**Input:**
+```
+tokens = ["10","6","9","3","+","-11","*","/","*","17","+","5","+"]
+```
+
+**Output:**
+```
+22
+```
+
+**Explanation:**
+```
+((10 * (6 / ((9 + 3) * -11))) + 17) + 5
 = ((10 * (6 / (12 * -11))) + 17) + 5
 = ((10 * (6 / -132)) + 17) + 5
 = ((10 * 0) + 17) + 5
 = (0 + 17) + 5
 = 17 + 5
 = 22
+```
 
- 
-Constraints:
+### Constraints
 
-1 <= tokens.length <= 104
-tokens[i] is either an operator: "+", "-", "*", or "/", or an integer in the range [-200, 200].
+- `1 <= tokens.length <= 104`
+- `tokens[i] is either an operator: "+", "-", "*", or "/", or an integer in the range [-200, 200].`
+
 ## Solution
 
 ```python

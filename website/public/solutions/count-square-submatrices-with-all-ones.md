@@ -2,42 +2,60 @@
 
 ## Problem Description
 Given a m * n matrix of ones and zeros, return how many square submatrices have all ones.
- 
-Example 1:
 
-Input: matrix =
+## Examples
+
+**Example 1:**
+
+**Input:**
+```
+matrix =
 [
-  [0,1,1,1],
-  [1,1,1,1],
-  [0,1,1,1]
+  [0,1,1,1],
+  [1,1,1,1],
+  [0,1,1,1]
 ]
-Output: 15
-Explanation: 
+```
+
+**Output:**
+```
+15
+```
+
+**Explanation:**
 There are 10 squares of side 1.
 There are 4 squares of side 2.
 There is  1 square of side 3.
 Total number of squares = 10 + 4 + 1 = 15.
 
-Example 2:
+**Example 2:**
 
-Input: matrix = 
+**Input:**
+```
+matrix =
 [
   [1,0,1],
   [1,1,0],
   [1,1,0]
 ]
-Output: 7
-Explanation: 
-There are 6 squares of side 1.  
-There is 1 square of side 2. 
+```
+
+**Output:**
+```
+7
+```
+
+**Explanation:**
+There are 6 squares of side 1.
+There is 1 square of side 2.
 Total number of squares = 6 + 1 = 7.
 
- 
-Constraints:
+## Constraints
 
-1 <= arr.length <= 300
-1 <= arr[0].length <= 300
-0 <= arr[i][j] <= 1
+- `1 <= arr.length <= 300`
+- `1 <= arr[0].length <= 300`
+- `0 <= arr[i][j] <= 1`
+
 ## Solution
 
 ```python
@@ -74,5 +92,8 @@ To count the number of square submatrices with all ones, we use dynamic programm
 3. Add `dp[i][j]` to the total count for each cell that is 1, as it represents the number of squares ending at that cell.
 4. Return the total count.
 
-**Time Complexity**: O(m * n), where m and n are the dimensions of the matrix, as we visit each cell once.
-**Space Complexity**: O(m * n), for the DP table.
+## Time Complexity
+**O(m * n)**, where m and n are the dimensions of the matrix, as we visit each cell once.
+
+## Space Complexity
+**O(m * n)**, for the DP table.
