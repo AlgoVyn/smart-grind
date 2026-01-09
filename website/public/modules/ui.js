@@ -14,12 +14,21 @@ window.SmartGrind.GOOGLE_BUTTON_HTML = `
     Sign in with Google
 `;
 
+// Constants
+const UI_CONSTANTS = {
+    PULL_TO_REFRESH_THRESHOLD: 100,
+    SIDEBAR_MIN_WIDTH: 200,
+    SIDEBAR_MAX_WIDTH: 500,
+    AUTH_TIMEOUT: 30000,
+    SEARCH_DEBOUNCE_DELAY: 300
+};
+
 window.SmartGrind.ui = {
     // Pull to refresh functionality
     pullToRefresh: {
         startY: 0,
         isPulling: false,
-        threshold: 100, // pixels to pull before refresh
+        threshold: UI_CONSTANTS.PULL_TO_REFRESH_THRESHOLD,
 
         init: () => {
             document.addEventListener('touchstart', window.SmartGrind.ui.pullToRefresh.handleTouchStart, { passive: false });
@@ -87,8 +96,8 @@ window.SmartGrind.ui = {
         isResizing: false,
         startX: 0,
         startWidth: 0,
-        minWidth: 200,  // Minimum sidebar width in pixels
-        maxWidth: 500,  // Maximum sidebar width in pixels
+        minWidth: UI_CONSTANTS.SIDEBAR_MIN_WIDTH,
+        maxWidth: UI_CONSTANTS.SIDEBAR_MAX_WIDTH,
 
         init: () => {
             const resizer = document.getElementById('sidebar-resizer');
@@ -186,22 +195,36 @@ window.SmartGrind.ui = {
 
     // Bind all event listeners
     bindEvents: () => {
-        // Google login buttons
+        window.SmartGrind.ui.bindAuthEvents();
+        window.SmartGrind.ui.bindModalEvents();
+        window.SmartGrind.ui.bindNavigationEvents();
+        window.SmartGrind.ui.bindProblemEvents();
+        window.SmartGrind.ui.bindGlobalEvents();
+    },
+
+    // Bind authentication-related events
+    bindAuthEvents: () => {
         window.SmartGrind.state.elements.googleLoginBtn?.addEventListener('click', window.SmartGrind.ui.handleGoogleLogin);
         window.SmartGrind.state.elements.modalGoogleLoginBtn?.addEventListener('click', window.SmartGrind.ui.handleGoogleLogin);
+        window.SmartGrind.state.elements.disconnectBtn?.addEventListener('click', window.SmartGrind.ui.handleLogout);
+    },
 
-        // Modal close handlers (generic)
+    // Bind modal-related events
+    bindModalEvents: () => {
+        // Sign-in modal
         window.SmartGrind.state.elements.signinModal?.addEventListener('click', window.SmartGrind.ui.createModalHandler(
             window.SmartGrind.state.elements.signinModal,
             window.SmartGrind.state.elements.signinModalContent,
             null
         ));
 
+        // Alert modal
         window.SmartGrind.state.elements.alertModal?.addEventListener('click', window.SmartGrind.ui.createModalHandler(
             window.SmartGrind.state.elements.alertModal
         ));
         window.SmartGrind.state.elements.alertOkBtn?.addEventListener('click', window.SmartGrind.ui.closeAlertModal);
 
+        // Confirm modal
         window.SmartGrind.state.elements.confirmModal?.addEventListener('click', window.SmartGrind.ui.createModalHandler(
             window.SmartGrind.state.elements.confirmModal,
             null,
@@ -210,18 +233,22 @@ window.SmartGrind.ui = {
         window.SmartGrind.state.elements.confirmOkBtn?.addEventListener('click', () => window.SmartGrind.ui.closeConfirmModal(true));
         window.SmartGrind.state.elements.confirmCancelBtn?.addEventListener('click', () => window.SmartGrind.ui.closeConfirmModal(false));
 
-        // Disconnect button
-        window.SmartGrind.state.elements.disconnectBtn?.addEventListener('click', window.SmartGrind.ui.handleLogout);
-
         // Add problem modal
         window.SmartGrind.state.elements.openAddModalBtn?.addEventListener('click', window.SmartGrind.ui.openAddModal);
         window.SmartGrind.state.elements.cancelAddBtn?.addEventListener('click', window.SmartGrind.ui.closeAddModal);
         window.SmartGrind.state.elements.saveAddBtn?.addEventListener('click', window.SmartGrind.ui.saveNewProblem);
-
-        // Category change in add modal
         window.SmartGrind.state.elements.addProbCategory?.addEventListener('change', window.SmartGrind.ui.handleCategoryChange);
         window.SmartGrind.state.elements.addProbPattern?.addEventListener('change', window.SmartGrind.ui.handlePatternChange);
 
+        // Solution modal
+        window.SmartGrind.state.elements.solutionCloseBtn?.addEventListener('click', window.SmartGrind.ui.closeSolutionModal);
+        window.SmartGrind.state.elements.solutionModal?.addEventListener('click', window.SmartGrind.ui.createModalHandler(
+            window.SmartGrind.state.elements.solutionModal
+        ));
+    },
+
+    // Bind navigation-related events
+    bindNavigationEvents: () => {
         // Filter buttons
         window.SmartGrind.state.elements.filterBtns?.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -244,29 +271,13 @@ window.SmartGrind.ui = {
         window.SmartGrind.state.elements.mobileMenuBtnMain?.addEventListener('click', window.SmartGrind.ui.toggleMobileMenu);
         window.SmartGrind.state.elements.sidebarBackdrop?.addEventListener('click', window.SmartGrind.ui.toggleMobileMenu);
 
-        // Logo click to load default view
+        // Logo clicks
         window.SmartGrind.state.elements.sidebarLogo?.addEventListener('click', window.SmartGrind.ui.loadDefaultView);
         window.SmartGrind.state.elements.mobileLogo?.addEventListener('click', window.SmartGrind.ui.loadDefaultView);
+    },
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', window.SmartGrind.ui.handleKeyboard);
-
-        // Browser navigation
-        window.addEventListener('popstate', window.SmartGrind.ui.handlePopState);
-
-        // Solution modal close
-        window.SmartGrind.state.elements.solutionCloseBtn?.addEventListener('click', window.SmartGrind.ui.closeSolutionModal);
-        window.SmartGrind.state.elements.solutionModal?.addEventListener('click', window.SmartGrind.ui.createModalHandler(
-            window.SmartGrind.state.elements.solutionModal
-        ));
-
-        // Close sidebar on topic click (mobile)
-        window.SmartGrind.state.elements.topicList?.addEventListener('click', (e) => {
-            if (window.innerWidth < 768 && (e.target.closest('.sidebar-link') || e.target.closest('button'))) {
-                window.SmartGrind.ui.toggleMobileMenu();
-            }
-        });
-
+    // Bind problem-related events
+    bindProblemEvents: () => {
         // Event delegation for problem card buttons
         window.SmartGrind.state.elements.problemsContainer?.addEventListener('click', (e) => {
             const button = e.target.closest('button[data-action]');
@@ -288,20 +299,37 @@ window.SmartGrind.ui = {
         });
     },
 
+    // Bind global events
+    bindGlobalEvents: () => {
+        // Keyboard shortcuts
+        document.addEventListener('keydown', window.SmartGrind.ui.handleKeyboard);
+
+        // Browser navigation
+        window.addEventListener('popstate', window.SmartGrind.ui.handlePopState);
+
+        // Close sidebar on topic click (mobile)
+        window.SmartGrind.state.elements.topicList?.addEventListener('click', (e) => {
+            if (window.innerWidth < 768 && (e.target.closest('.sidebar-link') || e.target.closest('button'))) {
+                window.SmartGrind.ui.toggleMobileMenu();
+            }
+        });
+    },
+
+    // Helper to set loading state on buttons
+    setButtonLoading: (button, loading, loadingText = "Connecting...") => {
+        if (!button) return;
+        button.disabled = loading;
+        button.innerHTML = loading ? loadingText : window.SmartGrind.GOOGLE_BUTTON_HTML;
+    },
+
     // Google login handler
     handleGoogleLogin: () => {
         window.SmartGrind.ui.showError(null);
         const btn = window.SmartGrind.state.elements.googleLoginBtn;
         const modalBtn = window.SmartGrind.state.elements.modalGoogleLoginBtn;
 
-        const setLoading = (button, loading) => {
-            if (!button) return;
-            button.disabled = loading;
-            button.innerHTML = loading ? "Connecting..." : window.SmartGrind.GOOGLE_BUTTON_HTML;
-        };
-
-        setLoading(btn, true);
-        setLoading(modalBtn, true);
+        window.SmartGrind.ui.setButtonLoading(btn, true);
+        window.SmartGrind.ui.setButtonLoading(modalBtn, true);
 
         // Open popup for auth
         const popup = window.open('/smartgrind/api/auth?action=login', 'auth', 'width=500,height=600');
@@ -329,8 +357,8 @@ window.SmartGrind.ui = {
                 window.SmartGrind.state.elements.signinModal.classList.add('hidden');
 
                 window.removeEventListener('message', messageHandler);
-                setLoading(btn, false);
-                setLoading(modalBtn, false);
+                window.SmartGrind.ui.setButtonLoading(btn, false);
+                window.SmartGrind.ui.setButtonLoading(modalBtn, false);
             }
         };
         window.addEventListener('message', messageHandler);
@@ -338,9 +366,9 @@ window.SmartGrind.ui = {
         // Timeout to reset buttons if no auth response received (popup closed or failed)
         setTimeout(() => {
             window.removeEventListener('message', messageHandler);
-            setLoading(btn, false);
-            setLoading(modalBtn, false);
-        }, 30000);
+            window.SmartGrind.ui.setButtonLoading(btn, false);
+            window.SmartGrind.ui.setButtonLoading(modalBtn, false);
+        }, UI_CONSTANTS.AUTH_TIMEOUT);
     },
 
     // Logout handler
@@ -623,19 +651,16 @@ window.SmartGrind.ui = {
     updateAuthUI: () => {
         const disconnectBtn = window.SmartGrind.state.elements.disconnectBtn;
         const isLocal = window.SmartGrind.state.user.type === 'local';
-        
-        disconnectBtn.innerHTML = isLocal ? `
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Sign In
-        ` : `
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Sign Out
-        `;
-        
+
+        const signInIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>`;
+
+        const signOutIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>`;
+
+        disconnectBtn.innerHTML = isLocal ? `${signInIcon} Sign In` : `${signOutIcon} Sign Out`;
         disconnectBtn.title = isLocal ? 'Sign in to sync across devices' : 'Sign out and switch to local mode';
     },
 
@@ -654,6 +679,53 @@ window.SmartGrind.ui = {
         }
         window.SmartGrind.state.elements.signinError.classList.toggle('hidden', !msg);
         window.SmartGrind.state.elements.signinError.innerText = msg || '';
+    },
+
+    // Helper to configure markdown renderer
+    _configureMarkdownRenderer: () => {
+        if (typeof marked === 'undefined') return null;
+
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        // Custom renderer to add language class for syntax highlighting
+        const renderer = new marked.Renderer();
+        renderer.code = (code, language, isEscaped) => {
+            // Handle both object and string parameters (marked.js API changed in different versions)
+            if (typeof code === 'object') {
+                language = code.lang;
+                code = code.text;
+            }
+            const langClass = language ? `language-${language}` : 'language-python';
+            return `<pre><code class="${langClass}">${code}</code></pre>`;
+        };
+
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            renderer: renderer
+        });
+
+        return marked;
+    },
+
+    // Helper to render markdown content
+    _renderMarkdown: (markdown, contentElement) => {
+        const marked = window.SmartGrind.ui._configureMarkdownRenderer();
+        if (!marked) {
+            contentElement.innerHTML = '<p>Error: Markdown renderer not loaded. Please check your internet connection.</p>';
+            return;
+        }
+
+        const html = marked.parse(markdown);
+        contentElement.innerHTML = html;
+
+        // Apply syntax highlighting
+        if (typeof Prism !== 'undefined') {
+            Prism.highlightAllUnder(contentElement);
+        }
     },
 
     // Open solution modal
@@ -675,45 +747,7 @@ window.SmartGrind.ui = {
                 }
                 return response.text();
             })
-            .then(markdown => {
-                if (typeof marked === 'undefined') {
-                    content.innerHTML = '<p>Error: Markdown renderer not loaded. Please check your internet connection.</p>';
-                    return;
-                }
-
-                // Configure marked for security and rendering
-                marked.setOptions({
-                    breaks: true,
-                    gfm: true
-                });
-
-                // Custom renderer to add language class for syntax highlighting
-                const renderer = new marked.Renderer();
-                const originalCode = renderer.code.bind(renderer);
-                renderer.code = (code, language, isEscaped) => {
-                    // Handle both object and string parameters (marked.js API changed in different versions)
-                    if (typeof code === 'object') {
-                        language = code.lang;
-                        code = code.text;
-                    }
-                    const langClass = language ? `language-${language}` : 'language-python';
-                    return `<pre><code class="${langClass}">${code}</code></pre>`;
-                };
-
-                marked.setOptions({
-                    breaks: true,
-                    gfm: true,
-                    renderer: renderer
-                });
-
-                const html = marked.parse(markdown);
-                content.innerHTML = html;
-
-                // Apply syntax highlighting
-                if (typeof Prism !== 'undefined') {
-                    Prism.highlightAllUnder(content);
-                }
-            })
+            .then(markdown => window.SmartGrind.ui._renderMarkdown(markdown, content))
             .catch(error => {
                 content.innerHTML = '<p>Error loading solution: ' + error.message + '</p>' +
                     '<p>File: ' + solutionFile + '</p>';
