@@ -1,8 +1,6 @@
 # Encode And Decode Strings
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/encode-and-decode-strings/)
-
 ## Solution
 
 ```python

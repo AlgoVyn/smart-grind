@@ -1,8 +1,6 @@
 # Top K Frequent Elements
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/top-k-frequent-elements/)
-
 Given an integer array nums and an integer k, return the k most frequent elements. You may return the answer in any order.
  
 Example 1:
@@ -30,8 +28,6 @@ It is guaranteed that the answer is unique.
 
  
 Follow up: Your algorithm's time complexity must be better than O(n log n), where n is the array's size.
-
-
 ## Solution
 
 ```python

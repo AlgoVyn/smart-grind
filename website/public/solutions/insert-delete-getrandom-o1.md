@@ -1,8 +1,6 @@
 # Insert Delete Getrandom O1
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/insert-delete-getrandom-o1/)
-
 Implement the RandomizedSet class:
 
 RandomizedSet() Initializes the RandomizedSet object.
@@ -36,8 +34,6 @@ Constraints:
 -231 <= val <= 231 - 1
 At most 2 * 105 calls will be made to insert, remove, and getRandom.
 There will be at least one element in the data structure when getRandom is called.
-
-
 ## Solution
 
 ```python

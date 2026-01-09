@@ -696,12 +696,31 @@ window.SmartGrind.ui = {
                     gfm: true
                 });
 
+                // Custom renderer to add language class for syntax highlighting
+                const renderer = new marked.Renderer();
+                const originalCode = renderer.code.bind(renderer);
+                renderer.code = (code, language, isEscaped) => {
+                    // Handle both object and string parameters (marked.js API changed in different versions)
+                    if (typeof code === 'object') {
+                        language = code.lang;
+                        code = code.text;
+                    }
+                    const langClass = language ? `language-${language}` : 'language-python';
+                    return `<pre><code class="${langClass}">${code}</code></pre>`;
+                };
+
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    renderer: renderer
+                });
+
                 const html = marked.parse(markdown);
                 content.innerHTML = html;
 
                 // Apply syntax highlighting
                 if (typeof Prism !== 'undefined') {
-                    Prism.highlightAll();
+                    Prism.highlightAllUnder(content);
                 }
             })
             .catch(error => {

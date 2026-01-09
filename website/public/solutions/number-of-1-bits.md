@@ -1,8 +1,6 @@
 # Number Of 1 Bits
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/number-of-1-bits/)
-
 Given a positive integer n, write a function that returns the number of set bits in its binary representation (also known as the Hamming weight).
  
 Example 1:
@@ -33,8 +31,6 @@ Constraints:
 
  
 Follow up: If this function is called many times, how would you optimize it?
-
-
 ## Solution
 
 ```python

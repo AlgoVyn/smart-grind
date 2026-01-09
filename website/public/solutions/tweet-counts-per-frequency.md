@@ -1,8 +1,6 @@
 # Tweet Counts Per Frequency
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/tweet-counts-per-frequency/)
-
 A social media company is trying to monitor activity on their site by analyzing the number of tweets that occur in select periods of time. These periods can be partitioned into smaller time chunks based on a certain frequency (every minute, hour, or day).
 For example, the period [10, 10000] (in seconds) would be partitioned into the following time chunks with these frequencies:
 
@@ -19,8 +17,6 @@ void recordTweet(String tweetName, int time) Stores the tweetName at the recorde
 List<Integer> getTweetCountsPerFrequency(String freq, String tweetName, int startTime, int endTime) Returns a list of integers representing the number of tweets with tweetName in each time chunk for the given period of time [startTime, endTime] (in seconds) and frequency freq.
 	
 freq is one of "minute", "hour", or "day" representing a frequency of every minute, hour, or day respectively.
-
-
 
  
 Example:
@@ -48,8 +44,6 @@ Constraints:
 0 <= time, startTime, endTime <= 109
 0 <= endTime - startTime <= 104
 There will be at most 104 calls in total to recordTweet and getTweetCountsPerFrequency.
-
-
 ## Solution
 
 ```python

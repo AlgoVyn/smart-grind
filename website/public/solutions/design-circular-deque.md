@@ -1,8 +1,6 @@
 # Design Circular Deque
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/design-circular-deque/)
-
 Design your implementation of the circular double-ended queue (deque).
 Implement the MyCircularDeque class:
 
@@ -43,8 +41,6 @@ Constraints:
 1 <= k <= 1000
 0 <= value <= 1000
 At most 2000 calls will be made to insertFront, insertLast, deleteFront, deleteLast, getFront, getRear, isEmpty, isFull.
-
-
 ## Solution
 
 ```python

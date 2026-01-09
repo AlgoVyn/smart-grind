@@ -1,8 +1,6 @@
 # Snapshot Array
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/snapshot-array/)
-
 Implement a SnapshotArray that supports the following interface:
 
 SnapshotArray(int length) initializes an array-like data structure with the given length. Initially, each element equals 0.
@@ -30,8 +28,6 @@ Constraints:
 0 <= val <= 109
 0 <= snap_id < (the total number of times we call snap())
 At most 5 * 104 calls will be made to set, snap, and get.
-
-
 ## Solution
 
 ```python

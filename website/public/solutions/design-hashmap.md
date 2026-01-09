@@ -1,8 +1,6 @@
 # Design Hashmap
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/design-hashmap/)
-
 Design a HashMap without using any built-in hash table libraries.
 Implement the MyHashMap class:
 
@@ -36,8 +34,6 @@ Constraints:
 
 0 <= key, value <= 106
 At most 104 calls will be made to put, get, and remove.
-
-
 ## Solution
 
 ```python

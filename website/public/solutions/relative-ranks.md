@@ -1,8 +1,6 @@
 # Relative Ranks
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/relative-ranks/)
-
 You are given an integer array score of size n, where score[i] is the score of the ith athlete in a competition. All the scores are guaranteed to be unique.
 The athletes are placed based on their scores, where the 1st place athlete has the highest score, the 2nd place athlete has the 2nd highest score, and so on. The placement of each athlete determines their rank:
 
@@ -23,8 +21,6 @@ Example 2:
 Input: score = [10,3,8,9,4]
 Output: ["Gold Medal","5","Bronze Medal","Silver Medal","4"]
 Explanation: The placements are [1st, 5th, 3rd, 2nd, 4th].
-
-
  
 Constraints:
 
@@ -32,8 +28,6 @@ n == score.length
 1 <= n <= 104
 0 <= score[i] <= 106
 All the values in score are unique.
-
-
 ## Solution
 
 ```python

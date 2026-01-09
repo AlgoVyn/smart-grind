@@ -1,8 +1,6 @@
 # Sliding Window
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/sliding-window/)
-
 ## Solution
 
 ```python

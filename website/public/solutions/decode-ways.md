@@ -1,8 +1,6 @@
 # Decode Ways
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/decode-ways/)
-
 You have intercepted a secret message encoded as a string of numbers. The message is decoded via the following mapping:
 "1" -> 'A'
 "2" -> 'B'
@@ -47,8 +45,6 @@ Constraints:
 
 1 <= s.length <= 100
 s contains only digits and may contain leading zero(s).
-
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Find Minimum In Rotated Sorted Array
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/)
-
 Suppose an array of length n sorted in ascending order is rotated between 1 and n times. For example, the array nums = [0,1,2,4,5,6,7] might become:
 
 [4,5,6,7,0,1,2] if it was rotated 4 times.
@@ -38,8 +36,6 @@ n == nums.length
 -5000 <= nums[i] <= 5000
 All the integers of nums are unique.
 nums is sorted and rotated between 1 and n times.
-
-
 ## Solution
 
 ```python

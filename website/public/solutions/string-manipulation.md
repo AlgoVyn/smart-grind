@@ -1,8 +1,6 @@
 # String Manipulation
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/string-manipulation/)
-
 ## Solution
 
 ```python

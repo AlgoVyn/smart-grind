@@ -1,8 +1,6 @@
 # Find All Numbers Disappeared In An Array
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/find-all-numbers-disappeared-in-an-array/)
-
 Given an array nums of n integers where nums[i] is in the range [1, n], return an array of all the integers in the range [1, n] that do not appear in nums.
  
 Example 1:
@@ -21,8 +19,6 @@ n == nums.length
 
  
 Follow up: Could you do it without extra space and in O(n) runtime? You may assume the returned list does not count as extra space.
-
-
 ## Solution
 
 ```python

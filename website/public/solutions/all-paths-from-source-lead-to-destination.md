@@ -1,8 +1,6 @@
 # All Paths From Source Lead To Destination
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/all-paths-from-source-lead-to-destination/)
-
 ## Solution
 
 ```python

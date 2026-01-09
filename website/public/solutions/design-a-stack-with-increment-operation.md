@@ -1,8 +1,6 @@
 # Design A Stack With Increment Operation
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/design-a-stack-with-increment-operation/)
-
 Design a stack that supports increment operations on its elements.
 Implement the CustomStack class:
 
@@ -40,8 +38,6 @@ Constraints:
 1 <= maxSize, x, k <= 1000
 0 <= val <= 100
 At most 1000 calls will be made to each method of increment, push and pop each separately.
-
-
 ## Solution
 
 ```python

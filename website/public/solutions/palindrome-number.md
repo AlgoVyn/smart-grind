@@ -1,8 +1,6 @@
 # Palindrome Number
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/palindrome-number/)
-
 Given an integer x, return true if x is a palindrome, and false otherwise.
  
 Example 1:
@@ -30,8 +28,6 @@ Constraints:
 
  
 Follow up: Could you solve it without converting the integer to a string?
-
-
 ## Solution
 
 ```python

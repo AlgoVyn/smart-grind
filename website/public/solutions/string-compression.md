@@ -42,8 +42,6 @@ Constraints:
 	1 <= chars.length <= 2000
 	chars[i] is a lowercase English letter, uppercase English letter, digit, or symbol.
 
-[Link to problem](https://leetcode.com/problems/string-compression/)
-
 Given an array of characters chars, compress it using the following algorithm:
 Begin with an empty string s. For each group of consecutive repeating characters in chars:
 

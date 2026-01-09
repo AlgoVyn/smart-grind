@@ -1,8 +1,6 @@
 # Build A Matrix With Conditions
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/build-a-matrix-with-conditions/)
-
 You are given a positive integer k. You are also given:
 
 a 2D integer array rowConditions of size n where rowConditions[i] = [abovei, belowi], and
@@ -18,8 +16,6 @@ The number lefti should appear in a column that is strictly left of the column a
 Return any matrix that satisfies the conditions. If no answer exists, return an empty matrix.
  
 Example 1:
-
-
 Input: k = 3, rowConditions = [[1,2],[3,2]], colConditions = [[2,1],[3,2]]
 Output: [[3,0,0],[0,0,1],[0,2,0]]
 Explanation: The diagram above shows a valid example of a matrix that satisfies all the conditions.
@@ -47,8 +43,6 @@ rowConditions[i].length == colConditions[i].length == 2
 1 <= abovei, belowi, lefti, righti <= k
 abovei != belowi
 lefti != righti
-
-
 ## Solution
 ```python
 from typing import List

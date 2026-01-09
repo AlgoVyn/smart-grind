@@ -1,8 +1,6 @@
 # Flatten Nested List Iterator
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/flatten-nested-list-iterator/)
-
 You are given a nested list of integers nestedList. Each element is either an integer or a list whose elements may also be integers or other lists. Implement an iterator to flatten it.
 Implement the NestedIterator class:
 
@@ -37,8 +35,6 @@ Constraints:
 
 1 <= nestedList.length <= 500
 The values of the integers in the nested list is in the range [-106, 106].
-
-
 ## Solution
 
 ```python

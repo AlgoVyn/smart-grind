@@ -1,8 +1,6 @@
 # Arrays Hashing
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/arrays-hashing/)
-
 ## Solution
 
 ```python

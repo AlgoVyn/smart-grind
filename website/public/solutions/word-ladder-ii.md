@@ -1,8 +1,6 @@
 # Word Ladder Ii
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/word-ladder-ii/)
-
 A transformation sequence from word beginWord to word endWord using a dictionary wordList is a sequence of words beginWord -> s1 -> s2 -> ... -> sk such that:
 
 Every adjacent pair of words differs by a single letter.
@@ -36,8 +34,6 @@ beginWord, endWord, and wordList[i] consist of lowercase English letters.
 beginWord != endWord
 All the words in wordList are unique.
 The sum of all shortest transformation sequences does not exceed 105.
-
-
 ## Solution
 
 ```python

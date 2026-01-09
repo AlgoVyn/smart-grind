@@ -56,7 +56,7 @@
             margin: 1em 0;
         }
         #solution-content pre {
-            background: var(--dark-900);
+            background: var(--prism-bg, #1e293b);
             padding: 1em;
             border-radius: 8px;
             overflow-x: auto;
@@ -66,7 +66,7 @@
         #solution-content code {
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
             font-size: 0.9em;
-            background: var(--dark-900);
+            background: var(--prism-bg, #1e293b);
             padding: 0.2em 0.4em;
             border-radius: 4px;
         }
@@ -98,7 +98,7 @@
             text-align: left;
         }
         #solution-content th {
-            background: var(--dark-900);
+            background: var(--prism-bg, #1e293b);
         }
         #solution-content a {
             color: var(--brand-400);
@@ -111,7 +111,67 @@
             max-width: 100%;
             height: auto;
         }
-        /* Prism syntax highlighting styles */
+        /* Prism syntax highlighting styles - Theme-aware */
+        :root {
+            --prism-bg: #f1f5f9;
+            --prism-comment: #64748b;
+            --prism-punctuation: #475569;
+            --prism-property: #be185d;
+            --prism-tag: #be185d;
+            --prism-constant: #be185d;
+            --prism-symbol: #be185d;
+            --prism-deleted: #be185d;
+            --prism-boolean: #d97706;
+            --prism-number: #d97706;
+            --prism-selector: #15803d;
+            --prism-attr-name: #15803d;
+            --prism-string: #15803d;
+            --prism-char: #15803d;
+            --prism-builtin: #15803d;
+            --prism-inserted: #15803d;
+            --prism-operator: #7c3aed;
+            --prism-entity: #7c3aed;
+            --prism-url: #7c3aed;
+            --prism-variable: #7c3aed;
+            --prism-atrule: #1d4ed8;
+            --prism-attr-value: #1d4ed8;
+            --prism-function: #1d4ed8;
+            --prism-class-name: #1d4ed8;
+            --prism-keyword: #7c3aed;
+            --prism-regex: #ea580c;
+            --prism-important: #ea580c;
+        }
+        
+        .dark {
+            --prism-bg: #1e293b;
+            --prism-comment: #64748b;
+            --prism-punctuation: #94a3b8;
+            --prism-property: #f472b6;
+            --prism-tag: #f472b6;
+            --prism-constant: #f472b6;
+            --prism-symbol: #f472b6;
+            --prism-deleted: #f472b6;
+            --prism-boolean: #fbbf24;
+            --prism-number: #fbbf24;
+            --prism-selector: #4ade80;
+            --prism-attr-name: #4ade80;
+            --prism-string: #4ade80;
+            --prism-char: #4ade80;
+            --prism-builtin: #4ade80;
+            --prism-inserted: #4ade80;
+            --prism-operator: #a78bfa;
+            --prism-entity: #a78bfa;
+            --prism-url: #a78bfa;
+            --prism-variable: #a78bfa;
+            --prism-atrule: #60a5fa;
+            --prism-attr-value: #60a5fa;
+            --prism-function: #60a5fa;
+            --prism-class-name: #60a5fa;
+            --prism-keyword: #c084fc;
+            --prism-regex: #fb923c;
+            --prism-important: #fb923c;
+        }
+        
         #solution-content code[class*="language-"] {
             background: none;
             padding: 0;
@@ -121,21 +181,25 @@
         #solution-content .token.prolog,
         #solution-content .token.doctype,
         #solution-content .token.cdata {
-            color: var(--theme-muted);
+            color: var(--prism-comment);
+            font-style: italic;
         }
         #solution-content .token.punctuation {
-            color: var(--theme-base);
+            color: var(--prism-punctuation);
+        }
+        #solution-content .token.namespace {
+            opacity: .7;
         }
         #solution-content .token.property,
         #solution-content .token.tag,
         #solution-content .token.constant,
         #solution-content .token.symbol,
         #solution-content .token.deleted {
-            color: #e83e8c;
+            color: var(--prism-property);
         }
         #solution-content .token.boolean,
         #solution-content .token.number {
-            color: #ffc107;
+            color: var(--prism-boolean);
         }
         #solution-content .token.selector,
         #solution-content .token.attr-name,
@@ -143,26 +207,46 @@
         #solution-content .token.char,
         #solution-content .token.builtin,
         #solution-content .token.inserted {
-            color: #28a745;
+            color: var(--prism-selector);
         }
         #solution-content .token.operator,
         #solution-content .token.entity,
         #solution-content .token.url,
         #solution-content .token.variable {
-            color: #6f42c1;
+            color: var(--prism-operator);
         }
         #solution-content .token.atrule,
         #solution-content .token.attr-value,
         #solution-content .token.function,
         #solution-content .token.class-name {
-            color: var(--brand-500);
+            color: var(--prism-function);
         }
         #solution-content .token.keyword {
-            color: var(--brand-400);
+            color: var(--prism-keyword);
         }
         #solution-content .token.regex,
         #solution-content .token.important {
-            color: #fd7e14;
+            color: var(--prism-regex);
+        }
+        #solution-content .token.important,
+        #solution-content .token.bold {
+            font-weight: bold;
+        }
+        #solution-content .token.italic {
+            font-style: italic;
+        }
+        #solution-content .token.entity {
+            cursor: help;
+        }
+        /* Python-specific highlighting */
+        #solution-content .language-python .token.decorator {
+            color: var(--prism-property);
+        }
+        #solution-content .language-python .token.builtin {
+            color: var(--prism-function);
+        }
+        #solution-content .language-python .token.keyword {
+            color: var(--prism-keyword);
         }
     </style>
 

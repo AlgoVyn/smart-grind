@@ -1,8 +1,6 @@
 # Surrounded Regions
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/surrounded-regions/)
-
 You are given an m x n matrix board containing letters 'X' and 'O', capture regions that are surrounded:
 
 Connect: A cell is connected to adjacent cells horizontally or vertically.
@@ -31,8 +29,6 @@ m == board.length
 n == board[i].length
 1 <= m, n <= 200
 board[i][j] is 'X' or 'O'.
-
-
 ## Solution
 
 ```python

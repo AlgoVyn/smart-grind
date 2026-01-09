@@ -1,8 +1,6 @@
 # Word Ladder
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/word-ladder/)
-
 A transformation sequence from word beginWord to word endWord using a dictionary wordList is a sequence of words beginWord -> s1 -> s2 -> ... -> sk such that:
 
 Every adjacent pair of words differs by a single letter.
@@ -33,8 +31,6 @@ wordList[i].length == beginWord.length
 beginWord, endWord, and wordList[i] consist of lowercase English letters.
 beginWord != endWord
 All the words in wordList are unique.
-
-
 ## Solution
 
 ```python

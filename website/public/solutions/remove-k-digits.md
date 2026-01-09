@@ -1,8 +1,6 @@
 # Remove K Digits
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/remove-k-digits/)
-
 Given string num representing a non-negative integer num, and an integer k, return the smallest possible integer after removing k digits from num.
  
 Example 1:
@@ -29,8 +27,6 @@ Constraints:
 1 <= k <= num.length <= 105
 num consists of only digits.
 num does not have any leading zeros except for the zero itself.
-
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Minimize Max Distance To Gas Station
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/minimize-max-distance-to-gas-station/)
-
 ## Solution
 
 ```python

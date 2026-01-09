@@ -1,8 +1,6 @@
 # Maximum Sum Of Distinct Subarrays With Length K
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/maximum-sum-of-distinct-subarrays-with-length-k/)
-
 You are given an integer array nums and an integer k. Find the maximum subarray sum of all the subarrays of nums that meet the following conditions:
 
 The length of the subarray is k, and
@@ -36,8 +34,6 @@ Constraints:
 
 1 <= k <= nums.length <= 105
 1 <= nums[i] <= 105
-
-
 ## Solution
 
 ```python

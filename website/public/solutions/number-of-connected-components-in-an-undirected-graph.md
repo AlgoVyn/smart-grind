@@ -1,8 +1,6 @@
 # Number Of Connected Components In An Undirected Graph
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/number-of-connected-components-in-an-undirected-graph/)
-
 ## Solution
 
 ```python

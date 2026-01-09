@@ -1,8 +1,6 @@
 # Design Add And Search Words Data Structure
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/design-add-and-search-words-data-structure/)
-
 Design a data structure that supports adding new words and finding if a string matches any previously added string.
 Implement the WordDictionary class:
 
@@ -37,8 +35,6 @@ word in addWord consists of lowercase English letters.
 word in search consist of '.' or lowercase English letters.
 There will be at most 2 dots in word for search queries.
 At most 104 calls will be made to addWord and search.
-
-
 ## Solution
 
 ```python

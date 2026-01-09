@@ -1,8 +1,6 @@
 # Time Based Key Value Store
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/time-based-key-value-store/)
-
 Design a time-based key-value data structure that can store multiple values for the same key at different time stamps and retrieve the key's value at a certain timestamp.
 Implement the TimeMap class:
 
@@ -36,8 +34,6 @@ key and value consist of lowercase English letters and digits.
 1 <= timestamp <= 107
 All the timestamps timestamp of set are strictly increasing.
 At most 2 * 105 calls will be made to set and get.
-
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Design Hit Counter
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/design-hit-counter/)
-
 ## Solution
 
 ```python

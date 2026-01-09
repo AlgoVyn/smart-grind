@@ -1,8 +1,6 @@
 # Binary Search Tree Iterator
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/binary-search-tree-iterator/)
-
 Implement the BSTIterator class that represents an iterator over the in-order traversal of a binary search tree (BST):
 
 BSTIterator(TreeNode root) Initializes an object of the BSTIterator class. The root of the BST is given as part of the constructor. The pointer should be initialized to a non-existent number smaller than any element in the BST.
@@ -13,8 +11,6 @@ Notice that by initializing the pointer to a non-existent smallest number, the f
 You may assume that next() calls will always be valid. That is, there will be at least a next number in the in-order traversal when next() is called.
  
 Example 1:
-
-
 Input
 ["BSTIterator", "next", "next", "hasNext", "next", "hasNext", "next", "hasNext", "next", "hasNext"]
 [[[7, 3, 15, null, null, 9, 20]], [], [], [], [], [], [], [], [], []]
@@ -44,8 +40,6 @@ At most 105 calls will be made to hasNext, and next.
 Follow up:
 
 Could you implement next() and hasNext() to run in average O(1) time and use O(h) memory, where h is the height of the tree?
-
-
 ## Solution
 ```python
 from typing import Optional

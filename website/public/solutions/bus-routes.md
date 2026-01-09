@@ -1,8 +1,6 @@
 # Bus Routes
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/bus-routes/)
-
 You are given an array routes representing bus routes where routes[i] is a bus route that the ith bus repeats forever.
 
 For example, if routes[0] = [1, 5, 7], this means that the 0th bus travels in the sequence 1 -> 5 -> 7 -> 1 -> 5 -> 7 -> 1 -> ... forever.
@@ -31,8 +29,6 @@ All the values of routes[i] are unique.
 sum(routes[i].length) <= 105
 0 <= routes[i][j] < 106
 0 <= source, target < 106
-
-
 ## Solution
 ```python
 from typing import List

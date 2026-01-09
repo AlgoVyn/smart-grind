@@ -1,8 +1,6 @@
 # Design A Text Editor
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/design-a-text-editor/)
-
 Design a text editor with a cursor that can do the following:
 
 Add text to where the cursor is.
@@ -61,8 +59,6 @@ At most 2 * 104 calls in total will be made to addText, deleteText, cursorLeft a
 
  
 Follow-up: Could you find a solution with time complexity of O(k) per call?
-
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Maximum Absolute Sum Of Any Subarray
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/maximum-absolute-sum-of-any-subarray/)
-
 You are given an integer array nums. The absolute sum of a subarray [numsl, numsl+1, ..., numsr-1, numsr] is abs(numsl + numsl+1 + ... + numsr-1 + numsr).
 Return the maximum absolute sum of any (possibly empty) subarray of nums.
 Note that abs(x) is defined as follows:
@@ -28,8 +26,6 @@ Constraints:
 
 1 <= nums.length <= 105
 -104 <= nums[i] <= 104
-
-
 ## Solution
 
 ```python

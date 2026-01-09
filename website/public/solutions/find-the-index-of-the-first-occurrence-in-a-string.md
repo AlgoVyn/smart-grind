@@ -1,8 +1,6 @@
 # Find The Index Of The First Occurrence In A String
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/)
-
 Given two strings needle and haystack, return the index of the first occurrence of needle in haystack, or -1 if needle is not part of haystack.
  
 Example 1:
@@ -23,8 +21,6 @@ Constraints:
 
 1 <= haystack.length, needle.length <= 104
 haystack and needle consist of only lowercase English characters.
-
-
 ## Solution
 
 ```python

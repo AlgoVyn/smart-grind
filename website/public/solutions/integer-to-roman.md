@@ -1,46 +1,24 @@
 # Integer To Roman
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/integer-to-roman/)
-
 Seven different symbols represent Roman numerals with the following values:
-
-
 
 Symbol
 Value
-
-
-
-
 I
 1
-
-
 V
 5
-
-
 X
 10
-
-
 L
 50
-
-
 C
 100
-
-
 D
 500
-
-
 M
 1000
-
-
 
 Roman numerals are formed by appending the conversions of decimal place values from highest to lowest. Converting a decimal place value into a Roman numeral has the following rules:
 
@@ -61,8 +39,6 @@ Explanation:
   40 = XL as 10 (X) less of 50 (L)
    9 = IX as 1 (I) less of 10 (X)
 Note: 49 is not 1 (I) less of 50 (L) because the conversion is based on decimal places
-
-
 Example 2:
 
 Input: num = 58
@@ -71,8 +47,6 @@ Explanation:
 
 50 = L
  8 = VIII
-
-
 Example 3:
 
 Input: num = 1994
@@ -83,14 +57,10 @@ Explanation:
  900 = CM
   90 = XC
    4 = IV
-
-
  
 Constraints:
 
 1 <= num <= 3999
-
-
 ## Solution
 
 ```python

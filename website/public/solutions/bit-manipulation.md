@@ -1,8 +1,6 @@
 # Bit Manipulation
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/bit-manipulation/)
-
 ## Solution
 ```python
 class Solution:

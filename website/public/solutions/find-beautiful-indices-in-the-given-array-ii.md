@@ -1,8 +1,6 @@
 # Find Beautiful Indices In The Given Array Ii
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/find-beautiful-indices-in-the-given-array-ii/)
-
 You are given a 0-indexed string s, a string a, a string b, and an integer k.
 An index i is beautiful if:
 
@@ -13,8 +11,6 @@ There exists an index j such that:
 0 <= j <= s.length - b.length
 s[j..(j + b.length - 1)] == b
 |j - i| <= k
-
-
 
 Return the array that contains beautiful indices in sorted order from smallest to largest.
  
@@ -41,8 +37,6 @@ Constraints:
 1 <= k <= s.length <= 5 * 105
 1 <= a.length, b.length <= 5 * 105
 s, a, and b contain only lowercase English letters.
-
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Implement Stack Using Queues
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/implement-stack-using-queues/)
-
 Implement a last-in-first-out (LIFO) stack using only two queues. The implemented stack should support all the functions of a normal stack (push, top, pop, and empty).
 Implement the MyStack class:
 
@@ -42,8 +40,6 @@ All the calls to pop and top are valid.
 
  
 Follow-up: Can you implement the stack using only one queue?
-
-
 ## Solution
 
 ```python

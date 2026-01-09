@@ -1,8 +1,6 @@
 # Take Gifts From The Richest Pile
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/take-gifts-from-the-richest-pile/)
-
 You are given an integer array gifts denoting the number of gifts in various piles. Every second, you do the following:
 
 Choose the pile with the maximum number of gifts.
@@ -38,8 +36,6 @@ Constraints:
 1 <= gifts.length <= 103
 1 <= gifts[i] <= 109
 1 <= k <= 103
-
-
 ## Solution
 
 ```python

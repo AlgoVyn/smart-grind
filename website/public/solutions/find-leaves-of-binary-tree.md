@@ -1,8 +1,6 @@
 # Find Leaves Of Binary Tree
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/find-leaves-of-binary-tree/)
-
 Given the root of a binary tree, collect and remove all leaves, repeat until the tree is empty. Return the collection of leaf values in the order they were collected. You answer should be a list of lists, where each list contains the leaf values collected at each step.
 
 Example 1:

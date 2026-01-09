@@ -1,8 +1,6 @@
 # Valid Palindrome Ii
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/valid-palindrome-ii/)
-
 Given a string s, return true if the s can be palindrome after deleting at most one character from it.
  
 Example 1:
@@ -26,8 +24,6 @@ Constraints:
 
 1 <= s.length <= 105
 s consists of lowercase English letters.
-
-
 ## Solution
 
 ```python

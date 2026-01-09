@@ -1,8 +1,6 @@
 # Longest Valid Parentheses
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/longest-valid-parentheses/)
-
 Given a string containing just the characters '(' and ')', return the length of the longest valid (well-formed) parentheses substring.
  
 Example 1:
@@ -27,8 +25,6 @@ Constraints:
 
 0 <= s.length <= 3 * 104
 s[i] is '(', or ')'.
-
-
 ## Solution
 
 ```python

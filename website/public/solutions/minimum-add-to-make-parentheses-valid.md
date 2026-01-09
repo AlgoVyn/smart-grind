@@ -1,8 +1,6 @@
 # Minimum Add To Make Parentheses Valid
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/minimum-add-to-make-parentheses-valid/)
-
 A parentheses string is valid if and only if:
 
 It is the empty string,
@@ -30,8 +28,6 @@ Constraints:
 
 1 <= s.length <= 1000
 s[i] is either '(' or ')'.
-
-
 ## Solution
 
 ```python

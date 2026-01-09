@@ -1,8 +1,6 @@
 # Product Of The Last K Numbers
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/product-of-the-last-k-numbers/)
-
 Design an algorithm that accepts a stream of integers and retrieves the product of the last k integers of the stream.
 Implement the ProductOfNumbers class:
 
@@ -44,8 +42,6 @@ The product of the stream at any point in time will fit in a 32-bit integer.
 
  
 Follow-up: Can you implement both GetProduct and Add to work in O(1) time complexity instead of O(k) time complexity?
-
-
 ## Solution
 
 ```python

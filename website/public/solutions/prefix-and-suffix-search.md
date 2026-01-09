@@ -1,8 +1,6 @@
 # Prefix And Suffix Search
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/prefix-and-suffix-search/)
-
 Design a special dictionary that searches the words in it by a prefix and a suffix.
 Implement the WordFilter class:
 
@@ -29,8 +27,6 @@ Constraints:
 1 <= pref.length, suff.length <= 7
 words[i], pref and suff consist of lowercase English letters only.
 At most 104 calls will be made to the function f.
-
-
 ## Solution
 
 ```python

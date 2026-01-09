@@ -1,8 +1,6 @@
 # Guess Number Higher Or Lower
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/guess-number-higher-or-lower/)
-
 We are playing the Guess Game. The game is as follows:
 I pick a number from 1 to n. You have to guess which number I picked (the number I picked stays the same throughout the game).
 Every time you guess wrong, I will tell you whether the number I picked is higher or lower than your guess.
@@ -34,8 +32,6 @@ Constraints:
 
 1 <= n <= 231 - 1
 1 <= pick <= n
-
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Implement Queue Using Stacks
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/implement-queue-using-stacks/)
-
 Implement a first in first out (FIFO) queue using only two stacks. The implemented queue should support all the functions of a normal queue (push, peek, pop, and empty).
 Implement the MyQueue class:
 
@@ -42,8 +40,6 @@ All the calls to pop and peek are valid.
 
  
 Follow-up: Can you implement the queue such that each operation is amortized O(1) time complexity? In other words, performing n operations will take overall O(n) time even if one of those operations may take longer.
-
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Find Mode In Binary Search Tree
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/find-mode-in-binary-search-tree/)
-
 Given the root of a binary search tree (BST) with duplicates, return all the mode(s) (i.e., the most frequently occurred element) in it.
 If the tree has more than one mode, return them in any order.
 Assume a BST is defined as follows:
@@ -13,8 +11,6 @@ Both the left and right subtrees must also be binary search trees.
 
  
 Example 1:
-
-
 Input: root = [1,null,2,2]
 Output: [2]
 
@@ -31,8 +27,6 @@ The number of nodes in the tree is in the range [1, 104].
 
  
 Follow up: Could you do that without using any extra space? (Assume that the implicit stack space incurred due to recursion does not count).
-
-
 ## Solution
 
 ```python

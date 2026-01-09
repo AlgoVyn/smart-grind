@@ -1,8 +1,6 @@
 # Maximum Subarray
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/maximum-subarray/)
-
 Given an integer array nums, find the subarray with the largest sum, and return its sum.
  
 Example 1:
@@ -31,8 +29,6 @@ Constraints:
 
  
 Follow up: If you have figured out the O(n) solution, try coding another solution using the divide and conquer approach, which is more subtle.
-
-
 ## Solution
 
 ```python

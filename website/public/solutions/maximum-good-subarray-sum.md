@@ -1,8 +1,6 @@
 # Maximum Good Subarray Sum
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/maximum-good-subarray-sum/)
-
 You are given an array nums of length n and a positive integer k.
 A subarray of nums is called good if the absolute difference between its first and last element is exactly k, in other words, the subarray nums[i..j] is good if |nums[i] - nums[j]| == k.
 Return the maximum sum of a good subarray of nums. If there are no good subarrays, return 0.
@@ -31,8 +29,6 @@ Constraints:
 2 <= nums.length <= 105
 -109 <= nums[i] <= 109
 1 <= k <= 109
-
-
 ## Solution
 
 ```python

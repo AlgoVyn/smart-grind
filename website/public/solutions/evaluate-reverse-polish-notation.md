@@ -1,8 +1,6 @@
 # Evaluate Reverse Polish Notation
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/evaluate-reverse-polish-notation/)
-
 You are given an array of strings tokens that represents an arithmetic expression in a Reverse Polish Notation.
 Evaluate the expression. Return an integer that represents the value of the expression.
 Note that:
@@ -44,8 +42,6 @@ Constraints:
 
 1 <= tokens.length <= 104
 tokens[i] is either an operator: "+", "-", "*", or "/", or an integer in the range [-200, 200].
-
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Merge Intervals
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/merge-intervals/)
-
 Given an array of intervals where intervals[i] = [starti, endi], merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all the intervals in the input.
  
 Example 1:
@@ -29,8 +27,6 @@ Constraints:
 1 <= intervals.length <= 104
 intervals[i].length == 2
 0 <= starti <= endi <= 104
-
-
 ## Solution
 
 ```python

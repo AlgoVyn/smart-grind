@@ -1,8 +1,6 @@
 # Range Module
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/range-module/)
-
 A Range Module is a module that tracks ranges of numbers. Design a data structure to track the ranges represented as half-open intervals and query about them.
 A half-open interval [left, right) denotes all the real numbers x where left <= x < right.
 Implement the RangeModule class:
@@ -34,8 +32,6 @@ Constraints:
 
 1 <= left < right <= 109
 At most 104 calls will be made to addRange, queryRange, and removeRange.
-
-
 ## Solution
 
 ```python

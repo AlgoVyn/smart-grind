@@ -1,8 +1,6 @@
 # Maximum Frequency Of An Element After Performing Operations I
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/maximum-frequency-of-an-element-after-performing-operations-i/)
-
 You are given an integer array nums and two integers k and numOperations.
 You must perform an operation numOperations times on nums, where in each operation you:
 
@@ -20,8 +18,6 @@ We can achieve a maximum frequency of two by:
 
 Adding 0 to nums[1]. nums becomes [1, 4, 5].
 Adding -1 to nums[2]. nums becomes [1, 4, 4].
-
-
 Example 2:
 
 Input: nums = [5,11,20,20], k = 5, numOperations = 1
@@ -30,8 +26,6 @@ Explanation:
 We can achieve a maximum frequency of two by:
 
 Adding 0 to nums[1].
-
-
  
 Constraints:
 
@@ -39,8 +33,6 @@ Constraints:
 1 <= nums[i] <= 105
 0 <= k <= 105
 0 <= numOperations <= nums.length
-
-
 ## Solution
 
 ```python

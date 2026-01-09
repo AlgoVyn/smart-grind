@@ -1,8 +1,6 @@
 # Minimum Cost To Hire K Workers
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/minimum-cost-to-hire-k-workers/)
-
 There are n workers. You are given two integer arrays quality and wage where quality[i] is the quality of the ith worker and wage[i] is the minimum wage expectation for the ith worker.
 We want to hire exactly k workers to form a paid group. To hire a group of k workers, we must pay them according to the following rules:
 
@@ -29,8 +27,6 @@ Constraints:
 n == quality.length == wage.length
 1 <= k <= n <= 104
 1 <= quality[i], wage[i] <= 104
-
-
 ## Solution
 
 ```python

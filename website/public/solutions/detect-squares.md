@@ -1,8 +1,6 @@
 # Detect Squares
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/detect-squares/)
-
 You are given a stream of points on the X-Y plane. Design an algorithm that:
 
 Adds new points from the stream into a data structure. Duplicate points are allowed and should be treated as different points.
@@ -17,8 +15,6 @@ int count(int[] point) Counts the number of ways to form axis-aligned squares wi
 
  
 Example 1:
-
-
 Input
 ["DetectSquares", "add", "add", "add", "count", "count", "add", "count"]
 [[], [[3, 10]], [[11, 2]], [[3, 2]], [[11, 10]], [[14, 8]], [[11, 2]], [[11, 10]]]
@@ -44,8 +40,6 @@ Constraints:
 point.length == 2
 0 <= x, y <= 1000
 At most 3000 calls in total will be made to add and count.
-
-
 ## Solution
 
 ```python

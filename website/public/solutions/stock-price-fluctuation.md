@@ -1,8 +1,6 @@
 # Stock Price Fluctuation
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/stock-price-fluctuation/)
-
 You are given a stream of records about a particular stock. Each record contains a timestamp and the corresponding price of the stock at that timestamp.
 Unfortunately due to the volatile nature of the stock market, the records do not come in order. Even worse, some records may be incorrect. Another record with the same timestamp may appear later in the stream correcting the price of the previous wrong record.
 Design an algorithm that:
@@ -47,8 +45,6 @@ Constraints:
 1 <= timestamp, price <= 109
 At most 105 calls will be made in total to update, current, maximum, and minimum.
 current, maximum, and minimum will be called only after update has been called at least once.
-
-
 ## Solution
 
 ```python

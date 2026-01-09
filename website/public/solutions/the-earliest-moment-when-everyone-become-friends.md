@@ -1,8 +1,6 @@
 # The Earliest Moment When Everyone Become Friends
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/the-earliest-moment-when-everyone-become-friends/)
-
 ## Solution
 
 ```python

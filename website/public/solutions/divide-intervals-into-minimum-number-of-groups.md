@@ -1,8 +1,6 @@
 # Divide Intervals Into Minimum Number Of Groups
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/divide-intervals-into-minimum-number-of-groups/)
-
 You are given a 2D integer array intervals where intervals[i] = [lefti, righti] represents the inclusive interval [lefti, righti].
 You have to divide the intervals into one or more groups such that each interval is in exactly one group, and no two intervals that are in the same group intersect each other.
 Return the minimum number of groups you need to make.
@@ -30,8 +28,6 @@ Constraints:
 1 <= intervals.length <= 105
 intervals[i].length == 2
 1 <= lefti <= righti <= 106
-
-
 ## Solution
 
 ```python

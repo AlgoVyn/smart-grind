@@ -1,8 +1,6 @@
 # Find In Mountain Array
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/find-in-mountain-array/)
-
 (This problem is an interactive problem.)
 You may recall that an array arr is a mountain array if and only if:
 
@@ -11,8 +9,6 @@ There exists some i with 0 < i < arr.length - 1 such that:
 	
 arr[0] < arr[1] < ... < arr[i - 1] < arr[i]
 arr[i] > arr[i + 1] > ... > arr[arr.length - 1]
-
-
 
 Given a mountain array mountainArr, return the minimum index such that mountainArr.get(index) == target. If such an index does not exist, return -1.
 You cannot access the mountain array directly. You may only access the array using a MountainArray interface:
@@ -39,8 +35,6 @@ Constraints:
 3 <= mountainArr.length() <= 104
 0 <= target <= 109
 0 <= mountainArr.get(index) <= 109
-
-
 ## Solution
 
 ```python

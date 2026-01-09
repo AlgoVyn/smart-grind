@@ -1,8 +1,6 @@
 # Maximize The Topmost Element After K Moves
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/maximize-the-topmost-element-after-k-moves/)
-
 You are given a 0-indexed integer array nums representing the contents of a pile, where nums[0] is the topmost element of the pile.
 In one move, you can perform either of the following:
 
@@ -37,8 +35,6 @@ Constraints:
 
 1 <= nums.length <= 105
 0 <= nums[i], k <= 109
-
-
 ## Solution
 
 ```python

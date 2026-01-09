@@ -1,8 +1,6 @@
 # Optimize Water Distribution In A Village
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/optimize-water-distribution-in-a-village/)
-
 ## Solution
 
 ```python

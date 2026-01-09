@@ -1,8 +1,6 @@
 # Graph Valid Tree
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/graph-valid-tree/)
-
 ## Solution
 
 ```python

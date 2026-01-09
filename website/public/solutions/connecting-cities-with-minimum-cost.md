@@ -1,8 +1,6 @@
 # Connecting Cities With Minimum Cost
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/connecting-cities-with-minimum-cost/)
-
 ## Solution
 ```python
 from typing import List

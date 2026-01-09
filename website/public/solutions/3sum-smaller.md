@@ -1,8 +1,6 @@
 # 3sum Smaller
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/3sum-smaller/)
-
 ## Solution
 
 ```python

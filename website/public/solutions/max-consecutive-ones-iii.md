@@ -1,8 +1,6 @@
 # Max Consecutive Ones Iii
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/max-consecutive-ones-iii/)
-
 Given a binary array nums and an integer k, return the maximum number of consecutive 1's in the array if you can flip at most k 0's.
  
 Example 1:
@@ -24,8 +22,6 @@ Constraints:
 1 <= nums.length <= 105
 nums[i] is either 0 or 1.
 0 <= k <= nums.length
-
-
 ## Solution
 
 ```python

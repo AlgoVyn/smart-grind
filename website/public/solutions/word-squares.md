@@ -1,8 +1,6 @@
 # Word Squares
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/word-squares/)
-
 ## Solution
 
 ```python

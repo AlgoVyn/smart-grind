@@ -1,8 +1,6 @@
 # Number Of Islands Ii
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/number-of-islands-ii/)
-
 ## Solution
 
 ```python

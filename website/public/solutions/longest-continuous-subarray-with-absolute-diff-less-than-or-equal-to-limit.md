@@ -1,8 +1,6 @@
 # Longest Continuous Subarray With Absolute Diff Less Than Or Equal To Limit
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/longest-continuous-subarray-with-absolute-diff-less-than-or-equal-to-limit/)
-
 Given an array of integers nums and an integer limit, return the size of the longest non-empty subarray such that the absolute difference between any two elements of this subarray is less than or equal to limit.
  
 Example 1:
@@ -39,8 +37,6 @@ Constraints:
 1 <= nums.length <= 105
 1 <= nums[i] <= 109
 0 <= limit <= 109
-
-
 ## Solution
 
 ```python

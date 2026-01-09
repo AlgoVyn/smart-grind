@@ -33,8 +33,6 @@ Constraints:
 
 	1 <= n <= 231 - 1
 
-[Link to problem](https://leetcode.com/problems/happy-number/)
-
 Write an algorithm to determine if a number n is happy.
 A happy number is a number defined by the following process:
 

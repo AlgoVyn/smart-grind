@@ -1,22 +1,34 @@
 # Container With Most Water
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/container-with-most-water/)
+Given `n` non-negative integers `a1, a2, ..., an`, where each represents a point at coordinate `(i, ai)`. `n` vertical lines are drawn such that the two endpoints of the ith line are `(i, ai)` and `(i, 0)`. Find two lines, which, together with the x-axis forms a container, such that the container contains the most water. Return the maximum amount of water a container can store. Notice that you may not slant the container.
 
-Given n non-negative integers a1, a2, ..., an, where each represents a point at coordinate (i, ai). n vertical lines are drawn such that the two endpoints of the ith line are (i, ai) and (i, 0). Find two lines, which, together with the x-axis forms a container, such that the container contains the most water. Return the maximum amount of water a container can store. Notice that you may not slant the container.
+---
 
-**Example:**
+## Examples
+
+**Example 1:**
+
+**Input:**
 ```
-Input: height = [1,8,6,2,5,4,8,3,7]
-Output: 49
+height = [1,8,6,2,5,4,8,3,7]
 ```
 
-**Constraints:**
-- n == height.length
-- 2 <= n <= 10^5
-- 0 <= height[i] <= 10^4
+**Output:**
+```
+49
+```
+
+---
+
+## Constraints
+
+- `n == height.length`
+- `2 <= n <= 10^5`
+- `0 <= height[i] <= 10^4`
 
 ## Solution
+
 ```python
 from typing import List
 

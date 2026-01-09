@@ -1,8 +1,6 @@
 # Longest Increasing Subsequence
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/longest-increasing-subsequence/)
-
 Given an integer array nums, return the length of the longest strictly increasing subsequence.
  
 Example 1:
@@ -29,8 +27,6 @@ Constraints:
 
  
 Follow up: Can you come up with an algorithm that runs in O(n log(n)) time complexity?
-
-
 ## Solution
 
 ```python

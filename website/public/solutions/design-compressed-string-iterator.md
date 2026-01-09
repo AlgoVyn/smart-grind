@@ -1,8 +1,6 @@
 # Design Compressed String Iterator
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/design-compressed-string-iterator/)
-
 Design and implement a data structure for a compressed string iterator. The given compressed string will be in the form of each letter followed by a positive integer representing the number of this letter existing in the original uncompressed string.
 
 Implement the StringIterator class:

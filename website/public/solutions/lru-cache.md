@@ -1,8 +1,6 @@
 # LRU Cache
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/lru-cache/)
-
 Design a data structure that follows the constraints of a Least Recently Used (LRU) cache.
 Implement the LRUCache class:
 
@@ -39,8 +37,6 @@ Constraints:
 0 <= key <= 104
 0 <= value <= 105
 At most 2 * 105 calls will be made to get and put.
-
-
 ## Solution
 
 ```python

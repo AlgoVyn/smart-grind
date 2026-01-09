@@ -1,8 +1,6 @@
 # Employee Free Time
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/employee-free-time/)
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Palindrome Partitioning Ii
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/palindrome-partitioning-ii/)
-
 Given a string s, partition s such that every substring of the partition is a palindrome.
 Return the minimum cuts needed for a palindrome partitioning of s.
  
@@ -27,8 +25,6 @@ Constraints:
 
 1 <= s.length <= 2000
 s consists of lowercase English letters only.
-
-
 ## Solution
 
 ```python

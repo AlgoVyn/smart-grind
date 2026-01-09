@@ -1,8 +1,6 @@
 # Alien Dictionary
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/alien-dictionary/)
-
 ## Solution
 
 ```python

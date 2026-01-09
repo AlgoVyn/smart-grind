@@ -1,8 +1,6 @@
 # The Number Of The Smallest Unoccupied Chair
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/the-number-of-the-smallest-unoccupied-chair/)
-
 There is a party where n friends numbered from 0 to n - 1 are attending. There is an infinite number of chairs in this party that are numbered from 0 to infinity. When a friend arrives at the party, they sit on the unoccupied chair with the smallest number.
 
 For example, if chairs 0, 1, and 5 are occupied when a friend comes, they will sit on chair number 2.
@@ -45,8 +43,6 @@ times[i].length == 2
 1 <= arrivali < leavingi <= 105
 0 <= targetFriend <= n - 1
 Each arrivali time is distinct.
-
-
 ## Solution
 
 ```python

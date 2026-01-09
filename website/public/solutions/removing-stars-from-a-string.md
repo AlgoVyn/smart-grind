@@ -40,8 +40,6 @@ Constraints:
 	s consists of lowercase English letters and stars *.
 	The operation above can be performed on s.
 
-[Link to problem](https://leetcode.com/problems/removing-stars-from-a-string/)
-
 You are given a string s, which contains stars *.
 In one operation, you can:
 

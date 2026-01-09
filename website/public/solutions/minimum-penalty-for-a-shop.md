@@ -1,8 +1,6 @@
 # Minimum Penalty For A Shop
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/minimum-penalty-for-a-shop/)
-
 You are given the customer visit log of a shop represented by a 0-indexed string customers consisting only of characters 'N' and 'Y':
 
 if the ith character is 'Y', it means that customers come at the ith hour
@@ -44,8 +42,6 @@ Constraints:
 
 1 <= customers.length <= 105
 customers consists only of characters 'Y' and 'N'.
-
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Sentence Similarity Ii
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/sentence-similarity-ii/)
-
 ## Solution
 
 ```python

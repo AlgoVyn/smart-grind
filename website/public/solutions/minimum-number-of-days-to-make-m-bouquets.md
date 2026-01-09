@@ -1,8 +1,6 @@
 # Minimum Number Of Days To Make M Bouquets
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/minimum-number-of-days-to-make-m-bouquets/)
-
 You are given an integer array bloomDay, an integer m and an integer k.
 You want to make m bouquets. To make a bouquet, you need to use k adjacent flowers from the garden.
 The garden consists of n flowers, the ith flower will bloom in the bloomDay[i] and then can be used in exactly one bouquet.
@@ -43,8 +41,6 @@ bloomDay.length == n
 1 <= bloomDay[i] <= 109
 1 <= m <= 106
 1 <= k <= n
-
-
 ## Solution
 
 ```python

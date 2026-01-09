@@ -1,8 +1,6 @@
 # Find The Power Of K Size Subarrays I
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/find-the-power-of-k-size-subarrays-i/)
-
 You are given an array of integers nums of length n and a positive integer k.
 The power of an array is defined as:
 
@@ -24,8 +22,6 @@ There are 5 subarrays of nums of size 3:
 [3, 4, 3] whose elements are not consecutive.
 [4, 3, 2] whose elements are not sorted.
 [3, 2, 5] whose elements are not consecutive.
-
-
 Example 2:
 
 Input: nums = [2,2,2,2,2], k = 4
@@ -42,8 +38,6 @@ Constraints:
 1 <= n == nums.length <= 500
 1 <= nums[i] <= 105
 1 <= k <= n
-
-
 ## Solution
 
 ```python

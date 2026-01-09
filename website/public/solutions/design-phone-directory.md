@@ -1,8 +1,6 @@
 # Design Phone Directory
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/design-phone-directory/)
-
 ## Solution
 
 ```python

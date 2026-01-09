@@ -1,8 +1,6 @@
 # Target Sum
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/target-sum/)
-
 You are given an integer array nums and an integer target.
 You want to build an expression out of nums by adding one of the symbols '+' and '-' before each integer in nums and then concatenate all the integers.
 
@@ -33,8 +31,6 @@ Constraints:
 0 <= nums[i] <= 1000
 0 <= sum(nums[i]) <= 1000
 -1000 <= target <= 1000
-
-
 ## Solution
 
 ```python

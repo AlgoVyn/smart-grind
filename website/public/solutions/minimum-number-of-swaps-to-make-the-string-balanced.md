@@ -1,8 +1,6 @@
 # Minimum Number Of Swaps To Make The String Balanced
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/minimum-number-of-swaps-to-make-the-string-balanced/)
-
 You are given a 0-indexed string s of even length n. The string consists of exactly n / 2 opening brackets '[' and n / 2 closing brackets ']'.
 A string is called balanced if and only if:
 
@@ -43,8 +41,6 @@ n == s.length
 n is even.
 s[i] is either '[' or ']'.
 The number of opening brackets '[' equals n / 2, and the number of closing brackets ']' equals n / 2.
-
-
 ## Solution
 
 ```python

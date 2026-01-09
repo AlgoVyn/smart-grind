@@ -1,8 +1,6 @@
 # Kth Missing Positive Number
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/kth-missing-positive-number/)
-
 Given an array arr of positive integers sorted in a strictly increasing order, and an integer k.
 Return the kth positive integer that is missing from this array.
  
@@ -29,8 +27,6 @@ arr[i] < arr[j] for 1 <= i < j <= arr.length
  
 Follow up:
 Could you solve this problem in less than O(n) complexity?
-
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Delete And Earn
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/delete-and-earn/)
-
 You are given an integer array nums. You want to maximize the number of points you get by performing the following operation any number of times:
 
 Pick any nums[i] and delete it to earn nums[i] points. Afterwards, you must delete every element equal to nums[i] - 1 and every element equal to nums[i] + 1.
@@ -32,8 +30,6 @@ Constraints:
 
 1 <= nums.length <= 2 * 104
 1 <= nums[i] <= 104
-
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Sequence Reconstruction
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/sequence-reconstruction/)
-
 ## Solution
 
 ```python

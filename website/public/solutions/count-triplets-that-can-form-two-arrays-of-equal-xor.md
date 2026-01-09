@@ -1,8 +1,6 @@
 # Count Triplets That Can Form Two Arrays Of Equal Xor
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/count-triplets-that-can-form-two-arrays-of-equal-xor/)
-
 Given an array of integers arr.
 We want to select three indices i, j and k where (0 <= i < j <= k < arr.length).
 Let's define a and b as follows:
@@ -29,8 +27,6 @@ Constraints:
 
 1 <= arr.length <= 300
 1 <= arr[i] <= 108
-
-
 ## Solution
 
 ```python

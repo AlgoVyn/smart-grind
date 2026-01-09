@@ -1,8 +1,6 @@
 # Parallel Courses
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/parallel-courses/)
-
 ## Solution
 
 ```python

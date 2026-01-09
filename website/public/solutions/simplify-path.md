@@ -1,8 +1,6 @@
 # Simplify Path
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/simplify-path/)
-
 You are given an absolute path for a Unix-style file system, which always begins with a slash '/'. Your task is to transform this absolute path into its simplified canonical path.
 The rules of a Unix-style file system are as follows:
 
@@ -61,8 +59,6 @@ Constraints:
 1 <= path.length <= 3000
 path consists of English letters, digits, period '.', slash '/' or '_'.
 path is a valid absolute Unix path.
-
-
 ## Solution
 
 ```python

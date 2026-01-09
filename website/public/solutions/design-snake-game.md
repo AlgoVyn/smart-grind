@@ -1,8 +1,6 @@
 # Design Snake Game
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/design-snake-game/)
-
 ## Solution
 
 ```python

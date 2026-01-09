@@ -1,8 +1,6 @@
 # All Oone Data Structure
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/all-oone-data-structure/)
-
 Design a data structure to store the strings' count with the ability to return the strings with minimum and maximum counts.
 Implement the AllOne class:
 
@@ -39,8 +37,6 @@ Constraints:
 key consists of lowercase English letters.
 It is guaranteed that for each call to dec, key is existing in the data structure.
 At most 5 * 104 calls will be made to inc, dec, getMaxKey, and getMinKey.
-
-
 ## Solution
 
 ```python

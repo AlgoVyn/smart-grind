@@ -1,8 +1,6 @@
 # LFU Cache
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/lfu-cache/)
-
 Design and implement a data structure for a Least Frequently Used (LFU) cache.
 Implement the LFUCache class:
 
@@ -50,8 +48,6 @@ Constraints:
 0 <= key <= 105
 0 <= value <= 109
 At most 2 * 105 calls will be made to get and put.
-
-
 ## Solution
 
 ```python

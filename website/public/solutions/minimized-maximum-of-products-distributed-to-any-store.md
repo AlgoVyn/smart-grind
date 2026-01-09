@@ -1,8 +1,6 @@
 # Minimized Maximum Of Products Distributed To Any Store
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/minimized-maximum-of-products-distributed-to-any-store/)
-
 You are given an integer n indicating there are n specialty retail stores. There are m product types of varying amounts, which are given as a 0-indexed integer array quantities, where quantities[i] represents the number of products of the ith product type.
 You need to distribute all products to the retail stores following these rules:
 
@@ -44,8 +42,6 @@ Constraints:
 m == quantities.length
 1 <= m <= n <= 105
 1 <= quantities[i] <= 105
-
-
 ## Solution
 
 ```python

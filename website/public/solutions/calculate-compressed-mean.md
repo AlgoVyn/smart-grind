@@ -1,8 +1,6 @@
 # Calculate Compressed Mean
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/calculate-compressed-mean/)
-
 ## Solution
 ```python
 from typing import List

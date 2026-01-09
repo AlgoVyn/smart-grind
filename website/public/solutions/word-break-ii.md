@@ -1,8 +1,6 @@
 # Word Break Ii
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/word-break-ii/)
-
 Given a string s and a dictionary of strings wordDict, add spaces in s to construct a sentence where each word is a valid dictionary word. Return all such possible sentences in any order.
 Note that the same word in the dictionary may be reused multiple times in the segmentation.
  
@@ -31,8 +29,6 @@ Constraints:
 s and wordDict[i] consist of only lowercase English letters.
 All the strings of wordDict are unique.
 Input is generated in a way that the length of the answer doesn't exceed 105.
-
-
 ## Solution
 
 ```python

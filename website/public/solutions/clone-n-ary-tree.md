@@ -1,8 +1,6 @@
 # Clone N Ary Tree
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/clone-n-ary-tree/)
-
 ## Solution
 ```python
 class Node:

@@ -1,7 +1,60 @@
 # Plus One Linked List
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/plus-one-linked-list/)
+You are given a non-negative integer represented as a linked list, where each node contains a single digit. The digits are stored in reverse order, such that the head points to the least significant digit.
+
+Add one to the integer represented by the linked list and return the resulting linked list.
+
+---
+
+## Examples
+
+**Example 1:**
+
+**Input:**
+```
+head = [1,2,3]
+```
+
+**Output:**
+```
+[1,2,4]
+```
+
+**Explanation:** Adding 1 to 321 gives 324.
+
+**Example 2:**
+
+**Input:**
+```
+head = [9,9,9]
+```
+
+**Output:**
+```
+[1,0,0,0]
+```
+
+**Explanation:** Adding 1 to 999 gives 1000.
+
+**Example 3:**
+
+**Input:**
+```
+head = [0]
+```
+
+**Output:**
+```
+[1]
+```
+
+---
+
+## Constraints
+
+- The number of nodes in the list is between 1 and 30
+- Each node contains a single digit (0-9)
 
 ## Solution
 
@@ -24,6 +77,15 @@ class Solution:
 ```
 
 ## Explanation
-Traverse to find the rightmost digit not 9. Increment it, set all digits after to 0. If the head was 0 (all 9s), return the dummy as new head.
+To add one to a linked list representation of a number:
 
-Time complexity: O(n), Space complexity: O(1).
+1. **Find the rightmost digit not equal to 9**: Traverse the list while keeping track of the last node that is not 9. This is where we need to increment.
+2. **Increment that node**: Add 1 to the value of the `not_nine` node.
+3. **Set all nodes after it to 0**: Since any 9 after the incremented digit would become 0 (with a carry), we set them to 0.
+4. **Handle the edge case of all 9s**: If the dummy node's value becomes 1 (meaning the head was all 9s), we return the dummy as the new head.
+
+### Time Complexity:
+- O(n), where n is the number of nodes in the linked list. We traverse the list twice at most.
+
+### Space Complexity:
+- O(1), only using a constant amount of extra space.

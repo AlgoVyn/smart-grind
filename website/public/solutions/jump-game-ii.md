@@ -1,8 +1,6 @@
 # Jump Game Ii
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/jump-game-ii/)
-
 You are given a 0-indexed array of integers nums of length n. You are initially positioned at index 0.
 Each element nums[i] represents the maximum length of a forward jump from index i. In other words, if you are at index i, you can jump to any index (i + j) where:
 
@@ -28,8 +26,6 @@ Constraints:
 1 <= nums.length <= 104
 0 <= nums[i] <= 1000
 It's guaranteed that you can reach nums[n - 1].
-
-
 ## Solution
 
 ```python

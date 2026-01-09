@@ -27,8 +27,6 @@ Constraints:
  
 Follow up: Squaring each element and sorting the new array is very trivial, could you find an O(n) solution using a different approach?
 
-[Link to problem](https://leetcode.com/problems/squares-of-a-sorted-array/)
-
 Given an integer array nums sorted in non-decreasing order, return an array of the squares of each number sorted in non-decreasing order.
  
 Example 1:

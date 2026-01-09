@@ -1,8 +1,6 @@
 # Shortest Path With Alternating Colors
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/shortest-path-with-alternating-colors/)
-
 You are given an integer n, the number of nodes in a directed graph where the nodes are labeled from 0 to n - 1. Each edge is red or blue in this graph, and there could be self-edges and parallel edges.
 You are given two arrays redEdges and blueEdges where:
 
@@ -28,8 +26,6 @@ Constraints:
 0 <= redEdges.length, blueEdges.length <= 400
 redEdges[i].length == blueEdges[j].length == 2
 0 <= ai, bi, uj, vj < n
-
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Maximum Score Of Spliced Array
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/maximum-score-of-spliced-array/)
-
 You are given two 0-indexed integer arrays nums1 and nums2, both of length n.
 You can choose two integers left and right where 0 <= left <= right < n and swap the subarray nums1[left...right] with the subarray nums2[left...right].
 
@@ -39,8 +37,6 @@ Constraints:
 n == nums1.length == nums2.length
 1 <= n <= 105
 1 <= nums1[i], nums2[i] <= 104
-
-
 ## Solution
 
 ```python

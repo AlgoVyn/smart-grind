@@ -1,8 +1,6 @@
 # Minimum Index Sum Of Two Lists
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/minimum-index-sum-of-two-lists/)
-
 Given two arrays of strings list1 and list2, find the common strings with the least index sum.
 A common string is a string that appeared in both list1 and list2.
 A common string with the least index sum is a common string such that if it appeared at list1[i] and list2[j] then i + j should be the minimum value among all the other common strings.
@@ -39,8 +37,6 @@ list1[i] and list2[i] consist of spaces ' ' and English letters.
 All the strings of list1 are unique.
 All the strings of list2 are unique.
 There is at least a common string between list1 and list2.
-
-
 ## Solution
 
 ```python

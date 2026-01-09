@@ -1,8 +1,6 @@
 # Maximum Beauty Of An Array After Applying Operation
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/maximum-beauty-of-an-array-after-applying-operation/)
-
 You are given a 0-indexed array nums and a non-negative integer k.
 In one operation, you can do the following:
 
@@ -36,8 +34,6 @@ Constraints:
 
 1 <= nums.length <= 105
 0 <= nums[i], k <= 105
-
-
 ## Solution
 
 ```python

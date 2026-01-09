@@ -1,8 +1,6 @@
 # Smallest Number In Infinite Set
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/smallest-number-in-infinite-set/)
-
 You have a set which contains all positive integers [1, 2, 3, 4, 5, ...].
 Implement the SmallestInfiniteSet class:
 
@@ -36,8 +34,6 @@ Constraints:
 
 1 <= num <= 1000
 At most 1000 calls will be made in total to popSmallest and addBack.
-
-
 ## Solution
 
 ```python

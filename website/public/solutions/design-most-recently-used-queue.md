@@ -1,8 +1,6 @@
 # Design Most Recently Used Queue
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/design-most-recently-used-queue/)
-
 ## Solution
 
 ```python

@@ -1,8 +1,6 @@
 # Design Search Autocomplete System
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/design-search-autocomplete-system/)
-
 ## Solution
 
 ```python

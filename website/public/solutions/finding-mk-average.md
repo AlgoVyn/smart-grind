@@ -1,8 +1,6 @@
 # Finding Mk Average
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/finding-mk-average/)
-
 You are given two integers, m and k, and a stream of integers. You are tasked to implement a data structure that calculates the MKAverage for the stream.
 The MKAverage can be calculated using these steps:
 
@@ -48,8 +46,6 @@ Constraints:
 1 < k*2 < m
 1 <= num <= 105
 At most 105 calls will be made to addElement and calculateMKAverage.
-
-
 ## Solution
 
 ```python

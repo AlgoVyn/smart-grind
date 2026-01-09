@@ -1,8 +1,6 @@
 # Flood Fill
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/flood-fill/)
-
 You are given an image represented by an m x n grid of integers image, where image[i][j] represents the pixel value of the image. You are also given three integers sr, sc, and color. Your task is to perform a flood fill on the image starting from the pixel image[sr][sc].
 To perform a flood fill:
 
@@ -38,8 +36,6 @@ n == image[i].length
 0 <= image[i][j], color < 216
 0 <= sr < m
 0 <= sc < n
-
-
 ## Solution
 
 ```python

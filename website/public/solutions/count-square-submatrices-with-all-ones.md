@@ -1,8 +1,6 @@
 # Count Square Submatrices With All Ones
 
 ## Problem Description
-[Link to problem](https://leetcode.com/problems/count-square-submatrices-with-all-ones/)
-
 Given a m * n matrix of ones and zeros, return how many square submatrices have all ones.
  
 Example 1:
@@ -40,8 +38,6 @@ Constraints:
 1 <= arr.length <= 300
 1 <= arr[0].length <= 300
 0 <= arr[i][j] <= 1
-
-
 ## Solution
 
 ```python
