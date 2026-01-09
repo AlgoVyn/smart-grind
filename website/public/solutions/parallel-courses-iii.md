@@ -47,6 +47,8 @@ Return the minimum number of months needed to complete all the courses. Note: Th
 - `1 <= time[i] <= 10^4`
 - The given graph is a directed acyclic graph.
 
+---
+
 ## Solution
 
 ```python
@@ -77,6 +79,8 @@ class Solution:
         
         return max(max_time)
 ```
+
+---
 
 ## Explanation
 

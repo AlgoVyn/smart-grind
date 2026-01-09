@@ -33,11 +33,15 @@ In this case, regardless which pile you choose, you have to leave behind 1 gift 
 That is, you can't take any pile with you.
 So, the total gifts remaining are `4`.
 
+---
+
 ## Constraints
 
 - `1 <= gifts.length <= 10^3`
 - `1 <= gifts[i] <= 10^9`
 - `1 <= k <= 10^3`
+
+---
 
 ## Solution
 
@@ -55,6 +59,8 @@ class Solution:
             heapq.heappush(heap, -new_g)
         return -sum(heap)
 ```
+
+---
 
 ## Explanation
 

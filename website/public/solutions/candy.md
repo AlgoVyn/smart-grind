@@ -9,6 +9,8 @@ You are giving candies to these children subjected to the following requirements
 
 Return the minimum number of candies you need to have to distribute the candies to the children.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -39,11 +41,15 @@ ratings = [1,2,2]
 
 **Explanation:** You can allocate to the first, second and third child with 1, 2, 1 candies respectively. The third child gets 1 candy because it satisfies the above two conditions.
 
+---
+
 ## Constraints
 
 - `n == ratings.length`
 - `1 <= n <= 2 * 10^4`
 - `0 <= ratings[i] <= 2 * 10^4`
+
+---
 
 ## Solution
 
@@ -63,11 +69,17 @@ class Solution:
         return sum(candies)
 ```
 
+---
+
 ## Explanation
 This solution uses two passes to assign candies. In the first pass, we go left to right, ensuring that if a child has a higher rating than the previous, they get more candies. In the second pass, we go right to left, ensuring the same for the other neighbor. We take the maximum to satisfy both conditions. Finally, sum the candies.
 
+---
+
 ## Time Complexity
 **O(n)**, where n is the number of children, as we make two linear passes.
+
+---
 
 ## Space Complexity
 **O(n)**, for the candies array.

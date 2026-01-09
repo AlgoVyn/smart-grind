@@ -32,6 +32,8 @@ The length of a clear path is the number of visited cells.
 - `1 <= n <= 100`
 - `grid[i][j]` is `0` or `1`
 
+---
+
 ## Solution
 
 ```python
@@ -62,6 +64,8 @@ def shortestPathBinaryMatrix(grid: List[List[int]]) -> int:
 
     return -1
 ```
+
+---
 
 ## Explanation
 

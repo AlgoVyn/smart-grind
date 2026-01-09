@@ -31,6 +31,8 @@ The overall run time complexity should be `O(log (m+n))`.
 - `1 <= m + n <= 2000`
 - `-10^6 <= nums1[i], nums2[i] <= 10^6`
 
+---
+
 ## Solution
 
 ```python
@@ -67,6 +69,8 @@ class Solution:
 
         raise ValueError("Input arrays are not sorted")
 ```
+
+---
 
 ## Explanation
 

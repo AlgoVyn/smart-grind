@@ -6,6 +6,8 @@ The encoding rule is: k[encoded_string], where the encoded_string inside the squ
 You may assume that the input string is always valid; there are no extra white spaces, square brackets are well-formed, etc. Furthermore, you may assume that the original data does not contain any digits and that digits are only for those repeat numbers, k. For example, there will not be input like 3a or 2[4].
 The test cases are generated so that the length of the output will never exceed 105.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -44,12 +46,16 @@ s = "2[abc]3[cd]ef"
 "abcabccdcdcdef"
 ```
 
+---
+
 ## Constraints
 
 - `1 <= s.length <= 30`
 - `s` consists of lowercase English letters, digits, and square brackets '[]'.
 - `s` is guaranteed to be a valid input.
 - All the integers in `s` are in the range `[1, 300]`.
+
+---
 
 ## Solution
 
@@ -75,6 +81,8 @@ class Solution:
         
         return curr_str
 ```
+
+---
 
 ## Explanation
 Use a stack to handle nested encoded strings.

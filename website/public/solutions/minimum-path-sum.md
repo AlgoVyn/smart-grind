@@ -6,6 +6,8 @@ Given a `m x n` grid filled with non-negative numbers, find a path from top left
 
 **Note:** You can only move either down or right at any point in time.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -35,12 +37,16 @@ grid = [[1, 2, 3], [4, 5, 6]]
 12
 ```
 
+---
+
 ## Constraints
 
 - `m == grid.length`
 - `n == grid[i].length`
 - `1 <= m, n <= 200`
 - `0 <= grid[i][j] <= 200`
+
+---
 
 ## Solution
 
@@ -77,6 +83,8 @@ class Solution:
         return dp[m - 1][n - 1]
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the minimum path sum from the top-left to the bottom-right of a grid, moving only right or down.
@@ -92,6 +100,8 @@ This problem requires finding the minimum path sum from the top-left to the bott
    - `dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1])`
 
 4. **Return result**: `dp[m-1][n-1]`
+
+---
 
 ## Complexity Analysis
 

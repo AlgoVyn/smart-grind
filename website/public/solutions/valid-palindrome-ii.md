@@ -49,6 +49,8 @@ false
 - `1 <= s.length <= 10^5`
 - `s` consists of lowercase English letters.
 
+---
+
 ## Solution
 
 ```python
@@ -69,6 +71,8 @@ def validPalindrome(s):
         right -= 1
     return True
 ```
+
+---
 
 ## Explanation
 

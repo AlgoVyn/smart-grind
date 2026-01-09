@@ -6,6 +6,8 @@ We are given an array `asteroids` of integers representing asteroids in a row. T
 For each asteroid, the absolute value represents its size, and the sign represents its direction (positive meaning right, negative meaning left). Each asteroid moves at the same speed.
 Find out the state of the asteroids after all collisions. If two asteroids meet, the smaller one will explode. If both are the same size, both will explode. Two asteroids moving in the same direction will never meet.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -64,11 +66,15 @@ asteroids = [3,5,-6,2,-1,4]
 
 **Explanation:** The asteroid -6 makes the asteroid 3 and 5 explode, and then continues going left. On the other side, the asteroid 2 makes the asteroid -1 explode and then continues going right, without reaching asteroid 4.
 
+---
+
 ## Constraints
 
 - `2 <= asteroids.length <= 104`
 - `-1000 <= asteroids[i] <= 1000`
 - `asteroids[i] != 0`
+
+---
 
 ## Solution
 
@@ -93,6 +99,8 @@ class Solution:
         return stack
 ```
 
+---
+
 ## Explanation
 
 This problem simulates asteroid collisions where positive values move right and negative move left. Collisions occur when a right-moving asteroid meets a left-moving one.
@@ -106,8 +114,12 @@ We use a stack to keep track of surviving asteroids. For each asteroid:
 
 The stack represents the final state after all collisions.
 
+---
+
 ## Time Complexity
 **O(N)** as each asteroid is pushed and popped at most once.
+
+---
 
 ## Space Complexity
 **O(N)** for the stack.

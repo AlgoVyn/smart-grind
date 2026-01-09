@@ -8,6 +8,8 @@ A common string is a string that appeared in both `list1` and `list2`. A common 
 
 Return all the common strings with the least index sum. Return the answer in any order.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -63,6 +65,8 @@ There are three common strings:
 
 The strings with the least index sum are "sad" and "happy".
 
+---
+
 ## Constraints
 
 - `1 <= list1.length, list2.length <= 1000`
@@ -71,6 +75,8 @@ The strings with the least index sum are "sad" and "happy".
 - All the strings of `list1` are unique
 - All the strings of `list2` are unique
 - There is at least a common string between `list1` and `list2`
+
+---
 
 ## Solution
 
@@ -101,6 +107,8 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 
 To find common strings with the minimum index sum, use a hash map for quick lookup of indices in list1.
@@ -111,6 +119,8 @@ To find common strings with the minimum index sum, use a hash map for quick look
    - Check if it exists in list1
    - Calculate the index sum
    - Track the minimum sum and collect strings that achieve it
+
+---
 
 ## Complexity Analysis
 

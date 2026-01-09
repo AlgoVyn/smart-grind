@@ -33,6 +33,8 @@ Given an integer `x`, return `true` if `x` is a palindrome, and `false` otherwis
 
 Could you solve it without converting the integer to a string?
 
+---
+
 ## Solution
 
 ```python
@@ -47,6 +49,8 @@ class Solution:
             x //= 10
         return original == reversed_num
 ```
+
+---
 
 ## Explanation
 

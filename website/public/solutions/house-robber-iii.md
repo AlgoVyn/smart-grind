@@ -8,6 +8,8 @@ After investigation, the thief realized that all houses in this place form a **b
 
 Given the root of the binary tree, return the maximum amount of money the thief can rob without alerting the police.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -26,10 +28,14 @@ Given the root of the binary tree, return the maximum amount of money the thief 
 
 **Explanation:** Maximum amount = `4 + 5 = 9`.
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[1, 10⁴]`.
 - `0 <= Node.val <= 10⁴`
+
+---
 
 ## Solution
 
@@ -55,6 +61,8 @@ class Solution:
         return max(dfs(root))
 ```
 
+---
+
 ## Explanation
 
 This problem maximizes money robbed from a binary tree without robbing adjacent nodes (parent-child relationships).
@@ -78,6 +86,8 @@ For each node, we return a tuple `(rob, not_rob)`:
 ### Root Answer
 
 Return `max(dfs(root))` which is the maximum of robbing or not robbing the root.
+
+---
 
 ## Complexity Analysis
 

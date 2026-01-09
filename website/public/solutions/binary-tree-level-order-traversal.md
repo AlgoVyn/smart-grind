@@ -4,6 +4,8 @@
 
 Given the root of a binary tree, return the level order traversal of its nodes' values. (i.e., from left to right, level by level).
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -42,10 +44,14 @@ root = []
 []
 ```
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[0, 2000]`.
 - `-1000 <= Node.val <= 1000`
+
+---
 
 ## Solution
 
@@ -78,12 +84,18 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 
 This solution uses breadth-first search (BFS) with a queue to traverse the tree level by level. For each level, we process all nodes at that level, collect their values, and enqueue their children for the next level.
 
+---
+
 ## Time Complexity
 **O(n)**, where n is the number of nodes, as each node is visited once.
+
+---
 
 ## Space Complexity
 **O(w)**, where w is the maximum width of the tree (number of nodes at the widest level), due to the queue.

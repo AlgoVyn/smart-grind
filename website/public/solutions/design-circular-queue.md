@@ -15,6 +15,8 @@ Implement the MyCircularQueue class:
 
 You must solve the problem without using the built-in queue data structure in your programming language.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -44,11 +46,15 @@ myCircularQueue.enQueue(4); // return True
 myCircularQueue.Rear();     // return 4
 ```
 
+---
+
 ## Constraints
 
 - `1 <= k <= 1000`
 - `0 <= value <= 1000`
 - At most 3000 calls will be made to `enQueue`, `deQueue`, `Front`, `Rear`, `isEmpty`, and `isFull`.
+
+---
 
 ## Solution
 
@@ -90,6 +96,8 @@ class MyCircularQueue:
     def isFull(self) -> bool:
         return (self.tail + 1) % self.capacity == self.head
 ```
+
+---
 
 ## Explanation
 The circular queue is implemented using a fixed-size array to store the elements. We use two pointers, `head` and `tail`, to keep track of the front and rear of the queue. The array size is set to `k+1` to differentiate between an empty queue (when `head == tail`) and a full queue (when `(tail + 1) % capacity == head`).

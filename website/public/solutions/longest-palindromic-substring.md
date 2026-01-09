@@ -20,6 +20,8 @@ Constraints:
 1 <= s.length <= 1000
 s consist of only digits and English letters.
 
+---
+
 ## Solution
 
 ```python
@@ -43,6 +45,8 @@ class Solution:
             right += 1
         return right - left - 1
 ```
+
+---
 
 ## Explanation
 

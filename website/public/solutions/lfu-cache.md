@@ -65,6 +65,8 @@ lfu.get(4);      // return 4
 - `0 <= value <= 10^9`
 - At most `2 * 10^5` calls will be made to `get` and `put`
 
+---
+
 ## Solution
 
 ```python
@@ -112,6 +114,8 @@ class LFUCache:
         self.key_to_freq[key] = freq + 1
         self.freq_to_keys[freq + 1][key] = None
 ```
+
+---
 
 ## Explanation
 

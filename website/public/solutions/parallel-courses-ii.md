@@ -40,6 +40,8 @@ Return the minimum number of semesters needed to take all courses. The testcases
 - All the pairs `[prevCoursei, nextCoursei]` are unique.
 - The given graph is a directed acyclic graph.
 
+---
+
 ## Solution
 
 ```python
@@ -68,6 +70,8 @@ class Solution:
                 sub = (sub - 1) & avail
         return dp[(1 << n) - 1]
 ```
+
+---
 
 ## Explanation
 

@@ -40,6 +40,8 @@ If res matches the expected flattened list, then your code will be judged as cor
 - 1 <= nestedList.length <= 500
 - The values of the integers in the nested list is in the range [-10^6, 10^6].
 
+---
+
 ## Solution
 
 ```

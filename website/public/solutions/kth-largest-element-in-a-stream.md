@@ -51,6 +51,8 @@ kthLargest.add(9);  // return 7
 kthLargest.add(9);  // return 8
 ```
 
+---
+
 ## Constraints
 
 - `0 <= nums.length <= 10^4`
@@ -58,6 +60,8 @@ kthLargest.add(9);  // return 8
 - `-10^4 <= nums[i] <= 10^4`
 - `-10^4 <= val <= 10^4`
 - At most `10^4` calls will be made to `add`.
+
+---
 
 ## Solution
 
@@ -78,6 +82,8 @@ class KthLargest:
             heapq.heappop(self.heap)
         return self.heap[0]
 ```
+
+---
 
 ## Explanation
 
@@ -104,6 +110,8 @@ The heap stores exactly `k` elements — the `k` largest values seen so far. The
 By always keeping only the `k` largest elements, the smallest among them is exactly the kth largest overall. When a new value is added:
 - If the heap has fewer than `k` elements, the new value is included.
 - If the heap already has `k` elements, only values larger than the current kth largest can enter the heap (by replacing the current kth largest).
+
+---
 
 ## Complexity Analysis
 

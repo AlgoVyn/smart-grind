@@ -9,6 +9,8 @@ Implement the CustomStack class:
 - `int pop()` Pops and returns the top of the stack or -1 if the stack is empty.
 - `void inc(int k, int val)` Increments the bottom k elements of the stack by val. If there are less than k elements in the stack, increment all the elements in the stack.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -41,11 +43,15 @@ stk.pop();                            // return 201 --> Return top of the stack 
 stk.pop();                            // return -1 --> Stack is empty return -1.
 ```
 
+---
+
 ## Constraints
 
 - `1 <= maxSize, x, k <= 1000`
 - `0 <= val <= 100`
 - At most 1000 calls will be made to each method of increment, push and pop each separately.
+
+---
 
 ## Solution
 
@@ -76,6 +82,8 @@ class CustomStack:
             if idx >= 0:
                 self.inc[idx] += val
 ```
+
+---
 
 ## Explanation
 We use a list for the stack and another list `inc` to keep track of increments lazily.

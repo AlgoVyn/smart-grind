@@ -34,6 +34,8 @@ It can be proven that the minimum number of steps needed is `2`.
 - `1 <= n == s.length <= 10^5`
 - `s[i]` is either `'0'` or `'1'`
 
+---
+
 ## Solution
 
 ```python
@@ -48,6 +50,8 @@ class Solution:
                 black_count += 1
         return swaps
 ```
+
+---
 
 ## Explanation
 

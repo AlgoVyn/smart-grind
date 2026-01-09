@@ -6,6 +6,8 @@ Given a binary tree, find the lowest common ancestor (LCA) of two given nodes in
 
 According to the definition of LCA on Wikipedia: "The lowest common ancestor is defined between two nodes p and q as the lowest node in T that has both p and q as descendants (where we allow a node to be a descendant of itself)."
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -30,6 +32,8 @@ According to the definition of LCA on Wikipedia: "The lowest common ancestor is 
 
 **Output:** `1`
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[2, 10^5]`.
@@ -37,6 +41,8 @@ According to the definition of LCA on Wikipedia: "The lowest common ancestor is 
 - All `Node.val` are unique.
 - `p != q`
 - `p` and `q` will exist in the tree.
+
+---
 
 ## Solution
 
@@ -59,6 +65,8 @@ class Solution:
         return left or right
 ```
 
+---
+
 ## Explanation
 
 We use a recursive approach to find the lowest common ancestor. For each node, we check if it is `p` or `q`, or if `p` and `q` are in its subtrees.
@@ -69,6 +77,8 @@ We use a recursive approach to find the lowest common ancestor. For each node, w
 - If only one is non-null, return that one (the LCA is in that subtree).
 
 This ensures we find the lowest node that has both `p` and `q` as descendants.
+
+---
 
 ## Complexity Analysis
 

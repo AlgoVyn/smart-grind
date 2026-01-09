@@ -29,6 +29,8 @@ Given an array `rooms` where `rooms[i]` is the set of keys you can obtain if you
 
 **Explanation:** We cannot enter room 2 since the only key that unlocks it is in that room.
 
+---
+
 ## Constraints
 
 - `n == rooms.length`
@@ -37,6 +39,8 @@ Given an array `rooms` where `rooms[i]` is the set of keys you can obtain if you
 - `1 <= sum(rooms[i].length) <= 3000`
 - `0 <= rooms[i][j] < n`
 - All the values of `rooms[i]` are unique.
+
+---
 
 ## Solution
 
@@ -60,6 +64,8 @@ class Solution:
         
         return len(visited) == n
 ```
+
+---
 
 ## Explanation
 
@@ -94,6 +100,8 @@ def canVisitAllRooms(self, rooms: List[List[int]]) -> bool:
     dfs(0)
     return len(visited) == len(rooms)
 ```
+
+---
 
 ## Complexity Analysis
 

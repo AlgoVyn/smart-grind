@@ -8,6 +8,8 @@ Return the sum of the three integers.
 
 You may assume that each input would have exactly one solution.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -32,10 +34,14 @@ nums = [0,0,0], target = 1
 ```python
 **Explanation:** The sum that is closest to the target is 0. (0 + 0 + 0 = 0).
 
+---
+
 ## Constraints
 - 3 <= nums.length <= 500
 - -1000 <= nums[i] <= 1000
 - -104 <= target <= 104
+
+---
 
 ## Solution
 
@@ -62,6 +68,8 @@ class Solution:
         return closest
 ```
 
+---
+
 ## Explanation
 To solve the 3Sum Closest problem, we sort the input array first. This allows us to use a two-pointer technique efficiently.
 
@@ -73,8 +81,12 @@ If the current sum is less than the target, we move the left pointer to the righ
 
 This approach ensures we find the sum closest to the target.
 
+---
+
 ## Time Complexity
 **O(n^2)**, where n is the length of the array, due to the nested loops (one for i, one for the two pointers).
+
+---
 
 ## Space Complexity
 **O(1)** additional space, excluding the input array, since we sort in place.

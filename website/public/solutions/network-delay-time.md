@@ -6,6 +6,8 @@ You are given a network of n nodes, labeled from 1 to n. You are also given time
 
 We will send a signal from a given node k. Return the minimum time it takes for all the n nodes to receive the signal. If it is impossible for all the n nodes to receive the signal, return -1.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -44,6 +46,8 @@ times = [[1,2,1]], n = 2, k = 2
 -1
 ```
 
+---
+
 ## Constraints
 
 - `1 <= k <= n <= 100`
@@ -53,6 +57,8 @@ times = [[1,2,1]], n = 2, k = 2
 - `ui != vi`
 - `0 <= wi <= 100`
 - All the pairs `(ui, vi)` are unique. (i.e., no multiple edges.)
+
+---
 
 ## Solution
 
@@ -81,6 +87,8 @@ class Solution:
         return max_dist if max_dist != float('inf') else -1
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the time for a signal to reach all nodes from a starting node k.
@@ -90,6 +98,8 @@ Use Dijkstra's algorithm to compute the shortest time to each node.
 The network delay time is the maximum of these shortest times.
 
 If any node is unreachable, return -1.
+
+---
 
 ## Complexity Analysis
 

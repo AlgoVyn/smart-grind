@@ -41,6 +41,8 @@ Note that there are other possible paths for these cells to flow to the Pacific 
 - `1 <= m, n <= 200`
 - `0 <= heights[r][c] <= 10^5`
 
+---
+
 ## Solution
 
 ```python
@@ -80,6 +82,8 @@ class Solution:
                     result.append([i, j])
         return result
 ```
+
+---
 
 ## Explanation
 

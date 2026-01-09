@@ -11,6 +11,8 @@ Implement the `RandomizedSet` class that supports the following operations in **
 
 > **Note:** It is guaranteed that at least one element exists when `getRandom` is called.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -31,11 +33,15 @@ randomizedSet.insert(2);    // Returns false (2 already exists)
 randomizedSet.getRandom();  // Returns 2 (only element)
 ```
 
+---
+
 ## Constraints
 
 - `-2³¹ <= val <= 2³¹ - 1`
 - At most `2 * 10⁵` calls will be made to `insert`, `remove`, and `getRandom`.
 - There will be at least one element when `getRandom` is called.
+
+---
 
 ## Solution
 
@@ -73,6 +79,8 @@ class RandomizedSet:
         return random.choice(self.list)
 ```
 
+---
+
 ## Explanation
 
 This problem implements a set with O(1) average time complexity for all operations by combining a list and a dictionary.
@@ -100,6 +108,8 @@ This problem implements a set with O(1) average time complexity for all operatio
 
 3. **getRandom:**
    - Use `random.choice()` on the list (O(1)).
+
+---
 
 ## Complexity Analysis
 

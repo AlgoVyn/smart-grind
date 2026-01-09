@@ -6,6 +6,8 @@ You are given an array `prices` where `prices[i]` is the price of a given stock 
 Find the maximum profit you can achieve. You may complete at most two transactions.
 **Note:** You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -52,10 +54,14 @@ prices = [7,6,4,3,1]
 
 **Explanation:** In this case, no transaction is done, i.e. max profit = 0.
 
+---
+
 ## Constraints
 
 - `1 <= prices.length <= 105`
 - `0 <= prices[i] <= 105`
+
+---
 
 ## Solution
 
@@ -76,14 +82,20 @@ class Solution:
         return sell2
 ```
 
+---
+
 ## Explanation
 
 This solution uses dynamic programming to track the maximum profit for up to two transactions. We maintain four variables: `buy1` and `buy2` for the maximum profit after buying the first and second stock (negative because we're spending), and `sell1` and `sell2` for the maximum profit after selling the first and second stock.
 
 For each price, we update these variables in order: first `buy1`, then `sell1`, then `buy2`, then `sell2`. This ensures we don't use future information.
 
+---
+
 ## Time Complexity
 **O(n)**, where n is the number of days, as we iterate through the prices once.
+
+---
 
 ## Space Complexity
 **O(1)**, using only constant extra space.

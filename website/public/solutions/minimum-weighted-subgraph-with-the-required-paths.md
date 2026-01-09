@@ -12,6 +12,8 @@ Return the minimum weight of a subgraph of the graph such that it is possible to
 
 A subgraph is a graph whose vertices and edges are subsets of the original graph. The weight of a subgraph is the sum of weights of its constituent edges.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -48,6 +50,8 @@ src1 = 0, src2 = 1, dest = 2
 **Explanation:**
 It can be seen that there does not exist any path from node 1 to node 2, hence there are no subgraphs satisfying all the constraints.
 
+---
+
 ## Constraints
 
 - `3 <= n <= 10^5`
@@ -57,6 +61,8 @@ It can be seen that there does not exist any path from node 1 to node 2, hence t
 - `fromi != toi`
 - `src1`, `src2`, and `dest` are pairwise distinct
 - `1 <= weight[i] <= 10^5`
+
+---
 
 ## Solution
 
@@ -109,6 +115,8 @@ class Solution:
         return ans if ans != float('inf') else -1
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the minimum weight subgraph that allows paths from `src1` and `src2` to `dest`.
@@ -124,6 +132,8 @@ This problem requires finding the minimum weight subgraph that allows paths from
    - Total weight = `dist_src1[x] + dist_src2[x] + dist_dest[x]`
 
 3. **Return minimum**: The minimum among these is the answer (if all paths exist).
+
+---
 
 ## Complexity Analysis
 

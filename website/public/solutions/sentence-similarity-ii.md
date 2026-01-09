@@ -24,6 +24,8 @@ Two sentences are similar if:
 - `0 <= similarPairs.length <= 5000`
 - All words consist of lowercase English letters
 
+---
+
 ## Solution
 
 ```python
@@ -57,6 +59,8 @@ class Solution:
         
         return True
 ```
+
+---
 
 ## Explanation
 

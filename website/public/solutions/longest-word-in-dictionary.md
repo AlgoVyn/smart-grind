@@ -8,6 +8,8 @@ If there is more than one possible answer, return the longest word with the smal
 
 Note that the word should be built from left to right with each additional character being added to the end of a previous word.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -26,11 +28,15 @@ Note that the word should be built from left to right with each additional chara
 
 **Explanation:** Both `"apply"` and `"apple"` can be built from other words in the dictionary. However, `"apple"` is lexicographically smaller than `"apply"`.
 
+---
+
 ## Constraints
 
 - `1 <= words.length <= 1000`
 - `1 <= words[i].length <= 30`
 - `words[i]` consists of lowercase English letters.
+
+---
 
 ## Solution
 
@@ -52,6 +58,8 @@ class Solution:
         return ""
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the longest word that can be built by adding one character at a time from other words in the dictionary.
@@ -60,6 +68,8 @@ This problem requires finding the longest word that can be built by adding one c
 2. Sort the words by length descending, then lexicographical order ascending.
 3. For each word in this order, check if all its prefixes (from `1` to `len-1`) are in the set.
 4. Return the first valid word, or `""` if none.
+
+---
 
 ## Complexity Analysis
 

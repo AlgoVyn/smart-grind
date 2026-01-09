@@ -23,11 +23,15 @@ Return the minimum number of jumps to reach index `n - 1`. The test cases are ge
 
 **Output:** `2`
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 10^4`
 - `0 <= nums[i] <= 1000`
 - It's guaranteed that you can reach `nums[n - 1]`.
+
+---
 
 ## Solution
 
@@ -55,6 +59,8 @@ class Solution:
         return jumps
 ```
 
+---
+
 ## Explanation
 
 This problem finds the minimum jumps required to reach the end of the array using a greedy approach.
@@ -70,6 +76,8 @@ This problem finds the minimum jumps required to reach the end of the array usin
 ### Key Insight
 
 By tracking the farthest reachable position and making jumps only when necessary, we ensure the minimum number of jumps.
+
+---
 
 ## Complexity Analysis
 

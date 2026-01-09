@@ -6,6 +6,8 @@ Given a string `s` representing a valid expression, implement a basic calculator
 
 **Note:** You are not allowed to use any built-in function which evaluates strings as mathematical expressions, such as `eval()`.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -44,6 +46,8 @@ s = "(1+(4+5+2)-3)+(6+8)"
 23
 ```
 
+---
+
 ## Constraints
 
 - `1 <= s.length <= 3 * 105`
@@ -53,6 +57,8 @@ s = "(1+(4+5+2)-3)+(6+8)"
 - '-' could be used as a unary operation (i.e., "-1" and "-(2 + 3)" is valid).
 - There will be no two consecutive operators in the input.
 - Every number and running calculation will fit in a signed 32-bit integer.
+
+---
 
 ## Solution
 
@@ -90,6 +96,8 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 
 To evaluate the basic calculator expression, we use a stack-based approach to handle parentheses and maintain the current result and sign.
@@ -104,8 +112,12 @@ We iterate through each character in the string:
 
 This handles nested expressions correctly. Spaces are ignored as they are not processed.
 
+---
+
 ## Time Complexity
 **O(N)** where N is the length of the string, as we process each character once.
+
+---
 
 ## Space Complexity
 **O(N)** in the worst case due to the stack for deeply nested parentheses.

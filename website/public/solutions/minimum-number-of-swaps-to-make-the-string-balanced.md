@@ -12,6 +12,8 @@ A string is called balanced if and only if:
 
 You may swap the brackets at any two indices any number of times. Return the minimum number of swaps to make `s` balanced.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -61,6 +63,8 @@ s = "[]"
 **Explanation:**
 The string is already balanced.
 
+---
+
 ## Constraints
 
 - `n == s.length`
@@ -68,6 +72,8 @@ The string is already balanced.
 - `n` is even
 - `s[i]` is either `'['` or `']'`
 - The number of opening brackets `'['` equals `n / 2`, and the number of closing brackets `']'` equals `n / 2`
+
+---
 
 ## Solution
 
@@ -94,6 +100,8 @@ class Solution:
         return (-min_balance + 1) // 2
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the minimum number of swaps to balance a string of brackets.
@@ -105,6 +113,8 @@ This problem requires finding the minimum number of swaps to balance a string of
 2. **Find maximum imbalance**: Track `min_balance`, the most negative value reached (represents the maximum imbalance).
 
 3. **Calculate swaps**: Each swap can fix two misplaced brackets (one `'['` and one `']'`). The formula `(-min_balance + 1) // 2` gives the minimum swaps.
+
+---
 
 ## Complexity Analysis
 

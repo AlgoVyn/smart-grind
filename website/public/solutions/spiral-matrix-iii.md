@@ -19,6 +19,9 @@ Constraints:
 1 <= rows, cols <= 100
 0 <= rStart < rows
 0 <= cStart < cols
+
+---
+
 ## Solution
 
 ```python
@@ -44,6 +47,8 @@ class Solution:
             step += 1
         return result
 ```
+
+---
 
 ## Explanation
 

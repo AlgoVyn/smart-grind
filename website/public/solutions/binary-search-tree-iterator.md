@@ -11,6 +11,8 @@ Implement the BSTIterator class that represents an iterator over the in-order tr
 **Notice** that by initializing the pointer to a non-existent smallest number, the first call to `next()` will return the smallest element in the BST.
 You may assume that `next()` calls will always be valid. That is, there will be at least a next number in the in-order traversal when `next()` is called.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -40,15 +42,21 @@ bSTIterator.next();    // return 20
 bSTIterator.hasNext(); // return False
 ```
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[1, 105]`.
 - `0 <= Node.val <= 106`
 - At most `105` calls will be made to `hasNext`, and `next`.
 
+---
+
 ## Follow up
 
 Could you implement `next()` and `hasNext()` to run in average O(1) time and use O(h) memory, where h is the height of the tree?
+
+---
 
 ## Solution
 
@@ -81,6 +89,8 @@ class BSTIterator:
         return len(self.stack) > 0
 ```
 
+---
+
 ## Explanation
 
 This iterator uses a stack to perform an inorder traversal of the BST. The stack maintains the path from the root to the current node, with left children pushed first.
@@ -91,8 +101,12 @@ In `__init__`, we push all left nodes from the root.
 
 `hasNext()` checks if stack is not empty.
 
+---
+
 ## Time Complexity
 **O(1)** amortized for `next()` and `hasNext()`, as each node is pushed and popped once.
+
+---
 
 ## Space Complexity
 **O(h)**, where h is the height of the tree.

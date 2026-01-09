@@ -53,6 +53,8 @@ s = "erase*****"
 - `s` consists of lowercase English letters and stars `*`.
 - The operation above can be performed on `s`.
 
+---
+
 ## Solution
 
 ```python
@@ -67,6 +69,8 @@ class Solution:
                 stack.append(char)
         return ''.join(stack)
 ```
+
+---
 
 ## Explanation
 

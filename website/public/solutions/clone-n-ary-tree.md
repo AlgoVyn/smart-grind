@@ -4,6 +4,8 @@
 
 > Given the root of an N-ary tree, return a deep copy of the tree. Each node in the N-ary tree contains a value and a list of its children.
 
+---
+
 ## Solution
 
 ```python
@@ -43,6 +45,8 @@ class Solution:
         return clone
 ```
 
+---
+
 ## Explanation
 
 ### Algorithm: Recursive DFS
@@ -55,6 +59,8 @@ This solution uses a recursive depth-first search to clone the N-ary tree:
 4. **Return**: Return the cloned subtree.
 
 This approach ensures each node and its entire subtree is copied.
+
+---
 
 ## Complexity Analysis
 

@@ -38,6 +38,8 @@ A subarray may only include each element of the fixed buffer `nums` at most once
 - `1 <= n <= 3 * 10^4`
 - `-3 * 10^4 <= nums[i] <= 3 * 10^4`
 
+---
+
 ## Solution
 
 ```python
@@ -62,6 +64,8 @@ class Solution:
             return max_kadane
         return max(max_kadane, max_wrap)
 ```
+
+---
 
 ## Explanation
 

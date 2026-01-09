@@ -35,6 +35,8 @@ Assume a BST is defined as follows:
 
 Could you do that without using any extra space? (Assume that the implicit stack space incurred due to recursion does not count).
 
+---
+
 ## Solution
 
 ```python

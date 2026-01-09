@@ -4,6 +4,8 @@
 There are n cities connected by some number of flights. You are given an array flights where flights[i] = [fromi, toi, pricei] indicates that there is a flight from city fromi to city toi with cost pricei.
 You are also given three integers src, dst, and k, return the cheapest price from src to dst with at most k stops. If there is no such route, return -1.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -55,6 +57,8 @@ n = 3, flights = [[0,1,100],[1,2,100],[0,2,500]], src = 0, dst = 2, k = 0
 The graph is shown above.
 The optimal path with no stops from city 0 to 2 is marked in red and has cost 500.
 
+---
+
 ## Constraints
 
 - `2 <= n <= 100`
@@ -66,6 +70,8 @@ The optimal path with no stops from city 0 to 2 is marked in red and has cost 50
 - There will not be any multiple flights between two cities.
 - `0 <= src, dst, k < n`
 - `src != dst`
+
+---
 
 ## Solution
 
@@ -96,11 +102,17 @@ class Solution:
         return -1
 ```
 
+---
+
 ## Explanation
 This solution uses Dijkstra's algorithm with a priority queue, modified to track the number of stops. We maintain a graph and use a min-heap for the cheapest cost. We also keep track of the minimum cost to each node and skip if stops exceed k. If we reach the destination, return the cost; otherwise, -1.
 
+---
+
 ## Time Complexity
 **O((V + E) log V)**, where V is the number of cities and E is the number of flights, due to priority queue operations.
+
+---
 
 ## Space Complexity
 **O(V + E)**, for the graph and priority queue.

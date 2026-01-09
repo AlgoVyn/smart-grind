@@ -14,6 +14,8 @@ Return the number of the room that held the most meetings. If multiple rooms hav
 
 > **Note:** A half-closed interval `[a, b)` includes `a` but excludes `b`.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -47,6 +49,8 @@ Return the number of the room that held the most meetings. If multiple rooms hav
 - Time 10: Meetings in rooms 1, 2 end. Meeting 5 starts in room 1 (duration `[10,12)`).
 - Room 0 held 1 meeting; rooms 1 and 2 held 2 meetings each → return `1`.
 
+---
+
 ## Constraints
 
 - `1 <= n <= 100`
@@ -54,6 +58,8 @@ Return the number of the room that held the most meetings. If multiple rooms hav
 - `meetings[i].length == 2`
 - `0 <= start_i < end_i <= 5 * 10^5`
 - All `start_i` values are unique
+
+---
 
 ## Solution
 
@@ -133,6 +139,8 @@ class Solution:
                 return room
 ```
 
+---
+
 ## Explanation
 
 This problem requires simulating meeting room allocation with delayed meetings and specific prioritization rules. We use priority queues (heaps) for efficient management:
@@ -149,6 +157,8 @@ This problem requires simulating meeting room allocation with delayed meetings a
    - Start new meetings at current time if rooms available.
    - Delay meetings when no rooms are free.
 5. **Return the room** with the maximum meeting count (lowest number on ties).
+
+---
 
 ## Complexity Analysis
 

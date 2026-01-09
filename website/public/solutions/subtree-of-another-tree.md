@@ -16,12 +16,16 @@ Output: `true`
 Input: `root = [3,4,5,1,2,null,null,null,null,0]`, `subRoot = [4,1,2]`
 Output: `false`
 
+---
+
 ## Constraints
 
 - The number of nodes in the root tree is in the range `[1, 2000]`.
 - The number of nodes in the subRoot tree is in the range `[1, 1000]`.
 - `-10^4 <= root.val <= 10^4`
 - `-10^4 <= subRoot.val <= 10^4`
+
+---
 
 ## Solution
 
@@ -47,6 +51,8 @@ def isSameTree(p: TreeNode, q: TreeNode) -> bool:
         return False
     return p.val == q.val and isSameTree(p.left, q.left) and isSameTree(p.right, q.right)
 ```
+
+---
 
 ## Explanation
 

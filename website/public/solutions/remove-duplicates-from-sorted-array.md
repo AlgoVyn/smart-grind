@@ -59,6 +59,8 @@ nums = [0,0,1,1,1,2,2,3,3,4]
 - `-100 <= nums[i] <= 100`
 - `nums` is sorted in non-decreasing order.
 
+---
+
 ## Solution
 
 ```python
@@ -75,6 +77,8 @@ class Solution:
         
         return write
 ```
+
+---
 
 ## Explanation
 

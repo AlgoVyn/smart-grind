@@ -30,11 +30,15 @@ Output: `10`
 Explanation: A possible sequence is: `A -> B -> idle -> idle -> A -> B -> idle -> idle -> A -> B`.
 There are only two types of tasks, A and B, which need to be separated by 3 intervals. This leads to idling twice between repetitions of these tasks.
 
+---
+
 ## Constraints
 
 - `1 <= tasks.length <= 10^4`
 - `tasks[i]` is an uppercase English letter.
 - `0 <= n <= 100`
+
+---
 
 ## Solution
 
@@ -57,6 +61,8 @@ def leastInterval(tasks: List[str], n: int) -> int:
     # This accounts for the gaps and the last set of tasks
     return max((max_freq - 1) * (n + 1) + max_count, len(tasks))
 ```
+
+---
 
 ## Explanation
 

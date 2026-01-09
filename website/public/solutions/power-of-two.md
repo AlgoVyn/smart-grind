@@ -32,6 +32,8 @@ An integer `n` is a power of two, if there exists an integer `x` such that `n ==
 
 Could you solve it without loops/recursion?
 
+---
+
 ## Solution
 
 ```python
@@ -39,6 +41,8 @@ class Solution:
     def isPowerOfTwo(self, n: int) -> bool:
         return n > 0 and (n & (n - 1)) == 0
 ```
+
+---
 
 ## Explanation
 

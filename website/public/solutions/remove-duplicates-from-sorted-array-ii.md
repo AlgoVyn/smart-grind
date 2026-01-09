@@ -61,6 +61,8 @@ nums = [0,0,1,1,1,1,2,3,3]
 - `-10^4 <= nums[i] <= 10^4`
 - `nums` is sorted in non-decreasing order.
 
+---
+
 ## Solution
 
 ```python
@@ -77,6 +79,8 @@ class Solution:
         
         return write
 ```
+
+---
 
 ## Explanation
 

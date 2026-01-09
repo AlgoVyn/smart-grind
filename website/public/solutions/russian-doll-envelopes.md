@@ -32,6 +32,8 @@ Return the maximum number of envelopes you can Russian doll (i.e., put one insid
 - `envelopes[i].length == 2`
 - `1 <= wi, hi <= 10^5`
 
+---
+
 ## Solution
 
 ```python
@@ -55,6 +57,8 @@ def maxEnvelopes(envelopes):
             tails[left] = num
     return len(tails)
 ```
+
+---
 
 ## Explanation
 

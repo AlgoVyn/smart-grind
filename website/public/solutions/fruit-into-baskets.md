@@ -40,6 +40,8 @@ Given the integer array fruits, return the maximum number of fruits you can pick
 - 1 <= fruits.length <= 10^5
 - 0 <= fruits[i] < fruits.length
 
+---
+
 ## Solution
 
 ```python

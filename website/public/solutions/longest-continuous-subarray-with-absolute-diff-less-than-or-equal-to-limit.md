@@ -4,6 +4,8 @@
 
 Given an array of integers `nums` and an integer `limit`, return the size of the longest non-empty subarray such that the absolute difference between any two elements of this subarray is less than or equal to `limit`.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -40,11 +42,15 @@ Therefore, the size of the longest subarray is `2`.
 
 **Output:** `3`
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 10^5`
 - `1 <= nums[i] <= 10^9`
 - `0 <= limit <= 10^9`
+
+---
 
 ## Solution
 
@@ -75,6 +81,8 @@ class Solution:
         return max_len
 ```
 
+---
+
 ## Explanation
 
 We use a sliding window with two deques to maintain the maximum and minimum values in the current window.
@@ -84,6 +92,8 @@ For each `right` pointer, add the element to both deques, maintaining decreasing
 If the difference between max and min exceeds `limit`, move the `left` pointer, removing elements from deques if they are out of window.
 
 Update the max length.
+
+---
 
 ## Complexity Analysis
 

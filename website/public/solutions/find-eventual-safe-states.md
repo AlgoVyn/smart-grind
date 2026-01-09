@@ -6,6 +6,8 @@ There is a directed graph of n nodes with each node labeled from 0 to n - 1. The
 A node is a terminal node if there are no outgoing edges. A node is a safe node if every possible path starting from that node leads to a terminal node (or another safe node).
 Return an array containing all the safe nodes of the graph. The answer should be sorted in ascending order.
 
+---
+
 ## Constraints
 
 - n == graph.length
@@ -15,6 +17,8 @@ Return an array containing all the safe nodes of the graph. The answer should be
 - graph[i] is sorted in a strictly increasing order.
 - The graph may contain self-loops.
 - The number of edges in the graph will be in the range [1, 4 * 104].
+
+---
 
 ## Example 1
 
@@ -33,6 +37,8 @@ The given graph is shown above.
 Nodes 5 and 6 are terminal nodes as there are no outgoing edges from either of them.
 Every path starting at nodes 2, 4, 5, and 6 all lead to either node 5 or 6.
 
+---
+
 ## Example 2
 
 **Input:**
@@ -47,6 +53,8 @@ graph = [[1,2,3,4],[1,2],[3,4],[0,4],[]]
 
 **Explanation:**
 Only node 4 is a terminal node, and every path starting at node 4 leads to node 4.
+
+---
 
 ## Solution
 
@@ -76,6 +84,8 @@ class Solution:
                 result.append(i)
         return result
 ```
+
+---
 
 ## Explanation
 

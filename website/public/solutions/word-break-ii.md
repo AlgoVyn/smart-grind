@@ -55,6 +55,8 @@ s = "catsandog", wordDict = ["cats","dog","sand","and","cat"]
 - All the strings of `wordDict` are unique.
 - Input is generated in a way that the length of the answer doesn't exceed `10^5`.
 
+---
+
 ## Solution
 
 ```python
@@ -84,6 +86,8 @@ class Solution:
         
         return backtrack(0)
 ```
+
+---
 
 ## Explanation
 

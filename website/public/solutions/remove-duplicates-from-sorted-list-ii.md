@@ -34,6 +34,8 @@ head = [1,1,1,2,3]
 - `-100 <= Node.val <= 100`
 - The list is guaranteed to be sorted in ascending order.
 
+---
+
 ## Solution
 
 ```
@@ -60,6 +62,8 @@ class Solution:
         
         return dummy.next
 ```
+
+---
 
 ## Explanation
 

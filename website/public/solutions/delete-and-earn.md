@@ -7,6 +7,8 @@ Pick any nums[i] and delete it to earn nums[i] points. Afterwards, you must dele
 
 Return the maximum number of points you can earn by applying the above operation some number of times.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -46,10 +48,14 @@ You can perform the following operations:
 - Delete a 3 once more to earn 3 points. nums = [].
 You earn a total of 9 points.
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 2 * 104`
 - `1 <= nums[i] <= 104`
+
+---
 
 ## Solution
 
@@ -78,6 +84,8 @@ class Solution:
                 dp[i] = dp[i-1] + unique[i] * freq[unique[i]]
         return dp[-1]
 ```
+
+---
 
 ## Explanation
 This problem can be solved by grouping the numbers by their values and then using dynamic programming to decide whether to include each group or not, considering the constraint that adjacent numbers cannot be included.

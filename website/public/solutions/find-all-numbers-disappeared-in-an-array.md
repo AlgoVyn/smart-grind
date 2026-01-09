@@ -4,11 +4,15 @@
 
 Given an array nums of n integers where nums[i] is in the range [1, n], return an array of all the integers in the range [1, n] that do not appear in nums.
 
+---
+
 ## Constraints
 
 - n == nums.length
 - 1 <= n <= 105
 - 1 <= nums[i] <= n
+
+---
 
 ## Example 1
 
@@ -22,6 +26,8 @@ nums = [4,3,2,7,8,2,3,1]
 [5,6]
 ```
 
+---
+
 ## Example 2
 
 **Input:**
@@ -34,9 +40,13 @@ nums = [1,1]
 [2]
 ```
 
+---
+
 ## Follow up
 
 Could you do it without extra space and in O(n) runtime? You may assume the returned list does not count as extra space.
+
+---
 
 ## Solution
 
@@ -57,6 +67,8 @@ class Solution:
         
         return result
 ```
+
+---
 
 ## Explanation
 

@@ -29,6 +29,8 @@ So we return the level with the maximum sum which is level `2`.
 - The number of nodes in the tree is in the range `[1, 10^4]`
 - `-10^5 <= Node.val <= 10^5`
 
+---
+
 ## Solution
 
 ```python
@@ -69,6 +71,8 @@ class Solution:
 
         return max_level
 ```
+
+---
 
 ## Explanation
 

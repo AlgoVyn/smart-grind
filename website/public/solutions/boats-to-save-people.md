@@ -6,6 +6,8 @@ You are given an array `people` where `people[i]` is the weight of the ith perso
 
 Return the minimum number of boats to carry every given person.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -50,10 +52,14 @@ people = [3,5,3,4], limit = 5
 
 **Explanation:** 4 boats (3), (3), (4), (5)
 
+---
+
 ## Constraints
 
 - `1 <= people.length <= 5 * 104`
 - `1 <= people[i] <= limit <= 3 * 104`
+
+---
 
 ## Solution
 
@@ -73,12 +79,18 @@ class Solution:
         return boats
 ```
 
+---
+
 ## Explanation
 
 This solution uses a greedy approach with two pointers after sorting the people array. We sort the array to easily pair the lightest and heaviest people. Initialize two pointers: `left` at the start and `right` at the end. For each boat, check if the lightest and heaviest can fit together (sum <= limit). If yes, move both pointers; if not, only move the right pointer (heaviest alone). Each iteration increments the boat count. This ensures the minimum number of boats by maximizing pairs.
 
+---
+
 ## Time Complexity
 **O(n log n)**, due to sorting, where n is the number of people.
+
+---
 
 ## Space Complexity
 **O(1)**, excluding the input array, as we only use a few variables.

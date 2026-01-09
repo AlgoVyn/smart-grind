@@ -4,6 +4,8 @@
 Given two strings word1 and word2, return the minimum number of steps required to make word1 and word2 the same.
 In one step, you can delete exactly one character in either string.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -33,10 +35,14 @@ word1 = "leetcode", word2 = "etco"
 4
 ```
 
+---
+
 ## Constraints
 
 - `1 <= word1.length, word2.length <= 500`
 - `word1 and word2 consist of only lowercase English letters.`
+
+---
 
 ## Solution
 
@@ -56,6 +62,8 @@ class Solution:
         return m + n - 2 * lcs
 ```
 
+---
+
 ## Explanation
 
 To make two strings the same by deleting characters, we need to find the longest common subsequence (LCS) between them. The minimum number of deletions is the total characters minus twice the LCS length, because each character not in LCS must be deleted from one string.
@@ -65,9 +73,13 @@ We use dynamic programming to compute the LCS:
 - If characters match, `dp[i][j] = dp[i-1][j-1] + 1`.
 - Otherwise, `dp[i][j] = max(dp[i-1][j], dp[i][j-1])`.
 
+---
+
 ## Time Complexity
 
 **O(m * n)**, where m and n are the lengths of the strings.
+
+---
 
 ## Space Complexity
 

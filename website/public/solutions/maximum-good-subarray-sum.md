@@ -42,6 +42,8 @@ The absolute difference between the first and last element must be `2` for a goo
 - `-10^9 <= nums[i] <= 10^9`
 - `1 <= k <= 10^9`
 
+---
+
 ## Solution
 
 ```python
@@ -75,6 +77,8 @@ class Solution:
 
         return max_sum if max_sum != float('-inf') else 0
 ```
+
+---
 
 ## Explanation
 

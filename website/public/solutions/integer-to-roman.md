@@ -27,6 +27,8 @@ Roman numerals are formed by appending the conversions of decimal place values f
 
 Given an integer, convert it to a Roman numeral.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -69,9 +71,13 @@ Given an integer, convert it to a Roman numeral.
    4 = IV
 ```
 
+---
+
 ## Constraints
 
 - `1 <= num <= 3999`
+
+---
 
 ## Solution
 
@@ -102,6 +108,8 @@ class Solution:
         return res
 ```
 
+---
+
 ## Explanation
 
 This problem converts an integer to a Roman numeral using a greedy approach.
@@ -122,6 +130,8 @@ The greedy approach works because:
 - The list is sorted in descending order.
 - Each value in the list is the largest possible Roman numeral that can be subtracted at that position.
 - Subtractive forms (4, 9, 40, 90, etc.) are explicitly included to handle those cases correctly.
+
+---
 
 ## Complexity Analysis
 

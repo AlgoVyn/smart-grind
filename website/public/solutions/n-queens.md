@@ -8,6 +8,8 @@ Given an integer n, return all distinct solutions to the n-queens puzzle. You ma
 
 Each solution contains a distinct board configuration of the n-queens' placement, where 'Q' and '.' both indicate a queen and an empty space, respectively.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -37,9 +39,13 @@ n = 1
 [["Q"]]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= n <= 9`
+
+---
 
 ## Solution
 
@@ -69,6 +75,8 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 
 The N-Queens problem is solved using backtracking, where we try to place queens on the board one row at a time, ensuring no two queens threaten each other.
@@ -86,6 +94,8 @@ The N-Queens problem is solved using backtracking, where we try to place queens 
 5. If safe, place the queen (append column to board), recurse to the next row, then backtrack by removing the queen (pop).
 
 6. When all rows are filled (row == n), convert the board to the required string format and add to result.
+
+---
 
 ## Complexity Analysis
 

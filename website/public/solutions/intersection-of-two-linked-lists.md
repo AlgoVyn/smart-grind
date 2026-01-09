@@ -6,6 +6,8 @@ Given the heads of two singly linked-lists `headA` and `headB`, return the node 
 
 The test cases are generated such that there are **no cycles** anywhere in the entire linked structure. Note that the linked lists must retain their original structure after the function returns.
 
+---
+
 ## Custom Judge
 
 The judge provides the following inputs:
@@ -14,6 +16,8 @@ The judge provides the following inputs:
 - `listB` - The second linked list
 - `skipA` - Number of nodes to skip in listA to reach the intersected node
 - `skipB` - Number of nodes to skip in listB to reach the intersected node
+
+---
 
 ## Examples
 
@@ -39,6 +43,8 @@ The judge provides the following inputs:
 |-------|--------|
 | `intersectVal = 0`, `listA = [2,6,4]`, `listB = [1,5]` | `No intersection` |
 
+---
+
 ## Constraints
 
 - The number of nodes of listA is in the range `[1, 10⁴]`
@@ -49,6 +55,8 @@ The judge provides the following inputs:
 - `intersectVal == listA[skipA] == listB[skipB]` if lists intersect
 
 **Follow up:** Could you write a solution that runs in O(m + n) time and uses only O(1) memory?
+
+---
 
 ## Solution
 
@@ -74,6 +82,8 @@ class Solution:
         return a  # or b (they are equal)
 ```
 
+---
+
 ## Explanation
 
 This problem finds the intersection node of two linked lists using an O(1) space approach.
@@ -98,6 +108,8 @@ When they meet, either:
 2. Traverse both lists simultaneously.
 3. When a pointer reaches the end of its list, redirect it to the other list's head.
 4. When the two pointers meet, return that node (or null if no intersection).
+
+---
 
 ## Complexity Analysis
 

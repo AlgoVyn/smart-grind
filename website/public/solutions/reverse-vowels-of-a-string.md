@@ -27,6 +27,8 @@ The vowels are 'a', 'e', 'i', 'o', and 'u', and they can appear in both lower an
 - `1 <= s.length <= 3 * 10^5`
 - `s` consists of printable ASCII characters.
 
+---
+
 ## Solution
 
 ```python
@@ -46,6 +48,8 @@ class Solution:
                 right -= 1
         return ''.join(s)
 ```
+
+---
 
 ## Explanation
 

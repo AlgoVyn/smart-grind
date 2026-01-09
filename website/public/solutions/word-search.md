@@ -56,6 +56,8 @@ false
 
 Could you use search pruning to make your solution faster with a larger board?
 
+---
+
 ## Solution
 
 ```python
@@ -93,6 +95,8 @@ class Solution:
         
         return False
 ```
+
+---
 
 ## Explanation
 

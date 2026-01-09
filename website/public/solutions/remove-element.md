@@ -63,6 +63,8 @@ nums = [0,1,2,2,3,0,4,2], val = 2
 - `0 <= nums[i] <= 50`
 - `0 <= val <= 100`
 
+---
+
 ## Solution
 
 ```python
@@ -75,6 +77,8 @@ class Solution:
                 k += 1
         return k
 ```
+
+---
 
 ## Explanation
 

@@ -12,6 +12,8 @@ The linked list is represented in the input/output as a list of n nodes. Each no
 
 Your code will only be given the head of the original linked list.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -50,11 +52,15 @@ head = [[3,null],[3,0],[3,null]]
 [[3,null],[3,0],[3,null]]
 ```
 
+---
+
 ## Constraints
 
 - `0 <= n <= 1000`
 - `-10^4 <= Node.val <= 10^4`
 - Node.random is null or is pointing to some node in the linked list.
+
+---
 
 ## Solution
 
@@ -90,6 +96,8 @@ class Solution:
         return old_to_new[head]
 ```
 
+---
+
 ## Explanation
 To create a deep copy of a linked list with random pointers, we use a hash map to map each original node to its corresponding new node. This allows us to handle the random pointers correctly without modifying the original list.
 
@@ -99,8 +107,12 @@ To create a deep copy of a linked list with random pointers, we use a hash map t
 
 3. **Return the head**: The new head is the mapped node of the original head.
 
+---
+
 ## Time Complexity
 **O(n)**, where n is the number of nodes, as we traverse the list twice.
+
+---
 
 ## Space Complexity
 **O(n)**, due to the hash map storing all nodes.

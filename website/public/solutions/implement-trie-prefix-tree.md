@@ -11,6 +11,8 @@ Implement the Trie class with the following methods:
 - `boolean search(String word)` - Returns `true` if the string `word` is in the trie (i.e., was inserted before), and `false` otherwise.
 - `boolean startsWith(String prefix)` - Returns `true` if there is a previously inserted string word that has the prefix `prefix`, and `false` otherwise.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -30,11 +32,15 @@ trie.insert("app");
 trie.search("app");      // return true
 ```
 
+---
+
 ## Constraints
 
 - `1 <= word.length, prefix.length <= 2000`
 - `word` and `prefix` consist only of lowercase English letters.
 - At most `3 * 10⁴` calls in total will be made to `insert`, `search`, and `startsWith`.
+
+---
 
 ## Solution
 
@@ -72,6 +78,8 @@ class Trie:
         return True
 ```
 
+---
+
 ## Explanation
 
 This problem implements a Trie (prefix tree) for efficient string operations.
@@ -97,6 +105,8 @@ Each Trie node contains:
 3. **startsWith:**
    - Similar to search, but don't check `is_end` at the end.
    - Return `True` if all characters in the prefix exist.
+
+---
 
 ## Complexity Analysis
 

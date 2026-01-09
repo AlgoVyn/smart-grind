@@ -15,10 +15,14 @@ Output: `[[],[1],[1,2],[1,2,2],[2],[2,2]]`
 Input: `nums = [0]`
 Output: `[[],[0]]`
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 10`
 - `-10 <= nums[i] <= 10`
+
+---
 
 ## Solution
 
@@ -41,6 +45,8 @@ def subsetsWithDup(nums: List[int]) -> List[List[int]]:
     backtrack(0, [])
     return result
 ```
+
+---
 
 ## Explanation
 

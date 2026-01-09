@@ -26,12 +26,16 @@ Explanation: There are 5 ways to assign symbols to make the sum of `nums` be `ta
 Input: `nums = [1]`, `target = 1`
 Output: `1`
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 20`
 - `0 <= nums[i] <= 1000`
 - `0 <= sum(nums[i]) <= 1000`
 - `-1000 <= target <= 1000`
+
+---
 
 ## Solution
 
@@ -51,6 +55,8 @@ class Solution:
                 dp[j] += dp[j - num]
         return dp[target_sum]
 ```
+
+---
 
 ## Explanation
 

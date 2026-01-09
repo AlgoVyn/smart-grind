@@ -9,6 +9,8 @@ Implement the `MovingAverage` class:
 - `MovingAverage(int size)` Initializes the object with the size of the window size.
 - `double next(int val)` Returns the moving average of the last size values of the stream.
 
+---
+
 ## Examples
 
 **Input:**
@@ -31,11 +33,15 @@ movingAverage.next(3);  // return 4.66667 = (1 + 10 + 3) / 3
 movingAverage.next(5);  // return 6.0 = (10 + 3 + 5) / 3
 ```
 
+---
+
 ## Constraints
 
 - `1 <= size <= 1000`
 - `-10^5 <= val <= 10^5`
 - At most `10^4` calls will be made to `next`
+
+---
 
 ## Solution
 
@@ -70,6 +76,8 @@ class MovingAverage:
         return self.sum / len(self.queue)
 ```
 
+---
+
 ## Explanation
 
 This problem requires calculating the moving average of the last `k` elements in a data stream.
@@ -84,6 +92,8 @@ This problem requires calculating the moving average of the last `k` elements in
    - Add new value to queue and sum
    - If queue exceeds size, remove oldest element and subtract from sum
    - Return `sum / current_queue_size`
+
+---
 
 ## Complexity Analysis
 

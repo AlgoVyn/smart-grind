@@ -4,6 +4,8 @@
 
 Given an integer array `nums`, return the length of the longest strictly increasing subsequence.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -26,14 +28,20 @@ Given an integer array `nums`, return the length of the longest strictly increas
 
 **Output:** `1`
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 2500`
 - `-10^4 <= nums[i] <= 10^4`
 
+---
+
 ## Follow Up
 
 Can you come up with an algorithm that runs in `O(n log(n))` time complexity?
+
+---
 
 ## Solution
 
@@ -58,6 +66,8 @@ class Solution:
         return len(tails)
 ```
 
+---
+
 ## Explanation
 
 We use a dynamic approach with binary search. Maintain a list `tails` where `tails[i]` is the smallest tail of all increasing subsequences with length `i+1`.
@@ -65,6 +75,8 @@ We use a dynamic approach with binary search. Maintain a list `tails` where `tai
 For each number, use binary search to find the position to replace or append.
 
 The length of `tails` is the LIS length.
+
+---
 
 ## Complexity Analysis
 

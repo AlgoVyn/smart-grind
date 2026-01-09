@@ -42,6 +42,8 @@ Note that `s` may contain leading or trailing spaces or multiple spaces between 
 
 **Follow-up:** If the string data type is mutable in your language, can you solve it in-place with O(1) extra space?
 
+---
+
 ## Solution
 
 ```python
@@ -51,6 +53,8 @@ class Solution:
         words.reverse()
         return ' '.join(words)
 ```
+
+---
 
 ## Explanation
 

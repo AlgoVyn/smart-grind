@@ -28,6 +28,8 @@ The reconstruction is unique if there is exactly one topological order of `nums`
 - `1 <= sequences.length <= 5000`
 - All elements in `sequences` are between `1` and `nums.length`
 
+---
+
 ## Solution
 
 ```python
@@ -60,6 +62,8 @@ def sequenceReconstruction(nums, sequences):
     # Check if all nodes are included
     return len(result) == len(nums)
 ```
+
+---
 
 ## Explanation
 

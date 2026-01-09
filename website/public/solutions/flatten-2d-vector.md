@@ -42,6 +42,8 @@ vector2D.hasNext(); // return False
 - -1000 <= vec[i][j] <= 1000
 - At most 10^5 calls will be made to next and hasNext.
 
+---
+
 ## Solution
 
 ```python

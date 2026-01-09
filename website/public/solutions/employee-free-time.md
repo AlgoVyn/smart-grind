@@ -4,6 +4,8 @@
 
 > Given a list of employees' schedules where each employee has a list of busy time intervals, find all time intervals when all employees are free.
 
+---
+
 ## Solution
 
 ```python
@@ -45,6 +47,8 @@ class Solution:
         return free
 ```
 
+---
+
 ## Explanation
 
 ### Algorithm Overview
@@ -55,6 +59,8 @@ To find the free time slots where no employee is working:
 2. **Sort**: Sort all intervals by their start time.
 3. **Merge Overlaps**: Merge overlapping intervals to identify periods when at least one employee is working.
 4. **Find Gaps**: The free time slots are the gaps between these merged intervals.
+
+---
 
 ## Complexity Analysis
 

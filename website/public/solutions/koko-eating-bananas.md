@@ -26,11 +26,15 @@ Koko likes to eat slowly but still wants to finish eating all the bananas before
 
 **Output:** `23`
 
+---
+
 ## Constraints
 
 - `1 <= piles.length <= 10^4`
 - `piles.length <= h <= 10^9`
 - `1 <= piles[i] <= 10^9`
+
+---
 
 ## Solution
 
@@ -54,6 +58,8 @@ class Solution:
         return left
 ```
 
+---
+
 ## Explanation
 
 This problem is solved using binary search on the eating speed `k`.
@@ -75,6 +81,8 @@ This problem is solved using binary search on the eating speed `k`.
 ### Key Insight
 
 The hours needed is monotonically decreasing with respect to `k`. This monotonicity allows us to apply binary search.
+
+---
 
 ## Complexity Analysis
 

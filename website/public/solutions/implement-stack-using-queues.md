@@ -11,6 +11,8 @@ Implement a **last-in-first-out (LIFO)** stack using only two queues. The implem
 
 > **Note:** You must use only standard operations of a queue: push to back, peek/pop from front, size, and is empty operations.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -31,11 +33,15 @@ myStack.empty();   // return false
 
 **Follow-up:** Can you implement the stack using only one queue?
 
+---
+
 ## Constraints
 
 - `1 <= x <= 9`
 - At most 100 calls will be made to push, pop, top, and empty.
 - All calls to pop and top are valid.
+
+---
 
 ## Solution
 
@@ -74,6 +80,8 @@ class MyStack:
         return not self.q1
 ```
 
+---
+
 ## Explanation
 
 This problem implements a stack using two queues with O(n) push/pop operations.
@@ -94,6 +102,8 @@ This problem implements a stack using two queues with O(n) push/pop operations.
    - For top: remove it, add to `q2`, then swap queues.
 
 3. **Empty:** Check if `q1` is empty.
+
+---
 
 ## Complexity Analysis
 

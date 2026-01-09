@@ -11,6 +11,8 @@ Common use cases include:
 - Checking palindromes
 - Container problems like trapping rain water
 
+---
+
 ## Solution
 
 ```
@@ -27,6 +29,8 @@ def twoSumSorted(nums, target):
             right -= 1
     return []
 ```
+
+---
 
 ## Explanation
 

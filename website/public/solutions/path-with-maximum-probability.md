@@ -36,6 +36,8 @@ Given two nodes `start` and `end`, find the path with the maximum probability of
 - `0 <= succProb[i] <= 1`
 - There is at most one edge between every two nodes.
 
+---
+
 ## Solution
 
 ```python
@@ -61,6 +63,8 @@ class Solution:
                     heapq.heappush(pq, (-prob[v], v))
         return prob[end]
 ```
+
+---
 
 ## Explanation
 

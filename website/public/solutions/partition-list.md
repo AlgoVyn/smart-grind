@@ -21,6 +21,8 @@ You should preserve the original relative order of the nodes in each of the two 
 - `-100 <= Node.val <= 100`
 - `-200 <= x <= 200`
 
+---
+
 ## Solution
 
 ```python
@@ -42,6 +44,8 @@ class Solution:
         before.next = after_head.next
         return before_head.next
 ```
+
+---
 
 ## Explanation
 

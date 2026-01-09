@@ -6,6 +6,8 @@ Given a 2D grid consists of 0s (land) and 1s (water). An island is a maximal 4-d
 
 Return the number of closed islands.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -53,10 +55,14 @@ grid = [[1,1,1,1,1,1,1],
 2
 ```
 
+---
+
 ## Constraints
 
 - `1 <= grid.length, grid[0].length <= 100`
 - `0 <= grid[i][j] <= 1`
+
+---
 
 ## Solution
 
@@ -96,6 +102,8 @@ class Solution:
         return count
 ```
 
+---
+
 ## Explanation
 
 A closed island is an island (group of 0s) that is not connected to the boundary of the grid. To count them, we first mark all islands connected to the boundary by performing DFS from the boundary cells and setting them to 1. Then, we iterate through the interior cells and count the remaining islands (groups of 0s) using DFS.
@@ -111,6 +119,8 @@ A closed island is an island (group of 0s) that is not connected to the boundary
 4. Iterate through all interior cells (excluding boundaries).
 
 5. For each unvisited 0, perform DFS to mark the entire island and increment the count.
+
+---
 
 ## Complexity Analysis
 

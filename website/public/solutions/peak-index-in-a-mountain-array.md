@@ -27,6 +27,8 @@ Your task is to solve it in O(log(n)) time complexity.
 - `0 <= arr[i] <= 10^6`
 - `arr` is guaranteed to be a mountain array.
 
+---
+
 ## Solution
 
 ```python
@@ -41,6 +43,8 @@ class Solution:
                 right = mid
         return left
 ```
+
+---
 
 ## Explanation
 

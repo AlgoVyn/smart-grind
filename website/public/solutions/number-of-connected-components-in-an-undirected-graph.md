@@ -6,6 +6,8 @@ Given an undirected graph with `n` nodes labeled from `0` to `n-1`, and a list o
 
 A connected component is a set of nodes where each pair of nodes is connected by a path, and no node in the set is connected to any node outside the set.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -38,6 +40,8 @@ n = 5, edges = [[0, 1], [1, 2], [2, 3], [3, 4]]
 **Explanation:**
 All nodes are connected in a single component.
 
+---
+
 ## Constraints
 
 - `1 <= n <= 200`
@@ -45,6 +49,8 @@ All nodes are connected in a single component.
 - `edges[i].length == 2`
 - `0 <= u, v < n`
 - `u != v`
+
+---
 
 ## Solution
 
@@ -78,6 +84,8 @@ class Solution:
         return sum(1 for i in range(n) if parent[i] == i)
 ```
 
+---
+
 ## Explanation
 
 To find the number of connected components in an undirected graph, we use the Union-Find (Disjoint Set Union) data structure.
@@ -93,6 +101,8 @@ To find the number of connected components in an undirected graph, we use the Un
 4. Iterate through each edge and union the two nodes.
 
 5. Count the number of nodes where `parent[i] == i`, which are the roots of components.
+
+---
 
 ## Complexity Analysis
 

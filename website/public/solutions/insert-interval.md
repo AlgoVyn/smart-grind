@@ -12,6 +12,8 @@ Insert `newInterval` into `intervals` such that:
 
 Return the intervals after the insertion. You can make a new array and return it (no need to modify in-place).
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -28,6 +30,8 @@ Return the intervals after the insertion. You can make a new array and return it
 
 **Explanation:** The new interval `[4,8]` overlaps with `[3,5]`, `[6,7]`, and `[8,10]`, so they are all merged into `[3,10]`.
 
+---
+
 ## Constraints
 
 - `0 <= intervals.length <= 10⁴`
@@ -36,6 +40,8 @@ Return the intervals after the insertion. You can make a new array and return it
 - `intervals` is sorted by `starti` in ascending order.
 - `newInterval.length == 2`
 - `0 <= start <= end <= 10⁵`
+
+---
 
 ## Solution
 
@@ -70,6 +76,8 @@ class Solution:
         return res
 ```
 
+---
+
 ## Explanation
 
 This problem inserts a new interval into a sorted list of non-overlapping intervals, merging if necessary.
@@ -91,6 +99,8 @@ This problem inserts a new interval into a sorted list of non-overlapping interv
 
 4. **Add remaining intervals:**
    - Add all intervals that come after the merged newInterval.
+
+---
 
 ## Complexity Analysis
 

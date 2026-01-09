@@ -45,6 +45,8 @@ freqStack.pop();     // return 4, as 4, 5 and 7 are the most frequent, but 4 is 
 - At most `2 * 10^4` calls will be made to push and pop
 - It is guaranteed that there will be at least one element in the stack before calling pop
 
+---
+
 ## Solution
 
 ```python
@@ -69,6 +71,8 @@ class FreqStack:
             self.max_freq -= 1
         return val
 ```
+
+---
 
 ## Explanation
 

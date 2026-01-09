@@ -23,6 +23,8 @@ Given an integer array `nums`, return `true` if you can partition the array into
 - `1 <= nums.length <= 200`
 - `1 <= nums[i] <= 100`
 
+---
+
 ## Solution
 
 ```python
@@ -39,6 +41,8 @@ class Solution:
                 dp[j] = dp[j] or dp[j - num]
         return dp[target]
 ```
+
+---
 
 ## Explanation
 

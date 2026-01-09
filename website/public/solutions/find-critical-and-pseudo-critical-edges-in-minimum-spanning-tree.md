@@ -6,6 +6,8 @@ Given a weighted undirected connected graph with n vertices numbered from 0 to n
 Find all the critical and pseudo-critical edges in the given graph's minimum spanning tree (MST). An MST edge whose deletion from the graph would cause the MST weight to increase is called a critical edge. On the other hand, a pseudo-critical edge is that which can appear in some MSTs but not all.
 Note that you can return the indices of the edges in any order.
 
+---
+
 ## Constraints
 
 - 2 <= n <= 100
@@ -14,6 +16,8 @@ Note that you can return the indices of the edges in any order.
 - 0 <= ai < bi < n
 - 1 <= weighti <= 1000
 - All pairs (ai, bi) are distinct.
+
+---
 
 ## Example 1
 
@@ -34,6 +38,8 @@ The following figure shows all the possible MSTs:
 Notice that the two edges 0 and 1 appear in all MSTs, therefore they are critical edges, so we return them in the first list of the output.
 The edges 2, 3, 4, and 5 are only part of some MSTs, therefore they are considered pseudo-critical edges. We add them to the second list of the output.
 
+---
+
 ## Example 2
 
 **Input:**
@@ -48,6 +54,8 @@ n = 4, edges = [[0,1,1],[1,2,1],[2,3,1],[0,3,1]]
 
 **Explanation:**
 We can observe that since all 4 edges have equal weight, choosing any 3 edges from the given 4 will yield an MST. Therefore all 4 edges are pseudo-critical.
+
+---
 
 ## Solution
 
@@ -116,6 +124,8 @@ class Solution:
                     pseudo.append(i)
         return [critical, pseudo]
 ```
+
+---
 
 ## Explanation
 

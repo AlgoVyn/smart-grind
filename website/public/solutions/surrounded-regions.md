@@ -22,12 +22,16 @@ Explanation: In the above diagram, the bottom region is not captured because it 
 Input: `board = [["X"]]`
 Output: `[["X"]]`
 
+---
+
 ## Constraints
 
 - `m == board.length`
 - `n == board[i].length`
 - `1 <= m, n <= 200`
 - `board[i][j]` is 'X' or 'O'.
+
+---
 
 ## Solution
 
@@ -69,6 +73,8 @@ class Solution:
                 elif board[i][j] == 'T':
                     board[i][j] = 'O'
 ```
+
+---
 
 ## Explanation
 

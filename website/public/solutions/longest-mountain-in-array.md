@@ -11,6 +11,8 @@ You may recall that an array `arr` is a **mountain array** if and only if:
 
 Given an integer array `arr`, return the length of the longest subarray which is a mountain. Return `0` if there is no mountain subarray.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -29,15 +31,21 @@ Given an integer array `arr`, return the length of the longest subarray which is
 
 **Explanation:** There is no mountain.
 
+---
+
 ## Constraints
 
 - `1 <= arr.length <= 10^4`
 - `0 <= arr[i] <= 10^4`
 
+---
+
 ## Follow Up
 
 - Can you solve it using only one pass?
 - Can you solve it in `O(1)` space?
+
+---
 
 ## Solution
 
@@ -62,6 +70,8 @@ class Solution:
         return max_len
 ```
 
+---
+
 ## Explanation
 
 We iterate through each possible peak `i` where `arr[i-1] < arr[i] > arr[i+1]`.
@@ -69,6 +79,8 @@ We iterate through each possible peak `i` where `arr[i-1] < arr[i] > arr[i+1]`.
 For each peak, expand leftward while increasing and rightward while decreasing.
 
 Update the maximum length.
+
+---
 
 ## Complexity Analysis
 

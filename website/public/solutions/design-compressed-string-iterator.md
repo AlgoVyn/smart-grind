@@ -9,6 +9,8 @@ Implement the StringIterator class:
 - `char next()` Returns the next letter of the uncompressed string. It is guaranteed that there will always be a next letter when this method is called.
 - `boolean hasNext()` Returns true if there is any letter left to uncompressed in the string, otherwise, it returns false.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -38,6 +40,8 @@ stringIterator.next(); // return "d"
 stringIterator.hasNext(); // return True
 ```
 
+---
+
 ## Constraints
 
 - `1 <= compressedString.length <= 1000`
@@ -45,6 +49,8 @@ stringIterator.hasNext(); // return True
 - The number after a letter will be in the range [1,10^9].
 - It is guaranteed that the uncompressed string will have more than 0 letters.
 - At most 100 calls will be made to next and hasNext.
+
+---
 
 ## Solution
 
@@ -80,6 +86,8 @@ class StringIterator:
     def hasNext(self) -> bool:
         return self.index < len(self.data) or self.count > 0
 ```
+
+---
 
 ## Explanation
 We parse the compressed string into a list of (character, count) pairs.

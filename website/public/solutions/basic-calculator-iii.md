@@ -4,6 +4,8 @@
 
 Implement a basic calculator that can evaluate a string expression containing integers, `+`, `-`, `*`, `/`, parentheses, and handle operator precedence.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -53,6 +55,8 @@ s = "(1+(4+5+2)-3)+(6+8)"
 ```python
 23
 ```
+
+---
 
 ## Solution
 
@@ -108,6 +112,8 @@ class Solution:
             stack[-1] = stack[-1] // num
 ```
 
+---
+
 ## Explanation
 
 This problem requires evaluating a string expression with basic arithmetic operations and parentheses, handling operator precedence.
@@ -118,8 +124,12 @@ The `apply_op` method handles the operations: for + and -, push the number with 
 
 Finally, sum the stack for the result.
 
+---
+
 ## Time Complexity
 **O(N)** as we process each character once.
+
+---
 
 ## Space Complexity
 **O(N)** due to the stack and recursion.

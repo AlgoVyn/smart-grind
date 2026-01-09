@@ -6,6 +6,8 @@ Given two strings `s1` and `s2`, return the **lowest ASCII sum of deleted charac
 
 In other words, find the minimum sum of ASCII values of characters that need to be deleted from both strings so that they become identical.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -34,10 +36,14 @@ Both strings become `"ea"`.
 
 Other options like `"lee"` or `"eet"` yield higher sums (433 and 417 respectively).
 
+---
+
 ## Constraints
 
 - `1 <= s1.length, s2.length <= 1000`
 - `s1` and `s2` consist of lowercase English letters
+
+---
 
 ## Solution
 
@@ -73,6 +79,8 @@ class Solution:
         return dp[m][n]
 ```
 
+---
+
 ## Explanation
 
 This is a classic **dynamic programming** problem using Longest Common Subsequence (LCS) with ASCII costs:
@@ -89,6 +97,8 @@ This is a classic **dynamic programming** problem using Longest Common Subsequen
      - `dp[i][j] = min(dp[i-1][j] + ASCII(s1[i-1]), dp[i][j-1] + ASCII(s2[j-1]))`
 
 4. **Result**: `dp[m][n]` contains the minimum delete sum for full strings.
+
+---
 
 ## Complexity Analysis
 

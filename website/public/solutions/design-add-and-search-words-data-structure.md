@@ -8,6 +8,8 @@ Implement the WordDictionary class:
 - `void addWord(word)` Adds word to the data structure, it can be matched later.
 - `bool search(word)` Returns true if there is any string in the data structure that matches word or false otherwise. word may contain dots '.' where dots can be matched with any letter.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -35,6 +37,8 @@ wordDictionary.search(".ad"); // return True
 wordDictionary.search("b.."); // return True
 ```
 
+---
+
 ## Constraints
 
 - `1 <= word.length <= 25`
@@ -42,6 +46,8 @@ wordDictionary.search("b.."); // return True
 - `word` in search consist of '.' or lowercase English letters.
 - There will be at most 2 dots in word for search queries.
 - At most 10^4 calls will be made to addWord and search.
+
+---
 
 ## Solution
 
@@ -81,6 +87,8 @@ class WordDictionary:
                 return dfs(node.children[char], index + 1)
         return dfs(self.root, 0)
 ```
+
+---
 
 ## Explanation
 We implement a Trie (prefix tree) where each node has a dictionary of children and a flag indicating the end of a word.

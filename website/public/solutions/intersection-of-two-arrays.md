@@ -4,6 +4,8 @@
 
 Given two integer arrays `nums1` and `nums2`, return an array of their **intersection**. Each element in the result must be **unique**, and you may return the result in any order.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -18,10 +20,14 @@ Given two integer arrays `nums1` and `nums2`, return an array of their **interse
 |-------|--------|
 | `nums1 = [4,9,5]`, `nums2 = [9,4,9,8,4]` | `[9, 4]` or `[4, 9]` |
 
+---
+
 ## Constraints
 
 - `1 <= nums1.length, nums2.length <= 1000`
 - `0 <= nums1[i], nums2[i] <= 1000`
+
+---
 
 ## Solution
 
@@ -39,6 +45,8 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 
 This problem finds the unique intersection of two integer arrays.
@@ -55,6 +63,8 @@ This problem finds the unique intersection of two integer arrays.
 - **Sorting + Two Pointers:** Sort both arrays and use two pointers.
 
 The chosen approach is efficient and straightforward for the given constraints.
+
+---
 
 ## Complexity Analysis
 

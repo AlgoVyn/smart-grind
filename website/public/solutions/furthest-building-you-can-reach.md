@@ -43,6 +43,8 @@ It is impossible to go beyond building 4 because you do not have any more bricks
 - 0 <= bricks <= 10^9
 - 0 <= ladders <= heights.length
 
+---
+
 ## Solution
 
 ```python

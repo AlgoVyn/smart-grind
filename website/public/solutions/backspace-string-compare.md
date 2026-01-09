@@ -6,6 +6,8 @@ Given two strings `s` and `t`, return true if they are equal when both are typed
 
 Note that after backspacing an empty text, the text will continue empty.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -50,14 +52,20 @@ false
 
 **Explanation:** s becomes "c" while t becomes "b".
 
+---
+
 ## Constraints
 
 - `1 <= s.length, t.length <= 200`
 - `s` and `t` only contain lowercase letters and '#' characters.
 
+---
+
 ## Follow up
 
 Can you solve it in O(n) time and O(1) space?
+
+---
 
 ## Solution
 
@@ -89,14 +97,20 @@ class Solution:
         return True
 ```
 
+---
+
 ## Explanation
 
 To achieve O(1) space complexity as per the follow-up, we use two pointers starting from the end of each string. The helper function `get_next_valid_index` finds the next character that is not deleted by backspaces, counting backspaces as we move left.
 
 For each string, we skip over backspaces and characters that are backspaced. We compare valid characters from both strings moving backwards. If we find a mismatch or one string ends while the other has remaining valid characters, return False. If both pointers go below 0 simultaneously, strings are equal.
 
+---
+
 ## Time Complexity
 **O(N)** where N is the maximum length of the two strings.
+
+---
 
 ## Space Complexity
 **O(1)** for the two pointers and counter.

@@ -4,6 +4,8 @@
 
 Given the root of a binary tree, return the inorder traversal of its nodes' values.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -58,14 +60,20 @@ root = [1]
 [1]
 ```
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[0, 100]`.
 - `-100 <= Node.val <= 100`
 
+---
+
 ## Follow up
 
 Recursive solution is trivial, could you do it iteratively?
+
+---
 
 ## Solution
 
@@ -90,12 +98,18 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 
 This recursive solution performs an inorder traversal: visit left subtree, then root, then right subtree. We use a helper function to append node values to the result list in the correct order.
 
+---
+
 ## Time Complexity
 **O(n)**, where n is the number of nodes, as each node is visited once.
+
+---
 
 ## Space Complexity
 **O(h)**, where h is the height of the tree, due to the recursion stack. In the worst case (skewed tree), this is O(n).

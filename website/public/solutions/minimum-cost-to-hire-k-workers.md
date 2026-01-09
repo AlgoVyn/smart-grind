@@ -11,6 +11,8 @@ We want to hire exactly `k` workers to form a paid group. To hire a group of `k`
 
 Given the integer `k`, return the least amount of money needed to form a paid group satisfying the above conditions. Answers within `10^-5` of the actual answer will be accepted.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -43,11 +45,15 @@ quality = [3, 1, 10, 10, 1], wage = [4, 8, 2, 2, 7], k = 3
 **Explanation:**
 We pay 4 to the 0th worker, 13.33333 to the 2nd and 3rd workers separately.
 
+---
+
 ## Constraints
 
 - `n == quality.length == wage.length`
 - `1 <= k <= n <= 10^4`
 - `1 <= quality[i], wage[i] <= 10^4`
+
+---
 
 ## Solution
 
@@ -87,6 +93,8 @@ class Solution:
         return ans
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the minimum cost to hire exactly k workers while satisfying the wage requirements.
@@ -101,6 +109,8 @@ This problem requires finding the minimum cost to hire exactly k workers while s
    - When we have k workers, calculate the cost using the current worker's ratio (since it's the maximum ratio in the group)
 
 4. **Return minimum cost**: Track the minimum cost across all valid groups.
+
+---
 
 ## Complexity Analysis
 

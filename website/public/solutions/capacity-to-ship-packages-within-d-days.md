@@ -5,6 +5,8 @@ A conveyor belt has packages that must be shipped from one port to another withi
 The ith package on the conveyor belt has a weight of weights[i]. Each day, we load the ship with packages on the conveyor belt (in the order given by weights). We may not load more weight than the maximum weight capacity of the ship.
 Return the least weight capacity of the ship that will result in all the packages on the conveyor belt being shipped within days days.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -63,10 +65,14 @@ weights = [1,2,3,1,1], days = 4
 - 3rd day: 3
 - 4th day: 1, 1
 
+---
+
 ## Constraints
 
 - `1 <= days <= weights.length <= 5 * 10^4`
 - `1 <= weights[i] <= 500`
+
+---
 
 ## Solution
 
@@ -99,11 +105,17 @@ class Solution:
         return left
 ```
 
+---
+
 ## Explanation
 This solution uses binary search on the possible capacities. The minimum capacity is the maximum weight, the maximum is the sum of all weights. For each mid capacity, check if we can ship all packages within the given days by simulating the shipping process. If possible, try smaller capacity; else, larger.
 
+---
+
 ## Time Complexity
 **O(n log S)**, where n is the number of packages and S is the sum of weights, due to binary search and linear check.
+
+---
 
 ## Space Complexity
 **O(1)**, as we use constant extra space.

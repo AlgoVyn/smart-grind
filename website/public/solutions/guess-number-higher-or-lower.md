@@ -11,6 +11,9 @@ You call a pre-defined API int guess(int num), which returns three possible resu
 0: your guess is equal to the number I picked (i.e. num == pick).
 
 Return the number that I picked.
+
+---
+
 ## Examples
 
 **Example 1:**
@@ -49,10 +52,15 @@ n = 2, pick = 1
 1
 ```
 
+---
+
 ## Constraints
 
 - 1 <= n <= 2^31 - 1
 - 1 <= pick <= n
+
+---
+
 ## Solution
 
 ```python
@@ -70,6 +78,8 @@ class Solution:
                 left = mid + 1
 ```
 
+---
+
 ## Explanation
 This problem uses binary search to guess the number between 1 and n.
 
@@ -79,8 +89,12 @@ Adjust left or right based on result.
 
 Continue until found.
 
+---
+
 ## Time Complexity
 **O(log n)**, as binary search.
+
+---
 
 ## Space Complexity
 **O(1)**, constant space.

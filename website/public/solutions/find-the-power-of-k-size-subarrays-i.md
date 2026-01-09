@@ -43,6 +43,8 @@ There are 5 subarrays of nums of size 3:
 - 1 <= nums[i] <= 10^5
 - 1 <= k <= n
 
+---
+
 ## Solution
 
 ```python

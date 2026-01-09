@@ -40,6 +40,8 @@ The starting pixel is already colored with 0, which is the same as the target co
 - 0 <= sr < m
 - 0 <= sc < n
 
+---
+
 ## Solution
 
 ```python

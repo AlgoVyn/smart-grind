@@ -27,10 +27,14 @@ You may return the answer in any order. The answer is guaranteed to be unique (e
 
 **Explanation:** The answer `[[-2,4],[3,3]]` would also be accepted.
 
+---
+
 ## Constraints
 
 - `1 <= k <= points.length <= 10^4`
 - `-10^4 <= xi, yi <= 10^4`
+
+---
 
 ## Solution
 
@@ -48,6 +52,8 @@ class Solution:
                 heapq.heappop(heap)
         return [p for _, p in heap]
 ```
+
+---
 
 ## Explanation
 
@@ -68,6 +74,8 @@ Since the square root function is monotonically increasing, comparing squared di
 ### Why Negative Distance?
 
 Python's `heapq` module implements a min-heap. To simulate a max-heap, we negate the distance values.
+
+---
 
 ## Complexity Analysis
 

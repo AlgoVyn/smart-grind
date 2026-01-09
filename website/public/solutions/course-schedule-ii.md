@@ -7,6 +7,8 @@ For example, the pair [0, 1], indicates that to take course 0 you have to first 
 
 Return the ordering of courses you should take to finish all courses. If there are many valid answers, return any of them. If it is impossible to finish all courses, return an empty array.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -50,6 +52,8 @@ numCourses = 1, prerequisites = []
 [0]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= numCourses <= 2000`
@@ -58,6 +62,8 @@ numCourses = 1, prerequisites = []
 - `0 <= ai, bi < numCourses`
 - `ai != bi`
 - All the pairs [ai, bi] are distinct.
+
+---
 
 ## Solution
 
@@ -88,6 +94,8 @@ class Solution:
         return order if len(order) == numCourses else []
 ```
 
+---
+
 ## Explanation
 This problem requires finding a valid order to take courses given prerequisites, which is a topological sort. If there's a cycle, it's impossible.
 
@@ -96,8 +104,12 @@ This problem requires finding a valid order to take courses given prerequisites,
 3. For each processed course, reduce the indegree of its neighbors (courses that depend on it). If a neighbor's indegree becomes 0, add it to the queue.
 4. Collect the order of processed courses. If all courses are processed, return the order; otherwise, return an empty list indicating a cycle.
 
+---
+
 ## Time Complexity
 **O(V + E)**, where V is numCourses and E is the number of prerequisites.
+
+---
 
 ## Space Complexity
 **O(V + E)**, for the graph and indegree array.

@@ -26,6 +26,8 @@ If there are fewer than `k` characters left, reverse all of them. If there are l
 - `s` consists of only lowercase English letters.
 - `1 <= k <= 10^4`
 
+---
+
 ## Solution
 
 ```python
@@ -36,6 +38,8 @@ class Solution:
             s[i:i + k] = reversed(s[i:i + k])
         return ''.join(s)
 ```
+
+---
 
 ## Explanation
 

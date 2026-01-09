@@ -8,6 +8,8 @@ Adjacent houses have a security system connected, and it will automatically cont
 
 Given an integer array `nums` representing the amount of money in each house, return the maximum amount of money you can rob tonight without alerting the police.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -32,10 +34,14 @@ Given an integer array `nums` representing the amount of money in each house, re
 |-------|--------|
 | `nums = [1,2,3]` | `3` |
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 100`
 - `0 <= nums[i] <= 1000`
+
+---
 
 ## Solution
 
@@ -58,6 +64,8 @@ class Solution:
         return max(rob_linear(nums[:-1]), rob_linear(nums[1:]))
 ```
 
+---
+
 ## Explanation
 
 This problem maximizes money robbed from a circular array without robbing adjacent houses.
@@ -76,6 +84,8 @@ The answer is the maximum of these two cases.
 1. Handle edge cases: empty array or single house.
 2. Use the linear House Robber solution on both ranges.
 3. Return the maximum of the two results.
+
+---
 
 ## Complexity Analysis
 

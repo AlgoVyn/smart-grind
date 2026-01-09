@@ -26,6 +26,8 @@ You have to rotate the image in-place, which means you have to modify the input 
 - `1 <= n <= 20`
 - `-1000 <= matrix[i][j] <= 1000`
 
+---
+
 ## Solution
 
 ```python
@@ -39,6 +41,8 @@ def rotate(matrix):
     for row in matrix:
         row.reverse()
 ```
+
+---
 
 ## Explanation
 

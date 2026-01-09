@@ -16,6 +16,8 @@ Return the earliest hour at which the shop must be closed to incur a minimum pen
 
 **Note:** If a shop closes at the `j-th` hour, it means the shop is closed at the hour `j`.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -69,10 +71,14 @@ customers = "YYYY"
 **Explanation:**
 It is best to close the shop at the 4th hour as customers arrive at each hour.
 
+---
+
 ## Constraints
 
 - `1 <= customers.length <= 10^5`
 - `customers` consists only of characters `'Y'` and `'N'`
+
+---
 
 ## Solution
 
@@ -108,6 +114,8 @@ class Solution:
         return best_hour
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the earliest hour to close the shop to minimize the penalty based on customer visits.
@@ -121,6 +129,8 @@ This problem requires finding the earliest hour to close the shop to minimize th
    - Update penalty and best hour
 
 3. **Return earliest minimum**: Track the minimum penalty and smallest hour achieving it
+
+---
 
 ## Complexity Analysis
 

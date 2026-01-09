@@ -5,6 +5,8 @@ Given a collection of candidate numbers (candidates) and a target number (target
 Each number in candidates may only be used once in the combination.
 Note: The solution set must not contain duplicate combinations.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -39,11 +41,15 @@ candidates = [2,5,2,1,2], target = 5
 ]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= candidates.length <= 100`
 - `1 <= candidates[i] <= 50`
 - `1 <= target <= 30`
+
+---
 
 ## Solution
 
@@ -72,6 +78,8 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 To find all unique combinations of candidates that sum to target, where each candidate is used at most once and there are no duplicate combinations, we sort the candidates and use backtracking with pruning for duplicates.
 
@@ -79,8 +87,12 @@ We sort the candidates to handle duplicates easily. In the backtrack function, i
 
 For each valid candidate, we append it to the path, recurse with the next index and updated sum, then backtrack.
 
+---
+
 ## Time Complexity
 Exponential in the worst case, but constrained by small input sizes (candidates <= 100, target <= 30).
+
+---
 
 ## Space Complexity
 **O(target)** for the recursion stack and path.

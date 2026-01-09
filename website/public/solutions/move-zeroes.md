@@ -6,6 +6,8 @@ Given an integer array `nums`, move all `0`'s to the end of it while maintaining
 
 **Note:** You must do this in-place without making a copy of the array.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -32,12 +34,16 @@ nums = [0]
 [0]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 10^4`
 - `-2^31 <= nums[i] <= 2^31 - 1`
 
 **Follow-up:** Could you minimize the total number of operations done?
+
+---
 
 ## Solution
 
@@ -61,6 +67,8 @@ class Solution:
                 last_non_zero += 1
 ```
 
+---
+
 ## Explanation
 
 This problem requires moving all zeros to the end of the array while maintaining the relative order of non-zero elements.
@@ -72,6 +80,8 @@ This problem requires moving all zeros to the end of the array while maintaining
    - Increment `last_non_zero`
 
 3. This approach ensures all non-zero elements maintain their relative order and all zeros are moved to the end.
+
+---
 
 ## Complexity Analysis
 

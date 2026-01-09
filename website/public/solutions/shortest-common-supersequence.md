@@ -26,6 +26,8 @@ The answer provided is the shortest such string that satisfies these properties.
 - `1 <= str1.length, str2.length <= 1000`
 - `str1` and `str2` consist of lowercase English letters only.
 
+---
+
 ## Solution
 
 ```python
@@ -62,6 +64,8 @@ class Solution:
                 j -= 1
         return ''.join(result[::-1])
 ```
+
+---
 
 ## Explanation
 

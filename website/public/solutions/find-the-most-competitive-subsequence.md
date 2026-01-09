@@ -43,6 +43,8 @@ The most competitive is `[2, 6]`.
 | `nums[i]` | `0 <= nums[i] <= 10^9` |
 | `k` | `1 <= k <= nums.length` |
 
+---
+
 ## Solution
 
 ```python

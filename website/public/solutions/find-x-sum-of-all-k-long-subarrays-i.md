@@ -51,6 +51,8 @@ Return an array `answer` of length `n - k + 1` where `answer[i]` is the x-sum of
 | `nums[i]` | `1 <= nums[i] <= 50` |
 | `x` | `1 <= x <= k <= nums.length` |
 
+---
+
 ## Solution
 
 ```python

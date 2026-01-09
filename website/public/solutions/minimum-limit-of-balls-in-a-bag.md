@@ -12,6 +12,8 @@ For example, a bag of 5 balls can become two new bags of 1 and 4 balls, or two n
 
 Your penalty is the maximum number of balls in a bag. You want to minimize your penalty after the operations. Return the minimum possible penalty after performing the operations.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -52,10 +54,14 @@ nums = [2, 4, 8, 2], maxOperations = 4
 
 The bag with the most number of balls has 2 balls.
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 10^5`
 - `1 <= maxOperations, nums[i] <= 10^9`
+
+---
 
 ## Solution
 
@@ -87,6 +93,8 @@ class Solution:
         return left
 ```
 
+---
+
 ## Explanation
 
 This problem uses binary search to find the minimum possible maximum number of balls in any bag after operations.
@@ -98,6 +106,8 @@ This problem uses binary search to find the minimum possible maximum number of b
    - If total operations <= maxOperations, it's possible
 
 3. **Binary search**: Narrow down the search space based on feasibility.
+
+---
 
 ## Complexity Analysis
 

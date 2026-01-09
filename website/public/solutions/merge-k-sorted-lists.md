@@ -4,6 +4,8 @@
 
 You are given an array of `k` linked-lists `lists`, where each linked-list is sorted in ascending order. Merge all linked-lists into one sorted linked-list and return it.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -32,6 +34,8 @@ Merging them produces: `1 → 1 → 2 → 3 → 4 → 4 → 5 → 6`
 |-------|--------|
 | `lists = [[]]` | `[]` |
 
+---
+
 ## Constraints
 
 - `k == lists.length`
@@ -40,6 +44,8 @@ Merging them produces: `1 → 1 → 2 → 3 → 4 → 4 → 5 → 6`
 - `-10^4 <= lists[i][j] <= 10^4`
 - `lists[i]` is sorted in ascending order
 - The sum of all `lists[i].length` will not exceed `10^4`
+
+---
 
 ## Solution
 
@@ -81,6 +87,8 @@ class Solution:
         return dummy.next
 ```
 
+---
+
 ## Explanation
 
 To merge k sorted linked lists efficiently, we use a min-heap (priority queue) to always select the smallest current node:
@@ -92,6 +100,8 @@ To merge k sorted linked lists efficiently, we use a min-heap (priority queue) t
    - Append it to the merged list.
    - If the popped node has a next node, push it into the heap.
 4. Return `dummy.next`, the head of the merged list.
+
+---
 
 ## Complexity Analysis
 

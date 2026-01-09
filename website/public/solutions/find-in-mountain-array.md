@@ -18,11 +18,15 @@ You cannot access the mountain array directly. You may only access the array usi
 
 Submissions making more than 100 calls to MountainArray.get will be judged Wrong Answer. Also, any solutions that attempt to circumvent the judge will result in disqualification.
 
+---
+
 ## Constraints
 
 - 3 <= mountainArr.length() <= 104
 - 0 <= target <= 109
 - 0 <= mountainArr.get(index) <= 109
+
+---
 
 ## Example 1
 
@@ -39,6 +43,8 @@ mountainArr = [1,2,3,4,5,3,1], target = 3
 **Explanation:**
 3 exists in the array, at index=2 and index=5. Return the minimum index, which is 2.
 
+---
+
 ## Example 2
 
 **Input:**
@@ -53,6 +59,8 @@ mountainArr = [0,1,2,4,2,1], target = 3
 
 **Explanation:**
 3 does not exist in the array, so we return -1.
+
+---
 
 ## Solution
 
@@ -105,6 +113,8 @@ class Solution:
         # Search right part
         return bin_search(peak, n - 1, False)
 ```
+
+---
 
 ## Explanation
 

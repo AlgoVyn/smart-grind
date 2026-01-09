@@ -8,6 +8,8 @@ The garden consists of `n` flowers, the `i-th` flower will bloom in the `bloomDa
 
 Return the minimum number of days you need to wait to be able to make `m` bouquets from the garden. If it is impossible to make `m` bouquets, return `-1`.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -60,6 +62,8 @@ We need 2 bouquets each should have 3 flowers.
 - After day 7: `[x, x, x, x, _, x, x]` - we can make one bouquet of the first three flowers
 - After day 12: `[x, x, x, x, x, x, x]` - we can make two bouquets
 
+---
+
 ## Constraints
 
 - `bloomDay.length == n`
@@ -67,6 +71,8 @@ We need 2 bouquets each should have 3 flowers.
 - `1 <= bloomDay[i] <= 10^9`
 - `1 <= m <= 10^6`
 - `1 <= k <= n`
+
+---
 
 ## Solution
 
@@ -107,6 +113,8 @@ class Solution:
         return left
 ```
 
+---
+
 ## Explanation
 
 This problem uses binary search to find the minimum number of days to make `m` bouquets, each requiring `k` adjacent bloomed flowers.
@@ -120,6 +128,8 @@ This problem uses binary search to find the minimum number of days to make `m` b
    - If count >= m, it's possible
 
 4. **Return minimum**: The left bound is the answer.
+
+---
 
 ## Complexity Analysis
 

@@ -6,6 +6,8 @@ Given two strings `s` and `t` of lengths `m` and `n` respectively, return the mi
 
 The testcases will be generated such that the answer is unique.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -53,6 +55,8 @@ s = "a", t = "aa"
 **Explanation:**
 Both 'a's from `t` must be included in the window. Since the largest window of `s` only has one 'a', return empty string.
 
+---
+
 ## Constraints
 
 - `m == s.length`
@@ -61,6 +65,8 @@ Both 'a's from `t` must be included in the window. Since the largest window of `
 - `s` and `t` consist of uppercase and lowercase English letters
 
 **Follow-up:** Could you find an algorithm that runs in O(m + n) time?
+
+---
 
 ## Solution
 
@@ -119,6 +125,8 @@ class Solution:
         return "" if ans[0] == float("inf") else s[ans[1] : ans[2] + 1]
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the smallest substring in `s` that contains all characters of `t`, including duplicates.
@@ -135,6 +143,8 @@ This problem requires finding the smallest substring in `s` that contains all ch
    - Track the minimum window
 
 4. **Return result**: If valid window found, return substring; else, empty string.
+
+---
 
 ## Complexity Analysis
 

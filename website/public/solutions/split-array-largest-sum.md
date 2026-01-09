@@ -25,6 +25,9 @@ Constraints:
 1 <= nums.length <= 1000
 0 <= nums[i] <= 106
 1 <= k <= min(50, nums.length)
+
+---
+
 ## Solution
 
 ```python
@@ -54,6 +57,8 @@ class Solution:
                 left = mid + 1
         return left
 ```
+
+---
 
 ## Explanation
 Use binary search on the possible maximum subarray sum, from max(nums) to sum(nums). For each mid, check if we can split the array into at most k subarrays where each subarray sum <= mid, by greedily accumulating sums and starting new subarrays when exceeding mid.

@@ -10,6 +10,8 @@ The system should support the following operations:
 
 Each timestamp is an integer representing the time in seconds. It is guaranteed that every call to `hit(timestamp)` uses a timestamp that is non-decreasing (i.e., timestamps are in ascending order).
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -62,12 +64,16 @@ counter.getHits(302); // hits at timestamps 1, 2 are outside 5-minute window, re
 counter.getHits(303); // all hits are outside 5-minute window, returns 0
 ```
 
+---
+
 ## Constraints
 
 - `1 <= timestamp <= 10^9`
 - All timestamps passed to `hit(timestamp)` are non-decreasing.
 - `getHits(timestamp)` will always be called with a timestamp greater than or equal to all timestamps passed to `hit(timestamp)`.
 - At most 10^4 calls will be made to `hit` and `getHits`.
+
+---
 
 ## Solution
 
@@ -87,6 +93,8 @@ class HitCounter:
             self.hits.popleft()
         return len(self.hits)
 ```
+
+---
 
 ## Explanation
 The hit counter is implemented using a list (or deque) to store the timestamps of all hits. This allows us to efficiently track and remove outdated hits when querying the number of hits in the past 5 minutes (300 seconds).

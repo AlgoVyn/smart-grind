@@ -11,6 +11,8 @@ You may recall that an array `arr` is a mountain array if and only if:
 
 Given an integer array `nums`, return the minimum number of elements to remove to make `nums` a mountain array.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -43,11 +45,15 @@ nums = [2, 1, 1, 5, 6, 2, 3, 1]
 **Explanation:**
 One solution is to remove the elements at indices 0, 1, and 5, making the array `nums = [1, 5, 6, 3, 1]`.
 
+---
+
 ## Constraints
 
 - `3 <= nums.length <= 1000`
 - `1 <= nums[i] <= 10^9`
 - It is guaranteed that you can make a mountain array out of `nums`.
+
+---
 
 ## Solution
 
@@ -77,6 +83,8 @@ class Solution:
         return n - max_len
 ```
 
+---
+
 ## Explanation
 
 To solve this problem, we need to find the minimum number of elements to remove from the array to make it a mountain array. A mountain array has a peak element where the array strictly increases to the peak and then strictly decreases after it.
@@ -89,6 +97,8 @@ The approach uses dynamic programming to compute the longest possible mountain s
 For each possible peak index `i` (where `0 < i < n-1`), the length of the mountain array with peak at `i` is `left[i] + right[i] - 1` (subtracting 1 because the peak is counted twice). We take the maximum of these lengths over all valid peaks.
 
 The minimum removals is then `n - max_mountain_length`.
+
+---
 
 ## Complexity Analysis
 

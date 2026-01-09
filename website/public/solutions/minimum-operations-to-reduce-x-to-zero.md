@@ -6,6 +6,8 @@ You are given an integer array `nums` and an integer `x`. In one operation, you 
 
 Return the minimum number of operations to reduce `x` to exactly `0` if it is possible, otherwise, return `-1`.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -50,11 +52,15 @@ nums = [3, 2, 20, 1, 1, 3], x = 10
 **Explanation:**
 The optimal solution is to remove the last three elements and the first two elements (5 operations in total) to reduce `x` to zero.
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 10^5`
 - `1 <= nums[i] <= 10^4`
 - `1 <= x <= 10^9`
+
+---
 
 ## Solution
 
@@ -90,6 +96,8 @@ class Solution:
         return len(nums) - max_len
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the minimum operations to reduce `x` to zero by removing elements from the ends of the array.
@@ -105,6 +113,8 @@ This problem requires finding the minimum operations to reduce `x` to zero by re
    - Track the maximum subarray length
 
 4. **Return**: `n - max_length` (minimum removals)
+
+---
 
 ## Complexity Analysis
 

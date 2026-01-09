@@ -4,6 +4,8 @@
 
 Given a binary tree, determine if it is height-balanced.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -42,10 +44,14 @@ root = []
 true
 ```
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[0, 5000]`.
 - `-104 <= Node.val <= 104`
+
+---
 
 ## Solution
 
@@ -74,6 +80,8 @@ class Solution:
         return check(root) != -1
 ```
 
+---
+
 ## Explanation
 
 A binary tree is balanced if the height difference between left and right subtrees of every node is at most 1.
@@ -82,8 +90,12 @@ We use a recursive helper function that returns the height of the subtree if bal
 
 The main function checks if the root's check result is not -1.
 
+---
+
 ## Time Complexity
 **O(N)** as we visit each node once.
+
+---
 
 ## Space Complexity
 **O(H)** for recursion stack, where H is tree height.

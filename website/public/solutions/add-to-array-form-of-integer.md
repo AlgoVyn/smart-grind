@@ -8,6 +8,8 @@ For example, for `num = 1321`, the array form is `[1,3,2,1]`.
 
 Given `num`, the array-form of an integer, and an integer `k`, return the array-form of the integer `num + k`.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -52,12 +54,16 @@ num = [2,1,5], k = 806
 
 **Explanation:** 215 + 806 = 1021
 
+---
+
 ## Constraints
 
 - `1 <= num.length <= 10^4`
 - `0 <= num[i] <= 9`
 - `num` does not contain any leading zeros except for the zero itself.
 - `1 <= k <= 10^4`
+
+---
 
 ## Solution
 
@@ -76,6 +82,8 @@ class Solution:
         return num
 ```
 
+---
+
 ## Explanation
 
 To add an integer `k` to a large number represented as an array of digits, we simulate the addition process starting from the least significant digit.
@@ -86,8 +94,12 @@ If `k` becomes 0, we can stop early. If `k` still has value after processing all
 
 This modifies the array in place and handles large numbers without conversion.
 
+---
+
 ## Time Complexity
 **O(n)**, where n is the length of the array, as we may traverse the entire array and insert up to `log(k)` digits.
+
+---
 
 ## Space Complexity
 **O(log k)** in the worst case for inserting new digits at the front.

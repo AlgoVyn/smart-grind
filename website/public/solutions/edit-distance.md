@@ -51,6 +51,8 @@ exection -> execution (insert 'u')
 - `0 <= word1.length, word2.length <= 500`
 - `word1 and word2 consist of lowercase English letters.`
 
+---
+
 ## Solution
 
 ```
@@ -71,6 +73,8 @@ class Solution:
                     dp[i][j] = min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]) + 1
         return dp[m][n]
 ```
+
+---
 
 ## Explanation
 This problem requires finding the minimum number of operations (insert, delete, replace) to convert word1 to word2, which is the Levenshtein distance.

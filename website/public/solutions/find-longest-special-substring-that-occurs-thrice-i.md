@@ -7,10 +7,14 @@ A string is called special if it is made up of only a single character. For exam
 Return the length of the longest special substring of s which occurs at least thrice, or -1 if no special substring occurs at least thrice.
 A substring is a contiguous non-empty sequence of characters within a string.
 
+---
+
 ## Constraints
 
 - 3 <= s.length <= 50
 - s consists of only lowercase English letters.
+
+---
 
 ## Example 1
 
@@ -28,6 +32,8 @@ s = "aaaa"
 The longest special substring which occurs thrice is "aa": substrings "aaaa", "aaaa", and "aaaa".
 It can be shown that the maximum length achievable is 2.
 
+---
+
 ## Example 2
 
 **Input:**
@@ -42,6 +48,8 @@ s = "abcdef"
 
 **Explanation:**
 There exists no special substring which occurs at least thrice. Hence return -1.
+
+---
 
 ## Example 3
 
@@ -58,6 +66,8 @@ s = "abcaba"
 **Explanation:**
 The longest special substring which occurs thrice is "a": substrings "abcaba", "abcaba", and "abcaba".
 It can be shown that the maximum length achievable is 1.
+
+---
 
 ## Solution
 
@@ -83,6 +93,8 @@ class Solution:
                 ans = max(ans, lengths[2])
         return ans
 ```
+
+---
 
 ## Explanation
 

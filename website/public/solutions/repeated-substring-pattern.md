@@ -49,6 +49,8 @@ true
 - `1 <= s.length <= 10^4`
 - `s` consists of lowercase English letters.
 
+---
+
 ## Solution
 
 ```python
@@ -60,6 +62,8 @@ def repeatedSubstringPattern(s: str) -> bool:
     ss = s + s
     return s in ss[1:-1]
 ```
+
+---
 
 ## Explanation
 

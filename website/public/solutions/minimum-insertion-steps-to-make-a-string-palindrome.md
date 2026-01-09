@@ -6,6 +6,8 @@ Given a string `s`. In one step you can insert any character at any index of the
 
 A **Palindrome String** is one that reads the same backward as well as forward.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -53,10 +55,14 @@ s = "leetcode"
 **Explanation:**
 Inserting 5 characters, the string becomes "leetcodocteel".
 
+---
+
 ## Constraints
 
 - `1 <= s.length <= 500`
 - `s` consists of lowercase English letters
+
+---
 
 ## Solution
 
@@ -83,6 +89,8 @@ class Solution:
         return dp[0][n - 1]
 ```
 
+---
+
 ## Explanation
 
 This problem uses dynamic programming to find the minimum insertions to make the string a palindrome.
@@ -96,6 +104,8 @@ This problem uses dynamic programming to find the minimum insertions to make the
    - Otherwise: `dp[i][j] = 1 + min(dp[i+1][j], dp[i][j-1])`
 
 4. **Return result**: `dp[0][n-1]` gives the minimum insertions for the entire string.
+
+---
 
 ## Complexity Analysis
 

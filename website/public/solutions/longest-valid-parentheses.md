@@ -4,6 +4,8 @@
 
 Given a string containing just the characters `'('` and `')'`, return the length of the longest valid (well-formed) parentheses substring.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -28,10 +30,14 @@ Given a string containing just the characters `'('` and `')'`, return the length
 
 **Output:** `0`
 
+---
+
 ## Constraints
 
 - `0 <= s.length <= 3 * 10^4`
 - `s[i]` is `'('` or `')'`.
+
+---
 
 ## Solution
 
@@ -52,6 +58,8 @@ class Solution:
         return max_len
 ```
 
+---
+
 ## Explanation
 
 We use a stack to keep track of indices of unmatched opening parentheses. Initialize the stack with `-1` to handle the starting point.
@@ -61,6 +69,8 @@ For each character in the string:
 - If it's `')'`, pop the top of the stack. If the stack is not empty after popping, calculate the length of the valid substring as the current index minus the new top of the stack. Update the maximum length. If the stack is empty, push the current index as a new potential start.
 
 This approach finds the longest valid parentheses substring by tracking the boundaries of valid segments.
+
+---
 
 ## Complexity Analysis
 

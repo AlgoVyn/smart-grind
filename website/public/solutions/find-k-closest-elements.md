@@ -8,12 +8,16 @@ An integer a is closer to x than an integer b if:
 - |a - x| < |b - x|, or
 - |a - x| == |b - x| and a < b
 
+---
+
 ## Constraints
 
 - 1 <= k <= arr.length
 - 1 <= arr.length <= 104
 - arr is sorted in ascending order.
 - -104 <= arr[i], x <= 104
+
+---
 
 ## Example 1
 
@@ -27,6 +31,8 @@ arr = [1,2,3,4,5], k = 4, x = 3
 [1,2,3,4]
 ```
 
+---
+
 ## Example 2
 
 **Input:**
@@ -38,6 +44,8 @@ arr = [1,1,2,3,4,5], k = 4, x = -1
 ```python
 [1,1,2,3]
 ```
+
+---
 
 ## Solution
 
@@ -55,6 +63,8 @@ class Solution:
                 right = mid
         return arr[left:left + k]
 ```
+
+---
 
 ## Explanation
 

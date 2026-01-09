@@ -26,6 +26,8 @@ Given an integer array `nums`, find a subarray that has the largest product, and
 - `-10 <= nums[i] <= 10`
 - The product of any subarray of `nums` is guaranteed to fit in a 32-bit integer
 
+---
+
 ## Solution
 
 ```python
@@ -42,6 +44,8 @@ def maxProduct(nums):
         result = max(result, max_prod)
     return result
 ```
+
+---
 
 ## Explanation
 

@@ -34,6 +34,8 @@ Return the sentence after the replacement.
 - Every two consecutive words in `sentence` will be separated by exactly one space.
 - `sentence` does not have leading or trailing spaces.
 
+---
+
 ## Solution
 
 ```python
@@ -49,6 +51,8 @@ def replaceWords(dictionary, sentence):
         result.append(replacement)
     return ' '.join(result)
 ```
+
+---
 
 ## Explanation
 

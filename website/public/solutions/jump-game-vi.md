@@ -28,10 +28,14 @@ You want to reach the last index of the array (index `n - 1`). Your score is the
 
 **Output:** `0`
 
+---
+
 ## Constraints
 
 - `1 <= nums.length, k <= 10^5`
 - `-10^4 <= nums[i] <= 10^4`
+
+---
 
 ## Solution
 
@@ -63,6 +67,8 @@ class Solution:
         return dp[-1]
 ```
 
+---
+
 ## Explanation
 
 This problem is solved using dynamic programming with a sliding window maximum optimization using a deque.
@@ -82,6 +88,8 @@ Instead of computing the maximum in the range `[i-k, i-1]` for each `i` (which w
 3. **Maintain order:** While the back of the deque has a `dp` value less than or equal to the current `dp[i]`, remove it. Then add the current index.
 
 This ensures each index is added and removed at most once, giving O(n) total time.
+
+---
 
 ## Complexity Analysis
 

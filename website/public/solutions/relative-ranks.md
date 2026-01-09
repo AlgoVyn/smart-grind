@@ -48,6 +48,8 @@ score = [10,3,8,9,4]
 - `0 <= score[i] <= 10^6`
 - All the values in `score` are unique.
 
+---
+
 ## Solution
 
 ```python
@@ -66,6 +68,8 @@ class Solution:
         
         return res
 ```
+
+---
 
 ## Explanation
 

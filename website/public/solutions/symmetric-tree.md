@@ -14,12 +14,16 @@ Output: `true`
 Input: `root = [1,2,2,null,3,null,3]`
 Output: `false`
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[1, 1000]`.
 - `-100 <= Node.val <= 100`
 
 **Follow up:** Could you solve it both recursively and iteratively?
+
+---
 
 ## Solution
 
@@ -45,6 +49,8 @@ class Solution:
             return True
         return is_mirror(root.left, root.right)
 ```
+
+---
 
 ## Explanation
 

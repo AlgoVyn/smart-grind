@@ -38,6 +38,8 @@ You must solve the problem without modifying the array nums and using only const
 - How can we prove that at least one duplicate number must exist in nums?
 - Can you solve the problem in linear runtime complexity?
 
+---
+
 ## Solution
 
 ```python

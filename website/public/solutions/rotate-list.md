@@ -24,6 +24,8 @@ Given the head of a linked list, rotate the list to the right by `k` places.
 - `-100 <= Node.val <= 100`
 - `0 <= k <= 2 * 10^9`
 
+---
+
 ## Solution
 
 ```python
@@ -55,6 +57,8 @@ def rotateRight(head, k):
     new_tail.next = None
     return new_head
 ```
+
+---
 
 ## Explanation
 

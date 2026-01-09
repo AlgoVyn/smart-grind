@@ -16,6 +16,8 @@ The matrix should also satisfy the following conditions:
 
 Return any matrix that satisfies the conditions. If no answer exists, return an empty matrix.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -54,6 +56,8 @@ k = 3, rowConditions = [[1,2],[2,3],[3,1],[2,3]], colConditions = [[2,1]]
 **Explanation:** From the first two conditions, 3 has to be below 1 but the third conditions needs 3 to be above 1 to be satisfied.
 No matrix can satisfy all the conditions, so we return the empty matrix.
 
+---
+
 ## Constraints
 
 - `2 <= k <= 400`
@@ -62,6 +66,8 @@ No matrix can satisfy all the conditions, so we return the empty matrix.
 - `1 <= abovei, belowi, lefti, righti <= k`
 - `abovei != belowi`
 - `lefti != righti`
+
+---
 
 ## Solution
 
@@ -103,12 +109,18 @@ class Solution:
         return matrix
 ```
 
+---
+
 ## Explanation
 
 This solution uses topological sorting to determine the order of numbers in rows and columns based on the given conditions. We perform topological sort separately for row conditions and column conditions. If either has a cycle (indicated by incomplete order), return an empty matrix. Otherwise, create position mappings and place each number from 1 to k in the matrix at the intersection of its row and column positions.
 
+---
+
 ## Time Complexity
 **O(k + e)**, where k is the size and e is the number of conditions, due to graph construction and topological sort.
+
+---
 
 ## Space Complexity
 **O(k + e)**, for the graphs and queues used in topological sorting.

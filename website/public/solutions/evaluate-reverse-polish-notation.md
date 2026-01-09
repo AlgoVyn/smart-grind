@@ -70,6 +70,8 @@ tokens = ["10","6","9","3","+","-11","*","/","*","17","+","5","+"]
 - `1 <= tokens.length <= 104`
 - `tokens[i] is either an operator: "+", "-", "*", or "/", or an integer in the range [-200, 200].`
 
+---
+
 ## Solution
 
 ```python
@@ -94,6 +96,8 @@ class Solution:
                     stack.append(int(a / b))
         return stack[0]
 ```
+
+---
 
 ## Explanation
 This problem involves evaluating an arithmetic expression given in Reverse Polish Notation (RPN), also known as postfix notation. In RPN, operators follow their operands, eliminating the need for parentheses. We use a stack to process the tokens sequentially.

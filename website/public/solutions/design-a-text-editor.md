@@ -17,6 +17,8 @@ Implement the TextEditor class:
 - `string cursorLeft(int k)` Moves the cursor to the left k times. Returns the last min(10, len) characters to the left of the cursor, where len is the number of characters to the left of the cursor.
 - `string cursorRight(int k)` Moves the cursor to the right k times. Returns the last min(10, len) characters to the left of the cursor, where len is the number of characters to the left of the cursor.
 
+---
+
 ## Examples
 
 **Input:**
@@ -30,11 +32,15 @@ Implement the TextEditor class:
 [null, null, 4, null, "etpractice", "leet", 4, "", "practi"]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= text.length, k <= 40`
 - `text` consists of lowercase English letters.
 - At most `2 * 10^4` calls in total will be made to addText, deleteText, cursorLeft and cursorRight.
+
+---
 
 ## Solution
 
@@ -71,6 +77,8 @@ class TextEditor:
                 self.left.append(self.right.popleft())
         return ''.join(list(self.left)[-10:])
 ```
+
+---
 
 ## Explanation
 We use two deques: `left` for characters before the cursor (in order), `right` for characters after the cursor.

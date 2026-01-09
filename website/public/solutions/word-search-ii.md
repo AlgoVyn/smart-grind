@@ -43,6 +43,8 @@ board = [["a","b"],["c","d"]], words = ["abcb"]
 - `words[i]` consists of lowercase English letters.
 - All the strings of `words` are unique.
 
+---
+
 ## Solution
 
 ```python
@@ -85,6 +87,8 @@ def findWords(board: List[List[str]], words: List[str]) -> List[str]:
 
     return list(result)
 ```
+
+---
 
 ## Explanation
 

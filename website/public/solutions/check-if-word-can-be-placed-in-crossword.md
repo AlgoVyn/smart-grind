@@ -11,6 +11,8 @@ A word can be placed horizontally (left to right or right to left) or vertically
 
 Given a string word, return true if word can be placed in board, or false otherwise.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -55,6 +57,8 @@ true
 
 **Explanation:** The word "ca" can be placed as shown above (right to left).
 
+---
+
 ## Constraints
 
 - `m == board.length`
@@ -63,6 +67,8 @@ true
 - `board[i][j]` will be ' ', '#', or a lowercase English letter.
 - `1 <= word.length <= max(m, n)`
 - `word` will contain only lowercase English letters.
+
+---
 
 ## Solution
 
@@ -109,6 +115,8 @@ class Solution:
         return False
 ```
 
+---
+
 ## Explanation
 To check if a word can be placed in the crossword board, we need to try placing it in all four directions (right, left, down, up) from every possible starting cell.
 
@@ -119,8 +127,12 @@ For each starting position (i, j) and each direction (di, dj), we define a helpe
 
 If any placement succeeds, return true; otherwise, false.
 
+---
+
 ## Time Complexity
 **O(m * n * 4 * len(word))**, as we check up to 4 directions per cell, and for each, iterate through the word length. Since len(word) <= max(m, n) and m*n <= 2e5, it's efficient.
+
+---
 
 ## Space Complexity
 **O(1)**, excluding the input.

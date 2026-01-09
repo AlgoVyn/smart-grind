@@ -11,6 +11,8 @@ Implement a **first in first out (FIFO)** queue using only two stacks. The imple
 
 > **Note:** You must use only standard operations of a stack: push to top, peek/pop from top, size, and is empty operations.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -31,11 +33,15 @@ myQueue.empty();    // return false
 
 **Follow-up:** Can you implement the queue such that each operation is **amortized O(1)** time complexity?
 
+---
+
 ## Constraints
 
 - `1 <= x <= 9`
 - At most 100 calls will be made to push, pop, peek, and empty.
 - All calls to pop and peek are valid.
+
+---
 
 ## Solution
 
@@ -69,6 +75,8 @@ class MyQueue:
         return not self.s1 and not self.s2
 ```
 
+---
+
 ## Explanation
 
 This problem implements a queue using two stacks with an amortized O(1) approach.
@@ -88,6 +96,8 @@ This problem implements a queue using two stacks with an amortized O(1) approach
    - Each element is moved at most once from `s1` to `s2`, giving amortized O(1).
 
 3. **Empty:** Check if both stacks are empty.
+
+---
 
 ## Complexity Analysis
 

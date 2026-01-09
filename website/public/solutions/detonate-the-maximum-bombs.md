@@ -6,6 +6,8 @@ The bombs are represented by a 0-indexed 2D integer array bombs where bombs[i] =
 You may choose to detonate a single bomb. When a bomb is detonated, it will detonate all bombs that lie in its range. These bombs will further detonate the bombs that lie in their ranges.
 Given the list of bombs, return the maximum number of bombs that can be detonated if you are allowed to detonate only one bomb.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -60,11 +62,15 @@ The best bomb to detonate is bomb 0 because:
 - Bomb 3 detonates bomb 4. The green circle denotes the range of bomb 3.
 Thus all 5 bombs are detonated.
 
+---
+
 ## Constraints
 
 - `1 <= bombs.length <= 100`
 - `bombs[i].length == 3`
 - `1 <= xi, yi, ri <= 10^5`
+
+---
 
 ## Solution
 
@@ -98,6 +104,8 @@ class Solution:
             max_detonated = max(max_detonated, dfs(i, visited))
         return max_detonated
 ```
+
+---
 
 ## Explanation
 The solution models the problem as a graph where each bomb is a node, and there's a directed edge from bomb i to bomb j if bomb j is within the range of bomb i.

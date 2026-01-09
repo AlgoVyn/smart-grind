@@ -11,6 +11,8 @@ Implement the following methods:
 - `AutocompleteSystem(sentences: List[str], times: List[int])`: Initialize the system with given sentences and their initial frequencies.
 - `input(c: str) -> List[str]`: Input the next character c and return the top 3 hot sentences.
 
+---
+
 ## Examples
 
 **Input:**
@@ -24,12 +26,16 @@ times = [5, 3, 2]
 # After initialization, the system is ready to accept queries
 ```
 
+---
+
 ## Constraints
 
 - `1 <= sentences.length <= 100`
 - `1 <= sentences[i].length <= 100`
 - `1 <= times.length == sentences.length`
 - `1 <= times[i] <= 10^3`
+
+---
 
 ## Solution
 
@@ -83,6 +89,8 @@ class AutocompleteSystem:
         for char, child in node.children.items():
             self._collect(child, prefix + char, candidates)
 ```
+
+---
 
 ## Explanation
 The AutocompleteSystem uses a Trie to store sentences and their frequencies. Each TrieNode has children for characters and a dictionary of sentences with their counts.

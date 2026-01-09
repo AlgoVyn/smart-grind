@@ -20,6 +20,8 @@ Input: `logs = [[20190101,0,1],[20190101,2,3]]`, `n = 4`
 Output: `-1`
 Explanation: Even though person 0 is friends with person 1, and person 2 is friends with person 3, there is no connection between these two groups.
 
+---
+
 ## Constraints
 
 - `2 <= n <= 1000`
@@ -27,6 +29,8 @@ Explanation: Even though person 0 is friends with person 1, and person 2 is frie
 - `logs[i][0]` is the timestamp.
 - `logs[i][1]` and `logs[i][2]` are different person indices.
 - `logs` are not necessarily sorted and may contain duplicates.
+
+---
 
 ## Solution
 
@@ -63,6 +67,8 @@ def earliestAcq(logs, n):
             return time
     return -1
 ```
+
+---
 
 ## Explanation
 

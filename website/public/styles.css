@@ -554,6 +554,17 @@ video {
   display: none;
 }
 
+/* Horizontal Rule (Separator) Styling for Markdown */
+hr {
+  border-top-width: 1px;
+  border-color: #cbd5e1;
+  margin: 1.5rem 0;
+}
+
+.dark hr {
+  border-color: #334155;
+}
+
 :root {
   --theme-bg-card: #f8fafc;
   /* Slate 50 */

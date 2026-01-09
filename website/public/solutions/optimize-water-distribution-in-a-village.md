@@ -26,6 +26,8 @@ Each house can be connected either to its own well (with a certain cost) or to a
 - `1 <= pipes[i][0], pipes[i][1] <= n`
 - `1 <= pipes[i][2] <= 10^6`
 
+---
+
 ## Solution
 
 ```python
@@ -58,6 +60,8 @@ class Solution:
                 total += cost
         return total
 ```
+
+---
 
 ## Explanation
 

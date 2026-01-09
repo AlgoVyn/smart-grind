@@ -4,6 +4,8 @@
 
 Given an array of positive integers `nums` and a positive integer `target`, return the minimal length of a subarray whose sum is greater than or equal to `target`. If there is no such subarray, return `0` instead.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -45,6 +47,8 @@ target = 11, nums = [1, 1, 1, 1, 1, 1, 1, 1]
 0
 ```
 
+---
+
 ## Constraints
 
 - `1 <= target <= 10^9`
@@ -52,6 +56,8 @@ target = 11, nums = [1, 1, 1, 1, 1, 1, 1, 1]
 - `1 <= nums[i] <= 10^4`
 
 **Follow-up:** If you have figured out the O(n) solution, try coding another solution of which the time complexity is O(n log(n)).
+
+---
 
 ## Solution
 
@@ -82,6 +88,8 @@ class Solution:
         return min_length if min_length != float('inf') else 0
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the minimal length of a contiguous subarray with sum at least target.
@@ -96,6 +104,8 @@ This problem requires finding the minimal length of a contiguous subarray with s
    - Increment `left` to shrink window
 
 4. **Return**: Minimum length found, or 0 if none exists.
+
+---
 
 ## Complexity Analysis
 

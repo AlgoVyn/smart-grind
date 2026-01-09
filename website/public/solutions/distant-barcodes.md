@@ -4,6 +4,8 @@
 In a warehouse, there is a row of barcodes, where the ith barcode is barcodes[i].
 Rearrange the barcodes so that no two adjacent barcodes are equal. You may return any answer, and it is guaranteed an answer exists.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -30,10 +32,14 @@ barcodes = [1,1,1,1,2,2,3,3]
 [1,3,1,3,1,2,1,2]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= barcodes.length <= 10000`
 - `1 <= barcodes[i] <= 10000`
+
+---
 
 ## Solution
 
@@ -64,6 +70,8 @@ class Solution:
                     heapq.heappush(heap, (neg_count + 1, num))
         return result
 ```
+
+---
 
 ## Explanation
 Use a max heap (with negative counts) to always pick the most frequent barcode. If it matches the last in result, pick the next most frequent instead, and push back the first one.

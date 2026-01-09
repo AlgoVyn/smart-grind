@@ -6,6 +6,8 @@ Given two non-negative integers, `num1` and `num2`, represented as string, retur
 
 You must solve the problem without using any built-in library for handling large integers (such as `BigInteger`) and without converting the inputs to integers directly.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -44,11 +46,15 @@ num1 = "0", num2 = "0"
 "0"
 ```
 
+---
+
 ## Constraints
 
 - `1 <= num1.length, num2.length <= 10^4`
 - `num1` and `num2` consist of only digits.
 - `num1` and `num2` don't have any leading zeros except for the number `0` itself.
+
+---
 
 ## Solution
 
@@ -72,6 +78,8 @@ class Solution:
         return ''.join(result)
 ```
 
+---
+
 ## Explanation
 
 This solution manually adds the two numbers represented as strings by simulating the addition process digit by digit, starting from the least significant digit (rightmost).
@@ -88,8 +96,12 @@ This solution manually adds the two numbers represented as strings by simulating
 - Continue until all digits are processed and there is no carry left.
 - Reverse the `result` list and join it into a string to get the final sum.
 
+---
+
 ## Time Complexity
 **O(max(len(num1), len(num2)))** - We iterate through the digits of the longer string once.
+
+---
 
 ## Space Complexity
 **O(max(len(num1), len(num2)))** - The result list stores up to the maximum length of the input strings plus one for potential carry.

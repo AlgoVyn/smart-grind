@@ -20,6 +20,8 @@ Given n pairs of parentheses, write a function to generate all combinations of w
 
 - `1 <= n <= 8`
 
+---
+
 ## Solution
 
 ```python
@@ -39,6 +41,8 @@ class Solution:
         backtrack('', 0, 0)
         return res
 ```
+
+---
 
 ## Explanation
 

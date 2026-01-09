@@ -18,6 +18,8 @@ Given an array of integers `nums`, find the next permutation of `nums`.
 
 The replacement must be in place and use only constant extra memory.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -56,10 +58,14 @@ nums = [1, 1, 5]
 [1, 5, 1]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 100`
 - `0 <= nums[i] <= 100`
+
+---
 
 ## Solution
 
@@ -80,6 +86,8 @@ class Solution:
         nums[i + 1:] = reversed(nums[i + 1:])
 ```
 
+---
+
 ## Explanation
 
 This problem requires generating the next permutation of the array in lexicographical order.
@@ -95,6 +103,8 @@ This problem requires generating the next permutation of the array in lexicograp
 4. Swap `nums[i]` and `nums[j]`.
 
 5. Reverse the subarray from `i+1` to the end.
+
+---
 
 ## Complexity Analysis
 

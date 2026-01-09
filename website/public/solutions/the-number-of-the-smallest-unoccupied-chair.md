@@ -41,6 +41,8 @@ Explanation:
 - Friend 0 leaves at time 10 and chair 2 becomes empty.
 Since friend 0 sat on chair 2, we return 2.
 
+---
+
 ## Constraints
 
 - `n == times.length`
@@ -49,6 +51,8 @@ Since friend 0 sat on chair 2, we return 2.
 - `1 <= arrival_i < leaving_i <= 10^5`
 - `0 <= targetFriend <= n - 1`
 - Each `arrival_i` time is distinct.
+
+---
 
 ## Solution
 
@@ -89,6 +93,8 @@ class Solution:
 
         return -1  # Should not reach here
 ```
+
+---
 
 ## Explanation
 

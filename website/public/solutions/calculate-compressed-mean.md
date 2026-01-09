@@ -4,6 +4,8 @@
 
 > Given a list of integers, calculate the arithmetic mean (compressed mean) of all elements.
 
+---
+
 ## Solution
 
 ```python
@@ -25,6 +27,8 @@ class Solution:
         return sum(nums) / len(nums)
 ```
 
+---
+
 ## Explanation
 
 ### Algorithm
@@ -38,6 +42,8 @@ The implementation:
 1. Handles the edge case of an empty list by returning 0.0
 2. Computes the sum of all elements
 3. Divides by the count of elements
+
+---
 
 ## Complexity Analysis
 

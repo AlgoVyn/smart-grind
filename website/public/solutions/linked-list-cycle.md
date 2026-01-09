@@ -43,6 +43,8 @@ There is no cycle in the linked list.
 
 Can you solve it using **O(1)** (i.e., constant) memory?
 
+---
+
 ## Solution
 
 ```python
@@ -59,6 +61,8 @@ class Solution:
             fast = fast.next.next
         return False
 ```
+
+---
 
 ## Explanation
 

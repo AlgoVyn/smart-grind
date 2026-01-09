@@ -35,6 +35,8 @@ Output: 1
 - `1 <= stones.length <= 30`
 - `1 <= stones[i] <= 1000`
 
+---
+
 ## Solution
 
 ```python
@@ -52,6 +54,8 @@ class Solution:
                 heapq.heappush(stones, -(y - x))
         return -stones[0] if stones else 0
 ```
+
+---
 
 ## Explanation
 

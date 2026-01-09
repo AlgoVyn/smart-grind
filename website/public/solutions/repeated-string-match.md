@@ -37,6 +37,8 @@ a = "a", b = "aa"
 - `1 <= a.length, b.length <= 10^4`
 - `a` and `b` consist of lowercase English letters.
 
+---
+
 ## Solution
 
 ```python
@@ -61,6 +63,8 @@ class Solution:
         
         return -1
 ```
+
+---
 
 ## Explanation
 

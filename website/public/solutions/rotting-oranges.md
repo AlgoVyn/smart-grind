@@ -43,6 +43,8 @@ Return the minimum number of minutes that must elapse until no cell has a fresh 
 - `1 <= m, n <= 10`
 - `grid[i][j]` is 0, 1, or 2.
 
+---
+
 ## Solution
 
 ```python
@@ -78,6 +80,8 @@ class Solution:
                 minutes += 1
         return minutes if fresh == 0 else -1
 ```
+
+---
 
 ## Explanation
 

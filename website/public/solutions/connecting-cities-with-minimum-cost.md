@@ -4,6 +4,8 @@
 
 > Given n cities and a list of connections between them with associated costs, find the minimum cost to connect all cities. If it's not possible, return -1.
 
+---
+
 ## Solution
 
 ```python
@@ -52,6 +54,8 @@ class Solution:
         return -1
 ```
 
+---
+
 ## Explanation
 
 ### Algorithm: Kruskal's Algorithm
@@ -62,6 +66,8 @@ This solution uses Kruskal's algorithm to find the Minimum Spanning Tree (MST):
 2. **Union-Find**: Use the Union-Find (Disjoint Set Union) data structure to detect cycles.
 3. **Build MST**: Iterate through sorted edges, adding them if they connect two previously disconnected components.
 4. **Check Completion**: If we've added n-1 edges, we have a valid spanning tree.
+
+---
 
 ## Complexity Analysis
 

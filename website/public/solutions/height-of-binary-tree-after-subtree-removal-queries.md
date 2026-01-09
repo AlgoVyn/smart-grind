@@ -10,6 +10,8 @@ Return an array `answer` of size `m` where `answer[i]` is the height of the tree
 
 > **Note:** The height of a tree is the number of edges in the longest simple path from the root to some node in the tree. It is guaranteed that `queries[i]` will not be equal to the value of the root.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -33,6 +35,8 @@ Return an array `answer` of size `m` where `answer[i]` is the height of the tree
 - Removing the subtree rooted at node with value `4`. The height becomes `3` (The path `5 -> 8 -> 2 -> 6`).
 - Removing the subtree rooted at node with value `8`. The height becomes `2` (The path `5 -> 9 -> 3`).
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is `n`.
@@ -43,6 +47,8 @@ Return an array `answer` of size `m` where `answer[i]` is the height of the tree
 - `1 <= m <= min(n, 10⁴)`
 - `1 <= queries[i] <= n`
 - `queries[i] != root.val`
+
+---
 
 ## Solution
 
@@ -82,6 +88,8 @@ class Solution:
         return res
 ```
 
+---
+
 ## Explanation
 
 This problem computes the height of the tree after removing subtrees for each query using a strategic approach:
@@ -99,6 +107,8 @@ This problem computes the height of the tree after removing subtrees for each qu
      - Otherwise, the maximum height remains `max_h` because other branches maintain the original height.
 
 This approach works because removing a subtree only affects the overall tree height if that subtree was uniquely responsible for the maximum height.
+
+---
 
 ## Complexity Analysis
 

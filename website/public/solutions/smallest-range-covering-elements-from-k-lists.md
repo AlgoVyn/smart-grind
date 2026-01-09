@@ -26,6 +26,9 @@ nums.length == k
 1 <= nums[i].length <= 50
 -105 <= nums[i][j] <= 105
 nums[i] is sorted in non-decreasing order.
+
+---
+
 ## Solution
 
 ```python
@@ -53,6 +56,8 @@ class Solution:
                 break
         return min_range
 ```
+
+---
 
 ## Explanation
 

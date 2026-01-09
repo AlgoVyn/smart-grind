@@ -56,6 +56,8 @@ false
 - `s` and `wordDict[i]` consist of only lowercase English letters.
 - All the strings of `wordDict` are unique.
 
+---
+
 ## Solution
 
 ```python
@@ -74,6 +76,8 @@ class Solution:
                     break
         return dp[n]
 ```
+
+---
 
 ## Explanation
 

@@ -8,6 +8,8 @@ A move consists of walking from one land cell to another adjacent (4-directional
 
 Return the number of land cells in grid for which we cannot walk off the boundary of the grid in any number of moves.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -40,12 +42,16 @@ grid = [[0,1,1,0],[0,0,1,0],[0,0,1,0],[0,0,0,0]]
 **Explanation:**
 All 1s are either on the boundary or can reach the boundary.
 
+---
+
 ## Constraints
 
 - `m == grid.length`
 - `n == grid[i].length`
 - `1 <= m, n <= 500`
 - `grid[i][j]` is either 0 or 1.
+
+---
 
 ## Solution
 
@@ -86,6 +92,8 @@ class Solution:
         return count
 ```
 
+---
+
 ## Explanation
 
 Enclaves are land cells (1s) that are not connected to the boundary. To count them, we first remove all lands connected to the boundary by performing DFS from boundary cells and marking them as visited (set to 0). Then, count the remaining 1s in the grid.
@@ -97,6 +105,8 @@ Enclaves are land cells (1s) that are not connected to the boundary. To count th
 2. Perform DFS on all boundary cells (first/last row and column) to mark boundary-connected lands.
 
 3. Iterate through all cells in the grid and count the remaining 1s, which are the enclaves.
+
+---
 
 ## Complexity Analysis
 

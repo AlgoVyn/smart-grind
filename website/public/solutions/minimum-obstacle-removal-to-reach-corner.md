@@ -9,6 +9,8 @@ You are given a 0-indexed 2D integer array `grid` of size `m x n`. Each cell has
 
 You can move up, down, left, or right from and to an empty cell. Return the minimum number of obstacles to remove so you can move from the upper left corner `(0, 0)` to the lower right corner `(m - 1, n - 1)`.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -41,6 +43,8 @@ grid = [[0, 1, 0, 0, 0], [0, 1, 0, 1, 0], [0, 0, 0, 1, 0]]
 **Explanation:**
 We can move from `(0, 0)` to `(2, 4)` without removing any obstacles.
 
+---
+
 ## Constraints
 
 - `m == grid.length`
@@ -49,6 +53,8 @@ We can move from `(0, 0)` to `(2, 4)` without removing any obstacles.
 - `2 <= m * n <= 10^5`
 - `grid[i][j]` is either `0` or `1`
 - `grid[0][0] == grid[m - 1][n - 1] == 0`
+
+---
 
 ## Solution
 
@@ -87,6 +93,8 @@ class Solution:
         return dist[m - 1][n - 1]
 ```
 
+---
+
 ## Explanation
 
 This problem involves finding the minimum number of obstacles to remove to create a path from top-left to bottom-right of a grid.
@@ -102,6 +110,8 @@ This problem involves finding the minimum number of obstacles to remove to creat
 4. **Process cells**: For each cell, explore neighbors and update distances if shorter path found.
 
 5. **Return**: Distance to `(m-1, n-1)` is the minimum removals.
+
+---
 
 ## Complexity Analysis
 

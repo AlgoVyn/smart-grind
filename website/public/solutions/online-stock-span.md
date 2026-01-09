@@ -43,6 +43,8 @@ stockSpanner.next(85);  // return 6
 - `1 <= price <= 10^5`
 - At most `10^4` calls will be made to `next`.
 
+---
+
 ## Solution
 
 ```python
@@ -57,6 +59,8 @@ class StockSpanner:
         self.stack.append((price, span))
         return span
 ```
+
+---
 
 ## Explanation
 

@@ -4,6 +4,9 @@
 There are n gas stations along a circular route, where the amount of gas at the ith station is gas[i].
 You have a car with an unlimited gas tank and it costs cost[i] of gas to travel from the ith station to its next (i + 1)th station. You begin the journey with an empty tank at one of the gas stations.
 Given two integer arrays gas and cost, return the starting gas station's index if you can travel around the circuit once in the clockwise direction, otherwise return -1. If there exists a solution, it is guaranteed to be unique.
+
+---
+
 ## Examples
 
 **Example 1:**
@@ -47,12 +50,17 @@ Travel to station 1. Your tank = 3 - 3 + 3 = 3
 You cannot travel back to station 2, as it requires 4 unit of gas but you only have 3.
 Therefore, you can't travel around the circuit once no matter where you start.
 
+---
+
 ## Constraints
 
 - n == gas.length == cost.length
 - 1 <= n <= 10^5
 - 0 <= gas[i], cost[i] <= 10^4
 - The input is generated such that the answer is unique.
+
+---
+
 ## Solution
 
 ```python
@@ -72,6 +80,8 @@ class Solution:
         return start
 ```
 
+---
+
 ## Explanation
 This problem requires finding the starting gas station index to complete a circuit without running out of gas, or -1 if impossible.
 
@@ -81,8 +91,12 @@ Use a greedy approach: iterate through the stations, maintaining a running total
 
 This works because the minimum cumulative sum indicates the worst starting point, so starting after it ensures completion.
 
+---
+
 ## Time Complexity
 **O(n)**, where n is the number of stations, for one pass and sum.
+
+---
 
 ## Space Complexity
 **O(1)**, using constant space.

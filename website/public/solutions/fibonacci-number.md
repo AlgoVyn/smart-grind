@@ -9,9 +9,13 @@ F(n) = F(n - 1) + F(n - 2), for n > 1.
 
 Given n, calculate F(n).
 
+---
+
 ## Constraints
 
 - 0 <= n <= 30
+
+---
 
 ## Example 1
 
@@ -28,6 +32,8 @@ n = 2
 **Explanation:**
 F(2) = F(1) + F(0) = 1 + 0 = 1.
 
+---
+
 ## Example 2
 
 **Input:**
@@ -42,6 +48,8 @@ n = 3
 
 **Explanation:**
 F(3) = F(2) + F(1) = 1 + 1 = 2.
+
+---
 
 ## Example 3
 
@@ -58,6 +66,8 @@ n = 4
 **Explanation:**
 F(4) = F(3) + F(2) = 2 + 1 = 3.
 
+---
+
 ## Solution
 
 ```python
@@ -72,6 +82,8 @@ class Solution:
             a, b = b, a + b
         return b
 ```
+
+---
 
 ## Explanation
 

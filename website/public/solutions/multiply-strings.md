@@ -6,6 +6,8 @@ Given two non-negative integers `num1` and `num2` represented as strings, return
 
 **Note:** You must not use any built-in BigInteger library or convert the inputs to integer directly.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -32,11 +34,15 @@ num1 = "123", num2 = "456"
 "56088"
 ```
 
+---
+
 ## Constraints
 
 - `1 <= num1.length, num2.length <= 200`
 - `num1` and `num2` consist of digits only
 - Both `num1` and `num2` do not contain any leading zero, except the number 0 itself
+
+---
 
 ## Solution
 
@@ -80,6 +86,8 @@ class Solution:
         return ''.join(str(d) for d in result[start:])
 ```
 
+---
+
 ## Explanation
 
 This problem requires multiplying two large numbers given as strings.
@@ -97,6 +105,8 @@ This problem requires multiplying two large numbers given as strings.
 4. **Propagate carry**: Iterate through the result array to handle any remaining carries.
 
 5. **Convert to string**: Remove leading zeros and join digits.
+
+---
 
 ## Complexity Analysis
 

@@ -25,6 +25,8 @@ Given a sorted array of distinct integers and a target value, return the index i
 - `nums` contains distinct values sorted in ascending order
 - `-10^4 <= target <= 10^4`
 
+---
+
 ## Solution
 
 ```python
@@ -43,6 +45,8 @@ class Solution:
                 right = mid - 1
         return left
 ```
+
+---
 
 ## Explanation
 

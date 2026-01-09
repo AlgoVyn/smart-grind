@@ -26,6 +26,8 @@ A subarray is a contiguous part of an array.
 - `-10^5 <= nums[i] <= 10^5`
 - `1 <= k <= 10^9`
 
+---
+
 ## Solution
 
 ```python
@@ -53,6 +55,8 @@ class Solution:
         
         return min_len if min_len != float('inf') else -1
 ```
+
+---
 
 ## Explanation
 

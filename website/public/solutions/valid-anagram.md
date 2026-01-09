@@ -39,6 +39,8 @@ false
 
 What if the inputs contain Unicode characters? How would you adapt your solution to such a case?
 
+---
+
 ## Solution
 
 ```python
@@ -47,6 +49,8 @@ from collections import Counter
 def isAnagram(s, t):
     return Counter(s) == Counter(t)
 ```
+
+---
 
 ## Explanation
 

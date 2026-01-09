@@ -19,6 +19,8 @@ Note: there may be strings that are impossible to decode.
 Given a string s containing only digits, return the number of ways to decode it. If the entire string cannot be decoded in any valid way, return 0.
 The test cases are generated so that the answer fits in a 32-bit integer.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -66,10 +68,14 @@ s = "06"
 **Explanation:**
 "06" cannot be mapped to "F" because of the leading zero ("6" is different from "06"). In this case, the string is not a valid encoding, so return 0.
 
+---
+
 ## Constraints
 
 - `1 <= s.length <= 100`
 - `s` contains only digits and may contain leading zero(s).
+
+---
 
 ## Solution
 
@@ -93,6 +99,8 @@ class Solution:
                 dp[i] += dp[i-2]
         return dp[n]
 ```
+
+---
 
 ## Explanation
 This problem can be solved using dynamic programming. We define `dp[i]` as the number of ways to decode the first `i` characters of the string `s`.

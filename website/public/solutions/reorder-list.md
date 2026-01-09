@@ -45,6 +45,8 @@ head = [1,2,3,4,5]
 - The number of nodes in the list is in the range `[1, 5 * 10^4]`.
 - `1 <= Node.val <= 1000`
 
+---
+
 ## Solution
 
 ```
@@ -85,6 +87,8 @@ class Solution:
             first = temp1
             second = temp2
 ```
+
+---
 
 ## Explanation
 

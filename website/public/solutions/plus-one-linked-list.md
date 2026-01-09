@@ -30,6 +30,8 @@ Add one to the integer represented by the linked list and return the resulting l
 - The number of nodes in the list is between 1 and 30
 - Each node contains a single digit (0-9)
 
+---
+
 ## Solution
 
 ```python
@@ -49,6 +51,8 @@ class Solution:
             node = node.next
         return dummy.next if dummy.val == 0 else dummy
 ```
+
+---
 
 ## Explanation
 

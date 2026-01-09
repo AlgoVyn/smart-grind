@@ -35,6 +35,8 @@ s = "aaab"
 - `1 <= s.length <= 500`
 - `s` consists of lowercase English letters.
 
+---
+
 ## Solution
 
 ```python
@@ -61,6 +63,8 @@ class Solution:
         else:
             return ""
 ```
+
+---
 
 ## Explanation
 

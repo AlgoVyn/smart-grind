@@ -42,6 +42,8 @@ but the second term did not exist. Since the last term exhausted does not exist,
 - `1 <= n <= 10^9`
 - At most 1000 calls will be made to `next`.
 
+---
+
 ## Solution
 
 ```python
@@ -62,6 +64,8 @@ class RLEIterator:
                 self.index += 2
         return -1
 ```
+
+---
 
 ## Explanation
 

@@ -25,6 +25,8 @@ The input/output format is the same as how LeetCode serializes a binary tree. Yo
 - The number of nodes in the tree is in the range `[0, 10^4]`
 - `-1000 <= Node.val <= 1000`
 
+---
+
 ## Solution
 
 ```python
@@ -57,6 +59,8 @@ class Codec:
             return node
         return dfs()
 ```
+
+---
 
 ## Explanation
 

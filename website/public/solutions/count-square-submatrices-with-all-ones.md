@@ -3,6 +3,8 @@
 ## Problem Description
 Given a m * n matrix of ones and zeros, return how many square submatrices have all ones.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -50,11 +52,15 @@ There are 6 squares of side 1.
 There is 1 square of side 2.
 Total number of squares = 6 + 1 = 7.
 
+---
+
 ## Constraints
 
 - `1 <= arr.length <= 300`
 - `1 <= arr[0].length <= 300`
 - `0 <= arr[i][j] <= 1`
+
+---
 
 ## Solution
 
@@ -82,6 +88,8 @@ class Solution:
         return count
 ```
 
+---
+
 ## Explanation
 To count the number of square submatrices with all ones, we use dynamic programming. We define `dp[i][j]` as the size of the largest square submatrix with all ones that has its bottom-right corner at position (i, j).
 
@@ -92,8 +100,12 @@ To count the number of square submatrices with all ones, we use dynamic programm
 3. Add `dp[i][j]` to the total count for each cell that is 1, as it represents the number of squares ending at that cell.
 4. Return the total count.
 
+---
+
 ## Time Complexity
 **O(m * n)**, where m and n are the dimensions of the matrix, as we visit each cell once.
+
+---
 
 ## Space Complexity
 **O(m * n)**, for the DP table.

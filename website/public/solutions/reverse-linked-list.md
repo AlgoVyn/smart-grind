@@ -31,6 +31,8 @@ Given the head of a singly linked list, reverse the list, and return the reverse
 
 **Follow-up:** A linked list can be reversed either iteratively or recursively. Could you implement both?
 
+---
+
 ## Solution
 
 ```python
@@ -44,6 +46,8 @@ def reverseList(head):
         curr = next_temp
     return prev
 ```
+
+---
 
 ## Explanation
 

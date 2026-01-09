@@ -6,6 +6,8 @@ You are given an m x n binary matrix land and an integer number of positions. In
 
 An island is a group of connected lands (1s) connected horizontally or vertically.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -43,11 +45,15 @@ m = 2, n = 2, positions = [[0,0],[0,1],[1,1]]
 - After adding land at [0,1]: 2 islands (new island)
 - After adding land at [1,1]: 1 island (merged with [0,1])
 
+---
+
 ## Constraints
 
 - `1 <= m, n <= 10^4`
 - `1 <= positions.length <= 10^4`
 - `positions[i]` is a valid position `[x, y]` where `0 <= x < m` and `0 <= y < n`
+
+---
 
 ## Solution
 
@@ -97,6 +103,8 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 
 This problem involves dynamically adding lands to a grid and tracking the number of islands after each addition. We use Union-Find to manage components.
@@ -110,6 +118,8 @@ This problem involves dynamically adding lands to a grid and tracking the number
    - Otherwise, add it as a new component, increment count.
    - Check all four directions for existing neighbors; if found, union with them, decrementing count if merged.
    - Append the current count to result.
+
+---
 
 ## Complexity Analysis
 

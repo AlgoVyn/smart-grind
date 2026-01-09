@@ -9,6 +9,8 @@ Implement the PhoneDirectory class with the following methods:
 - `check(number: int) -> bool`: Check if a phone number is available.
 - `release(number: int) -> None`: Release a phone number back to the directory.
 
+---
+
 ## Examples
 
 **Input:**
@@ -21,9 +23,13 @@ maxNumbers = 3
 # PhoneDirectory initialized with numbers [0, 1, 2]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= maxNumbers <= 10^3`
+
+---
 
 ## Solution
 
@@ -47,6 +53,8 @@ class PhoneDirectory:
         if number < self.maxNumbers:
             self.available.add(number)
 ```
+
+---
 
 ## Explanation
 The PhoneDirectory class uses a set to keep track of available phone numbers. In the `__init__` method, we initialize the set with numbers from 0 to maxNumbers-1.

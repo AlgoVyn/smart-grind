@@ -53,6 +53,8 @@ nums[i] is either 0, 1, or 2.
  
 Follow up: Could you come up with a one-pass algorithm using only constant extra space?
 
+---
+
 ## Solution
 
 ```python
@@ -70,6 +72,8 @@ class Solution:
                 nums[mid], nums[high] = nums[high], nums[mid]
                 high -= 1
 ```
+
+---
 
 ## Explanation
 We use three pointers: low for 0s, mid for 1s, high for 2s. We iterate with mid, swapping 0s to low, 2s to high, and leaving 1s. This sorts the array in O(n) time and O(1) space.

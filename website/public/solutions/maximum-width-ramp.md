@@ -31,6 +31,8 @@ The maximum width ramp is achieved at `(i, j) = (2, 9)`: `nums[2] = 1` and `nums
 - `2 <= nums.length <= 5 * 10^4`
 - `0 <= nums[i] <= 5 * 10^4`
 
+---
+
 ## Solution
 
 ```python
@@ -49,6 +51,8 @@ class Solution:
 
         return max_width
 ```
+
+---
 
 ## Explanation
 

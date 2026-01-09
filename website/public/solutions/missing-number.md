@@ -4,6 +4,8 @@
 
 Given an array `nums` containing `n` distinct numbers in the range `[0, n]`, return the only number in the range that is missing from the array.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -51,6 +53,8 @@ nums = [9, 6, 4, 2, 3, 5, 7, 0, 1]
 **Explanation:**
 `n = 9` since there are 9 numbers, so all numbers are in the range `[0, 9]`. `8` is the missing number in the range since it does not appear in `nums`.
 
+---
+
 ## Constraints
 
 - `n == nums.length`
@@ -59,6 +63,8 @@ nums = [9, 6, 4, 2, 3, 5, 7, 0, 1]
 - All the numbers of `nums` are unique
 
 **Follow-up:** Could you implement a solution using only O(1) extra space complexity and O(n) runtime complexity?
+
+---
 
 ## Solution
 
@@ -89,6 +95,8 @@ class Solution:
         return xor_result
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the missing number in an array containing numbers from 0 to n.
@@ -102,6 +110,8 @@ This problem requires finding the missing number in an array containing numbers 
    - XOR all numbers from 0 to n
    - XOR all elements in the array
    - The result is the missing number (all matching pairs cancel out)
+
+---
 
 ## Complexity Analysis
 

@@ -8,6 +8,8 @@ You may assume that the given expression is always valid. All intermediate resul
 
 **Note:** You are not allowed to use any built-in function which evaluates strings as mathematical expressions, such as `eval()`.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -46,6 +48,8 @@ s = " 3+5 / 2 "
 5
 ```
 
+---
+
 ## Constraints
 
 - `1 <= s.length <= 3 * 105`
@@ -53,6 +57,8 @@ s = " 3+5 / 2 "
 - `s` represents a valid expression.
 - All the integers in the expression are non-negative integers in the range `[0, 231 - 1]`.
 - The answer is guaranteed to fit in a 32-bit integer.
+
+---
 
 ## Solution
 
@@ -79,6 +85,8 @@ class Solution:
         return sum(stack)
 ```
 
+---
+
 ## Explanation
 
 This problem evaluates a string expression with basic arithmetic operations (+, -, *, /) without parentheses, handling operator precedence.
@@ -90,8 +98,12 @@ We use a stack to store intermediate results. Iterate through the string, buildi
 
 Finally, sum all elements in the stack for the result.
 
+---
+
 ## Time Complexity
 **O(N)** as we process each character once.
+
+---
 
 ## Space Complexity
 **O(N)** in the worst case for the stack.

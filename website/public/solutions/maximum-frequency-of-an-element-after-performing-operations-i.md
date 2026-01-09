@@ -39,6 +39,8 @@ We can achieve a maximum frequency of two by:
 - `0 <= k <= 10^5`
 - `0 <= numOperations <= nums.length`
 
+---
+
 ## Solution
 
 ```python
@@ -63,6 +65,8 @@ class Solution:
 
         return max_freq
 ```
+
+---
 
 ## Explanation
 

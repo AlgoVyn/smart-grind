@@ -42,6 +42,8 @@ edges = [[1,2],[2,3],[3,4],[1,4],[1,5]]
 - There are no repeated edges.
 - The given graph is connected.
 
+---
+
 ## Solution
 
 ```python
@@ -65,6 +67,8 @@ class Solution:
             if not union(a, b):
                 return [a, b]
 ```
+
+---
 
 ## Explanation
 

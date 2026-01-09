@@ -3,6 +3,8 @@
 ## Problem Description
 Given an m x n matrix mat, return an array of all the elements of the array in a diagonal order.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -29,6 +31,8 @@ mat = [[1,2],[3,4]]
 [1,2,3,4]
 ```
 
+---
+
 ## Constraints
 
 - `m == mat.length`
@@ -36,6 +40,8 @@ mat = [[1,2],[3,4]]
 - `1 <= m, n <= 104`
 - `1 <= m * n <= 104`
 - `-105 <= mat[i][j] <= 105`
+
+---
 
 ## Solution
 
@@ -59,6 +65,8 @@ class Solution:
                 result.extend(diagonals[k][::-1])
         return result
 ```
+
+---
 
 ## Explanation
 The solution groups elements by their diagonal sum i+j. For each diagonal, if the sum is even, append the elements in order; if odd, append in reverse order.

@@ -4,6 +4,8 @@
 
 Given an array of meeting time intervals `intervals` where `intervals[i] = [start_i, end_i]`, return the minimum number of conference rooms required.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -18,10 +20,14 @@ Given an array of meeting time intervals `intervals` where `intervals[i] = [star
 |-------|--------|
 | `intervals = [[7,10],[2,4]]` | `1` |
 
+---
+
 ## Constraints
 
 - `1 <= intervals.length <= 10^4`
 - `0 <= start_i < end_i <= 10^6`
+
+---
 
 ## Solution
 
@@ -56,6 +62,8 @@ class Solution:
         return max_rooms
 ```
 
+---
+
 ## Explanation
 
 To determine the minimum number of meeting rooms required, we use a two-pointer technique after sorting the start and end times.
@@ -68,6 +76,8 @@ To determine the minimum number of meeting rooms required, we use a two-pointer 
    - Otherwise: A meeting has ended. Decrement `rooms` and move the end pointer.
    - Update `max_rooms` with the current `rooms` value.
 5. Return `max_rooms`, which holds the minimum number of rooms needed.
+
+---
 
 ## Complexity Analysis
 

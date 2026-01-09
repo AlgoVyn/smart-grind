@@ -19,6 +19,8 @@ You are given a string `s`. You can convert `s` to a palindrome by adding charac
 - `0 <= s.length <= 5 * 10^4`
 - `s` consists of lowercase English letters only.
 
+---
+
 ## Solution
 
 ```python
@@ -40,6 +42,8 @@ class Solution:
         to_add = rev_s[:len(s) - longest]
         return to_add + s
 ```
+
+---
 
 ## Explanation
 

@@ -12,6 +12,8 @@ Merge `nums1` and `nums2` into a single array sorted in non-decreasing order. Th
 - `nums2` has length `n`.
 - The merge must be done **in-place** within `nums1`.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -34,6 +36,8 @@ Merge `nums1` and `nums2` into a single array sorted in non-decreasing order. Th
 |-------|--------|
 | `nums1 = [0], m = 0, nums2 = [1], n = 1` | `[1]` |
 
+---
+
 ## Constraints
 
 - `nums1.length == m + n`
@@ -43,6 +47,8 @@ Merge `nums1` and `nums2` into a single array sorted in non-decreasing order. Th
 - `-10^9 <= nums1[i], nums2[j] <= 10^9`
 
 **Follow-up:** Can you achieve this in `O(m + n)` time?
+
+---
 
 ## Solution
 
@@ -74,6 +80,8 @@ class Solution:
             k -= 1
 ```
 
+---
+
 ## Explanation
 
 To merge two sorted arrays **in-place** without overwriting unprocessed elements, we use a three-pointer approach starting from the **end**:
@@ -89,6 +97,8 @@ To merge two sorted arrays **in-place** without overwriting unprocessed elements
    - Decrement the appropriate pointer and `k`.
 
 3. **Handle remaining elements** in `nums2` (elements in `nums1` are already in place).
+
+---
 
 ## Complexity Analysis
 

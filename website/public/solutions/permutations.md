@@ -25,6 +25,8 @@ Given an array `nums` of distinct integers, return all the possible permutations
 - `-10 <= nums[i] <= 10`
 - All the integers of `nums` are unique.
 
+---
+
 ## Solution
 
 ```python
@@ -45,6 +47,8 @@ class Solution:
         backtrack([], [False] * len(nums))
         return res
 ```
+
+---
 
 ## Explanation
 

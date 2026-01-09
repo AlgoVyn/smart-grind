@@ -48,6 +48,8 @@ s = ")("
 - `s` consists of lowercase English letters and parentheses `'('` and `')'`.
 - There will be at most 20 parentheses in `s`.
 
+---
+
 ## Solution
 
 ```python
@@ -91,6 +93,8 @@ class Solution:
         
         return result
 ```
+
+---
 
 ## Explanation
 

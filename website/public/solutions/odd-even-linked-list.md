@@ -22,6 +22,8 @@ You must solve the problem in O(1) extra space complexity and O(n) time complexi
 - The number of nodes in the linked list is in the range `[0, 10^4]`
 - `-10^6 <= Node.val <= 10^6`
 
+---
+
 ## Solution
 
 ```
@@ -46,6 +48,8 @@ class Solution:
         odd.next = even_head
         return head
 ```
+
+---
 
 ## Explanation
 

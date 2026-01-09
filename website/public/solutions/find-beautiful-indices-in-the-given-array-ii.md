@@ -14,11 +14,15 @@ An index i is beautiful if:
 
 Return the array that contains beautiful indices in sorted order from smallest to largest.
 
+---
+
 ## Constraints
 
 - 1 <= k <= s.length <= 5 * 105
 - 1 <= a.length, b.length <= 5 * 105
 - s, a, and b contain only lowercase English letters.
+
+---
 
 ## Example 1
 
@@ -38,6 +42,8 @@ There are 2 beautiful indices: [16,33].
 - The index 33 is beautiful as s[33..34] == "my" and there exists an index 18 with s[18..25] == "squirrel" and |33 - 18| <= 15.
 Thus we return [16,33] as the result.
 
+---
+
 ## Example 2
 
 **Input:**
@@ -54,6 +60,8 @@ s = "abcd", a = "a", b = "a", k = 4
 There is 1 beautiful index: [0].
 - The index 0 is beautiful as s[0..0] == "a" and there exists an index 0 with s[0..0] == "a" and |0 - 0| <= 4.
 Thus we return [0] as the result.
+
+---
 
 ## Solution
 
@@ -88,6 +96,8 @@ class Solution:
         
         return result
 ```
+
+---
 
 ## Explanation
 

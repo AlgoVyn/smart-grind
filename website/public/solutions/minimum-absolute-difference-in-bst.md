@@ -4,6 +4,8 @@
 
 Given the root of a Binary Search Tree (BST), return the **minimum absolute difference** between the values of any two different nodes in the tree.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -18,12 +20,16 @@ Given the root of a Binary Search Tree (BST), return the **minimum absolute diff
 |-------|--------|
 | `root = [1,0,48,null,null,12,49]` | `1` |
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[2, 10^4]`
 - `0 <= Node.val <= 10^5`
 
 > **Note:** This question is the same as LeetCode 783: Minimum Distance Between BST Nodes.
+
+---
 
 ## Solution
 
@@ -62,6 +68,8 @@ class Solution:
         return self.min_diff
 ```
 
+---
+
 ## Explanation
 
 Since a **BST has in-order traversal in sorted order**, the minimum absolute difference must occur between **consecutive nodes** in the in-order traversal:
@@ -71,6 +79,8 @@ Since a **BST has in-order traversal in sorted order**, the minimum absolute dif
 3. **Calculate difference** between current node and previous node.
 4. **Update minimum difference** found so far.
 5. Return the minimum difference after traversal.
+
+---
 
 ## Complexity Analysis
 

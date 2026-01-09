@@ -26,6 +26,9 @@ Constraints:
 
 The number of nodes in the tree is in the range [1, 8500].
 0 <= Node.val <= 25
+
+---
+
 ## Solution
 
 ```
@@ -54,6 +57,8 @@ def smallestFromLeaf(root: TreeNode) -> str:
     dfs(root, [])
     return smallest
 ```
+
+---
 
 ## Explanation
 To find the lexicographically smallest string from a leaf to the root, use DFS to explore all root-to-leaf paths.

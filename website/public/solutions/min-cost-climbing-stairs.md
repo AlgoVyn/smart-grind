@@ -6,6 +6,8 @@ You are given an integer array `cost` where `cost[i]` is the cost of the `i-th` 
 
 You can start from either step `0` or step `1`. Return the **minimum cost** to reach the top of the floor (beyond the last step).
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -32,10 +34,14 @@ You can start from either step `0` or step `1`. Return the **minimum cost** to r
 
 Total cost: 6
 
+---
+
 ## Constraints
 
 - `2 <= cost.length <= 1000`
 - `0 <= cost[i] <= 999`
+
+---
 
 ## Solution
 
@@ -61,6 +67,8 @@ class Solution:
         return min(prev1, prev2)
 ```
 
+---
+
 ## Explanation
 
 This is a classic dynamic programming problem. Let `dp[i]` be the minimum cost to reach step `i`.
@@ -75,6 +83,8 @@ This is a classic dynamic programming problem. Let `dp[i]` be the minimum cost t
 3. **Answer**: `min(dp[n-1], dp[n-2])` — can reach top from either last or second-to-last step
 
 4. **Space optimization**: We only need the last two values, reducing space from `O(n)` to `O(1)`.
+
+---
 
 ## Complexity Analysis
 

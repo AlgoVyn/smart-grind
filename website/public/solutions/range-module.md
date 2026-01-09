@@ -41,6 +41,8 @@ rangeModule.queryRange(16, 17)   # return True (the number 16 in [16, 17) is sti
 - `1 <= left < right <= 10^9`
 - At most `10^4` calls will be made to `addRange`, `queryRange`, and `removeRange`.
 
+---
+
 ## Solution
 
 ```python
@@ -81,6 +83,8 @@ class RangeModule:
                 self.intervals.add((right, curr[1]))
             self.intervals.pop(i)
 ```
+
+---
 
 ## Explanation
 

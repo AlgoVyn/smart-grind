@@ -8,6 +8,8 @@ You are standing in the top-left cell of the matrix in the 0th second, and you m
 
 Return the minimum time required in which you can visit the bottom-right cell of the matrix. If you cannot visit the bottom-right cell, then return `-1`.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -48,6 +50,8 @@ grid = [[0, 2, 4], [3, 2, 1], [1, 0, 4]]
 **Explanation:**
 There is no path from the top left to the bottom-right cell.
 
+---
+
 ## Constraints
 
 - `m == grid.length`
@@ -56,6 +60,8 @@ There is no path from the top left to the bottom-right cell.
 - `4 <= m * n <= 10^5`
 - `0 <= grid[i][j] <= 10^5`
 - `grid[0][0] == 0`
+
+---
 
 ## Solution
 
@@ -103,6 +109,8 @@ class Solution:
         return -1
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the minimum time to reach the bottom-right cell, where each cell has a minimum visit time, and moves take 1 second.
@@ -117,6 +125,8 @@ This problem requires finding the minimum time to reach the bottom-right cell, w
    - If this time is less than the current distance, update and push to queue
 
 4. **Return**: Time to reach target, or -1 if unreachable.
+
+---
 
 ## Complexity Analysis
 

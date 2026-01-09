@@ -12,6 +12,8 @@ Distribute all products to the stores following these rules:
 
 Return the minimum possible value of `x`.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -47,11 +49,15 @@ Maximum per store: `max(5, 5, 5, 5, 5, 5, 5) = 5`
 
 **Explanation:** Only one store receives all 100000 products.
 
+---
+
 ## Constraints
 
 - `m == quantities.length`
 - `1 <= m <= n <= 10^5`
 - `1 <= quantities[i] <= 10^5`
+
+---
 
 ## Solution
 
@@ -80,6 +86,8 @@ class Solution:
         return left
 ```
 
+---
+
 ## Explanation
 
 We use **binary search** on the answer `x` (maximum products per store):
@@ -99,6 +107,8 @@ We use **binary search** on the answer `x` (maximum products per store):
      - Otherwise: need larger (`left = mid + 1`)
 
 4. Return `left`, the smallest `x` that works.
+
+---
 
 ## Complexity Analysis
 

@@ -26,6 +26,8 @@ Given an integer `target`, return `true` if target is in the matrix or `false` o
 - `1 <= m, n <= 100`
 - `-10^4 <= matrix[i][j], target <= 10^4`
 
+---
+
 ## Solution
 
 ```python
@@ -49,6 +51,8 @@ class Solution:
                 right = mid - 1
         return False
 ```
+
+---
 
 ## Explanation
 

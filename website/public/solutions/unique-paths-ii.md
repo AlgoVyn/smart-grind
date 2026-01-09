@@ -45,6 +45,8 @@ obstacleGrid = [[0,1],[0,0]]
 - `1 <= m, n <= 100`
 - `obstacleGrid[i][j]` is `0` or `1`.
 
+---
+
 ## Solution
 
 ```python
@@ -70,6 +72,8 @@ class Solution:
                         dp[i][j] += dp[i][j-1]
         return dp[m-1][n-1]
 ```
+
+---
 
 ## Explanation
 

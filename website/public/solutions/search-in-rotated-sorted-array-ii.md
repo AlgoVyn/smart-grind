@@ -29,6 +29,8 @@ Given the array `nums` after the rotation and an integer `target`, return `true`
 
 This problem is similar to "Search in Rotated Sorted Array", but `nums` may contain duplicates. Would this affect the runtime complexity? How and why?
 
+---
+
 ## Solution
 
 ```python
@@ -63,6 +65,8 @@ def search(nums: List[int], target: int) -> bool:
 
     return False
 ```
+
+---
 
 ## Explanation
 

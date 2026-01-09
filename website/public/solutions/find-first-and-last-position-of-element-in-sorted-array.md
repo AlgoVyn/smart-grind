@@ -6,12 +6,16 @@ Given an array of integers nums sorted in non-decreasing order, find the startin
 If target is not found in the array, return [-1, -1].
 You must write an algorithm with O(log n) runtime complexity.
 
+---
+
 ## Constraints
 
 - 0 <= nums.length <= 105
 - -109 <= nums[i] <= 109
 - nums is a non-decreasing array.
 - -109 <= target <= 109
+
+---
 
 ## Example 1
 
@@ -25,6 +29,8 @@ nums = [5,7,7,8,8,10], target = 8
 [3,4]
 ```
 
+---
+
 ## Example 2
 
 **Input:**
@@ -37,6 +43,8 @@ nums = [5,7,7,8,8,10], target = 6
 [-1,-1]
 ```
 
+---
+
 ## Example 3
 
 **Input:**
@@ -48,6 +56,8 @@ nums = [], target = 0
 ```python
 [-1,-1]
 ```
+
+---
 
 ## Solution
 
@@ -82,6 +92,8 @@ class Solution:
         right = find_right()
         return [left, right]
 ```
+
+---
 
 ## Explanation
 

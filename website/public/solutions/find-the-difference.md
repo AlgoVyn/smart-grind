@@ -28,6 +28,8 @@ Return the letter that was added to t.
 - t.length == s.length + 1
 - s and t consist of lowercase English letters.
 
+---
+
 ## Solution
 
 ```python

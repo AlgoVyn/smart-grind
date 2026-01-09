@@ -4,6 +4,8 @@
 
 You are given the heads of two sorted linked lists `list1` and `list2`. Merge the two lists into one sorted list by **splicing together the nodes** of the first two lists. Return the head of the merged linked list.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -24,11 +26,15 @@ You are given the heads of two sorted linked lists `list1` and `list2`. Merge th
 |-------|--------|
 | `list1 = [], list2 = [0]` | `[0]` |
 
+---
+
 ## Constraints
 
 - The number of nodes in both lists is in the range `[0, 50]`
 - `-100 <= Node.val <= 100`
 - Both `list1` and `list2` are sorted in non-decreasing order
+
+---
 
 ## Solution
 
@@ -65,6 +71,8 @@ class Solution:
         return dummy.next
 ```
 
+---
+
 ## Explanation
 
 1. **Create a dummy node** to serve as the start of the merged list.
@@ -75,6 +83,8 @@ class Solution:
    - Advance the pointer of the list from which the node was taken.
 4. **Attach any remaining nodes** from `list1` or `list2`.
 5. Return `dummy.next`, the head of the merged sorted list.
+
+---
 
 ## Complexity Analysis
 

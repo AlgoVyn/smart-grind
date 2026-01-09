@@ -4,10 +4,14 @@
 
 Given the root of a binary tree, collect and remove all leaves, repeat until the tree is empty. Return the collection of leaf values in the order they were collected. You answer should be a list of lists, where each list contains the leaf values collected at each step.
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range [1, 100].
 - -100 <= Node.val <= 100
+
+---
 
 ## Example 1
 
@@ -21,6 +25,8 @@ root = [1,2,3,4,5]
 [[4,5,3],[2],[1]]
 ```
 
+---
+
 ## Example 2
 
 **Input:**
@@ -32,6 +38,8 @@ root = [1]
 ```python
 [[1]]
 ```
+
+---
 
 ## Solution
 
@@ -63,6 +71,8 @@ class Solution:
         dfs(root)
         return res
 ```
+
+---
 
 ## Explanation
 

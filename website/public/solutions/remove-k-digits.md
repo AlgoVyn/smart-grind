@@ -52,6 +52,8 @@ num = "10", k = 2
 - `num` consists of only digits.
 - `num` does not have any leading zeros except for the zero itself.
 
+---
+
 ## Solution
 
 ```python
@@ -72,6 +74,8 @@ def removeKdigits(num: str, k: int) -> str:
     result = ''.join(stack).lstrip('0')
     return result if result else '0'
 ```
+
+---
 
 ## Explanation
 

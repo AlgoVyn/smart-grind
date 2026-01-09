@@ -19,11 +19,15 @@ Note that `[10, 5, 2]` is not included as the product of 100 is not strictly les
 Input: `nums = [1,2,3]`, `k = 0`
 Output: `0`
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 3 * 10^4`
 - `1 <= nums[i] <= 1000`
 - `0 <= k <= 10^6`
+
+---
 
 ## Solution
 
@@ -47,6 +51,8 @@ def numSubarrayProductLessThanK(nums: List[int], k: int) -> int:
 
     return count
 ```
+
+---
 
 ## Explanation
 

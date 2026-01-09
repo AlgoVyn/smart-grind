@@ -4,6 +4,8 @@
 
 Given two binary strings `a` and `b`, return their sum as a binary string.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -34,11 +36,15 @@ a = "1010", b = "1011"
 
 **Explanation:** Adding binary strings "1010" and "1011" gives "10101".
 
+---
+
 ## Constraints
 
 - `1 <= a.length, b.length <= 10^4`
 - `a` and `b` consist only of '0' or '1' characters.
 - Each string does not contain leading zeros except for the zero itself.
+
+---
 
 ## Solution
 
@@ -61,6 +67,8 @@ class Solution:
         return ''.join(result[::-1])
 ```
 
+---
+
 ## Explanation
 
 To add two binary strings, we simulate the binary addition process from the least significant bit (rightmost) to the most significant bit.
@@ -73,8 +81,12 @@ We continue until both strings are processed and there is no carry left.
 
 Finally, we reverse the result list to get the correct order.
 
+---
+
 ## Time Complexity
 **O(max(len(a), len(b)))**, as we process each bit once.
+
+---
 
 ## Space Complexity
 **O(max(len(a), len(b)))**, for the result list.

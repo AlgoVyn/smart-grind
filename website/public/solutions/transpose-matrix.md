@@ -16,6 +16,8 @@ Output: `[[1,4,7],[2,5,8],[3,6,9]]`
 Input: `matrix = [[1,2,3],[4,5,6]]`
 Output: `[[1,4],[2,5],[3,6]]`
 
+---
+
 ## Constraints
 
 - `m == matrix.length`
@@ -23,6 +25,8 @@ Output: `[[1,4],[2,5],[3,6]]`
 - `1 <= m, n <= 1000`
 - `1 <= m * n <= 10^5`
 - `-10^9 <= matrix[i][j] <= 10^9`
+
+---
 
 ## Solution
 
@@ -33,6 +37,8 @@ class Solution:
     def transpose(self, matrix: List[List[int]]) -> List[List[int]]:
         return list(map(list, zip(*matrix)))
 ```
+
+---
 
 ## Explanation
 

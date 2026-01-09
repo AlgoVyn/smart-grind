@@ -4,6 +4,8 @@
 
 Given the root of a binary tree, return the postorder traversal of its nodes' values.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -58,14 +60,20 @@ root = [1]
 [1]
 ```
 
+---
+
 ## Constraints
 
 - The number of the nodes in the tree is in the range `[0, 100]`.
 - `-100 <= Node.val <= 100`
 
+---
+
 ## Follow up
 
 Recursive solution is trivial, could you do it iteratively?
+
+---
 
 ## Solution
 
@@ -95,6 +103,8 @@ class Solution:
         return result[::-1]
 ```
 
+---
+
 ## Explanation
 
 Postorder traversal visits nodes in the order: left subtree, right subtree, root. Since the recursive solution is trivial, we implement an iterative version using a stack.
@@ -103,8 +113,12 @@ We use a stack initialized with the root. While the stack is not empty, we pop t
 
 This process gives the reverse of postorder, so we reverse the result list at the end.
 
+---
+
 ## Time Complexity
 **O(n)**, where n is the number of nodes, as each node is visited once.
+
+---
 
 ## Space Complexity
 **O(n)** for the stack and result list.

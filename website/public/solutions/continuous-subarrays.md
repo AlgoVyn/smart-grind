@@ -8,6 +8,8 @@ Let i, i + 1, ..., j be the indices in the subarray. Then, for each pair of indi
 Return the total number of continuous subarrays.
 A subarray is a contiguous non-empty sequence of elements within an array.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -48,10 +50,14 @@ Continuous subarray of size 2: [1,2], [2,3].
 Continuous subarray of size 3: [1,2,3].
 Total continuous subarrays = 3 + 2 + 1 = 6.
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 10^5`
 - `1 <= nums[i] <= 10^9`
+
+---
 
 ## Solution
 
@@ -93,6 +99,8 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 To count the number of continuous subarrays where the difference between the maximum and minimum elements is at most 2, we use a sliding window approach with two deques to maintain the maximum and minimum in the current window.
 
@@ -104,8 +112,12 @@ We initialize left = 0, and for each right from 0 to n-1:
 
 This ensures each subarray is counted exactly once when it ends.
 
+---
+
 ## Time Complexity
 **O(n)**, as each element is added and removed from deques at most once.
+
+---
 
 ## Space Complexity
 **O(n)** for the deques.

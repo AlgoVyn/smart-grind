@@ -34,6 +34,8 @@ n = 1
 
 - `1 <= n <= 8`
 
+---
+
 ## Solution
 
 ```python
@@ -66,6 +68,8 @@ class Solution:
             return []
         return generate(1, n)
 ```
+
+---
 
 ## Explanation
 

@@ -62,6 +62,8 @@ false
 - `1 <= s.length <= 20`
 - `s` consists of only English letters (both uppercase and lowercase), digits (0-9), plus `'+'`, minus `'-'`, or dot `'.'`.
 
+---
+
 ## Solution
 
 ```python
@@ -72,6 +74,8 @@ def isNumber(s: str) -> bool:
     pattern = r'^[+-]?((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+)?$'
     return bool(re.match(pattern, s))
 ```
+
+---
 
 ## Explanation
 

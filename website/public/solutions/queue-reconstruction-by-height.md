@@ -47,6 +47,8 @@ people = [[6,0],[5,0],[4,0],[3,2],[2,2],[1,4]]
 - `0 <= ki < people.length`
 - It is guaranteed that the queue can be reconstructed.
 
+---
+
 ## Solution
 
 ```python
@@ -58,6 +60,8 @@ class Solution:
             res.insert(p[1], p)
         return res
 ```
+
+---
 
 ## Explanation
 

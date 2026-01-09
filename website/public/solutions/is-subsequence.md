@@ -10,6 +10,8 @@ For example:
 - `"ace"` is a subsequence of `"abcde"`
 - `"aec"` is **not** a subsequence of `"abcde"` (order is wrong)
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -24,6 +26,8 @@ For example:
 |-------|--------|
 | `s = "axc"`, `t = "ahbgdc"` | `false` |
 
+---
+
 ## Constraints
 
 - `0 <= s.length <= 100`
@@ -31,6 +35,8 @@ For example:
 - `s` and `t` consist only of lowercase English letters.
 
 **Follow up:** Suppose there are lots of incoming `s`, say `s1, s2, ..., sk` where `k >= 10⁹`, and you want to check if `t` has each as a subsequence. How would you change your code?
+
+---
 
 ## Solution
 
@@ -46,6 +52,8 @@ class Solution:
         
         return i == len(s)  # True if we matched all of s
 ```
+
+---
 
 ## Explanation
 
@@ -68,6 +76,8 @@ For multiple queries with the same `t`:
 2. **Binary Search:** For each `s`, use binary search to check if characters appear in increasing order.
 
 This reduces per-query time to O(|s| * log |t|).
+
+---
 
 ## Complexity Analysis
 

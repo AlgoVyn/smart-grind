@@ -48,6 +48,8 @@ words = ["abat","baba","atan","atal"]
 - `1 <= words[i].length <= 4`
 - `words[i]` consists of lowercase English letters.
 
+---
+
 ## Solution
 
 ```python
@@ -100,6 +102,8 @@ def wordSquares(words):
     
     return result
 ```
+
+---
 
 ## Explanation
 

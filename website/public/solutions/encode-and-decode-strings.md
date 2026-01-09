@@ -4,6 +4,8 @@
 
 > Design an algorithm to encode a list of strings into a single string and decode it back to the original list.
 
+---
+
 ## Solution
 
 ```python
@@ -39,6 +41,8 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 
 ### Encoding Strategy
@@ -48,6 +52,8 @@ We prefix each string with its length followed by a `#` delimiter, then concaten
 We iterate through the encoded string, find the `#` delimiter to determine the length of the next string, then extract the substring of that exact length.
 
 This approach ensures correct parsing even if strings contain special characters.
+
+---
 
 ## Complexity Analysis
 

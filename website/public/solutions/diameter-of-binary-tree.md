@@ -5,6 +5,8 @@ Given the root of a binary tree, return the length of the diameter of the tree.
 The diameter of a binary tree is the length of the longest path between any two nodes in a tree. This path may or may not pass through the root.
 The length of a path between two nodes is represented by the number of edges between them.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -34,10 +36,14 @@ root = [1,2]
 1
 ```
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[1, 10^4]`.
 - `-100 <= Node.val <= 100`.
+
+---
 
 ## Solution
 
@@ -64,6 +70,8 @@ class Solution:
         dfs(root)
         return self.diameter
 ```
+
+---
 
 ## Explanation
 The solution uses DFS to compute the height of each subtree. For each node, the diameter passing through it is left_height + right_height. Update the global diameter with this value. The height is max(left, right) + 1.

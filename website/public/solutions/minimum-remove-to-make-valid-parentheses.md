@@ -10,6 +10,8 @@ Formally, a parentheses string is valid if and only if:
 - It can be written as `AB` (A concatenated with B), where A and B are valid strings, or
 - It can be written as `(A)`, where A is a valid string
 
+---
+
 ## Examples
 
 ### Example 1
@@ -54,10 +56,14 @@ s = "))(("
 **Explanation:**
 An empty string is also valid.
 
+---
+
 ## Constraints
 
 - `1 <= s.length <= 10^5`
 - `s[i]` is either `'('`, `')'`, or lowercase English letter
+
+---
 
 ## Solution
 
@@ -94,6 +100,8 @@ class Solution:
         return ''.join(result)
 ```
 
+---
+
 ## Explanation
 
 This problem requires removing the minimum number of parentheses to make the string valid, keeping lowercase letters.
@@ -107,6 +115,8 @@ This problem requires removing the minimum number of parentheses to make the str
 3. **Handle remaining**: Add all remaining indices in the stack to the remove set (unmatched `'('`).
 
 4. **Build result**: Include characters whose indices are not in the remove set.
+
+---
 
 ## Complexity Analysis
 

@@ -11,6 +11,8 @@ b = arr[j] ^ arr[j + 1] ^ ... ^ arr[k]
 Note that ^ denotes the bitwise-xor operation.
 Return the number of triplets (i, j and k) Where a == b.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -39,10 +41,14 @@ arr = [1,1,1,1,1]
 10
 ```
 
+---
+
 ## Constraints
 
 - `1 <= arr.length <= 300`
 - `1 <= arr[i] <= 10^8`
+
+---
 
 ## Solution
 
@@ -64,6 +70,8 @@ class Solution:
         return count
 ```
 
+---
+
 ## Explanation
 The condition a == b simplifies to the XOR from i to k being zero, i.e., prefix[k+1] ^ prefix[i] == 0, or prefix[i] == prefix[k+1].
 
@@ -71,8 +79,12 @@ The condition a == b simplifies to the XOR from i to k being zero, i.e., prefix[
 2. For each pair i < k, check if prefix[i] == prefix[k+1]. If yes, then for each j from i+1 to k, the triplet (i, j, k) satisfies the condition, so add (k - i) to the count.
 3. Return the total count.
 
+---
+
 ## Time Complexity
 **O(n^2)**, acceptable since n <= 300.
+
+---
 
 ## Space Complexity
 **O(n)**, for the prefix array.

@@ -29,12 +29,16 @@ Output: `1859`
 Input: `costs = [[515,563],[451,713],[537,709],[343,819],[855,779],[457,60],[650,359],[631,42]]`
 Output: `3086`
 
+---
+
 ## Constraints
 
 - `2 * n == costs.length`
 - `2 <= costs.length <= 100`
 - `costs.length` is even.
 - `1 <= aCost_i, bCost_i <= 1000`
+
+---
 
 ## Solution
 
@@ -52,6 +56,8 @@ class Solution:
             total += costs[i][1]
         return total
 ```
+
+---
 
 ## Explanation
 

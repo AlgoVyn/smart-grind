@@ -6,6 +6,8 @@ Given a circular integer array `nums` (i.e., the next element of `nums[nums.leng
 
 The next greater number of a number `x` is the first greater number to its traversing-order next in the array, which means you could search circularly to find its next greater number. If it doesn't exist, return -1 for this number.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -37,10 +39,14 @@ nums = [1, 2, 3, 4, 3]
 [2, 3, 4, -1, 4]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 10^4`
 - `-10^9 <= nums[i] <= 10^9`
+
+---
 
 ## Solution
 
@@ -60,6 +66,8 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the next greater element for each element in a circular array.
@@ -75,6 +83,8 @@ This problem requires finding the next greater element for each element in a cir
 4. Push the current index `% n` onto the stack.
 
 5. Elements with no greater element remain -1.
+
+---
 
 ## Complexity Analysis
 

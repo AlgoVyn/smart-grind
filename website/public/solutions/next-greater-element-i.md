@@ -10,6 +10,8 @@ For each `0 <= i < nums1.length`, find the index `j` such that `nums1[i] == nums
 
 Return an array `ans` of length `nums1.length` such that `ans[i]` is the next greater element as described above.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -47,6 +49,8 @@ The next greater element for each value of nums1 is as follows:
 - 2 is underlined in nums2 = [1, 2, 3, 4]. The next greater element is 3.
 - 4 is underlined in nums2 = [1, 2, 3, 4]. There is no next greater element, so the answer is -1.
 
+---
+
 ## Constraints
 
 - `1 <= nums1.length <= nums2.length <= 1000`
@@ -55,6 +59,8 @@ The next greater element for each value of nums1 is as follows:
 - All the integers of nums1 also appear in nums2.
 
 **Follow up:** Could you find an O(nums1.length + nums2.length) solution?
+
+---
 
 ## Solution
 
@@ -72,6 +78,8 @@ class Solution:
         return [next_greater.get(num, -1) for num in nums1]
 ```
 
+---
+
 ## Explanation
 
 This problem requires finding the next greater element for each element in nums1 from nums2.
@@ -85,6 +93,8 @@ This problem requires finding the next greater element for each element in nums1
 3. Push i.
 
 4. For nums1, for each value, if in map, use `map[value]`, else -1.
+
+---
 
 ## Complexity Analysis
 

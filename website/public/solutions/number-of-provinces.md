@@ -10,6 +10,8 @@ You are given an n x n matrix `isConnected` where `isConnected[i][j] = 1` if the
 
 Return the total number of provinces.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -36,6 +38,8 @@ isConnected = [[1,0,0],[0,1,0],[0,0,1]]
 3
 ```
 
+---
+
 ## Constraints
 
 - `1 <= n <= 200`
@@ -44,6 +48,8 @@ isConnected = [[1,0,0],[0,1,0],[0,0,1]]
 - `isConnected[i][j]` is 1 or 0.
 - `isConnected[i][i] == 1`
 - `isConnected[i][j] == isConnected[j][i]`
+
+---
 
 ## Solution
 
@@ -73,6 +79,8 @@ class Solution:
         return sum(1 for i in range(n) if parent[i] == i)
 ```
 
+---
+
 ## Explanation
 
 Provinces are groups of directly or indirectly connected cities. We use Union-Find to group connected cities.
@@ -86,6 +94,8 @@ Provinces are groups of directly or indirectly connected cities. We use Union-Fi
 3. Iterate through the upper triangle of the matrix; if cities i and j are connected, union them.
 
 4. Count the number of unique parents (roots).
+
+---
 
 ## Complexity Analysis
 

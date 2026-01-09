@@ -52,6 +52,8 @@ grid = ["/\\","\\/"]
 - `1 <= n <= 30`
 - `grid[i][j]` is either `'/'`, `'\'`, or `' '`.
 
+---
+
 ## Solution
 
 ```python
@@ -91,6 +93,8 @@ class Solution:
         
         return sum(1 for i in range(len(parent)) if parent[i] == i)
 ```
+
+---
 
 ## Explanation
 

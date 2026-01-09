@@ -6,6 +6,8 @@ You are a professional robber planning to rob houses along a street. Each house 
 
 Given an integer array `nums` representing the amount of money of each house, return the maximum amount of money you can rob tonight without alerting the police.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -24,10 +26,14 @@ Given an integer array `nums` representing the amount of money of each house, re
 
 **Explanation:** Rob house 1 (money = 2), house 3 (money = 9), and house 5 (money = 1). Total = `2 + 9 + 1 = 12`.
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 100`
 - `0 <= nums[i] <= 400`
+
+---
 
 ## Solution
 
@@ -41,6 +47,8 @@ class Solution:
             prev, curr = curr, max(curr, prev + num)
         return curr
 ```
+
+---
 
 ## Explanation
 
@@ -58,6 +66,8 @@ For each house with amount `num`:
 - Option 2: Rob current house → `prev + num` (previous of previous + current)
 
 Update: `prev, curr = curr, max(curr, prev + num)`
+
+---
 
 ## Complexity Analysis
 

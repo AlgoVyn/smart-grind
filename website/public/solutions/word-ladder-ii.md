@@ -53,6 +53,8 @@ beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log"]
 - All the words in `wordList` are unique.
 - The sum of all shortest transformation sequences does not exceed `10^5`.
 
+---
+
 ## Solution
 
 ```python
@@ -103,6 +105,8 @@ class Solution:
             build_paths(endWord, [endWord])
         return result
 ```
+
+---
 
 ## Explanation
 

@@ -76,6 +76,8 @@ false
 - `1 <= s.length <= 10^4`
 - `s` consists of parentheses only `'()[]{}'`
 
+---
+
 ## Solution
 
 ```python
@@ -92,6 +94,8 @@ class Solution:
                 stack.append(char)
         return not stack
 ```
+
+---
 
 ## Explanation
 

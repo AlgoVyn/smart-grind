@@ -10,6 +10,8 @@ You want to know in how many ways you can travel from intersection 0 to intersec
 
 Return the number of ways you can arrive at your destination in the shortest amount of time. Since the answer may be large, return it modulo 10^9 + 7.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -48,6 +50,8 @@ n = 2, roads = [[1,0,10]]
 **Explanation:**
 There is only one way to go from intersection 0 to intersection 1, and it takes 10 minutes.
 
+---
+
 ## Constraints
 
 - `1 <= n <= 200`
@@ -58,6 +62,8 @@ There is only one way to go from intersection 0 to intersection 1, and it takes 
 - `ui != vi`
 - There is at most one road connecting any two intersections.
 - You can reach any intersection from any other intersection.
+
+---
 
 ## Solution
 
@@ -94,6 +100,8 @@ class Solution:
         return ways[n - 1]
 ```
 
+---
+
 ## Explanation
 
 We need to find the number of ways to reach node n-1 from node 0 in the shortest time. We use Dijkstra's algorithm modified to count ways.
@@ -112,6 +120,8 @@ We need to find the number of ways to reach node n-1 from node 0 in the shortest
    - If the distance is equal, add the current node's ways to the neighbor's ways (modulo 10^9+7).
 
 5. Return `ways[n-1]`.
+
+---
 
 ## Complexity Analysis
 

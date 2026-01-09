@@ -39,6 +39,8 @@ Return the maximum possible frequency of an element after performing at most k o
 - 1 <= nums[i] <= 10^5
 - 1 <= k <= 10^5
 
+---
+
 ## Solution
 
 ```python

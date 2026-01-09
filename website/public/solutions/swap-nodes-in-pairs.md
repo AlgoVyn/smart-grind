@@ -24,10 +24,14 @@ Output: `[1]`
 Input: `head = [1,2,3]`
 Output: `[2,1,3]`
 
+---
+
 ## Constraints
 
 - The number of nodes in the list is in the range `[0, 100]`.
 - `0 <= Node.val <= 100`
+
+---
 
 ## Solution
 
@@ -57,6 +61,8 @@ def swapPairs(head: ListNode) -> ListNode:
 
     return dummy.next
 ```
+
+---
 
 ## Explanation
 

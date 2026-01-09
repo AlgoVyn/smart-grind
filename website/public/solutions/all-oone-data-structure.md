@@ -12,6 +12,8 @@ Implement the AllOne class:
 
 Note that each function must run in O(1) average time complexity.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -39,12 +41,16 @@ allOne.getMaxKey(); // return "hello"
 allOne.getMinKey(); // return "leet"
 ```
 
+---
+
 ## Constraints
 
 - `1 <= key.length <= 10`
 - `key` consists of lowercase English letters.
 - It is guaranteed that for each call to `dec`, key is existing in the data structure.
 - At most `5 * 10^4` calls will be made to `inc`, `dec`, `getMaxKey`, and `getMinKey`.
+
+---
 
 ## Solution
 
@@ -132,6 +138,8 @@ class AllOne:
             return ""
         return next(iter(self.head.next.keys))
 ```
+
+---
 
 ## Explanation
 

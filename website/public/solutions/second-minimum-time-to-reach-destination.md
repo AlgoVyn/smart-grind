@@ -53,6 +53,8 @@ The second minimum time path is `1 -> 2 -> 1 -> 2` with time = 11 minutes.
 - Each vertex can be reached directly or indirectly from every other vertex
 - `1 <= time, change <= 10^3`
 
+---
+
 ## Solution
 
 ```python
@@ -95,6 +97,8 @@ def secondMinimum(n: int, edges: List[List[int]], time: int, change: int) -> int
 
     return dist[n][1]
 ```
+
+---
 
 ## Explanation
 

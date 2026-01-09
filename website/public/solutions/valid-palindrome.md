@@ -55,6 +55,8 @@ true
 - `1 <= s.length <= 2 * 10^5`
 - `s` consists only of printable ASCII characters.
 
+---
+
 ## Solution
 
 ```python
@@ -63,6 +65,8 @@ class Solution:
         cleaned = ''.join(c.lower() for c in s if c.isalnum())
         return cleaned == cleaned[::-1]
 ```
+
+---
 
 ## Explanation
 

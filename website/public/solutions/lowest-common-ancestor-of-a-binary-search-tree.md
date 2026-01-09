@@ -6,6 +6,8 @@ Given a binary search tree (BST), find the lowest common ancestor (LCA) node of 
 
 According to the definition of LCA on Wikipedia: "The lowest common ancestor is defined between two nodes p and q as the lowest node in T that has both p and q as descendants (where we allow a node to be a descendant of itself)."
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -30,6 +32,8 @@ According to the definition of LCA on Wikipedia: "The lowest common ancestor is 
 
 **Output:** `2`
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[2, 10^5]`.
@@ -37,6 +41,8 @@ According to the definition of LCA on Wikipedia: "The lowest common ancestor is 
 - All `Node.val` are unique.
 - `p != q`
 - `p` and `q` will exist in the BST.
+
+---
 
 ## Solution
 
@@ -59,6 +65,8 @@ class Solution:
                 return root
 ```
 
+---
+
 ## Explanation
 
 Since the tree is a binary search tree, the values are ordered. We start from the root and traverse down.
@@ -68,6 +76,8 @@ Since the tree is a binary search tree, the values are ordered. We start from th
 - Otherwise, the current node is the LCA, as it is the split point where `p` and `q` diverge.
 
 This iterative approach ensures we find the LCA efficiently.
+
+---
 
 ## Complexity Analysis
 

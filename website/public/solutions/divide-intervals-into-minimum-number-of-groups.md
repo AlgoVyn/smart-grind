@@ -6,6 +6,8 @@ You have to divide the intervals into one or more groups such that each interval
 Return the minimum number of groups you need to make.
 Two intervals intersect if there is at least one common number between them. For example, the intervals [1, 5] and [5, 8] intersect.
 
+---
+
 ## Examples
 
 **Input:**
@@ -18,11 +20,15 @@ intervals = [[5,10],[6,8],[1,5],[2,3],[1,10]]
 3
 ```
 
+---
+
 ## Constraints
 
 - `1 <= intervals.length <= 10^5`
 - `intervals[i].length == 2`
 - `1 <= lefti <= righti <= 10^6`
+
+---
 
 ## Solution
 
@@ -45,6 +51,8 @@ class Solution:
             max_groups = max(max_groups, len(heap))
         return max_groups
 ```
+
+---
 
 ## Explanation
 To solve this problem, we need to find the minimum number of groups such that no two intervals in the same group overlap. This is equivalent to finding the maximum number of intervals that overlap at any point in time.

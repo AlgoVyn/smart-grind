@@ -27,6 +27,8 @@ Given the head of a singly linked list and two integers `left` and `right` where
 
 **Follow-up:** Could you do it in one pass?
 
+---
+
 ## Solution
 
 ```python
@@ -51,6 +53,8 @@ class Solution:
             prev.next = temp
         return dummy.next
 ```
+
+---
 
 ## Explanation
 

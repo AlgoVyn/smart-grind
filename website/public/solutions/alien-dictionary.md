@@ -6,6 +6,8 @@ There is a new alien language that uses the English alphabet. However, the order
 
 You are given a list of strings `words` from the alien dictionary. The strings in `words` are sorted lexicographically according to the alien language. Return a string representing the unique ordering of characters that is consistent with the given list of words. If there are multiple valid orderings, return any one. If no valid ordering exists, return an empty string.
 
+---
+
 ## Solution
 
 ```python
@@ -50,6 +52,8 @@ class Solution:
         return "".join(order)
 ```
 
+---
+
 ## Explanation
 
 To solve the Alien Dictionary problem, we need to determine the order of letters in an alien language based on a list of sorted words. This is a classic topological sorting problem where we build a graph of letter dependencies and use Kahn's algorithm (BFS-based topological sort) to find the order.
@@ -62,8 +66,12 @@ Next, we use Kahn's algorithm: we start with a queue of characters with indegree
 
 Finally, if the length of the order equals the number of unique letters, we return the joined order; otherwise, there's a cycle, so we return an empty string.
 
+---
+
 ## Time Complexity
 **O(N)**, where N is the total number of characters in all words, as we process each character a constant number of times.
+
+---
 
 ## Space Complexity
 **O(1)**, since there are at most 26 letters (the English alphabet).

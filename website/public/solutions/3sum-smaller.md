@@ -5,6 +5,8 @@ Given an integer array nums of length n and an integer target, find all triplets
 
 Return the count of triplets.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -38,10 +40,14 @@ nums = [0], target = 0
 0
 ```
 
+---
+
 ## Constraints
 - 0 <= nums.length <= 1000
 - -1000 <= nums[i] <= 1000
 - -1000 <= target <= 1000
+
+---
 
 ## Solution
 
@@ -64,6 +70,8 @@ class Solution:
         return count
 ```
 
+---
+
 ## Explanation
 To solve the 3Sum Smaller problem, we need to count the number of triplets where the sum is less than the target. The optimal approach is to sort the array and use a two-pointer technique.
 
@@ -75,8 +83,12 @@ If the sum is not less than the target, we decrement right to reduce the sum.
 
 This efficiently counts all valid triplets.
 
+---
+
 ## Time Complexity
 **O(n^2)**, where n is the length of the array, due to sorting (**O(n log n)**) and the two-pointer loops (**O(n^2)**).
+
+---
 
 ## Space Complexity
 **O(1)** additional space, as sorting is done in place.

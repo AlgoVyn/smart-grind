@@ -50,6 +50,8 @@ beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log"]
 - `beginWord != endWord`
 - All the words in `wordList` are unique.
 
+---
+
 ## Solution
 
 ```python
@@ -78,6 +80,8 @@ def ladderLength(beginWord: str, endWord: str, wordList: List[str]) -> int:
 
     return 0
 ```
+
+---
 
 ## Explanation
 

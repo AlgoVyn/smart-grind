@@ -30,6 +30,8 @@ Return the minimum number of semesters needed to take all courses. If it is impo
 - `1 <= prevCoursei, nextCoursei <= n`
 - `prevCoursei != nextCoursei`
 
+---
+
 ## Solution
 
 ```python
@@ -63,6 +65,8 @@ class Solution:
         
         return semesters if taken == n else -1
 ```
+
+---
 
 ## Explanation
 

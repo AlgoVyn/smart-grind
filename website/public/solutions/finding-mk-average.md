@@ -53,6 +53,8 @@ obj.calculateMKAverage(); // The last 3 elements are [5,5,5].
 - 1 <= num <= 10^5
 - At most 10^5 calls will be made to addElement and calculateMKAverage.
 
+---
+
 ## Solution
 
 ```python

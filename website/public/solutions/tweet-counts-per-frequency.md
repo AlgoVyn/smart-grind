@@ -47,11 +47,15 @@ tweetCounts.recordTweet("tweet3", 120);                            // New tweet 
 tweetCounts.getTweetCountsPerFrequency("hour", "tweet3", 0, 210);  // return [4]; chunk [0,210] had 4 tweets
 ```
 
+---
+
 ## Constraints
 
 - `0 <= time, startTime, endTime <= 10^9`
 - `0 <= endTime - startTime <= 10^4`
 - There will be at most `10^4` calls in total to `recordTweet` and `getTweetCountsPerFrequency`.
+
+---
 
 ## Solution
 
@@ -82,6 +86,8 @@ class TweetCounts:
             current_start = chunk_end + 1
         return result
 ```
+
+---
 
 ## Explanation
 

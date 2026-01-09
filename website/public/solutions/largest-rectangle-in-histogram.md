@@ -24,6 +24,8 @@ Output: 4
 - `1 <= heights.length <= 10^5`
 - `0 <= heights[i] <= 10^4`
 
+---
+
 ## Solution
 
 ```python
@@ -42,6 +44,8 @@ class Solution:
                 stack.append(i)
         return max_area
 ```
+
+---
 
 ## Explanation
 

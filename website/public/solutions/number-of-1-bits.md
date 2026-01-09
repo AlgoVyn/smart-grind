@@ -4,6 +4,8 @@
 
 Given a positive integer n, write a function that returns the number of set bits in its binary representation (also known as the Hamming weight).
 
+---
+
 ## Examples
 
 ### Example 1
@@ -51,11 +53,15 @@ n = 2147483645
 **Explanation:**
 The input binary string 1111111111111111111111111111101 has a total of thirty set bits.
 
+---
+
 ## Constraints
 
 - `1 <= n <= 2^31 - 1`
 
 **Follow up:** If this function is called many times, how would you optimize it?
+
+---
 
 ## Solution
 
@@ -68,6 +74,8 @@ class Solution:
             n >>= 1
         return count
 ```
+
+---
 
 ## Explanation
 
@@ -82,6 +90,8 @@ To count the number of 1 bits (Hamming weight) in the binary representation of a
 3. Right shift the number by 1 to check the next bit (`n >>= 1`).
 
 4. Repeat until the number becomes 0.
+
+---
 
 ## Complexity Analysis
 

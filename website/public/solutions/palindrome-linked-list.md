@@ -23,6 +23,8 @@ Given the head of a singly linked list, return `true` if it is a palindrome or `
 
 Could you do it in O(n) time and O(1) space?
 
+---
+
 ## Solution
 
 ```
@@ -63,6 +65,8 @@ class Solution:
             second = second.next
         return True
 ```
+
+---
 
 ## Explanation
 

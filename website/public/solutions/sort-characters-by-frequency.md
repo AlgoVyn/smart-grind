@@ -30,6 +30,9 @@ Constraints:
 
 1 <= s.length <= 5 * 105
 s consists of uppercase and lowercase English letters and digits.
+
+---
+
 ## Solution
 
 ```python
@@ -43,6 +46,8 @@ def frequencySort(s):
         result.append(char * freq)
     return ''.join(result)
 ```
+
+---
 
 ## Explanation
 This problem sorts characters in a string by their frequency in decreasing order.

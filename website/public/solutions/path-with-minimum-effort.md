@@ -36,6 +36,8 @@ Return the minimum effort required to travel from the top-left cell to the botto
 - `1 <= rows, columns <= 100`
 - `1 <= heights[i][j] <= 10^6`
 
+---
+
 ## Solution
 
 ```python
@@ -69,6 +71,8 @@ class Solution:
                 left = mid + 1
         return left
 ```
+
+---
 
 ## Explanation
 

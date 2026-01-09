@@ -46,6 +46,8 @@ We choose not to swap any subarray. The score is `max(sum(nums1), sum(nums2)) = 
 - `1 <= n <= 10^5`
 - `1 <= nums1[i], nums2[i] <= 10^4`
 
+---
+
 ## Solution
 
 ```python
@@ -84,6 +86,8 @@ class Solution:
 
         return ans
 ```
+
+---
 
 ## Explanation
 

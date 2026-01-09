@@ -5,6 +5,8 @@
 Given the root of a binary tree, the value of a target node `target`, and an integer `k`, return an array of the values of all nodes that have a distance `k` from the target node.
 You can return the answer in any order.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -33,6 +35,8 @@ root = [1], target = 1, k = 3
 []
 ```
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[1, 500]`.
@@ -40,6 +44,8 @@ root = [1], target = 1, k = 3
 - All the values `Node.val` are unique.
 - `target` is the value of one of the nodes in the tree.
 - `0 <= k <= 1000`
+
+---
 
 ## Solution
 
@@ -91,6 +97,8 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 
 To solve this problem, we need to find all nodes in a binary tree that are exactly K distance away from a given target node. Since a binary tree is not inherently a graph with bidirectional edges, we first convert it into an undirected graph by building an adjacency list. This is done using a DFS traversal where we add edges between parent and child nodes.
@@ -101,8 +109,12 @@ Once the graph is built, we perform a BFS starting from the target node. We use 
 
 During BFS, when we encounter a node at distance exactly K, we add its value to the result list. We stop adding to the queue once the distance exceeds K to optimize performance.
 
+---
+
 ## Time Complexity
 **O(N)** in the worst case, as we might visit all nodes.
+
+---
 
 ## Space Complexity
 **O(N)** due to the graph storage and the queue.

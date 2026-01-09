@@ -6,6 +6,8 @@ Given the head of a singly linked list, return the **middle node** of the linked
 
 If there are **two middle nodes**, return the **second middle node**.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -24,10 +26,14 @@ If there are **two middle nodes**, return the **second middle node**.
 
 **Explanation:** Since the list has two middle nodes (values 3 and 4), we return the second one (value 4).
 
+---
+
 ## Constraints
 
 - The number of nodes in the list is in the range `[1, 100]`
 - `1 <= Node.val <= 100`
+
+---
 
 ## Solution
 
@@ -56,6 +62,8 @@ class Solution:
         return slow
 ```
 
+---
+
 ## Explanation
 
 We use the **slow and fast pointer** (tortoise and hare) technique:
@@ -68,6 +76,8 @@ We use the **slow and fast pointer** (tortoise and hare) technique:
 This works because:
 - In a list with odd length: `fast` reaches the last node, `slow` is at the center.
 - In a list with even length: `fast` becomes `None`, `slow` is at the second middle node.
+
+---
 
 ## Complexity Analysis
 

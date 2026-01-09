@@ -27,6 +27,8 @@ Given an `m x n` integer matrix `matrix`, if an element is `0`, set its entire r
 - A simple improvement uses O(m + n) space, but still not the best solution.
 - Could you devise a constant space solution?
 
+---
+
 ## Solution
 
 ```python
@@ -67,6 +69,8 @@ class Solution:
             for i in range(m):
                 matrix[i][0] = 0
 ```
+
+---
 
 ## Explanation
 

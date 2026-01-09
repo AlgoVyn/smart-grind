@@ -45,6 +45,9 @@ Constraints:
 1 <= timestamp, price <= 109
 At most 105 calls will be made in total to update, current, maximum, and minimum.
 current, maximum, and minimum will be called only after update has been called at least once.
+
+---
+
 ## Solution
 
 ```python
@@ -79,6 +82,8 @@ class StockPrice:
             heapq.heappop(self.minheap)
         return self.minheap[0][0]
 ```
+
+---
 
 ## Explanation
 

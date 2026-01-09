@@ -28,6 +28,8 @@ Return an array `answer` of length `n`, where each `answer[x]` is the length of 
 - `redEdges[i].length == blueEdges[j].length == 2`
 - `0 <= ai, bi, uj, vj < n`
 
+---
+
 ## Solution
 
 ```python
@@ -59,6 +61,8 @@ class Solution:
         
         return dist
 ```
+
+---
 
 ## Explanation
 

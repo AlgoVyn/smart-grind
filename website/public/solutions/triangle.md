@@ -25,6 +25,8 @@ The minimum path sum from top to bottom is `2 + 3 + 5 + 1 = 11` (underlined abov
 Input: `triangle = [[-10]]`
 Output: `-10`
 
+---
+
 ## Constraints
 
 - `1 <= triangle.length <= 200`
@@ -33,6 +35,8 @@ Output: `-10`
 - `-10^4 <= triangle[i][j] <= 10^4`
 
 **Follow up:** Could you do this using only O(n) extra space, where n is the total number of rows in the triangle?
+
+---
 
 ## Solution
 
@@ -50,6 +54,8 @@ class Solution:
 
         return triangle[0][0]
 ```
+
+---
 
 ## Explanation
 

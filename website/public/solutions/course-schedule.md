@@ -7,6 +7,8 @@ For example, the pair [0, 1], indicates that to take course 0 you have to first 
 
 Return true if you can finish all courses. Otherwise, return false.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -37,6 +39,8 @@ false
 
 **Explanation:** There are a total of 2 courses to take. To take course 1 you should have finished course 0, and to take course 0 you should also have finished course 1. So it is impossible.
 
+---
+
 ## Constraints
 
 - `1 <= numCourses <= 2000`
@@ -44,6 +48,8 @@ false
 - `prerequisites[i].length == 2`
 - `0 <= ai, bi < numCourses`
 - All the pairs prerequisites[i] are unique.
+
+---
 
 ## Solution
 
@@ -74,6 +80,8 @@ class Solution:
         return count == numCourses
 ```
 
+---
+
 ## Explanation
 This is a cycle detection problem in a directed graph. Use topological sort with Kahn's algorithm.
 
@@ -82,8 +90,12 @@ This is a cycle detection problem in a directed graph. Use topological sort with
 3. Process each course, reduce indegree of dependents, and enqueue if indegree becomes 0.
 4. If all courses are processed (count == numCourses), no cycle; otherwise, cycle exists.
 
+---
+
 ## Time Complexity
 **O(V + E)**, where V is numCourses and E is prerequisites.
+
+---
 
 ## Space Complexity
 **O(V + E)**, for graph and indegree.

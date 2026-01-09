@@ -50,6 +50,8 @@ productOfNumbers.getProduct(2); // return 32. The product of the last 2 numbers 
 
 Can you implement both GetProduct and Add to work in O(1) time complexity instead of O(k) time complexity?
 
+---
+
 ## Solution
 
 ```python
@@ -69,6 +71,8 @@ class ProductOfNumbers:
             return 0
         return self.prefix[-1] // self.prefix[-1 - k]
 ```
+
+---
 
 ## Explanation
 

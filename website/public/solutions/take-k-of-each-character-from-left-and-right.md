@@ -24,11 +24,15 @@ Output: `-1`
 
 Explanation: It is not possible to take one 'b' or 'c' so return `-1`.
 
+---
+
 ## Constraints
 
 - `1 <= s.length <= 10^5`
 - `s` consists of only the letters 'a', 'b', and 'c'.
 - `0 <= k <= s.length`
+
+---
 
 ## Solution
 
@@ -67,6 +71,8 @@ class Solution:
             return -1
         return n - min_len
 ```
+
+---
 
 ## Explanation
 

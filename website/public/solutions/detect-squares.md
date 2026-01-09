@@ -14,6 +14,8 @@ Implement the DetectSquares class:
 - `void add(int[] point)` Adds a new point point = [x, y] to the data structure.
 - `int count(int[] point)` Counts the number of ways to form axis-aligned squares with point point = [x, y] as described above.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -44,11 +46,15 @@ detectSquares.count([11, 10]); // return 2. You can choose:
                                //   - The first, third, and fourth points
 ```
 
+---
+
 ## Constraints
 
 - `point.length == 2`
 - `0 <= x, y <= 1000`
 - At most 3000 calls in total will be made to add and count.
+
+---
 
 ## Solution
 
@@ -78,6 +84,8 @@ class DetectSquares:
                     res += self.points[qx][y] * self.points[x][qy]
         return res
 ```
+
+---
 
 ## Explanation
 The DetectSquares class uses a nested defaultdict to count the frequency of each point.

@@ -14,6 +14,8 @@ A **closed interval** `[a, b]` (with `a <= b`) denotes the set of real numbers `
 
 The intersection of two closed intervals is a set of real numbers that is either empty or represented as a closed interval. For example, the intersection of `[1, 3]` and `[2, 4]` is `[2, 3]`.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -28,6 +30,8 @@ The intersection of two closed intervals is a set of real numbers that is either
 |-------|--------|
 | `firstList = [[1,3],[5,9]]`<br>`secondList = []` | `[]` |
 
+---
+
 ## Constraints
 
 - `0 <= firstList.length, secondList.length <= 1000`
@@ -36,6 +40,8 @@ The intersection of two closed intervals is a set of real numbers that is either
 - `endi < starti+1` (intervals are non-overlapping within each list)
 - `0 <= startj < endj <= 10⁹`
 - `endj < startj+1` (intervals are non-overlapping within each list)
+
+---
 
 ## Solution
 
@@ -68,6 +74,8 @@ class Solution:
         return res
 ```
 
+---
+
 ## Explanation
 
 This problem finds intersections of two lists of intervals using a two-pointer approach.
@@ -94,6 +102,8 @@ Since both lists are sorted and contain non-overlapping intervals, we can use tw
    - Otherwise, move pointer `j` forward
 
 5. **Repeat** until one list is exhausted.
+
+---
 
 ## Complexity Analysis
 

@@ -22,6 +22,8 @@ In other words, return `true` if one of `s1`'s permutations is the substring of 
 - `1 <= s1.length, s2.length <= 10^4`
 - `s1` and `s2` consist of lowercase English letters.
 
+---
+
 ## Solution
 
 ```python
@@ -44,6 +46,8 @@ class Solution:
                 return True
         return False
 ```
+
+---
 
 ## Explanation
 

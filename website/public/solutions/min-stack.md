@@ -16,6 +16,8 @@ Design a stack that supports `push`, `pop`, `top`, and retrieving the **minimum 
 
 All operations must run in **O(1)** time complexity.
 
+---
+
 ## Examples
 
 **Example:**
@@ -34,11 +36,15 @@ All operations must run in **O(1)** time complexity.
 6. `minStack.top()` — Returns `0`
 7. `minStack.getMin()` — Returns `-2`
 
+---
+
 ## Constraints
 
 - `-2^31 <= val <= 2^31 - 1`
 - Operations `pop`, `top`, and `getMin` will always be called on **non-empty** stacks
 - At most `3 * 10^4` calls will be made to `push`, `pop`, `top`, and `getMin`
+
+---
 
 ## Solution
 
@@ -73,6 +79,8 @@ class MinStack:
         return self.min_stack[-1]
 ```
 
+---
+
 ## Explanation
 
 We use **two stacks** to track values and their corresponding minimums:
@@ -92,6 +100,8 @@ We use **two stacks** to track values and their corresponding minimums:
 
 **For `getMin()`**:
 - Return the top element of `min_stack`.
+
+---
 
 ## Complexity Analysis
 

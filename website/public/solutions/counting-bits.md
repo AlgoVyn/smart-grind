@@ -3,6 +3,8 @@
 ## Problem Description
 Given an integer n, return an array ans of length n + 1 such that for each i (0 <= i <= n), ans[i] is the number of 1's in the binary representation of i.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -42,9 +44,13 @@ n = 5
 - 4 --> 100
 - 5 --> 101
 
+---
+
 ## Constraints
 
 - `0 <= n <= 10^5`
+
+---
 
 ## Solution
 
@@ -59,6 +65,8 @@ class Solution:
         return ans
 ```
 
+---
+
 ## Explanation
 This problem requires counting the number of 1's in the binary representation for each number from 0 to n. A naive approach would be to iterate through each number and count the bits, but that would be O(n log n) due to the bit counting for each number.
 
@@ -70,8 +78,12 @@ To achieve O(n) time, we use dynamic programming. We observe that for any number
 2. For each i from 1 to n, compute ans[i] using the relation ans[i] = ans[i // 2] + (i % 2).
 3. Return the array.
 
+---
+
 ## Time Complexity
 **O(n)**, as we perform a single pass through the numbers from 1 to n.
+
+---
 
 ## Space Complexity
 **O(n)**, for storing the result array.

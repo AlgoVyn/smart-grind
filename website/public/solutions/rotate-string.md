@@ -27,6 +27,8 @@ For example, if `s = "abcde"`, then it will be `"bcdea"` after one shift.
 - `1 <= s.length, goal.length <= 100`
 - `s` and `goal` consist of lowercase English letters.
 
+---
+
 ## Solution
 
 ```python
@@ -34,6 +36,8 @@ class Solution:
     def rotateString(self, s: str, goal: str) -> bool:
         return len(s) == len(goal) and goal in s + s
 ```
+
+---
 
 ## Explanation
 

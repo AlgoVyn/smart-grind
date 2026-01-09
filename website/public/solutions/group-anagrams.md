@@ -2,6 +2,9 @@
 
 ## Problem Description
 Given an array of strings strs, group the anagrams together. You can return the answer in any order.
+
+---
+
 ## Examples
 
 **Example 1:**
@@ -46,11 +49,16 @@ strs = ["a"]
 [["a"]]
 ```
 
+---
+
 ## Constraints
 
 - 1 <= strs.length <= 10^4
 - 0 <= strs[i].length <= 100
 - strs[i] consists of lowercase English letters.
+
+---
+
 ## Solution
 
 ```python
@@ -66,6 +74,8 @@ class Solution:
         return list(groups.values())
 ```
 
+---
+
 ## Explanation
 This problem groups strings that are anagrams together.
 
@@ -75,8 +85,12 @@ Use a defaultdict to group strings by their sorted version.
 
 Return the list of groups.
 
+---
+
 ## Time Complexity
 **O(n * k log k)**, where n is number of strings, k is max length, for sorting.
+
+---
 
 ## Space Complexity
 **O(n * k)** for storing the strings in groups.

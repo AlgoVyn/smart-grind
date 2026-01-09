@@ -6,6 +6,8 @@ Given the root of a binary tree, **invert** the tree, and return its root.
 
 Inverting a binary tree means swapping every left and right child node. This operation transforms the tree into the mirror image of itself.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -26,10 +28,14 @@ Inverting a binary tree means swapping every left and right child node. This ope
 |-------|--------|
 | `root = []` | `[]` |
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[0, 100]`.
 - `-100 <= Node.val <= 100`
+
+---
 
 ## Solution
 
@@ -57,6 +63,8 @@ class Solution:
         return root
 ```
 
+---
+
 ## Explanation
 
 This problem inverts a binary tree by swapping left and right subtrees recursively.
@@ -77,6 +85,8 @@ This problem inverts a binary tree by swapping left and right subtrees recursive
 
 - **Iterative (BFS):** Use a queue to process nodes level by level, swapping children at each node.
 - **Iterative (DFS):** Use a stack for depth-first traversal with explicit stack management.
+
+---
 
 ## Complexity Analysis
 

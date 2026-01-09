@@ -4,6 +4,8 @@
 
 Given an array of intervals `intervals` where `intervals[i] = [start_i, end_i]`, merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all intervals in the input.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -30,11 +32,15 @@ Given an array of intervals `intervals` where `intervals[i] = [start_i, end_i]`,
 
 **Explanation:** Intervals `[1,4]` and `[4,7]` are considered overlapping.
 
+---
+
 ## Constraints
 
 - `1 <= intervals.length <= 10^4`
 - `intervals[i].length == 2`
 - `0 <= start_i <= end_i <= 10^4`
+
+---
 
 ## Solution
 
@@ -64,6 +70,8 @@ class Solution:
         return merged
 ```
 
+---
+
 ## Explanation
 
 1. **Sort intervals** by their start times.
@@ -71,6 +79,8 @@ class Solution:
    - If **overlapping** (`current[0] <= last[1]`), merge by extending the end time.
    - If **non-overlapping**, add the current interval to the merged list.
 3. Return the merged list containing all non-overlapping intervals.
+
+---
 
 ## Complexity Analysis
 

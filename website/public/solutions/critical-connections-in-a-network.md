@@ -34,6 +34,9 @@ n - 1 <= connections.length <= 105
 0 <= ai, bi <= n - 1
 ai != bi
 There are no repeated connections.
+
+---
+
 ## Solution
 
 ```python
@@ -74,6 +77,8 @@ class Solution:
         return bridges
 ```
 
+---
+
 ## Explanation
 Critical connections (bridges) are edges whose removal increases the number of connected components. Use Tarjan's algorithm with DFS.
 
@@ -82,8 +87,12 @@ Critical connections (bridges) are edges whose removal increases the number of c
 3. For each edge curr -> nei, if low[nei] > disc[curr], it's a bridge.
 4. Collect all such edges.
 
+---
+
 ## Time Complexity
 **O(V + E)**, where V is n and E is connections.
+
+---
 
 ## Space Complexity
 **O(V + E)**, for graph and arrays.

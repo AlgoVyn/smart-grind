@@ -12,6 +12,8 @@ A happy number is a number defined by the following process:
 
 Return `true` if `n` is a happy number, and `false` if not.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -35,9 +37,13 @@ Return `true` if `n` is a happy number, and `false` if not.
 |-------|--------|
 | `n = 2` | `false` |
 
+---
+
 ## Constraints
 
 - `1 <= n <= 2³¹ - 1`
+
+---
 
 ## Solution
 
@@ -51,6 +57,8 @@ class Solution:
         return n == 1
 ```
 
+---
+
 ## Explanation
 
 We use a set to detect cycles during the transformation process:
@@ -58,6 +66,8 @@ We use a set to detect cycles during the transformation process:
 1. **Cycle Detection:** The set tracks all numbers we've seen. If we encounter a number again, we've found a cycle (not happy).
 2. **Transformation:** Repeatedly replace `n` with the sum of squares of its digits.
 3. **Termination:** The process ends when we reach 1 (happy) or detect a cycle (not happy).
+
+---
 
 ## Complexity Analysis
 

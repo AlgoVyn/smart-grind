@@ -10,7 +10,9 @@ Input: nums = [1,3,-1,-3,5,3,6,7], k = 3
 Output: [3,3,5,5,6,7]
 Explanation: 
 Window position                Max
+
 ---------------               -----
+
 [1  3  -1] -3  5  3  6  7       3
  1 [3  -1  -3] 5  3  6  7       3
  1  3 [-1  -3  5] 3  6  7       5
@@ -29,6 +31,9 @@ Constraints:
 1 <= nums.length <= 105
 -104 <= nums[i] <= 104
 1 <= k <= nums.length
+
+---
+
 ## Solution
 
 ```python
@@ -54,6 +59,8 @@ class Solution:
                 result.append(nums[dq[0]])
         return result
 ```
+
+---
 
 ## Explanation
 Use a deque to maintain indices of elements in decreasing order. For each i, remove indices out of the current window, remove indices with smaller values than current, add current index. The front of deque is the max for the window when full.

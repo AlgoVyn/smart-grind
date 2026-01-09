@@ -20,10 +20,14 @@ You are given an integer array `nums`. You are initially positioned at the array
 
 **Explanation:** You will always arrive at index 3 no matter what. Its maximum jump length is 0, which makes it impossible to reach the last index.
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 10^4`
 - `0 <= nums[i] <= 10^5`
+
+---
 
 ## Solution
 
@@ -48,6 +52,8 @@ class Solution:
         return current_end >= len(nums) - 1
 ```
 
+---
+
 ## Explanation
 
 This problem uses a greedy approach to determine if the last index is reachable.
@@ -64,6 +70,8 @@ This problem uses a greedy approach to determine if the last index is reachable.
 ### Key Insight
 
 We don't need to track every possible path. We only need to know the farthest position reachable with the jumps taken so far. If at any point the current position equals the end of our reachable range and we can't extend it further, we know the end is unreachable.
+
+---
 
 ## Complexity Analysis
 

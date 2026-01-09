@@ -14,6 +14,8 @@ Implement the MyCircularDeque class:
 - `boolean isEmpty()` Returns true if the deque is empty, or false otherwise.
 - `boolean isFull()` Returns true if the deque is full, or false otherwise.
 
+---
+
 ## Examples
 
 **Input:**
@@ -27,11 +29,15 @@ Implement the MyCircularDeque class:
 [null, true, true, true, false, 2, true, true, true, 4]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= k <= 1000`
 - `0 <= value <= 1000`
 - At most `2000` calls will be made to insertFront, insertLast, deleteFront, deleteLast, getFront, getRear, isEmpty, isFull.
+
+---
 
 ## Solution
 
@@ -92,6 +98,8 @@ class MyCircularDeque:
     def isFull(self) -> bool:
         return self.size == self.capacity
 ```
+
+---
 
 ## Explanation
 We use a fixed-size array with front and rear pointers to implement the circular deque.

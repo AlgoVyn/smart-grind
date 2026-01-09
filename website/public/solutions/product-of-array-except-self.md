@@ -27,6 +27,8 @@ You must write an algorithm that runs in O(n) time and without using the divisio
 
 Can you solve the problem in O(1) extra space complexity? (The output array does not count as extra space for space complexity analysis.)
 
+---
+
 ## Solution
 
 ```python
@@ -44,6 +46,8 @@ class Solution:
             right *= nums[i]
         return res
 ```
+
+---
 
 ## Explanation
 

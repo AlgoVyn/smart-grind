@@ -29,6 +29,8 @@ Output: `16`
 Explanation: The final route is shown.
 We need to wait until time 16 so that (0, 0) and (4, 4) are connected.
 
+---
+
 ## Constraints
 
 - `n == grid.length`
@@ -36,6 +38,8 @@ We need to wait until time 16 so that (0, 0) and (4, 4) are connected.
 - `1 <= n <= 50`
 - `0 <= grid[i][j] < n^2`
 - Each value `grid[i][j]` is unique.
+
+---
 
 ## Solution
 
@@ -72,6 +76,8 @@ def swimInWater(grid):
             left = mid + 1
     return left
 ```
+
+---
 
 ## Explanation
 

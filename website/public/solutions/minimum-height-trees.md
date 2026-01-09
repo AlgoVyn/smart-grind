@@ -10,6 +10,8 @@ Return a list of all MHTs' root labels. You can return the answer in any order.
 
 The height of a rooted tree is the number of edges on the longest downward path between the root and a leaf.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -39,6 +41,8 @@ n = 6, edges = [[3, 0], [3, 1], [3, 2], [3, 4], [5, 4]]
 [3, 4]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= n <= 2 * 10^4`
@@ -47,6 +51,8 @@ n = 6, edges = [[3, 0], [3, 1], [3, 2], [3, 4], [5, 4]]
 - `ai != bi`
 - All the pairs `(ai, bi)` are distinct
 - The given input is guaranteed to be a tree and there will be no repeated edges
+
+---
 
 ## Solution
 
@@ -88,6 +94,8 @@ class Solution:
         return leaves
 ```
 
+---
+
 ## Explanation
 
 The minimum height trees have their roots at the center(s) of the tree. We find the centers by iteratively removing leaves until 1 or 2 nodes remain.
@@ -101,6 +109,8 @@ The minimum height trees have their roots at the center(s) of the tree. We find 
    - Collect new leaves (nodes that become degree 1)
 
 4. **Return remaining nodes**: The remaining nodes (1 or 2) are the roots of MHTs.
+
+---
 
 ## Complexity Analysis
 

@@ -8,6 +8,8 @@ You want to achieve the **minimum possible maximum distance** between consecutiv
 
 Return this minimum possible maximum distance.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -24,11 +26,15 @@ Return this minimum possible maximum distance.
 |-------|--------|
 | `stations = [4,6,8,12,16], k = 5` | `1.5` |
 
+---
+
 ## Constraints
 
 - `2 <= stations.length <= 10^4`
 - `0 <= stations[i] <= 10^9`
 - `k >= 0`
+
+---
 
 ## Solution
 
@@ -62,6 +68,8 @@ class Solution:
         return left
 ```
 
+---
+
 ## Explanation
 
 We use **binary search** on the possible maximum distance to find the minimum achievable value:
@@ -82,6 +90,8 @@ We use **binary search** on the possible maximum distance to find the minimum ac
      - Otherwise: need larger distance (`left = mid`)
 
 4. Return `left`, the minimum achievable maximum distance.
+
+---
 
 ## Complexity Analysis
 

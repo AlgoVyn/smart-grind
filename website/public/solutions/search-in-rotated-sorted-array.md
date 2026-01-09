@@ -30,6 +30,8 @@ Given the array `nums` after the possible rotation and an integer `target`, retu
 - `nums` is an ascending array that is possibly rotated
 - `-10^4 <= target <= 10^4`
 
+---
+
 ## Solution
 
 ```python
@@ -59,6 +61,8 @@ def search(nums: List[int], target: int) -> int:
 
     return -1
 ```
+
+---
 
 ## Explanation
 

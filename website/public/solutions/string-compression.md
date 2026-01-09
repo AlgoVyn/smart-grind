@@ -76,6 +76,8 @@ Constraints:
 1 <= chars.length <= 2000
 chars[i] is a lowercase English letter, uppercase English letter, digit, or symbol.
 
+---
+
 ## Solution
 
 ```python
@@ -97,6 +99,8 @@ class Solution:
                     write += 1
         return write
 ```
+
+---
 
 ## Explanation
 We iterate through the array, counting consecutive characters. For each group, write the character and its count if greater than 1. This modifies the array in-place with O(n) time complexity.

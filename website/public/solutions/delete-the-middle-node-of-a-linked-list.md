@@ -7,6 +7,8 @@ The middle node of a linked list of size n is the ⌊n / 2⌋th node from the st
 
 For n = 1, 2, 3, 4, and 5, the middle nodes are 0, 1, 1, 2, and 2, respectively.
 
+---
+
 ## Examples
 
 **Input:**
@@ -19,10 +21,14 @@ head = [1,3,4,7,1,2,6]
 [1,3,4,1,2,6]
 ```
 
+---
+
 ## Constraints
 
 - The number of nodes in the list is in the range `[1, 10^5]`.
 - `1 <= Node.val <= 10^5`
+
+---
 
 ## Solution
 
@@ -41,6 +47,8 @@ class Solution:
         prev.next = slow.next
         return head
 ```
+
+---
 
 ## Explanation
 We use slow and fast pointers to find the middle node. Slow moves one step, fast two. When fast reaches the end, slow is at the middle. We remove it by updating the previous node's next. This is O(n) time and O(1) space.

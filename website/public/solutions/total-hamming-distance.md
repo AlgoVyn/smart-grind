@@ -21,11 +21,15 @@ The answer will be:
 Input: `nums = [4,14,4]`
 Output: `4`
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 10^4`
 - `0 <= nums[i] <= 10^9`
 - The answer for the given input will fit in a 32-bit integer.
+
+---
 
 ## Solution
 
@@ -44,6 +48,8 @@ class Solution:
             total += count * (n - count)
         return total
 ```
+
+---
 
 ## Explanation
 

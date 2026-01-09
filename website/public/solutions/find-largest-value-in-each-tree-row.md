@@ -4,10 +4,14 @@
 
 Given the root of a binary tree, return an array of the largest value in each row of the tree (0-indexed).
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree will be in the range [0, 104].
 - -231 <= Node.val <= 231 - 1
+
+---
 
 ## Example 1
 
@@ -21,6 +25,8 @@ root = [1,3,2,5,3,null,9]
 [1,3,9]
 ```
 
+---
+
 ## Example 2
 
 **Input:**
@@ -32,6 +38,8 @@ root = [1,2,3]
 ```python
 [1,3]
 ```
+
+---
 
 ## Solution
 
@@ -70,6 +78,8 @@ class Solution:
         
         return result
 ```
+
+---
 
 ## Explanation
 

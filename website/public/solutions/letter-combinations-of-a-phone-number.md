@@ -38,6 +38,8 @@ Output: ["a","b","c"]
 - `1 <= digits.length <= 4`
 - `digits[i]` is a digit in the range `['2', '9']`
 
+---
+
 ## Solution
 
 ```python
@@ -69,6 +71,8 @@ class Solution:
         backtrack(0, [])
         return result
 ```
+
+---
 
 ## Explanation
 

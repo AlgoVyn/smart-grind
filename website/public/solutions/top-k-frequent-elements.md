@@ -19,6 +19,8 @@ Output: `[1]`
 Input: `nums = [1,2,1,2,1,2,3,1,3,2]`, `k = 2`
 Output: `[1,2]`
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 10^5`
@@ -27,6 +29,8 @@ Output: `[1,2]`
 - It is guaranteed that the answer is unique.
 
 **Follow up:** Your algorithm's time complexity must be better than O(n log n), where n is the array's size.
+
+---
 
 ## Solution
 
@@ -40,6 +44,8 @@ class Solution:
         count = Counter(nums)
         return heapq.nlargest(k, count.keys(), key=count.get)
 ```
+
+---
 
 ## Explanation
 

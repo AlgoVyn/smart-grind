@@ -26,6 +26,8 @@ A tree is a connected graph with no cycles and has exactly n-1 edges.
 - `0 <= ui, vi < n`
 - No self-loops or multiple edges
 
+---
+
 ## Solution
 
 ```python
@@ -51,6 +53,8 @@ class Solution:
                 return False
         return True
 ```
+
+---
 
 ## Explanation
 

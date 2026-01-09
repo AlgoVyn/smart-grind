@@ -21,6 +21,8 @@ Output: `[1,2]`
 Input: `nums = [3,3]`, `target = 6`
 Output: `[0,1]`
 
+---
+
 ## Constraints
 
 - `2 <= nums.length <= 10^4`
@@ -29,6 +31,8 @@ Output: `[0,1]`
 - Only one valid answer exists.
 
 **Follow-up:** Can you come up with an algorithm that is less than O(n²) time complexity?
+
+---
 
 ## Solution
 
@@ -45,6 +49,8 @@ class Solution:
             seen[num] = i
         return []
 ```
+
+---
 
 ## Explanation
 

@@ -31,6 +31,8 @@ Output: `[1,2]`
 
 Explanation: The sum of -1 and 0 is -1. Therefore `index1 = 1`, `index2 = 2`. We return `[1, 2]`.
 
+---
+
 ## Constraints
 
 - `2 <= numbers.length <= 3 * 10^4`
@@ -40,6 +42,8 @@ Explanation: The sum of -1 and 0 is -1. Therefore `index1 = 1`, `index2 = 2`. We
 - The tests are generated such that there is exactly one solution.
 - You may not use the same element twice.
 - Your solution must use only constant extra space.
+
+---
 
 ## Solution
 
@@ -58,6 +62,8 @@ class Solution:
             else:
                 right -= 1
 ```
+
+---
 
 ## Explanation
 

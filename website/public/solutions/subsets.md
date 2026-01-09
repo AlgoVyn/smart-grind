@@ -15,11 +15,15 @@ Output: `[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]`
 Input: `nums = [0]`
 Output: `[[],[0]]`
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 10`
 - `-10 <= nums[i] <= 10`
 - All the numbers of `nums` are unique.
+
+---
 
 ## Solution
 
@@ -40,6 +44,8 @@ class Solution:
         backtrack(0, [])
         return result
 ```
+
+---
 
 ## Explanation
 

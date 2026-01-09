@@ -8,6 +8,8 @@ The path sum of a path is the sum of the node's values in the path.
 
 Given the root of a binary tree, return the maximum path sum of any non-empty path.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -38,10 +40,14 @@ root = [-10,9,20,null,null,15,7]
 
 **Explanation:** The optimal path is `15 -> 20 -> 7` with a path sum of `15 + 20 + 7 = 42`.
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[1, 3 * 10^4]`
 - `-1000 <= Node.val <= 1000`
+
+---
 
 ## Solution
 
@@ -71,6 +77,8 @@ class Solution:
         return self.max_sum
 ```
 
+---
+
 ## Explanation
 
 To find the maximum path sum in a binary tree, where a path can start and end at any node, we use a depth-first search (DFS) approach.
@@ -83,8 +91,12 @@ For the return value of `dfs`, we return the maximum path sum from the current n
 
 We initialize `max_sum` to negative infinity and call `dfs` on the root. This ensures we consider all possible paths.
 
+---
+
 ## Time Complexity
 **O(n)**, where n is the number of nodes, as we visit each node once.
+
+---
 
 ## Space Complexity
 **O(h)**, where h is the height of the tree, due to the recursion stack.

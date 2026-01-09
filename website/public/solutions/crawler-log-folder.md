@@ -16,6 +16,8 @@ The file system starts in the main folder, then the operations in logs are perfo
 
 Return the minimum number of operations needed to go back to the main folder after the change folder operations.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -56,6 +58,8 @@ logs = ["d1/","../","../","../"]
 0
 ```
 
+---
+
 ## Constraints
 
 - `1 <= logs.length <= 10^3`
@@ -63,6 +67,8 @@ logs = ["d1/","../","../","../"]
 - `logs[i]` contains lowercase English letters, digits, '.', and '/'.
 - `logs[i]` follows the format described in the statement.
 - Folder names consist of lowercase English letters and digits.
+
+---
 
 ## Solution
 
@@ -79,11 +85,17 @@ class Solution:
         return depth
 ```
 
+---
+
 ## Explanation
 We use a counter to track the current depth in the file system. For each log entry, if it's "../", we move up one directory if not already at the root. If it's "./", we stay in the same directory. Otherwise, we move into a subdirectory.
 
+---
+
 ## Time Complexity
 **O(n)**, where n is the number of log operations.
+
+---
 
 ## Space Complexity
 **O(1)**, as we use only a counter variable.

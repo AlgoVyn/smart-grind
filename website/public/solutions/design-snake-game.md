@@ -15,6 +15,8 @@ Rules of the game:
    - Otherwise, the snake moves normally (remove the tail to maintain length).
 4. The game ends when the snake collides with a wall or itself, or when all food has been eaten.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -64,6 +66,8 @@ snake.move("U"); // snake moves up, head at (0, 0), eats food [[1, 2]] at (0, 0)
 snake.move("R"); // snake moves right, head at (0, 1), hits wall, game over, return -1
 ```
 
+---
+
 ## Constraints
 
 - `1 <= width, height <= 100`
@@ -71,6 +75,8 @@ snake.move("R"); // snake moves right, head at (0, 1), hits wall, game over, ret
 - `0 <= food[i][1] < width`
 - `1 <= food.length <= 100`
 - At most 10^4 calls will be made to `move`.
+
+---
 
 ## Solution
 
@@ -121,6 +127,8 @@ class SnakeGame:
 
         return self.score
 ```
+
+---
 
 ## Explanation
 The SnakeGame class uses a deque for the snake body to efficiently add to head and remove from tail. A set tracks occupied positions for O(1) collision checks.

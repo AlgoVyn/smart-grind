@@ -7,6 +7,8 @@ You are also given a string array supplies containing all the ingredients that y
 Return a list of all the recipes that you can create. You may return the answer in any order.
 Note that two recipes may contain each other in their ingredients.
 
+---
+
 ## Constraints
 
 - n == recipes.length == ingredients.length
@@ -16,6 +18,8 @@ Note that two recipes may contain each other in their ingredients.
 - recipes[i], ingredients[i][j], and supplies[k] consist only of lowercase English letters.
 - All the values of recipes and supplies combined are unique.
 - Each ingredients[i] does not contain any duplicate values.
+
+---
 
 ## Example 1
 
@@ -31,6 +35,8 @@ recipes = ["bread"], ingredients = [["yeast","flour"]], supplies = ["yeast","flo
 
 **Explanation:**
 We can create "bread" since we have the ingredients "yeast" and "flour".
+
+---
 
 ## Example 2
 
@@ -48,6 +54,8 @@ recipes = ["bread","sandwich"], ingredients = [["yeast","flour"],["bread","meat"
 We can create "bread" since we have the ingredients "yeast" and "flour".
 We can create "sandwich" since we have the ingredient "meat" and can create the ingredient "bread".
 
+---
+
 ## Example 3
 
 **Input:**
@@ -64,6 +72,8 @@ recipes = ["bread","sandwich","burger"], ingredients = [["yeast","flour"],["brea
 We can create "bread" since we have the ingredients "yeast" and "flour".
 We can create "sandwich" since we have the ingredient "meat" and can create the ingredient "bread".
 We can create "burger" since we have the ingredient "meat" and can create the ingredients "bread" and "sandwich".
+
+---
 
 ## Solution
 
@@ -107,6 +117,8 @@ class Solution:
         
         return result
 ```
+
+---
 
 ## Explanation
 

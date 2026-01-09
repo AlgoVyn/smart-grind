@@ -4,6 +4,8 @@
 Given an array of distinct integers nums and a target integer target, return the number of possible combinations that add up to target.
 The test cases are generated so that the answer can fit in a 32-bit integer.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -42,12 +44,16 @@ nums = [9], target = 3
 0
 ```
 
+---
+
 ## Constraints
 
 - `1 <= nums.length <= 200`
 - `1 <= nums[i] <= 1000`
 - All the elements of nums are unique.
 - `1 <= target <= 1000`
+
+---
 
 ## Solution
 
@@ -65,6 +71,8 @@ class Solution:
         return dp[target]
 ```
 
+---
+
 ## Explanation
 To count the number of combinations that sum to target, where order matters and numbers can be used unlimited times, we use dynamic programming.
 
@@ -74,8 +82,12 @@ For each i from 1 to target, for each number in nums, if i >= num, we add dp[i -
 
 This accounts for order since we're building sequentially.
 
+---
+
 ## Time Complexity
 **O(target * len(nums))**, as we iterate through each target value and each number.
+
+---
 
 ## Space Complexity
 **O(target)** for the dp array.

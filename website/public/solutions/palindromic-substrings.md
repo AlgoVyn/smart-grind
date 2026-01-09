@@ -26,6 +26,8 @@ A substring is a contiguous sequence of characters within the string.
 - `1 <= s.length <= 1000`
 - `s` consists of lowercase English letters.
 
+---
+
 ## Solution
 
 ```python
@@ -45,6 +47,8 @@ class Solution:
             right += 1
         return count
 ```
+
+---
 
 ## Explanation
 

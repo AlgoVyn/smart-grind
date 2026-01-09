@@ -8,6 +8,8 @@ A stone can be removed if it shares either the same row or the same column as an
 
 Given an array `stones` of length `n` where `stones[i] = [xi, yi]` represents the location of the `i-th` stone, return the largest possible number of stones that can be removed.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -69,11 +71,15 @@ stones = [[0, 0]]
 **Explanation:**
 `[0, 0]` is the only stone on the plane, so you cannot remove it.
 
+---
+
 ## Constraints
 
 - `1 <= stones.length <= 1000`
 - `0 <= xi, yi <= 10^4`
 - No two stones are at the same coordinate point
+
+---
 
 ## Solution
 
@@ -136,6 +142,8 @@ class Solution:
         return n - len(components)
 ```
 
+---
+
 ## Explanation
 
 This problem involves removing stones that share the same row or column with at least one other stone.
@@ -149,6 +157,8 @@ This problem involves removing stones that share the same row or column with at 
 3. **Count components**: The number of stones that can be removed is:
    - `total stones - connected components`
    - Each component can leave one stone (the "representative")
+
+---
 
 ## Complexity Analysis
 

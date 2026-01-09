@@ -33,6 +33,8 @@ timeMap.get("foo", 4);         // return "bar2"
 timeMap.get("foo", 5);         // return "bar2"
 ```
 
+---
+
 ## Constraints
 
 - `1 <= key.length, value.length <= 100`
@@ -40,6 +42,8 @@ timeMap.get("foo", 5);         // return "bar2"
 - `1 <= timestamp <= 10^7`
 - All the timestamps `timestamp` of `set` are strictly increasing.
 - At most `2 * 10^5` calls will be made to `set` and `get`.
+
+---
 
 ## Solution
 
@@ -70,6 +74,8 @@ class TimeMap:
                 right = mid - 1
         return result
 ```
+
+---
 
 ## Explanation
 

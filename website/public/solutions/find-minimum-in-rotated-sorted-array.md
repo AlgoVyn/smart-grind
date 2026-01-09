@@ -47,6 +47,8 @@ Explanation: The original array was [11,13,15,17] and it was rotated 4 times.
 - All the integers of `nums` are unique.
 - `nums` is sorted and rotated between 1 and `n` times.
 
+---
+
 ## Solution
 
 ```python
@@ -63,6 +65,8 @@ class Solution:
                 right = mid
         return nums[left]
 ```
+
+---
 
 ## Explanation
 

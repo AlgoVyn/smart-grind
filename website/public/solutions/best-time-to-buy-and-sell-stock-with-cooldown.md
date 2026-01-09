@@ -9,6 +9,8 @@ After you sell your stock, you cannot buy stock on the next day (i.e., cooldown 
 
 **Note:** You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -37,10 +39,14 @@ prices = [1]
 0
 ```
 
+---
+
 ## Constraints
 
 - `1 <= prices.length <= 5000`
 - `0 <= prices[i] <= 1000`
+
+---
 
 ## Solution
 
@@ -62,14 +68,20 @@ class Solution:
         return max(sold, cooldown)
 ```
 
+---
+
 ## Explanation
 
 This solution uses dynamic programming with three states: `hold` (maximum profit when holding a stock), `sold` (maximum profit after selling on the current day), and `cooldown` (maximum profit after a cooldown day).
 
 We update these states for each price, ensuring we account for the cooldown period after selling.
 
+---
+
 ## Time Complexity
 **O(n)**, where n is the number of days.
+
+---
 
 ## Space Complexity
 **O(1)**, using constant space.

@@ -55,6 +55,8 @@ head = [1,2], n = 1
 
 **Follow-up:** Could you do this in one pass?
 
+---
+
 ## Solution
 
 ```python
@@ -70,6 +72,8 @@ class Solution:
         second.next = second.next.next
         return dummy.next
 ```
+
+---
 
 ## Explanation
 

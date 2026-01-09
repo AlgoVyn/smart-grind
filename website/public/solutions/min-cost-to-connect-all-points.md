@@ -12,6 +12,8 @@ cost = |x_i - x_j| + |y_i - y_j|
 
 Return the **minimum cost** to make all points connected, where all points are connected if there is **exactly one simple path** between any two points.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -28,11 +30,15 @@ Return the **minimum cost** to make all points connected, where all points are c
 |-------|--------|
 | `points = [[3,12],[-2,5],[-4,1]]` | `18` |
 
+---
+
 ## Constraints
 
 - `1 <= points.length <= 1000`
 - `-10^6 <= x_i, y_i <= 10^6`
 - All pairs `(x_i, y_i)` are distinct
+
+---
 
 ## Solution
 
@@ -70,6 +76,8 @@ class Solution:
         return total_cost
 ```
 
+---
+
 ## Explanation
 
 This problem is solved using **Prim's Algorithm** to construct the Minimum Spanning Tree (MST):
@@ -88,6 +96,8 @@ This problem is solved using **Prim's Algorithm** to construct the Minimum Spann
      - Add all edges from this point to unvisited points to the heap
 
 3. Return `total_cost`, which is the minimum cost to connect all points.
+
+---
 
 ## Complexity Analysis
 

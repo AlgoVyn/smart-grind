@@ -35,6 +35,8 @@ wordFilter.f("a", "e"); // return 0, because the word at index 0 has prefix = "a
 - `words[i], pref and suff` consist of lowercase English letters only.
 - At most `10^4` calls will be made to the function `f`.
 
+---
+
 ## Solution
 
 ```python
@@ -50,6 +52,8 @@ class WordFilter:
     def f(self, pref: str, suff: str) -> int:
         return self.d.get(pref + '#' + suff, -1)
 ```
+
+---
 
 ## Explanation
 

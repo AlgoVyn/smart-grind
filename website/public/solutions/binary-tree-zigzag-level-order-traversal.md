@@ -4,6 +4,8 @@
 
 Given the root of a binary tree, return the zigzag level order traversal of its nodes' values. (i.e., from left to right, then right to left for the next level and alternate between).
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -60,10 +62,14 @@ root = []
 
 ```
 
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range [0, 2000].
 - -100 <= Node.val <= 100
+
+---
 
 ## Solution
 
@@ -101,12 +107,18 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 
 This solution uses Breadth-First Search (BFS) to traverse the binary tree level by level. We maintain a queue and a flag to track the direction of traversal. For each level, we collect the node values in a list. If the direction is right-to-left (indicated by the flag), we reverse the list before adding it to the result.
 
+---
+
 ## Time Complexity
 **O(n)**, where n is the number of nodes in the tree, since we visit each node exactly once.
+
+---
 
 ## Space Complexity
 **O(w)**, where w is the maximum width of the tree, which is the size of the queue in the worst case.

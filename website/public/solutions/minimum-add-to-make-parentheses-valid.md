@@ -12,6 +12,8 @@ You are given a parentheses string `s`. In one move, you can **insert a parenthe
 
 Return the **minimum number of moves** required to make `s` valid.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -30,10 +32,14 @@ Return the **minimum number of moves** required to make `s` valid.
 
 **Explanation:** Insert `')'` at the end three times to make `"((()))"`.
 
+---
+
 ## Constraints
 
 - `1 <= s.length <= 1000`
 - `s[i]` is either `'('` or `')'`
+
+---
 
 ## Solution
 
@@ -62,6 +68,8 @@ class Solution:
         return ans
 ```
 
+---
+
 ## Explanation
 
 We use a **balance counter** to track unmatched opening parentheses:
@@ -73,6 +81,8 @@ We use a **balance counter** to track unmatched opening parentheses:
      - If `bal < 0`: we have an unmatched `')'`, need to insert `'('` → `ans += 1`, reset `bal = 0`
 3. **After loop**: `bal` holds the count of unmatched `'('`, each needs a `')'` → `ans += bal`
 4. Return `ans`.
+
+---
 
 ## Complexity Analysis
 

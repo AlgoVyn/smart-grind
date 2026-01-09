@@ -6,6 +6,8 @@ Return the number of combinations that make up that amount. If that amount of mo
 You may assume that you have an infinite number of each kind of coin.
 The answer is guaranteed to fit into a signed 32-bit integer.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -52,12 +54,16 @@ amount = 10, coins = [10]
 1
 ```
 
+---
+
 ## Constraints
 
 - `1 <= coins.length <= 300`
 - `1 <= coins[i] <= 5000`
 - All the values of coins are unique.
 - `0 <= amount <= 5000`
+
+---
 
 ## Solution
 
@@ -74,11 +80,17 @@ class Solution:
         return dp[amount]
 ```
 
+---
+
 ## Explanation
 This solution uses dynamic programming. dp[i] represents the number of ways to make amount i. Initialize dp[0] = 1. For each coin, update dp from coin to amount by adding the ways without that coin.
 
+---
+
 ## Time Complexity
 **O(n * amount)**, where n is the number of coins.
+
+---
 
 ## Space Complexity
 **O(amount)**, for the dp array.

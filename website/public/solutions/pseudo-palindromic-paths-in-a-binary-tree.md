@@ -30,6 +30,8 @@ Return the number of pseudo-palindromic paths going from the root node to leaf n
 - The number of nodes in the tree is in the range `[1, 10^5]`.
 - `1 <= Node.val <= 9`
 
+---
+
 ## Solution
 
 ```python
@@ -44,6 +46,8 @@ class Solution:
             return dfs(node.left, mask) + dfs(node.right, mask)
         return dfs(root, 0)
 ```
+
+---
 
 ## Explanation
 

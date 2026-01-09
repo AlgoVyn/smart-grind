@@ -12,6 +12,8 @@ Implement the `LRUCache` class:
 
 The functions `get` and `put` must each run in `O(1)` average time complexity.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -41,12 +43,16 @@ lRUCache.get(3);    // return 3
 lRUCache.get(4);    // return 4
 ```
 
+---
+
 ## Constraints
 
 - `1 <= capacity <= 3000`
 - `0 <= key <= 10^4`
 - `0 <= value <= 10^5`
 - At most `2 * 10^5` calls will be made to `get` and `put`.
+
+---
 
 ## Solution
 
@@ -72,6 +78,8 @@ class LRUCache:
             self.cache.popitem(last=False)
 ```
 
+---
+
 ## Explanation
 
 We use an `OrderedDict` to store the key-value pairs, which maintains the order of insertion and allows `O(1)` access and modification.
@@ -80,6 +88,8 @@ We use an `OrderedDict` to store the key-value pairs, which maintains the order 
 - In `put`, if the key exists, move it to the end, then set the value. If the size exceeds capacity, remove the least recently used item (first item in `OrderedDict`).
 
 This ensures all operations are `O(1)` on average.
+
+---
 
 ## Complexity Analysis
 

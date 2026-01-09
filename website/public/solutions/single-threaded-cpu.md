@@ -45,6 +45,9 @@ Constraints:
 tasks.length == n
 1 <= n <= 105
 1 <= enqueueTimei, processingTimei <= 109
+
+---
+
 ## Solution
 
 ```python
@@ -74,6 +77,8 @@ class Solution:
                     time = tasks[i][0]
         return result
 ```
+
+---
 
 ## Explanation
 

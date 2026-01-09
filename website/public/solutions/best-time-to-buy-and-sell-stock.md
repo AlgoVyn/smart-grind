@@ -6,6 +6,8 @@ You are given an array `prices` where `prices[i]` is the price of a given stock 
 You want to maximize your profit by choosing a single day to buy one stock and choosing a different day in the future to sell that stock.
 Return the maximum profit you can achieve from this transaction. If you cannot achieve any profit, return 0.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -37,10 +39,14 @@ prices = [7,6,4,3,1]
 
 **Explanation:** In this case, no transactions are done and the max profit = 0.
 
+---
+
 ## Constraints
 
 - `1 <= prices.length <= 105`
 - `0 <= prices[i] <= 104`
+
+---
 
 ## Solution
 
@@ -59,12 +65,18 @@ class Solution:
         return max_profit
 ```
 
+---
+
 ## Explanation
 
 This solution iterates through the prices, keeping track of the minimum price encountered so far and the maximum profit that can be achieved by selling at the current price after buying at the minimum price.
 
+---
+
 ## Time Complexity
 **O(n)**, where n is the number of days, as we traverse the array once.
+
+---
 
 ## Space Complexity
 **O(1)**, using only constant extra space.

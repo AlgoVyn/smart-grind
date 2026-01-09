@@ -6,6 +6,8 @@ Given a list of `accounts` where each element `accounts[i]` is a list of strings
 Now, we would like to merge these accounts. Two accounts definitely belong to the same person if there is some common email to both accounts. Note that even if two accounts have the same name, they may belong to different people as people could have the same name. A person can have any number of accounts initially, but all of their accounts definitely have the same name.
 After merging the accounts, return the accounts in the following format: the first element of each account is the name, and the rest of the elements are emails in sorted order. The accounts themselves can be returned in any order.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -34,6 +36,8 @@ accounts = [["Gabe","Gabe0@m.co","Gabe3@m.co","Gabe1@m.co"],["Kevin","Kevin3@m.c
 [["Ethan","Ethan0@m.co","Ethan4@m.co","Ethan5@m.co"],["Gabe","Gabe0@m.co","Gabe1@m.co","Gabe3@m.co"],["Hanzo","Hanzo0@m.co","Hanzo1@m.co","Hanzo3@m.co"],["Kevin","Kevin0@m.co","Kevin3@m.co","Kevin5@m.co"],["Fern","Fern0@m.co","Fern1@m.co","Fern5@m.co"]]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= accounts.length <= 1000`
@@ -41,6 +45,8 @@ accounts = [["Gabe","Gabe0@m.co","Gabe3@m.co","Gabe1@m.co"],["Kevin","Kevin3@m.c
 - `1 <= accounts[i][j].length <= 30`
 - `accounts[i][0]` consists of English letters.
 - `accounts[i][j]` (for j > 0) is a valid email.
+
+---
 
 ## Solution
 
@@ -83,6 +89,8 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 
 The Accounts Merge problem requires merging accounts that share common email addresses. We use the Union-Find (Disjoint Set Union) data structure to connect emails that belong to the same account.
@@ -93,8 +101,12 @@ After processing all accounts, we group emails by their root parent. For each gr
 
 This approach efficiently merges accounts with shared emails.
 
+---
+
 ## Time Complexity
 **O(n log n)**, where n is the total number of emails, due to the sorting of emails in each group.
+
+---
 
 ## Space Complexity
 **O(n)**, for storing the parent dictionary, email-to-name mapping, and groups.

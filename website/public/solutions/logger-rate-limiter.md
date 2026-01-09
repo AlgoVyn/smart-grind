@@ -11,6 +11,8 @@ Implement the `Logger` class:
 - `Logger()` — Initializes the logger object.
 - `bool shouldPrintMessage(int timestamp, string message)` — Returns `true` if the message should be printed in the given timestamp, otherwise returns `false`.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -26,12 +28,16 @@ Implement the `Logger` class:
 [null, true, true, false, false, false, true]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= timestamp <= 10^9`
 - Every timestamp will be passed in non-decreasing order (chronological order).
 - `1 <= message.length <= 30`
 - At most `10^4` calls will be made to `shouldPrintMessage`.
+
+---
 
 ## Solution
 
@@ -47,11 +53,15 @@ class Logger:
         return False
 ```
 
+---
+
 ## Explanation
 
 We use a dictionary to store the last timestamp each message was printed.
 
 For each `shouldPrintMessage` call, check if the message is not in the dictionary or the current timestamp is at least 10 seconds after the last print time. If so, update the timestamp and return `true`; otherwise, return `false`.
+
+---
 
 ## Complexity Analysis
 

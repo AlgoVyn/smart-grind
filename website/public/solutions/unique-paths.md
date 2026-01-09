@@ -43,6 +43,8 @@ m = 3, n = 2
 
 - `1 <= m, n <= 100`
 
+---
+
 ## Solution
 
 ```python
@@ -54,6 +56,8 @@ class Solution:
                 dp[i][j] = dp[i-1][j] + dp[i][j-1]
         return dp[m-1][n-1]
 ```
+
+---
 
 ## Explanation
 

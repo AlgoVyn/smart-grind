@@ -9,6 +9,8 @@ Implement the MyHashMap class:
 - `int get(int key)` returns the value to which the specified key is mapped, or -1 if this map contains no mapping for the key.
 - `void remove(key)` removes the key and its corresponding value if the map contains the mapping for the key.
 
+---
+
 ## Examples
 
 **Input:**
@@ -22,10 +24,14 @@ Implement the MyHashMap class:
 [null, null, null, 1, -1, null, 1, null, -1]
 ```
 
+---
+
 ## Constraints
 
 - `0 <= key, value <= 10^6`
 - At most `10^4` calls will be made to put, get, and remove.
+
+---
 
 ## Solution
 
@@ -46,6 +52,8 @@ class MyHashMap:
     def remove(self, key: int) -> None:
         self.data[key] = -1
 ```
+
+---
 
 ## Explanation
 Since keys are from 0 to 10^6, we use a fixed-size array of size 1000001, initialized to -1 (indicating no mapping).

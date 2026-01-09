@@ -3,6 +3,8 @@
 ## Problem Description
 Given two integer arrays preorder and inorder where preorder is the preorder traversal of a binary tree and inorder is the inorder traversal of the same tree, construct and return the binary tree.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -29,6 +31,8 @@ preorder = [-1], inorder = [-1]
 [-1]
 ```
 
+---
+
 ## Constraints
 
 - `1 <= preorder.length <= 3000`
@@ -38,6 +42,8 @@ preorder = [-1], inorder = [-1]
 - Each value of `inorder` also appears in `preorder`.
 - `preorder` is guaranteed to be the preorder traversal of the tree.
 - `inorder` is guaranteed to be the inorder traversal of the tree.
+
+---
 
 ## Solution
 
@@ -62,11 +68,17 @@ class Solution:
         return root
 ```
 
+---
+
 ## Explanation
 This solution uses recursion. The first element of preorder is the root. Find its index in inorder to split left and right subtrees. Recursively build left with preorder[1:1+idx] and inorder[:idx], right with preorder[1+idx:] and inorder[idx+1:].
 
+---
+
 ## Time Complexity
 **O(n^2)**, due to index search in inorder.
+
+---
 
 ## Space Complexity
 **O(n)**, for the recursion stack.

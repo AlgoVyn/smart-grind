@@ -4,6 +4,8 @@
 Given two integers n and k, return all possible combinations of k numbers chosen from the range [1, n].
 You may return the answer in any order.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -35,10 +37,14 @@ n = 1, k = 1
 
 **Explanation:** There is 1 choose 1 = 1 total combination.
 
+---
+
 ## Constraints
 
 - `1 <= n <= 20`
 - `1 <= k <= n`
+
+---
 
 ## Solution
 
@@ -62,6 +68,8 @@ class Solution:
         return result
 ```
 
+---
+
 ## Explanation
 To generate all combinations of k numbers from 1 to n, we use backtracking.
 
@@ -71,8 +79,12 @@ Otherwise, we iterate from the start number to n, append each number to the path
 
 We start the backtracking from 1 with an empty path.
 
+---
+
 ## Time Complexity
 **O(C(n, k) * k)**, where C(n, k) is the number of combinations, as we generate each combination and copy it.
+
+---
 
 ## Space Complexity
 **O(k)** for the recursion stack and path, plus **O(C(n, k) * k)** for the result.

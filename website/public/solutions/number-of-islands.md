@@ -6,6 +6,8 @@ Given an m x n 2D binary grid `grid` which represents a map of '1's (land) and '
 
 An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -42,12 +44,16 @@ grid = [
 3
 ```
 
+---
+
 ## Constraints
 
 - `m == grid.length`
 - `n == grid[i].length`
 - `1 <= m, n <= 300`
 - `grid[i][j]` is '0' or '1'.
+
+---
 
 ## Solution
 
@@ -78,6 +84,8 @@ class Solution:
         return count
 ```
 
+---
+
 ## Explanation
 
 An island is a group of connected '1's (lands) surrounded by '0's (water). We use DFS to traverse and mark visited lands.
@@ -91,6 +99,8 @@ An island is a group of connected '1's (lands) surrounded by '0's (water). We us
 3. Iterate through each cell in the grid.
 
 4. When a '1' is found, perform DFS to mark the entire island and increment the island count.
+
+---
 
 ## Complexity Analysis
 

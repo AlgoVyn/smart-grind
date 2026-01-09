@@ -4,6 +4,8 @@
 
 Given a string `s`, find the length of the longest substring without duplicate characters.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -30,10 +32,14 @@ Given a string `s`, find the length of the longest substring without duplicate c
 
 **Explanation:** The answer is `"wke"`, with the length of `3`. Notice that the answer must be a substring, `"pwke"` is a subsequence and not a substring.
 
+---
+
 ## Constraints
 
 - `0 <= s.length <= 5 * 10^4`
 - `s` consists of English letters, digits, symbols and spaces.
+
+---
 
 ## Solution
 
@@ -52,6 +58,8 @@ class Solution:
         return max_len
 ```
 
+---
+
 ## Explanation
 
 We use a sliding window approach with a set to track unique characters in the current window. Initialize `left` pointer at `0`, and a set for characters.
@@ -59,6 +67,8 @@ We use a sliding window approach with a set to track unique characters in the cu
 For each `right` pointer from `0` to `len(s)-1`, while the character at `right` is already in the set, remove the character at `left` from the set and increment `left`. Then add the character at `right` to the set. Update the maximum length with the current window size.
 
 This ensures the window always contains unique characters.
+
+---
 
 ## Complexity Analysis
 

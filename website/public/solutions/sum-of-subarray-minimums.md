@@ -19,10 +19,14 @@ Sum is `17`.
 Input: `arr = [11,81,94,43,3]`
 Output: `444`
 
+---
+
 ## Constraints
 
 - `1 <= arr.length <= 3 * 10^4`
 - `1 <= arr[i] <= 3 * 10^4`
+
+---
 
 ## Solution
 
@@ -61,6 +65,8 @@ class Solution:
             res = (res + arr[i] * l * r) % MOD
         return res
 ```
+
+---
 
 ## Explanation
 

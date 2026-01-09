@@ -30,6 +30,8 @@ You may imagine that `nums[-1] = nums[n] = -∞`. In other words, an element is 
 | Value range | `-2^31 <= nums[i] <= 2^31 - 1` |
 | Adjacent elements | `nums[i] != nums[i + 1]` for all valid `i` |
 
+---
+
 ## Solution
 
 ```python

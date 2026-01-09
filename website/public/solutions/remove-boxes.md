@@ -58,6 +58,8 @@ boxes = [1]
 - `1 <= boxes.length <= 100`
 - `1 <= boxes[i] <= 100`
 
+---
+
 ## Solution
 
 ```python
@@ -92,6 +94,8 @@ class Solution:
         
         return dp(0, n - 1, 0)
 ```
+
+---
 
 ## Explanation
 

@@ -17,6 +17,8 @@ For simplicity, each node's value is the same as the node's index (1-indexed). F
 An adjacency list is a collection of unordered lists used to represent a finite graph. Each list describes the set of neighbors of a node in the graph.
 The given node will always be the first node with val = 1. You must return the copy of the given node as a reference to the cloned graph.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -65,6 +67,8 @@ adjList = []
 
 **Explanation:** This an empty graph, it does not have any nodes.
 
+---
+
 ## Constraints
 
 - The number of nodes in the graph is in the range [0, 100].
@@ -72,6 +76,8 @@ adjList = []
 - Node.val is unique for each node.
 - There are no repeated edges and no self-loops in the graph.
 - The Graph is connected and all nodes can be visited starting from the given node.
+
+---
 
 ## Solution
 
@@ -100,11 +106,17 @@ class Solution:
         return visited[node]
 ```
 
+---
+
 ## Explanation
 This solution uses BFS to clone the graph. We maintain a visited dictionary to map original nodes to their clones. For each node, we create a clone and enqueue it. Then, for each neighbor, if not cloned, clone and enqueue; add the cloned neighbor to the current clone's neighbors.
 
+---
+
 ## Time Complexity
 **O(V + E)**, where V is the number of vertices and E is the number of edges, as we visit each node and edge once.
+
+---
 
 ## Space Complexity
 **O(V)**, for the visited map and queue.

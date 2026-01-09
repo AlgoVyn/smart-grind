@@ -37,6 +37,8 @@ Given an integer array `nums`, find the subarray with the largest sum, and retur
 
 If you have figured out the O(n) solution, try coding another solution using the divide and conquer approach, which is more subtle.
 
+---
+
 ## Solution
 
 ```python
@@ -51,6 +53,8 @@ class Solution:
                 max_global = max_current
         return max_global
 ```
+
+---
 
 ## Explanation
 

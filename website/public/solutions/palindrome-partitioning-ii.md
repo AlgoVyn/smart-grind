@@ -27,6 +27,8 @@ Return the minimum cuts needed for a palindrome partitioning of `s`.
 - `1 <= s.length <= 2000`
 - `s` consists of lowercase English letters only.
 
+---
+
 ## Solution
 
 ```python
@@ -56,6 +58,8 @@ class Solution:
                     dp[i] = min(dp[i], dp[j] + 1)
         return dp[n] - 1
 ```
+
+---
 
 ## Explanation
 

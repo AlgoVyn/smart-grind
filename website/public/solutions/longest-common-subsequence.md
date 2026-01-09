@@ -10,6 +10,8 @@ For example, `"ace"` is a subsequence of `"abcde"`.
 
 A **common subsequence** of two strings is a subsequence that is common to both strings.
 
+---
+
 ## Examples
 
 **Example 1:**
@@ -36,10 +38,14 @@ A **common subsequence** of two strings is a subsequence that is common to both 
 
 **Explanation:** There is no common subsequence, so the result is `0`.
 
+---
+
 ## Constraints
 
 - `1 <= text1.length, text2.length <= 1000`
 - `text1` and `text2` consist of only lowercase English characters.
+
+---
 
 ## Solution
 
@@ -59,6 +65,8 @@ class Solution:
         return dp[m][n]
 ```
 
+---
+
 ## Explanation
 
 We use dynamic programming. `dp[i][j]` represents the length of the longest common subsequence of `text1[:i]` and `text2[:j]`.
@@ -67,6 +75,8 @@ We use dynamic programming. `dp[i][j]` represents the length of the longest comm
 - Otherwise, `dp[i][j] = max(dp[i-1][j], dp[i][j-1])`.
 
 The result is `dp[m][n]`.
+
+---
 
 ## Complexity Analysis
 

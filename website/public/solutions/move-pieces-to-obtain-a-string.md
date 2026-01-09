@@ -9,6 +9,8 @@ You are given two strings `start` and `target`, both of length `n`. Each string 
 
 Return `true` if it is possible to obtain the string `target` by moving the pieces of the string `start` any number of times. Otherwise, return `false`.
 
+---
+
 ## Examples
 
 ### Example 1
@@ -60,11 +62,15 @@ false
 **Explanation:**
 The piece in the string `start` can move only to the right, so it is impossible to obtain the string `target` from `start`.
 
+---
+
 ## Constraints
 
 - `n == start.length == target.length`
 - `1 <= n <= 10^5`
 - `start` and `target` consist of the characters `'L'`, `'R'`, and `'_'`.
+
+---
 
 ## Solution
 
@@ -102,6 +108,8 @@ class Solution:
         return True
 ```
 
+---
+
 ## Explanation
 
 This problem requires checking if we can transform one string into another by moving pieces according to specific rules.
@@ -116,6 +124,8 @@ This problem requires checking if we can transform one string into another by mo
      - For `'R'`: the position in start must be <= position in target (can only move right)
 
 3. If all checks pass, the transformation is possible.
+
+---
 
 ## Complexity Analysis
 

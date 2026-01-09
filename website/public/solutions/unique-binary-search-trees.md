@@ -34,6 +34,8 @@ n = 1
 
 - `1 <= n <= 19`
 
+---
+
 ## Solution
 
 ```python
@@ -46,6 +48,8 @@ def numTrees(n):
             dp[i] += dp[j] * dp[i - 1 - j]
     return dp[n]
 ```
+
+---
 
 ## Explanation
 

@@ -34,6 +34,8 @@ Given two strings `needle` and `haystack`, return the index of the **first occur
 | `needle.length` | `1 <= needle.length <= 10^4` |
 | Characters | Lowercase English letters only |
 
+---
+
 ## Solution
 
 ```python

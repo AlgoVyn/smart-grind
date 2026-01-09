@@ -36,6 +36,8 @@ Given `n` and `k`, return the `kth` permutation sequence.
 - `1 <= n <= 9`
 - `1 <= k <= n!`
 
+---
+
 ## Solution
 
 ```python
@@ -54,6 +56,8 @@ class Solution:
             k %= fact
         return ''.join(res)
 ```
+
+---
 
 ## Explanation
 
