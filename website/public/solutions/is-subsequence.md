@@ -83,7 +83,7 @@ This reduces per-query time to O(|s| * log |t|).
 
 | Complexity | Description |
 |------------|-------------|
-| **Time** | O(|t|) - single pass through `t` |
+| **Time** | O(\|t\|) - single pass through `t` |
 | **Space** | O(1) - constant space |
 
 For the follow-up with preprocessing: O(|t|) preprocessing, O(|s| * log |t|) per query.

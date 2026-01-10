@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      deployments: write       # Recommended for better GitHub integration
+      deployments: write
 
     steps:
       - name: Checkout
@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'     # or 20 — whatever your project needs
+          node-version: '18'
 
       - name: Install dependencies
         run: npm ci
@@ -40,7 +40,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy website --project-name=smart-grind
+          command: pages deploy public --project-name=smart-grind
+          working-directory: website
           # Optional useful flags:
           # --branch=${{ github.ref_name }}           # auto-sets branch name
           # --commit-hash=${{ github.sha }}
