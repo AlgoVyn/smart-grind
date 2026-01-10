@@ -127,7 +127,7 @@ window.SmartGrind.ui = {
             e.preventDefault();
             window.SmartGrind.ui.sidebarResizer.isResizing = true;
             window.SmartGrind.ui.sidebarResizer.startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
-            
+
             const sidebar = document.getElementById('main-sidebar');
             window.SmartGrind.ui.sidebarResizer.startWidth = sidebar.offsetWidth;
 
@@ -306,7 +306,7 @@ window.SmartGrind.ui = {
 
             if (foundProblem) {
                 // Create a mock event object with the button as target
-                const mockEvent = { target: button, stopPropagation: () => {} };
+                const mockEvent = { target: button, stopPropagation: () => { } };
                 window.SmartGrind.renderers.handleProblemCardClick(mockEvent, foundProblem);
             }
         });
@@ -703,16 +703,21 @@ window.SmartGrind.ui = {
             gfm: true
         });
 
-        // Custom renderer to add language class for syntax highlighting
+        // Custom renderer to add language class for syntax highlighting and Copy button
         const renderer = new marked.Renderer();
         renderer.code = (code, language, isEscaped) => {
-            // Handle both object and string parameters (marked.js API changed in different versions)
+            // Handle both object and string parameters
             if (typeof code === 'object') {
                 language = code.lang;
                 code = code.text;
             }
             const langClass = language ? `language-${language}` : 'language-python';
-            return `<pre><code class="${langClass}">${code}</code></pre>`;
+            // Escape code for HTML attribute if needed, but innerText usually handles it.
+            // However, we are injecting HTML. marked passes escaped code ??
+            // marked.js 'code' argument is usually the text content.
+
+            const buttonHtml = `<button class="code-copy-btn" onclick="window.SmartGrind.ui.copyCode(this)" title="Copy Code"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>Copy</button>`;
+            return `<pre class="${langClass}">${buttonHtml}<code class="${langClass}">${code}</code></pre>`;
         };
 
         marked.setOptions({
@@ -722,6 +727,34 @@ window.SmartGrind.ui = {
         });
 
         return marked;
+    },
+
+    // Copy code to clipboard
+    copyCode: (btn) => {
+        const pre = btn.closest('pre');
+        const code = pre.querySelector('code').innerText;
+        navigator.clipboard.writeText(code).then(() => {
+            btn.classList.add('copied');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+                Copied!
+            `;
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    </svg>
+                    Copy
+                `;
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy code: ', err);
+            window.SmartGrind.utils.showToast('Failed to copy code');
+        });
     },
 
     // Helper to render markdown content
@@ -855,13 +888,13 @@ const _applyCategory = (categoryParam) => {
 const _setupSignedInUser = async (userId, displayName, categoryParam) => {
     localStorage.setItem('userId', userId);
     localStorage.setItem('displayName', displayName);
-    
+
     window.SmartGrind.state.user.id = userId;
     window.SmartGrind.state.user.displayName = displayName;
     window.SmartGrind.state.elements.userDisplay.innerText = displayName;
     window.SmartGrind.state.user.type = 'signed-in';
     localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
-    
+
     await window.SmartGrind.api.loadData();
     window.SmartGrind.ui.updateAuthUI();
     _applyCategory(categoryParam);
@@ -908,7 +941,7 @@ const checkAuth = async () => {
 
     // Default to local user
     const userType = localStorage.getItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE) || 'local';
-    
+
     if (userType === 'local') {
         _setupLocalUser(categoryParam);
     } else {
@@ -916,7 +949,7 @@ const checkAuth = async () => {
         window.SmartGrind.state.elements.setupModal.classList.remove('hidden');
         window.SmartGrind.state.elements.appWrapper.classList.add('hidden');
         window.SmartGrind.state.elements.loadingScreen.classList.add('hidden');
-        
+
         window.SmartGrind.state.elements.googleLoginBtn.disabled = false;
         window.SmartGrind.state.elements.googleLoginBtn.innerHTML = window.SmartGrind.GOOGLE_BUTTON_HTML;
         window.SmartGrind.ui.updateAuthUI();
@@ -924,9 +957,9 @@ const checkAuth = async () => {
 };
 
 if (typeof jest === 'undefined') {
-  window.SmartGrind.state.init();
-  checkAuth();
-  window.SmartGrind.ui.init();
+    window.SmartGrind.state.init();
+    checkAuth();
+    window.SmartGrind.ui.init();
 }
 
 export default window.SmartGrind.ui;
