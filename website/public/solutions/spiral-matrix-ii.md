@@ -2,7 +2,7 @@
 
 ## Problem Description
 
-Given a positive integer `n`, generate an `n x n` matrix filled with elements from 1 to `n²` in spiral order (clockwise, starting from top-left).
+Given a positive integer `n`, generate an `n x n` matrix filled with elements from `1` to `n²` in spiral order (clockwise, starting from top-left).
 
 ---
 
@@ -78,11 +78,19 @@ def generateMatrix(n: int) -> List[List[int]]:
 
 ## Explanation
 
-### Approach: Layer-by-Layer
+### Approach
 
-Use four boundaries to define the current layer:
-- `top`, `bottom` — row boundaries
-- `left`, `right` — column boundaries
+Use four boundaries (top, bottom, left, right) to traverse the matrix in spiral order, filling layer by layer.
+
+### Step-by-Step Explanation
+
+1. Initialize the matrix with zeros, and set boundaries: `top=0`, `bottom=n-1`, `left=0`, `right=n-1`.
+2. While `num <= n*n`:
+   - Fill the top row from left to right, then increment top.
+   - Fill the right column from top to bottom, then decrement right.
+   - If `top <= bottom`, fill the bottom row from right to left, then decrement bottom.
+   - If `left <= right`, fill the left column from bottom to top, then increment left.
+3. Return the filled matrix.
 
 ### Time Complexity
 
@@ -93,7 +101,6 @@ Use four boundaries to define the current layer:
 - **O(n²)** — Output matrix
 
 ---
-
 
 ## Related Problems
 

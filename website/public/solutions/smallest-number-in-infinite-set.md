@@ -1,4 +1,4 @@
-# Smallest Number In Infinite Set
+# Smallest Number in Infinite Set
 
 ## Problem Description
 
@@ -81,7 +81,6 @@ class SmallestInfiniteSet:
 - **O(n)** — Heap and set store at most n elements
 
 ---
-
 
 ## Related Problems
 

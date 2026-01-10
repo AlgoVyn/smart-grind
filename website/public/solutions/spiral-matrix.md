@@ -73,14 +73,19 @@ def spiralOrder(matrix: List[List[int]]) -> List[int]:
 
 ## Explanation
 
-### Approach: Four Boundaries
+### Approach
 
-| Boundary | Purpose |
-|----------|---------|
-| `top`, `bottom` | Row boundaries |
-| `left`, `right` | Column boundaries |
+Use four boundaries (top, bottom, left, right) to traverse the matrix in spiral order, shrinking the boundaries after each layer.
 
-Traverse each edge, then shrink boundaries.
+### Step-by-Step Explanation
+
+1. Initialize boundaries: `top=0`, `bottom=m-1`, `left=0`, `right=n-1`.
+2. While `top <= bottom` and `left <= right`:
+   - Traverse the top row from left to right, then increment top.
+   - Traverse the right column from top to bottom, then decrement right.
+   - If `top <= bottom`, traverse the bottom row from right to left, then decrement bottom.
+   - If `left <= right`, traverse the left column from bottom to top, then increment left.
+3. Collect all elements in the order traversed.
 
 ### Time Complexity
 
@@ -91,7 +96,6 @@ Traverse each edge, then shrink boundaries.
 - **O(1)** — Excluding output
 
 ---
-
 
 ## Related Problems
 

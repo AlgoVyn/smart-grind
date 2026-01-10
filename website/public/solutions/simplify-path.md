@@ -26,35 +26,35 @@ In Unix-style file systems:
 ```python
 Input: path = "/home/"
 Output: "/home"
-```python
+```
 The trailing slash should be removed.
 
 **Example 2:**
 ```python
 Input: path = "/home//foo/"
 Output: "/home/foo"
-```python
+```
 Multiple consecutive slashes are replaced by a single one.
 
 **Example 3:**
 ```python
 Input: path = "/home/user/Documents/../Pictures"
 Output: "/home/user/Pictures"
-```python
+```
 Double period `..` navigates up one directory level.
 
 **Example 4:**
 ```python
 Input: path = "/../"
 Output: "/"
-```python
+```
 Cannot navigate up from the root directory.
 
 **Example 5:**
 ```python
 Input: path = "/.../a/../b/c/../d/./"
 Output: "/.../b/d"
-```python
+```
 `...` is a valid directory name (not `..`).
 
 ---

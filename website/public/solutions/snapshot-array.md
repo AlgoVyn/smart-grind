@@ -1,33 +1,30 @@
 # Snapshot Array
 
 ## Problem Description
+
 Implement a SnapshotArray that supports the following interface:
 
-SnapshotArray(int length) initializes an array-like data structure with the given length. Initially, each element equals 0.
-void set(index, val) sets the element at the given index to be equal to val.
-int snap() takes a snapshot of the array and returns the snap_id: the total number of times we called snap() minus 1.
-int get(index, snap_id) returns the value at the given index, at the time we took the snapshot with the given snap_id
+- `SnapshotArray(int length)` initializes an array-like data structure with the given length. Initially, each element equals 0.
+- `void set(index, val)` sets the element at the given index to be equal to val.
+- `int snap()` takes a snapshot of the array and returns the snap_id: the total number of times we called snap() minus 1.
+- `int get(index, snap_id)` returns the value at the given index, at the time we took the snapshot with the given snap_id
 
- 
-Example 1:
+### Examples
 
+**Example 1:**
+```python
 Input: ["SnapshotArray","set","snap","set","get"]
 [[3],[0,5],[],[0,6],[0,0]]
 Output: [null,null,0,null,5]
-Explanation: 
-SnapshotArray snapshotArr = new SnapshotArray(3); // set the length to be 3
-snapshotArr.set(0,5);  // Set array[0] = 5
-snapshotArr.snap();  // Take a snapshot, return snap_id = 0
-snapshotArr.set(0,6);
-snapshotArr.get(0,0);  // Get the value of array[0] with snap_id = 0, return 5
- 
-Constraints:
+```
 
-1 <= length <= 5 * 104
-0 <= index < length
-0 <= val <= 109
-0 <= snap_id < (the total number of times we call snap())
-At most 5 * 104 calls will be made to set, snap, and get.
+### Constraints
+
+- `1 <= length <= 5 * 10^4`
+- `0 <= index < length`
+- `0 <= val <= 10^9`
+- `0 <= snap_id < (the total number of times we call snap())`
+- At most `5 * 10^4` calls will be made to set, snap, and get.
 
 ---
 
@@ -68,22 +65,26 @@ class SnapshotArray:
 
 ## Explanation
 
-This problem implements a snapshot array with set, snap, and get operations, where get retrieves value at a specific snapshot.
+### Approach
 
-### Step-by-Step Approach:
+Implement a snapshot array using a current array for latest values and a history map (defaultdict of lists) to store snapshots per index. Use binary search for efficient retrieval.
 
-1. **Init**: snap_id = 0, history defaultdict of lists, current array of 0s.
+### Step-by-Step Explanation
 
-2. **Set**: Update current[index] = val.
+1. **Initialization**: Set `snap_id` to 0, create a defaultdict for history, and a current array initialized to 0s.
 
-3. **Snap**: Append (snap_id, current[i]) to history[i] for all i, increment snap_id, return previous.
+2. **Set Operation**: Update the current array at the given index with the new value.
 
-4. **Get**: In history[index], use bisect to find the largest snap_id <= given, return the val, or 0 if none.
+3. **Snap Operation**: For each index, append a tuple `(current snap_id, current value)` to the history list for that index. Increment `snap_id` and return the previous value.
 
-### Time Complexity:
-- Set: O(1)
-- Snap: O(length)
-- Get: O(log snaps)
+4. **Get Operation**: For the given index and `snap_id`, use binary search on the history list to find the rightmost entry where `snap_id <= given snap_id`, and return the value. If no such entry, return 0.
 
-### Space Complexity:
-- O(length * snaps), worst case.
+### Time Complexity
+
+- **Set**: O(1)
+- **Snap**: O(length)
+- **Get**: O(log snaps)
+
+### Space Complexity
+
+- **O(length * snaps)** in the worst case.

@@ -48,8 +48,8 @@ class Solution:
 
 ### Algorithm Steps
 
-1. **Initial window:** Calculate sum of first `k` elements
-2. **Slide window:** For each subsequent position:
+1. **Initial window**: Calculate sum of first `k` elements
+2. **Slide window**: For each subsequent position:
    - Subtract element at left edge
    - Add new element at right edge
 3. **Track maximum** sum encountered
@@ -68,7 +68,6 @@ class Solution:
 - **O(1)** — Constant extra space
 
 ---
-
 
 ## Related Problems
 
