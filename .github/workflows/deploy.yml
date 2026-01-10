@@ -8,6 +8,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write       # Recommended for better GitHub integration
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '18'     # or 20 — whatever your project needs
 
       - name: Install dependencies
         run: npm ci
@@ -25,10 +29,18 @@ jobs:
         run: npm test
         working-directory: website
 
+      # Optional: If your build produces a different output dir than 'website',
+      # run your build command here, e.g.:
+      # - name: Build
+      #   run: npm run build
+      #   working-directory: website
+
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
-          projectName: smart-grind
-          directory: website
+          command: pages deploy website --project-name=smart-grind
+          # Optional useful flags:
+          # --branch=${{ github.ref_name }}           # auto-sets branch name
+          # --commit-hash=${{ github.sha }}
