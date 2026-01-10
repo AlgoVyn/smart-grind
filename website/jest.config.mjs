@@ -1,6 +1,10 @@
 export default {
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.mjs'],
+  transform: {
+    '^.+\\.js$': 'babel-jest',
+    '^.+\\.mjs$': 'babel-jest',
+  },
   moduleNameMapper: {
     '^/smartgrind/(.*)$': '<rootDir>/public/$1',
   },
