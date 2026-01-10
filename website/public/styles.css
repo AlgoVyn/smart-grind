@@ -1976,19 +1976,49 @@ body.sidebar-resizing #main-sidebar {
     border-collapse: collapse;
     margin: 1.5em 0;
     font-size: 0.9em;
+    border: 1px solid var(--theme-border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 #solution-content th,
 #solution-content td {
-    border: 1px solid var(--theme-border);
+    border: 2px solid var(--theme-border);
     padding: 0.75em;
     text-align: left;
 }
 
 #solution-content th {
     background-color: var(--theme-bg-card);
-    font-weight: 600;
+    font-weight: 700;
     color: var(--theme-text-bold);
+    border-bottom: 2px solid var(--theme-border);
+    padding: 1em 0.75em;
+}
+
+#solution-content td {
+    background-color: var(--theme-bg-main);
+    color: var(--theme-text-base);
+}
+
+/* Dark theme table improvements */
+.dark #solution-content table {
+    border-color: #334155; /* Slate 700 for better visibility */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.dark #solution-content th,
+.dark #solution-content td {
+    border-color: #475569; /* Slate 600 for more prominence */
+}
+
+.dark #solution-content th {
+    background-color: #1e293b; /* Slate 800 */
+}
+
+.dark #solution-content td {
+    background-color: #0f172a; /* Slate 900 */
 }
 
 /* Inline Code */
