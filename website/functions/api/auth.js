@@ -32,20 +32,22 @@ function validateOAuthCode(params) {
 }
 
 export async function onRequestGet({ request, env }) {
-  const url = new URL(request.url);
-  const action = url.searchParams.get('action');
+   const url = new URL(request.url);
+   const origin = url.origin;
+   const redirectUri = `${origin}/smartgrind/api/auth`;
+   const action = url.searchParams.get('action');
 
-  if (action === 'login') {
-    // Redirect to Google OAuth
-    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${env.GOOGLE_CLIENT_ID}&` +
-      `redirect_uri=${encodeURIComponent('https://algovyn.com/smartgrind/api/auth')}&` +
-      `response_type=code&` +
-      `scope=openid%20email%20profile&` +
-      `state=callback`;
+   if (action === 'login') {
+     // Redirect to Google OAuth
+     const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+       `client_id=${env.GOOGLE_CLIENT_ID}&` +
+       `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+       `response_type=code&` +
+       `scope=openid%20email%20profile&` +
+       `state=callback`;
 
-    return Response.redirect(googleAuthUrl, 302);
-  }
+     return Response.redirect(googleAuthUrl, 302);
+   }
 
   if (url.searchParams.get('state') === 'callback') {
     const code = validateOAuthCode(url.searchParams);
@@ -62,7 +64,7 @@ export async function onRequestGet({ request, env }) {
         client_secret: env.GOOGLE_CLIENT_SECRET,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: 'https://algovyn.com/smartgrind/api/auth'
+        redirect_uri: redirectUri
       })
     });
 
