@@ -18,7 +18,7 @@ window.SmartGrind.api = {
         const data = {
             problems: Object.fromEntries(
                 Array.from(window.SmartGrind.state.problems.entries()).map(([id, p]) => {
-                    const { loading, ...rest } = p;
+                    const { loading, noteVisible, ...rest } = p;
                     return [id, rest];
                 })
             ),

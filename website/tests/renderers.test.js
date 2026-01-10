@@ -34,6 +34,8 @@ const createMockElement = () => {
     onclick: null,
     title: '',
     disabled: false,
+    querySelector: jest.fn(() => createMockElement()),
+    closest: jest.fn(() => createMockElement()),
   };
   el.appendChild = (child) => {
     mockAppendChild(child);
@@ -102,9 +104,9 @@ describe('SmartGrind Renderers', () => {
       formatDate: jest.fn(() => 'Jan 1'),
     };
     window.SmartGrind.api = {
-      deleteCategory: jest.fn(),
-      saveDeletedId: jest.fn(),
-      saveProblem: jest.fn(),
+      deleteCategory: jest.fn().mockResolvedValue(),
+      saveDeletedId: jest.fn().mockResolvedValue(),
+      saveProblem: jest.fn().mockResolvedValue(),
     };
     window.SmartGrind.ui = {
       openSolutionModal: jest.fn(),
@@ -183,7 +185,7 @@ describe('SmartGrind Renderers', () => {
 
     test('shows loading state', () => {
       const result = window.SmartGrind.renderers._generateActionButton({ status: 'unsolved', loading: true });
-      expect(result).toContain('animate-pulse');
+      expect(result).toContain('animate-spin');
       expect(result).toContain('disabled');
     });
   });
@@ -458,7 +460,7 @@ describe('SmartGrind Renderers', () => {
 
       expect(result.className).toContain('bg-dark-800');
       expect(result.className).toContain('border-theme');
-      expect(result.innerHTML).toContain('animate-pulse');
+      expect(result.innerHTML).toContain('animate-spin');
     });
 
     test('generates HTML for due solved problem', () => {
@@ -514,9 +516,10 @@ describe('SmartGrind Renderers', () => {
   describe('_handleStatusChange', () => {
     test('updates problem status and saves', async () => {
       const problem = { id: '1', status: 'unsolved' };
+      const mockButton = { closest: jest.fn(() => mockElement) };
       window.SmartGrind.api.saveProblem = jest.fn().mockResolvedValue();
 
-      await window.SmartGrind.renderers._handleStatusChange(problem, 'solved', 1, '2024-01-01');
+      await window.SmartGrind.renderers._handleStatusChange(mockButton, problem, 'solved', 1, '2024-01-01');
 
       expect(problem.status).toBe('solved');
       expect(problem.reviewInterval).toBe(1);
@@ -527,9 +530,10 @@ describe('SmartGrind Renderers', () => {
 
     test('handles default parameters', async () => {
       const problem = { id: '1', status: 'unsolved' };
+      const mockButton = { closest: jest.fn(() => mockElement) };
       window.SmartGrind.api.saveProblem = jest.fn().mockResolvedValue();
 
-      await window.SmartGrind.renderers._handleStatusChange(problem, 'solved');
+      await window.SmartGrind.renderers._handleStatusChange(mockButton, problem, 'solved');
 
       expect(problem.reviewInterval).toBe(0);
       expect(problem.nextReviewDate).toBe(null);
@@ -581,7 +585,7 @@ describe('SmartGrind Renderers', () => {
 
       await window.SmartGrind.renderers._handleReview(mockButton, problem);
 
-      expect(window.SmartGrind.renderers._hideCardIfDueFilter).toHaveBeenCalledWith(mockButton);
+      expect(window.SmartGrind.renderers._hideCardIfDueFilter).toHaveBeenCalledWith(expect.any(Object));
     });
   });
 
@@ -686,7 +690,7 @@ describe('SmartGrind Renderers', () => {
       expect(mockButton.closest).toHaveBeenCalledWith('.group');
     });
 
-    test('handles save-note action', () => {
+    test('handles save-note action', async () => {
       const mockButton = {
         dataset: { action: 'save-note' },
         closest: jest.fn(() => ({ querySelector: jest.fn(() => ({ value: 'New note' })) }))
@@ -696,14 +700,14 @@ describe('SmartGrind Renderers', () => {
       };
 
       const problem = { id: '1', status: 'solved', reviewInterval: 1, nextReviewDate: '2024-01-01' };
-      window.SmartGrind.renderers._handleStatusChange = jest.fn().mockResolvedValue();
+      window.SmartGrind.api.saveProblem = jest.fn().mockResolvedValue();
       window.SmartGrind.renderers._reRenderCard = jest.fn();
 
-      window.SmartGrind.renderers.handleProblemCardClick(mockEvent, problem);
+      await window.SmartGrind.renderers.handleProblemCardClick(mockEvent, problem);
 
       expect(mockButton.closest).toHaveBeenCalledWith('.note-area');
       expect(problem.note).toBe('New note');
-      expect(window.SmartGrind.renderers._handleStatusChange).toHaveBeenCalledWith(problem, 'solved', 1, '2024-01-01');
+      expect(window.SmartGrind.api.saveProblem).toHaveBeenCalledWith(problem);
     });
 
     test('handles ask-chatgpt action', () => {

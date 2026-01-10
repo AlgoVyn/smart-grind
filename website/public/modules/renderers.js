@@ -10,6 +10,18 @@ window.SmartGrind.ICONS = {
 };
 
 window.SmartGrind.renderers = {
+    // Helper to get spinner HTML
+    _getSpinner: (size = 'h-4 w-4', color = 'text-current') => {
+        return `
+            <div class="flex items-center justify-center">
+                <svg class="animate-spin ${size} ${color}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+        `;
+    },
+
     // Helper to render a topic section
     _renderTopicSection: (topic, filterTopicId, today, visibleCountRef) => {
         const topicSection = document.createElement('div');
@@ -55,7 +67,7 @@ window.SmartGrind.renderers = {
 
         return hasVisiblePattern ? topicSection : null;
     },
-    
+
     // Helper to generate badge HTML
     _generateBadge: (p, today) => {
         const isSolved = p.status === 'solved';
@@ -65,17 +77,18 @@ window.SmartGrind.renderers = {
             isSolved ?
                 `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/20 text-brand-400 uppercase tracking-wide">Solved</span>` : '';
     },
-    
+
     // Helper to generate action button HTML
     _generateActionButton: (p) => {
         const isSolved = p.status === 'solved';
         const isDue = isSolved && p.nextReviewDate <= window.SmartGrind.utils.getToday();
         const action = isSolved ? (isDue ? 'review' : 'reset') : 'solve';
         const buttonClass = isSolved ? (isDue ? 'bg-amber-500 text-white hover:bg-amber-400' : 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold') : 'bg-brand-600 text-white hover:bg-brand-500 shadow-lg shadow-brand-500/20';
-        const buttonText = p.loading ? '<div class="flex items-center justify-center gap-1"><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted)"></div><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted); animation-delay: 0.1s"></div><div class="w-3 h-3 rounded-full animate-pulse" style="background-color: var(--theme-text-muted); animation-delay: 0.2s"></div></div>' : (isDue ? 'Review' : isSolved ? 'Reset' : 'Solve');
-        return `<button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors ${buttonClass}" ${p.loading ? 'disabled' : ''} data-action="${action}">${buttonText}</button>`;
+
+        const buttonText = p.loading ? window.SmartGrind.renderers._getSpinner() : (isDue ? 'Review' : isSolved ? 'Reset' : 'Solve');
+        return `<button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors min-w-[70px] ${buttonClass}" ${p.loading ? 'disabled' : ''} data-action="${action}">${buttonText}</button>`;
     },
-    
+
     // Render sidebar navigation (consolidated click handlers)
     renderSidebar: () => {
         const topicList = window.SmartGrind.state.elements.topicList;
@@ -129,7 +142,7 @@ window.SmartGrind.renderers = {
     setActiveTopic: (topicId) => {
         document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
         const activeBtn = document.querySelector(`[data-topic-id="${topicId}"]`) ||
-                         document.querySelector('.sidebar-link:first-child'); // All problems
+            document.querySelector('.sidebar-link:first-child'); // All problems
         if (activeBtn) activeBtn.classList.add('active');
         window.SmartGrind.state.ui.activeTopicId = topicId;
     },
@@ -194,7 +207,8 @@ window.SmartGrind.renderers = {
         const badge = window.SmartGrind.renderers._generateBadge(p, window.SmartGrind.utils.getToday());
         const actionButton = window.SmartGrind.renderers._generateActionButton(p);
 
-        return { className, innerHTML: `
+        return {
+            className, innerHTML: `
             <div class="flex flex-col sm:flex-row justify-between gap-4">
                 <div class="flex-1 overflow-hidden">
                     <div class="flex items-center gap-2 mb-1">
@@ -249,10 +263,12 @@ window.SmartGrind.renderers = {
             </div>
 
             <!-- Note Input -->
-            <div class="note-area hidden mt-3 pt-3 border-t border-theme">
-                <textarea class="w-full bg-dark-950 border border-theme rounded-lg p-3 text-sm text-theme-base focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none resize-none" rows="3" placeholder="Notes...">${p.note || ''}</textarea>
+            <div class="note-area ${p.noteVisible ? '' : 'hidden'} mt-3 pt-3 border-t border-theme">
+                <textarea class="w-full bg-dark-950 border border-theme rounded-lg p-3 text-sm text-theme-base focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none resize-none" rows="3" placeholder="Notes..." ${p.loading ? 'disabled' : ''}>${p.note || ''}</textarea>
                 <div class="flex justify-end mt-2">
-                    <button class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-md transition-colors" data-action="save-note">Save</button>
+                    <button class="px-4 py-1.5 rounded-lg text-xs font-bold transition-colors min-w-[60px] bg-slate-700 hover:bg-slate-600 text-white" ${p.loading ? 'disabled' : ''} data-action="save-note">
+                        ${p.loading ? window.SmartGrind.renderers._getSpinner('h-3 w-3') : 'Save'}
+                    </button>
                 </div>
             </div>
         ` };
@@ -269,39 +285,77 @@ window.SmartGrind.renderers = {
     },
 
     // Helper to handle problem status changes
-    _handleStatusChange: async (p, newStatus, interval = 0, nextDate = null) => {
+    _handleStatusChange: async (button, p, newStatus, interval = 0, nextDate = null) => {
         p.status = newStatus;
         p.reviewInterval = interval;
         p.nextReviewDate = nextDate;
         p.loading = true;
-        await window.SmartGrind.api.saveProblem(p);
-        p.loading = false;
+
+        // Show loading state immediately
+        window.SmartGrind.renderers._reRenderCard(button, p);
+
+        // Add a slight delay so the spinner is visible even for fast local operations
+        await new Promise(resolve => setTimeout(resolve, 400));
+
+        try {
+            await window.SmartGrind.api.saveProblem(p);
+        } finally {
+            p.loading = false;
+            // Card needs to be re-rendered again to show final state (and remove spinner)
+            // But we need a fresh reference to the button/card since it was replaced
+            const newCard = document.querySelector(`[data-problem-id="${p.id}"]`);
+            if (newCard) {
+                const btn = newCard.querySelector('.action-btn[data-action]');
+                if (btn) window.SmartGrind.renderers._reRenderCard(btn, p);
+            }
+        }
     },
 
     // Handle solve action
     _handleSolve: async (button, p) => {
         const today = window.SmartGrind.utils.getToday();
-        await window.SmartGrind.renderers._handleStatusChange(p, 'solved', 0, window.SmartGrind.utils.getNextReviewDate(today, 0));
-        window.SmartGrind.renderers._reRenderCard(button, p);
+        await window.SmartGrind.renderers._handleStatusChange(button, p, 'solved', 0, window.SmartGrind.utils.getNextReviewDate(today, 0));
     },
 
     // Handle review action
     _handleReview: async (button, p) => {
         const today = window.SmartGrind.utils.getToday();
         const newInterval = (p.reviewInterval || 0) + 1;
-        await window.SmartGrind.renderers._handleStatusChange(p, 'solved', newInterval, window.SmartGrind.utils.getNextReviewDate(today, newInterval));
 
-        if (window.SmartGrind.state.ui.currentFilter === 'review') {
-            window.SmartGrind.renderers._hideCardIfDueFilter(button);
-        } else {
-            window.SmartGrind.renderers._reRenderCard(button, p);
+        p.status = 'solved';
+        p.reviewInterval = newInterval;
+        p.nextReviewDate = window.SmartGrind.utils.getNextReviewDate(today, newInterval);
+        p.loading = true;
+
+        window.SmartGrind.renderers._reRenderCard(button, p);
+
+        // Add delay for visibility
+        await new Promise(resolve => setTimeout(resolve, 400));
+
+        try {
+            await window.SmartGrind.api.saveProblem(p);
+        } finally {
+            p.loading = false;
+            if (window.SmartGrind.state.ui.currentFilter === 'review') {
+                // If in due view, hide the card
+                const newCard = document.querySelector(`[data-problem-id="${p.id}"]`);
+                if (newCard) {
+                    const btn = newCard.querySelector('.action-btn[data-action]');
+                    if (btn) window.SmartGrind.renderers._hideCardIfDueFilter(btn);
+                }
+            } else {
+                const newCard = document.querySelector(`[data-problem-id="${p.id}"]`);
+                if (newCard) {
+                    const btn = newCard.querySelector('.action-btn[data-action]');
+                    if (btn) window.SmartGrind.renderers._reRenderCard(btn, p);
+                }
+            }
         }
     },
 
     // Handle reset action
     _handleReset: async (button, p) => {
-        await window.SmartGrind.renderers._handleStatusChange(p, 'unsolved', 0, null);
-        window.SmartGrind.renderers._reRenderCard(button, p);
+        await window.SmartGrind.renderers._handleStatusChange(button, p, 'unsolved', 0, null);
     },
 
     // Helper to hide card when due filter is active
@@ -356,15 +410,31 @@ window.SmartGrind.renderers = {
                 break;
             case 'note':
                 const noteArea = button.closest('.group').querySelector('.note-area');
-                if (noteArea) noteArea.classList.toggle('hidden');
+                if (noteArea) {
+                    const isHidden = noteArea.classList.toggle('hidden');
+                    p.noteVisible = !isHidden;
+                }
                 break;
             case 'save-note':
                 const textarea = button.closest('.note-area').querySelector('textarea');
                 if (textarea) {
                     p.note = textarea.value.trim();
-                    window.SmartGrind.renderers._handleStatusChange(p, p.status, p.reviewInterval, p.nextReviewDate).then(() => {
-                        window.SmartGrind.renderers._reRenderCard(button, p);
-                    });
+                    p.loading = true;
+                    window.SmartGrind.renderers._reRenderCard(button, p);
+
+                    // Add delay for visibility
+                    await new Promise(resolve => setTimeout(resolve, 400));
+
+                    try {
+                        await window.SmartGrind.api.saveProblem(p);
+                    } finally {
+                        p.loading = false;
+                        const newCard = document.querySelector(`[data-problem-id="${p.id}"]`);
+                        if (newCard) {
+                            const btn = newCard.querySelector('button[data-action="save-note"]');
+                            if (btn) window.SmartGrind.renderers._reRenderCard(btn, p);
+                        }
+                    }
                 }
                 break;
             case 'ask-chatgpt':
