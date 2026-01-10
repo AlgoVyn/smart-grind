@@ -33,8 +33,7 @@ function validateOAuthCode(params) {
 
 export async function onRequestGet({ request, env }) {
    const url = new URL(request.url);
-   const origin = url.origin;
-   const redirectUri = `${origin}/smartgrind/api/auth`;
+   const redirectUri = `https://algovyn.com/smartgrind/api/auth`;
    const action = url.searchParams.get('action');
 
    if (action === 'login') {

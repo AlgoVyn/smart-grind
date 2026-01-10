@@ -75,7 +75,7 @@ describe('Auth API', () => {
       expect(response.status).toBe(302);
       expect(response.headers.get('Location')).toContain('https://accounts.google.com/o/oauth2/v2/auth');
       expect(response.headers.get('Location')).toContain('client_id=test-client-id');
-      expect(response.headers.get('Location')).toContain('redirect_uri=https%3A%2F%2Fexample.com%2Fsmartgrind%2Fapi%2Fauth');
+      expect(response.headers.get('Location')).toContain('redirect_uri=https%3A%2F%2Falgovyn.com%2Fsmartgrind%2Fapi%2Fauth');
     });
 
     test('should return 400 for invalid code in callback', async () => {
