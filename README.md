@@ -6,6 +6,22 @@
 
 Visit the official website: [algovyn.com/smartgrind](https://algovyn.com/smartgrind)
 
+## Table of Contents
+
+- [Smart Grind - Smarter Problem Solving](#smart-grind---smarter-problem-solving)
+  - [Table of Contents](#table-of-contents)
+  - [Components](#components)
+    - [🧩 Chrome Extension](#-chrome-extension)
+    - [🌐 Web Application](#-web-application)
+  - [Quick Start](#quick-start)
+    - [For the Chrome Extension](#for-the-chrome-extension)
+    - [For the Web Application](#for-the-web-application)
+  - [Project Structure](#project-structure)
+  - [Contributing](#contributing)
+    - [General Guidelines](#general-guidelines)
+  - [License](#license)
+  - [Support](#support)
+
 ## Components
 
 ### 🧩 Chrome Extension
@@ -29,7 +45,7 @@ A full-featured web app for systematic pattern practice with spaced repetition.
 - Progress visualization with statistics and review tracking
 - Custom problem addition with category/pattern organization
 - Note-taking system for personal insights
-- AI integration (Gemini/Grok) with pre-filled solution prompts
+- AI integration (ChatGPT/AI Studio(Gemini)/Grok) with pre-filled solution prompts
 - Theme toggle, keyboard shortcuts, and export functionality
 - Mobile-responsive design with URL-based navigation
 
