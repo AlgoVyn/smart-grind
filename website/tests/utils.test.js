@@ -293,42 +293,64 @@ describe('SmartGrind Utils', () => {
   });
 
   describe('askAI', () => {
-    test('asks Gemini and copies prompt', async () => {
+    test('asks Gemini on desktop', async () => {
+      // Ensure desktop user agent
+      const originalUserAgent = navigator.userAgent;
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        configurable: true
+      });
+
       const problemName = 'Two Sum';
-      const provider = 'gemini';
-      const copyToClipboardSpy = jest.spyOn(window.SmartGrind.utils, 'copyToClipboard');
-      copyToClipboardSpy.mockResolvedValue();
+      const provider = 'aistudio';
       const localStorageSpy = jest.spyOn(localStorage, 'setItem');
+      const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => {});
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
       await window.SmartGrind.utils.askAI(problemName, provider);
 
-      expect(copyToClipboardSpy).toHaveBeenCalledWith(
-        'Explain the solution for LeetCode problem: "Two Sum". Provide the intuition, multiple approaches, and time/space complexity analysis.'
-      );
-      expect(window.SmartGrind.state.ui.preferredAI).toBe('gemini');
+      expect(window.SmartGrind.state.ui.preferredAI).toBe('aistudio');
+      expect(window.open).toHaveBeenCalledWith('https://aistudio.google.com/prompts/new_chat?prompt=Explain%20the%20solution%20for%20LeetCode%20problem%3A%20%22Two%20Sum%22.%20Provide%20the%20intuition%2C%20multiple%20approaches%2C%20and%20time%2Fspace%20complexity%20analysis.', '_blank');
 
       consoleSpy.mockRestore();
+      windowOpenSpy.mockRestore();
+
+      // Restore original user agent
+      Object.defineProperty(navigator, 'userAgent', {
+        value: originalUserAgent,
+        configurable: true
+      });
     });
 
-    test('asks Grok and copies prompt', async () => {
+    test('asks Grok on desktop', async () => {
+      // Ensure desktop user agent
+      const originalUserAgent = navigator.userAgent;
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        configurable: true
+      });
+
       const problemName = 'Two Sum';
       const provider = 'grok';
-      const copyToClipboardSpy = jest.spyOn(window.SmartGrind.utils, 'copyToClipboard');
-      copyToClipboardSpy.mockResolvedValue();
       const localStorageSpy = jest.spyOn(localStorage, 'setItem');
+      const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => {});
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
       await window.SmartGrind.utils.askAI(problemName, provider);
 
-      expect(copyToClipboardSpy).toHaveBeenCalledWith(
-        'Explain the solution for LeetCode problem: "Two Sum". Provide the intuition, multiple approaches, and time/space complexity analysis.'
-      );
       expect(window.SmartGrind.state.ui.preferredAI).toBe('grok');
+      expect(window.open).toHaveBeenCalledWith('https://grok.com/?q=Explain%20the%20solution%20for%20LeetCode%20problem%3A%20%22Two%20Sum%22.%20Provide%20the%20intuition%2C%20multiple%20approaches%2C%20and%20time%2Fspace%20complexity%20analysis.', '_blank');
 
       consoleSpy.mockRestore();
+      windowOpenSpy.mockRestore();
+
+      // Restore original user agent
+      Object.defineProperty(navigator, 'userAgent', {
+        value: originalUserAgent,
+        configurable: true
+      });
     });
   });
 });

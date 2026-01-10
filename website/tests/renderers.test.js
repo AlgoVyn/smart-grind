@@ -719,9 +719,9 @@ describe('SmartGrind Renderers', () => {
       expect(window.SmartGrind.utils.askAI).toHaveBeenCalledWith('Two Sum', 'chatgpt');
     });
 
-    test('handles ask-gemini action', () => {
+    test('handles ask-aistudio action', () => {
       const mockEvent = {
-        target: { closest: jest.fn(() => ({ dataset: { action: 'ask-gemini' } })) }
+        target: { closest: jest.fn(() => ({ dataset: { action: 'ask-aistudio' } })) }
       };
       const problem = { name: 'Two Sum' };
 
@@ -729,7 +729,7 @@ describe('SmartGrind Renderers', () => {
 
       window.SmartGrind.renderers.handleProblemCardClick(mockEvent, problem);
 
-      expect(window.SmartGrind.utils.askAI).toHaveBeenCalledWith('Two Sum', 'gemini');
+      expect(window.SmartGrind.utils.askAI).toHaveBeenCalledWith('Two Sum', 'aistudio');
     });
 
     test('handles ask-grok action', () => {

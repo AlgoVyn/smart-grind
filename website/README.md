@@ -98,7 +98,7 @@ JWT_SECRET=your_jwt_secret
 - **Custom Problems**: Use "Add Problem" to include additional practice problems
 
 ### AI Assistance
-- **Quick Prompts**: Click Gemini or Grok buttons to copy solution prompts to clipboard
+- **Quick Prompts**: Click Gemini or Grok buttons to open AI services with pre-filled prompts
 - **AI Integration**: Opens the respective AI service with pre-filled prompts
 - **Prompt Content**: Automatically generates prompts asking for solution explanation, intuition, optimal approach, and complexity analysis
 

@@ -73,22 +73,41 @@ window.SmartGrind.utils = {
 
     // AI provider configurations
     _aiProviders: {
-        chatgpt: { mobileIntent: 'intent://chat.openai.com#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchatgpt.com%2F;end', desktopUrl: 'https://chatgpt.com' },
-        gemini: { mobileIntent: 'intent://gemini.google.com/app#Intent;scheme=https;package=com.google.android.apps.ai;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end', desktopUrl: 'https://gemini.google.com/app' },
-        grok: { mobileIntent: 'intent://grok.com#Intent;scheme=https;package=com.xai.grok;S.browser_fallback_url=https%3A%2F%2Fgrok.com;end', desktopUrl: 'https://grok.com' }
+        chatgpt: { 
+            mobileIntent: 'intent://chat.openai.com#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchatgpt.com%2F;end', 
+            desktopUrl: 'https://chatgpt.com/?q=' 
+        },
+        aistudio: { 
+            mobileIntent: 'intent://aistudio.google.com#Intent;scheme=https;package=com.google.ai.apps.aistudio;S.browser_fallback_url=https%3A%2F%2Faistudio.google.com;end', 
+            desktopUrl: 'https://aistudio.google.com/prompts/new_chat?prompt=' 
+        },
+        grok: { 
+            mobileIntent: 'intent://grok.com#Intent;scheme=https;package=com.xai.grok;S.browser_fallback_url=https%3A%2F%2Fgrok.com;end', 
+            desktopUrl: 'https://grok.com/?q=' 
+        }
     },
 
     // AI helper
     askAI: async (problemName, provider) => {
         const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the intuition, multiple approaches, and time/space complexity analysis.`;
+        const encodedPrompt = encodeURIComponent(aiPrompt);
 
-        await window.SmartGrind.utils.copyToClipboard(aiPrompt);
         localStorage.setItem('preferred-ai', provider);
         window.SmartGrind.state.ui.preferredAI = provider;
 
         const config = window.SmartGrind.utils._aiProviders[provider];
         const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const url = isMobile ? config.mobileIntent : config.desktopUrl;
+
+        // Build URL with query parameter for auto-execution
+        let url;
+        if (isMobile) {
+            // For mobile, modify the intent to include the prompt in the fallback URL
+            const fallbackParam = encodeURIComponent(`${config.desktopUrl}${encodedPrompt}`);
+            url = config.mobileIntent.replace(/S\.browser_fallback_url=[^;]+/, `S.browser_fallback_url=${fallbackParam}`);
+        } else {
+            // For desktop, append the query to trigger auto-execution
+            url = config.desktopUrl + encodedPrompt;
+        }
 
         if (isMobile) {
             window.location.href = url;
