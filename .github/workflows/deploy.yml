@@ -40,7 +40,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy website/public --project-name=smart-grind
+          command: pages deploy public --project-name=smart-grind
+          working-directory: website
           # Optional useful flags:
           # --branch=${{ github.ref_name }}           # auto-sets branch name
           # --commit-hash=${{ github.sha }}
