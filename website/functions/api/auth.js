@@ -49,39 +49,161 @@ export async function onRequestGet({ request, env }) {
    }
 
   if (url.searchParams.get('state') === 'callback') {
-    const code = validateOAuthCode(url.searchParams);
-    if (!code) {
-      return new Response('Invalid code', { status: 400 });
-    }
+     const code = validateOAuthCode(url.searchParams);
+     if (!code) {
+       const html = `
+       <!DOCTYPE html>
+       <html>
+       <head><title>Sign In Failed</title></head>
+       <body>
+       <script>
+         if (window.opener) {
+           window.opener.postMessage({ type: 'auth-failure', message: 'Invalid authorization code.' }, window.location.origin);
+           setTimeout(() => window.close(), 500);
+         }
+       </script>
+       <p>Sign in failed: Invalid code.</p>
+       </body>
+       </html>`;
+       return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 400 });
+     }
 
-    // Exchange code for token
-    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: env.GOOGLE_CLIENT_ID,
-        client_secret: env.GOOGLE_CLIENT_SECRET,
-        code,
-        grant_type: 'authorization_code',
-        redirect_uri: redirectUri
-      })
-    });
+    let tokenData;
+    try {
+      // Exchange code for token
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: env.GOOGLE_CLIENT_ID,
+          client_secret: env.GOOGLE_CLIENT_SECRET,
+          code,
+          grant_type: 'authorization_code',
+          redirect_uri: redirectUri
+        })
+      });
 
-    const tokenData = await tokenResponse.json();
-    if (!tokenData.access_token) {
-      return new Response('OAuth failed', { status: 400 });
+      if (!tokenResponse.ok) {
+        console.error('Token exchange failed:', tokenResponse.status, await tokenResponse.text());
+        const html = `
+        <!DOCTYPE html>
+        <html>
+        <head><title>Sign In Failed</title></head>
+        <body>
+        <script>
+          if (window.opener) {
+            window.opener.postMessage({ type: 'auth-failure', message: 'Failed to exchange authorization code.' }, window.location.origin);
+            setTimeout(() => window.close(), 500);
+          }
+        </script>
+        <p>Sign in failed: Token exchange error.</p>
+        </body>
+        </html>`;
+        return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 500 });
+      }
+
+      tokenData = await tokenResponse.json();
+      if (!tokenData.access_token) {
+        console.error('No access token in response:', tokenData);
+        const html = `
+        <!DOCTYPE html>
+        <html>
+        <head><title>Sign In Failed</title></head>
+        <body>
+        <script>
+          if (window.opener) {
+            window.opener.postMessage({ type: 'auth-failure', message: 'OAuth authorization failed.' }, window.location.origin);
+            setTimeout(() => window.close(), 500);
+          }
+        </script>
+        <p>Sign in failed: No access token.</p>
+        </body>
+        </html>`;
+        return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 400 });
+      }
+    } catch (error) {
+      console.error('Token exchange error:', error);
+      const html = `
+      <!DOCTYPE html>
+      <html>
+      <head><title>Sign In Failed</title></head>
+      <body>
+      <script>
+        if (window.opener) {
+          window.opener.postMessage({ type: 'auth-failure', message: 'Database error during sign-in.' }, window.location.origin);
+          setTimeout(() => window.close(), 500);
+        }
+      </script>
+      <p>Sign in failed: Database error.</p>
+      </body>
+      </html>`;
+      return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 500 });
     }
 
     const accessToken = tokenData.access_token;
 
-    // Get user info
-    const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
+    let user;
+    try {
+      // Get user info
+      const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
 
-    const user = await userResponse.json();
-    if (!user.id) {
-      return new Response('Invalid user data', { status: 400 });
+      if (!userResponse.ok) {
+        console.error('User info fetch failed:', userResponse.status, await userResponse.text());
+        const html = `
+        <!DOCTYPE html>
+        <html>
+        <head><title>Sign In Failed</title></head>
+        <body>
+        <script>
+          if (window.opener) {
+            window.opener.postMessage({ type: 'auth-failure', message: 'Failed to retrieve user information.' }, window.location.origin);
+            setTimeout(() => window.close(), 500);
+          }
+        </script>
+        <p>Sign in failed: User info error.</p>
+        </body>
+        </html>`;
+        return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 500 });
+      }
+
+      user = await userResponse.json();
+      if (!user.id) {
+        console.error('Invalid user data:', user);
+        const html = `
+        <!DOCTYPE html>
+        <html>
+        <head><title>Sign In Failed</title></head>
+        <body>
+        <script>
+          if (window.opener) {
+            window.opener.postMessage({ type: 'auth-failure', message: 'Invalid user data received.' }, window.location.origin);
+            setTimeout(() => window.close(), 500);
+          }
+        </script>
+        <p>Sign in failed: Invalid user data.</p>
+        </body>
+        </html>`;
+        return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 400 });
+      }
+    } catch (error) {
+      console.error('User info fetch error:', error);
+      const html = `
+      <!DOCTYPE html>
+      <html>
+      <head><title>Sign In Failed</title></head>
+      <body>
+      <script>
+        if (window.opener) {
+          window.opener.postMessage({ type: 'auth-failure', message: 'Network error during sign-in.' }, window.location.origin);
+          setTimeout(() => window.close(), 500);
+        }
+      </script>
+      <p>Sign in failed: Network error.</p>
+      </body>
+      </html>`;
+      return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 500 });
     }
 
     const userId = user.id;
@@ -95,9 +217,28 @@ export async function onRequestGet({ request, env }) {
     }, env.JWT_SECRET || 'default-secret');
 
     // Store user data in KV only if new user
-    const existingData = await env.KV.get(userId);
-    if (!existingData) {
-      await env.KV.put(userId, JSON.stringify({ problems: {}, deletedIds: [] }));
+    try {
+      const existingData = await env.KV.get(userId);
+      if (!existingData) {
+        await env.KV.put(userId, JSON.stringify({ problems: {}, deletedIds: [] }));
+      }
+    } catch (error) {
+      console.error('KV operation error:', error);
+      const html = `
+      <!DOCTYPE html>
+      <html>
+      <head><title>Sign In Failed</title></head>
+      <body>
+      <script>
+        if (window.opener) {
+          window.opener.postMessage({ type: 'auth-failure', message: 'Network error during sign-in.' }, window.location.origin);
+          setTimeout(() => window.close(), 500);
+        }
+      </script>
+      <p>Sign in failed: Network error.</p>
+      </body>
+      </html>`;
+      return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 500 });
     }
 
     // Return HTML that handles auth for popup or fallback

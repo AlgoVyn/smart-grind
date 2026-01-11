@@ -81,3 +81,7 @@ global.crypto.subtle = {
 
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
+
+// Mock btoa and atob for base64 encoding
+global.btoa = jest.fn((str) => Buffer.from(str, 'binary').toString('base64'));
+global.atob = jest.fn((str) => Buffer.from(str, 'base64').toString('binary'));

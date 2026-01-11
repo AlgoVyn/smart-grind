@@ -347,10 +347,21 @@ window.SmartGrind.ui = {
         // Open popup for auth
         const popup = window.open('/smartgrind/api/auth?action=login', 'auth', 'width=500,height=600');
 
-        // Listen for auth success message
+        if (!popup) {
+            // Popup blocked
+            window.SmartGrind.ui.setButtonLoading(btn, false);
+            window.SmartGrind.ui.setButtonLoading(modalBtn, false);
+            window.SmartGrind.ui.showAlert('Sign-in popup was blocked. Please allow popups for this site and try again.');
+            return;
+        }
+
+        let authCompleted = false;
+
+        // Listen for auth messages
         const messageHandler = (event) => {
             if (event.origin !== window.location.origin) return;
             if (event.data.type === 'auth-success') {
+                authCompleted = true;
                 const { token, userId, displayName } = event.data;
                 localStorage.setItem('token', token);
                 localStorage.setItem('userId', userId);
@@ -372,15 +383,42 @@ window.SmartGrind.ui = {
                 window.removeEventListener('message', messageHandler);
                 window.SmartGrind.ui.setButtonLoading(btn, false);
                 window.SmartGrind.ui.setButtonLoading(modalBtn, false);
+            } else if (event.data.type === 'auth-failure') {
+                authCompleted = true;
+                const { message } = event.data;
+                window.SmartGrind.ui.showAlert(`Sign-in failed: ${message}`);
+                window.removeEventListener('message', messageHandler);
+                window.SmartGrind.ui.setButtonLoading(btn, false);
+                window.SmartGrind.ui.setButtonLoading(modalBtn, false);
             }
         };
         window.addEventListener('message', messageHandler);
 
-        // Timeout to reset buttons if no auth response received (popup closed or failed)
+        // Check if popup is closed without auth
+        const checkPopupClosed = setInterval(() => {
+            if (popup.closed && !authCompleted) {
+                authCompleted = true;
+                clearInterval(checkPopupClosed);
+                window.removeEventListener('message', messageHandler);
+                window.SmartGrind.ui.setButtonLoading(btn, false);
+                window.SmartGrind.ui.setButtonLoading(modalBtn, false);
+                window.SmartGrind.ui.showAlert('Sign-in was cancelled.');
+            }
+        }, 1000);
+
+        // Timeout to reset buttons if no auth response received
         setTimeout(() => {
-            window.removeEventListener('message', messageHandler);
-            window.SmartGrind.ui.setButtonLoading(btn, false);
-            window.SmartGrind.ui.setButtonLoading(modalBtn, false);
+            if (!authCompleted) {
+                authCompleted = true;
+                clearInterval(checkPopupClosed);
+                window.removeEventListener('message', messageHandler);
+                window.SmartGrind.ui.setButtonLoading(btn, false);
+                window.SmartGrind.ui.setButtonLoading(modalBtn, false);
+                if (!popup.closed) {
+                    popup.close();
+                }
+                window.SmartGrind.ui.showAlert('Sign-in timed out. Please try again.');
+            }
         }, UI_CONSTANTS.AUTH_TIMEOUT);
     },
 
