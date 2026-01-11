@@ -241,6 +241,157 @@ window.SmartGrind.api = {
         });
     },
 
+    // Reset all problems
+    resetAll: async () => {
+        const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to reset ALL problems? This will mark all problems as unsolved and restore any deleted problems across all categories.`);
+        if (!confirmed) return;
+
+        try {
+            // Reset all existing problems
+            window.SmartGrind.state.problems.forEach(p => {
+                p.status = 'unsolved';
+                p.reviewInterval = 0;
+                p.nextReviewDate = null;
+            });
+
+            // Restore all deleted problems
+            const allProblemIds = new Set();
+            window.SmartGrind.data.topicsData.forEach(topic => {
+                topic.patterns.forEach(pattern => {
+                    pattern.problems.forEach(probDef => {
+                        const id = typeof probDef === 'string' ? probDef : probDef.id;
+                        allProblemIds.add(id);
+                    });
+                });
+            });
+
+            allProblemIds.forEach(id => {
+                if (window.SmartGrind.state.deletedProblemIds.has(id)) {
+                    // Remove from deleted set
+                    window.SmartGrind.state.deletedProblemIds.delete(id);
+
+                    // Find the problem definition
+                    let probDef = null;
+                    let topicTitle = '';
+                    let patternName = '';
+                    for (const topic of window.SmartGrind.data.topicsData) {
+                        for (const pattern of topic.patterns) {
+                            const found = pattern.problems.find(prob => (typeof prob === 'string' ? prob : prob.id) === id);
+                            if (found) {
+                                probDef = found;
+                                topicTitle = topic.title;
+                                patternName = pattern.name;
+                                break;
+                            }
+                        }
+                        if (probDef) break;
+                    }
+
+                    if (probDef) {
+                        const newProb = {
+                            id: id,
+                            name: typeof probDef === 'string' ? probDef : probDef.name,
+                            url: typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url,
+                            status: 'unsolved',
+                            topic: topicTitle,
+                            pattern: patternName,
+                            reviewInterval: 0,
+                            nextReviewDate: null,
+                            note: '',
+                            loading: false
+                        };
+                        window.SmartGrind.state.problems.set(id, newProb);
+                    }
+                }
+            });
+
+            // Save
+            await window.SmartGrind.api.saveData();
+
+            // Re-render
+            window.SmartGrind.renderers.renderSidebar();
+            window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
+            window.SmartGrind.utils.showToast('All problems reset and restored');
+        } catch (e) {
+            console.error('Reset all error:', e);
+            window.SmartGrind.ui.showAlert(`Failed to reset all problems: ${e.message}`);
+            throw e;
+        }
+    },
+
+    // Reset entire category
+    resetCategory: async (topicId) => {
+        try {
+            const topic = window.SmartGrind.data.topicsData.find(t => t.id === topicId);
+            if (!topic) {
+                window.SmartGrind.ui.showAlert('Category not found.');
+                return;
+            }
+            const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to reset all problems in the category "${topic.title}"? This will mark all problems as unsolved and restore any deleted problems.`);
+            if (!confirmed) return;
+
+            // Collect all problem IDs in this category
+            const categoryProblemIds = new Set();
+            topic.patterns.forEach(pattern => {
+                pattern.problems.forEach(probDef => {
+                    const id = typeof probDef === 'string' ? probDef : probDef.id;
+                    categoryProblemIds.add(id);
+                });
+            });
+
+            // Reset existing problems in the category
+            const problemsToReset = [];
+            window.SmartGrind.state.problems.forEach((p, id) => {
+                if (p.topic === topic.title) {
+                    problemsToReset.push(p);
+                }
+            });
+            problemsToReset.forEach(p => {
+                p.status = 'unsolved';
+                p.reviewInterval = 0;
+                p.nextReviewDate = null;
+            });
+
+            // Restore deleted problems in the category
+            categoryProblemIds.forEach(id => {
+                if (window.SmartGrind.state.deletedProblemIds.has(id)) {
+                    // Remove from deleted set
+                    window.SmartGrind.state.deletedProblemIds.delete(id);
+
+                    // Add back to problems with unsolved status
+                    const probDef = topic.patterns.flatMap(p => p.problems).find(prob => (typeof prob === 'string' ? prob : prob.id) === id);
+                    if (probDef) {
+                        const newProb = {
+                            id: id,
+                            name: typeof probDef === 'string' ? probDef : probDef.name,
+                            url: typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url,
+                            status: 'unsolved',
+                            topic: topic.title,
+                            pattern: topic.patterns.find(p => p.problems.some(prob => (typeof prob === 'string' ? prob : prob.id) === id))?.name || '',
+                            reviewInterval: 0,
+                            nextReviewDate: null,
+                            note: '',
+                            loading: false
+                        };
+                        window.SmartGrind.state.problems.set(id, newProb);
+                    }
+                }
+            });
+
+            // Save
+            await window.SmartGrind.api.saveData();
+
+            // Re-render
+            window.SmartGrind.renderers.renderSidebar();
+            window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
+            window.SmartGrind.utils.showToast('Category problems reset and restored');
+        } catch (e) {
+            console.error('Reset category error:', e);
+            window.SmartGrind.ui.showAlert(`Failed to reset category: ${e.message}`);
+            throw e;
+        }
+    },
+
     // Delete entire category
     deleteCategory: async (topicId) => {
         try {

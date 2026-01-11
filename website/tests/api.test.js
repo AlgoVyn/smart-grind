@@ -368,4 +368,259 @@ describe('SmartGrind API Module', () => {
       expect(mockShowAlert).toHaveBeenCalledWith('Category not found.');
     });
   });
+
+  describe('resetAll', () => {
+    beforeEach(() => {
+      // Set up test data
+      window.SmartGrind.data.topicsData = [
+        {
+          id: 'arrays',
+          title: 'Arrays',
+          patterns: [
+            {
+              name: 'Two Sum',
+              problems: [
+                { id: '1', name: 'Two Sum', url: 'https://leetcode.com/problems/two-sum/' },
+                { id: '2', name: 'Add Two Numbers', url: 'https://leetcode.com/problems/add-two-numbers/' }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'strings',
+          title: 'Strings',
+          patterns: [
+            {
+              name: 'Palindrome',
+              problems: [
+                { id: '3', name: 'Valid Palindrome', url: 'https://leetcode.com/problems/valid-palindrome/' }
+              ]
+            }
+          ]
+        }
+      ];
+
+      // Set up existing problems
+      window.SmartGrind.state.problems.clear();
+      window.SmartGrind.state.problems.set('1', {
+        id: '1',
+        name: 'Two Sum',
+        status: 'solved',
+        reviewInterval: 3,
+        nextReviewDate: '2024-01-01',
+        topic: 'Arrays',
+        pattern: 'Two Sum'
+      });
+      window.SmartGrind.state.problems.set('3', {
+        id: '3',
+        name: 'Valid Palindrome',
+        status: 'solved',
+        reviewInterval: 1,
+        nextReviewDate: '2024-01-02',
+        topic: 'Strings',
+        pattern: 'Palindrome'
+      });
+
+      // Set up deleted problems
+      window.SmartGrind.state.deletedProblemIds.clear();
+      window.SmartGrind.state.deletedProblemIds.add('2'); // Add Two Numbers is deleted
+    });
+
+    test('should reset all problems to unsolved and restore deleted problems when confirmed', async () => {
+      const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+      confirmSpy.mockResolvedValue(true);
+      const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
+      performSaveSpy.mockResolvedValue();
+
+      await window.SmartGrind.api.resetAll();
+
+      // Check confirmation was requested
+      expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset ALL problems? This will mark all problems as unsolved and restore any deleted problems across all categories.');
+
+      // Check existing problems were reset
+      const problem1 = window.SmartGrind.state.problems.get('1');
+      expect(problem1.status).toBe('unsolved');
+      expect(problem1.reviewInterval).toBe(0);
+      expect(problem1.nextReviewDate).toBe(null);
+
+      const problem3 = window.SmartGrind.state.problems.get('3');
+      expect(problem3.status).toBe('unsolved');
+      expect(problem3.reviewInterval).toBe(0);
+      expect(problem3.nextReviewDate).toBe(null);
+
+      // Check deleted problem was restored
+      expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(false);
+      const problem2 = window.SmartGrind.state.problems.get('2');
+      expect(problem2).toBeDefined();
+      expect(problem2.id).toBe('2');
+      expect(problem2.name).toBe('Add Two Numbers');
+      expect(problem2.status).toBe('unsolved');
+      expect(problem2.topic).toBe('Arrays');
+      expect(problem2.pattern).toBe('Two Sum');
+
+      // Check save and re-render were called
+      expect(performSaveSpy).toHaveBeenCalled();
+      expect(mockRenderSidebar).toHaveBeenCalled();
+      expect(mockRenderMainView).toHaveBeenCalledWith('all');
+      expect(window.SmartGrind.utils.showToast).toHaveBeenCalledWith('All problems reset and restored');
+    });
+
+    test('should not reset if confirmation is cancelled', async () => {
+      const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+      confirmSpy.mockResolvedValue(false);
+      const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
+
+      await window.SmartGrind.api.resetAll();
+
+      // Check confirmation was requested
+      expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset ALL problems? This will mark all problems as unsolved and restore any deleted problems across all categories.');
+
+      // Check no changes were made
+      expect(window.SmartGrind.state.problems.get('1').status).toBe('solved');
+      expect(window.SmartGrind.state.problems.get('3').status).toBe('solved');
+      expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(true);
+      expect(window.SmartGrind.state.problems.has('2')).toBe(false);
+
+      // Check save was not called
+      expect(performSaveSpy).not.toHaveBeenCalled();
+    });
+
+    test('should handle save error gracefully', async () => {
+      const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+      confirmSpy.mockResolvedValue(true);
+      const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
+      performSaveSpy.mockRejectedValue(new Error('Save failed'));
+
+      await expect(window.SmartGrind.api.resetAll()).rejects.toThrow('Save failed');
+
+      expect(mockShowAlert).toHaveBeenCalledWith('Failed to reset all problems: Save failed');
+    });
+  });
+
+  describe('resetCategory', () => {
+    beforeEach(() => {
+      // Set up test data
+      window.SmartGrind.data.topicsData = [
+        {
+          id: 'arrays',
+          title: 'Arrays',
+          patterns: [
+            {
+              name: 'Two Sum',
+              problems: [
+                { id: '1', name: 'Two Sum', url: 'https://leetcode.com/problems/two-sum/' },
+                { id: '2', name: 'Add Two Numbers', url: 'https://leetcode.com/problems/add-two-numbers/' }
+              ]
+            }
+          ]
+        }
+      ];
+
+      // Set up existing problems
+      window.SmartGrind.state.problems.clear();
+      window.SmartGrind.state.problems.set('1', {
+        id: '1',
+        name: 'Two Sum',
+        status: 'solved',
+        reviewInterval: 3,
+        nextReviewDate: '2024-01-01',
+        topic: 'Arrays',
+        pattern: 'Two Sum'
+      });
+
+      // Set up deleted problems
+      window.SmartGrind.state.deletedProblemIds.clear();
+      window.SmartGrind.state.deletedProblemIds.add('2'); // Add Two Numbers is deleted
+    });
+
+    test('should reset category problems and restore deleted problems when confirmed', async () => {
+      const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+      confirmSpy.mockResolvedValue(true);
+      const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
+      performSaveSpy.mockResolvedValue();
+
+      await window.SmartGrind.api.resetCategory('arrays');
+
+      // Check confirmation was requested
+      expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset all problems in the category "Arrays"? This will mark all problems as unsolved and restore any deleted problems.');
+
+      // Check existing problem was reset
+      const problem1 = window.SmartGrind.state.problems.get('1');
+      expect(problem1.status).toBe('unsolved');
+      expect(problem1.reviewInterval).toBe(0);
+      expect(problem1.nextReviewDate).toBe(null);
+
+      // Check deleted problem was restored
+      expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(false);
+      const problem2 = window.SmartGrind.state.problems.get('2');
+      expect(problem2).toBeDefined();
+      expect(problem2.id).toBe('2');
+      expect(problem2.name).toBe('Add Two Numbers');
+      expect(problem2.status).toBe('unsolved');
+      expect(problem2.topic).toBe('Arrays');
+      expect(problem2.pattern).toBe('Two Sum');
+
+      // Check save and re-render were called
+      expect(performSaveSpy).toHaveBeenCalled();
+      expect(mockRenderSidebar).toHaveBeenCalled();
+      expect(mockRenderMainView).toHaveBeenCalledWith('all');
+      expect(window.SmartGrind.utils.showToast).toHaveBeenCalledWith('Category problems reset and restored');
+    });
+
+    test('should not reset if confirmation is cancelled', async () => {
+      const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+      confirmSpy.mockResolvedValue(false);
+      const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
+
+      await window.SmartGrind.api.resetCategory('arrays');
+
+      // Check confirmation was requested
+      expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset all problems in the category "Arrays"? This will mark all problems as unsolved and restore any deleted problems.');
+
+      // Check no changes were made
+      expect(window.SmartGrind.state.problems.get('1').status).toBe('solved');
+      expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(true);
+      expect(window.SmartGrind.state.problems.has('2')).toBe(false);
+
+      // Check save was not called
+      expect(performSaveSpy).not.toHaveBeenCalled();
+    });
+
+    test('should handle save error gracefully', async () => {
+      const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+      confirmSpy.mockResolvedValue(true);
+      const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
+      performSaveSpy.mockRejectedValue(new Error('Save failed'));
+
+      await expect(window.SmartGrind.api.resetCategory('arrays')).rejects.toThrow('Save failed');
+
+      expect(mockShowAlert).toHaveBeenCalledWith('Failed to reset category: Save failed');
+    });
+
+    test('should show alert if category not found', async () => {
+      await window.SmartGrind.api.resetCategory('nonexistent');
+
+      expect(mockShowAlert).toHaveBeenCalledWith('Category not found.');
+    });
+
+    test('should handle problems with string IDs in topicsData', async () => {
+      // Modify topicsData to have string IDs instead of objects
+      window.SmartGrind.data.topicsData[0].patterns[0].problems = ['1', '2'];
+
+      const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+      confirmSpy.mockResolvedValue(true);
+      const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
+      performSaveSpy.mockResolvedValue();
+
+      await window.SmartGrind.api.resetCategory('arrays');
+
+      // Check deleted problem was restored with correct defaults
+      const problem2 = window.SmartGrind.state.problems.get('2');
+      expect(problem2).toBeDefined();
+      expect(problem2.id).toBe('2');
+      expect(problem2.name).toBe('2'); // Falls back to ID as name
+      expect(problem2.url).toBe('https://leetcode.com/problems/2/'); // Generated URL
+      expect(problem2.status).toBe('unsolved');
+    });
+  });
 });

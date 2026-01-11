@@ -6,7 +6,8 @@ window.SmartGrind = window.SmartGrind || {};
 // Shared icon templates
 window.SmartGrind.ICONS = {
     delete: '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>',
-    note: '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>'
+    note: '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>',
+    reset: '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>'
 };
 
 window.SmartGrind.renderers = {
@@ -147,27 +148,50 @@ window.SmartGrind.renderers = {
         window.SmartGrind.state.ui.activeTopicId = topicId;
     },
 
-    // Helper to set view title and delete button
+    // Helper to set view title and action buttons
     _setViewTitle: (filterTopicId) => {
         const title = filterTopicId === 'all' ? 'All Problems' :
             window.SmartGrind.data.topicsData.find(t => t.id === filterTopicId)?.title || 'Unknown Topic';
         window.SmartGrind.state.elements.currentViewTitle.innerText = title;
 
-        // Remove existing delete button
-        const existingBtn = window.SmartGrind.state.elements.currentViewTitle.nextElementSibling;
-        if (existingBtn?.classList.contains('delete-category-btn')) {
-            existingBtn.remove();
+        // Remove existing action button container
+        const existingContainer = window.SmartGrind.state.elements.currentViewTitle.nextElementSibling;
+        if (existingContainer?.classList.contains('category-action-container')) {
+            existingContainer.remove();
         }
 
-        // Add delete button for specific topics
-        if (filterTopicId !== 'all') {
+        // Add action buttons
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'category-action-container ml-2 flex gap-1';
+
+        if (filterTopicId === 'all') {
+            // Reset All button for "All Problems" view
+            const resetAllBtn = document.createElement('button');
+            resetAllBtn.className = 'category-action-btn p-1 rounded hover:bg-blue-500/10 text-theme-muted hover:text-blue-400 transition-colors';
+            resetAllBtn.title = 'Reset All Problems';
+            resetAllBtn.innerHTML = window.SmartGrind.ICONS.reset;
+            resetAllBtn.onclick = () => window.SmartGrind.api.resetAll();
+            buttonContainer.appendChild(resetAllBtn);
+        } else {
+            // Reset and Delete buttons for specific topics
+            // Reset button
+            const resetBtn = document.createElement('button');
+            resetBtn.className = 'category-action-btn p-1 rounded hover:bg-blue-500/10 text-theme-muted hover:text-blue-400 transition-colors';
+            resetBtn.title = 'Reset Category Problems';
+            resetBtn.innerHTML = window.SmartGrind.ICONS.reset;
+            resetBtn.onclick = () => window.SmartGrind.api.resetCategory(filterTopicId);
+            buttonContainer.appendChild(resetBtn);
+
+            // Delete button
             const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'delete-category-btn ml-2 p-1 rounded hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors';
+            deleteBtn.className = 'category-action-btn p-1 rounded hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors';
             deleteBtn.title = 'Delete Category';
             deleteBtn.innerHTML = window.SmartGrind.ICONS.delete;
             deleteBtn.onclick = () => window.SmartGrind.api.deleteCategory(filterTopicId);
-            window.SmartGrind.state.elements.currentViewTitle.insertAdjacentElement('afterend', deleteBtn);
+            buttonContainer.appendChild(deleteBtn);
         }
+
+        window.SmartGrind.state.elements.currentViewTitle.insertAdjacentElement('afterend', buttonContainer);
     },
 
     // Render main problem view

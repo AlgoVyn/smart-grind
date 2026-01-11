@@ -105,6 +105,8 @@ describe('SmartGrind Renderers', () => {
     };
     window.SmartGrind.api = {
       deleteCategory: jest.fn().mockResolvedValue(),
+      resetCategory: jest.fn().mockResolvedValue(),
+      resetAll: jest.fn().mockResolvedValue(),
       saveDeletedId: jest.fn().mockResolvedValue(),
       saveProblem: jest.fn().mockResolvedValue(),
     };
@@ -124,9 +126,10 @@ describe('SmartGrind Renderers', () => {
   });
 
   describe('ICONS', () => {
-    test('defines delete and note icons', () => {
+    test('defines delete, note, and reset icons', () => {
       expect(window.SmartGrind.ICONS.delete).toContain('<svg');
       expect(window.SmartGrind.ICONS.note).toContain('<svg');
+      expect(window.SmartGrind.ICONS.reset).toContain('<svg');
     });
   });
 
@@ -277,8 +280,14 @@ describe('SmartGrind Renderers', () => {
       expect(window.SmartGrind.state.elements.currentViewTitle.innerText).toBe('Arrays');
     });
 
-    test('adds delete button for specific topics', () => {
+    test('adds action buttons for specific topics', () => {
       window.SmartGrind.renderers.renderMainView('arrays');
+
+      expect(mockInsertAdjacentElement).toHaveBeenCalledWith('afterend', expect.any(Object));
+    });
+
+    test('adds reset all button for all problems view', () => {
+      window.SmartGrind.renderers.renderMainView('all');
 
       expect(mockInsertAdjacentElement).toHaveBeenCalledWith('afterend', expect.any(Object));
     });
