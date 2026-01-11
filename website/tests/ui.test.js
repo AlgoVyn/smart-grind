@@ -1690,28 +1690,29 @@ describe('SmartGrind UI', () => {
   });
 
   describe('handleGoogleLogin popup blocked', () => {
-    test('shows alert when popup is blocked', () => {
+    test('shows toast when popup is blocked', () => {
       mockOpen.mockReturnValue(null);
-      const showAlertSpy = jest.spyOn(window.SmartGrind.ui, 'showAlert');
+      const showToastSpy = jest.spyOn(window.SmartGrind.utils, 'showToast');
       const setButtonLoadingSpy = jest.spyOn(window.SmartGrind.ui, 'setButtonLoading');
       setButtonLoadingSpy.mockImplementation(() => {});
 
       window.SmartGrind.ui.handleGoogleLogin();
 
-      expect(showAlertSpy).toHaveBeenCalledWith('Sign-in popup was blocked. Please allow popups for this site and try again.');
+      expect(showToastSpy).toHaveBeenCalledWith('Sign-in popup was blocked. Please allow popups for this site and try again.', 'error');
       expect(setButtonLoadingSpy).toHaveBeenCalledWith(window.SmartGrind.state.elements.googleLoginBtn, false);
       expect(setButtonLoadingSpy).toHaveBeenCalledWith(window.SmartGrind.state.elements.modalGoogleLoginBtn, false);
 
-      showAlertSpy.mockRestore();
+      showToastSpy.mockRestore();
       setButtonLoadingSpy.mockRestore();
     });
   });
 
   describe('handleGoogleLogin auth-failure message', () => {
     test('handles auth-failure message', () => {
+      jest.useFakeTimers();
       const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
       mockOpen.mockReturnValue({});
-      const showAlertSpy = jest.spyOn(window.SmartGrind.ui, 'showAlert');
+      const showToastSpy = jest.spyOn(window.SmartGrind.utils, 'showToast');
       const setButtonLoadingSpy = jest.spyOn(window.SmartGrind.ui, 'setButtonLoading');
       setButtonLoadingSpy.mockImplementation(() => {});
 
@@ -1728,23 +1729,27 @@ describe('SmartGrind UI', () => {
       const messageHandler = addEventListenerSpy.mock.calls.find(call => call[0] === 'message')[1];
       messageHandler(messageEvent);
 
-      expect(showAlertSpy).toHaveBeenCalledWith('Sign-in failed: Test failure message');
+      // Advance timers to execute setTimeout
+      jest.advanceTimersByTime(100);
+
+      expect(showToastSpy).toHaveBeenCalledWith('Sign-in failed: Test failure message', 'error');
       expect(setButtonLoadingSpy).toHaveBeenCalledWith(window.SmartGrind.state.elements.googleLoginBtn, false);
       expect(setButtonLoadingSpy).toHaveBeenCalledWith(window.SmartGrind.state.elements.modalGoogleLoginBtn, false);
 
       addEventListenerSpy.mockRestore();
-      showAlertSpy.mockRestore();
+      showToastSpy.mockRestore();
       setButtonLoadingSpy.mockRestore();
+      jest.useRealTimers();
     });
   });
 
   describe('handleGoogleLogin popup closed', () => {
-    test('shows alert when popup is closed without auth', () => {
+    test('shows toast when popup is closed without auth', () => {
       jest.useFakeTimers();
       const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
       const mockPopup = { closed: false, close: jest.fn() };
       mockOpen.mockReturnValue(mockPopup);
-      const showAlertSpy = jest.spyOn(window.SmartGrind.ui, 'showAlert');
+      const showToastSpy = jest.spyOn(window.SmartGrind.utils, 'showToast');
       const setButtonLoadingSpy = jest.spyOn(window.SmartGrind.ui, 'setButtonLoading');
       setButtonLoadingSpy.mockImplementation(() => {});
 
@@ -1754,12 +1759,12 @@ describe('SmartGrind UI', () => {
       mockPopup.closed = true;
       jest.advanceTimersByTime(1000);
 
-      expect(showAlertSpy).toHaveBeenCalledWith('Sign-in was cancelled.');
+      expect(showToastSpy).toHaveBeenCalledWith('Sign-in was cancelled.', 'error');
       expect(setButtonLoadingSpy).toHaveBeenCalledWith(window.SmartGrind.state.elements.googleLoginBtn, false);
       expect(setButtonLoadingSpy).toHaveBeenCalledWith(window.SmartGrind.state.elements.modalGoogleLoginBtn, false);
 
       addEventListenerSpy.mockRestore();
-      showAlertSpy.mockRestore();
+      showToastSpy.mockRestore();
       setButtonLoadingSpy.mockRestore();
       jest.useRealTimers();
     });

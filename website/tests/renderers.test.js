@@ -547,6 +547,22 @@ describe('SmartGrind Renderers', () => {
       expect(problem.reviewInterval).toBe(0);
       expect(problem.nextReviewDate).toBe(null);
     });
+
+    test('reverts changes and shows error toast on save failure', async () => {
+      const problem = { id: '1', status: 'unsolved', reviewInterval: 0, nextReviewDate: null };
+      const mockButton = { closest: jest.fn(() => mockElement) };
+      const error = new Error('Network error');
+      window.SmartGrind.api.saveProblem = jest.fn().mockRejectedValue(error);
+      window.SmartGrind.utils.showToast = jest.fn();
+
+      await window.SmartGrind.renderers._handleStatusChange(mockButton, problem, 'solved', 1, '2024-01-01');
+
+      expect(problem.status).toBe('unsolved'); // reverted
+      expect(problem.reviewInterval).toBe(0); // reverted
+      expect(problem.nextReviewDate).toBe(null); // reverted
+      expect(problem.loading).toBe(false);
+      expect(window.SmartGrind.utils.showToast).toHaveBeenCalledWith('Failed to update problem: Network error', 'error');
+    });
   });
 
   describe('_handleSolve', () => {

@@ -351,7 +351,7 @@ window.SmartGrind.ui = {
             // Popup blocked
             window.SmartGrind.ui.setButtonLoading(btn, false);
             window.SmartGrind.ui.setButtonLoading(modalBtn, false);
-            window.SmartGrind.ui.showAlert('Sign-in popup was blocked. Please allow popups for this site and try again.');
+            window.SmartGrind.utils.showToast('Sign-in popup was blocked. Please allow popups for this site and try again.', 'error');
             return;
         }
 
@@ -386,7 +386,10 @@ window.SmartGrind.ui = {
             } else if (event.data.type === 'auth-failure') {
                 authCompleted = true;
                 const { message } = event.data;
-                window.SmartGrind.ui.showAlert(`Sign-in failed: ${message}`);
+                // Delay toast to ensure popup closes first
+                setTimeout(() => {
+                    window.SmartGrind.utils.showToast(`Sign-in failed: ${message}`, 'error');
+                }, 100);
                 window.removeEventListener('message', messageHandler);
                 window.SmartGrind.ui.setButtonLoading(btn, false);
                 window.SmartGrind.ui.setButtonLoading(modalBtn, false);
@@ -402,7 +405,7 @@ window.SmartGrind.ui = {
                 window.removeEventListener('message', messageHandler);
                 window.SmartGrind.ui.setButtonLoading(btn, false);
                 window.SmartGrind.ui.setButtonLoading(modalBtn, false);
-                window.SmartGrind.ui.showAlert('Sign-in was cancelled.');
+                window.SmartGrind.utils.showToast('Sign-in was cancelled.', 'error');
             }
         }, 1000);
 
@@ -417,7 +420,7 @@ window.SmartGrind.ui = {
                 if (!popup.closed) {
                     popup.close();
                 }
-                window.SmartGrind.ui.showAlert('Sign-in timed out. Please try again.');
+                window.SmartGrind.utils.showToast('Sign-in timed out. Please try again.', 'error');
             }
         }, UI_CONSTANTS.AUTH_TIMEOUT);
     },

@@ -253,20 +253,31 @@ window.SmartGrind.api = {
         const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to reset ALL problems? This will mark all problems as unsolved and restore any deleted problems across all categories.`);
         if (!confirmed) return;
 
-        try {
-            // Collect all problem IDs
-            const allProblemIds = new Set();
-            window.SmartGrind.data.topicsData.forEach(topic => {
-                const ids = window.SmartGrind.api._getProblemIdsForTopic(topic);
-                ids.forEach(id => allProblemIds.add(id));
-            });
+        // Store original state for rollback (deep copy)
+        const originalProblems = new Map(
+            Array.from(window.SmartGrind.state.problems.entries()).map(([id, p]) => [id, { ...p }])
+        );
+        const originalDeletedIds = new Set(window.SmartGrind.state.deletedProblemIds);
 
-            // Reset and restore
-            window.SmartGrind.api._resetProblems(allProblemIds);
-            window.SmartGrind.api._restoreDeletedProblems(allProblemIds);
+        try {
+            // Reset topicsData to original to restore deleted categories
+            window.SmartGrind.data.resetTopicsData();
+            // Reset ALL existing problems to unsolved state
+            window.SmartGrind.state.problems.forEach(p => {
+                p.status = 'unsolved';
+                p.reviewInterval = 0;
+                p.nextReviewDate = null;
+            });
+            // Restore ALL deleted problems, not just the ones in current topicsData
+            window.SmartGrind.api._restoreAllDeletedProblems();
+            // Merge restored problems into topicsData structure
+            window.SmartGrind.api.mergeStructure();
             await window.SmartGrind.api._performResetAndRender('All problems reset and restored');
         } catch (e) {
             console.error('Reset all error:', e);
+            // Restore original state on failure
+            window.SmartGrind.state.problems = originalProblems;
+            window.SmartGrind.state.deletedProblemIds = originalDeletedIds;
             window.SmartGrind.ui.showAlert(`Failed to reset all problems: ${e.message}`);
             throw e;
         }
@@ -335,9 +346,51 @@ window.SmartGrind.api = {
         });
     },
 
+    // Helper to restore ALL deleted problems (used by resetAll)
+    _restoreAllDeletedProblems: () => {
+        const deletedIds = Array.from(window.SmartGrind.state.deletedProblemIds);
+        deletedIds.forEach(id => {
+            window.SmartGrind.state.deletedProblemIds.delete(id);
+            // Try to find probDef across all topics first
+            let probDef = null;
+            let topicTitle = '';
+            let patternName = '';
+            for (const topic of window.SmartGrind.data.topicsData) {
+                for (const pattern of topic.patterns) {
+                    const found = pattern.problems.find(prob => (typeof prob === 'string' ? prob : prob.id) === id);
+                    if (found) {
+                        probDef = found;
+                        topicTitle = topic.title;
+                        patternName = pattern.name;
+                        break;
+                    }
+                }
+                if (probDef) break;
+            }
+
+            // If not found in topicsData, create a basic problem object
+            // This handles cases where custom problems were deleted
+            const newProb = {
+                id: id,
+                name: probDef ? (typeof probDef === 'string' ? probDef : probDef.name) : id,
+                url: probDef ? (typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url) : `https://leetcode.com/problems/${id}/`,
+                status: 'unsolved',
+                topic: topicTitle || 'Unknown',
+                pattern: patternName || 'Unknown',
+                reviewInterval: 0,
+                nextReviewDate: null,
+                note: '',
+                loading: false
+            };
+            window.SmartGrind.state.problems.set(id, newProb);
+        });
+    },
+
     // Helper to perform reset and re-render
     _performResetAndRender: async (message) => {
         await window.SmartGrind.api.saveData();
+        window.SmartGrind.state.ui.currentFilter = 'all';
+        window.SmartGrind.renderers.updateFilterBtns();
         window.SmartGrind.renderers.renderSidebar();
         window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
         window.SmartGrind.utils.showToast(message);
@@ -345,21 +398,30 @@ window.SmartGrind.api = {
 
     // Reset entire category
     resetCategory: async (topicId) => {
-        try {
-            const topic = window.SmartGrind.data.topicsData.find(t => t.id === topicId);
-            if (!topic) {
-                window.SmartGrind.ui.showAlert('Category not found.');
-                return;
-            }
-            const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to reset all problems in the category "${topic.title}"? This will mark all problems as unsolved and restore any deleted problems.`);
-            if (!confirmed) return;
+        const topic = window.SmartGrind.data.topicsData.find(t => t.id === topicId);
+        if (!topic) {
+            window.SmartGrind.ui.showAlert('Category not found.');
+            return;
+        }
+        const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to reset all problems in the category "${topic.title}"? This will mark all problems as unsolved and restore any deleted problems.`);
+        if (!confirmed) return;
 
+        // Store original state for rollback (deep copy)
+        const originalProblems = new Map(
+            Array.from(window.SmartGrind.state.problems.entries()).map(([id, p]) => [id, { ...p }])
+        );
+        const originalDeletedIds = new Set(window.SmartGrind.state.deletedProblemIds);
+
+        try {
             const categoryProblemIds = window.SmartGrind.api._getProblemIdsForTopic(topic);
             window.SmartGrind.api._resetProblems(categoryProblemIds);
             window.SmartGrind.api._restoreDeletedProblems(categoryProblemIds, topic.title);
             await window.SmartGrind.api._performResetAndRender('Category problems reset and restored');
         } catch (e) {
             console.error('Reset category error:', e);
+            // Restore original state on failure
+            window.SmartGrind.state.problems = originalProblems;
+            window.SmartGrind.state.deletedProblemIds = originalDeletedIds;
             window.SmartGrind.ui.showAlert(`Failed to reset category: ${e.message}`);
             throw e;
         }
@@ -367,15 +429,23 @@ window.SmartGrind.api = {
 
     // Delete entire category
     deleteCategory: async (topicId) => {
-        try {
-            const topic = window.SmartGrind.data.topicsData.find(t => t.id === topicId);
-            if (!topic) {
-                window.SmartGrind.ui.showAlert('Category not found.');
-                return;
-            }
-            const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to delete the category "${topic.title}" and all its associated problems? This action cannot be undone.`);
-            if (!confirmed) return;
+        const topic = window.SmartGrind.data.topicsData.find(t => t.id === topicId);
+        if (!topic) {
+            window.SmartGrind.ui.showAlert('Category not found.');
+            return;
+        }
+        const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to delete the category "${topic.title}" and all its associated problems? This action cannot be undone.`);
+        if (!confirmed) return;
 
+        // Store original state for rollback
+        const originalTopicsData = [...window.SmartGrind.data.topicsData];
+        const originalProblems = new Map(
+            Array.from(window.SmartGrind.state.problems.entries()).map(([id, p]) => [id, { ...p }])
+        );
+        const originalDeletedIds = new Set(window.SmartGrind.state.deletedProblemIds);
+        const originalActiveTopicId = window.SmartGrind.state.ui.activeTopicId;
+
+        try {
             // Remove from topicsData
             const index = window.SmartGrind.data.topicsData.indexOf(topic);
             if (index > -1) window.SmartGrind.data.topicsData.splice(index, 1);
@@ -407,7 +477,13 @@ window.SmartGrind.api = {
             window.SmartGrind.utils.showToast('Category and associated problems removed');
         } catch (e) {
             console.error('Delete category error:', e);
+            // Restore original state on failure
+            window.SmartGrind.data.topicsData = originalTopicsData;
+            window.SmartGrind.state.problems = originalProblems;
+            window.SmartGrind.state.deletedProblemIds = originalDeletedIds;
+            window.SmartGrind.state.ui.activeTopicId = originalActiveTopicId;
             window.SmartGrind.ui.showAlert(`Failed to delete category: ${e.message}`);
+            throw e;
         }
     }
 };

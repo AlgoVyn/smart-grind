@@ -6,6 +6,7 @@ describe('SmartGrind API Module', () => {
   let mockUpdateStats;
   let mockRenderSidebar;
   let mockRenderMainView;
+  let mockUpdateFilterBtns;
   let mockSaveToStorage;
 
   beforeEach(() => {
@@ -25,10 +26,12 @@ describe('SmartGrind API Module', () => {
     mockUpdateStats = jest.fn();
     mockRenderSidebar = jest.fn();
     mockRenderMainView = jest.fn();
+    mockUpdateFilterBtns = jest.fn();
     window.SmartGrind.renderers = {
       updateStats: mockUpdateStats,
       renderSidebar: mockRenderSidebar,
       renderMainView: mockRenderMainView,
+      updateFilterBtns: mockUpdateFilterBtns,
     };
 
     // Mock state
@@ -367,6 +370,26 @@ describe('SmartGrind API Module', () => {
 
       expect(mockShowAlert).toHaveBeenCalledWith('Category not found.');
     });
+
+    test('should restore state on save failure', async () => {
+      window.SmartGrind.data.topicsData = [
+        { id: 'test-topic', title: 'Test Topic', patterns: [] }
+      ];
+      window.SmartGrind.state.problems.set('1', { id: '1', topic: 'Test Topic' });
+      window.SmartGrind.state.ui.activeTopicId = 'test-topic';
+      const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+      confirmSpy.mockResolvedValue(true);
+      const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
+      performSaveSpy.mockRejectedValue(new Error('Save failed'));
+
+      await expect(window.SmartGrind.api.deleteCategory('test-topic')).rejects.toThrow('Save failed');
+
+      // State should be restored
+      expect(window.SmartGrind.data.topicsData).toHaveLength(1);
+      expect(window.SmartGrind.state.problems.has('1')).toBe(true);
+      expect(window.SmartGrind.state.ui.activeTopicId).toBe('test-topic');
+      expect(mockShowAlert).toHaveBeenCalledWith('Failed to delete category: Save failed');
+    });
   });
 
   describe('resetAll', () => {
@@ -460,6 +483,7 @@ describe('SmartGrind API Module', () => {
 
       // Check save and re-render were called
       expect(performSaveSpy).toHaveBeenCalled();
+      expect(mockUpdateFilterBtns).toHaveBeenCalled();
       expect(mockRenderSidebar).toHaveBeenCalled();
       expect(mockRenderMainView).toHaveBeenCalledWith('all');
       expect(window.SmartGrind.utils.showToast).toHaveBeenCalledWith('All problems reset and restored');
@@ -494,6 +518,10 @@ describe('SmartGrind API Module', () => {
       await expect(window.SmartGrind.api.resetAll()).rejects.toThrow('Save failed');
 
       expect(mockShowAlert).toHaveBeenCalledWith('Failed to reset all problems: Save failed');
+      // State should be restored
+      expect(window.SmartGrind.state.problems.get('1').status).toBe('solved');
+      expect(window.SmartGrind.state.problems.get('3').status).toBe('solved');
+      expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(true);
     });
   });
 
@@ -562,6 +590,7 @@ describe('SmartGrind API Module', () => {
 
       // Check save and re-render were called
       expect(performSaveSpy).toHaveBeenCalled();
+      expect(mockUpdateFilterBtns).toHaveBeenCalled();
       expect(mockRenderSidebar).toHaveBeenCalled();
       expect(mockRenderMainView).toHaveBeenCalledWith('all');
       expect(window.SmartGrind.utils.showToast).toHaveBeenCalledWith('Category problems reset and restored');
@@ -595,6 +624,9 @@ describe('SmartGrind API Module', () => {
       await expect(window.SmartGrind.api.resetCategory('arrays')).rejects.toThrow('Save failed');
 
       expect(mockShowAlert).toHaveBeenCalledWith('Failed to reset category: Save failed');
+      // State should be restored
+      expect(window.SmartGrind.state.problems.get('1').status).toBe('solved');
+      expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(true);
     });
 
     test('should show alert if category not found', async () => {

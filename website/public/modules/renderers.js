@@ -335,6 +335,13 @@ window.SmartGrind.renderers = {
 
     // Helper to handle problem status changes
     _handleStatusChange: async (button, p, newStatus, interval = 0, nextDate = null) => {
+        // Store original state for rollback on error
+        const originalState = {
+            status: p.status,
+            reviewInterval: p.reviewInterval,
+            nextReviewDate: p.nextReviewDate
+        };
+
         p.status = newStatus;
         p.reviewInterval = interval;
         p.nextReviewDate = nextDate;
@@ -348,6 +355,12 @@ window.SmartGrind.renderers = {
 
         try {
             await window.SmartGrind.api.saveProblem(p);
+        } catch (error) {
+            // Revert to original state on error
+            p.status = originalState.status;
+            p.reviewInterval = originalState.reviewInterval;
+            p.nextReviewDate = originalState.nextReviewDate;
+            window.SmartGrind.utils.showToast(`Failed to update problem: ${error.message}`, 'error');
         } finally {
             p.loading = false;
             // Card needs to be re-rendered again to show final state (and remove spinner)
@@ -371,6 +384,13 @@ window.SmartGrind.renderers = {
         const today = window.SmartGrind.utils.getToday();
         const newInterval = (p.reviewInterval || 0) + 1;
 
+        // Store original state for rollback on error
+        const originalState = {
+            status: p.status,
+            reviewInterval: p.reviewInterval,
+            nextReviewDate: p.nextReviewDate
+        };
+
         p.status = 'solved';
         p.reviewInterval = newInterval;
         p.nextReviewDate = window.SmartGrind.utils.getNextReviewDate(today, newInterval);
@@ -383,6 +403,12 @@ window.SmartGrind.renderers = {
 
         try {
             await window.SmartGrind.api.saveProblem(p);
+        } catch (error) {
+            // Revert to original state on error
+            p.status = originalState.status;
+            p.reviewInterval = originalState.reviewInterval;
+            p.nextReviewDate = originalState.nextReviewDate;
+            window.SmartGrind.utils.showToast(`Failed to review problem: ${error.message}`, 'error');
         } finally {
             p.loading = false;
             if (window.SmartGrind.state.ui.currentFilter === 'review') {
@@ -467,6 +493,8 @@ window.SmartGrind.renderers = {
             case 'save-note':
                 const textarea = button.closest('.note-area').querySelector('textarea');
                 if (textarea) {
+                    // Store original note for rollback on error
+                    const originalNote = p.note;
                     p.note = textarea.value.trim();
                     p.loading = true;
                     window.SmartGrind.renderers._reRenderCard(button, p);
@@ -476,6 +504,10 @@ window.SmartGrind.renderers = {
 
                     try {
                         await window.SmartGrind.api.saveProblem(p);
+                    } catch (error) {
+                        // Revert to original note on error
+                        p.note = originalNote;
+                        window.SmartGrind.utils.showToast(`Failed to save note: ${error.message}`, 'error');
                     } finally {
                         p.loading = false;
                         const newCard = document.querySelector(`[data-problem-id="${p.id}"]`);
