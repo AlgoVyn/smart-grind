@@ -363,9 +363,9 @@ window.SmartGrind.ui = {
             if (event.data.type === 'auth-success') {
                 authCompleted = true;
                 const { token, userId, displayName } = event.data;
-                localStorage.setItem('token', token);
-                localStorage.setItem('userId', userId);
-                localStorage.setItem('displayName', displayName);
+                sessionStorage.setItem('token', token);
+                sessionStorage.setItem('userId', userId);
+                sessionStorage.setItem('displayName', displayName);
 
                 window.SmartGrind.state.user.id = userId;
                 window.SmartGrind.state.user.displayName = displayName;
@@ -429,9 +429,9 @@ window.SmartGrind.ui = {
     handleLogout: async () => {
         if (window.SmartGrind.state.user.type === 'signed-in') {
             // Switch to local user
-            localStorage.removeItem('userId');
-            localStorage.removeItem('token');
-            localStorage.removeItem('displayName');
+            sessionStorage.removeItem('userId');
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('displayName');
             window.SmartGrind.state.user.id = null;
 
             // Switch to local user
@@ -933,8 +933,8 @@ const _applyCategory = (categoryParam) => {
 
 // Helper to setup signed-in user
 const _setupSignedInUser = async (userId, displayName, categoryParam) => {
-    localStorage.setItem('userId', userId);
-    localStorage.setItem('displayName', displayName);
+    sessionStorage.setItem('userId', userId);
+    sessionStorage.setItem('displayName', displayName);
 
     window.SmartGrind.state.user.id = userId;
     window.SmartGrind.state.user.displayName = displayName;
@@ -972,16 +972,16 @@ const checkAuth = async () => {
 
     // Handle PWA auth callback
     if (urlToken && urlUserId && urlDisplayName) {
-        localStorage.setItem('token', urlToken);
+        sessionStorage.setItem('token', urlToken);
         window.history.replaceState({}, document.title, window.location.pathname);
         await _setupSignedInUser(urlUserId, urlDisplayName, categoryParam);
         return;
     }
 
     // Check for existing session
-    const userId = localStorage.getItem('userId');
+    const userId = sessionStorage.getItem('userId');
     if (userId) {
-        const displayName = localStorage.getItem('displayName') || 'User';
+        const displayName = sessionStorage.getItem('displayName') || 'User';
         await _setupSignedInUser(userId, displayName, categoryParam);
         return;
     }

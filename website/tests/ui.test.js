@@ -109,6 +109,20 @@ Object.defineProperty(window, 'localStorage', {
   writable: true,
 });
 
+// Mock sessionStorage - use jest.fn() for proper mocking
+const sessionStorageGetItem = jest.fn();
+const sessionStorageSetItem = jest.fn();
+const sessionStorageRemoveItem = jest.fn();
+
+Object.defineProperty(window, 'sessionStorage', {
+  value: {
+    getItem: sessionStorageGetItem,
+    setItem: sessionStorageSetItem,
+    removeItem: sessionStorageRemoveItem,
+  },
+  writable: true,
+});
+
 // Mock SmartGrind namespace before importing modules
 window.SmartGrind = {
   state: {
@@ -1400,9 +1414,10 @@ describe('SmartGrind UI', () => {
       const messageHandler = addEventListenerSpy.mock.calls.find(call => call[0] === 'message')[1];
       messageHandler(messageEvent);
 
-      expect(localStorageSetItem).toHaveBeenCalledWith('token', 'test-token');
-      expect(localStorageSetItem).toHaveBeenCalledWith('userId', 'test-user');
-      expect(localStorageSetItem).toHaveBeenCalledWith('displayName', 'Test User');
+      expect(sessionStorageSetItem).toHaveBeenCalledWith('token', 'test-token');
+      expect(sessionStorageSetItem).toHaveBeenCalledWith('userId', 'test-user');
+      expect(sessionStorageSetItem).toHaveBeenCalledWith('displayName', 'Test User');
+      expect(localStorageSetItem).toHaveBeenCalledWith('userType', 'signed-in');
       expect(window.SmartGrind.state.user.id).toBe('test-user');
       expect(window.SmartGrind.state.user.displayName).toBe('Test User');
       expect(window.SmartGrind.api.loadData).toHaveBeenCalled();
