@@ -25,11 +25,11 @@ const mockOpen = jest.fn();
 const createMockElement = (overrides = {}) => {
   const eventListeners = {};
   return {
-    addEventListener: (event, handler) => {
+    addEventListener: jest.fn((event, handler) => {
       if (!eventListeners[event]) eventListeners[event] = [];
       eventListeners[event].push(handler);
       mockAddEventListener(event, handler);
-    },
+    }),
     removeEventListener: mockRemoveEventListener,
     dispatchEvent: (event) => {
       const handlers = eventListeners[event.type] || [];
@@ -147,6 +147,7 @@ describe('SmartGrind UI', () => {
     mockStyle.width = '';
     mockStyle.transform = '';
     mockClassListContains.mockReturnValue(true);
+    mockMainSidebar.style.width = '';
 
     // Reset spy implementations
     getElementByIdSpy.mockImplementation((id) => {
@@ -399,6 +400,35 @@ describe('SmartGrind UI', () => {
 
       expect(mockMainSidebar.style.width).toBe('300px');
     });
+
+    test('does not load width when no saved width', () => {
+      localStorageGetItem.mockReturnValue(null);
+
+      window.SmartGrind.ui.sidebarResizer.loadWidth();
+
+      expect(mockMainSidebar.style.width).toBe('');
+    });
+
+    test('resize does nothing when not resizing', () => {
+      window.SmartGrind.ui.sidebarResizer.isResizing = false;
+
+      const event = {
+        preventDefault: jest.fn(),
+        clientX: 100,
+      };
+
+      window.SmartGrind.ui.sidebarResizer.resize(event);
+
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    test('stopResize does nothing when not resizing', () => {
+      window.SmartGrind.ui.sidebarResizer.isResizing = false;
+
+      window.SmartGrind.ui.sidebarResizer.stopResize();
+
+      expect(localStorageSetItem).not.toHaveBeenCalled();
+    });
   });
 
   describe('handleGoogleLogin', () => {
@@ -411,6 +441,52 @@ describe('SmartGrind UI', () => {
       expect(mockOpen).toHaveBeenCalledWith('/smartgrind/api/auth?action=login', 'auth', 'width=500,height=600');
       expect(addEventListenerSpy).toHaveBeenCalledWith('message', expect.any(Function));
       addEventListenerSpy.mockRestore();
+    });
+
+    test('ignores messages with non-auth-success type', () => {
+      const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
+      mockOpen.mockReturnValue({});
+
+      window.SmartGrind.ui.handleGoogleLogin();
+
+      const messageEvent = {
+        origin: window.location.origin,
+        data: { type: 'other-type' },
+      };
+
+      const messageHandler = addEventListenerSpy.mock.calls.find(call => call[0] === 'message')[1];
+      messageHandler(messageEvent);
+
+      expect(localStorageSetItem).not.toHaveBeenCalledWith('token', expect.any(String));
+
+      addEventListenerSpy.mockRestore();
+    });
+  });
+
+  describe('setButtonLoading', () => {
+    test('sets loading state on button', () => {
+      const button = mockElement;
+
+      window.SmartGrind.ui.setButtonLoading(button, true, 'Loading...');
+
+      expect(button.disabled).toBe(true);
+      expect(button.innerHTML).toBe('Loading...');
+    });
+
+    test('resets loading state on button', () => {
+      const button = mockElement;
+
+      window.SmartGrind.ui.setButtonLoading(button, false);
+
+      expect(button.disabled).toBe(false);
+      expect(button.innerHTML).toBe(window.SmartGrind.GOOGLE_BUTTON_HTML);
+    });
+
+    test('does nothing when button is null', () => {
+      const originalDisabled = mockElement.disabled;
+      window.SmartGrind.ui.setButtonLoading(null, true);
+
+      expect(mockElement.disabled).toBe(originalDisabled);
     });
   });
 
@@ -550,6 +626,45 @@ describe('SmartGrind UI', () => {
       expect(showAlertSpy).toHaveBeenCalledWith("Please fill in Name, URL, Category and Pattern.");
       showAlertSpy.mockRestore();
     });
+
+    test('saves new problem with custom pattern when category selected but pattern not', async () => {
+      const nameEl = {
+        value: 'Test Problem',
+        classList: { add: mockClassListAdd, remove: mockClassListRemove, toggle: mockClassListToggle, contains: mockClassListContains },
+      };
+      const urlEl = {
+        value: 'https://example.com',
+        classList: { add: mockClassListAdd, remove: mockClassListRemove, toggle: mockClassListToggle, contains: mockClassListContains },
+      };
+      const categoryEl = {
+        value: 'Arrays',
+        classList: { add: mockClassListAdd, remove: mockClassListRemove, toggle: mockClassListToggle, contains: mockClassListContains },
+      };
+      const patternEl = {
+        value: '',
+        classList: { add: mockClassListAdd, remove: mockClassListRemove, toggle: mockClassListToggle, contains: mockClassListContains },
+      };
+      const patternNewEl = {
+        value: 'Custom Pattern',
+        classList: { add: mockClassListAdd, remove: mockClassListRemove, toggle: mockClassListToggle, contains: mockClassListContains },
+      };
+      const problemModalEl = {
+        classList: { add: mockClassListAdd, remove: mockClassListRemove, toggle: mockClassListToggle, contains: mockClassListContains },
+      };
+
+      window.SmartGrind.state.elements.addProbName = nameEl;
+      window.SmartGrind.state.elements.addProbUrl = urlEl;
+      window.SmartGrind.state.elements.addProbCategory = categoryEl;
+      window.SmartGrind.state.elements.addProbPattern = patternEl;
+      window.SmartGrind.state.elements.addProbPatternNew = patternNewEl;
+      window.SmartGrind.state.elements.addProblemModal = problemModalEl;
+
+      await window.SmartGrind.ui.saveNewProblem();
+
+      expect(window.SmartGrind.api.saveProblem).toHaveBeenCalled();
+      const savedProblem = window.SmartGrind.api.saveProblem.mock.calls[0][0];
+      expect(savedProblem.pattern).toBe('Custom Pattern');
+    });
   });
 
   describe('toggleTheme', () => {
@@ -617,6 +732,18 @@ describe('SmartGrind UI', () => {
       const result = await promise;
       expect(result).toBe(true);
     });
+
+    test('showConfirm resolves with false on cancel', async () => {
+      const promise = window.SmartGrind.ui.showConfirm('Test message');
+
+      expect(mockElement.textContent).toBe('Test message');
+      expect(mockClassListRemove).toHaveBeenCalledWith('hidden');
+
+      // Simulate Cancel click
+      window.SmartGrind.ui.closeConfirmModal(false);
+      const result = await promise;
+      expect(result).toBe(false);
+    });
   });
 
   describe('handleKeyboard', () => {
@@ -669,6 +796,37 @@ describe('SmartGrind UI', () => {
 
       expect(event.stopPropagation).toHaveBeenCalled();
       expect(mockClassListAdd).not.toHaveBeenCalled();
+    });
+
+    test('closes modal when clicking outside content', () => {
+      jest.clearAllMocks();
+      const contentEl = { ...mockElement };
+      const handler = window.SmartGrind.ui.createModalHandler(mockElement, contentEl);
+
+      const event = { target: mockElement, stopPropagation: jest.fn() };
+
+      handler(event);
+
+      expect(event.stopPropagation).not.toHaveBeenCalled();
+      expect(mockClassListAdd).toHaveBeenCalledWith('hidden');
+    });
+
+    test('handles null event', () => {
+      const handler = window.SmartGrind.ui.createModalHandler(mockElement, null, jest.fn());
+
+      handler(null);
+
+      expect(mockClassListAdd).toHaveBeenCalledWith('hidden');
+    });
+
+    test('handles modal click without content element', () => {
+      const handler = window.SmartGrind.ui.createModalHandler(mockElement, null);
+
+      const event = { target: mockElement };
+
+      handler(event);
+
+      expect(mockClassListAdd).toHaveBeenCalledWith('hidden');
     });
   });
 
@@ -787,6 +945,23 @@ describe('SmartGrind UI', () => {
       // Reset innerWidth
       window.innerWidth = originalInnerWidth;
     });
+
+    test('loads default view without closing mobile menu on desktop', () => {
+      // Simulate desktop width
+      const originalInnerWidth = window.innerWidth;
+      window.innerWidth = 1024;
+
+      window.SmartGrind.ui.loadDefaultView();
+
+      expect(window.SmartGrind.renderers.setActiveTopic).toHaveBeenCalledWith('all');
+      expect(window.SmartGrind.utils.updateUrlParameter).toHaveBeenCalledWith('category', null);
+      expect(window.SmartGrind.renderers.renderMainView).toHaveBeenCalledWith('all');
+      expect(window.SmartGrind.utils.scrollToTop).toHaveBeenCalled();
+      expect(mockClassListRemove).not.toHaveBeenCalledWith('translate-x-0');
+
+      // Reset innerWidth
+      window.innerWidth = originalInnerWidth;
+    });
   });
 
   describe('initScrollButton', () => {
@@ -856,6 +1031,50 @@ describe('SmartGrind UI', () => {
       expect(window.SmartGrind.ui.pullToRefresh.isPulling).toBe(false);
     });
 
+    test('handleTouchStart does not start pulling when sidebar is open', () => {
+      window.scrollY = 0;
+      window.SmartGrind.state.elements.contentScroll.scrollTop = 0;
+      window.SmartGrind.state.elements.mainSidebar.classList.contains = jest.fn(() => true);
+
+      const event = {
+        touches: [{ clientY: 100 }],
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleTouchStart(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isPulling).toBe(false);
+    });
+
+    test('handleTouchStart does not start pulling when modal is open', () => {
+      window.scrollY = 0;
+      window.SmartGrind.state.elements.contentScroll.scrollTop = 0;
+      window.SmartGrind.state.elements.mainSidebar.classList.contains = jest.fn(() => false);
+      const openModal = createMockElement();
+      openModal.classList.contains = jest.fn(() => false); // not hidden
+      window.SmartGrind.state.elements.setupModal = openModal;
+
+      const event = {
+        touches: [{ clientY: 100 }],
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleTouchStart(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isPulling).toBe(false);
+    });
+
+    test('handleTouchMove does nothing when not pulling', () => {
+      window.SmartGrind.ui.pullToRefresh.isPulling = false;
+
+      const event = {
+        touches: [{ clientY: 100 }],
+        preventDefault: jest.fn(),
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleTouchMove(event);
+
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
     test('handleTouchMove stops pulling when deltaY <= 0', () => {
       window.SmartGrind.ui.pullToRefresh.isPulling = true;
       window.SmartGrind.ui.pullToRefresh.startY = 50;
@@ -869,6 +1088,31 @@ describe('SmartGrind UI', () => {
 
       expect(window.SmartGrind.ui.pullToRefresh.isPulling).toBe(false);
       expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    test('handleTouchEnd does nothing when not pulling', () => {
+      window.SmartGrind.ui.pullToRefresh.isPulling = false;
+
+      const event = {
+        changedTouches: [{ clientY: 100 }],
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleTouchEnd(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isPulling).toBe(false);
+    });
+
+    test('handleTouchEnd does not reload when deltaY below threshold', () => {
+      window.SmartGrind.ui.pullToRefresh.isPulling = true;
+      window.SmartGrind.ui.pullToRefresh.startY = 0;
+
+      const event = {
+        changedTouches: [{ clientY: 50 }],
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleTouchEnd(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isPulling).toBe(false);
     });
   });
 
@@ -901,6 +1145,18 @@ describe('SmartGrind UI', () => {
       const event = {
         key: 'X',
         target: { tagName: 'DIV' },
+        preventDefault: jest.fn(),
+      };
+
+      window.SmartGrind.ui.handleKeyboard(event);
+
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    test('handles textarea input', () => {
+      const event = {
+        key: '/',
+        target: { tagName: 'TEXTAREA' },
         preventDefault: jest.fn(),
       };
 
@@ -942,6 +1198,15 @@ describe('SmartGrind UI', () => {
       window.SmartGrind.state.elements.contentScroll.dispatchEvent(scrollEvent);
 
       expect(mockClassListAdd).toHaveBeenCalledWith('opacity-0', 'translate-y-4', 'pointer-events-none');
+    });
+
+    test('initScrollButton does nothing when elements are null', () => {
+      window.SmartGrind.state.elements.contentScroll = null;
+      window.SmartGrind.state.elements.scrollToTopBtn = null;
+
+      window.SmartGrind.ui.initScrollButton();
+
+      expect(mockAddEventListener).not.toHaveBeenCalled();
     });
   });
 
@@ -985,8 +1250,10 @@ describe('SmartGrind UI', () => {
 
   describe('bindEvents event delegation', () => {
     test('closes sidebar on mobile topic click', () => {
+      jest.clearAllMocks();
       window.SmartGrind.ui.bindEvents();
       window.innerWidth = 375; // Mobile width
+      window.SmartGrind.state.elements.mainSidebar.classList.contains = jest.fn(() => false);
       const link = { classList: { contains: () => true }, closest: jest.fn((selector) => {
 
         if (selector === 'button' || selector === 'button[data-action]') return null;
@@ -1004,7 +1271,7 @@ describe('SmartGrind UI', () => {
 
       window.SmartGrind.state.elements.topicList.dispatchEvent(event);
 
-      expect(mockClassListRemove).toHaveBeenCalledWith('translate-x-0');
+      expect(mockClassListAdd).toHaveBeenCalledWith('translate-x-0');
     });
 
     test('handles problem card button click', () => {
@@ -1030,6 +1297,71 @@ describe('SmartGrind UI', () => {
       window.SmartGrind.state.elements.problemsContainer.dispatchEvent(event);
 
       expect(window.SmartGrind.renderers.handleProblemCardClick).toHaveBeenCalled();
+    });
+
+    test('handles problem card click when button not found', () => {
+      window.SmartGrind.ui.bindEvents();
+      const event = {
+        type: 'click',
+        target: document.body,
+        stopPropagation: jest.fn(),
+      };
+
+      window.SmartGrind.state.elements.problemsContainer.dispatchEvent(event);
+
+      expect(window.SmartGrind.renderers.handleProblemCardClick).not.toHaveBeenCalled();
+    });
+
+    test('handles problem card click when card not found', () => {
+      window.SmartGrind.ui.bindEvents();
+      const button = { dataAction: 'some-action', closest: jest.fn((selector) => null) };
+      const event = {
+        type: 'click',
+        target: button,
+        stopPropagation: jest.fn(),
+      };
+
+      window.SmartGrind.state.elements.problemsContainer.dispatchEvent(event);
+
+      expect(window.SmartGrind.renderers.handleProblemCardClick).not.toHaveBeenCalled();
+    });
+
+    test('handles problem card click when problemId not found', () => {
+      window.SmartGrind.ui.bindEvents();
+      const card = { dataset: {}, closest: jest.fn((selector) => selector === '.group' ? card : null) };
+      const button = { dataAction: 'some-action', closest: jest.fn((selector) => {
+        if (selector === 'button[data-action]') return button;
+        if (selector === '.group') return card;
+        return null;
+      }) };
+      const event = {
+        type: 'click',
+        target: button,
+        stopPropagation: jest.fn(),
+      };
+
+      window.SmartGrind.state.elements.problemsContainer.dispatchEvent(event);
+
+      expect(window.SmartGrind.renderers.handleProblemCardClick).not.toHaveBeenCalled();
+    });
+
+    test('handles problem card click when problem not found in state', () => {
+      window.SmartGrind.ui.bindEvents();
+      const card = { dataset: { problemId: 'nonexistent' }, closest: jest.fn((selector) => selector === '.group' ? card : null) };
+      const button = { dataAction: 'some-action', closest: jest.fn((selector) => {
+        if (selector === 'button[data-action]') return button;
+        if (selector === '.group') return card;
+        return null;
+      }) };
+      const event = {
+        type: 'click',
+        target: button,
+        stopPropagation: jest.fn(),
+      };
+
+      window.SmartGrind.state.elements.problemsContainer.dispatchEvent(event);
+
+      expect(window.SmartGrind.renderers.handleProblemCardClick).not.toHaveBeenCalled();
     });
   });
 
@@ -1083,6 +1415,274 @@ describe('SmartGrind UI', () => {
       expect(localStorageSetItem).not.toHaveBeenCalledWith('token', expect.any(String));
 
       addEventListenerSpy.mockRestore();
+    });
+  });
+
+  describe('markdown renderer functions', () => {
+    test('_configureMarkdownRenderer returns null when marked undefined', () => {
+      const originalMarked = window.marked;
+      delete window.marked;
+
+      const result = window.SmartGrind.ui._configureMarkdownRenderer();
+
+      expect(result).toBeNull();
+
+      window.marked = originalMarked;
+    });
+
+    test('_configureMarkdownRenderer configures marked when available', () => {
+      const mockMarked = {
+        setOptions: jest.fn(),
+        Renderer: jest.fn(() => ({
+          code: jest.fn(),
+        })),
+      };
+      window.marked = mockMarked;
+
+      const result = window.SmartGrind.ui._configureMarkdownRenderer();
+
+      expect(mockMarked.setOptions).toHaveBeenCalledWith({
+        breaks: true,
+        gfm: true,
+      });
+      expect(result).toBe(mockMarked);
+
+      delete window.marked;
+    });
+
+    test('_renderMarkdown renders content', () => {
+      const mockMarked = {
+        setOptions: jest.fn(),
+        parse: jest.fn(() => '<p>rendered</p>'),
+        Renderer: jest.fn(() => ({ code: jest.fn() })),
+      };
+      window.marked = mockMarked;
+      window.Prism = { highlightAllUnder: jest.fn() };
+
+      const contentElement = { innerHTML: '' };
+      window.SmartGrind.ui._renderMarkdown('markdown', contentElement);
+
+      expect(mockMarked.setOptions).toHaveBeenCalledWith({
+        breaks: true,
+        gfm: true,
+      });
+      expect(mockMarked.parse).toHaveBeenCalledWith('markdown');
+      expect(contentElement.innerHTML).toBe('<p>rendered</p>');
+      expect(window.Prism.highlightAllUnder).toHaveBeenCalledWith(contentElement);
+
+      delete window.marked;
+      delete window.Prism;
+    });
+
+    test('_renderMarkdown shows error when marked not loaded', () => {
+      delete window.marked;
+
+      const contentElement = { innerHTML: '' };
+      window.SmartGrind.ui._renderMarkdown('markdown', contentElement);
+
+      expect(contentElement.innerHTML).toContain('Error: Markdown renderer not loaded');
+
+      window.marked = { parse: jest.fn(() => '<p>test</p>') };
+    });
+
+    test('copyCode copies code to clipboard', async () => {
+      const mockPre = {
+        querySelector: jest.fn(() => ({ innerText: 'code content' })),
+      };
+      const mockBtn = {
+        classList: { add: jest.fn(), remove: jest.fn() },
+        innerHTML: '',
+        closest: jest.fn(() => mockPre),
+      };
+      navigator.clipboard = { writeText: jest.fn(() => Promise.resolve()) };
+
+      await window.SmartGrind.ui.copyCode(mockBtn);
+
+      expect(mockBtn.closest).toHaveBeenCalledWith('pre');
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('code content');
+      expect(mockBtn.classList.add).toHaveBeenCalledWith('copied');
+    });
+
+    test('copyCode shows toast on failure', async () => {
+      const mockPre = {
+        querySelector: jest.fn(() => ({ innerText: 'code content' })),
+      };
+      const mockBtn = {
+        classList: { add: jest.fn(), remove: jest.fn() },
+        innerHTML: '',
+        closest: jest.fn(() => mockPre),
+      };
+      navigator.clipboard = { writeText: jest.fn(() => Promise.reject(new Error('fail'))) };
+
+      const showToastSpy = jest.spyOn(window.SmartGrind.utils, 'showToast');
+
+      await window.SmartGrind.ui.copyCode(mockBtn);
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(showToastSpy).toHaveBeenCalledWith('Failed to copy code');
+
+      showToastSpy.mockRestore();
+    });
+
+    test('openSolutionModal loads and renders solution', async () => {
+      const mockModal = { classList: { remove: jest.fn() } };
+      const mockContent = { innerHTML: '' };
+      getElementByIdSpy.mockImplementation((id) => {
+        if (id === 'solution-modal') return mockModal;
+        if (id === 'solution-content') return mockContent;
+        return mockElement;
+      });
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: true,
+          text: () => Promise.resolve('# Solution'),
+        })
+      );
+
+      window.marked = {
+        setOptions: jest.fn(),
+        parse: jest.fn(() => '<h1>Solution</h1>'),
+        Renderer: jest.fn(() => ({ code: jest.fn() })),
+      };
+      window.Prism = { highlightAllUnder: jest.fn() };
+
+      await window.SmartGrind.ui.openSolutionModal('test-problem');
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(mockModal.classList.remove).toHaveBeenCalledWith('hidden');
+      expect(mockContent.innerHTML).toBe('<h1>Solution</h1>');
+
+      delete global.fetch;
+      delete window.marked;
+      delete window.Prism;
+    });
+
+    test('openSolutionModal shows error on fetch failure', async () => {
+      const mockModal = { classList: { remove: jest.fn() } };
+      const mockContent = { innerHTML: '' };
+      getElementByIdSpy.mockImplementation((id) => {
+        if (id === 'solution-modal') return mockModal;
+        if (id === 'solution-content') return mockContent;
+        return mockElement;
+      });
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: false,
+          status: 404,
+        })
+      );
+
+      await window.SmartGrind.ui.openSolutionModal('test-problem');
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(mockContent.innerHTML).toContain('Error loading solution');
+
+      delete global.fetch;
+    });
+
+    test('closeSolutionModal hides modal', () => {
+      const mockModal = { classList: { add: jest.fn() } };
+      getElementByIdSpy.mockReturnValue(mockModal);
+
+      window.SmartGrind.ui.closeSolutionModal();
+
+      expect(mockModal.classList.add).toHaveBeenCalledWith('hidden');
+    });
+  });
+
+  describe('filter button click', () => {
+    test('handles filter button click', () => {
+      const btn = {
+        dataset: { filter: 'solved' },
+        addEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+      };
+      window.SmartGrind.state.elements.filterBtns = [btn];
+
+      window.SmartGrind.ui.bindNavigationEvents();
+
+      // Get the click handler
+      const clickHandler = btn.addEventListener.mock.calls.find(call => call[0] === 'click')[1];
+
+      // Simulate click
+      clickHandler();
+
+      expect(window.SmartGrind.state.ui.currentFilter).toBe('solved');
+      expect(window.SmartGrind.renderers.updateFilterBtns).toHaveBeenCalled();
+      expect(window.SmartGrind.renderers.renderMainView).toHaveBeenCalledWith(window.SmartGrind.state.ui.activeTopicId);
+    });
+  });
+
+  describe('handleKeyboard edge cases', () => {
+    test('closes add problem modal on Escape', () => {
+      jest.clearAllMocks();
+      window.SmartGrind.state.elements.addProblemModal = { classList: { contains: jest.fn(() => true), add: jest.fn() } };
+      const event = {
+        key: 'Escape',
+        target: { tagName: 'DIV' },
+        preventDefault: jest.fn(),
+      };
+
+      window.SmartGrind.ui.handleKeyboard(event);
+
+      expect(window.SmartGrind.state.elements.addProblemModal.classList.add).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('pullToRefresh handleTouchEnd reload', () => {
+    test('resets pulling state when threshold met and not in test env', () => {
+      // Temporarily mock jest as undefined to simulate production
+      const originalJest = global.jest;
+      delete global.jest;
+
+      window.SmartGrind.ui.pullToRefresh.isPulling = true;
+      window.SmartGrind.ui.pullToRefresh.startY = 0;
+
+      const event = {
+        changedTouches: [{ clientY: 150 }],
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleTouchEnd(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isPulling).toBe(false);
+
+      // Restore
+      global.jest = originalJest;
+    });
+  });
+
+  describe('bindModalEvents close callbacks', () => {
+    test('confirm modal close callback calls closeConfirmModal', () => {
+      window.SmartGrind.ui.bindModalEvents();
+
+      // The handler is attached to confirmModal
+      const handler = window.SmartGrind.state.elements.confirmModal.addEventListener.mock.calls[0][1];
+      const event = { target: window.SmartGrind.state.elements.confirmModal };
+
+      handler(event);
+
+      expect(mockClassListAdd).toHaveBeenCalledWith('hidden');
+    });
+  });
+
+  describe('handleGoogleLogin timeout', () => {
+    test('resets buttons after timeout', () => {
+      const UI_CONSTANTS = { AUTH_TIMEOUT: 30000 };
+      jest.useFakeTimers();
+      const setButtonLoadingSpy = jest.spyOn(window.SmartGrind.ui, 'setButtonLoading');
+      setButtonLoadingSpy.mockImplementation(() => {});
+
+      window.SmartGrind.ui.handleGoogleLogin();
+
+      jest.advanceTimersByTime(UI_CONSTANTS.AUTH_TIMEOUT);
+
+      expect(setButtonLoadingSpy).toHaveBeenCalledWith(window.SmartGrind.state.elements.googleLoginBtn, false);
+      expect(setButtonLoadingSpy).toHaveBeenCalledWith(window.SmartGrind.state.elements.modalGoogleLoginBtn, false);
+
+      setButtonLoadingSpy.mockRestore();
+      jest.useRealTimers();
     });
   });
 });

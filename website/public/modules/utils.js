@@ -87,6 +87,19 @@ window.SmartGrind.utils = {
         }
     },
 
+    // Helper to build AI URL
+    _buildAIUrl: (provider, encodedPrompt) => {
+        const config = window.SmartGrind.utils._aiProviders[provider];
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        if (isMobile) {
+            const fallbackParam = encodeURIComponent(`${config.desktopUrl}${encodedPrompt}`);
+            return config.mobileIntent.replace(/S\.browser_fallback_url=[^;]+/, `S.browser_fallback_url=${fallbackParam}`);
+        } else {
+            return config.desktopUrl + encodedPrompt;
+        }
+    },
+
     // AI helper
     askAI: async (problemName, provider) => {
         const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the intuition, multiple approaches, and time/space complexity analysis.`;
@@ -95,21 +108,9 @@ window.SmartGrind.utils = {
         localStorage.setItem('preferred-ai', provider);
         window.SmartGrind.state.ui.preferredAI = provider;
 
-        const config = window.SmartGrind.utils._aiProviders[provider];
-        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const url = window.SmartGrind.utils._buildAIUrl(provider, encodedPrompt);
 
-        // Build URL with query parameter for auto-execution
-        let url;
-        if (isMobile) {
-            // For mobile, modify the intent to include the prompt in the fallback URL
-            const fallbackParam = encodeURIComponent(`${config.desktopUrl}${encodedPrompt}`);
-            url = config.mobileIntent.replace(/S\.browser_fallback_url=[^;]+/, `S.browser_fallback_url=${fallbackParam}`);
-        } else {
-            // For desktop, append the query to trigger auto-execution
-            url = config.desktopUrl + encodedPrompt;
-        }
-
-        if (isMobile) {
+        if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
             window.location.href = url;
         } else {
             window.open(url, '_blank');

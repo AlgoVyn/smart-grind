@@ -4,6 +4,17 @@
 window.SmartGrind = window.SmartGrind || {};
 
 window.SmartGrind.api = {
+    // Helper to prepare data for saving
+    _prepareDataForSave: () => ({
+        problems: Object.fromEntries(
+            Array.from(window.SmartGrind.state.problems.entries()).map(([id, p]) => {
+                const { loading, noteVisible, ...rest } = p;
+                return [id, rest];
+            })
+        ),
+        deletedIds: Array.from(window.SmartGrind.state.deletedProblemIds)
+    }),
+
     // Save data locally
     _saveLocally: () => {
         window.SmartGrind.state.saveToStorage();
@@ -15,15 +26,7 @@ window.SmartGrind.api = {
         if (!token) {
             throw new Error('No authentication token found. Please sign in again.');
         }
-        const data = {
-            problems: Object.fromEntries(
-                Array.from(window.SmartGrind.state.problems.entries()).map(([id, p]) => {
-                    const { loading, noteVisible, ...rest } = p;
-                    return [id, rest];
-                })
-            ),
-            deletedIds: Array.from(window.SmartGrind.state.deletedProblemIds)
-        };
+        const data = window.SmartGrind.api._prepareDataForSave();
         const response = await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
             method: 'POST',
             headers: {
@@ -41,20 +44,24 @@ window.SmartGrind.api = {
         }
     },
 
-    // Helper function to perform save operation
-    _performSave: async () => {
+    // Helper to handle save operations with error handling
+    _handleSaveOperation: async (saveFn) => {
         try {
-            if (window.SmartGrind.state.user.type === 'local') {
-                window.SmartGrind.api._saveLocally();
-            } else {
-                await window.SmartGrind.api._saveRemotely();
-            }
+            await saveFn();
             window.SmartGrind.renderers.updateStats();
         } catch (e) {
             console.error('Save error:', e);
             window.SmartGrind.ui.showAlert(`Failed to save data: ${e.message}`);
             throw e;
         }
+    },
+
+    // Helper function to perform save operation
+    _performSave: async () => {
+        const saveFn = window.SmartGrind.state.user.type === 'local'
+            ? window.SmartGrind.api._saveLocally
+            : window.SmartGrind.api._saveRemotely;
+        await window.SmartGrind.api._handleSaveOperation(saveFn);
     },
 
     // Save problem to storage/API
@@ -247,76 +254,93 @@ window.SmartGrind.api = {
         if (!confirmed) return;
 
         try {
-            // Reset all existing problems
-            window.SmartGrind.state.problems.forEach(p => {
-                p.status = 'unsolved';
-                p.reviewInterval = 0;
-                p.nextReviewDate = null;
-            });
-
-            // Restore all deleted problems
+            // Collect all problem IDs
             const allProblemIds = new Set();
             window.SmartGrind.data.topicsData.forEach(topic => {
-                topic.patterns.forEach(pattern => {
-                    pattern.problems.forEach(probDef => {
-                        const id = typeof probDef === 'string' ? probDef : probDef.id;
-                        allProblemIds.add(id);
-                    });
-                });
+                const ids = window.SmartGrind.api._getProblemIdsForTopic(topic);
+                ids.forEach(id => allProblemIds.add(id));
             });
 
-            allProblemIds.forEach(id => {
-                if (window.SmartGrind.state.deletedProblemIds.has(id)) {
-                    // Remove from deleted set
-                    window.SmartGrind.state.deletedProblemIds.delete(id);
-
-                    // Find the problem definition
-                    let probDef = null;
-                    let topicTitle = '';
-                    let patternName = '';
-                    for (const topic of window.SmartGrind.data.topicsData) {
-                        for (const pattern of topic.patterns) {
-                            const found = pattern.problems.find(prob => (typeof prob === 'string' ? prob : prob.id) === id);
-                            if (found) {
-                                probDef = found;
-                                topicTitle = topic.title;
-                                patternName = pattern.name;
-                                break;
-                            }
-                        }
-                        if (probDef) break;
-                    }
-
-                    if (probDef) {
-                        const newProb = {
-                            id: id,
-                            name: typeof probDef === 'string' ? probDef : probDef.name,
-                            url: typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url,
-                            status: 'unsolved',
-                            topic: topicTitle,
-                            pattern: patternName,
-                            reviewInterval: 0,
-                            nextReviewDate: null,
-                            note: '',
-                            loading: false
-                        };
-                        window.SmartGrind.state.problems.set(id, newProb);
-                    }
-                }
-            });
-
-            // Save
-            await window.SmartGrind.api.saveData();
-
-            // Re-render
-            window.SmartGrind.renderers.renderSidebar();
-            window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-            window.SmartGrind.utils.showToast('All problems reset and restored');
+            // Reset and restore
+            window.SmartGrind.api._resetProblems(allProblemIds);
+            window.SmartGrind.api._restoreDeletedProblems(allProblemIds);
+            await window.SmartGrind.api._performResetAndRender('All problems reset and restored');
         } catch (e) {
             console.error('Reset all error:', e);
             window.SmartGrind.ui.showAlert(`Failed to reset all problems: ${e.message}`);
             throw e;
         }
+    },
+
+    // Helper to get problem IDs for a topic
+    _getProblemIdsForTopic: (topic) => {
+        const ids = new Set();
+        topic.patterns.forEach(pattern => {
+            pattern.problems.forEach(probDef => {
+                ids.add(typeof probDef === 'string' ? probDef : probDef.id);
+            });
+        });
+        return ids;
+    },
+
+    // Helper to reset problems to unsolved state
+    _resetProblems: (problemIds) => {
+        problemIds.forEach(id => {
+            const p = window.SmartGrind.state.problems.get(id);
+            if (p) {
+                p.status = 'unsolved';
+                p.reviewInterval = 0;
+                p.nextReviewDate = null;
+            }
+        });
+    },
+
+    // Helper to restore deleted problems
+    _restoreDeletedProblems: (problemIds) => {
+        problemIds.forEach(id => {
+            if (window.SmartGrind.state.deletedProblemIds.has(id)) {
+                window.SmartGrind.state.deletedProblemIds.delete(id);
+                // Find probDef across all topics
+                let probDef = null;
+                let topicTitle = '';
+                let patternName = '';
+                for (const topic of window.SmartGrind.data.topicsData) {
+                    for (const pattern of topic.patterns) {
+                        const found = pattern.problems.find(prob => (typeof prob === 'string' ? prob : prob.id) === id);
+                        if (found) {
+                            probDef = found;
+                            topicTitle = topic.title;
+                            patternName = pattern.name;
+                            break;
+                        }
+                    }
+                    if (probDef) break;
+                }
+                if (probDef) {
+                    const newProb = {
+                        id: id,
+                        name: typeof probDef === 'string' ? probDef : probDef.name,
+                        url: typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url,
+                        status: 'unsolved',
+                        topic: topicTitle,
+                        pattern: patternName,
+                        reviewInterval: 0,
+                        nextReviewDate: null,
+                        note: '',
+                        loading: false
+                    };
+                    window.SmartGrind.state.problems.set(id, newProb);
+                }
+            }
+        });
+    },
+
+    // Helper to perform reset and re-render
+    _performResetAndRender: async (message) => {
+        await window.SmartGrind.api.saveData();
+        window.SmartGrind.renderers.renderSidebar();
+        window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
+        window.SmartGrind.utils.showToast(message);
     },
 
     // Reset entire category
@@ -330,61 +354,10 @@ window.SmartGrind.api = {
             const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to reset all problems in the category "${topic.title}"? This will mark all problems as unsolved and restore any deleted problems.`);
             if (!confirmed) return;
 
-            // Collect all problem IDs in this category
-            const categoryProblemIds = new Set();
-            topic.patterns.forEach(pattern => {
-                pattern.problems.forEach(probDef => {
-                    const id = typeof probDef === 'string' ? probDef : probDef.id;
-                    categoryProblemIds.add(id);
-                });
-            });
-
-            // Reset existing problems in the category
-            const problemsToReset = [];
-            window.SmartGrind.state.problems.forEach((p, id) => {
-                if (p.topic === topic.title) {
-                    problemsToReset.push(p);
-                }
-            });
-            problemsToReset.forEach(p => {
-                p.status = 'unsolved';
-                p.reviewInterval = 0;
-                p.nextReviewDate = null;
-            });
-
-            // Restore deleted problems in the category
-            categoryProblemIds.forEach(id => {
-                if (window.SmartGrind.state.deletedProblemIds.has(id)) {
-                    // Remove from deleted set
-                    window.SmartGrind.state.deletedProblemIds.delete(id);
-
-                    // Add back to problems with unsolved status
-                    const probDef = topic.patterns.flatMap(p => p.problems).find(prob => (typeof prob === 'string' ? prob : prob.id) === id);
-                    if (probDef) {
-                        const newProb = {
-                            id: id,
-                            name: typeof probDef === 'string' ? probDef : probDef.name,
-                            url: typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url,
-                            status: 'unsolved',
-                            topic: topic.title,
-                            pattern: topic.patterns.find(p => p.problems.some(prob => (typeof prob === 'string' ? prob : prob.id) === id))?.name || '',
-                            reviewInterval: 0,
-                            nextReviewDate: null,
-                            note: '',
-                            loading: false
-                        };
-                        window.SmartGrind.state.problems.set(id, newProb);
-                    }
-                }
-            });
-
-            // Save
-            await window.SmartGrind.api.saveData();
-
-            // Re-render
-            window.SmartGrind.renderers.renderSidebar();
-            window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-            window.SmartGrind.utils.showToast('Category problems reset and restored');
+            const categoryProblemIds = window.SmartGrind.api._getProblemIdsForTopic(topic);
+            window.SmartGrind.api._resetProblems(categoryProblemIds);
+            window.SmartGrind.api._restoreDeletedProblems(categoryProblemIds, topic.title);
+            await window.SmartGrind.api._performResetAndRender('Category problems reset and restored');
         } catch (e) {
             console.error('Reset category error:', e);
             window.SmartGrind.ui.showAlert(`Failed to reset category: ${e.message}`);
