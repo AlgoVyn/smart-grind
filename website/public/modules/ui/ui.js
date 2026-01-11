@@ -15,8 +15,8 @@ import './ui-global.js';
 import './ui-scroll.js';
 import './ui-markdown.js';
 import './ui-bindings.js';
-import './app.js';
-import { checkAuth } from './init.js';
+import '../app.js';
+import { checkAuth } from '../init.js';
 
 if (typeof jest === 'undefined') {
     window.SmartGrind.state.init();

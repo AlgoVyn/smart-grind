@@ -145,7 +145,7 @@ window.SmartGrind = {
 };
 
 // Now import the module
-import ui from '../public/modules/ui.js';
+import ui from '../public/modules/ui/ui.js';
 
 window.SmartGrind.ui = ui;
 

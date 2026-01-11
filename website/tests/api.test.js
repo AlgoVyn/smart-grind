@@ -1,8 +1,4 @@
-import '../public/modules/api-save.js';
-import '../public/modules/api-load.js';
-import '../public/modules/api-sync.js';
-import '../public/modules/api-reset.js';
-import '../public/modules/api-delete.js';
+import '../public/modules/api.js';
 
 describe('SmartGrind API Module', () => {
   let mockFetch;
