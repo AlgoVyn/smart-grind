@@ -442,6 +442,10 @@ window.SmartGrind.ui = {
             window.SmartGrind.state.problems.clear();
             window.SmartGrind.state.deletedProblemIds.clear();
 
+            // Reset filter to 'all'
+            window.SmartGrind.state.ui.currentFilter = 'all';
+            window.SmartGrind.renderers.updateFilterBtns();
+
             // Initialize local user with fresh data
             window.SmartGrind.app.initializeLocalUser();
 

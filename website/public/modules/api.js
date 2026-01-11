@@ -270,8 +270,6 @@ window.SmartGrind.api = {
             });
             // Restore ALL deleted problems, not just the ones in current topicsData
             window.SmartGrind.api._restoreAllDeletedProblems();
-            // Merge restored problems into topicsData structure
-            window.SmartGrind.api.mergeStructure();
             await window.SmartGrind.api._performResetAndRender('All problems reset and restored');
         } catch (e) {
             console.error('Reset all error:', e);
@@ -309,7 +307,7 @@ window.SmartGrind.api = {
     // Helper to restore deleted problems
     _restoreDeletedProblems: (problemIds) => {
         problemIds.forEach(id => {
-            if (window.SmartGrind.state.deletedProblemIds.has(id)) {
+            if (window.SmartGrind.state.deletedProblemIds.has(id) && !id.startsWith('custom-')) {
                 window.SmartGrind.state.deletedProblemIds.delete(id);
                 // Find probDef across all topics
                 let probDef = null;
@@ -350,6 +348,7 @@ window.SmartGrind.api = {
     _restoreAllDeletedProblems: () => {
         const deletedIds = Array.from(window.SmartGrind.state.deletedProblemIds);
         deletedIds.forEach(id => {
+            if (id.startsWith('custom-')) return; // Skip restoring custom problems
             window.SmartGrind.state.deletedProblemIds.delete(id);
             // Try to find probDef across all topics first
             let probDef = null;
