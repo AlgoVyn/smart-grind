@@ -84,6 +84,8 @@ window.SmartGrind.state = {
             confirmModal: document.getElementById('confirm-modal'),
             alertMessage: document.getElementById('alert-message'),
             confirmMessage: document.getElementById('confirm-message'),
+            alertTitle: document.getElementById('alert-title'),
+            confirmTitle: document.getElementById('confirm-title'),
             alertOkBtn: document.getElementById('alert-ok-btn'),
             confirmOkBtn: document.getElementById('confirm-ok-btn'),
             confirmCancelBtn: document.getElementById('confirm-cancel-btn'),

@@ -478,7 +478,7 @@ window.SmartGrind.renderers = {
                 window.SmartGrind.renderers._handleReset(button, p);
                 break;
             case 'delete':
-                const confirmed = await window.SmartGrind.ui.showConfirm(`Delete "${p.name}"?`);
+                const confirmed = await window.SmartGrind.ui.showConfirm(`Delete "<b>${p.name}</b>"?`);
                 if (confirmed) {
                     window.SmartGrind.api.saveDeletedId(p.id);
                 }

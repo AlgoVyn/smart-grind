@@ -233,8 +233,8 @@
 
     <!-- ALERT MODAL -->
     <div id="alert-modal"
-        class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-dark-950/95 backdrop-blur-sm p-4">
-        <div class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-md border border-slate-700/50">
+        class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-md border border-theme">
             <div class="p-6">
                 <div class="flex items-center gap-3 mb-4">
                     <div
@@ -244,7 +244,7 @@
                                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-theme-bold">Alert</h3>
+                    <h3 id="alert-title" class="text-lg font-bold text-theme-bold">Alert</h3>
                 </div>
                 <p id="alert-message" class="text-theme-base mb-6 leading-relaxed"></p>
                 <div class="flex justify-end">
@@ -257,8 +257,8 @@
 
     <!-- CONFIRM MODAL -->
     <div id="confirm-modal"
-        class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-dark-950/95 backdrop-blur-sm p-4">
-        <div class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-md border border-slate-700/50">
+        class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-md border border-theme">
             <div class="p-6">
                 <div class="flex items-center gap-3 mb-4">
                     <div
@@ -268,14 +268,14 @@
                                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-theme-bold">Confirm Action</h3>
+                    <h3 id="confirm-title" class="text-lg font-bold text-theme-bold">Confirm Action</h3>
                 </div>
                 <p id="confirm-message" class="text-theme-base mb-6 leading-relaxed"></p>
                 <div class="flex justify-end gap-3">
                     <button id="confirm-cancel-btn"
-                        class="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-all duration-200">Cancel</button>
+                        class="px-6 py-2.5 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600 rounded-lg font-semibold transition-all duration-200">Cancel</button>
                     <button id="confirm-ok-btn"
-                        class="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200">OK</button>
+                        class="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200">OK</button>
                 </div>
             </div>
         </div>

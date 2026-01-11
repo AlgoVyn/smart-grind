@@ -681,7 +681,7 @@ describe('SmartGrind Renderers', () => {
 
       await window.SmartGrind.renderers.handleProblemCardClick(mockEvent, problem);
 
-      expect(window.SmartGrind.ui.showConfirm).toHaveBeenCalledWith('Delete "Test Problem"?');
+      expect(window.SmartGrind.ui.showConfirm).toHaveBeenCalledWith('Delete "<b>Test Problem</b>"?');
       expect(window.SmartGrind.api.saveDeletedId).toHaveBeenCalledWith('1');
     });
 
@@ -695,7 +695,7 @@ describe('SmartGrind Renderers', () => {
 
       await window.SmartGrind.renderers.handleProblemCardClick(mockEvent, problem);
 
-      expect(window.SmartGrind.ui.showConfirm).toHaveBeenCalledWith('Delete "Test Problem"?');
+      expect(window.SmartGrind.ui.showConfirm).toHaveBeenCalledWith('Delete "<b>Test Problem</b>"?');
       expect(window.SmartGrind.api.saveDeletedId).not.toHaveBeenCalled();
     });
 

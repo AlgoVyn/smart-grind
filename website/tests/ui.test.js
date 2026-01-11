@@ -112,7 +112,7 @@ Object.defineProperty(window, 'localStorage', {
 // Mock SmartGrind namespace before importing modules
 window.SmartGrind = {
   state: {
-    init: jest.fn(() => {}),
+    init: jest.fn(() => { }),
     user: {},
     ui: {},
     elements: {},
@@ -122,10 +122,10 @@ window.SmartGrind = {
   data: { LOCAL_STORAGE_KEYS: { USER_TYPE: 'userType' } },
   utils: {},
   api: {
-    loadData: jest.fn(() => {}),
+    loadData: jest.fn(() => { }),
   },
   app: {
-    initializeLocalUser: jest.fn(() => {}),
+    initializeLocalUser: jest.fn(() => { }),
   },
   renderers: {},
 };
@@ -211,6 +211,8 @@ describe('SmartGrind UI', () => {
         userDisplay: mockElement,
         alertMessage: mockElement,
         confirmMessage: mockElement,
+        alertTitle: mockElement,
+        confirmTitle: mockElement,
         mainSidebar: mockElement,
         sidebarResizer: mockElement,
         headerDisconnectBtn: mockElement,
@@ -590,7 +592,7 @@ describe('SmartGrind UI', () => {
           contains: mockClassListContains,
         }
       };
-      
+
       window.SmartGrind.state.elements.addProbName = nameEl;
       window.SmartGrind.state.elements.addProbUrl = urlEl;
       window.SmartGrind.state.elements.addProbCategory = categoryEl;
@@ -619,7 +621,7 @@ describe('SmartGrind UI', () => {
       window.SmartGrind.state.elements.addProbName = nameEl;
 
       const showAlertSpy = jest.spyOn(window.SmartGrind.ui, 'showAlert');
-      showAlertSpy.mockImplementation(() => {});
+      showAlertSpy.mockImplementation(() => { });
 
       window.SmartGrind.ui.saveNewProblem();
 
@@ -724,7 +726,8 @@ describe('SmartGrind UI', () => {
     test('shows confirm modal and returns promise', async () => {
       const promise = window.SmartGrind.ui.showConfirm('Test message');
 
-      expect(mockElement.textContent).toBe('Test message');
+      expect(window.SmartGrind.state.elements.confirmMessage.innerHTML).toBe('Test message');
+      expect(window.SmartGrind.state.elements.confirmTitle.textContent).toBe('Confirm Action');
       expect(mockClassListRemove).toHaveBeenCalledWith('hidden');
 
       // Simulate OK click
@@ -736,7 +739,8 @@ describe('SmartGrind UI', () => {
     test('showConfirm resolves with false on cancel', async () => {
       const promise = window.SmartGrind.ui.showConfirm('Test message');
 
-      expect(mockElement.textContent).toBe('Test message');
+      expect(window.SmartGrind.state.elements.confirmMessage.innerHTML).toBe('Test message');
+      expect(window.SmartGrind.state.elements.confirmTitle.textContent).toBe('Confirm Action');
       expect(mockClassListRemove).toHaveBeenCalledWith('hidden');
 
       // Simulate Cancel click
@@ -849,7 +853,7 @@ describe('SmartGrind UI', () => {
   describe('showAlert', () => {
     test('shows alert modal with message', () => {
       // Create a mock element that allows textContent to be set
-      const alertMessageEl = { 
+      const alertMessageEl = {
         textContent: '',
         classList: {
           add: mockClassListAdd,
@@ -871,7 +875,8 @@ describe('SmartGrind UI', () => {
 
       window.SmartGrind.ui.showAlert('Test message');
 
-      expect(alertMessageEl.textContent).toBe('Test message');
+      expect(alertMessageEl.innerHTML).toBe('Test message');
+      expect(window.SmartGrind.state.elements.alertTitle.textContent).toBe('Alert');
       expect(mockClassListRemove).toHaveBeenCalledWith('hidden');
     });
   });
@@ -1254,15 +1259,17 @@ describe('SmartGrind UI', () => {
       window.SmartGrind.ui.bindEvents();
       window.innerWidth = 375; // Mobile width
       window.SmartGrind.state.elements.mainSidebar.classList.contains = jest.fn(() => false);
-      const link = { classList: { contains: () => true }, closest: jest.fn((selector) => {
+      const link = {
+        classList: { contains: () => true }, closest: jest.fn((selector) => {
 
-        if (selector === 'button' || selector === 'button[data-action]') return null;
+          if (selector === 'button' || selector === 'button[data-action]') return null;
 
-        if (selector === '.sidebar-link') return link;
+          if (selector === '.sidebar-link') return link;
 
-        return null;
+          return null;
 
-      }) };
+        })
+      };
       const event = {
         type: 'click',
         target: link,
@@ -1276,15 +1283,17 @@ describe('SmartGrind UI', () => {
 
     test('handles problem card button click', () => {
       window.SmartGrind.ui.bindEvents();
-      const button = { dataAction: 'some-action', closest: jest.fn((selector) => {
+      const button = {
+        dataAction: 'some-action', closest: jest.fn((selector) => {
 
-        if (selector === 'button[data-action]') return button;
+          if (selector === 'button[data-action]') return button;
 
-        if (selector === '.group') return card;
+          if (selector === '.group') return card;
 
-        return null;
+          return null;
 
-      }) };
+        })
+      };
       const card = { dataset: { problemId: 'test-problem' }, closest: jest.fn((selector) => selector === '.group' ? card : null) };
       const event = {
         type: 'click',
@@ -1329,11 +1338,13 @@ describe('SmartGrind UI', () => {
     test('handles problem card click when problemId not found', () => {
       window.SmartGrind.ui.bindEvents();
       const card = { dataset: {}, closest: jest.fn((selector) => selector === '.group' ? card : null) };
-      const button = { dataAction: 'some-action', closest: jest.fn((selector) => {
-        if (selector === 'button[data-action]') return button;
-        if (selector === '.group') return card;
-        return null;
-      }) };
+      const button = {
+        dataAction: 'some-action', closest: jest.fn((selector) => {
+          if (selector === 'button[data-action]') return button;
+          if (selector === '.group') return card;
+          return null;
+        })
+      };
       const event = {
         type: 'click',
         target: button,
@@ -1348,11 +1359,13 @@ describe('SmartGrind UI', () => {
     test('handles problem card click when problem not found in state', () => {
       window.SmartGrind.ui.bindEvents();
       const card = { dataset: { problemId: 'nonexistent' }, closest: jest.fn((selector) => selector === '.group' ? card : null) };
-      const button = { dataAction: 'some-action', closest: jest.fn((selector) => {
-        if (selector === 'button[data-action]') return button;
-        if (selector === '.group') return card;
-        return null;
-      }) };
+      const button = {
+        dataAction: 'some-action', closest: jest.fn((selector) => {
+          if (selector === 'button[data-action]') return button;
+          if (selector === '.group') return card;
+          return null;
+        })
+      };
       const event = {
         type: 'click',
         target: button,
@@ -1672,7 +1685,7 @@ describe('SmartGrind UI', () => {
       const UI_CONSTANTS = { AUTH_TIMEOUT: 30000 };
       jest.useFakeTimers();
       const setButtonLoadingSpy = jest.spyOn(window.SmartGrind.ui, 'setButtonLoading');
-      setButtonLoadingSpy.mockImplementation(() => {});
+      setButtonLoadingSpy.mockImplementation(() => { });
       const mockPopup = { closed: false, close: jest.fn() };
       mockOpen.mockReturnValue(mockPopup);
 
@@ -1694,7 +1707,7 @@ describe('SmartGrind UI', () => {
       mockOpen.mockReturnValue(null);
       const showToastSpy = jest.spyOn(window.SmartGrind.utils, 'showToast');
       const setButtonLoadingSpy = jest.spyOn(window.SmartGrind.ui, 'setButtonLoading');
-      setButtonLoadingSpy.mockImplementation(() => {});
+      setButtonLoadingSpy.mockImplementation(() => { });
 
       window.SmartGrind.ui.handleGoogleLogin();
 
@@ -1714,7 +1727,7 @@ describe('SmartGrind UI', () => {
       mockOpen.mockReturnValue({});
       const showToastSpy = jest.spyOn(window.SmartGrind.utils, 'showToast');
       const setButtonLoadingSpy = jest.spyOn(window.SmartGrind.ui, 'setButtonLoading');
-      setButtonLoadingSpy.mockImplementation(() => {});
+      setButtonLoadingSpy.mockImplementation(() => { });
 
       window.SmartGrind.ui.handleGoogleLogin();
 
@@ -1751,7 +1764,7 @@ describe('SmartGrind UI', () => {
       mockOpen.mockReturnValue(mockPopup);
       const showToastSpy = jest.spyOn(window.SmartGrind.utils, 'showToast');
       const setButtonLoadingSpy = jest.spyOn(window.SmartGrind.ui, 'setButtonLoading');
-      setButtonLoadingSpy.mockImplementation(() => {});
+      setButtonLoadingSpy.mockImplementation(() => { });
 
       window.SmartGrind.ui.handleGoogleLogin();
 
