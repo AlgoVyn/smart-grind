@@ -5,7 +5,12 @@ window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.api = window.SmartGrind.api || {};
 
 Object.assign(window.SmartGrind.api, {
-    // Helper to get problem IDs for a topic
+    /**
+     * Gets all problem IDs for a given topic.
+     * @param {Object} topic - The topic object.
+     * @param {Object[]} topic.patterns - Array of patterns in the topic.
+     * @returns {Set<string>} Set of problem IDs.
+     */
     _getProblemIdsForTopic: (topic) => {
         const ids = new Set();
         topic.patterns.forEach(pattern => {
@@ -16,7 +21,10 @@ Object.assign(window.SmartGrind.api, {
         return ids;
     },
 
-    // Helper to reset problems to unsolved state
+    /**
+     * Resets the specified problems to unsolved state.
+     * @param {Set<string>} problemIds - Set of problem IDs to reset.
+     */
     _resetProblems: (problemIds) => {
         problemIds.forEach(id => {
             const p = window.SmartGrind.state.problems.get(id);
@@ -28,7 +36,10 @@ Object.assign(window.SmartGrind.api, {
         });
     },
 
-    // Helper to restore deleted problems
+    /**
+     * Restores deleted problems for the given problem IDs if they are not custom.
+     * @param {Set<string>} problemIds - Set of problem IDs to restore.
+     */
     _restoreDeletedProblems: (problemIds) => {
         problemIds.forEach(id => {
             if (window.SmartGrind.state.deletedProblemIds.has(id) && !id.startsWith('custom-')) {
@@ -68,7 +79,9 @@ Object.assign(window.SmartGrind.api, {
         });
     },
 
-    // Helper to restore ALL deleted problems (used by resetAll)
+    /**
+     * Restores all deleted problems except custom ones.
+     */
     _restoreAllDeletedProblems: () => {
         const deletedIds = Array.from(window.SmartGrind.state.deletedProblemIds);
         deletedIds.forEach(id => {
@@ -109,7 +122,11 @@ Object.assign(window.SmartGrind.api, {
         });
     },
 
-    // Helper to perform reset and re-render
+    /**
+     * Performs the reset save operation and re-renders the UI with a toast message.
+     * @param {string} message - The toast message to display.
+     * @throws {Error} Throws an error if the save fails.
+     */
     _performResetAndRender: async (message) => {
         await window.SmartGrind.api.saveData();
         window.SmartGrind.state.ui.currentFilter = 'all';
@@ -119,7 +136,10 @@ Object.assign(window.SmartGrind.api, {
         window.SmartGrind.utils.showToast(message);
     },
 
-    // Reset all problems
+    /**
+     * Resets all problems to unsolved state and restores deleted problems.
+     * @throws {Error} Throws an error if the reset fails.
+     */
     resetAll: async () => {
         const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to reset <b>ALL Problems</b>? This will mark all problems as unsolved and restore any deleted problems across all categories.`);
         if (!confirmed) return;
@@ -152,7 +172,11 @@ Object.assign(window.SmartGrind.api, {
         }
     },
 
-    // Reset entire category
+    /**
+     * Resets all problems in a category to unsolved state and restores deleted problems.
+     * @param {string} topicId - The ID of the topic to reset.
+     * @throws {Error} Throws an error if the reset fails.
+     */
     resetCategory: async (topicId) => {
         const topic = window.SmartGrind.data.topicsData.find(t => t.id === topicId);
         if (!topic) {

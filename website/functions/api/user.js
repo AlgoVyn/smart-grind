@@ -1,4 +1,9 @@
-// Simple JWT implementation
+/**
+ * Verifies a JWT token with the given secret.
+ * @param {string} token - The JWT token to verify.
+ * @param {string} secret - The secret key used for signing.
+ * @returns {Object|null} The decoded payload if valid, null otherwise.
+ */
 async function verifyJWT(token, secret) {
   try {
     const [header, payload, signature] = token.split('.');
@@ -28,6 +33,12 @@ async function verifyJWT(token, secret) {
   }
 }
 
+/**
+ * Authenticates a request by verifying the Bearer token.
+ * @param {Request} request - The HTTP request object.
+ * @param {Object} env - Environment variables.
+ * @returns {Object|null} The decoded JWT payload if authenticated, null otherwise.
+ */
 async function authenticate(request, env) {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -38,6 +49,13 @@ async function authenticate(request, env) {
   return await verifyJWT(token, env.JWT_SECRET || 'default-secret');
 }
 
+/**
+ * Handles GET requests to retrieve user data.
+ * @param {Object} context - The request context.
+ * @param {Request} context.request - The HTTP request object.
+ * @param {Object} context.env - Environment variables.
+ * @returns {Response} The HTTP response with user data or error.
+ */
 export async function onRequestGet({ request, env }) {
   const payload = await authenticate(request, env);
   if (!payload) {
@@ -64,6 +82,13 @@ export async function onRequestGet({ request, env }) {
   }
 }
 
+/**
+ * Handles POST requests to save user data.
+ * @param {Object} context - The request context.
+ * @param {Request} context.request - The HTTP request object.
+ * @param {Object} context.env - Environment variables.
+ * @returns {Response} The HTTP response indicating success or error.
+ */
 export async function onRequestPost({ request, env }) {
   const payload = await authenticate(request, env);
   if (!payload) {

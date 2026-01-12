@@ -5,7 +5,11 @@ window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.api = window.SmartGrind.api || {};
 
 Object.assign(window.SmartGrind.api, {
-    // Helper to handle API response errors
+    /**
+     * Handles API response errors by throwing appropriate error messages.
+     * @param {Response} response - The fetch response object.
+     * @throws {Error} Throws an error with a user-friendly message based on status.
+     */
     _handleApiError: (response) => {
         const errorMap = {
             401: 'Authentication failed. Please sign in again.',
@@ -15,14 +19,22 @@ Object.assign(window.SmartGrind.api, {
         throw new Error(errorMap[response.status] || `Failed to load data: ${response.statusText}`);
     },
 
-    // Helper to process loaded user data
+    /**
+     * Processes the loaded user data and updates the application state.
+     * @param {Object} userData - The user data object from the API.
+     * @param {Object} userData.problems - Map of problem IDs to problem objects.
+     * @param {string[]} userData.deletedIds - Array of deleted problem IDs.
+     */
     _processUserData: (userData) => {
         window.SmartGrind.state.problems = new Map(Object.entries(userData.problems || {}));
         window.SmartGrind.state.problems.forEach(p => p.loading = false);
         window.SmartGrind.state.deletedProblemIds = new Set(userData.deletedIds || []);
     },
 
-    // Helper to initialize UI after data load
+    /**
+     * Initializes the UI components after data has been loaded.
+     * Renders sidebar, main view, updates stats, and hides loading screen.
+     */
     _initializeUI: () => {
         window.SmartGrind.renderers.renderSidebar();
         window.SmartGrind.renderers.renderMainView('all');
@@ -32,7 +44,11 @@ Object.assign(window.SmartGrind.api, {
         window.SmartGrind.state.elements.appWrapper.classList.remove('hidden');
     },
 
-    // Load data from API
+    /**
+     * Loads user data from the API and initializes the application.
+     * Handles authentication, data processing, syncing, and UI initialization.
+     * @throws {Error} Throws an error if loading fails.
+     */
     loadData: async () => {
         window.SmartGrind.state.elements.loadingScreen.classList.remove('hidden');
 

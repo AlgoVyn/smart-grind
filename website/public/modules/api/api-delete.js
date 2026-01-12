@@ -5,7 +5,11 @@ window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.api = window.SmartGrind.api || {};
 
 Object.assign(window.SmartGrind.api, {
-    // Delete entire category
+    /**
+     * Deletes an entire category and all its associated problems.
+     * @param {string} topicId - The ID of the topic to delete.
+     * @throws {Error} Throws an error if the deletion fails.
+     */
     deleteCategory: async (topicId) => {
         const topic = window.SmartGrind.data.topicsData.find(t => t.id === topicId);
         if (!topic) {

@@ -1,18 +1,35 @@
-// --- AUTHENTICATION HANDLERS ---
+/**
+ * @fileoverview Authentication UI handlers for Smart Grind web application.
+ *
+ * This module provides functions for managing user authentication through Google OAuth,
+ * including login, logout, UI updates, and error handling. It handles the popup-based
+ * OAuth flow, session management, and switching between signed-in and local user modes.
+ *
+ * @module ui-auth
+ */
 
 import { UI_CONSTANTS } from './ui-constants.js';
 
 window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.ui = window.SmartGrind.ui || {};
 
-// Helper to set loading state on buttons
+/**
+ * Sets the loading state on authentication buttons.
+ * @param {HTMLElement} button - The button element to update.
+ * @param {boolean} loading - Whether to show loading state.
+ * @param {string} [loadingText="Connecting..."] - Text to display while loading.
+ */
 window.SmartGrind.ui.setButtonLoading = (button, loading, loadingText = "Connecting...") => {
     if (!button) return;
     button.disabled = loading;
     button.innerHTML = loading ? loadingText : window.SmartGrind.GOOGLE_BUTTON_HTML;
 };
 
-// Google login handler
+/**
+ * Initiates Google OAuth login using a popup window.
+ * Opens an authentication popup, listens for success/failure messages from the popup,
+ * updates user session and UI on success, and handles errors or cancellations.
+ */
 window.SmartGrind.ui.handleGoogleLogin = () => {
     window.SmartGrind.ui.showError(null);
     const btn = window.SmartGrind.state.elements.googleLoginBtn;
@@ -76,13 +93,17 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
 
     // Check if popup is closed without auth
     const checkPopupClosed = setInterval(() => {
-        if (popup.closed && !authCompleted) {
-            authCompleted = true;
-            clearInterval(checkPopupClosed);
-            window.removeEventListener('message', messageHandler);
-            window.SmartGrind.ui.setButtonLoading(btn, false);
-            window.SmartGrind.ui.setButtonLoading(modalBtn, false);
-            window.SmartGrind.utils.showToast('Sign-in was cancelled.', 'error');
+        try {
+            if (popup.closed && !authCompleted) {
+                authCompleted = true;
+                clearInterval(checkPopupClosed);
+                window.removeEventListener('message', messageHandler);
+                window.SmartGrind.ui.setButtonLoading(btn, false);
+                window.SmartGrind.ui.setButtonLoading(modalBtn, false);
+                window.SmartGrind.utils.showToast('Sign-in was cancelled.', 'error');
+            }
+        } catch (e) {
+            // COOP may block the check, ignore
         }
     }, 1000);
 
@@ -94,15 +115,23 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
             window.removeEventListener('message', messageHandler);
             window.SmartGrind.ui.setButtonLoading(btn, false);
             window.SmartGrind.ui.setButtonLoading(modalBtn, false);
-            if (!popup.closed) {
-                popup.close();
+            try {
+                if (!popup.closed) {
+                    popup.close();
+                }
+            } catch (e) {
+                // ignore
             }
             window.SmartGrind.utils.showToast('Sign-in timed out. Please try again.', 'error');
         }
     }, UI_CONSTANTS.AUTH_TIMEOUT);
 };
 
-// Logout handler
+/**
+ * Handles user logout or sign-in modal opening.
+ * If the user is signed in, switches to local mode by clearing session data,
+ * resetting state, and reloading local data. If local, opens the sign-in modal.
+ */
 window.SmartGrind.ui.handleLogout = async () => {
     if (window.SmartGrind.state.user.type === 'signed-in') {
         // Switch to local user
@@ -136,7 +165,11 @@ window.SmartGrind.ui.handleLogout = async () => {
     }
 };
 
-// Update auth UI
+/**
+ * Updates the authentication UI elements based on the current user type.
+ * Changes the disconnect button's text, icon, and title to reflect whether
+ * the user is local (show sign-in) or signed-in (show sign-out).
+ */
 window.SmartGrind.ui.updateAuthUI = () => {
     const disconnectBtn = window.SmartGrind.state.elements.disconnectBtn;
     const isLocal = window.SmartGrind.state.user.type === 'local';
@@ -153,7 +186,11 @@ window.SmartGrind.ui.updateAuthUI = () => {
     disconnectBtn.title = isLocal ? 'Sign in to sync across devices' : 'Sign out and switch to local mode';
 };
 
-// Error display
+/**
+ * Displays or hides setup error messages in the UI.
+ * Shows an alert if a message is provided and toggles the visibility of the error element.
+ * @param {string|null} msg - The error message to display, or null to hide the error.
+ */
 window.SmartGrind.ui.showError = (msg) => {
     if (msg) {
         window.SmartGrind.ui.showAlert(msg);
@@ -162,6 +199,11 @@ window.SmartGrind.ui.showError = (msg) => {
     window.SmartGrind.state.elements.setupError.innerText = msg || '';
 };
 
+/**
+ * Displays or hides sign-in error messages in the UI.
+ * Shows an alert if a message is provided and toggles the visibility of the sign-in error element.
+ * @param {string|null} msg - The error message to display, or null to hide the error.
+ */
 window.SmartGrind.ui.showSigninError = (msg) => {
     if (msg) {
         window.SmartGrind.ui.showAlert(msg);

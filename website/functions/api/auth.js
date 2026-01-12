@@ -1,4 +1,9 @@
-// Simple JWT implementation
+/**
+ * Signs a JWT token with the given payload and secret.
+ * @param {Object} payload - The payload to encode in the JWT.
+ * @param {string} secret - The secret key for signing.
+ * @returns {string} The signed JWT token.
+ */
 async function signJWT(payload, secret) {
    const header = { alg: 'HS256', typ: 'JWT' };
    const encodedHeader = btoa(JSON.stringify(header)).replace(/=/g, '');
@@ -31,6 +36,14 @@ function validateOAuthCode(params) {
    return code;
 }
 
+/**
+ * Handles GET requests for authentication endpoints.
+ * Supports login initiation and OAuth callback processing.
+ * @param {Object} context - The request context.
+ * @param {Request} context.request - The HTTP request object.
+ * @param {Object} context.env - Environment variables including OAuth credentials.
+ * @returns {Response} The HTTP response.
+ */
 export async function onRequestGet({ request, env }) {
    const url = new URL(request.url);
    const redirectUri = `https://algovyn.com/smartgrind/api/auth`;

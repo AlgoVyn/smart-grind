@@ -5,7 +5,10 @@ window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.api = window.SmartGrind.api || {};
 
 Object.assign(window.SmartGrind.api, {
-    // Sync with static problem plan
+    /**
+     * Syncs the current problems with the static problem plan, adding new problems and updating metadata.
+     * @throws {Error} Throws an error if syncing fails.
+     */
     syncPlan: async () => {
         try {
             let changed = false;
@@ -63,7 +66,9 @@ Object.assign(window.SmartGrind.api, {
         }
     },
 
-    // Merge custom problems into topicsData structure
+    /**
+     * Merges custom problems into the topicsData structure by adding them to appropriate topics and patterns.
+     */
     mergeStructure: () => {
         // Build a set of existing problem IDs in topicsData for quick lookup
         const existingIds = new Set();

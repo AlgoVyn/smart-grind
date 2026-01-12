@@ -5,7 +5,12 @@ window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.api = window.SmartGrind.api || {};
 
 Object.assign(window.SmartGrind.api, {
-    // Helper to prepare data for saving
+    /**
+     * Prepares the current problem data for saving by serializing the problems map and deleted IDs.
+     * @returns {Object} The data object to save.
+     * @returns {Object} return.problems - Object of problem IDs to problem data.
+     * @returns {string[]} return.deletedIds - Array of deleted problem IDs.
+     */
     _prepareDataForSave: () => ({
         problems: Object.fromEntries(
             Array.from(window.SmartGrind.state.problems.entries()).map(([id, p]) => {
@@ -16,12 +21,17 @@ Object.assign(window.SmartGrind.api, {
         deletedIds: Array.from(window.SmartGrind.state.deletedProblemIds)
     }),
 
-    // Save data locally
+    /**
+     * Saves the current state data to local storage.
+     */
     _saveLocally: () => {
         window.SmartGrind.state.saveToStorage();
     },
 
-    // Save data remotely
+    /**
+     * Saves the prepared data to the remote API.
+     * @throws {Error} Throws an error if the save request fails.
+     */
     _saveRemotely: async () => {
         const token = sessionStorage.getItem('token');
         if (!token) {
@@ -45,7 +55,11 @@ Object.assign(window.SmartGrind.api, {
         }
     },
 
-    // Helper to handle save operations with error handling
+    /**
+     * Handles the save operation with error handling and UI updates.
+     * @param {Function} saveFn - The save function to execute (local or remote).
+     * @throws {Error} Throws the error if the save function fails.
+     */
     _handleSaveOperation: async (saveFn) => {
         try {
             await saveFn();
@@ -57,7 +71,10 @@ Object.assign(window.SmartGrind.api, {
         }
     },
 
-    // Helper function to perform save operation
+    /**
+     * Performs the save operation based on the user type (local or remote).
+     * @throws {Error} Throws an error if the save fails.
+     */
     _performSave: async () => {
         const saveFn = window.SmartGrind.state.user.type === 'local'
             ? window.SmartGrind.api._saveLocally
@@ -65,12 +82,20 @@ Object.assign(window.SmartGrind.api, {
         await window.SmartGrind.api._handleSaveOperation(saveFn);
     },
 
-    // Save problem to storage/API
+    /**
+     * Saves a problem to storage or API.
+     * @param {Object} p - The problem object (not used in current implementation).
+     * @throws {Error} Throws an error if the save fails.
+     */
     saveProblem: async (p) => {
         await window.SmartGrind.api._performSave();
     },
 
-    // Save deleted problem ID
+    /**
+     * Saves the deletion of a problem by marking it as deleted and saving the state.
+     * @param {string} id - The ID of the problem to delete.
+     * @throws {Error} Throws an error if the save fails.
+     */
     saveDeletedId: async (id) => {
         const problem = window.SmartGrind.state.problems.get(id);
         try {
@@ -91,7 +116,10 @@ Object.assign(window.SmartGrind.api, {
         }
     },
 
-    // Save all data
+    /**
+     * Saves all current data to storage or API.
+     * @throws {Error} Throws an error if the save fails.
+     */
     saveData: async () => {
         await window.SmartGrind.api._performSave();
     }

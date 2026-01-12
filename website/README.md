@@ -60,12 +60,12 @@ Visit the official website: [algovyn.com/smartgrind](https://algovyn.com/smartgr
 
 4. **Start development server**:
    ```bash
-   npm run dev
+   wrangler pages dev public
    ```
 
 5. **Deploy to Cloudflare**:
    ```bash
-   npm run deploy
+   wrangler pages deploy public
    ```
 
 ### Environment Configuration
@@ -77,6 +77,43 @@ GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 JWT_SECRET=your_jwt_secret
 ```
+
+## Testing
+
+The project includes comprehensive testing to ensure reliability and prevent regressions.
+
+### Unit Tests
+Run unit tests using Jest:
+```bash
+npm test
+```
+
+For continuous testing during development:
+```bash
+npm run test:watch
+```
+
+To generate coverage reports:
+```bash
+npm run test:coverage
+```
+
+### End-to-End Tests
+End-to-end tests are implemented with Playwright for browser automation.
+
+Run E2E tests:
+```bash
+npm run test:e2e
+```
+
+Run E2E tests with UI mode for debugging:
+```bash
+npm run test:e2e:ui
+```
+
+### Test Structure
+- **Unit Tests**: Located in `tests/` directory, covering modules, utilities, and core logic
+- **E2E Tests**: Located in `e2e/` directory, testing full user workflows
 
 ## Usage
 
@@ -110,6 +147,37 @@ JWT_SECRET=your_jwt_secret
   - `Escape`: Close modals
 - **Export Functionality**: Download your progress as JSON for backup (press `E` or use export button)
 - **URL-based Navigation**: Shareable URLs for specific categories (e.g., `/smartgrind/c/arrays-hashing`)
+
+### Data Export/Import Format
+
+The application supports exporting and importing user progress data in JSON format for backup and migration purposes.
+
+**Export Format**:
+```json
+{
+  "problems": {
+    "problem_id": {
+      "solved": true,
+      "notes": "Personal notes for the problem",
+      "reviewDate": "2024-01-15T00:00:00.000Z",
+      "custom": true
+    }
+  },
+  "deletedIds": ["removed_problem_id"],
+  "exportDate": "2024-01-10T12:00:00.000Z"
+}
+```
+
+**Fields**:
+- `problems`: Object mapping problem IDs to progress data
+  - `solved`: Boolean indicating if the problem is marked as solved
+  - `notes`: String containing user notes
+  - `reviewDate`: ISO string of next review date (null if not scheduled)
+  - `custom`: Boolean for user-added problems
+- `deletedIds`: Array of IDs for problems removed by the user
+- `exportDate`: Timestamp of export
+
+**Import**: Upload a JSON file in the above format to restore progress. Existing data will be merged, with imported data taking precedence for conflicts.
 - **Mobile Responsive**: Optimized interface for mobile devices with collapsible sidebar
 - **Scroll to Top**: Automatic scroll-to-top button appears when scrolling down
 - **Toast Notifications**: Real-time feedback for actions like saving notes or solving problems
@@ -145,39 +213,141 @@ JWT_SECRET=your_jwt_secret
 #### GET /api/auth?action=login
 Initiates Google OAuth flow.
 
+**Query Parameters**:
+- `action=login`: Required to start OAuth
+
+**Response**: Redirects to Google OAuth consent screen.
+
+**Errors**:
+- 400 Bad Request: Invalid action parameter
+
 #### GET /api/auth (OAuth callback)
 Handles OAuth callback, generates JWT, and redirects to app.
+
+**Query Parameters** (from Google OAuth):
+- `code`: Authorization code
+- `state`: State parameter for CSRF protection
+
+**Response**: Redirects to the app with JWT token in URL fragment or cookie.
+
+**Errors**:
+- 400 Bad Request: Missing or invalid code
+- 401 Unauthorized: OAuth verification failed
 
 ### User Data Endpoints
 
 #### GET /api/user
 Retrieves user progress data.
-**Headers**: `Authorization: Bearer <jwt_token>`
-**Response**: `{ problems: {...}, deletedIds: [...] }`
+
+**Headers**:
+- `Authorization: Bearer <jwt_token>` (required)
+
+**Response** (200 OK):
+```json
+{
+  "problems": {
+    "problem_id_1": {
+      "solved": true,
+      "notes": "My solution notes",
+      "reviewDate": "2024-01-15T00:00:00.000Z"
+    }
+  },
+  "deletedIds": ["old_problem_id"]
+}
+```
+
+**Errors**:
+- 401 Unauthorized: Invalid or missing JWT token
+- 500 Internal Server Error: KV storage error
 
 #### POST /api/user
 Updates user progress data.
-**Headers**: `Authorization: Bearer <jwt_token>`
-**Body**: `{ data: { problems: {...}, deletedIds: [...] } }`
+
+**Headers**:
+- `Authorization: Bearer <jwt_token>` (required)
+- `Content-Type: application/json`
+
+**Body**:
+```json
+{
+  "data": {
+    "problems": {
+      "problem_id_1": {
+        "solved": true,
+        "notes": "Updated notes",
+        "reviewDate": "2024-01-15T00:00:00.000Z"
+      }
+    },
+    "deletedIds": ["old_problem_id"]
+  }
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "message": "Data updated successfully"
+}
+```
+
+**Errors**:
+- 400 Bad Request: Invalid JSON or missing data
+- 401 Unauthorized: Invalid or missing JWT token
+- 500 Internal Server Error: KV storage error
 
 ## Contributing
 
+We welcome contributions! Please follow these guidelines to ensure smooth collaboration.
+
 ### Development Workflow
-1. Fork the repository
-2. Create a feature branch
-3. Make changes and test locally
-4. Submit a pull request
+1. **Fork the repository** and clone your fork locally
+2. **Create a feature branch**: `git checkout -b feature/your-feature-name`
+3. **Make changes** following the code style guidelines
+4. **Run tests**: Ensure all unit and E2E tests pass
+5. **Test across devices**: Verify functionality on different screen sizes
+6. **Commit changes**: Use clear, descriptive commit messages
+7. **Submit a pull request**: Provide a detailed description of changes
 
 ### Code Style
-- Use ES6+ features
-- Follow consistent naming conventions
-- Add comments for complex logic
-- Test functionality across devices
+- **JavaScript**: Use ES6+ features, consistent naming (camelCase for variables/functions)
+- **HTML/CSS**: Semantic markup, Tailwind utility classes
+- **Comments**: Add JSDoc comments for functions, inline comments for complex logic
+- **Formatting**: Use consistent indentation (2 spaces), no trailing whitespace
+- **Performance**: Optimize for mobile-first, minimize bundle size
+
+### Commit Message Guidelines
+- Use present tense: "Add feature" not "Added feature"
+- Start with type: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `test:`
+- Keep first line under 50 characters
+- Example: `feat: add dark mode toggle`
+
+### Pull Request Guidelines
+- **Title**: Clear and descriptive
+- **Description**: Explain what and why, include screenshots for UI changes
+- **Testing**: Describe how changes were tested
+- **Breaking Changes**: Note any breaking changes
 
 ### Adding New Patterns
-1. Update `topicsData` in `app.js` with new pattern structure
-2. Ensure problem IDs are unique
-3. Test the new pattern appears correctly in the UI
+1. **Update data structure**: Modify `topicsData` in `public/modules/data.js`
+2. **Unique IDs**: Ensure all problem IDs are unique across the application
+3. **Problem format**:
+   ```javascript
+   {
+     id: "unique-id",
+     title: "Problem Title",
+     difficulty: "Easy|Medium|Hard",
+     url: "https://leetcode.com/problems/...",
+     patterns: ["pattern1", "pattern2"]
+   }
+   ```
+4. **Test thoroughly**: Verify the pattern appears in sidebar and filters work correctly
+5. **Update documentation**: Add any relevant notes in this README
+
+### Reporting Issues
+- Use GitHub Issues with detailed descriptions
+- Include browser/OS information
+- Attach screenshots or console logs for bugs
 
 ## Troubleshooting
 
