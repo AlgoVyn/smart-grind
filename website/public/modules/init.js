@@ -15,8 +15,8 @@ const _applyCategory = (categoryParam) => {
 
 // Helper to setup signed-in user
 const _setupSignedInUser = async (userId, displayName, categoryParam) => {
-    sessionStorage.setItem('userId', userId);
-    sessionStorage.setItem('displayName', displayName);
+    localStorage.setItem('userId', userId);
+    localStorage.setItem('displayName', displayName);
 
     window.SmartGrind.state.user.id = userId;
     window.SmartGrind.state.user.displayName = displayName;
@@ -54,16 +54,16 @@ const checkAuth = async () => {
 
     // Handle PWA auth callback
     if (urlToken && urlUserId && urlDisplayName) {
-        sessionStorage.setItem('token', urlToken);
+        localStorage.setItem('token', urlToken);
         window.history.replaceState({}, document.title, window.location.pathname);
         await _setupSignedInUser(urlUserId, urlDisplayName, categoryParam);
         return;
     }
 
     // Check for existing session
-    const userId = sessionStorage.getItem('userId');
+    const userId = localStorage.getItem('userId');
     if (userId) {
-        const displayName = sessionStorage.getItem('displayName') || 'User';
+        const displayName = localStorage.getItem('displayName') || 'User';
         await _setupSignedInUser(userId, displayName, categoryParam);
         return;
     }

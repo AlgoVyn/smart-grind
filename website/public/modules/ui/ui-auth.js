@@ -57,9 +57,9 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
         if (event.data.type === 'auth-success') {
             authCompleted = true;
             const { token, userId, displayName } = event.data;
-            sessionStorage.setItem('token', token);
-            sessionStorage.setItem('userId', userId);
-            sessionStorage.setItem('displayName', displayName);
+            localStorage.setItem('token', token);
+            localStorage.setItem('userId', userId);
+            localStorage.setItem('displayName', displayName);
 
             window.SmartGrind.state.user.id = userId;
             window.SmartGrind.state.user.displayName = displayName;
@@ -135,9 +135,9 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
 window.SmartGrind.ui.handleLogout = async () => {
     if (window.SmartGrind.state.user.type === 'signed-in') {
         // Switch to local user
-        sessionStorage.removeItem('userId');
-        sessionStorage.removeItem('token');
-        sessionStorage.removeItem('displayName');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('token');
+        localStorage.removeItem('displayName');
         window.SmartGrind.state.user.id = null;
 
         // Switch to local user
