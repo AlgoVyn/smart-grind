@@ -1,7 +1,52 @@
 // --- MARKDOWN RENDERING AND SOLUTION MODAL ---
+// Includes pattern to markdown file mapping functionality
 
 window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.ui = window.SmartGrind.ui || {};
+window.SmartGrind.patterns = window.SmartGrind.patterns || {};
+
+// --- PATTERN TO MARKDOWN FILE MAPPING SYSTEM ---
+// Handles naming inconsistencies between pattern names and solution filenames
+
+// Function to get the correct filename for a pattern
+window.SmartGrind.patterns.getPatternFilename = function(patternName) {
+    // Use the automatic conversion for all patterns
+    return this._convertPatternNameToFilename(patternName);
+};
+
+// Internal function for automatic pattern name to filename conversion
+window.SmartGrind.patterns._convertPatternNameToFilename = function(patternName) {
+    // Convert to lowercase and replace special characters with hyphens
+    let cleaned = patternName
+        .toLowerCase()
+        .replace(/[\s/()&`'+-]+/g, '-')  // Replace spaces and special chars with hyphens
+        .replace(/-+/g, '-')             // Collapse multiple hyphens
+        .replace(/^-+|-+$/g, '');        // Trim hyphens from start/end
+    
+    // Remove common suffix patterns that don't add value
+    cleaned = cleaned
+        .replace(/-pattern$/, '')
+        .replace(/-algorithm$/, '')
+        .replace(/-approach$/, '')
+        .replace(/-method$/, '')
+        .replace(/-technique$/, '')
+        .replace(/-style$/, '');
+    
+    return cleaned;
+};
+
+// Function to check if a pattern solution file exists
+window.SmartGrind.patterns.checkPatternSolutionExists = async function(patternName) {
+    const filename = this.getPatternFilename(patternName);
+    const solutionFile = `/smartgrind/solutions/${filename}.md`;
+    
+    try {
+        const response = await fetch(solutionFile, { method: 'HEAD' });
+        return response.ok;
+    } catch (error) {
+        return false;
+    }
+};
 
 // Helper to configure markdown renderer
 window.SmartGrind.ui._configureMarkdownRenderer = () => {
@@ -106,6 +151,37 @@ window.SmartGrind.ui.openSolutionModal = (problemId) => {
         .catch(error => {
             content.innerHTML = '<p>Error loading solution: ' + error.message + '</p>' +
                 '<p>File: ' + solutionFile + '</p>';
+        });
+};
+
+// Open pattern solution modal
+window.SmartGrind.ui.openPatternSolutionModal = (patternName) => {
+    const modal = document.getElementById('solution-modal');
+    const content = document.getElementById('solution-content');
+    if (!modal || !content) return;
+
+    // Show loading
+    content.innerHTML = '<div class="loading flex items-center justify-center min-h-[200px]"><div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div><span class="ml-3 text-theme-muted">Loading pattern solution...</span></div>';
+    modal.classList.remove('hidden');
+
+    // Use the pattern mapping system to get the correct filename
+    const patternFilename = window.SmartGrind.patterns.getPatternFilename(patternName);
+    
+    // Try to find a pattern solution file
+    const solutionFile = `/smartgrind/solutions/${patternFilename}.md`;
+    
+    fetch(solutionFile)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load pattern solution file (status: ' + response.status + ')');
+            }
+            return response.text();
+        })
+        .then(markdown => window.SmartGrind.ui._renderMarkdown(markdown, content))
+        .catch(error => {
+            content.innerHTML = '<p>Error loading pattern solution: ' + error.message + '</p>' +
+                '<p>File: ' + solutionFile + '</p>' +
+                '<p>This pattern may not have a dedicated solution file yet.</p>';
         });
 };
 

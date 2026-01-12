@@ -206,6 +206,12 @@ export const problemCardRenderers = {
             case 'solution':
                 window.SmartGrind.ui.openSolutionModal(p.id);
                 break;
+            case 'pattern-solution':
+                const patternName = button.dataset.pattern;
+                if (patternName) {
+                    window.SmartGrind.ui.openPatternSolutionModal(patternName);
+                }
+                break;
         }
     },
 

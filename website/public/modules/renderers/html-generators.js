@@ -44,7 +44,44 @@ export const htmlGenerators = {
                 hasVisiblePattern = true;
                 visibleCountRef.count += patternProblems.length;
                 const patternEl = document.createElement('div');
-                patternEl.innerHTML = `<h4 class="text-sm font-bold text-brand-400 uppercase tracking-wider mb-3 mt-6">${pattern.name}</h4>`;
+                
+                // Create pattern header with solution button
+                const patternHeader = document.createElement('div');
+                patternHeader.className = 'flex items-center justify-between mb-3 mt-6';
+                
+                const patternTitle = document.createElement('h4');
+                patternTitle.className = 'text-sm font-bold text-brand-400 uppercase tracking-wider';
+                patternTitle.textContent = pattern.name;
+                
+                // Add pattern solution button (only for non-custom patterns)
+                const patternSolutionButton = document.createElement('button');
+                patternSolutionButton.className = 'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
+                patternSolutionButton.dataset.action = 'pattern-solution';
+                patternSolutionButton.dataset.pattern = pattern.name;
+                patternSolutionButton.title = 'View Pattern Solution';
+                patternSolutionButton.innerHTML = `
+                    <svg fill="currentColor" class="w-4 h-4" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10,9 9,9 8,9"/>
+                    </svg>
+                `;
+                
+                patternHeader.appendChild(patternTitle);
+                
+                // Only show pattern solution button for non-custom patterns
+                const isCustomPattern = !window.SmartGrind.data.ORIGINAL_TOPICS_DATA?.some(topic =>
+                    topic.patterns.some(p => p.name === pattern.name)
+                );
+                
+                if (!isCustomPattern) {
+                    patternHeader.appendChild(patternSolutionButton);
+                }
+                
+                patternEl.appendChild(patternHeader);
+                
                 const grid = document.createElement('div');
                 grid.className = 'grid grid-cols-1 gap-3';
 
@@ -122,10 +159,19 @@ export const htmlGenerators = {
     // Helper to generate action buttons HTML
     _generateActionButtons: (p) => {
         const actionButton = window.SmartGrind.renderers._generateActionButton(p);
+        
+        // Check if this is a custom problem
+        const isCustomProblem = !window.SmartGrind.data.ORIGINAL_TOPICS_DATA?.some(topic =>
+            topic.patterns.some(pattern =>
+                pattern.problems.some(prob => prob.id === p.id)
+            )
+        );
+         
         return `
             <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes">
                 ${window.SmartGrind.ICONS.note}
             </button>
+            ${!isCustomProblem ? `
             <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center" data-action="solution" title="View Solution">
                 <svg fill="currentColor" class="w-4 h-4" viewBox="0 0 24 24">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -135,6 +181,7 @@ export const htmlGenerators = {
                     <polyline points="10,9 9,9 8,9"/>
                 </svg>
             </button>
+            ` : ''}
             ${actionButton}
             <button class="action-btn p-2 rounded-lg hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors" data-action="delete" title="Delete Problem">
                 ${window.SmartGrind.ICONS.delete}

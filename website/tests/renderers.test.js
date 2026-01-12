@@ -391,7 +391,15 @@ describe('SmartGrind Renderers', () => {
 
   describe('_renderTopicSection', () => {
     test('renders topic section with visible problems', () => {
-      window.SmartGrind.state.problems.set('1', { id: '1', status: 'unsolved' });
+      window.SmartGrind.state.problems.set('1', {
+        id: '1',
+        name: 'Two Sum',
+        url: 'https://leetcode.com/problems/two-sum/',
+        status: 'unsolved',
+        nextReviewDate: null,
+        note: '',
+        loading: false
+      });
       window.SmartGrind.data.topicsData[0].patterns[0].problems = ['1'];
 
       const result = window.SmartGrind.renderers._renderTopicSection(window.SmartGrind.data.topicsData[0], 'all', '2023-01-01', { count: 0 });
@@ -410,7 +418,15 @@ describe('SmartGrind Renderers', () => {
     });
 
     test('handles probDef as object with id property', () => {
-      window.SmartGrind.state.problems.set('1', { id: '1', status: 'unsolved' });
+      window.SmartGrind.state.problems.set('1', {
+        id: '1',
+        name: 'Two Sum',
+        url: 'https://leetcode.com/problems/two-sum/',
+        status: 'unsolved',
+        nextReviewDate: null,
+        note: '',
+        loading: false
+      });
       window.SmartGrind.data.topicsData[0].patterns[0].problems = [{ id: '1' }];
 
       const result = window.SmartGrind.renderers._renderTopicSection(window.SmartGrind.data.topicsData[0], 'all', '2023-01-01', { count: 0 });

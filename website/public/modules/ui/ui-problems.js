@@ -24,4 +24,15 @@ window.SmartGrind.ui.bindProblemEvents = () => {
             window.SmartGrind.renderers.handleProblemCardClick(mockEvent, foundProblem);
         }
     });
+
+    // Event delegation for pattern solution buttons (outside problem cards)
+    window.SmartGrind.state.elements.problemsContainer?.addEventListener('click', (e) => {
+        const patternSolutionButton = e.target.closest('button[data-action="pattern-solution"]');
+        if (!patternSolutionButton) return;
+
+        const patternName = patternSolutionButton.dataset.pattern;
+        if (patternName) {
+            window.SmartGrind.ui.openPatternSolutionModal(patternName);
+        }
+    });
 };
