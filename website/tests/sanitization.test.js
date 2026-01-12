@@ -122,5 +122,3 @@ describe('Input Sanitization Tests', () => {
         });
     });
 });
-
-console.log('All sanitization tests completed!');
