@@ -33,7 +33,7 @@ Object.assign(window.SmartGrind.api, {
      * @throws {Error} Throws an error if the save request fails.
      */
     _saveRemotely: async () => {
-        const token = sessionStorage.getItem('token');
+        const token = localStorage.getItem('token');
         if (!token) {
             throw new Error('No authentication token found. Please sign in again.');
         }

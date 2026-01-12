@@ -132,7 +132,7 @@ describe('SmartGrind API Module', () => {
 
   describe('_saveRemotely', () => {
     test('should save data remotely for signed-in user', async () => {
-      sessionStorage.setItem('token', 'test-token');
+      localStorage.setItem('token', 'test-token');
       window.SmartGrind.state.user.type = 'signed-in';
       mockFetch.mockResolvedValue({ ok: true });
 
@@ -149,14 +149,14 @@ describe('SmartGrind API Module', () => {
     });
 
     test('should throw error on auth failure', async () => {
-      sessionStorage.setItem('token', 'invalid-token');
+      localStorage.setItem('token', 'invalid-token');
       mockFetch.mockResolvedValue({ ok: false, status: 401 });
 
       await expect(window.SmartGrind.api._saveRemotely()).rejects.toThrow('Authentication failed. Please sign in again.');
     });
 
     test('should throw error on server error', async () => {
-      sessionStorage.setItem('token', 'test-token');
+      localStorage.setItem('token', 'test-token');
       mockFetch.mockResolvedValue({ ok: false, status: 500 });
 
       await expect(window.SmartGrind.api._saveRemotely()).rejects.toThrow('Server error. Please try again later.');
@@ -245,7 +245,7 @@ describe('SmartGrind API Module', () => {
 
   describe('loadData', () => {
     test('should load data successfully', async () => {
-      sessionStorage.setItem('token', 'test-token');
+      localStorage.setItem('token', 'test-token');
       const userData = { problems: { '1': { id: '1' } }, deletedIds: ['2'] };
       mockFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(userData) });
 
@@ -258,7 +258,7 @@ describe('SmartGrind API Module', () => {
     });
 
     test('should handle auth error', async () => {
-      sessionStorage.setItem('token', 'invalid-token');
+      localStorage.setItem('token', 'invalid-token');
       mockFetch.mockResolvedValue({ ok: false, status: 401 });
 
       await window.SmartGrind.api.loadData();
@@ -268,7 +268,7 @@ describe('SmartGrind API Module', () => {
     });
 
     test('should handle user not found', async () => {
-      sessionStorage.setItem('token', 'test-token');
+      localStorage.setItem('token', 'test-token');
       mockFetch.mockResolvedValue({ ok: false, status: 404 });
 
       await window.SmartGrind.api.loadData();

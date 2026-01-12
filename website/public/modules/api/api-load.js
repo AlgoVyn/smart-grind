@@ -53,7 +53,7 @@ Object.assign(window.SmartGrind.api, {
         window.SmartGrind.state.elements.loadingScreen.classList.remove('hidden');
 
         try {
-            const token = sessionStorage.getItem('token');
+            const token = localStorage.getItem('token');
             if (!token) throw new Error('No authentication token found. Please sign in again.');
 
             const response = await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
