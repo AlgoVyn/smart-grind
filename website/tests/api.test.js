@@ -458,7 +458,7 @@ describe('SmartGrind API Module', () => {
       await window.SmartGrind.api.resetAll();
 
       // Check confirmation was requested
-      expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset <b>ALL Problems</b>? This will mark all problems as unsolved and restore any deleted problems across all categories.');
+      expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset <b>ALL Problems</b>?</br></br>This will mark all problems as unsolved and restore any deleted problems across all categories.');
 
       // Check existing problems were reset
       const problem1 = window.SmartGrind.state.problems.get('1');
@@ -497,7 +497,7 @@ describe('SmartGrind API Module', () => {
       await window.SmartGrind.api.resetAll();
 
       // Check confirmation was requested
-      expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset <b>ALL Problems</b>? This will mark all problems as unsolved and restore any deleted problems across all categories.');
+      expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset <b>ALL Problems</b>?</br></br>This will mark all problems as unsolved and restore any deleted problems across all categories.');
 
       // Check no changes were made
       expect(window.SmartGrind.state.problems.get('1').status).toBe('solved');
@@ -570,7 +570,7 @@ describe('SmartGrind API Module', () => {
       await window.SmartGrind.api.resetCategory('arrays');
 
       // Check confirmation was requested
-      expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset all problems in the category "<b>Arrays</b>"? This will mark all problems as unsolved and restore any deleted problems.');
+      expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset all problems in the category "<b>Arrays</b>"?</br></br>This will mark all problems as unsolved and restore any deleted problems.');
 
       // Check existing problem was reset
       const problem1 = window.SmartGrind.state.problems.get('1');
@@ -604,7 +604,7 @@ describe('SmartGrind API Module', () => {
       await window.SmartGrind.api.resetCategory('arrays');
 
       // Check confirmation was requested
-      expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset all problems in the category "<b>Arrays</b>"? This will mark all problems as unsolved and restore any deleted problems.');
+      expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset all problems in the category "<b>Arrays</b>"?</br></br>This will mark all problems as unsolved and restore any deleted problems.');
 
       // Check no changes were made
       expect(window.SmartGrind.state.problems.get('1').status).toBe('solved');
