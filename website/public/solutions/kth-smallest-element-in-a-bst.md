@@ -103,7 +103,7 @@ If the BST is modified often (insert/delete) and you need to find kth smallest f
 
 > Add a `size` attribute to each node representing the subtree size. This allows O(h) queries and O(h) updates.
 
-```
+```python
 # Concept: Augmented TreeNode
 class TreeNode:
     def __init__(self, val: int, left: Optional['TreeNode'] = None, right: Optional['TreeNode'] = None):
@@ -121,4 +121,4 @@ def kthSmallest(root: Optional[TreeNode], k: int) -> int:
         return root.val
     else:
         return kthSmallest(root.right, k - left_size - 1)
-```python
+```

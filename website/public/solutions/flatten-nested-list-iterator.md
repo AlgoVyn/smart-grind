@@ -14,7 +14,7 @@ res = []
 while iterator.hasNext()
     append iterator.next() to the end of res
 return res
-```python
+```
 If res matches the expected flattened list, then your code will be judged as correct.
 
 ### Examples
@@ -44,7 +44,7 @@ If res matches the expected flattened list, then your code will be judged as cor
 
 ## Solution
 
-```
+```python
 # """
 # This is the interface that allows for creating nested lists.
 # You should not implement it, or speculate about its implementation

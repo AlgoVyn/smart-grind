@@ -170,4 +170,4 @@ def sieve_spf(limit: int) -> List[int]:
                 if spf[j] == j:
                     spf[j] = i
     return spf
-```python
+```

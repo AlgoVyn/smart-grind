@@ -16,22 +16,22 @@ You may assume that each input would have exactly one solution.
 **Input:**
 ```python
 nums = [-1,2,1,-4], target = 1
-```python
+```
 **Output:**
 ```python
 2
-```python
+```
 **Explanation:** The sum that is closest to the target is 2. (-1 + 2 + 1 = 2).
 
 **Example 2:**
 **Input:**
 ```python
 nums = [0,0,0], target = 1
-```python
+```
 **Output:**
 ```python
 0
-```python
+```
 **Explanation:** The sum that is closest to the target is 0. (0 + 0 + 0 = 0).
 
 ---

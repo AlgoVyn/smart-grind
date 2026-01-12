@@ -13,18 +13,18 @@ Return the count of triplets.
 **Input:**
 ```python
 nums = [-2,0,1,3], target = 2
-```python
+```
 **Output:**
 ```python
 2
-```python
+```
 **Explanation:** There are 2 triplets whose sum is less than 2: [-2,0,1] and [-2,0,3].
 
 **Example 2:**
 **Input:**
 ```python
 nums = [], target = 0
-```python
+```
 **Output:**
 ```python
 0
@@ -34,7 +34,7 @@ nums = [], target = 0
 **Input:**
 ```python
 nums = [0], target = 0
-```python
+```
 **Output:**
 ```python
 0

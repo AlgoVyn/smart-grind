@@ -9,18 +9,18 @@ Return all critical connections in the network in any order.
 **Input:**
 ```python
 n = 4, connections = [[0,1],[1,2],[2,0],[1,3]]
-```python
+```
 **Output:**
 ```python
 [[1,3]]
-```python
+```
 **Explanation:** [[3,1]] is also accepted.
 
 **Example 2:**
 **Input:**
 ```python
 n = 2, connections = [[0,1]]
-```python
+```
 **Output:**
 ```python
 [[0,1]]
