@@ -117,6 +117,62 @@ window.SmartGrind.utils = {
         }
     },
 
+    // Input sanitization utilities
+    sanitizeInput: (input) => {
+        if (!input) return '';
+        
+        // Trim whitespace
+        let sanitized = input.trim();
+        
+        // Remove HTML tags and special characters that could be harmful
+        sanitized = sanitized.replace(/<[^>]*>/g, ''); // Remove HTML tags
+        sanitized = sanitized.replace(/[\"\'\\]/g, ''); // Remove quotes and backslashes
+        
+        // Prevent script injection by removing script-related content
+        sanitized = sanitized.replace(/javascript:/gi, '');
+        sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+        
+        // Limit length to prevent excessively long inputs
+        if (sanitized.length > 200) {
+            sanitized = sanitized.substring(0, 200);
+        }
+        
+        return sanitized;
+    },
+    
+    sanitizeUrl: (url) => {
+        if (!url) return '';
+        
+        let sanitized = url.trim();
+        
+        // Basic URL validation and sanitization
+        try {
+            // If it doesn't start with http:// or https://, prepend https://
+            if (!sanitized.startsWith('http://') && !sanitized.startsWith('https://')) {
+                sanitized = 'https://' + sanitized;
+            }
+            
+            // Create URL object to validate
+            new URL(sanitized);
+            
+            // Remove any script-related content from URL
+            sanitized = sanitized.replace(/javascript:/gi, '');
+            sanitized = sanitized.replace(/data:/gi, '');
+            
+        } catch (e) {
+            // If URL parsing fails, return empty string
+            console.warn('Invalid URL:', e);
+            return '';
+        }
+        
+        // Limit URL length
+        if (sanitized.length > 500) {
+            sanitized = sanitized.substring(0, 500);
+        }
+        
+        return sanitized;
+    },
+    
     // Toast notifications
     showToast: (msg, type = 'success') => {
         const el = document.createElement('div');

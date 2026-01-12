@@ -113,22 +113,52 @@ window.SmartGrind.ui.handlePatternChange = (e) => {
 };
 
 window.SmartGrind.ui.saveNewProblem = async () => {
-    const name = window.SmartGrind.state.elements.addProbName.value.trim();
-    const url = window.SmartGrind.state.elements.addProbUrl.value.trim();
-    let category = window.SmartGrind.state.elements.addProbCategory.value;
-    if (!category) category = window.SmartGrind.state.elements.addProbCategoryNew.value.trim();
+    // Get raw input values
+    const rawName = window.SmartGrind.state.elements.addProbName.value;
+    const rawUrl = window.SmartGrind.state.elements.addProbUrl.value;
+    let rawCategory = window.SmartGrind.state.elements.addProbCategory.value;
+    if (!rawCategory) rawCategory = window.SmartGrind.state.elements.addProbCategoryNew.value;
 
-    let pattern = window.SmartGrind.state.elements.addProbPattern.value;
-    if (!pattern || !window.SmartGrind.state.elements.addProbCategory.value) pattern = window.SmartGrind.state.elements.addProbPatternNew.value.trim();
+    let rawPattern = window.SmartGrind.state.elements.addProbPattern.value;
+    if (!rawPattern || !window.SmartGrind.state.elements.addProbCategory.value) rawPattern = window.SmartGrind.state.elements.addProbPatternNew.value;
 
-    if (!name || !url || !category || !pattern) {
-        window.SmartGrind.ui.showAlert("Please fill in Name, URL, Category and Pattern.");
+    // Sanitize inputs
+    const name = window.SmartGrind.utils.sanitizeInput(rawName);
+    const url = window.SmartGrind.utils.sanitizeUrl(rawUrl);
+    const category = window.SmartGrind.utils.sanitizeInput(rawCategory);
+    const pattern = window.SmartGrind.utils.sanitizeInput(rawPattern);
+
+    // Validate sanitized inputs
+    if (!name.trim()) {
+        window.SmartGrind.ui.showAlert("Problem name is required and cannot be empty after sanitization.");
+        return;
+    }
+    if (!url.trim()) {
+        window.SmartGrind.ui.showAlert("Problem URL is required and cannot be empty after sanitization.");
+        return;
+    }
+    if (!category.trim()) {
+        window.SmartGrind.ui.showAlert("Category is required and cannot be empty after sanitization.");
+        return;
+    }
+    if (!pattern.trim()) {
+        window.SmartGrind.ui.showAlert("Pattern is required and cannot be empty after sanitization.");
+        return;
+    }
+
+    // Additional validation for URL
+    try {
+        new URL(url); // This will throw if URL is invalid
+    } catch (e) {
+        window.SmartGrind.ui.showAlert("Please enter a valid URL for the problem.");
         return;
     }
 
     const id = 'custom-' + Date.now();
     const newProb = {
-        id, name, url,
+        id,
+        name,
+        url,
         topic: category,
         pattern: pattern,
         status: 'unsolved',

@@ -185,7 +185,9 @@ describe('SmartGrind UI', () => {
         id: null,
         displayName: 'Local User',
       },
-      ui: {},
+      ui: {
+        activeTopicId: 'all'
+      },
       elements: {
         googleLoginBtn: mockElement,
         modalGoogleLoginBtn: mockElement,
@@ -241,11 +243,66 @@ describe('SmartGrind UI', () => {
       LOCAL_STORAGE_KEYS: { USER_TYPE: 'userType' },
       resetTopicsData: jest.fn(),
     };
+    // Mock URL constructor and methods for tests
+    const URLConstructor = class URL {
+      constructor(url) {
+        if (!url || typeof url !== 'string' || !url.startsWith('http://') && !url.startsWith('https://')) {
+          throw new Error('Invalid URL');
+        }
+        this.href = url;
+      }
+    };
+    
+    // Add static methods to the constructor
+    URLConstructor.createObjectURL = jest.fn(() => 'mock-url');
+    URLConstructor.revokeObjectURL = jest.fn();
+    
+    window.URL = URLConstructor;
+
     window.SmartGrind.utils = {
       showToast: jest.fn(),
       updateUrlParameter: jest.fn(),
       scrollToTop: jest.fn(),
       getUrlParameter: jest.fn(),
+      sanitizeInput: (input) => {
+        if (!input) return '';
+        let sanitized = input.trim();
+        sanitized = sanitized.replace(/<[^>]*>/g, '');
+        sanitized = sanitized.replace(/[\"\'\\]/g, '');
+        sanitized = sanitized.replace(/javascript:/gi, '');
+        sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+        if (sanitized.length > 200) {
+          sanitized = sanitized.substring(0, 200);
+        }
+        return sanitized;
+      },
+      sanitizeUrl: (url) => {
+        if (!url) return '';
+        let sanitized = url.trim();
+        try {
+          // If it doesn't start with http:// or https://, prepend https://
+          if (!sanitized.startsWith('http://') && !sanitized.startsWith('https://')) {
+            sanitized = 'https://' + sanitized;
+          }
+          
+          // Create URL object to validate
+          new URL(sanitized);
+          
+          // Remove any script-related content from URL
+          sanitized = sanitized.replace(/javascript:/gi, '');
+          sanitized = sanitized.replace(/data:/gi, '');
+          
+          // Limit URL length
+          if (sanitized.length > 500) {
+            sanitized = sanitized.substring(0, 500);
+          }
+          
+          return sanitized;
+        } catch (e) {
+          // If URL parsing fails, return empty string
+          return '';
+        }
+      }
     };
     window.SmartGrind.api = {
       loadData: jest.fn(),
@@ -639,7 +696,94 @@ describe('SmartGrind UI', () => {
 
       window.SmartGrind.ui.saveNewProblem();
 
-      expect(showAlertSpy).toHaveBeenCalledWith("Please fill in Name, URL, Category and Pattern.");
+      expect(showAlertSpy).toHaveBeenCalledWith("Problem name is required and cannot be empty after sanitization.");
+      showAlertSpy.mockRestore();
+    });
+
+    test('debug saveNewProblem function call', async () => {
+      // Create separate mock elements for each field with proper mock structure
+      const nameEl = {
+        value: 'Test Problem',
+        classList: {
+          add: mockClassListAdd,
+          remove: mockClassListRemove,
+          toggle: mockClassListToggle,
+          contains: mockClassListContains,
+        }
+      };
+      const urlEl = {
+        value: 'https://example.com',
+        classList: {
+          add: mockClassListAdd,
+          remove: mockClassListRemove,
+          toggle: mockClassListToggle,
+          contains: mockClassListContains,
+        }
+      };
+      const categoryEl = {
+        value: 'Arrays',
+        classList: {
+          add: mockClassListAdd,
+          remove: mockClassListRemove,
+          toggle: mockClassListToggle,
+          contains: mockClassListContains,
+        }
+      };
+      const patternEl = {
+        value: 'Two Sum',
+        classList: {
+          add: mockClassListAdd,
+          remove: mockClassListRemove,
+          toggle: mockClassListToggle,
+          contains: mockClassListContains,
+        }
+      };
+      const categoryNewEl = {
+        value: '',
+        classList: {
+          add: mockClassListAdd,
+          remove: mockClassListRemove,
+          toggle: mockClassListToggle,
+          contains: mockClassListContains,
+        }
+      };
+      const patternNewEl = {
+        value: '',
+        classList: {
+          add: mockClassListAdd,
+          remove: mockClassListRemove,
+          toggle: mockClassListToggle,
+          contains: mockClassListContains,
+        }
+      };
+      const problemModalEl = {
+        classList: {
+          add: mockClassListAdd,
+          remove: mockClassListRemove,
+          toggle: mockClassListToggle,
+          contains: mockClassListContains,
+        }
+      };
+
+      window.SmartGrind.state.elements.addProbName = nameEl;
+      window.SmartGrind.state.elements.addProbUrl = urlEl;
+      window.SmartGrind.state.elements.addProbCategory = categoryEl;
+      window.SmartGrind.state.elements.addProbPattern = patternEl;
+      window.SmartGrind.state.elements.addProbCategoryNew = categoryNewEl;
+      window.SmartGrind.state.elements.addProbPatternNew = patternNewEl;
+      window.SmartGrind.state.elements.addProblemModal = problemModalEl;
+
+      // Spy on the sanitization functions and API calls to see what they return
+      const sanitizeInputSpy = jest.spyOn(window.SmartGrind.utils, 'sanitizeInput');
+      const sanitizeUrlSpy = jest.spyOn(window.SmartGrind.utils, 'sanitizeUrl');
+      const apiSaveSpy = jest.spyOn(window.SmartGrind.api, 'saveProblem');
+      const showAlertSpy = jest.spyOn(window.SmartGrind.ui, 'showAlert');
+
+      await window.SmartGrind.ui.saveNewProblem();
+
+      sanitizeInputSpy.mockRestore();
+      sanitizeUrlSpy.mockRestore();
+      apiSaveSpy.mockRestore();
       showAlertSpy.mockRestore();
     });
 
@@ -866,9 +1010,10 @@ describe('SmartGrind UI', () => {
 
   describe('showAlert', () => {
     test('shows alert modal with message', () => {
-      // Create a mock element that allows textContent to be set
+      // Create a mock element that allows textContent and innerHTML to be set
       const alertMessageEl = {
         textContent: '',
+        innerHTML: '',
         classList: {
           add: mockClassListAdd,
           remove: mockClassListRemove,
