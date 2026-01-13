@@ -3,7 +3,7 @@
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 ![Chrome Extension](https://img.shields.io/badge/Platform-Chrome-blue)
 
-**Smart Grind** is a Chrome extension designed to help you grind LeetCode and other coding problems optimally. It enhances your problem-solving experience by injecting smart features directly into supported platforms like LeetCode.
+**Smart Grind** is a Chrome extension designed to help you grind LeetCode and other coding problems optimally. It enhances your problem-solving experience by injecting smart features directly into supported platforms like LeetCode, including AI-powered assistance for problem explanations.
 
 Visit the official website: [SmartGrind Chrome Extension](https://chromewebstore.google.com/detail/smartgrind/eaolfkdmfnnanbfkaejnkcfafpankcmp)
 
@@ -23,6 +23,7 @@ Visit the official website: [SmartGrind Chrome Extension](https://chromewebstore
 - **Progress Tracking**: Automatically tracks solved problems by monitoring submission status
 - **Persistent Settings**: Remembers your preferred rating ranges and tag filters between sessions
 - **Cross-Page Support**: Works on individual problem pages, problem lists, and contest pages
+- **AI Assistance**: Quick access to AI tools (ChatGPT, AI Studio, Grok) for detailed problem explanations directly from problem pages
 
 ### Technical Details
 - **Data Sources**: Uses community-sourced problem ratings and official LeetCode tags
@@ -60,6 +61,13 @@ The extension may become available on the Chrome Web Store — check the officia
 - **Tag Filter**: Select specific problem tags to focus your practice
 - **Get Random Problem**: Click to open a random problem matching your criteria
 
+### Using AI Assistance
+On individual problem pages, you'll see AI buttons in the top buttons area:
+- **ChatGPT Button**: Opens ChatGPT with a pre-filled prompt for detailed problem explanation
+- **AI Studio Button**: Opens Google AI Studio with the same prompt
+- **Grok Button**: Opens Grok AI with the prompt
+- Hover over buttons to see tooltips; buttons change color on hover for better interaction
+
 ### Understanding Ratings
 - Ratings range from approximately 0 to 3000
 - Higher ratings indicate greater difficulty
@@ -88,14 +96,14 @@ Your current rating is calculated using an exponentially weighted moving average
 
 ### Extension Components
 - **Manifest V3**: Modern Chrome extension structure with service worker
-- **Content Script**: Injects rating display functionality into LeetCode pages
+- **Content Script**: Injects rating display and AI assistance functionality into LeetCode pages
 - **Popup Interface**: User interface for settings and random problem selection
 - **Background Service Worker**: Handles message passing and background tasks
 - **Data Files**: Static ratings and tags stored as web-accessible resources
 
 ### Data Flow
-1. **Page Load**: Content script loads ratings data and modifies problem displays
-2. **User Interaction**: Popup communicates with content script for problem selection
+1. **Page Load**: Content script loads ratings data, modifies problem displays, and injects AI buttons
+2. **User Interaction**: Popup communicates with content script for problem selection; AI buttons open external AI services
 3. **Progress Tracking**: Monitors submissions to update solved problem lists
 4. **Settings Persistence**: Syncs user preferences across browser sessions
 

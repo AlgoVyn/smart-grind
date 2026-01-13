@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SmartGrind",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Enhance LeetCode with problem ratings and smart random selection for optimal coding practice.",
   "icons": {
     "16": "logo-16.png",
