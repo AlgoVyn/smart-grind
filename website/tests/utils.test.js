@@ -311,7 +311,7 @@ describe('SmartGrind Utils', () => {
       await window.SmartGrind.utils.askAI(problemName, provider);
 
       expect(window.SmartGrind.state.ui.preferredAI).toBe('aistudio');
-      expect(window.open).toHaveBeenCalledWith('https://aistudio.google.com/prompts/new_chat?prompt=Explain%20the%20solution%20for%20LeetCode%20problem%3A%20%22Two%20Sum%22.%20Provide%20the%20intuition%2C%20multiple%20approaches%2C%20and%20time%2Fspace%20complexity%20analysis.', '_blank');
+      expect(window.open).toHaveBeenCalledWith('https://aistudio.google.com/prompts/new_chat?prompt=Explain%20the%20solution%20for%20LeetCode%20problem%3A%20%22Two%20Sum%22.%20Provide%20the%20detailed%20problem%20statement%2C%20examples%2C%20intuition%2C%20multiple%20approaches%2C%20and%20time%2Fspace%20complexity%20analysis.%20Include%20related%20problems%20and%20video%20tutorial%20links.', '_blank');
 
       consoleSpy.mockRestore();
       windowOpenSpy.mockRestore();
@@ -341,7 +341,7 @@ describe('SmartGrind Utils', () => {
       await window.SmartGrind.utils.askAI(problemName, provider);
 
       expect(window.SmartGrind.state.ui.preferredAI).toBe('grok');
-      expect(window.open).toHaveBeenCalledWith('https://grok.com/?q=Explain%20the%20solution%20for%20LeetCode%20problem%3A%20%22Two%20Sum%22.%20Provide%20the%20intuition%2C%20multiple%20approaches%2C%20and%20time%2Fspace%20complexity%20analysis.', '_blank');
+      expect(window.open).toHaveBeenCalledWith('https://grok.com/?q=Explain%20the%20solution%20for%20LeetCode%20problem%3A%20%22Two%20Sum%22.%20Provide%20the%20detailed%20problem%20statement%2C%20examples%2C%20intuition%2C%20multiple%20approaches%2C%20and%20time%2Fspace%20complexity%20analysis.%20Include%20related%20problems%20and%20video%20tutorial%20links.', '_blank');
 
       consoleSpy.mockRestore();
       windowOpenSpy.mockRestore();

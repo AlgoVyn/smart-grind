@@ -102,7 +102,7 @@ window.SmartGrind.utils = {
 
     // AI helper
     askAI: async (problemName, provider) => {
-        const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the intuition, multiple approaches, and time/space complexity analysis.`;
+        const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the detailed problem statement, examples, intuition, multiple approaches, and time/space complexity analysis. Include related problems and video tutorial links.`;
         const encodedPrompt = encodeURIComponent(aiPrompt);
 
         localStorage.setItem('preferred-ai', provider);
