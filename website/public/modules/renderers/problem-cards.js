@@ -44,11 +44,12 @@ export const problemCardRenderers = {
             p.loading = false;
             // Card needs to be re-rendered again to show final state (and remove spinner)
             // But we need a fresh reference to the button/card since it was replaced
-            const newCard = document.querySelector(`[data-problem-id="${p.id}"]`);
-            if (newCard) {
+            // Use querySelectorAll to find all instances of this problem card across different patterns
+            const newCards = document.querySelectorAll(`[data-problem-id="${p.id}"]`);
+            newCards.forEach(newCard => {
                 const btn = newCard.querySelector('.action-btn[data-action]');
                 if (btn) window.SmartGrind.renderers._reRenderCard(btn, p);
-            }
+            });
         }
     },
 
@@ -91,18 +92,18 @@ export const problemCardRenderers = {
         } finally {
             p.loading = false;
             if (window.SmartGrind.state.ui.currentFilter === 'review') {
-                // If in due view, hide the card
-                const newCard = document.querySelector(`[data-problem-id="${p.id}"]`);
-                if (newCard) {
+                // If in due view, hide all instances of the card
+                const newCards = document.querySelectorAll(`[data-problem-id="${p.id}"]`);
+                newCards.forEach(newCard => {
                     const btn = newCard.querySelector('.action-btn[data-action]');
                     if (btn) window.SmartGrind.renderers._hideCardIfDueFilter(btn);
-                }
+                });
             } else {
-                const newCard = document.querySelector(`[data-problem-id="${p.id}"]`);
-                if (newCard) {
+                const newCards = document.querySelectorAll(`[data-problem-id="${p.id}"]`);
+                newCards.forEach(newCard => {
                     const btn = newCard.querySelector('.action-btn[data-action]');
                     if (btn) window.SmartGrind.renderers._reRenderCard(btn, p);
-                }
+                });
             }
         }
     },
@@ -189,11 +190,11 @@ export const problemCardRenderers = {
                         window.SmartGrind.utils.showToast(`Failed to save note: ${error.message}`, 'error');
                     } finally {
                         p.loading = false;
-                        const newCard = document.querySelector(`[data-problem-id="${p.id}"]`);
-                        if (newCard) {
+                        const newCards = document.querySelectorAll(`[data-problem-id="${p.id}"]`);
+                        newCards.forEach(newCard => {
                             const btn = newCard.querySelector('button[data-action="save-note"]');
                             if (btn) window.SmartGrind.renderers._reRenderCard(btn, p);
-                        }
+                        });
                     }
                 }
                 break;
