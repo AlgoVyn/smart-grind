@@ -579,6 +579,38 @@ describe('SmartGrind Renderers', () => {
       expect(problem.loading).toBe(false);
       expect(window.SmartGrind.utils.showToast).toHaveBeenCalledWith('Failed to update problem: Network error', 'error');
     });
+
+    test('updates all instances of problem card when problem appears in multiple patterns', async () => {
+      // Create multiple mock cards to simulate problem appearing in multiple patterns
+      const mockCard1 = { ...mockElement, querySelector: jest.fn(() => ({ dataset: { action: 'solve' } })) };
+      const mockCard2 = { ...mockElement, querySelector: jest.fn(() => ({ dataset: { action: 'solve' } })) };
+      
+      // Mock querySelectorAll to return multiple cards
+      mockQuerySelectorAll.mockImplementationOnce((selector) => {
+        if (selector === '[data-problem-id="multi-pattern-status-problem"]') {
+          return [mockCard1, mockCard2];
+        }
+        return [mockElement];
+      });
+
+      const mockButton = { closest: jest.fn(() => mockCard1) };
+      const problem = { id: 'multi-pattern-status-problem', status: 'unsolved' };
+      window.SmartGrind.api.saveProblem = jest.fn().mockResolvedValue();
+      window.SmartGrind.renderers._reRenderCard = jest.fn();
+
+      await window.SmartGrind.renderers._handleStatusChange(mockButton, problem, 'solved', 1, '2024-01-01');
+
+      expect(problem.status).toBe('solved');
+      expect(problem.reviewInterval).toBe(1);
+      expect(problem.nextReviewDate).toBe('2024-01-01');
+      expect(window.SmartGrind.api.saveProblem).toHaveBeenCalledWith(problem);
+      
+      // Verify that _reRenderCard was called for all 2 card instances, plus 1 for loading state
+      expect(window.SmartGrind.renderers._reRenderCard).toHaveBeenCalledTimes(3);
+      
+      // Verify each card was re-rendered with the updated problem
+      expect(window.SmartGrind.renderers._reRenderCard).toHaveBeenCalledWith(expect.any(Object), problem);
+    });
   });
 
   describe('_handleSolve', () => {
@@ -595,7 +627,6 @@ describe('SmartGrind Renderers', () => {
       expect(window.SmartGrind.utils.getNextReviewDate).toHaveBeenCalledWith('2023-01-01', 0);
       expect(window.SmartGrind.api.saveProblem).toHaveBeenCalledWith(problem);
       expect(problem.status).toBe('solved');
-      expect(mockButton.closest).toHaveBeenCalledWith('.group');
     });
   });
 
@@ -612,7 +643,6 @@ describe('SmartGrind Renderers', () => {
 
       expect(problem.reviewInterval).toBe(2);
       expect(window.SmartGrind.api.saveProblem).toHaveBeenCalledWith(problem);
-      expect(mockButton.closest).toHaveBeenCalledWith('.group');
     });
 
     test('hides card when in review filter', async () => {
@@ -628,6 +658,70 @@ describe('SmartGrind Renderers', () => {
 
       expect(window.SmartGrind.renderers._hideCardIfDueFilter).toHaveBeenCalledWith(expect.any(Object));
     });
+
+    test('updates all instances of problem card when problem appears in multiple patterns', async () => {
+      // Create multiple mock cards to simulate problem appearing in multiple patterns
+      const mockCard1 = { ...mockElement, querySelector: jest.fn(() => ({ dataset: { action: 'review' } })) };
+      const mockCard2 = { ...mockElement, querySelector: jest.fn(() => ({ dataset: { action: 'review' } })) };
+      const mockCard3 = { ...mockElement, querySelector: jest.fn(() => ({ dataset: { action: 'review' } })) };
+      
+      // Mock querySelectorAll to return multiple cards
+      mockQuerySelectorAll.mockImplementationOnce((selector) => {
+        if (selector === '[data-problem-id="multi-pattern-problem"]') {
+          return [mockCard1, mockCard2, mockCard3];
+        }
+        return [mockElement];
+      });
+
+      const mockButton = { closest: jest.fn(() => mockCard1) };
+      const problem = { id: 'multi-pattern-problem', status: 'solved', reviewInterval: 1 };
+      window.SmartGrind.state.ui.currentFilter = 'all';
+      window.SmartGrind.utils.getToday = jest.fn(() => '2023-01-01');
+      window.SmartGrind.utils.getNextReviewDate = jest.fn(() => '2023-01-03');
+      window.SmartGrind.api.saveProblem = jest.fn().mockResolvedValue();
+      window.SmartGrind.renderers._reRenderCard = jest.fn();
+
+      await window.SmartGrind.renderers._handleReview(mockButton, problem);
+
+      expect(problem.reviewInterval).toBe(2);
+      expect(window.SmartGrind.api.saveProblem).toHaveBeenCalledWith(problem);
+      
+      // Verify that _reRenderCard was called for all 3 card instances, plus 1 for loading state
+      expect(window.SmartGrind.renderers._reRenderCard).toHaveBeenCalledTimes(4);
+      
+      // Verify each card was re-rendered with the updated problem
+      expect(window.SmartGrind.renderers._reRenderCard).toHaveBeenCalledWith(expect.any(Object), problem);
+    });
+
+    test('hides all instances of problem card when in review filter and problem appears in multiple patterns', async () => {
+      // Create multiple mock cards to simulate problem appearing in multiple patterns
+      const mockCard1 = { ...mockElement, querySelector: jest.fn(() => ({ dataset: { action: 'review' } })) };
+      const mockCard2 = { ...mockElement, querySelector: jest.fn(() => ({ dataset: { action: 'review' } })) };
+      
+      // Mock querySelectorAll to return multiple cards
+      mockQuerySelectorAll.mockImplementationOnce((selector) => {
+        if (selector === '[data-problem-id="multi-pattern-due-problem"]') {
+          return [mockCard1, mockCard2];
+        }
+        return [mockElement];
+      });
+
+      const mockButton = { closest: jest.fn(() => mockCard1) };
+      const problem = { id: 'multi-pattern-due-problem', status: 'solved', reviewInterval: 1 };
+      window.SmartGrind.state.ui.currentFilter = 'review';
+      window.SmartGrind.utils.getToday = jest.fn(() => '2023-01-01');
+      window.SmartGrind.utils.getNextReviewDate = jest.fn(() => '2023-01-03');
+      window.SmartGrind.api.saveProblem = jest.fn().mockResolvedValue();
+      window.SmartGrind.renderers._hideCardIfDueFilter = jest.fn();
+
+      await window.SmartGrind.renderers._handleReview(mockButton, problem);
+
+      expect(problem.reviewInterval).toBe(2);
+      expect(window.SmartGrind.api.saveProblem).toHaveBeenCalledWith(problem);
+      
+      // Verify that _hideCardIfDueFilter was called for all 2 card instances
+      expect(window.SmartGrind.renderers._hideCardIfDueFilter).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('_handleReset', () => {
@@ -642,7 +736,6 @@ describe('SmartGrind Renderers', () => {
       expect(problem.reviewInterval).toBe(0);
       expect(problem.nextReviewDate).toBe(null);
       expect(window.SmartGrind.api.saveProblem).toHaveBeenCalledWith(problem);
-      expect(mockButton.closest).toHaveBeenCalledWith('.group');
     });
   });
 
@@ -749,6 +842,44 @@ describe('SmartGrind Renderers', () => {
       expect(mockButton.closest).toHaveBeenCalledWith('.note-area');
       expect(problem.note).toBe('New note');
       expect(window.SmartGrind.api.saveProblem).toHaveBeenCalledWith(problem);
+    });
+
+    test('handles save-note action and updates all instances when problem appears in multiple patterns', async () => {
+      // Create multiple mock cards to simulate problem appearing in multiple patterns
+      const mockCard1 = { ...mockElement, querySelector: jest.fn(() => ({ dataset: { action: 'save-note' } })) };
+      const mockCard2 = { ...mockElement, querySelector: jest.fn(() => ({ dataset: { action: 'save-note' } })) };
+      
+      // Mock querySelectorAll to return multiple cards
+      mockQuerySelectorAll.mockImplementationOnce((selector) => {
+        if (selector === '[data-problem-id="multi-pattern-note-problem"]') {
+          return [mockCard1, mockCard2];
+        }
+        return [mockElement];
+      });
+
+      const mockButton = {
+        dataset: { action: 'save-note' },
+        closest: jest.fn(() => ({ querySelector: jest.fn(() => ({ value: 'Note for multi-pattern problem' })) }))
+      };
+      const mockEvent = {
+        target: { closest: jest.fn(() => mockButton) }
+      };
+
+      const problem = { id: 'multi-pattern-note-problem', status: 'solved', reviewInterval: 1, nextReviewDate: '2024-01-01' };
+      window.SmartGrind.api.saveProblem = jest.fn().mockResolvedValue();
+      window.SmartGrind.renderers._reRenderCard = jest.fn();
+
+      await window.SmartGrind.renderers.handleProblemCardClick(mockEvent, problem);
+
+      expect(mockButton.closest).toHaveBeenCalledWith('.note-area');
+      expect(problem.note).toBe('Note for multi-pattern problem');
+      expect(window.SmartGrind.api.saveProblem).toHaveBeenCalledWith(problem);
+      
+      // Verify that _reRenderCard was called for all 2 card instances, plus 1 for loading state
+      expect(window.SmartGrind.renderers._reRenderCard).toHaveBeenCalledTimes(3);
+      
+      // Verify each card was re-rendered with the updated problem
+      expect(window.SmartGrind.renderers._reRenderCard).toHaveBeenCalledWith(expect.any(Object), problem);
     });
 
     test('handles ask-chatgpt action', () => {
