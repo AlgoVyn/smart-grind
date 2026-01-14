@@ -1,117 +1,262 @@
 # Simplify Path
 
-## Problem Description
+## Problem Statement
 
-Given an absolute path for a Unix-style file system, simplify it to its canonical path.
+Given a string `path`, which is an absolute path (starting with a slash '/') to a file or directory in a Unix-style file system, simplify it by resolving:
 
-In Unix-style file systems:
+1. **"."**: Current directory (do nothing)
+2. **".."**: Go up one level (pop from stack if not empty)
+3. **"name"**: Valid directory/filename (push to stack)
 
-- A single period `.` represents the current directory
-- A double period `..` represents the parent directory
-- Multiple consecutive slashes (`//`, `///`) are treated as a single slash
-- Any sequence of periods not matching the rules above is a valid directory name
+Return the canonical simplified path in string format.
 
-### Rules for Canonical Path
-
-1. The path must start with a single slash `/`
-2. Directories must be separated by exactly one slash
-3. The path must not end with a slash (except for root directory)
-4. No `.` or `..` directories that affect navigation
+**Constraints:**
+- `1 <= path.length <= 3000`
+- `path` consists of English letters, digits, period '.', slash '/', and underscore '_'
+- `path` is a valid absolute Unix path
 
 ---
 
 ## Examples
 
-**Example 1:**
+### Example 1:
 ```python
 Input: path = "/home/"
 Output: "/home"
-```
-The trailing slash should be removed.
 
-**Example 2:**
-```python
-Input: path = "/home//foo/"
-Output: "/home/foo"
+Explanation: 
+- Starts at root, "home" is a directory
+- No extra processing needed
 ```
-Multiple consecutive slashes are replaced by a single one.
 
-**Example 3:**
-```python
-Input: path = "/home/user/Documents/../Pictures"
-Output: "/home/user/Pictures"
-```
-Double period `..` navigates up one directory level.
-
-**Example 4:**
+### Example 2:
 ```python
 Input: path = "/../"
 Output: "/"
-```
-Cannot navigate up from the root directory.
 
-**Example 5:**
+Explanation:
+- Go up from root (already at root, so stay)
+- Result is root
+```
+
+### Example 3:
 ```python
-Input: path = "/.../a/../b/c/../d/./"
-Output: "/.../b/d"
+Input: path = "/a/./b/../../c/"
+Output: "/c"
+
+Explanation:
+- /a -> push "a"
+- /a/. -> "a" (current dir, no change)
+- /a/./b -> push "b"
+- /a/./b/.. -> pop "b"
+- /a/./b/../.. -> pop "a"
+- /a/./b/../../c -> push "c"
 ```
-`...` is a valid directory name (not `..`).
+
+### Example 4:
+```python
+Input: path = "/home//foo/"
+Output: "/home/foo"
+
+Explanation:
+- Multiple consecutive slashes treated as single slash
+- "foo" is a valid directory
+```
+
+### Example 5:
+```python
+Input: path = "/a/./b/../../c/"
+Output: "/c"
+```
+
+### Example 6:
+```python
+Input: path = "/a//b////c/d//././/.."
+Output: "/a/b/c"
+```
 
 ---
 
-## Constraints
+## Intuition
 
-| Constraint | Description |
-|------------|-------------|
-| `1 <= path.length <= 3000` | Path length |
-| `path consists of` | Letters, digits, `.`, `/`, `_` |
-| | Valid absolute Unix path |
+The problem can be visualized as **navigating a directory tree**:
+
+- The path is an absolute path starting from root "/"
+- Each component between slashes represents a directory or operation
+- We need to track our current position in the directory structure
+- ".." means go up one level (pop from stack)
+- "." means stay (ignore)
+- Any other name means enter that directory (push to stack)
+- Multiple slashes can be ignored
+
+A **stack** is the perfect data structure because:
+- Last pushed directory is the first to be popped (like ".." going up)
+- LIFO (Last In, First Out) matches directory traversal behavior
 
 ---
 
-## Solution
+## Approach 1: Stack-Based Solution (Recommended)
 
+### Algorithm
+1. Split the path by '/' to get components
+2. Use a stack to track directory names
+3. For each component:
+   - If empty or ".", skip (consecutive slashes or current dir)
+   - If "..", pop from stack if not empty (go up one level)
+   - Otherwise, push the component (enter directory)
+4. Join stack elements with '/' and prepend root '/'
+
+### Python Implementation
 ```python
 def simplifyPath(path: str) -> str:
-    parts = path.split('/')
     stack = []
-    for part in parts:
-        if part == '' or part == '.':
-            continue
-        elif part == '..':
+    
+    for component in path.split('/'):
+        if component == '' or component == '.':
+            continue  # Skip empty and current directory
+        elif component == '..':
             if stack:
-                stack.pop()
+                stack.pop()  # Go up one level
         else:
-            stack.append(part)
+            stack.append(component)  # Enter directory
+    
     return '/' + '/'.join(stack)
 ```
 
 ---
 
-## Explanation
+## Approach 2: String Parsing with Manual Split
 
-The algorithm uses a stack to process directory components:
+### Algorithm
+Instead of using `split()`, we can manually parse the string character by character:
+1. Use two pointers to extract components
+2. Process each component similarly to stack approach
+3. Build the result directly from stack
 
-1. **Split the path** by `/` to get individual components
-2. **Process each component**:
-   - Skip empty strings and `.` (current directory)
-   - If `..`, pop from stack if not empty (go up one level)
-   - Otherwise, push the valid directory name to stack
-3. **Build the result** by joining stack elements with `/` and prepending `/`
-
-This handles all edge cases while maintaining O(n) time complexity.
-
-### Time Complexity
-
-- **O(n)** — Each character is processed once
-
-### Space Complexity
-
-- **O(n)** — Stack stores at most n directory names
+### Python Implementation
+```python
+def simplifyPath(path: str) -> str:
+    stack = []
+    i = 0
+    n = len(path)
+    
+    while i < n:
+        # Skip multiple slashes
+        while i < n and path[i] == '/':
+            i += 1
+        if i >= n:
+            break
+            
+        # Find next slash or end
+        j = i
+        while j < n and path[j] != '/':
+            j += 1
+            
+        component = path[i:j]
+        i = j  # Move to next position
+        
+        if component == '.':
+            continue
+        elif component == '..':
+            if stack:
+                stack.pop()
+        else:
+            stack.append(component)
+    
+    return '/' + '/'.join(stack)
+```
 
 ---
 
+## Approach 3: Using List as Stack (Alternative Python)
+
+```python
+def simplifyPath(path: str) -> str -> str:
+    components = [c for c in path.split('/') if c]
+    stack = []
+    
+    for comp in components:
+        if comp == '..':
+            stack.pop() if stack else None
+        elif comp != '.':
+            stack.append(comp)
+    
+    return '/' + '/'.join(stack) or '/'
+```
+
+---
+
+## Time and Space Complexity Analysis
+
+| Approach | Time Complexity | Space Complexity | Notes |
+|----------|-----------------|------------------|-------|
+| Stack-Based (split) | **O(n)** | **O(n)** | n = length of path string |
+| Manual parsing | O(n) | O(n) | No split overhead |
+| List as stack | O(n) | O(n) | Slightly more concise |
+
+### Detailed Breakdown:
+- **Time Complexity**: O(n)
+  - Splitting/parsing the string: O(n)
+  - Each component processed once: O(n)
+  - Stack push/pop operations: O(1) each
+  
+- **Space Complexity**: O(n)
+  - Stack stores at most O(n) components in worst case
+  - Split string creates O(n) substrings
+
+### Edge Cases:
+1. **Empty path**: Returns "/" (though constraint says min length 1)
+2. **Multiple slashes**: Handled by skipping empty components
+3. **Leading/trailing slashes**: Handled by split and result construction
+4. **Only ".." and "/"**: Returns "/"
+5. **Deeply nested paths**: Stack handles arbitrary depth
+
+---
 
 ## Related Problems
 
-- [File Path Simplification](https://leetcode.com/problems/simplify-path/)
+1. **[Backspace String Compare](/solutions/backspace-string-compare)** - Similar ".." concept with different processing
+2. **[Decode String](/solutions/decode-string)** - Stack-based parsing
+3. **[Crawler Log Folder](/solutions/crawler-log-folder)** - Very similar problem (same concept)
+4. **[File Path Simplification](/solutions/crawler-log-folder)** - Identical logic
+
+---
+
+## Video Tutorial Links
+
+1. **NeetCode - Simplify Path (LeetCode 71)**
+   - YouTube: https://www.youtube.com/watch?v=qM3wW5GAW6c
+   - Duration: ~8 minutes
+   - Clear stack-based explanation with examples
+
+2. **Fraz - Simplify Absolute Path**
+   - YouTube: https://www.youtube.com/watch?v=1Zhu7NrtGqw
+   - Duration: ~10 minutes
+   - Detailed walkthrough with multiple examples
+
+3. **Abdul Bari - Path Simplification**
+   - YouTube: https://www.youtube.com/watch?v=2OdK-H7T9uI
+   - Algorithm explanation
+
+4. **Eric Programming - LeetCode 71**
+   - YouTube: https://www.youtube.com/watch?v=2J2c_2og2jA
+   - Python solution explanation
+
+---
+
+## Summary
+
+The Simplify Path problem is a classic stack-based problem that tests your understanding of:
+- **Stack data structure** for LIFO operations
+- **String parsing** techniques
+- **Edge case handling** (empty components, root case)
+
+**Key takeaways:**
+1. Use a stack to track directory hierarchy
+2. Skip empty strings and "."
+3. Pop from stack for ".."
+4. Push valid directory names
+5. Join result with "/" and ensure root prefix
+
+The stack-based approach is optimal with **O(n) time and O(n) space complexity**, making it efficient for all valid inputs.
+
