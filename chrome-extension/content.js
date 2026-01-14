@@ -41,7 +41,7 @@
 
   // AI helper
   const askAI = async (problemName, provider) => {
-    const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the detailed problem statement, examples, intuition, multiple approaches with code, and time/space complexity analysis. Include related problems and video tutorial links.`;
+    const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the detailed problem statement, examples, intuition, multiple approaches with code, and time/space complexity analysis. Include related problems, video tutorial links and followup questions.`;
     const encodedPrompt = encodeURIComponent(aiPrompt);
 
     const url = _buildAIUrl(provider, encodedPrompt);
