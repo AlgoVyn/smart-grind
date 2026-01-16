@@ -129,11 +129,16 @@ Object.assign(window.SmartGrind.api, {
      */
     _performResetAndRender: async (message) => {
         await window.SmartGrind.api.saveData();
-        window.SmartGrind.state.ui.currentFilter = 'all';
+        const currentFilter = window.SmartGrind.state.ui.currentFilter;
         window.SmartGrind.renderers.updateFilterBtns();
         window.SmartGrind.renderers.renderSidebar();
         window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
         window.SmartGrind.utils.showToast(message);
+        
+        // If the current filter is 'solved', refresh the cards to reflect the changes
+        if (currentFilter === 'solved') {
+            window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
+        }
     },
 
     /**

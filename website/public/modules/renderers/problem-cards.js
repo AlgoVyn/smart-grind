@@ -131,7 +131,14 @@ export const problemCardRenderers = {
                 const topicSection = patternSection.parentElement;
                 if (topicSection && topicSection.querySelectorAll(':scope > div:not([style*="display: none"])').length === 0) {
                     topicSection.style.display = 'none';
-                    window.SmartGrind.state.elements.emptyState.classList.remove('hidden');
+                    const currentFilter = window.SmartGrind.state.ui.currentFilter;
+                    const allProblemsContainer = document.getElementById('problems-container');
+                    const visibleProblems = allProblemsContainer.querySelectorAll('.group:not([style*="display: none"])');
+                    if (currentFilter === 'review' && visibleProblems.length === 0) {
+                        window.SmartGrind.state.elements.emptyState.classList.remove('hidden');
+                    } else {
+                        window.SmartGrind.state.elements.emptyState.classList.add('hidden');
+                    }
                 }
             }
         }

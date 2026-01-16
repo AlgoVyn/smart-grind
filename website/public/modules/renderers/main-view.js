@@ -68,7 +68,14 @@ export const mainViewRenderers = {
             if (topicSection) container.appendChild(topicSection);
         });
 
-        window.SmartGrind.state.elements.emptyState.classList.toggle('hidden', visibleCountRef.count > 0);
+        const currentFilter = window.SmartGrind.state.ui.currentFilter;
+        const shouldShowEmptyState = visibleCountRef.count === 0 && currentFilter === 'review';
+        window.SmartGrind.state.elements.emptyState.classList.toggle('hidden', !shouldShowEmptyState);
+        
+        // Ensure empty state is hidden when there are visible problems
+        if (visibleCountRef.count > 0) {
+            window.SmartGrind.state.elements.emptyState.classList.add('hidden');
+        }
         window.SmartGrind.renderers.updateStats();
     }
 };
