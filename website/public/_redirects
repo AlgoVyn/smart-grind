@@ -4,4 +4,5 @@
 /smartgrind/styles.css /styles.css 200
 /smartgrind/modules/* /modules/:splat 200
 /smartgrind/solutions/* /solutions/:splat 200
+/smartgrind/patterns/* /patterns/:splat 200
 /smartgrind/*    /index.html   200

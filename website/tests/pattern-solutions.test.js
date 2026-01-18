@@ -42,7 +42,7 @@ describe('Pattern Solutions Functionality', () => {
             const patternFilename = patternName.toLowerCase().replace(/[\s/()]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
             
             // Try to find a pattern solution file
-            const solutionFile = `/smartgrind/solutions/${patternFilename}.md`;
+            const solutionFile = `/smartgrind/patterns/${patternFilename}.md`;
             
             fetch(solutionFile)
                 .then(response => {
@@ -93,7 +93,7 @@ describe('Pattern Solutions Functionality', () => {
 
         window.SmartGrind.ui.openPatternSolutionModal('Binary Search');
         
-        expect(capturedUrl).toBe('/smartgrind/solutions/binary-search.md');
+        expect(capturedUrl).toBe('/smartgrind/patterns/binary-search.md');
     });
 
     test('openPatternSolutionModal should handle errors gracefully', async () => {
@@ -320,7 +320,7 @@ describe('Pattern to Markdown File Mapping Validation', () => {
 });
 
 describe('Pattern Solutions Files Verification', () => {
-    const solutionsDir = path.join(__dirname, '../public/solutions');
+    const solutionsDir = path.join(__dirname, '../public/patterns');
 
     test('should have pattern solution files in the solutions directory', () => {
         const files = fs.readdirSync(solutionsDir);
@@ -428,7 +428,7 @@ describe('Pattern Solutions Integration Tests', () => {
             const patternFilename = patternName.toLowerCase().replace(/\s+/g, '-');
             
             // Try to find a pattern solution file
-            const solutionFile = `/smartgrind/solutions/${patternFilename}.md`;
+            const solutionFile = `/smartgrind/patterns/${patternFilename}.md`;
             
             fetch(solutionFile)
                 .then(response => {
@@ -504,7 +504,7 @@ describe('Pattern Solutions Integration Tests', () => {
         // Wait for async operations
         await new Promise(resolve => setTimeout(resolve, 100));
         
-        expect(capturedUrl).toBe('/smartgrind/solutions/binary-search-tree-iterator.md');
+        expect(capturedUrl).toBe('/smartgrind/patterns/binary-search-tree-iterator.md');
     });
 
     test('should show appropriate error for non-existent pattern', async () => {

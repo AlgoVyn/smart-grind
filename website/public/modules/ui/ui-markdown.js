@@ -38,7 +38,7 @@ window.SmartGrind.patterns._convertPatternNameToFilename = function(patternName)
 // Function to check if a pattern solution file exists
 window.SmartGrind.patterns.checkPatternSolutionExists = async function(patternName) {
     const filename = this.getPatternFilename(patternName);
-    const solutionFile = `/smartgrind/solutions/${filename}.md`;
+    const solutionFile = `/smartgrind/patterns/${filename}.md`;
     
     try {
         const response = await fetch(solutionFile, { method: 'HEAD' });
@@ -168,7 +168,7 @@ window.SmartGrind.ui.openPatternSolutionModal = (patternName) => {
     const patternFilename = window.SmartGrind.patterns.getPatternFilename(patternName);
     
     // Try to find a pattern solution file
-    const solutionFile = `/smartgrind/solutions/${patternFilename}.md`;
+    const solutionFile = `/smartgrind/patterns/${patternFilename}.md`;
     
     fetch(solutionFile)
         .then(response => {
