@@ -289,6 +289,119 @@ class Solution:
 
 ---
 
+### Approach 5: Binary Search with Shift (Calculate Rotation Offset)
+
+**Idea:** First calculate the shift amount (rotation count), then adjust indices to perform standard binary search. This approach transforms the problem into a regular binary search by accounting for the rotation.
+
+**Code:**
+```python
+from typing import List
+
+class Solution:
+    def search(self, nums: List[int], target: int) -> int:
+        if not nums:
+            return -1
+        
+        n = len(nums)
+        
+        # Step 1: Find the shift amount (rotation count)
+        left, right = 0, n - 1
+        
+        # Find the index of the minimum element (pivot)
+        while left < right:
+            mid = (left + right) // 2
+            if nums[mid] > nums[right]:
+                left = mid + 1
+            else:
+                right = mid
+        
+        shift = left  # Number of positions the array was rotated
+        
+        # Step 2: Determine which half contains the target
+        # Compare target with first element to decide the search space
+        if nums[0] <= target <= nums[shift - 1] if shift > 0 else False:
+            # Target is in the first half (before pivot)
+            left, right = 0, shift - 1
+        elif shift < n and nums[shift] <= target <= nums[n - 1]:
+            # Target is in the second half (from pivot to end)
+            left, right = shift, n - 1
+        else:
+            return -1
+        
+        # Step 3: Standard binary search in the determined range
+        while left <= right:
+            mid = (left + right) // 2
+            if nums[mid] == target:
+                return mid
+            elif nums[mid] < target:
+                left = mid + 1
+            else:
+                right = mid - 1
+        
+        return -1
+```
+
+**Alternative Implementation - Direct Index Transformation:**
+```python
+from typing import List
+
+class Solution:
+    def search(self, nums: List[int], target: int) -> int:
+        if not nums:
+            return -1
+        
+        n = len(nums)
+        
+        # Find the shift amount using binary search
+        left, right = 0, n - 1
+        while left < right:
+            mid = (left + right) // 2
+            if nums[mid] > nums[right]:
+                left = mid + 1
+            else:
+                right = mid
+        
+        shift = left
+        
+        # Binary search with index transformation
+        def transform(idx: int) -> int:
+            """Transform adjusted index to rotated array index"""
+            return (idx + shift) % n
+        
+        # Perform binary search as if the array wasn't rotated
+        left, right = 0, n - 1
+        
+        while left <= right:
+            mid = (left + right) // 2
+            rotated_mid = transform(mid)
+            
+            if nums[rotated_mid] == target:
+                return rotated_mid
+            elif nums[rotated_mid] < target:
+                left = mid + 1
+            else:
+                right = mid - 1
+        
+        return -1
+```
+
+**Explanation:**
+- **Step 1 (Find Shift):** Use binary search to find the pivot (minimum element). The pivot index is the rotation count (shift).
+- **Step 2 (Determine Range):** Based on the shift, determine which half of the array contains the target.
+- **Step 3 (Binary Search):** Perform standard binary search in the appropriate range.
+
+**Key Insight:** The shift tells us how many positions the original sorted array was rotated. By knowing this:
+- We can "virtually unrotate" the array for binary search
+- The element at index `i` in the original sorted array is now at index `(i + shift) % n`
+- We can either adjust our search range OR transform indices during comparison
+
+**Why This Approach is Useful:**
+- Reuses standard binary search logic without modification
+- Makes the concept of rotation explicit and clear
+- Useful when you also need to know the rotation count for other purposes
+
+---
+
 ## Time/Space Complexity Summary
 
 | Approach | Time Complexity | Space Complexity | Notes |
@@ -297,6 +410,7 @@ class Solution:
 | Find Pivot + Binary Search | O(log n) | O(1) | Two-pass approach, clear steps |
 | Linear Scan | O(n) | O(1) | Simple but too slow for large arrays |
 | Recursive Binary Search | O(log n) | O(log n) | Stack space for recursion |
+| Binary Search with Shift | O(log n) | O(1) | Explicit rotation calculation |
 
 ---
 
@@ -381,6 +495,15 @@ The linear scan visits each element exactly once in the worst case (target not f
 
 10. **How would you test edge cases for this problem?**  
     Test with: empty array (if allowed), single element, no rotation, target at beginning, target at end, target not present, target is minimum, target is maximum, all rotations.
+
+11. **What is the difference between Approach 2 (Find Pivot + Binary Search) and Approach 5 (Binary Search with Shift)?**  
+    Both approaches calculate the rotation count, but they use it differently:
+    - Approach 2 searches in a specific half determined by comparing target with the first element
+    - Approach 5 transforms the indices using modulo arithmetic, allowing standard binary search on the "virtually unrotated" array
+    - Approach 5 is more elegant when you need to perform multiple searches on the same rotated array
+
+12. **How would you modify the shift-based approach to find all occurrences of the target?**  
+    After finding one occurrence using the shift-based binary search, you can expand outward to find all adjacent occurrences since the array contains unique elements, you only need to verify one occurrence. If duplicates were allowed, you would need to search left and right from the found index.
 
 ---
 
