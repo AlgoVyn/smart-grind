@@ -188,7 +188,7 @@
   const observer = new MutationObserver(updateRatings);
   observer.observe(document.body, { childList: true, subtree: true });
 
-  if (path.includes('/problems/')) {
+  if (path.includes('/problems/') && !path.includes('/contest/')) {
     const slug = path.split('/')[2];
     updateProblemPage(ratings, slug);
 
