@@ -9,20 +9,20 @@ window.SmartGrind.patterns = window.SmartGrind.patterns || {};
 // Handles naming inconsistencies between pattern names and solution filenames
 
 // Function to get the correct filename for a pattern
-window.SmartGrind.patterns.getPatternFilename = function(patternName) {
+window.SmartGrind.patterns.getPatternFilename = function (patternName) {
     // Use the automatic conversion for all patterns
     return this._convertPatternNameToFilename(patternName);
 };
 
 // Internal function for automatic pattern name to filename conversion
-window.SmartGrind.patterns._convertPatternNameToFilename = function(patternName) {
+window.SmartGrind.patterns._convertPatternNameToFilename = function (patternName) {
     // Convert to lowercase and replace special characters with hyphens
     let cleaned = patternName
         .toLowerCase()
         .replace(/[\s/()&`'+-]+/g, '-')  // Replace spaces and special chars with hyphens
         .replace(/-+/g, '-')             // Collapse multiple hyphens
         .replace(/^-+|-+$/g, '');        // Trim hyphens from start/end
-    
+
     // Remove common suffix patterns that don't add value
     cleaned = cleaned
         .replace(/-pattern$/, '')
@@ -31,15 +31,15 @@ window.SmartGrind.patterns._convertPatternNameToFilename = function(patternName)
         .replace(/-method$/, '')
         .replace(/-technique$/, '')
         .replace(/-style$/, '');
-    
+
     return cleaned;
 };
 
 // Function to check if a pattern solution file exists
-window.SmartGrind.patterns.checkPatternSolutionExists = async function(patternName) {
+window.SmartGrind.patterns.checkPatternSolutionExists = async function (patternName) {
     const filename = this.getPatternFilename(patternName);
     const solutionFile = `/smartgrind/patterns/${filename}.md`;
-    
+
     try {
         const response = await fetch(solutionFile, { method: 'HEAD' });
         return response.ok;
@@ -49,6 +49,7 @@ window.SmartGrind.patterns.checkPatternSolutionExists = async function(patternNa
 };
 
 // Helper to configure markdown renderer
+// Helper to configure markdown renderer
 window.SmartGrind.ui._configureMarkdownRenderer = () => {
     if (typeof marked === 'undefined') return null;
 
@@ -57,53 +58,142 @@ window.SmartGrind.ui._configureMarkdownRenderer = () => {
         gfm: true
     });
 
-    // Custom renderer to add language class for syntax highlighting and Copy button
+    // Custom renderer
     const renderer = new marked.Renderer();
+
     renderer.code = (code, language, isEscaped) => {
-        // Handle both object and string parameters
+        // Handle both object and string parameters (marked update compatibility)
         if (typeof code === 'object') {
             language = code.lang;
             code = code.text;
         }
-        const langClass = language ? `language-${language}` : 'language-python';
-        // Escape code for HTML attribute if needed, but innerText usually handles it.
-        // However, we are injecting HTML. marked passes escaped code ??
-        // marked.js 'code' argument is usually the text content.
 
-        const buttonHtml = `<button class="code-copy-btn" onclick="window.SmartGrind.ui.copyCode(this)" title="Copy Code"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>Copy</button>`;
-        return `<pre class="${langClass}">${buttonHtml}<code class="${langClass}">${code}</code></pre>`;
+        // CAROUSEL SUPPORT
+        if (language === 'carousel') {
+            const uniqueId = 'carousel-' + Math.random().toString(36).substr(2, 9);
+            const slides = code.split(/<!--\s*slide\s*-->/).filter(s => s.trim().length > 0);
+
+            let tabsHtml = '<div class="flex bg-[#1e1e1e] overflow-x-auto">';
+            let panesHtml = '<div class="carousel-content bg-[#1e1e1e]">'; // Default dark background for code
+
+            slides.forEach((slide, index) => {
+                // Extract language and code from the inner fenced block
+                // Matches: ```lang \n content ```
+                const match = slide.match(/```(\S+)\s*\n?([\s\S]*?)```/);
+                let innerLang = 'text';
+                let innerCode = slide;
+
+                if (match) {
+                    innerLang = match[1];
+                    innerCode = match[2]; // inner code
+                } else {
+                    // If it doesn't match a code block, skip it or treat as text?
+                    // If we filtered empty ones, this "text" fallback is only for non-empty non-code content.
+                    // But for robustness, let's keep the fallback but might want to trim.
+                }
+
+                const displayName = innerLang === 'cpp' ? 'C++' :
+                    innerLang === 'javascript' ? 'JavaScript' :
+                        innerLang.charAt(0).toUpperCase() + innerLang.slice(1);
+
+                // Tab Button
+                const activeTabClass = index === 0
+                    ? 'text-brand-400 bg-[#1e1e1e]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50';
+
+                tabsHtml += `
+                    <button onclick="window.SmartGrind.ui.switchCarouselTab('${uniqueId}', ${index})" 
+                            class="carousel-tab-btn-${uniqueId} px-4 py-2 text-sm font-medium transition-all whitespace-nowrap ${activeTabClass}" 
+                            data-index="${index}">
+                        ${displayName}
+                    </button>`;
+
+                // Pane Content
+                const displayClass = index === 0 ? 'block' : 'hidden';
+                const langClass = `language-${innerLang}`;
+
+                // Copy Button (Absolute positioned inside the pane)
+                const copyBtn = `<button class="code-copy-btn absolute top-3 right-3 p-1.5 text-white/40 hover:text-white bg-slate-700/30 hover:bg-slate-600 rounded opacity-0 group-hover:opacity-100 transition-all z-10" onclick="window.SmartGrind.ui.copyCode(this)" title="Copy Code"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>`;
+
+                panesHtml += `
+                    <div id="${uniqueId}-pane-${index}" class="${displayClass}">
+                        <pre class="${langClass} !m-0 !rounded-t-none !border-0 !shadow-none !bg-transparent relative"><code class="${langClass} !shadow-none !bg-transparent !border-0">${innerCode}</code>${copyBtn}</pre>
+                    </div>`;
+            });
+
+            tabsHtml += '</div>';
+            panesHtml += '</div>';
+
+            return `<div class="code-carousel mb-6 rounded-lg overflow-hidden">${tabsHtml}${panesHtml}</div>`;
+        }
+
+        // STANDARD CODE BLOCK
+        const langClass = language ? `language-${language}` : 'language-text';
+
+        // Use the same refined copy button style
+        const copyBtn = `<button class="code-copy-btn absolute top-3 right-3 p-1.5 text-white/40 hover:text-white bg-slate-700/30 hover:bg-slate-600 rounded opacity-0 group-hover:opacity-100 transition-all z-10" onclick="window.SmartGrind.ui.copyCode(this)" title="Copy Code"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>`;
+
+        return `<div class="relative mb-4 rounded-lg overflow-hidden bg-[#1e1e1e]">
+            <pre class="${langClass} !m-0 !border-0 !shadow-none !bg-transparent relative"><code class="${langClass} !bg-transparent !border-0">${code}</code>${copyBtn}</pre>
+        </div>`;
     };
 
     marked.setOptions({
-        breaks: true,
-        gfm: true,
         renderer: renderer
     });
 
     return marked;
 };
 
+// Switch Carousel Tab
+window.SmartGrind.ui.switchCarouselTab = (uniqueId, index) => {
+    // Update Buttons
+    const buttons = document.querySelectorAll(`.carousel-tab-btn-${uniqueId}`);
+    buttons.forEach(btn => {
+        if (parseInt(btn.dataset.index) === index) {
+            btn.classList.remove('text-slate-400', 'hover:text-slate-200', 'hover:bg-slate-800/50');
+            btn.classList.add('text-brand-400', 'bg-[#1e1e1e]');
+        } else {
+            btn.classList.add('text-slate-400', 'hover:text-slate-200', 'hover:bg-slate-800/50');
+            btn.classList.remove('text-brand-400', 'bg-[#1e1e1e]');
+        }
+    });
+
+    // Update Panes
+    // Hide all panes for this carousel first? No, we can just find them by ID pattern or parent
+    // But IDs are reliable: uniqueId-pane-X
+
+    // We don't know how many panes, so iterate until element not found, or select by query
+    const container = buttons[0].closest('.code-carousel');
+    const allPanes = container.querySelectorAll('[id^="' + uniqueId + '-pane-"]');
+
+    allPanes.forEach(pane => {
+        pane.classList.add('hidden');
+        pane.classList.remove('block');
+    });
+
+    const activePane = document.getElementById(`${uniqueId}-pane-${index}`);
+    if (activePane) {
+        activePane.classList.remove('hidden');
+        activePane.classList.add('block');
+    }
+};
+
 // Copy code to clipboard
 window.SmartGrind.ui.copyCode = (btn) => {
     const pre = btn.closest('pre');
     const code = pre.querySelector('code').innerText;
+    const originalHTML = btn.innerHTML;
     navigator.clipboard.writeText(code).then(() => {
         btn.classList.add('copied');
-        const originalHTML = btn.innerHTML;
-        btn.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-            </svg>
-            Copied!
-        `;
+        btn.style.color = '#4da6ff'; // Brand color for success
+        btn.style.opacity = '1';
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#4da6ff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
         setTimeout(() => {
             btn.classList.remove('copied');
-            btn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                </svg>
-                Copy
-            `;
+            btn.style.color = '';
+            btn.style.opacity = '';
+            btn.innerHTML = originalHTML;
         }, 2000);
     }).catch(err => {
         console.error('Failed to copy code: ', err);
@@ -166,10 +256,10 @@ window.SmartGrind.ui.openPatternSolutionModal = (patternName) => {
 
     // Use the pattern mapping system to get the correct filename
     const patternFilename = window.SmartGrind.patterns.getPatternFilename(patternName);
-    
+
     // Try to find a pattern solution file
     const solutionFile = `/smartgrind/patterns/${patternFilename}.md`;
-    
+
     fetch(solutionFile)
         .then(response => {
             if (!response.ok) {
