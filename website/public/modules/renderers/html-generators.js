@@ -40,19 +40,29 @@ export const htmlGenerators = {
                 }
             });
 
+            // Sort review problems by next review date (ascending: oldest/overdue first)
+            if (window.SmartGrind.state.ui.currentFilter === 'review') {
+                patternProblems.sort((a, b) => {
+                    if (a.nextReviewDate === b.nextReviewDate) return 0;
+                    if (!a.nextReviewDate) return 1;
+                    if (!b.nextReviewDate) return -1;
+                    return a.nextReviewDate < b.nextReviewDate ? -1 : 1;
+                });
+            }
+
             if (patternProblems.length > 0) {
                 hasVisiblePattern = true;
                 visibleCountRef.count += patternProblems.length;
                 const patternEl = document.createElement('div');
-                
+
                 // Create pattern header with solution button
                 const patternHeader = document.createElement('div');
                 patternHeader.className = 'flex items-center justify-between mb-3 mt-6';
-                
+
                 const patternTitle = document.createElement('h4');
                 patternTitle.className = 'text-sm font-bold text-brand-400 uppercase tracking-wider';
                 patternTitle.textContent = pattern.name;
-                
+
                 // Add pattern solution button (only for non-custom patterns)
                 const patternSolutionButton = document.createElement('button');
                 patternSolutionButton.className = 'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
@@ -68,20 +78,20 @@ export const htmlGenerators = {
                         <polyline points="10,9 9,9 8,9"/>
                     </svg>
                 `;
-                
+
                 patternHeader.appendChild(patternTitle);
-                
+
                 // Only show pattern solution button for non-custom patterns
                 const isCustomPattern = !window.SmartGrind.data.ORIGINAL_TOPICS_DATA?.some(topic =>
                     topic.patterns.some(p => p.name === pattern.name)
                 );
-                
+
                 if (!isCustomPattern) {
                     patternHeader.appendChild(patternSolutionButton);
                 }
-                
+
                 patternEl.appendChild(patternHeader);
-                
+
                 const grid = document.createElement('div');
                 grid.className = 'grid grid-cols-1 gap-3';
 
@@ -159,14 +169,14 @@ export const htmlGenerators = {
     // Helper to generate action buttons HTML
     _generateActionButtons: (p) => {
         const actionButton = window.SmartGrind.renderers._generateActionButton(p);
-        
+
         // Check if this is a custom problem
         const isCustomProblem = !window.SmartGrind.data.ORIGINAL_TOPICS_DATA?.some(topic =>
             topic.patterns.some(pattern =>
                 pattern.problems.some(prob => prob.id === p.id)
             )
         );
-         
+
         return `
             <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes">
                 ${window.SmartGrind.ICONS.note}

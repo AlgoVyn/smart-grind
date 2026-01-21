@@ -60,6 +60,16 @@ window.SmartGrind.ui._configureMarkdownRenderer = () => {
     // Custom renderer
     const renderer = new marked.Renderer();
 
+    // Helper to escape HTML in code blocks
+    const escapeHtml = (unsafe) => {
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
+
     renderer.code = (code, language, isEscaped) => {
         // Handle both object and string parameters (marked update compatibility)
         if (typeof code === 'object') {
@@ -85,11 +95,10 @@ window.SmartGrind.ui._configureMarkdownRenderer = () => {
                 if (match) {
                     innerLang = match[1];
                     innerCode = match[2]; // inner code
-                } else {
-                    // If it doesn't match a code block, skip it or treat as text?
-                    // If we filtered empty ones, this "text" fallback is only for non-empty non-code content.
-                    // But for robustness, let's keep the fallback but might want to trim.
                 }
+
+                // Escape the inner code
+                innerCode = escapeHtml(innerCode);
 
                 const displayName = innerLang === 'cpp' ? 'C++' :
                     innerLang === 'javascript' ? 'JavaScript' :
@@ -129,11 +138,14 @@ window.SmartGrind.ui._configureMarkdownRenderer = () => {
         // STANDARD CODE BLOCK
         const langClass = language ? `language-${language}` : 'language-text';
 
+        // Escape the code for standard blocks
+        const escapedCode = escapeHtml(code);
+
         // Use the same refined copy button style
         const copyBtn = `<button class="code-copy-btn absolute top-3 right-3 p-1.5 text-white/40 hover:text-white bg-slate-700/30 hover:bg-slate-600 rounded opacity-0 group-hover:opacity-100 transition-all z-10" onclick="window.SmartGrind.ui.copyCode(this)" title="Copy Code"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>`;
 
         return `<div class="relative mb-4 rounded-lg overflow-hidden bg-[#1e1e1e]">
-            <pre class="${langClass} !m-0 !border-0 !shadow-none !bg-transparent relative"><code class="${langClass} !bg-transparent !border-0">${code}</code>${copyBtn}</pre>
+            <pre class="${langClass} !m-0 !border-0 !shadow-none !bg-transparent relative"><code class="${langClass} !bg-transparent !border-0">${escapedCode}</code>${copyBtn}</pre>
         </div>`;
     };
 
