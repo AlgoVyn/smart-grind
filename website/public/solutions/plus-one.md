@@ -47,6 +47,9 @@ The problem simulates adding 1 to a number represented as an array of digits. Ke
 
 ### Approach 1: Reverse Iteration (Most Efficient)
 
+The most efficient solution iterates from right to left, handling carry propagation. If a digit is less than 9, we increment and return early. If it's 9, we set it to 0 and continue. If all digits are 9, we prepend 1.
+
+````carousel
 ```python
 def plus_one(digits):
     """
@@ -63,87 +66,261 @@ def plus_one(digits):
     # All digits were 9, need new leading 1
     return [1] + digits
 ```
-
-**Explanation:**
-- Iterate from right to left (least significant to most significant digit)
-- If current digit is less than 9, simply increment and return (no carry)
-- If digit is 9, set it to 0 and continue (carry propagation)
-- If we exit the loop, all digits were 9, so prepend 1
+<!-- slide -->
+```java
+class Solution {
+    public int[] plusOne(int[] digits) {
+        int n = digits.length;
+        for (int i = n - 1; i >= 0; i--) {
+            if (digits[i] < 9) {
+                digits[i]++;
+                return digits;
+            }
+            digits[i] = 0;
+        }
+        int[] result = new int[n + 1];
+        result[0] = 1;
+        return result;
+    }
+}
+```
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    vector<int> plusOne(vector<int>& digits) {
+        int n = digits.size();
+        for (int i = n - 1; i >= 0; i--) {
+            if (digits[i] < 9) {
+                digits[i]++;
+                return digits;
+            }
+            digits[i] = 0;
+        }
+        vector<int> result(n + 1, 0);
+        result[0] = 1;
+        return result;
+    }
+};
+```
+<!-- slide -->
+```javascript
+var plusOne = function(digits) {
+    const n = digits.length;
+    for (let i = n - 1; i >= 0; i--) {
+        if (digits[i] < 9) {
+            digits[i]++;
+            return digits;
+        }
+        digits[i] = 0;
+    }
+    return [1, ...digits];
+};
+```
+````
 
 ### Approach 2: String Conversion (Simple but Less Efficient)
 
+Convert the digit array to a string, add 1 to the integer, then convert back to a digit array.
+
+````carousel
 ```python
 def plus_one(digits):
-    """
-    Convert to string, add 1, convert back.
-    Time: O(n) but with string conversions
-    Space: O(n)
-    """
     num = int(''.join(map(str, digits)))
     num += 1
     return [int(d) for d in str(num)]
 ```
-
-**Explanation:**
-- Convert digit array to string, then to integer
-- Add 1 to the integer
-- Convert back to string and split into digits
-- This approach is simple but inefficient for very large numbers
+<!-- slide -->
+```java
+class Solution {
+    public int[] plusOne(int[] digits) {
+        StringBuilder sb = new StringBuilder();
+        for (int d : digits) sb.append(d);
+        long num = Long.parseLong(sb.toString()) + 1;
+        String result = String.valueOf(num);
+        int[] output = new int[result.length()];
+        for (int i = 0; i < result.length(); i++) {
+            output[i] = result.charAt(i) - '0';
+        }
+        return output;
+    }
+}
+```
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    vector<int> plusOne(vector<int>& digits) {
+        string s;
+        for (int d : digits) s += to_string(d);
+        int carry = 1;
+        for (int i = s.length() - 1; i >= 0 && carry; i--) {
+            int digit = s[i] - '0' + carry;
+            s[i] = char('0' + (digit % 10));
+            carry = digit / 10;
+        }
+        if (carry) s = '1' + s;
+        vector<int> result;
+        for (char c : s) result.push_back(c - '0');
+        return result;
+    }
+};
+```
+<!-- slide -->
+```javascript
+var plusOne = function(digits) {
+    const num = BigInt(digits.join('')) + 1n;
+    return num.toString().split('').map(Number);
+};
+```
+````
 
 ### Approach 3: Recursive Solution
 
+A recursive approach that handles the last digit and recursively processes the rest.
+
+````carousel
 ```python
 def plus_one(digits):
-    """
-    Recursive approach with backtracking.
-    Time: O(n) worst case
-    Space: O(n) - recursion stack
-    """
     if not digits:
         return [1]
-    
     if digits[-1] < 9:
         digits[-1] += 1
         return digits
-    
     digits[-1] = 0
     return plus_one(digits[:-1]) + [0] if digits[:-1] else [1, 0]
 ```
-
-**Explanation:**
-- Base case: empty array means we're done
-- Recursive case: handle the last digit
-- If last digit < 9, increment and return
-- If last digit is 9, set to 0 and recursively process the rest
-- If all digits were 9, prepend 1
+<!-- slide -->
+```java
+class Solution {
+    public int[] plusOne(int[] digits) {
+        return plusOneRecursive(digits, digits.length - 1);
+    }
+    private int[] plusOneRecursive(int[] digits, int index) {
+        if (index < 0) {
+            int[] result = new int[digits.length + 1];
+            result[0] = 1;
+            return result;
+        }
+        if (digits[index] < 9) {
+            digits[index]++;
+            return digits;
+        }
+        digits[index] = 0;
+        return plusOneRecursive(digits, index - 1);
+    }
+}
+```
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    vector<int> plusOne(vector<int>& digits) {
+        return plusOneRecursive(digits, digits.size() - 1);
+    }
+private:
+    vector<int> plusOneRecursive(vector<int>& digits, int index) {
+        if (index < 0) {
+            vector<int> result(digits.size() + 1, 0);
+            result[0] = 1;
+            return result;
+        }
+        if (digits[index] < 9) {
+            digits[index]++;
+            return digits;
+        }
+        digits[index] = 0;
+        return plusOneRecursive(digits, index - 1);
+    }
+};
+```
+<!-- slide -->
+```javascript
+var plusOne = function(digits) {
+    function recursive(digits, index) {
+        if (index < 0) return [1, ...digits];
+        if (digits[index] < 9) {
+            digits[index]++;
+            return digits;
+        }
+        digits[index] = 0;
+        return recursive(digits, index - 1);
+    }
+    return recursive(digits, digits.length - 1);
+};
+```
+````
 
 ### Approach 4: Using List Slice for All-9s Case
 
+Handle the general case and special all-9s case separately for clarity.
+
+````carousel
 ```python
 def plus_one(digits):
-    """
-    Handle general case and special all-9s case separately.
-    Time: O(n)
-    Space: O(n) in worst case
-    """
-    # Handle all 9s case first (optimization)
     if all(d == 9 for d in digits):
         return [1] + [0] * len(digits)
-    
-    # Normal case - work backwards
     for i in range(len(digits) - 1, -1, -1):
         if digits[i] < 9:
             digits[i] += 1
             break
         digits[i] = 0
-    
     return digits
 ```
-
-**Explanation:**
-- Check for all-9s case upfront and handle it separately
-- For normal case, iterate backwards and handle carry propagation
-- More explicit about the two different cases
+<!-- slide -->
+```java
+class Solution {
+    public int[] plusOne(int[] digits) {
+        boolean allNines = true;
+        for (int d : digits) {
+            if (d != 9) { allNines = false; break; }
+        }
+        if (allNines) {
+            int[] result = new int[digits.length + 1];
+            result[0] = 1;
+            return result;
+        }
+        for (int i = digits.length - 1; i >= 0; i--) {
+            if (digits[i] < 9) { digits[i]++; break; }
+            digits[i] = 0;
+        }
+        return digits;
+    }
+}
+```
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    vector<int> plusOne(vector<int>& digits) {
+        bool allNines = all_of(digits.begin(), digits.end(), [](int d) { return d == 9; });
+        if (allNines) {
+            vector<int> result(digits.size() + 1, 0);
+            result[0] = 1;
+            return result;
+        }
+        for (int i = digits.size() - 1; i >= 0; i--) {
+            if (digits[i] < 9) { digits[i]++; break; }
+            digits[i] = 0;
+        }
+        return digits;
+    }
+};
+```
+<!-- slide -->
+```javascript
+var plusOne = function(digits) {
+    if (digits.every(d => d === 9)) {
+        return [1, ...digits.map(() => 0)];
+    }
+    for (let i = digits.length - 1; i >= 0; i--) {
+        if (digits[i] < 9) { digits[i]++; break; }
+        digits[i] = 0;
+    }
+    return digits;
+};
+```
+````
 
 ## Time & Space Complexity Analysis
 
@@ -201,4 +378,36 @@ def plus_one(digits):
 3. **Right-to-left processing**: Always start from least significant digit for arithmetic operations
 
 4. **Handle edge cases**: Pay special attention to all-9s input which requires special handling
+
+---
+
+## Follow-up Questions
+
+### 1. How would you modify the solution to add K instead of 1?
+
+Add K to the last digit, then propagate any carry. The carry can be greater than 1, so use modulo and division by K's base. For base 10, if adding K=7, you may have carries larger than 1.
+
+### 2. How would you solve this if the digits were stored in reverse order?
+
+Process from left to right instead of right to left. Since the least significant digit is at index 0, simply iterate forward and handle carry as you go. No reversal needed.
+
+### 3. How would you implement this for a linked list representation?
+
+Reverse the linked list to process from least significant digit, add one, then reverse back. Or use recursion to traverse to the end and backtrack, adding one on the return path.
+
+### 4. How would you handle very large numbers that exceed standard integer limits?
+
+Never convert the entire array to an integer. Use string/array operations throughout - the carry propagation algorithm works identically regardless of number size.
+
+### 5. Can you solve this in-place without modifying the original array?
+
+Make a copy of the array first, then apply the standard algorithm to the copy. The all-9s case creates a new array anyway, so this is straightforward.
+
+### 6. How would you optimize for the case where we have multiple additions?
+
+Batch all additions into a single carry value. Instead of adding 1 K times, add K once and handle the carry. This reduces O(K × n) to O(n + log K).
+
+### 7. How would you modify the solution for base-B addition?
+
+Change the modulo and division base from 10 to B. For binary (base 2), this simplifies since 1 + 1 = 10, making carry propagation very efficient.
 

@@ -49,7 +49,6 @@ window.SmartGrind.patterns.checkPatternSolutionExists = async function (patternN
 };
 
 // Helper to configure markdown renderer
-// Helper to configure markdown renderer
 window.SmartGrind.ui._configureMarkdownRenderer = () => {
     if (typeof marked === 'undefined') return null;
 
