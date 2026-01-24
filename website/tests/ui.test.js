@@ -1699,7 +1699,7 @@ describe('SmartGrind UI', () => {
 
     test('openSolutionModal loads and renders solution', async () => {
       const mockModal = { classList: { remove: jest.fn() } };
-      const mockContent = { innerHTML: '' };
+      const mockContent = createMockElement({ innerHTML: '' });
       getElementByIdSpy.mockImplementation((id) => {
         if (id === 'solution-modal') return mockModal;
         if (id === 'solution-content') return mockContent;
@@ -1757,7 +1757,14 @@ describe('SmartGrind UI', () => {
 
     test('closeSolutionModal hides modal', () => {
       const mockModal = { classList: { add: jest.fn() } };
-      getElementByIdSpy.mockReturnValue(mockModal);
+      const mockContent = createMockElement();
+      const mockProgressBar = createMockElement();
+      getElementByIdSpy.mockImplementation((id) => {
+        if (id === 'solution-modal') return mockModal;
+        if (id === 'solution-content') return mockContent;
+        if (id === 'solution-scroll-progress') return mockProgressBar;
+        return mockElement;
+      });
 
       window.SmartGrind.ui.closeSolutionModal();
 

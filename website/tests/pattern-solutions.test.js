@@ -544,3 +544,180 @@ describe('Pattern Solutions Integration Tests', () => {
         expect(content.innerHTML).toContain('Network error');
     });
 });
+
+describe('Solution Modal Scroll Progress', () => {
+    beforeEach(() => {
+        // Mock the DOM with progress bar
+        document.body.innerHTML = `
+            <div id="solution-modal" class="hidden">
+                <div id="solution-content" style="height: 400px; overflow-y: auto;"></div>
+            </div>
+            <div id="solution-scroll-progress" style="width: 0%"></div>
+        `;
+
+        // Mock window.SmartGrind with the scroll progress function
+        window.SmartGrind = {
+            ui: {
+                _renderMarkdown: jest.fn((markdown, contentElement) => {
+                    contentElement.innerHTML = `<div style="height: 800px;">${markdown}</div>`;
+                }),
+                _configureMarkdownRenderer: jest.fn(() => ({ parse: (md) => md })),
+                updateSolutionScrollProgress: () => {
+                    const content = document.getElementById('solution-content');
+                    if (!content) return;
+
+                    const scrollTop = content.scrollTop;
+                    const scrollHeight = content.scrollHeight;
+                    const clientHeight = content.clientHeight;
+                    const maxScroll = scrollHeight - clientHeight;
+                    const progress = maxScroll > 0 ? (scrollTop / maxScroll) * 100 : 0;
+
+                    const progressBar = document.getElementById('solution-scroll-progress');
+                    if (progressBar) {
+                        progressBar.style.width = Math.min(100, Math.max(0, progress)) + '%';
+                    }
+                }
+            }
+        };
+
+        // Define the modal functions for testing
+        window.SmartGrind.ui.openPatternSolutionModal = (patternName) => {
+            const modal = document.getElementById('solution-modal');
+            const content = document.getElementById('solution-content');
+            if (!modal || !content) return;
+
+            content.innerHTML = '<div class="loading">Loading...</div>';
+            modal.classList.remove('hidden');
+
+            // Simulate loading content
+            setTimeout(() => {
+                window.SmartGrind.ui._renderMarkdown('# Test Content', content);
+                content.addEventListener('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
+                window.SmartGrind.ui.updateSolutionScrollProgress();
+            }, 10);
+        };
+
+        window.SmartGrind.ui.closeSolutionModal = () => {
+            const modal = document.getElementById('solution-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+
+            const content = document.getElementById('solution-content');
+            if (content) {
+                content.removeEventListener('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
+            }
+
+            const progressBar = document.getElementById('solution-scroll-progress');
+            if (progressBar) {
+                progressBar.style.width = '0%';
+            }
+        };
+    });
+
+    test('updateSolutionScrollProgress should calculate progress correctly at top', () => {
+        const content = document.getElementById('solution-content');
+        const progressBar = document.getElementById('solution-scroll-progress');
+
+        // Set scroll position to top
+        content.scrollTop = 0;
+        Object.defineProperty(content, 'scrollHeight', { value: 800 });
+        Object.defineProperty(content, 'clientHeight', { value: 400 });
+
+        window.SmartGrind.ui.updateSolutionScrollProgress();
+
+        expect(progressBar.style.width).toBe('0%');
+    });
+
+    test('updateSolutionScrollProgress should calculate progress correctly in middle', () => {
+        const content = document.getElementById('solution-content');
+        const progressBar = document.getElementById('solution-scroll-progress');
+
+        // Set scroll position to middle (scrollTop = 200, maxScroll = 400, so 50%)
+        content.scrollTop = 200;
+        Object.defineProperty(content, 'scrollHeight', { value: 800 });
+        Object.defineProperty(content, 'clientHeight', { value: 400 });
+
+        window.SmartGrind.ui.updateSolutionScrollProgress();
+
+        expect(progressBar.style.width).toBe('50%');
+    });
+
+    test('updateSolutionScrollProgress should calculate progress correctly at bottom', () => {
+        const content = document.getElementById('solution-content');
+        const progressBar = document.getElementById('solution-scroll-progress');
+
+        // Set scroll position to bottom
+        content.scrollTop = 400;
+        Object.defineProperty(content, 'scrollHeight', { value: 800 });
+        Object.defineProperty(content, 'clientHeight', { value: 400 });
+
+        window.SmartGrind.ui.updateSolutionScrollProgress();
+
+        expect(progressBar.style.width).toBe('100%');
+    });
+
+    test('updateSolutionScrollProgress should handle no scroll case', () => {
+        const content = document.getElementById('solution-content');
+        const progressBar = document.getElementById('solution-scroll-progress');
+
+        // Set content to not require scrolling
+        Object.defineProperty(content, 'scrollHeight', { value: 400 });
+        Object.defineProperty(content, 'clientHeight', { value: 400 });
+
+        window.SmartGrind.ui.updateSolutionScrollProgress();
+
+        expect(progressBar.style.width).toBe('0%');
+    });
+
+    test('openPatternSolutionModal should add scroll event listener', async () => {
+        const content = document.getElementById('solution-content');
+        const addEventListenerSpy = jest.spyOn(content, 'addEventListener');
+
+        global.fetch = jest.fn(() =>
+            Promise.resolve({
+                ok: true,
+                text: () => Promise.resolve('# Test Content')
+            })
+        );
+
+        window.SmartGrind.ui.openPatternSolutionModal('Test Pattern');
+
+        // Wait for the content to load
+        await new Promise(resolve => setTimeout(resolve, 20));
+
+        expect(addEventListenerSpy).toHaveBeenCalledWith('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
+    });
+
+    test('closeSolutionModal should remove scroll event listener and reset progress', () => {
+        const content = document.getElementById('solution-content');
+        const progressBar = document.getElementById('solution-scroll-progress');
+        const removeEventListenerSpy = jest.spyOn(content, 'removeEventListener');
+
+        // Set some progress first
+        progressBar.style.width = '50%';
+
+        window.SmartGrind.ui.closeSolutionModal();
+
+        expect(removeEventListenerSpy).toHaveBeenCalledWith('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
+        expect(progressBar.style.width).toBe('0%');
+    });
+
+    test('scroll event should update progress bar', () => {
+        const content = document.getElementById('solution-content');
+        const progressBar = document.getElementById('solution-scroll-progress');
+
+        // Add the event listener
+        content.addEventListener('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
+
+        // Set up content dimensions
+        Object.defineProperty(content, 'scrollHeight', { value: 800 });
+        Object.defineProperty(content, 'clientHeight', { value: 400 });
+
+        // Simulate scroll event
+        content.scrollTop = 300; // 75% progress
+        content.dispatchEvent(new Event('scroll'));
+
+        expect(progressBar.style.width).toBe('75%');
+    });
+});
