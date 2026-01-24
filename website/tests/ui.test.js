@@ -226,9 +226,9 @@ describe('SmartGrind UI', () => {
         loadingScreen: mockElement,
         userDisplay: mockElement,
         alertMessage: mockElement,
-        confirmMessage: mockElement,
+        confirmMessage: createMockElement(),
         alertTitle: mockElement,
-        confirmTitle: mockElement,
+        confirmTitle: createMockElement(),
         mainSidebar: mockElement,
         sidebarResizer: mockElement,
         headerDisconnectBtn: mockElement,
@@ -592,7 +592,7 @@ describe('SmartGrind UI', () => {
       const messageHandler = addEventListenerSpy.mock.calls.find(call => call[0] === 'message')[1];
       messageHandler(messageEvent);
 
-      expect(localStorageSetItem).not.toHaveBeenCalledWith('token', expect.any(String));
+      expect(localStorageSetItem).not.toHaveBeenCalledWith('userId', expect.any(String));
 
       addEventListenerSpy.mockRestore();
     });
@@ -946,7 +946,7 @@ describe('SmartGrind UI', () => {
     test('shows confirm modal and returns promise', async () => {
       const promise = window.SmartGrind.ui.showConfirm('Test message');
 
-      expect(window.SmartGrind.state.elements.confirmMessage.innerHTML).toBe('Test message');
+      expect(window.SmartGrind.state.elements.confirmMessage.textContent).toBe('Test message');
       expect(window.SmartGrind.state.elements.confirmTitle.textContent).toBe('Confirm Action');
       expect(mockClassListRemove).toHaveBeenCalledWith('hidden');
 
@@ -959,7 +959,7 @@ describe('SmartGrind UI', () => {
     test('showConfirm resolves with false on cancel', async () => {
       const promise = window.SmartGrind.ui.showConfirm('Test message');
 
-      expect(window.SmartGrind.state.elements.confirmMessage.innerHTML).toBe('Test message');
+      expect(window.SmartGrind.state.elements.confirmMessage.textContent).toBe('Test message');
       expect(window.SmartGrind.state.elements.confirmTitle.textContent).toBe('Confirm Action');
       expect(mockClassListRemove).toHaveBeenCalledWith('hidden');
 
@@ -1096,7 +1096,7 @@ describe('SmartGrind UI', () => {
 
       window.SmartGrind.ui.showAlert('Test message');
 
-      expect(alertMessageEl.innerHTML).toBe('Test message');
+      expect(alertMessageEl.textContent).toBe('Test message');
       expect(window.SmartGrind.state.elements.alertTitle.textContent).toBe('Alert');
       expect(mockClassListRemove).toHaveBeenCalledWith('hidden');
     });
@@ -1732,7 +1732,6 @@ describe('SmartGrind UI', () => {
       const messageHandler = addEventListenerSpy.mock.calls.find(call => call[0] === 'message')[1];
       messageHandler(messageEvent);
 
-      expect(localStorageSetItem).toHaveBeenCalledWith('token', 'test-token');
       expect(localStorageSetItem).toHaveBeenCalledWith('userId', 'test-user');
       expect(localStorageSetItem).toHaveBeenCalledWith('displayName', 'Test User');
       expect(localStorageSetItem).toHaveBeenCalledWith('userType', 'signed-in');

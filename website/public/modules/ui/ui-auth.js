@@ -60,8 +60,7 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
     let authCompleted = false;
 
     const handleAuthSuccess = (data) => {
-        const { token, userId, displayName } = data;
-        localStorage.setItem('token', token);
+        const { userId, displayName } = data;
         localStorage.setItem('userId', userId);
         localStorage.setItem('displayName', displayName);
 
@@ -96,7 +95,12 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
 
     // Listen for auth messages
     const messageHandler = (event) => {
-        if (event.origin !== window.location.origin) return;
+        // Strict origin check for security
+        const expectedOrigin = window.location.origin;
+        if (event.origin !== expectedOrigin) {
+            console.warn('Received message from unexpected origin:', event.origin);
+            return;
+        }
         authCompleted = true;
         if (event.data.type === 'auth-success') {
             handleAuthSuccess(event.data);
@@ -156,8 +160,8 @@ window.SmartGrind.ui.handleLogout = async () => {
     if (window.SmartGrind.state.user.type === 'signed-in') {
         // Switch to local user
         localStorage.removeItem('userId');
-        localStorage.removeItem('token');
         localStorage.removeItem('displayName');
+        // Note: Cookie will be cleared by server or expire naturally
         window.SmartGrind.state.user.id = null;
 
         // Switch to local user

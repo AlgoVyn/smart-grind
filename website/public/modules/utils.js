@@ -120,23 +120,32 @@ window.SmartGrind.utils = {
     // Input sanitization utilities
     sanitizeInput: (input) => {
         if (!input) return '';
-        
+
         // Trim whitespace
         let sanitized = input.trim();
-        
+
+        // Remove control characters and null bytes
+        sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, '');
+
         // Remove HTML tags and special characters that could be harmful
         sanitized = sanitized.replace(/<[^>]*>/g, ''); // Remove HTML tags
         sanitized = sanitized.replace(/[\"\'\\]/g, ''); // Remove quotes and backslashes
-        
+
         // Prevent script injection by removing script-related content
         sanitized = sanitized.replace(/javascript:/gi, '');
+        sanitized = sanitized.replace(/data:/gi, '');
+        sanitized = sanitized.replace(/vbscript:/gi, '');
         sanitized = sanitized.replace(/on\w+\s*=/gi, '');
-        
+
+        // Remove potential XSS vectors
+        sanitized = sanitized.replace(/<script[^>]*>.*?<\/script>/gi, '');
+        sanitized = sanitized.replace(/<iframe[^>]*>.*?<\/iframe>/gi, '');
+
         // Limit length to prevent excessively long inputs
         if (sanitized.length > 200) {
             sanitized = sanitized.substring(0, 200);
         }
-        
+
         return sanitized;
     },
     

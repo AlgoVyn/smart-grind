@@ -63,7 +63,7 @@ window.SmartGrind.ui.closeAddModal = () => {
 window.SmartGrind.ui.showAlert = (message, title = "Alert") => {
     window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.alertModal, () => {
         window.SmartGrind.state.elements.alertTitle.textContent = title;
-        window.SmartGrind.state.elements.alertMessage.innerHTML = message;
+        window.SmartGrind.state.elements.alertMessage.textContent = message;
     });
 };
 
@@ -76,7 +76,7 @@ window.SmartGrind.ui.showConfirm = (message, title = "Confirm Action") => {
     return new Promise((resolve) => {
         window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.confirmModal, () => {
             window.SmartGrind.state.elements.confirmTitle.textContent = title;
-            window.SmartGrind.state.elements.confirmMessage.innerHTML = message;
+            window.SmartGrind.state.elements.confirmMessage.textContent = message;
         });
         window.SmartGrind.ui._confirmResolve = resolve;
     });

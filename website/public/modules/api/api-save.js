@@ -33,16 +33,11 @@ Object.assign(window.SmartGrind.api, {
      * @throws {Error} Throws an error if the save request fails.
      */
     _saveRemotely: async () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            throw new Error('No authentication token found. Please sign in again.');
-        }
         const data = window.SmartGrind.api._prepareDataForSave();
         const response = await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ data })
         });

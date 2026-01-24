@@ -17,22 +17,36 @@ async function verifyJWT(token, secret) {
 }
 
 /**
- * Authenticates a request by verifying the Bearer token.
+ * Authenticates a request by verifying the JWT token from cookie or Bearer header.
  * @param {Request} request - The HTTP request object.
  * @param {Object} env - Environment variables.
  * @returns {Object|null} The decoded JWT payload if authenticated, null otherwise.
  */
 async function authenticate(request, env) {
-   const authHeader = request.headers.get('Authorization');
-   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+   let token = null;
+
+   // Try cookie first
+   const cookieHeader = request.headers.get('Cookie');
+   if (cookieHeader) {
+     const cookies = cookieHeader.split(';').map(c => c.trim());
+     const authCookie = cookies.find(c => c.startsWith('auth_token='));
+     if (authCookie) {
+       token = authCookie.substring('auth_token='.length);
+     }
+   }
+
+   // Fallback to Authorization header
+   if (!token) {
+     const authHeader = request.headers.get('Authorization');
+     if (authHeader && authHeader.startsWith('Bearer ')) {
+       token = authHeader.substring(7);
+     }
+   }
+
+   if (!token || !env.JWT_SECRET) {
      return null;
    }
 
-   if (!env.JWT_SECRET) {
-     throw new Error('JWT_SECRET environment variable is not set');
-   }
-
-   const token = authHeader.substring(7);
    return await verifyJWT(token, env.JWT_SECRET);
  }
 

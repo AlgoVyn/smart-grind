@@ -132,7 +132,6 @@ describe('SmartGrind API Module', () => {
 
   describe('_saveRemotely', () => {
     test('should save data remotely for signed-in user', async () => {
-      localStorage.setItem('token', 'test-token');
       window.SmartGrind.state.user.type = 'signed-in';
       mockFetch.mockResolvedValue({ ok: true });
 
@@ -141,22 +140,19 @@ describe('SmartGrind API Module', () => {
       expect(mockFetch).toHaveBeenCalledWith(`${window.SmartGrind.data.API_BASE}/user`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer test-token`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ data: { problems: { '1': { id: '1', name: 'Test Problem', status: 'unsolved' } }, deletedIds: ['2'] } })
       });
     });
 
     test('should throw error on auth failure', async () => {
-      localStorage.setItem('token', 'invalid-token');
       mockFetch.mockResolvedValue({ ok: false, status: 401 });
 
       await expect(window.SmartGrind.api._saveRemotely()).rejects.toThrow('Authentication failed. Please sign in again.');
     });
 
     test('should throw error on server error', async () => {
-      localStorage.setItem('token', 'test-token');
       mockFetch.mockResolvedValue({ ok: false, status: 500 });
 
       await expect(window.SmartGrind.api._saveRemotely()).rejects.toThrow('Server error. Please try again later.');
@@ -245,20 +241,18 @@ describe('SmartGrind API Module', () => {
 
   describe('loadData', () => {
     test('should load data successfully', async () => {
-      localStorage.setItem('token', 'test-token');
-      const userData = { problems: { '1': { id: '1' } }, deletedIds: ['2'] };
+      const userData = { problems: { '1': { id: '1', name: 'Test Problem', status: 'unsolved' } }, deletedIds: ['2'] };
       mockFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(userData) });
 
       await window.SmartGrind.api.loadData();
 
-      expect(window.SmartGrind.state.problems.get('1')).toEqual({ id: '1', loading: false });
+      expect(window.SmartGrind.state.problems.get('1')).toEqual({ id: '1', name: 'Test Problem', status: 'unsolved', loading: false });
       expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(true);
       expect(mockRenderSidebar).toHaveBeenCalled();
       expect(mockRenderMainView).toHaveBeenCalledWith('all');
     });
 
     test('should handle auth error', async () => {
-      localStorage.setItem('token', 'invalid-token');
       mockFetch.mockResolvedValue({ ok: false, status: 401 });
 
       await window.SmartGrind.api.loadData();
@@ -268,7 +262,6 @@ describe('SmartGrind API Module', () => {
     });
 
     test('should handle user not found', async () => {
-      localStorage.setItem('token', 'test-token');
       mockFetch.mockResolvedValue({ ok: false, status: 404 });
 
       await window.SmartGrind.api.loadData();

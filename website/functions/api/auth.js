@@ -299,22 +299,30 @@ export async function onRequestGet({ request, env }) {
     <head><title>Sign In Success</title></head>
     <body>
     <script>
-      const token = '${token.replace(/'/g, "\\'")}';
       const userId = '${userId.replace(/'/g, "\\'")}';
       const displayName = '${escapedDisplayName.replace(/'/g, "\\'")}';
       if (window.opener) {
-        window.opener.postMessage({ type: 'auth-success', token, userId, displayName }, window.location.origin);
+        window.opener.postMessage({ type: 'auth-success', userId, displayName }, window.location.origin);
         setTimeout(() => window.close(), 500);
       } else {
-        localStorage.setItem('token', token);
         localStorage.setItem('userId', userId);
         localStorage.setItem('displayName', displayName);
-        window.location.href = '/smartgrind?token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}&displayName=${encodeURIComponent(displayName)}';
+        window.location.href = '/smartgrind?userId=${encodeURIComponent(userId)}&displayName=${encodeURIComponent(displayName)}';
       }
     </script>
     </body>
     </html>`;
-    return new Response(html, { headers: { 'Content-Type': 'text/html', 'Content-Security-Policy': 'base-uri \'self\' https://accounts.google.com' } });
+
+    // Set httpOnly cookie with the JWT
+    const cookieHeader = `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${24 * 60 * 60}; Path=/`;
+
+    return new Response(html, {
+      headers: {
+        'Content-Type': 'text/html',
+        'Set-Cookie': cookieHeader,
+        'Content-Security-Policy': 'base-uri \'self\' https://accounts.google.com'
+      }
+    });
   }
 
   return new Response('Invalid action', { status: 400 });
