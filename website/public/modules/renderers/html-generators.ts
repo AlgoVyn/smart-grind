@@ -1,6 +1,17 @@
 // --- HTML GENERATORS MODULE ---
 // HTML generation helper functions
 
+type Problem = {
+    id: string;
+    name: string;
+    url: string;
+    status: string;
+    nextReviewDate: string | null;
+    note?: string;
+    loading?: boolean;
+    noteVisible?: boolean;
+};
+
 export const htmlGenerators = {
     // Helper to check if a pattern is custom (not in original data)
     _isCustomPattern: (patternName) => {
@@ -19,7 +30,7 @@ export const htmlGenerators = {
     },
 
     // Helper to sort problems for review filter
-    _sortReviewProblems: (problems) => {
+    _sortReviewProblems: (problems: Problem[]) => {
         return problems.sort((a, b) => {
             if (a.nextReviewDate === b.nextReviewDate) return 0;
             if (!a.nextReviewDate) return 1;
@@ -42,7 +53,7 @@ export const htmlGenerators = {
 
     // Helper to filter visible problems for a pattern
     _getVisibleProblemsForPattern: (pattern, today) => {
-        const problems = [];
+        const problems: Problem[] = [];
         const searchQuery = window.SmartGrind.state.elements.problemSearch.value.toLowerCase().trim();
 
         pattern.problems.forEach(probDef => {

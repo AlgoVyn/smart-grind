@@ -1,4 +1,4 @@
-import '../public/modules/api.ts';
+import '/smartgrind/modules/api.js';
 
 describe('SmartGrind API Module', () => {
     let mockFetch;

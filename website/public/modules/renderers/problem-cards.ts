@@ -1,6 +1,9 @@
 // --- PROBLEM CARDS RENDERERS MODULE ---
 // Problem card related rendering functions
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ProblemCallback = (_problem: any) => void;
+
 export const problemCardRenderers = {
     // Helper to re-render a problem card
     _reRenderCard: (button, p) => {
@@ -13,46 +16,46 @@ export const problemCardRenderers = {
     },
 
     // Helper to perform async status change with loading and error handling
-    _performStatusChange: async (button, p, statusUpdater, options = {}) => {
-        const successMessage = (options).successMessage;
-        const errorMessage = (options).errorMessage;
-        const onFinally = (options).onFinally;
+    _performStatusChange: async (button, _p, statusUpdater, options: { successMessage?: string; errorMessage?: string; onFinally?: ProblemCallback } = {}) => {
+        const successMessage = options.successMessage;
+        const errorMessage = options.errorMessage;
+        const onFinally = options.onFinally;
 
         // Store original state for rollback on error
         const originalState = {
-            status: p.status,
-            reviewInterval: p.reviewInterval,
-            nextReviewDate: p.nextReviewDate,
-            note: p.note
+            status: _p.status,
+            reviewInterval: _p.reviewInterval,
+            nextReviewDate: _p.nextReviewDate,
+            note: _p.note
         };
 
         // Apply status updates
-        statusUpdater(p);
-        p.loading = true;
+        statusUpdater(_p);
+        _p.loading = true;
 
         // Show loading state immediately
-        window.SmartGrind.renderers._reRenderCard(button, p);
+        window.SmartGrind.renderers._reRenderCard(button, _p);
 
         // Add delay for spinner visibility
         await new Promise(resolve => setTimeout(resolve, 400));
 
         try {
-            await window.SmartGrind.api.saveProblem(p);
+            await window.SmartGrind.api.saveProblem(_p);
             if (successMessage) {
                 window.SmartGrind.utils.showToast(successMessage, 'success');
             }
         } catch (error) {
             // Revert to original state on error
-            Object.assign(p, originalState);
+            Object.assign(_p, originalState);
             const message = errorMessage || `Failed to update problem: ${error.message}`;
             window.SmartGrind.utils.showToast(message, 'error');
         } finally {
-            p.loading = false;
+            _p.loading = false;
             // Custom finally behavior or default re-render
             if (onFinally) {
-                onFinally(p);
+                onFinally(_p);
             } else {
-                window.SmartGrind.renderers._reRenderAllCards(p);
+                window.SmartGrind.renderers._reRenderAllCards(_p);
             }
         }
     },
@@ -142,11 +145,13 @@ export const problemCardRenderers = {
                     topicSection.style.display = 'none';
                     const currentFilter = window.SmartGrind.state.ui.currentFilter;
                     const allProblemsContainer = document.getElementById('problems-container');
-                    const visibleProblems = allProblemsContainer.querySelectorAll('.group:not([style*="display: none"])');
-                    if (currentFilter === 'review' && visibleProblems.length === 0) {
-                        window.SmartGrind.state.elements.emptyState.classList.remove('hidden');
-                    } else {
-                        window.SmartGrind.state.elements.emptyState.classList.add('hidden');
+                    if (allProblemsContainer) {
+                        const visibleProblems = allProblemsContainer.querySelectorAll('.group:not([style*="display: none"])');
+                        if (currentFilter === 'review' && visibleProblems.length === 0) {
+                            window.SmartGrind.state.elements.emptyState.classList.remove('hidden');
+                        } else {
+                            window.SmartGrind.state.elements.emptyState.classList.add('hidden');
+                        }
                     }
                 }
             }
@@ -244,11 +249,11 @@ export const problemCardRenderers = {
     },
 
     // Create a problem card element
-    createProblemCard: (p) => {
+    createProblemCard: (_p) => {
         const el = document.createElement('div');
-        const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(p);
+        const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(_p);
         el.className = className;
-        el.dataset.problemId = p.id;
+        el.dataset.problemId = _p.id;
         el.innerHTML = innerHTML;
 
         return el;

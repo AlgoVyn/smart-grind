@@ -37,7 +37,7 @@ window.SmartGrind.ui.closeSigninModal = () => {
     window.SmartGrind.ui.modalManager.hide(window.SmartGrind.state.elements.signinModal);
 };
 
-const setupAddModal = () => {
+window.SmartGrind.ui._setupAddModal = () => {
     // Populate category dropdown
     window.SmartGrind.state.elements.addProbCategory.innerHTML = '<option value="">-- Select or Type New --</option>' +
         window.SmartGrind.data.topicsData.map(t => `<option value="${t.title}">${t.title}</option>`).join('');
@@ -52,7 +52,7 @@ const setupAddModal = () => {
 };
 
 window.SmartGrind.ui.openAddModal = () => {
-    window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.addProblemModal, setupAddModal);
+    window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.addProblemModal, window.SmartGrind.ui._setupAddModal);
 };
 
 window.SmartGrind.ui.closeAddModal = () => {
@@ -91,7 +91,7 @@ window.SmartGrind.ui.closeConfirmModal = (result) => {
     });
 };
 
-const toggleElementVisibility = (element, hide) => {
+window.SmartGrind.ui._toggleElementVisibility = (element, hide) => {
     if (hide) {
         element.classList.add('hidden');
     } else {
@@ -105,7 +105,7 @@ window.SmartGrind.ui.handleCategoryChange = (e) => {
     const patternEl = window.SmartGrind.state.elements.addProbPattern;
     const patternNewEl = window.SmartGrind.state.elements.addProbPatternNew;
 
-    toggleElementVisibility(categoryNewEl, !!val);
+    window.SmartGrind.ui._toggleElementVisibility(categoryNewEl, !!val);
 
     if (val) {
         const topic = window.SmartGrind.data.topicsData.find(t => t.title === val);
@@ -115,14 +115,14 @@ window.SmartGrind.ui.handleCategoryChange = (e) => {
     } else {
         patternEl.innerHTML = '<option value="">-- Select Category First --</option>';
     }
-    toggleElementVisibility(patternNewEl, false);
+    window.SmartGrind.ui._toggleElementVisibility(patternNewEl, false);
 };
 
 window.SmartGrind.ui.handlePatternChange = (e) => {
-    toggleElementVisibility(window.SmartGrind.state.elements.addProbPatternNew, !!e.target.value);
+    window.SmartGrind.ui._toggleElementVisibility(window.SmartGrind.state.elements.addProbPatternNew, !!e.target.value);
 };
 
-const getSanitizedInputs = () => {
+window.SmartGrind.ui._getSanitizedInputs = () => {
     const rawName = window.SmartGrind.state.elements.addProbName.value;
     const rawUrl = window.SmartGrind.state.elements.addProbUrl.value;
     let rawCategory = window.SmartGrind.state.elements.addProbCategory.value;
@@ -136,7 +136,7 @@ const getSanitizedInputs = () => {
     return { name, url, category, pattern };
 };
 
-const validateInputs = ({ name, url, category, pattern }) => {
+window.SmartGrind.ui._validateInputs = ({ name, url, category, pattern }) => {
     if (!name.trim()) {
         window.SmartGrind.ui.showAlert('Problem name is required and cannot be empty after sanitization.');
         return false;
@@ -162,7 +162,7 @@ const validateInputs = ({ name, url, category, pattern }) => {
     return true;
 };
 
-const createNewProblem = (name, url, category, pattern) => {
+window.SmartGrind.ui._createNewProblem = (name, url, category, pattern) => {
     const id = 'custom-' + Date.now();
     return {
         id,
@@ -178,7 +178,7 @@ const createNewProblem = (name, url, category, pattern) => {
     };
 };
 
-const updateUIAfterAddingProblem = () => {
+window.SmartGrind.ui._updateUIAfterAddingProblem = () => {
     window.SmartGrind.state.elements.addProblemModal.classList.add('hidden');
     window.SmartGrind.renderers.renderSidebar();
     window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
@@ -186,11 +186,11 @@ const updateUIAfterAddingProblem = () => {
 };
 
 window.SmartGrind.ui.saveNewProblem = async () => {
-    const inputs = getSanitizedInputs();
-    if (!validateInputs(inputs)) return;
+    const inputs = window.SmartGrind.ui._getSanitizedInputs();
+    if (!window.SmartGrind.ui._validateInputs(inputs)) return;
 
     const { name, url, category, pattern } = inputs;
-    const newProb = createNewProblem(name, url, category, pattern);
+    const newProb = window.SmartGrind.ui._createNewProblem(name, url, category, pattern);
 
     // Update State
     window.SmartGrind.state.problems.set(newProb.id, newProb);
@@ -199,5 +199,5 @@ window.SmartGrind.ui.saveNewProblem = async () => {
     // Save to Firebase
     await window.SmartGrind.api.saveProblem(newProb);
 
-    updateUIAfterAddingProblem();
+    window.SmartGrind.ui._updateUIAfterAddingProblem();
 };

@@ -1,6 +1,8 @@
 // --- API RESET MODULE ---
 // Reset operations
 
+type _ProblemDef = string | { id: string; name: string; url: string };
+
 window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.api = window.SmartGrind.api || {};
 
@@ -42,7 +44,7 @@ Object.assign(window.SmartGrind.api, {
      */
     _restoreDeletedProblems: (problemIds) => {
         problemIds.forEach(id => {
-            if (window.SmartGrind.state.deletedProblemIds.has(id) && !(id).startsWith('custom-')) {
+            if (window.SmartGrind.state.deletedProblemIds.has(id) && !id.startsWith('custom-')) {
                 window.SmartGrind.state.deletedProblemIds.delete(id);
                 // Find probDef across all topics
                 let probDef = null;
@@ -63,8 +65,8 @@ Object.assign(window.SmartGrind.api, {
                 if (probDef) {
                     const newProb = {
                         id: id,
-                        name: typeof probDef === 'string' ? probDef : probDef.name,
-                        url: typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url,
+                        name: typeof probDef === 'string' ? probDef : (probDef as { name: string }).name,
+                        url: typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : (probDef as { url: string }).url,
                         status: 'unsolved',
                         topic: topicTitle,
                         pattern: patternName,
@@ -84,8 +86,8 @@ Object.assign(window.SmartGrind.api, {
      */
     _restoreAllDeletedProblems: () => {
         const deletedIds = Array.from(window.SmartGrind.state.deletedProblemIds);
-        deletedIds.forEach(id => {
-            if ((id).startsWith('custom-')) return; // Skip restoring custom problems
+        deletedIds.forEach((id: string) => {
+            if (id.startsWith('custom-')) return; // Skip restoring custom problems
             window.SmartGrind.state.deletedProblemIds.delete(id);
             // Try to find probDef across all topics first
             let probDef = null;
@@ -108,8 +110,8 @@ Object.assign(window.SmartGrind.api, {
             // This handles cases where custom problems were deleted
             const newProb = {
                 id: id,
-                name: probDef ? (typeof probDef === 'string' ? probDef : probDef.name) : id,
-                url: probDef ? (typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url) : `https://leetcode.com/problems/${id}/`,
+                name: probDef ? (typeof probDef === 'string' ? probDef : (probDef as { name: string }).name) : id,
+                url: probDef ? (typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : (probDef as { url: string }).url) : `https://leetcode.com/problems/${id}/`,
                 status: 'unsolved',
                 topic: topicTitle || 'Unknown',
                 pattern: patternName || 'Unknown',
@@ -172,7 +174,8 @@ Object.assign(window.SmartGrind.api, {
             // Restore original state on failure
             window.SmartGrind.state.problems = originalProblems;
             window.SmartGrind.state.deletedProblemIds = originalDeletedIds;
-            window.SmartGrind.ui.showAlert(`Failed to reset all problems: ${e.message}`);
+            const message = e instanceof Error ? e.message : 'Unknown error';
+            window.SmartGrind.ui.showAlert(`Failed to reset all problems: ${message}`);
             throw e;
         }
     },

@@ -7,10 +7,9 @@
     "esModuleInterop": true,
     "allowJs": true,
     "checkJs": false,
-    "allowImportingTsExtensions": true,
     "strict": false,
     "noImplicitAny": false,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "strictFunctionTypes": false,
     "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": false,
@@ -27,14 +26,12 @@
     "declaration": false,
     "outDir": "./dist",
     "rootDir": ".",
+    "sourceMap": true,
     "types": ["jest", "node"],
     "lib": ["ES2020", "DOM", "DOM.Iterable"]
   },
   "include": [
     "public/modules/**/*",
-    "functions/**/*",
-    "tests/**/*",
-    "jest.setup.mjs",
     "types/**/*"
   ],
   "exclude": [

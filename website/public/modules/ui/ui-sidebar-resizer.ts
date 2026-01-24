@@ -30,7 +30,9 @@ window.SmartGrind.ui.sidebarResizer = {
         window.SmartGrind.ui.sidebarResizer.startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
 
         const sidebar = document.getElementById('main-sidebar');
-        window.SmartGrind.ui.sidebarResizer.startWidth = sidebar.offsetWidth;
+        if (sidebar) {
+            window.SmartGrind.ui.sidebarResizer.startWidth = sidebar.offsetWidth;
+        }
 
         // Add event listeners for dragging
         document.addEventListener('mousemove', window.SmartGrind.ui.sidebarResizer.resize);
@@ -54,7 +56,9 @@ window.SmartGrind.ui.sidebarResizer = {
         newWidth = Math.max(window.SmartGrind.ui.sidebarResizer.minWidth, Math.min(window.SmartGrind.ui.sidebarResizer.maxWidth, newWidth));
 
         const sidebar = document.getElementById('main-sidebar');
-        sidebar.style.width = newWidth + 'px';
+        if (sidebar) {
+            sidebar.style.width = newWidth + 'px';
+        }
     },
 
     stopResize: () => {

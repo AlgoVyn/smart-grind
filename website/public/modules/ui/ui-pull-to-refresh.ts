@@ -47,7 +47,9 @@ window.SmartGrind.ui.pullToRefresh = {
         const deltaY = currentY - window.SmartGrind.ui.pullToRefresh.startY;
         if (deltaY > 0) {
             const appWrapper = document.getElementById('app-wrapper');
-            appWrapper.style.transform = `translateY(${deltaY}px)`;
+            if (appWrapper) {
+                appWrapper.style.transform = `translateY(${deltaY}px)`;
+            }
             return true; // prevent default
         } else {
             window.SmartGrind.ui.pullToRefresh[isPullingFlag] = false;
@@ -59,7 +61,9 @@ window.SmartGrind.ui.pullToRefresh = {
         if (!window.SmartGrind.ui.pullToRefresh[isPullingFlag]) return;
         const deltaY = currentY - window.SmartGrind.ui.pullToRefresh.startY;
         const appWrapper = document.getElementById('app-wrapper');
-        appWrapper.style.transform = 'translateY(0)';
+        if (appWrapper) {
+            appWrapper.style.transform = 'translateY(0)';
+        }
         if (deltaY > window.SmartGrind.ui.pullToRefresh.threshold) {
             // Only attempt reload in non-test environment (JSDOM doesn't fully implement navigation)
             if (typeof jest === 'undefined' && typeof window !== 'undefined' && window.location) {
@@ -107,7 +111,9 @@ window.SmartGrind.ui.pullToRefresh = {
     handleMouseLeave: () => {
         if (window.SmartGrind.ui.pullToRefresh.isMousePulling) {
             const appWrapper = document.getElementById('app-wrapper');
-            appWrapper.style.transform = 'translateY(0)';
+            if (appWrapper) {
+                appWrapper.style.transform = 'translateY(0)';
+            }
             window.SmartGrind.ui.pullToRefresh.isMousePulling = false;
         }
     }

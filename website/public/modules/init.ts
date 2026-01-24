@@ -45,7 +45,7 @@ const checkAuth = async () => {
 
     // Extract category from URL path
     const path = window.location.pathname;
-    let categoryParam = null;
+    let categoryParam: string | null = null;
     if (path === '/smartgrind/') {
         categoryParam = 'all';
     } else if (path.startsWith('/smartgrind/c/')) {

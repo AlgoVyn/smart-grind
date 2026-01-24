@@ -161,7 +161,8 @@ window.SmartGrind.ui.switchCarouselTab = (uniqueId, index) => {
     // Update Buttons
     const buttons = document.querySelectorAll(`.carousel-tab-btn-${uniqueId}`);
     buttons.forEach(btn => {
-        if (parseInt((btn).dataset.index) === index) {
+        const htmlBtn = btn as HTMLElement;
+        if (parseInt(htmlBtn.dataset.index || '0') === index) {
             btn.classList.remove('text-slate-400', 'hover:text-slate-200', 'hover:bg-slate-800/50');
             btn.classList.add('text-brand-400', 'bg-[#1e1e1e]');
         } else {
@@ -175,7 +176,8 @@ window.SmartGrind.ui.switchCarouselTab = (uniqueId, index) => {
     // But IDs are reliable: uniqueId-pane-X
 
     // We don't know how many panes, so iterate until element not found, or select by query
-    const container = buttons[0].closest('.code-carousel');
+    const container = buttons[0]?.closest('.code-carousel');
+    if (!container) return;
     const allPanes = container.querySelectorAll('[id^="' + uniqueId + '-pane-"]');
 
     allPanes.forEach(pane => {
@@ -229,7 +231,7 @@ window.SmartGrind.ui._renderMarkdown = (markdown, contentElement) => {
     }
 };
 
-const loadSolution = (solutionFile, loadingText, errorPrefix, extraErrorText = '') => {
+window.SmartGrind.ui._loadSolution = (solutionFile, loadingText, errorPrefix, extraErrorText = '') => {
     const modal = document.getElementById('solution-modal');
     const content = document.getElementById('solution-content');
     if (!modal || !content) return;
@@ -259,14 +261,14 @@ const loadSolution = (solutionFile, loadingText, errorPrefix, extraErrorText = '
 // Open solution modal
 window.SmartGrind.ui.openSolutionModal = (problemId) => {
     const solutionFile = `/smartgrind/solutions/${problemId}.md`;
-    loadSolution(solutionFile, 'Loading solution...', 'solution');
+    window.SmartGrind.ui._loadSolution(solutionFile, 'Loading solution...', 'solution');
 };
 
 // Open pattern solution modal
 window.SmartGrind.ui.openPatternSolutionModal = (patternName) => {
     const patternFilename = window.SmartGrind.patterns.getPatternFilename(patternName);
     const solutionFile = `/smartgrind/patterns/${patternFilename}.md`;
-    loadSolution(solutionFile, 'Loading pattern solution...', 'pattern solution',
+    window.SmartGrind.ui._loadSolution(solutionFile, 'Loading pattern solution...', 'pattern solution',
         '<p>This pattern may not have a dedicated solution file yet.</p>');
 };
 

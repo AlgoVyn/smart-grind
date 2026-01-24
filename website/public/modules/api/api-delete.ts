@@ -37,7 +37,7 @@ Object.assign(window.SmartGrind.api, {
         if (index > -1) window.SmartGrind.data.topicsData.splice(index, 1);
 
         // Remove associated problems
-        const problemsToDelete = [];
+        const problemsToDelete: string[] = [];
         window.SmartGrind.state.problems.forEach((p, id) => {
             if (p.topic === topic.title) {
                 problemsToDelete.push(id);

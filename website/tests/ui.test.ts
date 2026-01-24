@@ -142,7 +142,7 @@ window.SmartGrind = {
 };
 
 // Now import the module
-import ui from '../public/modules/ui/ui.ts';
+import ui from '/smartgrind/modules/ui/ui.js';
 
 window.SmartGrind.ui = ui;
 

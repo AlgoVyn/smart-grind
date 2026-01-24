@@ -47,7 +47,7 @@ const createMockElement = () => {
 const mockElement = createMockElement();
 
 // Now import the module
-import '../public/modules/renderers.ts';
+import '/smartgrind/modules/renderers.js';
 
 describe('SmartGrind Renderers', () => {
     beforeEach(() => {

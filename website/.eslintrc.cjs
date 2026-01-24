@@ -43,6 +43,16 @@ module.exports = {
   ],
   overrides: [
     {
+      files: ['functions/**/*.ts', 'tests/**/*.ts'],
+      parserOptions: {
+        project: null,
+      },
+      rules: {
+        '@typescript-eslint/no-require-imports': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
+      },
+    },
+    {
       files: ['**/*.test.ts'],
       rules: {
         '@typescript-eslint/no-require-imports': 'off',

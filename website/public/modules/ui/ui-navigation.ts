@@ -38,12 +38,12 @@ window.SmartGrind.ui.toggleTheme = () => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 };
 
-const toggleSidebarClasses = (sidebar, addClasses, removeClasses) => {
+window.SmartGrind.ui._toggleSidebarClasses = (sidebar, addClasses, removeClasses) => {
     addClasses.forEach(cls => sidebar.classList.add(cls));
     removeClasses.forEach(cls => sidebar.classList.remove(cls));
 };
 
-const toggleBackdrop = (backdrop, show) => {
+window.SmartGrind.ui._toggleBackdrop = (backdrop, show) => {
     if (show) {
         backdrop.classList.remove('hidden');
         setTimeout(() => backdrop.classList.add('opacity-100'), 10);
@@ -60,12 +60,12 @@ window.SmartGrind.ui.toggleMobileMenu = () => {
     const isOpen = sidebar.classList.contains('translate-x-0');
 
     if (isOpen) {
-        toggleSidebarClasses(sidebar, ['-translate-x-full'], ['translate-x-0']);
-        toggleBackdrop(backdrop, false);
+        window.SmartGrind.ui._toggleSidebarClasses(sidebar, ['-translate-x-full'], ['translate-x-0']);
+        window.SmartGrind.ui._toggleBackdrop(backdrop, false);
         document.body.style.overflow = '';
     } else {
-        toggleSidebarClasses(sidebar, ['translate-x-0'], ['-translate-x-full']);
-        toggleBackdrop(backdrop, true);
+        window.SmartGrind.ui._toggleSidebarClasses(sidebar, ['translate-x-0'], ['-translate-x-full']);
+        window.SmartGrind.ui._toggleBackdrop(backdrop, true);
         document.body.style.overflow = 'hidden';
     }
 };
