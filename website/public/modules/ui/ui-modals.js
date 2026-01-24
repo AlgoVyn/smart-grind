@@ -37,20 +37,22 @@ window.SmartGrind.ui.closeSigninModal = () => {
     window.SmartGrind.ui.modalManager.hide(window.SmartGrind.state.elements.signinModal);
 };
 
-window.SmartGrind.ui.openAddModal = () => {
-    window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.addProblemModal, () => {
-        // Populate category dropdown
-        window.SmartGrind.state.elements.addProbCategory.innerHTML = `<option value="">-- Select or Type New --</option>` +
-            window.SmartGrind.data.topicsData.map(t => `<option value="${t.title}">${t.title}</option>`).join('');
+const setupAddModal = () => {
+    // Populate category dropdown
+    window.SmartGrind.state.elements.addProbCategory.innerHTML = `<option value="">-- Select or Type New --</option>` +
+        window.SmartGrind.data.topicsData.map(t => `<option value="${t.title}">${t.title}</option>`).join('');
 
-        // Clear inputs
-        ['addProbName', 'addProbUrl', 'addProbCategoryNew', 'addProbPatternNew'].forEach(id => {
-            window.SmartGrind.state.elements[id].value = '';
-        });
-        window.SmartGrind.state.elements.addProbCategoryNew.classList.remove('hidden');
-        window.SmartGrind.state.elements.addProbPattern.innerHTML = '<option value="">-- Select Category First --</option>';
-        window.SmartGrind.state.elements.addProbPatternNew.classList.remove('hidden');
+    // Clear inputs
+    ['addProbName', 'addProbUrl', 'addProbCategoryNew', 'addProbPatternNew'].forEach(id => {
+        window.SmartGrind.state.elements[id].value = '';
     });
+    window.SmartGrind.state.elements.addProbCategoryNew.classList.remove('hidden');
+    window.SmartGrind.state.elements.addProbPattern.innerHTML = '<option value="">-- Select Category First --</option>';
+    window.SmartGrind.state.elements.addProbPatternNew.classList.remove('hidden');
+};
+
+window.SmartGrind.ui.openAddModal = () => {
+    window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.addProblemModal, setupAddModal);
 };
 
 window.SmartGrind.ui.closeAddModal = () => {
@@ -89,73 +91,80 @@ window.SmartGrind.ui.closeConfirmModal = (result) => {
     });
 };
 
+const toggleElementVisibility = (element, hide) => {
+    if (hide) {
+        element.classList.add('hidden');
+    } else {
+        element.classList.remove('hidden');
+    }
+};
+
 window.SmartGrind.ui.handleCategoryChange = (e) => {
     const val = e.target.value;
+    const categoryNewEl = window.SmartGrind.state.elements.addProbCategoryNew;
+    const patternEl = window.SmartGrind.state.elements.addProbPattern;
+    const patternNewEl = window.SmartGrind.state.elements.addProbPatternNew;
+
+    toggleElementVisibility(categoryNewEl, !!val);
+
     if (val) {
-        window.SmartGrind.state.elements.addProbCategoryNew.classList.add('hidden');
         const topic = window.SmartGrind.data.topicsData.find(t => t.title === val);
-        if (topic) {
-            window.SmartGrind.state.elements.addProbPattern.innerHTML = `<option value="">-- Select or Type New --</option>` +
-                topic.patterns.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-        } else {
-            window.SmartGrind.state.elements.addProbPattern.innerHTML = '<option value="">-- No Patterns Found --</option>';
-        }
+        patternEl.innerHTML = topic
+            ? `<option value="">-- Select or Type New --</option>` + topic.patterns.map(p => `<option value="${p.name}">${p.name}</option>`).join('')
+            : '<option value="">-- No Patterns Found --</option>';
     } else {
-        window.SmartGrind.state.elements.addProbCategoryNew.classList.remove('hidden');
-        window.SmartGrind.state.elements.addProbPattern.innerHTML = '<option value="">-- Select Category First --</option>';
+        patternEl.innerHTML = '<option value="">-- Select Category First --</option>';
     }
-    window.SmartGrind.state.elements.addProbPatternNew.classList.remove('hidden');
+    toggleElementVisibility(patternNewEl, false);
 };
 
 window.SmartGrind.ui.handlePatternChange = (e) => {
-    if (e.target.value) window.SmartGrind.state.elements.addProbPatternNew.classList.add('hidden');
-    else window.SmartGrind.state.elements.addProbPatternNew.classList.remove('hidden');
+    toggleElementVisibility(window.SmartGrind.state.elements.addProbPatternNew, !!e.target.value);
 };
 
-window.SmartGrind.ui.saveNewProblem = async () => {
-    // Get raw input values
+const getSanitizedInputs = () => {
     const rawName = window.SmartGrind.state.elements.addProbName.value;
     const rawUrl = window.SmartGrind.state.elements.addProbUrl.value;
     let rawCategory = window.SmartGrind.state.elements.addProbCategory.value;
     if (!rawCategory) rawCategory = window.SmartGrind.state.elements.addProbCategoryNew.value;
-
     let rawPattern = window.SmartGrind.state.elements.addProbPattern.value;
     if (!rawPattern || !window.SmartGrind.state.elements.addProbCategory.value) rawPattern = window.SmartGrind.state.elements.addProbPatternNew.value;
-
-    // Sanitize inputs
     const name = window.SmartGrind.utils.sanitizeInput(rawName);
     const url = window.SmartGrind.utils.sanitizeUrl(rawUrl);
     const category = window.SmartGrind.utils.sanitizeInput(rawCategory);
     const pattern = window.SmartGrind.utils.sanitizeInput(rawPattern);
+    return { name, url, category, pattern };
+};
 
-    // Validate sanitized inputs
+const validateInputs = ({ name, url, category, pattern }) => {
     if (!name.trim()) {
         window.SmartGrind.ui.showAlert("Problem name is required and cannot be empty after sanitization.");
-        return;
+        return false;
     }
     if (!url.trim()) {
         window.SmartGrind.ui.showAlert("Problem URL is required and cannot be empty after sanitization.");
-        return;
+        return false;
     }
     if (!category.trim()) {
         window.SmartGrind.ui.showAlert("Category is required and cannot be empty after sanitization.");
-        return;
+        return false;
     }
     if (!pattern.trim()) {
         window.SmartGrind.ui.showAlert("Pattern is required and cannot be empty after sanitization.");
-        return;
+        return false;
     }
-
-    // Additional validation for URL
     try {
-        new URL(url); // This will throw if URL is invalid
+        new URL(url);
     } catch (e) {
         window.SmartGrind.ui.showAlert("Please enter a valid URL for the problem.");
-        return;
+        return false;
     }
+    return true;
+};
 
+const createNewProblem = (name, url, category, pattern) => {
     const id = 'custom-' + Date.now();
-    const newProb = {
+    return {
         id,
         name,
         url,
@@ -167,18 +176,27 @@ window.SmartGrind.ui.saveNewProblem = async () => {
         note: '',
         loading: false
     };
+};
+
+const updateUIAfterAddingProblem = () => {
+    window.SmartGrind.state.elements.addProblemModal.classList.add('hidden');
+    window.SmartGrind.renderers.renderSidebar();
+    window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
+    window.SmartGrind.utils.showToast("Problem added!");
+};
+
+window.SmartGrind.ui.saveNewProblem = async () => {
+    const inputs = getSanitizedInputs();
+    if (!validateInputs(inputs)) return;
+
+    const newProb = createNewProblem(...Object.values(inputs));
 
     // Update State
-    window.SmartGrind.state.problems.set(id, newProb);
-
+    window.SmartGrind.state.problems.set(newProb.id, newProb);
     // Update In-Memory Structure
-    window.SmartGrind.api.mergeStructure(); // This handles inserting it into topicsData
-
+    window.SmartGrind.api.mergeStructure();
     // Save to Firebase
     await window.SmartGrind.api.saveProblem(newProb);
 
-    window.SmartGrind.state.elements.addProblemModal.classList.add('hidden');
-    window.SmartGrind.renderers.renderSidebar();
-    window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId); // Refresh view
-    window.SmartGrind.utils.showToast("Problem added!");
+    updateUIAfterAddingProblem();
 };

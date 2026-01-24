@@ -2,6 +2,32 @@
 // HTML generation helper functions
 
 export const htmlGenerators = {
+    // Helper to check if a pattern is custom (not in original data)
+    _isCustomPattern: (patternName) => {
+        return !window.SmartGrind.data.ORIGINAL_TOPICS_DATA?.some(topic =>
+            topic.patterns.some(p => p.name === patternName)
+        );
+    },
+
+    // Helper to check if a problem is custom
+    _isCustomProblem: (problemId) => {
+        return !window.SmartGrind.data.ORIGINAL_TOPICS_DATA?.some(topic =>
+            topic.patterns.some(pattern =>
+                pattern.problems.some(prob => prob.id === problemId)
+            )
+        );
+    },
+
+    // Helper to sort problems for review filter
+    _sortReviewProblems: (problems) => {
+        return problems.sort((a, b) => {
+            if (a.nextReviewDate === b.nextReviewDate) return 0;
+            if (!a.nextReviewDate) return 1;
+            if (!b.nextReviewDate) return -1;
+            return a.nextReviewDate < b.nextReviewDate ? -1 : 1;
+        });
+    },
+
     // Helper to get spinner HTML
     _getSpinner: (size = 'h-4 w-4', color = 'text-current') => {
         return `
@@ -12,6 +38,62 @@ export const htmlGenerators = {
                 </svg>
             </div>
         `;
+    },
+
+    // Helper to filter visible problems for a pattern
+    _getVisibleProblemsForPattern: (pattern, today) => {
+        const problems = [];
+        const searchQuery = window.SmartGrind.state.elements.problemSearch.value.toLowerCase().trim();
+
+        pattern.problems.forEach(probDef => {
+            const id = typeof probDef === 'string' ? probDef : probDef.id;
+            const p = window.SmartGrind.state.problems.get(id);
+            if (!p) return; // Skip if deleted
+
+            if (window.SmartGrind.utils.shouldShowProblem(p, window.SmartGrind.state.ui.currentFilter, searchQuery, today)) {
+                problems.push(p);
+            }
+        });
+
+        // Sort review problems by next review date (ascending: oldest/overdue first)
+        if (window.SmartGrind.state.ui.currentFilter === 'review') {
+            return window.SmartGrind.renderers._sortReviewProblems(problems);
+        }
+
+        return problems;
+    },
+
+    // Helper to create pattern header with solution button
+    _createPatternHeader: (pattern) => {
+        const patternHeader = document.createElement('div');
+        patternHeader.className = 'flex items-center justify-between mb-3 mt-6';
+
+        const patternTitle = document.createElement('h4');
+        patternTitle.className = 'text-sm font-bold text-brand-400 uppercase tracking-wider';
+        patternTitle.textContent = pattern.name;
+
+        patternHeader.appendChild(patternTitle);
+
+        // Only show pattern solution button for non-custom patterns
+        if (!window.SmartGrind.renderers._isCustomPattern(pattern.name)) {
+            const patternSolutionButton = document.createElement('button');
+            patternSolutionButton.className = 'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
+            patternSolutionButton.dataset.action = 'pattern-solution';
+            patternSolutionButton.dataset.pattern = pattern.name;
+            patternSolutionButton.title = 'View Pattern Solution';
+            patternSolutionButton.innerHTML = `
+                <svg fill="currentColor" class="w-4 h-4" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10,9 9,9 8,9"/>
+                </svg>
+            `;
+            patternHeader.appendChild(patternSolutionButton);
+        }
+
+        return patternHeader;
     },
 
     // Helper to render a topic section
@@ -27,28 +109,7 @@ export const htmlGenerators = {
         let hasVisiblePattern = false;
 
         topic.patterns.forEach(pattern => {
-            let patternProblems = [];
-
-            pattern.problems.forEach(probDef => {
-                const id = typeof probDef === 'string' ? probDef : probDef.id;
-                const p = window.SmartGrind.state.problems.get(id);
-                if (!p) return; // Skip if deleted
-
-                const searchQuery = window.SmartGrind.state.elements.problemSearch.value.toLowerCase().trim();
-                if (window.SmartGrind.utils.shouldShowProblem(p, window.SmartGrind.state.ui.currentFilter, searchQuery, today)) {
-                    patternProblems.push(p);
-                }
-            });
-
-            // Sort review problems by next review date (ascending: oldest/overdue first)
-            if (window.SmartGrind.state.ui.currentFilter === 'review') {
-                patternProblems.sort((a, b) => {
-                    if (a.nextReviewDate === b.nextReviewDate) return 0;
-                    if (!a.nextReviewDate) return 1;
-                    if (!b.nextReviewDate) return -1;
-                    return a.nextReviewDate < b.nextReviewDate ? -1 : 1;
-                });
-            }
+            const patternProblems = window.SmartGrind.renderers._getVisibleProblemsForPattern(pattern, today);
 
             if (patternProblems.length > 0) {
                 hasVisiblePattern = true;
@@ -56,42 +117,10 @@ export const htmlGenerators = {
                 const patternEl = document.createElement('div');
 
                 // Create pattern header with solution button
-                const patternHeader = document.createElement('div');
-                patternHeader.className = 'flex items-center justify-between mb-3 mt-6';
-
-                const patternTitle = document.createElement('h4');
-                patternTitle.className = 'text-sm font-bold text-brand-400 uppercase tracking-wider';
-                patternTitle.textContent = pattern.name;
-
-                // Add pattern solution button (only for non-custom patterns)
-                const patternSolutionButton = document.createElement('button');
-                patternSolutionButton.className = 'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
-                patternSolutionButton.dataset.action = 'pattern-solution';
-                patternSolutionButton.dataset.pattern = pattern.name;
-                patternSolutionButton.title = 'View Pattern Solution';
-                patternSolutionButton.innerHTML = `
-                    <svg fill="currentColor" class="w-4 h-4" viewBox="0 0 24 24">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14,2 14,8 20,8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
-                        <polyline points="10,9 9,9 8,9"/>
-                    </svg>
-                `;
-
-                patternHeader.appendChild(patternTitle);
-
-                // Only show pattern solution button for non-custom patterns
-                const isCustomPattern = !window.SmartGrind.data.ORIGINAL_TOPICS_DATA?.some(topic =>
-                    topic.patterns.some(p => p.name === pattern.name)
-                );
-
-                if (!isCustomPattern) {
-                    patternHeader.appendChild(patternSolutionButton);
-                }
-
+                const patternHeader = window.SmartGrind.renderers._createPatternHeader(pattern);
                 patternEl.appendChild(patternHeader);
 
+                // Create grid for problem cards
                 const grid = document.createElement('div');
                 grid.className = 'grid grid-cols-1 gap-3';
 
@@ -169,13 +198,7 @@ export const htmlGenerators = {
     // Helper to generate action buttons HTML
     _generateActionButtons: (p) => {
         const actionButton = window.SmartGrind.renderers._generateActionButton(p);
-
-        // Check if this is a custom problem
-        const isCustomProblem = !window.SmartGrind.data.ORIGINAL_TOPICS_DATA?.some(topic =>
-            topic.patterns.some(pattern =>
-                pattern.problems.some(prob => prob.id === p.id)
-            )
-        );
+        const isCustomProblem = window.SmartGrind.renderers._isCustomProblem(p.id);
 
         return `
             <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes">

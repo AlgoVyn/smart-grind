@@ -38,20 +38,34 @@ window.SmartGrind.ui.toggleTheme = () => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 };
 
+const toggleSidebarClasses = (sidebar, addClasses, removeClasses) => {
+    addClasses.forEach(cls => sidebar.classList.add(cls));
+    removeClasses.forEach(cls => sidebar.classList.remove(cls));
+};
+
+const toggleBackdrop = (backdrop, show) => {
+    if (show) {
+        backdrop.classList.remove('hidden');
+        setTimeout(() => backdrop.classList.add('opacity-100'), 10);
+    } else {
+        backdrop.classList.add('hidden');
+        backdrop.classList.remove('opacity-100');
+    }
+};
+
 // Mobile menu toggle
 window.SmartGrind.ui.toggleMobileMenu = () => {
-    const isOpen = window.SmartGrind.state.elements.mainSidebar.classList.contains('translate-x-0');
+    const sidebar = window.SmartGrind.state.elements.mainSidebar;
+    const backdrop = window.SmartGrind.state.elements.sidebarBackdrop;
+    const isOpen = sidebar.classList.contains('translate-x-0');
+
     if (isOpen) {
-        window.SmartGrind.state.elements.mainSidebar.classList.remove('translate-x-0');
-        window.SmartGrind.state.elements.mainSidebar.classList.add('-translate-x-full');
-        window.SmartGrind.state.elements.sidebarBackdrop.classList.add('hidden');
-        window.SmartGrind.state.elements.sidebarBackdrop.classList.remove('opacity-100');
+        toggleSidebarClasses(sidebar, ['-translate-x-full'], ['translate-x-0']);
+        toggleBackdrop(backdrop, false);
         document.body.style.overflow = '';
     } else {
-        window.SmartGrind.state.elements.mainSidebar.classList.add('translate-x-0');
-        window.SmartGrind.state.elements.mainSidebar.classList.remove('-translate-x-full');
-        window.SmartGrind.state.elements.sidebarBackdrop.classList.remove('hidden');
-        setTimeout(() => window.SmartGrind.state.elements.sidebarBackdrop.classList.add('opacity-100'), 10);
+        toggleSidebarClasses(sidebar, ['translate-x-0'], ['-translate-x-full']);
+        toggleBackdrop(backdrop, true);
         document.body.style.overflow = 'hidden';
     }
 };

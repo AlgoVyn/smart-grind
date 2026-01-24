@@ -42,22 +42,21 @@ window.SmartGrind.ui.pullToRefresh = {
         }
     },
 
-    handleTouchMove: (e) => {
-        if (!window.SmartGrind.ui.pullToRefresh.isPulling) return;
-        const currentY = e.touches[0].clientY;
+    handleMove: (currentY, isPullingFlag) => {
+        if (!window.SmartGrind.ui.pullToRefresh[isPullingFlag]) return;
         const deltaY = currentY - window.SmartGrind.ui.pullToRefresh.startY;
         if (deltaY > 0) {
-            e.preventDefault(); // prevent default scrolling
             const appWrapper = document.getElementById('app-wrapper');
             appWrapper.style.transform = `translateY(${deltaY}px)`;
+            return true; // prevent default
         } else {
-            window.SmartGrind.ui.pullToRefresh.isPulling = false;
+            window.SmartGrind.ui.pullToRefresh[isPullingFlag] = false;
+            return false;
         }
     },
 
-    handleTouchEnd: (e) => {
-        if (!window.SmartGrind.ui.pullToRefresh.isPulling) return;
-        const currentY = e.changedTouches[0].clientY;
+    handleEnd: (currentY, isPullingFlag) => {
+        if (!window.SmartGrind.ui.pullToRefresh[isPullingFlag]) return;
         const deltaY = currentY - window.SmartGrind.ui.pullToRefresh.startY;
         const appWrapper = document.getElementById('app-wrapper');
         appWrapper.style.transform = 'translateY(0)';
@@ -74,7 +73,17 @@ window.SmartGrind.ui.pullToRefresh = {
                 }
             }
         }
-        window.SmartGrind.ui.pullToRefresh.isPulling = false;
+        window.SmartGrind.ui.pullToRefresh[isPullingFlag] = false;
+    },
+
+    handleTouchMove: (e) => {
+        if (window.SmartGrind.ui.pullToRefresh.handleMove(e.touches[0].clientY, 'isPulling')) {
+            e.preventDefault(); // prevent default scrolling
+        }
+    },
+
+    handleTouchEnd: (e) => {
+        window.SmartGrind.ui.pullToRefresh.handleEnd(e.changedTouches[0].clientY, 'isPulling');
     },
 
     handleMouseDown: (e) => {
@@ -86,38 +95,13 @@ window.SmartGrind.ui.pullToRefresh = {
     },
 
     handleMouseMove: (e) => {
-        if (!window.SmartGrind.ui.pullToRefresh.isMousePulling) return;
-        const currentY = e.clientY;
-        const deltaY = currentY - window.SmartGrind.ui.pullToRefresh.startY;
-        if (deltaY > 0) {
+        if (window.SmartGrind.ui.pullToRefresh.handleMove(e.clientY, 'isMousePulling')) {
             e.preventDefault(); // prevent default scrolling or selection
-            const appWrapper = document.getElementById('app-wrapper');
-            appWrapper.style.transform = `translateY(${deltaY}px)`;
-        } else {
-            window.SmartGrind.ui.pullToRefresh.isMousePulling = false;
         }
     },
 
     handleMouseEnd: (e) => {
-        if (!window.SmartGrind.ui.pullToRefresh.isMousePulling) return;
-        const currentY = e.clientY;
-        const deltaY = currentY - window.SmartGrind.ui.pullToRefresh.startY;
-        const appWrapper = document.getElementById('app-wrapper');
-        appWrapper.style.transform = 'translateY(0)';
-        if (deltaY > window.SmartGrind.ui.pullToRefresh.threshold) {
-            // Only attempt reload in non-test environment (JSDOM doesn't fully implement navigation)
-            if (typeof jest === 'undefined' && typeof window !== 'undefined' && window.location) {
-                try {
-                    // Check if reload is actually implemented
-                    if (typeof window.location.reload === 'function') {
-                        window.location.reload();
-                    }
-                } catch (e) {
-                    // Ignore - JSDOM may throw "Not implemented" errors
-                }
-            }
-        }
-        window.SmartGrind.ui.pullToRefresh.isMousePulling = false;
+        window.SmartGrind.ui.pullToRefresh.handleEnd(e.clientY, 'isMousePulling');
     },
 
     handleMouseLeave: () => {

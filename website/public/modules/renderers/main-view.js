@@ -2,17 +2,31 @@
 // Main view rendering functions
 
 export const mainViewRenderers = {
+    // Helper to create an action button
+    _createActionButton: (icon, title, hoverColor, onClick) => {
+        const button = document.createElement('button');
+        button.className = `category-action-btn p-1 rounded hover:${hoverColor} text-theme-muted hover:text-${hoverColor.split('-')[1]}-400 transition-colors`;
+        button.title = title;
+        button.innerHTML = icon;
+        button.onclick = onClick;
+        return button;
+    },
+
+    // Helper to remove existing action button container
+    _removeExistingActionContainer: () => {
+        const existingContainer = window.SmartGrind.state.elements.currentViewTitle.nextElementSibling;
+        if (existingContainer?.classList.contains('category-action-container')) {
+            existingContainer.remove();
+        }
+    },
+
     // Helper to set view title and action buttons
     _setViewTitle: (filterTopicId) => {
         const title = filterTopicId === 'all' ? 'All Problems' :
             window.SmartGrind.data.topicsData.find(t => t.id === filterTopicId)?.title || 'Unknown Topic';
         window.SmartGrind.state.elements.currentViewTitle.innerText = title;
 
-        // Remove existing action button container
-        const existingContainer = window.SmartGrind.state.elements.currentViewTitle.nextElementSibling;
-        if (existingContainer?.classList.contains('category-action-container')) {
-            existingContainer.remove();
-        }
+        window.SmartGrind.renderers._removeExistingActionContainer();
 
         // Add action buttons
         const buttonContainer = document.createElement('div');
@@ -20,28 +34,29 @@ export const mainViewRenderers = {
 
         if (filterTopicId === 'all') {
             // Reset All button for "All Problems" view
-            const resetAllBtn = document.createElement('button');
-            resetAllBtn.className = 'category-action-btn p-1 rounded hover:bg-blue-500/10 text-theme-muted hover:text-blue-400 transition-colors';
-            resetAllBtn.title = 'Reset All Problems';
-            resetAllBtn.innerHTML = window.SmartGrind.ICONS.reset;
-            resetAllBtn.onclick = () => window.SmartGrind.api.resetAll();
+            const resetAllBtn = window.SmartGrind.renderers._createActionButton(
+                window.SmartGrind.ICONS.reset,
+                'Reset All Problems',
+                'bg-blue-500/10',
+                () => window.SmartGrind.api.resetAll()
+            );
             buttonContainer.appendChild(resetAllBtn);
         } else {
             // Reset and Delete buttons for specific topics
-            // Reset button
-            const resetBtn = document.createElement('button');
-            resetBtn.className = 'category-action-btn p-1 rounded hover:bg-blue-500/10 text-theme-muted hover:text-blue-400 transition-colors';
-            resetBtn.title = 'Reset Category Problems';
-            resetBtn.innerHTML = window.SmartGrind.ICONS.reset;
-            resetBtn.onclick = () => window.SmartGrind.api.resetCategory(filterTopicId);
+            const resetBtn = window.SmartGrind.renderers._createActionButton(
+                window.SmartGrind.ICONS.reset,
+                'Reset Category Problems',
+                'bg-blue-500/10',
+                () => window.SmartGrind.api.resetCategory(filterTopicId)
+            );
             buttonContainer.appendChild(resetBtn);
 
-            // Delete button
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'category-action-btn p-1 rounded hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors';
-            deleteBtn.title = 'Delete Category';
-            deleteBtn.innerHTML = window.SmartGrind.ICONS.delete;
-            deleteBtn.onclick = () => window.SmartGrind.api.deleteCategory(filterTopicId);
+            const deleteBtn = window.SmartGrind.renderers._createActionButton(
+                window.SmartGrind.ICONS.delete,
+                'Delete Category',
+                'bg-red-500/10',
+                () => window.SmartGrind.api.deleteCategory(filterTopicId)
+            );
             buttonContainer.appendChild(deleteBtn);
         }
 
@@ -68,14 +83,9 @@ export const mainViewRenderers = {
             if (topicSection) container.appendChild(topicSection);
         });
 
-        const currentFilter = window.SmartGrind.state.ui.currentFilter;
-        const shouldShowEmptyState = visibleCountRef.count === 0 && currentFilter === 'review';
+        // Show empty state only when in review filter and no problems are visible
+        const shouldShowEmptyState = visibleCountRef.count === 0 && window.SmartGrind.state.ui.currentFilter === 'review';
         window.SmartGrind.state.elements.emptyState.classList.toggle('hidden', !shouldShowEmptyState);
-        
-        // Ensure empty state is hidden when there are visible problems
-        if (visibleCountRef.count > 0) {
-            window.SmartGrind.state.elements.emptyState.classList.add('hidden');
-        }
         window.SmartGrind.renderers.updateStats();
     }
 };

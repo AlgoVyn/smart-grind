@@ -56,20 +56,12 @@ window.SmartGrind.ui.handleKeyboard = (e) => {
 // Browser navigation
 window.SmartGrind.ui.handlePopState = () => {
     const categoryParam = window.SmartGrind.utils.getUrlParameter('category');
-    if (categoryParam) {
-        // Check if this is a valid category
-        const validCategory = window.SmartGrind.data.topicsData.some(t => t.id === categoryParam) || categoryParam === 'all';
-        if (validCategory) {
-            window.SmartGrind.state.ui.activeTopicId = categoryParam;
-            window.SmartGrind.renderers.renderSidebar(); // Re-render sidebar to update active state
-            window.SmartGrind.renderers.renderMainView(); // Re-render main view with new category
-            window.SmartGrind.utils.scrollToTop();
-        }
-    } else {
-        // No category parameter, show all
-        window.SmartGrind.state.ui.activeTopicId = 'all';
-        window.SmartGrind.renderers.renderSidebar(); // Re-render sidebar to update active state
-        window.SmartGrind.renderers.renderMainView(); // Re-render main view with all problems
-        window.SmartGrind.utils.scrollToTop();
-    }
+    const category = categoryParam && (window.SmartGrind.data.topicsData.some(t => t.id === categoryParam) || categoryParam === 'all')
+        ? categoryParam
+        : 'all';
+
+    window.SmartGrind.state.ui.activeTopicId = category;
+    window.SmartGrind.renderers.renderSidebar();
+    window.SmartGrind.renderers.renderMainView();
+    window.SmartGrind.utils.scrollToTop();
 };

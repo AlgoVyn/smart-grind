@@ -25,6 +25,13 @@ window.SmartGrind.ui.setButtonLoading = (button, loading, loadingText = "Connect
     button.innerHTML = loading ? loadingText : window.SmartGrind.GOOGLE_BUTTON_HTML;
 };
 
+const setAuthButtonsLoading = (loading, loadingText = "Connecting...") => {
+    const btn = window.SmartGrind.state.elements.googleLoginBtn;
+    const modalBtn = window.SmartGrind.state.elements.modalGoogleLoginBtn;
+    window.SmartGrind.ui.setButtonLoading(btn, loading, loadingText);
+    window.SmartGrind.ui.setButtonLoading(modalBtn, loading, loadingText);
+};
+
 /**
  * Initiates Google OAuth login using a popup window.
  * Opens an authentication popup, listens for success/failure messages from the popup,
@@ -34,7 +41,6 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
     window.SmartGrind.ui.showError(null);
     const btn = window.SmartGrind.state.elements.googleLoginBtn;
     const modalBtn = window.SmartGrind.state.elements.modalGoogleLoginBtn;
-
     window.SmartGrind.ui.setButtonLoading(btn, true);
     window.SmartGrind.ui.setButtonLoading(modalBtn, true);
 
@@ -43,6 +49,8 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
 
     if (!popup) {
         // Popup blocked
+        const btn = window.SmartGrind.state.elements.googleLoginBtn;
+        const modalBtn = window.SmartGrind.state.elements.modalGoogleLoginBtn;
         window.SmartGrind.ui.setButtonLoading(btn, false);
         window.SmartGrind.ui.setButtonLoading(modalBtn, false);
         window.SmartGrind.utils.showToast('Sign-in popup was blocked. Please allow popups for this site and try again.', 'error');
@@ -51,56 +59,81 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
 
     let authCompleted = false;
 
+    const handleAuthSuccess = (data) => {
+        const { token, userId, displayName } = data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('userId', userId);
+        localStorage.setItem('displayName', displayName);
+
+        window.SmartGrind.state.user.id = userId;
+        window.SmartGrind.state.user.displayName = displayName;
+        window.SmartGrind.state.elements.userDisplay.innerText = displayName;
+        window.SmartGrind.state.user.type = 'signed-in';
+        localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
+
+        window.SmartGrind.api.loadData();
+        window.SmartGrind.ui.updateAuthUI();
+
+        // Close any open sign-in modals
+        window.SmartGrind.state.elements.setupModal.classList.add('hidden');
+        window.SmartGrind.state.elements.signinModal.classList.add('hidden');
+    };
+
+    const handleAuthFailure = (data) => {
+        const { message } = data;
+        setTimeout(() => {
+            window.SmartGrind.utils.showToast(`Sign-in failed: ${message}`, 'error');
+        }, 100);
+    };
+
+    const cleanupAuth = () => {
+        window.removeEventListener('message', messageHandler);
+        const btn = window.SmartGrind.state.elements.googleLoginBtn;
+        const modalBtn = window.SmartGrind.state.elements.modalGoogleLoginBtn;
+        window.SmartGrind.ui.setButtonLoading(btn, false);
+        window.SmartGrind.ui.setButtonLoading(modalBtn, false);
+    };
+
     // Listen for auth messages
     const messageHandler = (event) => {
         if (event.origin !== window.location.origin) return;
+        authCompleted = true;
         if (event.data.type === 'auth-success') {
-            authCompleted = true;
-            const { token, userId, displayName } = event.data;
-            localStorage.setItem('token', token);
-            localStorage.setItem('userId', userId);
-            localStorage.setItem('displayName', displayName);
-
-            window.SmartGrind.state.user.id = userId;
-            window.SmartGrind.state.user.displayName = displayName;
-            window.SmartGrind.state.elements.userDisplay.innerText = displayName;
-            window.SmartGrind.state.user.type = 'signed-in';
-            localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
-
-            window.SmartGrind.api.loadData();
-            window.SmartGrind.ui.updateAuthUI();
-
-            // Close any open sign-in modals
-            window.SmartGrind.state.elements.setupModal.classList.add('hidden');
-            window.SmartGrind.state.elements.signinModal.classList.add('hidden');
-
-            window.removeEventListener('message', messageHandler);
-            window.SmartGrind.ui.setButtonLoading(btn, false);
-            window.SmartGrind.ui.setButtonLoading(modalBtn, false);
+            handleAuthSuccess(event.data);
         } else if (event.data.type === 'auth-failure') {
-            authCompleted = true;
-            const { message } = event.data;
-            // Delay toast to ensure popup closes first
-            setTimeout(() => {
-                window.SmartGrind.utils.showToast(`Sign-in failed: ${message}`, 'error');
-            }, 100);
-            window.removeEventListener('message', messageHandler);
-            window.SmartGrind.ui.setButtonLoading(btn, false);
-            window.SmartGrind.ui.setButtonLoading(modalBtn, false);
+            handleAuthFailure(event.data);
         }
+        cleanupAuth();
     };
     window.addEventListener('message', messageHandler);
+
+    const handlePopupClosed = () => {
+        if (!authCompleted) {
+            authCompleted = true;
+            window.SmartGrind.utils.showToast('Sign-in was cancelled.', 'error');
+            cleanupAuth();
+        }
+    };
+
+    const handleAuthTimeout = () => {
+        if (!authCompleted) {
+            authCompleted = true;
+            try {
+                if (!popup.closed) popup.close();
+            } catch (e) {
+                // ignore
+            }
+            window.SmartGrind.utils.showToast('Sign-in timed out. Please try again.', 'error');
+            cleanupAuth();
+        }
+    };
 
     // Check if popup is closed without auth
     const checkPopupClosed = setInterval(() => {
         try {
-            if (popup.closed && !authCompleted) {
-                authCompleted = true;
+            if (popup.closed) {
                 clearInterval(checkPopupClosed);
-                window.removeEventListener('message', messageHandler);
-                window.SmartGrind.ui.setButtonLoading(btn, false);
-                window.SmartGrind.ui.setButtonLoading(modalBtn, false);
-                window.SmartGrind.utils.showToast('Sign-in was cancelled.', 'error');
+                handlePopupClosed();
             }
         } catch (e) {
             // COOP may block the check, ignore
@@ -109,21 +142,8 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
 
     // Timeout to reset buttons if no auth response received
     setTimeout(() => {
-        if (!authCompleted) {
-            authCompleted = true;
-            clearInterval(checkPopupClosed);
-            window.removeEventListener('message', messageHandler);
-            window.SmartGrind.ui.setButtonLoading(btn, false);
-            window.SmartGrind.ui.setButtonLoading(modalBtn, false);
-            try {
-                if (!popup.closed) {
-                    popup.close();
-                }
-            } catch (e) {
-                // ignore
-            }
-            window.SmartGrind.utils.showToast('Sign-in timed out. Please try again.', 'error');
-        }
+        clearInterval(checkPopupClosed);
+        handleAuthTimeout();
     }, UI_CONSTANTS.AUTH_TIMEOUT);
 };
 
@@ -192,11 +212,7 @@ window.SmartGrind.ui.updateAuthUI = () => {
  * @param {string|null} msg - The error message to display, or null to hide the error.
  */
 window.SmartGrind.ui.showError = (msg) => {
-    if (msg) {
-        window.SmartGrind.ui.showAlert(msg);
-    }
-    window.SmartGrind.state.elements.setupError.classList.toggle('hidden', !msg);
-    window.SmartGrind.state.elements.setupError.innerText = msg || '';
+    window.SmartGrind.ui.showAuthError(window.SmartGrind.state.elements.setupError, msg);
 };
 
 /**
@@ -204,10 +220,11 @@ window.SmartGrind.ui.showError = (msg) => {
  * Shows an alert if a message is provided and toggles the visibility of the sign-in error element.
  * @param {string|null} msg - The error message to display, or null to hide the error.
  */
+window.SmartGrind.ui.showAuthError = (element, msg) => {
+    element.innerText = msg || '';
+    element.classList.toggle('hidden', !msg);
+};
+
 window.SmartGrind.ui.showSigninError = (msg) => {
-    if (msg) {
-        window.SmartGrind.ui.showAlert(msg);
-    }
-    window.SmartGrind.state.elements.signinError.classList.toggle('hidden', !msg);
-    window.SmartGrind.state.elements.signinError.innerText = msg || '';
+    window.SmartGrind.ui.showAuthError(window.SmartGrind.state.elements.signinError, msg);
 };

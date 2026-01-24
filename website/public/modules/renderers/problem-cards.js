@@ -12,45 +12,75 @@ export const problemCardRenderers = {
         }
     },
 
-    // Helper to handle problem status changes
-    _handleStatusChange: async (button, p, newStatus, interval = 0, nextDate = null) => {
+    // Helper to perform async status change with loading and error handling
+    _performStatusChange: async (button, p, statusUpdater, options = {}) => {
+        const { successMessage, errorMessage, onFinally } = options;
+
         // Store original state for rollback on error
         const originalState = {
             status: p.status,
             reviewInterval: p.reviewInterval,
-            nextReviewDate: p.nextReviewDate
+            nextReviewDate: p.nextReviewDate,
+            note: p.note
         };
 
-        p.status = newStatus;
-        p.reviewInterval = interval;
-        p.nextReviewDate = nextDate;
+        // Apply status updates
+        statusUpdater(p);
         p.loading = true;
 
         // Show loading state immediately
         window.SmartGrind.renderers._reRenderCard(button, p);
 
-        // Add a slight delay so the spinner is visible even for fast local operations
+        // Add delay for spinner visibility
         await new Promise(resolve => setTimeout(resolve, 400));
 
         try {
             await window.SmartGrind.api.saveProblem(p);
+            if (successMessage) {
+                window.SmartGrind.utils.showToast(successMessage, 'success');
+            }
         } catch (error) {
             // Revert to original state on error
-            p.status = originalState.status;
-            p.reviewInterval = originalState.reviewInterval;
-            p.nextReviewDate = originalState.nextReviewDate;
-            window.SmartGrind.utils.showToast(`Failed to update problem: ${error.message}`, 'error');
+            Object.assign(p, originalState);
+            const message = errorMessage || `Failed to update problem: ${error.message}`;
+            window.SmartGrind.utils.showToast(message, 'error');
         } finally {
             p.loading = false;
-            // Card needs to be re-rendered again to show final state (and remove spinner)
-            // But we need a fresh reference to the button/card since it was replaced
-            // Use querySelectorAll to find all instances of this problem card across different patterns
-            const newCards = document.querySelectorAll(`[data-problem-id="${p.id}"]`);
-            newCards.forEach(newCard => {
-                const btn = newCard.querySelector('.action-btn[data-action]');
-                if (btn) window.SmartGrind.renderers._reRenderCard(btn, p);
-            });
+            // Custom finally behavior or default re-render
+            if (onFinally) {
+                onFinally(p);
+            } else {
+                window.SmartGrind.renderers._reRenderAllCards(p);
+            }
         }
+    },
+
+    // Helper to re-render all instances of a problem card
+    _reRenderAllCards: (p, hideIfDueFilter = false) => {
+        const newCards = document.querySelectorAll(`[data-problem-id="${p.id}"]`);
+        newCards.forEach(newCard => {
+            const btn = newCard.querySelector('.action-btn[data-action]');
+            if (btn) {
+                if (hideIfDueFilter && window.SmartGrind.state.ui.currentFilter === 'review') {
+                    window.SmartGrind.renderers._hideCardIfDueFilter(btn);
+                } else {
+                    window.SmartGrind.renderers._reRenderCard(btn, p);
+                }
+            }
+        });
+    },
+
+    // Helper to handle problem status changes
+    _handleStatusChange: async (button, p, newStatus, interval = 0, nextDate = null) => {
+        await window.SmartGrind.renderers._performStatusChange(
+            button,
+            p,
+            (problem) => {
+                problem.status = newStatus;
+                problem.reviewInterval = interval;
+                problem.nextReviewDate = nextDate;
+            }
+        );
     },
 
     // Handle solve action
@@ -64,48 +94,25 @@ export const problemCardRenderers = {
         const today = window.SmartGrind.utils.getToday();
         const newInterval = (p.reviewInterval || 0) + 1;
 
-        // Store original state for rollback on error
-        const originalState = {
-            status: p.status,
-            reviewInterval: p.reviewInterval,
-            nextReviewDate: p.nextReviewDate
-        };
-
-        p.status = 'solved';
-        p.reviewInterval = newInterval;
-        p.nextReviewDate = window.SmartGrind.utils.getNextReviewDate(today, newInterval);
-        p.loading = true;
-
-        window.SmartGrind.renderers._reRenderCard(button, p);
-
-        // Add delay for visibility
-        await new Promise(resolve => setTimeout(resolve, 400));
-
-        try {
-            await window.SmartGrind.api.saveProblem(p);
-        } catch (error) {
-            // Revert to original state on error
-            p.status = originalState.status;
-            p.reviewInterval = originalState.reviewInterval;
-            p.nextReviewDate = originalState.nextReviewDate;
-            window.SmartGrind.utils.showToast(`Failed to review problem: ${error.message}`, 'error');
-        } finally {
-            p.loading = false;
-            if (window.SmartGrind.state.ui.currentFilter === 'review') {
-                // If in due view, hide all instances of the card
-                const newCards = document.querySelectorAll(`[data-problem-id="${p.id}"]`);
-                newCards.forEach(newCard => {
-                    const btn = newCard.querySelector('.action-btn[data-action]');
-                    if (btn) window.SmartGrind.renderers._hideCardIfDueFilter(btn);
-                });
-            } else {
-                const newCards = document.querySelectorAll(`[data-problem-id="${p.id}"]`);
-                newCards.forEach(newCard => {
-                    const btn = newCard.querySelector('.action-btn[data-action]');
-                    if (btn) window.SmartGrind.renderers._reRenderCard(btn, p);
-                });
+        await window.SmartGrind.renderers._performStatusChange(
+            button,
+            p,
+            (problem) => {
+                problem.status = 'solved';
+                problem.reviewInterval = newInterval;
+                problem.nextReviewDate = window.SmartGrind.utils.getNextReviewDate(today, newInterval);
+            },
+            {
+                onFinally: (problem) => {
+                    // Special handling for review filter: hide cards when reviewed
+                    if (window.SmartGrind.state.ui.currentFilter === 'review') {
+                        window.SmartGrind.renderers._reRenderAllCards(problem, true);
+                    } else {
+                        window.SmartGrind.renderers._reRenderAllCards(problem);
+                    }
+                }
             }
-        }
+        );
     },
 
     // Handle reset action
@@ -146,6 +153,70 @@ export const problemCardRenderers = {
         window.SmartGrind.renderers.updateStats();
     },
 
+    // Helper to handle status actions (solve, review, reset)
+    _handleStatusAction: async (button, p, action) => {
+        switch (action) {
+            case 'solve':
+                await window.SmartGrind.renderers._handleSolve(button, p);
+                break;
+            case 'review':
+                await window.SmartGrind.renderers._handleReview(button, p);
+                break;
+            case 'reset':
+                await window.SmartGrind.renderers._handleReset(button, p);
+                break;
+        }
+    },
+
+    // Helper to handle delete action
+    _handleDeleteAction: async (button, p) => {
+        const confirmed = await window.SmartGrind.ui.showConfirm(`Delete "<b>${p.name}</b>"?`);
+        if (confirmed) {
+            await window.SmartGrind.api.saveDeletedId(p.id);
+        }
+    },
+
+    // Helper to handle note toggle
+    _handleNoteToggle: (button, p) => {
+        const noteArea = button.closest('.group').querySelector('.note-area');
+        if (noteArea) {
+            const isHidden = noteArea.classList.toggle('hidden');
+            p.noteVisible = !isHidden;
+        }
+    },
+
+    // Helper to handle note saving
+    _handleNoteSave: async (button, p) => {
+        const textarea = button.closest('.note-area').querySelector('textarea');
+        if (!textarea) return;
+
+        await window.SmartGrind.renderers._performStatusChange(
+            button,
+            p,
+            (problem) => {
+                problem.note = textarea.value.trim();
+            }
+        );
+    },
+
+    // Helper to handle AI assistant actions
+    _handleAIActions: (button, p, action) => {
+        const provider = action.split('-')[1];
+        window.SmartGrind.utils.askAI(p.name, provider);
+    },
+
+    // Helper to handle solution actions
+    _handleSolutionActions: (button, p, action) => {
+        if (action === 'solution') {
+            window.SmartGrind.ui.openSolutionModal(p.id);
+        } else if (action === 'pattern-solution') {
+            const patternName = button.dataset.pattern;
+            if (patternName) {
+                window.SmartGrind.ui.openPatternSolutionModal(patternName);
+            }
+        }
+    },
+
     // Handle clicks on problem card buttons
     handleProblemCardClick: async (e, p) => {
         const button = e.target.closest('button');
@@ -154,72 +225,19 @@ export const problemCardRenderers = {
         const action = button.dataset.action;
         if (!action) return;
 
-        switch (action) {
-            case 'solve':
-                window.SmartGrind.renderers._handleSolve(button, p);
-                break;
-            case 'review':
-                window.SmartGrind.renderers._handleReview(button, p);
-                break;
-            case 'reset':
-                window.SmartGrind.renderers._handleReset(button, p);
-                break;
-            case 'delete':
-                const confirmed = await window.SmartGrind.ui.showConfirm(`Delete "<b>${p.name}</b>"?`);
-                if (confirmed) {
-                    window.SmartGrind.api.saveDeletedId(p.id);
-                }
-                break;
-            case 'note':
-                const noteArea = button.closest('.group').querySelector('.note-area');
-                if (noteArea) {
-                    const isHidden = noteArea.classList.toggle('hidden');
-                    p.noteVisible = !isHidden;
-                }
-                break;
-            case 'save-note':
-                const textarea = button.closest('.note-area').querySelector('textarea');
-                if (textarea) {
-                    // Store original note for rollback on error
-                    const originalNote = p.note;
-                    p.note = textarea.value.trim();
-                    p.loading = true;
-                    window.SmartGrind.renderers._reRenderCard(button, p);
-
-                    // Add delay for visibility
-                    await new Promise(resolve => setTimeout(resolve, 400));
-
-                    try {
-                        await window.SmartGrind.api.saveProblem(p);
-                    } catch (error) {
-                        // Revert to original note on error
-                        p.note = originalNote;
-                        window.SmartGrind.utils.showToast(`Failed to save note: ${error.message}`, 'error');
-                    } finally {
-                        p.loading = false;
-                        const newCards = document.querySelectorAll(`[data-problem-id="${p.id}"]`);
-                        newCards.forEach(newCard => {
-                            const btn = newCard.querySelector('button[data-action="save-note"]');
-                            if (btn) window.SmartGrind.renderers._reRenderCard(btn, p);
-                        });
-                    }
-                }
-                break;
-            case 'ask-chatgpt':
-            case 'ask-aistudio':
-            case 'ask-grok':
-                const provider = action.split('-')[1];
-                window.SmartGrind.utils.askAI(p.name, provider);
-                break;
-            case 'solution':
-                window.SmartGrind.ui.openSolutionModal(p.id);
-                break;
-            case 'pattern-solution':
-                const patternName = button.dataset.pattern;
-                if (patternName) {
-                    window.SmartGrind.ui.openPatternSolutionModal(patternName);
-                }
-                break;
+        // Group actions by type for cleaner handling
+        if (['solve', 'review', 'reset'].includes(action)) {
+            await window.SmartGrind.renderers._handleStatusAction(button, p, action);
+        } else if (action === 'delete') {
+            await window.SmartGrind.renderers._handleDeleteAction(button, p);
+        } else if (action === 'note') {
+            window.SmartGrind.renderers._handleNoteToggle(button, p);
+        } else if (action === 'save-note') {
+            await window.SmartGrind.renderers._handleNoteSave(button, p);
+        } else if (['ask-chatgpt', 'ask-aistudio', 'ask-grok'].includes(action)) {
+            window.SmartGrind.renderers._handleAIActions(button, p, action);
+        } else if (['solution', 'pattern-solution'].includes(action)) {
+            window.SmartGrind.renderers._handleSolutionActions(button, p, action);
         }
     },
 

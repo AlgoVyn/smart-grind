@@ -62,10 +62,15 @@ window.SmartGrind.ui.sidebarResizer = {
         window.SmartGrind.ui.sidebarResizer.isResizing = false;
 
         // Remove event listeners
-        document.removeEventListener('mousemove', window.SmartGrind.ui.sidebarResizer.resize);
-        document.removeEventListener('mouseup', window.SmartGrind.ui.sidebarResizer.stopResize);
-        document.removeEventListener('touchmove', window.SmartGrind.ui.sidebarResizer.resize);
-        document.removeEventListener('touchend', window.SmartGrind.ui.sidebarResizer.stopResize);
+        const events = [
+            ['mousemove', 'resize'],
+            ['mouseup', 'stopResize'],
+            ['touchmove', 'resize'],
+            ['touchend', 'stopResize']
+        ];
+        events.forEach(([event, method]) => {
+            document.removeEventListener(event, window.SmartGrind.ui.sidebarResizer[method]);
+        });
 
         // Remove resizing class
         document.body.classList.remove('sidebar-resizing');

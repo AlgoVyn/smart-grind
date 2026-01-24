@@ -229,22 +229,19 @@ window.SmartGrind.ui._renderMarkdown = (markdown, contentElement) => {
     }
 };
 
-// Open solution modal
-window.SmartGrind.ui.openSolutionModal = (problemId) => {
+const loadSolution = (solutionFile, loadingText, errorPrefix, extraErrorText = '') => {
     const modal = document.getElementById('solution-modal');
     const content = document.getElementById('solution-content');
     if (!modal || !content) return;
 
     // Show loading
-    content.innerHTML = '<div class="loading flex items-center justify-center min-h-[200px]"><div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div><span class="ml-3 text-theme-muted">Loading solution...</span></div>';
+    content.innerHTML = `<div class="loading flex items-center justify-center min-h-[200px]"><div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div><span class="ml-3 text-theme-muted">${loadingText}</span></div>`;
     modal.classList.remove('hidden');
 
-    // Load and render solution
-    const solutionFile = `/smartgrind/solutions/${problemId}.md`;
     fetch(solutionFile)
         .then(response => {
             if (!response.ok) {
-                throw new Error('Failed to load solution file (status: ' + response.status + ')');
+                throw new Error(`Failed to load ${errorPrefix} file (status: ${response.status})`);
             }
             return response.text();
         })
@@ -254,44 +251,23 @@ window.SmartGrind.ui.openSolutionModal = (problemId) => {
             window.SmartGrind.ui.updateSolutionScrollProgress();
         })
         .catch(error => {
-            content.innerHTML = '<p>Error loading solution: ' + error.message + '</p>' +
-                '<p>File: ' + solutionFile + '</p>';
+            content.innerHTML = `<p>Error loading ${errorPrefix}: ${error.message}</p>` +
+                `<p>File: ${solutionFile}</p>${extraErrorText}`;
         });
+};
+
+// Open solution modal
+window.SmartGrind.ui.openSolutionModal = (problemId) => {
+    const solutionFile = `/smartgrind/solutions/${problemId}.md`;
+    loadSolution(solutionFile, 'Loading solution...', 'solution');
 };
 
 // Open pattern solution modal
 window.SmartGrind.ui.openPatternSolutionModal = (patternName) => {
-    const modal = document.getElementById('solution-modal');
-    const content = document.getElementById('solution-content');
-    if (!modal || !content) return;
-
-    // Show loading
-    content.innerHTML = '<div class="loading flex items-center justify-center min-h-[200px]"><div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div><span class="ml-3 text-theme-muted">Loading pattern solution...</span></div>';
-    modal.classList.remove('hidden');
-
-    // Use the pattern mapping system to get the correct filename
     const patternFilename = window.SmartGrind.patterns.getPatternFilename(patternName);
-
-    // Try to find a pattern solution file
     const solutionFile = `/smartgrind/patterns/${patternFilename}.md`;
-
-    fetch(solutionFile)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to load pattern solution file (status: ' + response.status + ')');
-            }
-            return response.text();
-        })
-        .then(markdown => window.SmartGrind.ui._renderMarkdown(markdown, content))
-        .then(() => {
-            content.addEventListener('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
-            window.SmartGrind.ui.updateSolutionScrollProgress();
-        })
-        .catch(error => {
-            content.innerHTML = '<p>Error loading pattern solution: ' + error.message + '</p>' +
-                '<p>File: ' + solutionFile + '</p>' +
-                '<p>This pattern may not have a dedicated solution file yet.</p>';
-        });
+    loadSolution(solutionFile, 'Loading pattern solution...', 'pattern solution',
+        '<p>This pattern may not have a dedicated solution file yet.</p>');
 };
 
 // Close solution modal
