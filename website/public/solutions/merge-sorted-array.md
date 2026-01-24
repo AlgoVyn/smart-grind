@@ -2,445 +2,520 @@
 
 ## Problem Description
 
-You are given two integer arrays `nums1` and `nums2`, sorted in non-decreasing order, and two integers `m` and `n` representing the number of elements in `nums1` and `nums2` respectively.
+You are given two integer arrays `nums1` and `nums2`, sorted in non-decreasing order, and two integers `m` and `n`, representing the number of elements in `nums1` and `nums2` respectively.
 
-Merge `nums1` and `nums2` into a single array sorted in non-decreasing order. The result should be stored in `nums1` in place.
+Merge `nums1` and `nums2` into a single sorted array in non-decreasing order.
 
-### Important Notes
+The final sorted array should not be returned by the function, but instead be stored inside the array `nums1`.
 
-- `nums1` has length `m + n`, where the first `m` elements are valid and the last `n` elements are placeholders (initialized to 0).
-- `nums2` has length `n`.
-- The merge must be done **in-place** within `nums1`.
-- The final merged array should also be sorted in non-decreasing order.
+To accommodate this:
+- `nums1` has a capacity of `m + n` elements
+- The first `m` elements should be the elements to merge
+- The last `n` elements are initialized to zeros and should be ignored
+
+This is one of the classic array manipulation problems that tests your understanding of:
+1. In-place modification constraints
+2. Two-pointer technique
+3. Edge case handling
+4. Time/space optimization
 
 ---
 
 ## Examples
 
 **Example 1:**
-
-| Input | Output |
-|-------|--------|
-| `nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3` | `[1,2,2,3,5,6]` |
-
-**Explanation:** Merging `[1,2,3]` and `[2,5,6]` produces `[1,2,2,3,5,6]`.
+```python
+Input: nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3
+Output: [1,2,2,3,5,6]
+Explanation: 
+- The first 3 elements of nums1 are [1,2,3]
+- nums2 contains [2,5,6]
+- After merging: [1,2,2,3,5,6]
+```
 
 **Example 2:**
-
-| Input | Output |
-|-------|--------|
-| `nums1 = [1], m = 1, nums2 = [], n = 0` | `[1]` |
-
-**Explanation:** When `nums2` is empty, the result is just `nums1`.
+```python
+Input: nums1 = [1], m = 1, nums2 = [], n = 0
+Output: [1]
+Explanation: nums2 is empty, so nums1 remains unchanged
+```
 
 **Example 3:**
-
-| Input | Output |
-|-------|--------|
-| `nums1 = [0], m = 0, nums2 = [1], n = 1` | `[1]` |
-
-**Explanation:** When `nums1` has no valid elements, the result is just `nums2`.
+```python
+Input: nums1 = [0], m = 0, nums2 = [1], n = 1
+Output: [1]
+Explanation: nums1 has no elements, all elements come from nums2
+```
 
 **Example 4:**
-
-| Input | Output |
-|-------|--------|
-| `nums1 = [4,5,6,0,0,0], m = 3, nums2 = [1,2,3], n = 3` | `[1,2,3,4,5,6]` |
-
-**Explanation:** All elements from `nums2` are smaller than those in `nums1`.
+```python
+Input: nums1 = [4,5,6,0,0,0], m = 3, nums2 = [1,2,3], n = 3
+Output: [1,2,3,4,5,6]
+Explanation: All elements from nums2 are smaller than those in nums1
+```
 
 **Example 5:**
-
-| Input | Output |
-|-------|--------|
-| `nums1 = [1,2,3,0,0], m = 3, nums2 = [4,5], n = 2` | `[1,2,3,4,5]` |
-
-**Explanation:** All elements from `nums1` are smaller than those in `nums2`.
+```python
+Input: nums1 = [2,0], m = 1, nums2 = [1], n = 1
+Output: [1,2]
+Explanation: nums2 element is smaller, so it goes first
+```
 
 ---
 
 ## Constraints
 
+- `0 <= m, n <= 200`
+- `-10^9 <= nums1[i], nums2[i] <= 10^9`
 - `nums1.length == m + n`
 - `nums2.length == n`
-- `0 <= m, n <= 200`
-- `1 <= m + n <= 200`
-- `-10^9 <= nums1[i], nums2[j] <= 10^9`
-
-**Follow-up:** Can you achieve this in `O(m + n)` time with `O(1)` extra space?
+- `nums1` and `nums2` are sorted in non-decreasing order
 
 ---
 
 ## Intuition
 
-The key insight for solving this problem efficiently is to **merge from the end** rather than the beginning. 
+The key insight to solve this problem efficiently is to **merge from the end** of the array:
 
-When we try to merge from the beginning (like we would with extra space available), we would overwrite elements in `nums1` that haven't been processed yet. Since `nums1` has extra space at the end (the last `n` positions), we can use this to our advantage.
+1. **Why merge from the end?** - If we try to merge from the beginning, we'd overwrite unmerged elements in `nums1`. The last `n` elements of `nums1` are zeros (placeholder), so they're safe to use.
 
-**Why merging from the end works:**
-1. The largest elements should be placed at the end of the array
-2. By placing elements from largest to smallest, we avoid overwriting elements that still need to be processed
-3. We can use three pointers to track positions in both arrays and the destination
+2. **Three pointers strategy**:
+   - `i`: Points to the last valid element in `nums1` (at index `m-1`)
+   - `j`: Points to the last element in `nums2` (at index `n-1`)
+   - `k`: Points to the last position in `nums1` (at index `m+n-1`)
 
-**Visual Example:**
-```
-Initial: nums1 = [1,2,3,0,0,0], nums2 = [2,5,6]
-          i=2    j=2    k=5
+3. **Compare and place** - Compare elements at `i` and `j`, place the larger one at `k`, and move the respective pointer left.
 
-Step 1: Compare nums1[2]=3 and nums2[2]=6 → 6 > 3
-        nums1[5] = 6, j=1, k=4
-        nums1 = [1,2,3,0,0,6]
-
-Step 2: Compare nums1[2]=3 and nums2[1]=5 → 5 > 3
-        nums1[4] = 5, j=0, k=3
-        nums1 = [1,2,3,0,5,6]
-
-Step 3: Compare nums1[2]=3 and nums2[0]=2 → 3 > 2
-        nums1[3] = 3, i=1, k=2
-        nums1 = [1,2,3,3,5,6]
-
-Step 4: Compare nums1[1]=2 and nums2[0]=2 → 2 == 2
-        nums1[2] = 2, j=-1, k=1
-        nums1 = [1,2,2,3,5,6]
-
-Step 5: j < 0, copy remaining nums1 elements (already in place)
-        nums1 = [1,2,2,3,5,6]
-```
+4. **Handle remaining elements** - If `nums2` still has elements, copy them all; if `nums1` has remaining elements, they're already in place.
 
 ---
 
-## Approach
+## Approach 1: Three Pointers (Optimal) ⭐
 
-### Approach 1: Three Pointer (In-place from End) - OPTIMAL
+### Algorithm
+1. Initialize three pointers:
+   - `i` = `m - 1` (last valid element in nums1)
+   - `j` = `n - 1` (last element in nums2)
+   - `k` = `m + n - 1` (last position in nums1)
+2. While both `i >= 0` and `j >= 0`:
+   - If `nums1[i] > nums2[j]`: place `nums1[i]` at `k`, decrement `i`
+   - Else: place `nums2[j]` at `k`, decrement `j`
+   - Decrement `k` in both cases
+3. If any elements remain in `nums2`, copy them to `nums1`
 
-This is the optimal approach that achieves O(m + n) time and O(1) space complexity. We use three pointers:
-- `i`: Points to the last valid element in `nums1` (initialized to `m - 1`)
-- `j`: Points to the last element in `nums2` (initialized to `n - 1`)
-- `k`: Points to the last position in `nums1` (initialized to `m + n - 1`)
+### Code
 
-We compare elements from both arrays starting from the end and place the larger one at position `k`, then decrement the appropriate pointer.
-
-### Approach 2: Two Pointer (From Beginning with Extra Space)
-
-This approach uses O(m + n) extra space by creating a copy of `nums1` first. We then merge elements from the beginning, comparing and placing the smaller element at each position.
-
-### Approach 3: Built-in Sort (Simple)
-
-The simplest approach concatenates both arrays and sorts them using the built-in sort function. While simple, this has O((m+n) log(m+n)) time complexity.
-
----
-
-## Solution
-
-### Approach 1: Three Pointer (In-place from End) - Optimal
-
+````carousel
 ```python
 from typing import List
 
 class Solution:
     def merge(self, nums1: List[int], m: int, nums2: List[int], n: int) -> None:
         """
-        Merge two sorted arrays in place using three pointers.
-        Pointers: i (end of nums1 valid), j (end of nums2), k (end of nums1 total)
-        
-        Time: O(m + n)
-        Space: O(1)
+        Do not return anything, modify nums1 in-place instead.
         """
         i, j, k = m - 1, n - 1, m + n - 1
         
-        # Merge from the end to avoid overwriting unprocessed elements
-        while i >= 0 and j >= 0:
-            if nums1[i] > nums2[j]:
+        while j >= 0:
+            if i >= 0 and nums1[i] > nums2[j]:
                 nums1[k] = nums1[i]
                 i -= 1
             else:
                 nums1[k] = nums2[j]
                 j -= 1
             k -= 1
-        
-        # Copy remaining elements from nums2 if any
-        # (No need to copy remaining nums1 elements - they're already in place)
-        while j >= 0:
-            nums1[k] = nums2[j]
-            j -= 1
-            k -= 1
 ```
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    void merge(vector<int>& nums1, int m, vector<int>& nums2, int n) {
+        int i = m - 1;
+        int j = n - 1;
+        int k = m + n - 1;
+        
+        while (j >= 0) {
+            if (i >= 0 && nums1[i] > nums2[j]) {
+                nums1[k] = nums1[i];
+                i--;
+            } else {
+                nums1[k] = nums2[j];
+                j--;
+            }
+            k--;
+        }
+    }
+};
+```
+<!-- slide -->
+```java
+class Solution {
+    public void merge(int[] nums1, int m, int[] nums2, int n) {
+        int i = m - 1;
+        int j = n - 1;
+        int k = m + n - 1;
+        
+        while (j >= 0) {
+            if (i >= 0 && nums1[i] > nums2[j]) {
+                nums1[k] = nums1[i];
+                i--;
+            } else {
+                nums1[k] = nums2[j];
+                j--;
+            }
+            k--;
+        }
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums1
+ * @param {number} m
+ * @param {number[]} nums2
+ * @param {number} n
+ * @return {void} Do not return anything, modify nums1 in-place instead.
+ */
+var merge = function(nums1, m, nums2, n) {
+    let i = m - 1;
+    let j = n - 1;
+    let k = m + n - 1;
+    
+    while (j >= 0) {
+        if (i >= 0 && nums1[i] > nums2[j]) {
+            nums1[k] = nums1[i];
+            i--;
+        } else {
+            nums1[k] = nums2[j];
+            j--;
+        }
+        k--;
+    }
+};
+```
+````
 
-### Approach 2: Two Pointer (From Beginning with Extra Space)
+### Time Complexity
+**O(m + n)** - Each element is processed exactly once
 
+### Space Complexity
+**O(1)** - In-place modification, only using constant extra space for pointers
+
+---
+
+## Approach 2: Brute Force (Merging to Temporary Array)
+
+### Algorithm
+1. Copy the first `m` elements from `nums1` to a temporary array
+2. Use two pointers to merge elements from `nums1` (temp) and `nums2` back into `nums1`
+3. This approach doesn't work for in-place requirement but is useful for understanding
+
+### Code
+
+````carousel
 ```python
 from typing import List
 
 class Solution:
-    def merge(self, nums1: List[int], m: int, nums2: List[int], n: int) -> None:
+    def merge_bruteforce(self, nums1: List[int], m: int, nums2: List[int], n: int) -> None:
         """
-        Merge two sorted arrays using two pointers from the beginning.
-        Uses O(m + n) extra space by copying nums1 first.
-        
-        Time: O(m + n)
-        Space: O(m + n)
+        Not truly in-place - uses temporary storage for understanding.
         """
-        # Create a copy of the first m elements of nums1
-        nums1_copy = nums1[:m]
-        
+        temp = nums1[:m].copy()
         i, j, k = 0, 0, 0
         
-        # Merge from the beginning
         while i < m and j < n:
-            if nums1_copy[i] <= nums2[j]:
-                nums1[k] = nums1_copy[i]
+            if temp[i] <= nums2[j]:
+                nums1[k] = temp[i]
                 i += 1
             else:
                 nums1[k] = nums2[j]
                 j += 1
             k += 1
         
-        # Copy remaining elements from nums1_copy if any
+        # Copy remaining elements from temp
         while i < m:
-            nums1[k] = nums1_copy[i]
+            nums1[k] = temp[i]
             i += 1
             k += 1
         
-        # Copy remaining elements from nums2 if any
+        # Copy remaining elements from nums2 (if any)
         while j < n:
             nums1[k] = nums2[j]
             j += 1
             k += 1
 ```
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    void merge(vector<int>& nums1, int m, vector<int>& nums2, int n) {
+        vector<int> temp(nums1.begin(), nums1.begin() + m);
+        int i = 0, j = 0, k = 0;
+        
+        while (i < m && j < n) {
+            if (temp[i] <= nums2[j]) {
+                nums1[k++] = temp[i++];
+            } else {
+                nums1[k++] = nums2[j++];
+            }
+        }
+        
+        while (i < m) {
+            nums1[k++] = temp[i++];
+        }
+        
+        while (j < n) {
+            nums1[k++] = nums2[j++];
+        }
+    }
+};
+```
+<!-- slide -->
+```java
+class Solution {
+    public void merge(int[] nums1, int m, int[] nums2, int n) {
+        int[] temp = new int[m];
+        System.arraycopy(nums1, 0, temp, 0, m);
+        
+        int i = 0, j = 0, k = 0;
+        
+        while (i < m && j < n) {
+            if (temp[i] <= nums2[j]) {
+                nums1[k++] = temp[i++];
+            } else {
+                nums1[k++] = nums2[j++];
+            }
+        }
+        
+        while (i < m) {
+            nums1[k++] = temp[i++];
+        }
+        
+        while (j < n) {
+            nums1[k++] = nums2[j++];
+        }
+    }
+}
+```
+<!-- slide -->
+```javascript
+var merge = function(nums1, m, nums2, n) {
+    const temp = nums1.slice(0, m);
+    let i = 0, j = 0, k = 0;
+    
+    while (i < m && j < n) {
+        if (temp[i] <= nums2[j]) {
+            nums1[k++] = temp[i++];
+        } else {
+            nums1[k++] = nums2[j++];
+        }
+    }
+    
+    while (i < m) {
+        nums1[k++] = temp[i++];
+    }
+    
+    while (j < n) {
+        nums1[k++] = nums2[j++];
+    }
+};
+```
+````
 
-### Approach 3: Built-in Sort (Simple)
+### Time Complexity
+**O(m + n)** - Each element is processed exactly once
+
+### Space Complexity
+**O(m)** - Requires temporary array to store elements from nums1
+
+---
+
+## Approach 3: Using Built-in Functions (Python only)
+
+### Algorithm
+1. Slice the first `m` elements from nums1
+2. Concatenate with nums2
+3. Sort the result
+4. Copy back to nums1
+
+### Code
 
 ```python
 from typing import List
 
 class Solution:
-    def merge(self, nums1: List[int], m: int, nums2: List[int], n: int) -> None:
+    def merge_builtin(self, nums1: List[int], m: int, nums2: List[int], n: int) -> None:
         """
-        Merge two sorted arrays using built-in sort.
-        Simplest approach but has higher time complexity.
-        
-        Time: O((m + n) * log(m + n))
-        Space: O(1) additional (sort is in-place)
+        Simple approach using built-in functions.
+        Note: This violates the in-place spirit but is concise.
         """
-        # Copy nums2 elements into the placeholder positions of nums1
-        nums1[m:] = nums2
-        
-        # Sort the entire array
-        nums1.sort()
+        nums1[:] = sorted(nums1[:m] + nums2)
+```
+
+### Time Complexity
+**O((m+n) log (m+n))** - Sorting dominates
+
+### Space Complexity
+**O(m + n)** - Creates temporary merged array
+
+---
+
+## Step-by-Step Example
+
+Let's trace through `nums1 = [1,3,5,0,0,0], m = 3, nums2 = [2,4,6], n = 3`:
+
+**Step 1: Initialize pointers**
+```
+nums1 = [1, 3, 5, 0, 0, 0]
+                 ^    ^    ^
+                 i    j    k
+
+i = 2 (value = 5)
+j = 2 (value = 6)
+k = 5 (position to place)
+```
+
+**Step 2: Compare nums1[i] and nums2[j]**
+```
+5 < 6, so place 6 at k
+nums1 = [1, 3, 5, 0, 0, 6]
+                 ^    ^  ^
+                 i    j  k (now 4)
+
+j = 1 (value = 4)
+k = 4
+```
+
+**Step 3: Compare 5 and 4**
+```
+5 > 4, so place 5 at k
+nums1 = [1, 3, 5, 0, 5, 6]
+              ^    ^  ^
+              i    j  k (now 3)
+
+i = 1 (value = 3)
+k = 3
+```
+
+**Step 4: Compare 3 and 4**
+```
+3 < 4, so place 4 at k
+nums1 = [1, 3, 5, 4, 5, 6]
+              ^  ^  ^
+              i  j  k (now 2)
+
+j = 0 (value = 2)
+k = 2
+```
+
+**Step 5: Compare 3 and 2**
+```
+3 > 2, so place 3 at k
+nums1 = [1, 3, 5, 4, 5, 6]
+           ^  ^  ^
+           i  j  k (now 1)
+
+i = 0 (value = 1)
+k = 1
+```
+
+**Step 6: Compare 1 and 2**
+```
+1 < 2, so place 2 at k
+nums1 = [1, 3, 5, 4, 5, 6]
+           ^  ^
+           i  j
+           k = 0
+
+j = -1 (exhausted)
+```
+
+**Step 7: Copy remaining elements from nums2**
+```
+j is now -1, but nums2 still has [1] at index 0
+Place 1 at k=0
+nums1 = [1, 2, 3, 4, 5, 6] ✓
 ```
 
 ---
 
-## Explanation
+## Key Optimizations
 
-### Approach 1: Three Pointer (In-place from End) - Detailed
-
-**Step-by-step breakdown:**
-
-1. **Initialize pointers:**
-   - `i = m - 1`: Points to the last valid element in `nums1`
-   - `j = n - 1`: Points to the last element in `nums2`
-   - `k = m + n - 1`: Points to the last position in `nums1` (where the largest element should go)
-
-2. **Compare and place elements:**
-   - While both `i >= 0` and `j >= 0`:
-     - If `nums1[i] > nums2[j]`: Place `nums1[i]` at position `k`, decrement `i`
-     - Otherwise: Place `nums2[j]` at position `k`, decrement `j`
-     - Decrement `k` after each placement
-
-3. **Handle remaining elements:**
-   - If `j >= 0` after the first loop: Copy remaining elements from `nums2` to `nums1`
-   - If `i >= 0`: No action needed - these elements are already in their correct positions
-
-**Why this works:**
-- We always place the larger of the two current elements at position `k`
-- This ensures that larger elements are placed toward the end of the array
-- By starting from the end, we never overwrite elements that haven't been processed yet
-
-### Approach 2: Two Pointer (From Beginning) - Detailed
-
-**Step-by-step breakdown:**
-
-1. **Create a copy** of the first `m` elements of `nums1` to preserve them
-2. **Initialize pointers:**
-   - `i = 0`: Points to current position in `nums1_copy`
-   - `j = 0`: Points to current position in `nums2`
-   - `k = 0`: Points to current position in `nums1`
-
-3. **Merge from the beginning:**
-   - While both `i < m` and `j < n`:
-     - Compare `nums1_copy[i]` and `nums2[j]`
-     - Place the smaller element at `nums1[k]`
-     - Increment the appropriate pointer
-
-4. **Copy remaining elements** from whichever array still has elements
-
-### Approach 3: Built-in Sort - Detailed
-
-**Step-by-step breakdown:**
-
-1. **Copy `nums2` elements** into the placeholder positions of `nums1` using slice assignment
-2. **Sort the entire `nums1` array** using Python's built-in sort
-3. Done! The array is now merged and sorted
+1. **Merge from end** - Avoids overwriting unmerged elements
+2. **Single pass** - Each element is processed exactly once
+3. **Early termination** - Loop ends when nums2 is exhausted (nums1 elements are already in place)
 
 ---
 
-## Complexity Analysis
+## Time Complexity Comparison
 
-| Approach | Time Complexity | Space Complexity | In-place | Notes |
-|----------|----------------|------------------|----------|-------|
-| Three Pointer (from end) | O(m + n) | O(1) | ✅ | Optimal - most efficient |
-| Two Pointer (from beginning) | O(m + n) | O(m + n) | ❌ | Uses extra space |
-| Built-in Sort | O((m + n) log(m + n)) | O(1) | ✅ | Simple but less efficient |
-
-**Detailed Analysis:**
-
-- **Three Pointer Approach:**
-  - Each element is processed exactly once
-  - At most `m + n` comparisons and placements
-  - Constant extra space (just three pointer variables)
-
-- **Two Pointer Approach:**
-  - Each element is processed exactly once
-  - Additional O(m + n) space for the copy of `nums1`
-  - Useful when in-place operation is not required
-
-- **Built-in Sort Approach:**
-  - Sorting takes O((m + n) log(m + n)) comparisons
-  - No additional space (sort is in-place)
-  - Simpler code but less efficient for large arrays
-
----
-
-## Edge Cases
-
-1. **Empty nums1 (m = 0):**
-   ```python
-   nums1 = [0], m = 0, nums2 = [1], n = 1
-   Result: nums1 = [1]
-   ```
-   The second while loop handles this by copying all of `nums2` to `nums1`.
-
-2. **Empty nums2 (n = 0):**
-   ```python
-   nums1 = [1], m = 1, nums2 = [], n = 0
-   Result: nums1 = [1]
-   ```
-   The first while loop doesn't execute, and no elements need to be copied from `nums2`.
-
-3. **All elements from nums2 are smaller:**
-   ```python
-   nums1 = [4,5,6,0,0,0], m = 3, nums2 = [1,2,3], n = 3
-   Result: nums1 = [1,2,3,4,5,6]
-   ```
-   All elements from `nums2` are placed first, then remaining `nums1` elements are already in place.
-
-4. **All elements from nums1 are smaller:**
-   ```python
-   nums1 = [1,2,3,0,0], m = 3, nums2 = [4,5], n = 2
-   Result: nums1 = [1,2,3,4,5]
-   ```
-   After the first while loop, `j < 0`, so no elements need to be copied from `nums2`.
-
-5. **Single element arrays:**
-   ```python
-   nums1 = [2,0], m = 1, nums2 = [1], n = 1
-   Result: nums1 = [1,2]
-   ```
-   Works correctly for minimum input sizes.
-
-6. **Duplicate elements:**
-   ```python
-   nums1 = [2,2,3,0,0,0], m = 3, nums2 = [2,2,2], n = 3
-   Result: nums1 = [2,2,2,2,2,3]
-   ```
-   Correctly handles duplicates by maintaining relative order.
+| Approach | Time Complexity | Space Complexity | Notes |
+|----------|-----------------|------------------|-------|
+| Three Pointers (Optimal) | O(m + n) | O(1) | **Best** - in-place, optimal |
+| Brute Force (Temp Array) | O(m + n) | O(m) | Easy to understand, not truly in-place |
+| Built-in Functions | O((m+n) log (m+n)) | O(m + n) | Concise but inefficient |
 
 ---
 
 ## Related Problems
 
-1. **[Merge Two Sorted Lists](https://leetcode.com/problems/merge-two-sorted-lists/)**
-   - Merge two sorted linked lists into one sorted list
-   - Similar concept but with linked list data structure
-
-2. **[Merge k Sorted Lists](https://leetcode.com/problems/merge-k-sorted-lists/)**
-   - Merge k sorted linked lists into one sorted list
-   - Uses heap/priority queue for efficient merging
-
-3. **[Median of Two Sorted Arrays](https://leetcode.com/problems/median-of-two-sorted-arrays/)**
-   - Find the median of two sorted arrays
-   - Uses binary search for O(log(min(m,n))) solution
-
-4. **[Intersection of Two Sorted Arrays](https://leetcode.com/problems/intersection-of-two-arrays-ii/)**
-   - Find intersection of two sorted arrays
-   - Uses two-pointer approach
-
-5. **[Move Zeroes](https://leetcode.com/problems/move-zeroes/)**
-   - Move all zeroes to the end while maintaining non-zero order
-   - Uses two-pointer approach
-
-6. **[Remove Duplicates from Sorted Array](https://leetcode.com/problems/remove-duplicates-from-sorted-array/)**
-   - Remove duplicates from sorted array in-place
-   - Uses two-pointer approach
-
-7. **[Squares of a Sorted Array](https://leetcode.com/problems/squares-of-a-sorted-array/)**
-   - Return squares of sorted array in sorted order
-   - Uses two-pointer from end approach
+1. **[Merge Two Sorted Lists](linked-list-merging-two-sorted-lists.md)** - Merge two sorted linked lists
+2. **[K-way Merge](heap-k-way-merge.md)** - Merge k sorted arrays using a heap
+3. **[Find Median of Two Sorted Arrays](binary-search-median-kth-across-two-sorted-arrays.md)** - Find median of two sorted arrays
+4. **[Array Merge Sorted Pattern](array-merge-sorted-array-in-place-from-end.md)** - General pattern for merging sorted arrays
+5. **[Squares of a Sorted Array](two-pointers-converging-sorted-array-target-sum.md)** - Similar two-pointer pattern
 
 ---
 
 ## Video Tutorials
 
-1. **[Merge Sorted Array - LeetCode 88](https://www.youtube.com/watch?v=2wWhQaTE4jI)**
-   - Detailed explanation with visual animations
-   - Covers the three-pointer approach
-
-2. **[Merge Sorted Array - NeetCode](https://www.youtube.com/watch?v=0DnM0Z5_2Wk)**
-   - Clear explanation of the optimal approach
-   - Includes step-by-step walkthrough
-
-3. **[Merge Sorted Array - FreeCodeCamp](https://www.youtube.com/watch?v=3M_9o2W4qGQ)**
-   - Comprehensive tutorial with multiple approaches
-   - Time and space complexity analysis
-
-4. **[Merge Sorted Array - Algorithms Made Easy](https://www.youtube.com/watch?v=3DjKxq8p2Tc)**
-   - Visual explanation of pointer movements
-   - Covers edge cases
+- [NeetCode - Merge Sorted Array](https://www.youtube.com/watch?v=0lW8wX1EBq8)
+- [Back to Back SWE - Merge Sorted Array](https://www.youtube.com/watch?v=2g80sJpXPfw)
+- [LeetCode Official Solution](https://www.youtube.com/watch?v=2g80sJpXPfw)
+- [Abdul Bari - Merge Sort Algorithm](https://www.youtube.com/watch?v=jlHkDBcCbzY)
 
 ---
 
 ## Follow-up Questions
 
-1. **Can we do better than O(m + n) time?**
-   - No, we must look at each element at least once, so O(m + n) is the lower bound.
+1. **What if the arrays are in descending order instead of ascending?**
+   - Simply reverse the comparison: `nums1[i] < nums2[j]` instead of `>`
 
-2. **Can we do better than O(1) space?**
-   - For in-place requirement, O(1) is the minimum.
-   - If we don't need in-place, we could use O(m + n) space with the two-pointer approach.
+2. **How would you merge more than two sorted arrays?**
+   - Use a min-heap (priority queue) to always get the smallest element from available arrays
 
-3. **What if nums1 doesn't have enough space?**
-   - The problem guarantees `nums1.length == m + n`
-   - If this weren't guaranteed, we'd need to create a new array or use a different data structure.
+3. **What if nums1 doesn't have enough trailing zeros?**
+   - You would need to create a new array or use a different approach entirely
 
-4. **How would this problem change if the arrays were sorted in descending order?**
-   - We would still merge from the end, but we would place the **smaller** element first
-   - The comparison logic would be reversed
+4. **How do you handle duplicates in the merge?**
+   - The algorithm naturally handles duplicates - equal elements can be placed in either order
 
-5. **What if we needed to merge more than two arrays?**
-   - We could use a min-heap to efficiently merge k sorted arrays
-   - Time complexity would be O((m + n) log k)
+5. **What if you need to merge in-place without extra space for very large arrays?**
+   - The three-pointer approach already uses O(1) extra space
+
+6. **How would you modify this for linked lists instead of arrays?**
+   - You can merge from the end of linked lists, but it requires knowing the previous nodes
+
+7. **Can you parallelize this merge operation?**
+   - For large arrays, you could divide and conquer, but the dependencies make it challenging
 
 ---
 
-## Summary
+## Common Mistakes to Avoid
 
-The Merge Sorted Array problem is a classic example of using the **two-pointer technique** with a clever twist - merging from the **end** to avoid overwriting unprocessed elements. The optimal solution:
+1. **Merging from the beginning** - Causes overwriting of unmerged elements
+2. **Off-by-one errors** - Ensure pointers start at correct positions (m-1, n-1, m+n-1)
+3. **Forgetting to copy remaining elements** - If nums2 has elements left after nums1 is exhausted
+4. **Incorrect loop condition** - Use `while j >= 0` to ensure all nums2 elements are processed
+5. **Not handling empty arrays** - m or n could be 0
 
-- **Time Complexity:** O(m + n) - each element is processed exactly once
-- **Space Complexity:** O(1) - constant extra space for three pointers
-- **Key Insight:** Start from the end and place the larger element at the current position
-- **Main Challenge:** Managing pointer updates correctly to avoid off-by-one errors
+---
 
-This pattern is widely applicable and forms the foundation for many other array manipulation problems.
+## References
+
+- [LeetCode 88 - Merge Sorted Array](https://leetcode.com/problems/merge-sorted-array/)
+- Three Pointer Technique: Efficient in-place merging
+- In-place Algorithm: Modifying data without additional data structures
 
