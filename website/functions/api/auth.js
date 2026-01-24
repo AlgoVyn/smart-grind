@@ -1,3 +1,21 @@
+import { SignJWT } from 'jose';
+
+/**
+ * Escapes HTML special characters to prevent XSS.
+ * @param {string} str - The string to escape.
+ * @returns {string} The escaped string.
+ */
+function escapeHtml(str) {
+  const map = {
+    '&': '&',
+    '<': '<',
+    '>': '>',
+    '"': '"',
+    "'": '&#039;'
+  };
+  return str.replace(/[&<>"']/g, m => map[m]);
+}
+
 /**
  * Signs a JWT token with the given payload and secret.
  * @param {Object} payload - The payload to encode in the JWT.
@@ -5,22 +23,11 @@
  * @returns {string} The signed JWT token.
  */
 async function signJWT(payload, secret) {
-   const header = { alg: 'HS256', typ: 'JWT' };
-   const encodedHeader = btoa(JSON.stringify(header)).replace(/=/g, '');
-   const encodedPayload = btoa(JSON.stringify(payload)).replace(/=/g, '');
-
-   const data = `${encodedHeader}.${encodedPayload}`;
-   const key = await crypto.subtle.importKey(
-     'raw',
-     new TextEncoder().encode(secret),
-     { name: 'HMAC', hash: 'SHA-256' },
-     false,
-     ['sign']
-   );
-   const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data));
-   const encodedSignature = btoa(String.fromCharCode(...new Uint8Array(signature))).replace(/=/g, '');
-
-   return `${data}.${encodedSignature}`;
+   const secretKey = new TextEncoder().encode(secret);
+   return await new SignJWT(payload)
+     .setProtectedHeader({ alg: 'HS256' })
+     .setExpirationTime(Math.floor(Date.now() / 1000) + (24 * 60 * 60)) // 24 hours
+     .sign(secretKey);
 }
 
 /**
@@ -45,23 +52,51 @@ function validateOAuthCode(params) {
  * @returns {Response} The HTTP response.
  */
 export async function onRequestGet({ request, env }) {
-   const url = new URL(request.url);
-   const redirectUri = `https://algovyn.com/smartgrind/api/auth`;
-   const action = url.searchParams.get('action');
+    const url = new URL(request.url);
+    const redirectUri = `https://algovyn.com/smartgrind/api/auth`;
+    const action = url.searchParams.get('action');
 
-   if (action === 'login') {
-     // Redirect to Google OAuth
-     const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-       `client_id=${env.GOOGLE_CLIENT_ID}&` +
-       `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-       `response_type=code&` +
-       `scope=openid%20email%20profile&` +
-       `state=callback`;
+    if (action === 'login') {
+      // Generate random state for CSRF protection
+      const state = crypto.randomUUID();
+      // Store state in KV with short TTL (5 minutes)
+      await env.KV.put(`oauth_state_${state}`, 'valid', { expirationTtl: 300 });
 
-     return Response.redirect(googleAuthUrl, 302);
-   }
+      // Redirect to Google OAuth
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+        `client_id=${env.GOOGLE_CLIENT_ID}&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+        `response_type=code&` +
+        `scope=openid%20email%20profile&` +
+        `state=${encodeURIComponent(state)}`;
 
-  if (url.searchParams.get('state') === 'callback') {
+      return Response.redirect(googleAuthUrl, 302);
+    }
+
+  const state = url.searchParams.get('state');
+  if (state) {
+     // Verify state parameter
+     const storedState = await env.KV.get(`oauth_state_${state}`);
+     if (!storedState) {
+       const html = `
+       <!DOCTYPE html>
+       <html>
+       <head><title>Sign In Failed</title></head>
+       <body>
+       <script>
+         if (window.opener) {
+           window.opener.postMessage({ type: 'auth-failure', message: 'Invalid state parameter.' }, window.location.origin);
+           setTimeout(() => window.close(), 500);
+         }
+       </script>
+       <p>Sign in failed: Invalid state.</p>
+       </body>
+       </html>`;
+       return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 400 });
+     }
+     // Delete used state
+     await env.KV.delete(`oauth_state_${state}`);
+
      const code = validateOAuthCode(url.searchParams);
      if (!code) {
        const html = `
@@ -222,12 +257,14 @@ export async function onRequestGet({ request, env }) {
     const userId = user.id;
     const displayName = user.name || user.email || 'User';
 
+    if (!env.JWT_SECRET) {
+      throw new Error('JWT_SECRET environment variable is not set');
+    }
     // Generate JWT
     const token = await signJWT({
       userId,
-      displayName,
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
-    }, env.JWT_SECRET || 'default-secret');
+      displayName
+    }, env.JWT_SECRET);
 
     // Store user data in KV only if new user
     try {
@@ -255,19 +292,23 @@ export async function onRequestGet({ request, env }) {
     }
 
     // Return HTML that handles auth for popup or fallback
+    const escapedDisplayName = escapeHtml(displayName);
     const html = `
     <!DOCTYPE html>
     <html>
     <head><title>Sign In Success</title></head>
     <body>
     <script>
+      const token = '${token.replace(/'/g, "\\'")}';
+      const userId = '${userId.replace(/'/g, "\\'")}';
+      const displayName = '${escapedDisplayName.replace(/'/g, "\\'")}';
       if (window.opener) {
-        window.opener.postMessage({ type: 'auth-success', token: '${token}', userId: '${userId}', displayName: '${displayName}' }, window.location.origin);
+        window.opener.postMessage({ type: 'auth-success', token, userId, displayName }, window.location.origin);
         setTimeout(() => window.close(), 500);
       } else {
-        localStorage.setItem('token', '${token}');
-        localStorage.setItem('userId', '${userId}');
-        localStorage.setItem('displayName', '${displayName.replace(/'/g, "\\'")}');
+        localStorage.setItem('token', token);
+        localStorage.setItem('userId', userId);
+        localStorage.setItem('displayName', displayName);
         window.location.href = '/smartgrind?token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}&displayName=${encodeURIComponent(displayName)}';
       }
     </script>

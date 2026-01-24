@@ -18,6 +18,6 @@ export default {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   transformIgnorePatterns: [
-    'node_modules/(?!(jest-environment-jsdom)/)',
+    'node_modules/(?!(jest-environment-jsdom|jose)/)',
   ],
 };

@@ -1,4 +1,10 @@
 import { onRequestGet, onRequestPost } from '../functions/api/user.js';
+import { jwtVerify } from 'jose';
+
+// Mock jose
+jest.mock('jose', () => ({
+  jwtVerify: jest.fn(),
+}));
 
 // Mock Request and Response
 global.Request = class Request {
@@ -50,17 +56,8 @@ describe('User API', () => {
       KV: mockKV,
     };
 
-    // Mock crypto.subtle.importKey to return a key
-    global.crypto.subtle.importKey.mockResolvedValue('mock-key');
-
-    // Mock crypto.subtle.verify to return true for valid tokens
-    global.crypto.subtle.verify.mockResolvedValue(true);
-
-    // Mock atob for JWT payload decoding
-    global.atob.mockImplementation((str) => {
-      if (str === 'payload') return JSON.stringify({ userId: 'user123' });
-      return '';
-    });
+    // Mock jwtVerify to return valid payload for valid tokens
+    jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
   });
 
   afterEach(() => {
@@ -91,7 +88,7 @@ describe('User API', () => {
     });
 
     test('should return 401 for invalid JWT', async () => {
-      global.crypto.subtle.verify.mockResolvedValue(false); // Invalid token
+      jwtVerify.mockRejectedValue(new Error('Invalid token')); // Invalid token
 
       const request = new Request('https://example.com/user', {
         headers: { 'Authorization': 'Bearer header.payload.signature' },
@@ -106,8 +103,7 @@ describe('User API', () => {
 
     test('should return 400 for invalid userId', async () => {
       // Mock valid JWT but invalid userId
-      global.crypto.subtle.verify.mockResolvedValue(true);
-      global.atob.mockReturnValue(JSON.stringify({ userId: 123 })); // Not string
+      jwtVerify.mockResolvedValue({ payload: { userId: 123 } }); // Not string
 
       const request = new Request('https://example.com/user', {
         headers: { 'Authorization': 'Bearer header.payload.signature' },
@@ -121,8 +117,7 @@ describe('User API', () => {
     });
 
     test('should return 400 for userId too long', async () => {
-      global.crypto.subtle.verify.mockResolvedValue(true);
-      global.atob.mockReturnValue(JSON.stringify({ userId: 'a'.repeat(101) }));
+      jwtVerify.mockResolvedValue({ payload: { userId: 'a'.repeat(101) } });
 
       const request = new Request('https://example.com/user', {
         headers: { 'Authorization': 'Bearer header.payload.signature' },
@@ -194,7 +189,7 @@ describe('User API', () => {
     });
 
     test('should return 400 for invalid JSON', async () => {
-      global.crypto.subtle.verify.mockResolvedValue(true);
+      jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
 
       const request = new Request('https://example.com/user', {
         method: 'POST',
@@ -210,7 +205,7 @@ describe('User API', () => {
     });
 
     test('should return 400 for missing data', async () => {
-      global.crypto.subtle.verify.mockResolvedValue(true);
+      jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
 
       const request = new Request('https://example.com/user', {
         method: 'POST',
@@ -226,7 +221,7 @@ describe('User API', () => {
     });
 
     test('should return 400 for invalid data type', async () => {
-      global.crypto.subtle.verify.mockResolvedValue(true);
+      jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
 
       const request = new Request('https://example.com/user', {
         method: 'POST',
@@ -242,7 +237,7 @@ describe('User API', () => {
     });
 
     test('should save data to KV and return OK', async () => {
-      global.crypto.subtle.verify.mockResolvedValue(true);
+      jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
 
       const request = new Request('https://example.com/user', {
         method: 'POST',
@@ -258,7 +253,7 @@ describe('User API', () => {
     });
 
     test('should return 500 on KV error', async () => {
-      global.crypto.subtle.verify.mockResolvedValue(true);
+      jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
       mockKV.put.mockRejectedValue(new Error('KV put error'));
 
       const request = new Request('https://example.com/user', {

@@ -1,3 +1,5 @@
+import { jwtVerify } from 'jose';
+
 /**
  * Verifies a JWT token with the given secret.
  * @param {string} token - The JWT token to verify.
@@ -6,28 +8,9 @@
  */
 async function verifyJWT(token, secret) {
   try {
-    const [header, payload, signature] = token.split('.');
-    const data = `${header}.${payload}`;
-
-    const key = await crypto.subtle.importKey(
-      'raw',
-      new TextEncoder().encode(secret),
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['verify']
-    );
-
-    const signatureBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0));
-    const valid = await crypto.subtle.verify('HMAC', key, signatureBytes, new TextEncoder().encode(data));
-
-    if (!valid) return null;
-
-    const decodedPayload = JSON.parse(atob(payload));
-    if (decodedPayload.exp && decodedPayload.exp < Math.floor(Date.now() / 1000)) {
-      return null; // Expired
-    }
-
-    return decodedPayload;
+    const secretKey = new TextEncoder().encode(secret);
+    const { payload } = await jwtVerify(token, secretKey);
+    return payload;
   } catch (e) {
     return null;
   }
@@ -40,14 +23,18 @@ async function verifyJWT(token, secret) {
  * @returns {Object|null} The decoded JWT payload if authenticated, null otherwise.
  */
 async function authenticate(request, env) {
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return null;
-  }
+   const authHeader = request.headers.get('Authorization');
+   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+     return null;
+   }
 
-  const token = authHeader.substring(7);
-  return await verifyJWT(token, env.JWT_SECRET || 'default-secret');
-}
+   if (!env.JWT_SECRET) {
+     throw new Error('JWT_SECRET environment variable is not set');
+   }
+
+   const token = authHeader.substring(7);
+   return await verifyJWT(token, env.JWT_SECRET);
+ }
 
 /**
  * Handles GET requests to retrieve user data.
