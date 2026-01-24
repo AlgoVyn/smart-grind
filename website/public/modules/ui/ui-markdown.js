@@ -249,6 +249,10 @@ window.SmartGrind.ui.openSolutionModal = (problemId) => {
             return response.text();
         })
         .then(markdown => window.SmartGrind.ui._renderMarkdown(markdown, content))
+        .then(() => {
+            content.addEventListener('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
+            window.SmartGrind.ui.updateSolutionScrollProgress();
+        })
         .catch(error => {
             content.innerHTML = '<p>Error loading solution: ' + error.message + '</p>' +
                 '<p>File: ' + solutionFile + '</p>';
@@ -279,6 +283,10 @@ window.SmartGrind.ui.openPatternSolutionModal = (patternName) => {
             return response.text();
         })
         .then(markdown => window.SmartGrind.ui._renderMarkdown(markdown, content))
+        .then(() => {
+            content.addEventListener('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
+            window.SmartGrind.ui.updateSolutionScrollProgress();
+        })
         .catch(error => {
             content.innerHTML = '<p>Error loading pattern solution: ' + error.message + '</p>' +
                 '<p>File: ' + solutionFile + '</p>' +
@@ -291,5 +299,32 @@ window.SmartGrind.ui.closeSolutionModal = () => {
     const modal = document.getElementById('solution-modal');
     if (modal) {
         modal.classList.add('hidden');
+    }
+
+    // Clean up scroll progress
+    const content = document.getElementById('solution-content');
+    if (content) {
+        content.removeEventListener('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
+    }
+    const progressBar = document.getElementById('solution-scroll-progress');
+    if (progressBar) {
+        progressBar.style.width = '0%';
+    }
+};
+
+// Update solution scroll progress bar
+window.SmartGrind.ui.updateSolutionScrollProgress = () => {
+    const content = document.getElementById('solution-content');
+    if (!content) return;
+
+    const scrollTop = content.scrollTop;
+    const scrollHeight = content.scrollHeight;
+    const clientHeight = content.clientHeight;
+    const maxScroll = scrollHeight - clientHeight;
+    const progress = maxScroll > 0 ? (scrollTop / maxScroll) * 100 : 0;
+
+    const progressBar = document.getElementById('solution-scroll-progress');
+    if (progressBar) {
+        progressBar.style.width = Math.min(100, Math.max(0, progress)) + '%';
     }
 };
