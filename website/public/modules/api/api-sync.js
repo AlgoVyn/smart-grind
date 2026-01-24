@@ -12,7 +12,7 @@ Object.assign(window.SmartGrind.api, {
     syncPlan: async () => {
         try {
             let changed = false;
-            let saveObj = Object.fromEntries(window.SmartGrind.state.problems);
+            const saveObj = Object.fromEntries(window.SmartGrind.state.problems);
 
             // Iterate through all predefined problems in topicsData
             window.SmartGrind.data.topicsData.forEach(topic => {
@@ -70,7 +70,7 @@ Object.assign(window.SmartGrind.api, {
      * Merges custom problems into the topicsData structure by adding them to appropriate topics and patterns.
      */
     mergeStructure: () => {
-        // Build a set of existing problem IDs in topicsData for quick lookup
+    // Build a set of existing problem IDs in topicsData for quick lookup
         const existingIds = new Set();
         window.SmartGrind.data.topicsData.forEach(topic => {
             topic.patterns.forEach(pattern => {

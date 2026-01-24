@@ -14,7 +14,7 @@ Object.assign(window.SmartGrind.api, {
     _prepareDataForSave: () => ({
         problems: Object.fromEntries(
             Array.from(window.SmartGrind.state.problems.entries()).map(([id, p]) => {
-                const { loading, noteVisible, ...rest } = p;
+                const { loading: _loading, noteVisible: _noteVisible, ...rest } = p;
                 return [id, rest];
             })
         ),
@@ -79,10 +79,9 @@ Object.assign(window.SmartGrind.api, {
 
     /**
      * Saves a problem to storage or API.
-     * @param {Object} p - The problem object (not used in current implementation).
      * @throws {Error} Throws an error if the save fails.
      */
-    saveProblem: async (p) => {
+    saveProblem: async () => {
         await window.SmartGrind.api._performSave();
     },
 

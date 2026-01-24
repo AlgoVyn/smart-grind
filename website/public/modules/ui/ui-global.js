@@ -38,7 +38,7 @@ window.SmartGrind.ui._keyboardShortcuts = {
 window.SmartGrind.ui.handleKeyboard = (e) => {
     // Skip if typing in an input/textarea
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        // Allow Escape to close modals even when focused on input
+    // Allow Escape to close modals even when focused on input
         if (e.key === 'Escape') {
             window.SmartGrind.ui._keyboardShortcuts['Escape']();
             e.preventDefault();

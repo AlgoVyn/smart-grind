@@ -19,17 +19,10 @@ window.SmartGrind.ui = window.SmartGrind.ui || {};
  * @param {boolean} loading - Whether to show loading state.
  * @param {string} [loadingText="Connecting..."] - Text to display while loading.
  */
-window.SmartGrind.ui.setButtonLoading = (button, loading, loadingText = "Connecting...") => {
+window.SmartGrind.ui.setButtonLoading = (button, loading, loadingText = 'Connecting...') => {
     if (!button) return;
     button.disabled = loading;
     button.innerHTML = loading ? loadingText : window.SmartGrind.GOOGLE_BUTTON_HTML;
-};
-
-const setAuthButtonsLoading = (loading, loadingText = "Connecting...") => {
-    const btn = window.SmartGrind.state.elements.googleLoginBtn;
-    const modalBtn = window.SmartGrind.state.elements.modalGoogleLoginBtn;
-    window.SmartGrind.ui.setButtonLoading(btn, loading, loadingText);
-    window.SmartGrind.ui.setButtonLoading(modalBtn, loading, loadingText);
 };
 
 /**
@@ -48,7 +41,7 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
     const popup = window.open('/smartgrind/api/auth?action=login', 'auth', 'width=500,height=600');
 
     if (!popup) {
-        // Popup blocked
+    // Popup blocked
         const btn = window.SmartGrind.state.elements.googleLoginBtn;
         const modalBtn = window.SmartGrind.state.elements.modalGoogleLoginBtn;
         window.SmartGrind.ui.setButtonLoading(btn, false);
@@ -95,7 +88,7 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
 
     // Listen for auth messages
     const messageHandler = (event) => {
-        // Strict origin check for security
+    // Strict origin check for security
         const expectedOrigin = window.location.origin;
         if (event.origin !== expectedOrigin) {
             console.warn('Received message from unexpected origin:', event.origin);
@@ -158,7 +151,7 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
  */
 window.SmartGrind.ui.handleLogout = async () => {
     if (window.SmartGrind.state.user.type === 'signed-in') {
-        // Switch to local user
+    // Switch to local user
         localStorage.removeItem('userId');
         localStorage.removeItem('displayName');
         // Note: Cookie will be cleared by server or expire naturally
@@ -184,7 +177,7 @@ window.SmartGrind.ui.handleLogout = async () => {
 
         window.SmartGrind.utils.showToast('Switched to local mode');
     } else {
-        // Open sign in modal for local users
+    // Open sign in modal for local users
         window.SmartGrind.ui.openSigninModal();
     }
 };

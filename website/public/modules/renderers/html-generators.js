@@ -141,9 +141,9 @@ export const htmlGenerators = {
         const isSolved = p.status === 'solved';
         const isDue = isSolved && p.nextReviewDate <= today;
         return isDue ?
-            `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-500 uppercase tracking-wide">Review</span>` :
+            '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-500 uppercase tracking-wide">Review</span>' :
             isSolved ?
-                `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/20 text-brand-400 uppercase tracking-wide">Solved</span>` : '';
+                '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/20 text-brand-400 uppercase tracking-wide">Solved</span>' : '';
     },
 
     // Helper to generate action button HTML
@@ -242,7 +242,7 @@ export const htmlGenerators = {
         const className = `group p-4 rounded-xl border transition-all duration-200 overflow-hidden ${isDue ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40' :
             isSolved ? 'bg-dark-800 border-brand-500/20 hover:border-brand-500/40' :
                 'bg-dark-800 border-theme hover:border-slate-400'
-            }`;
+        }`;
 
         const problemLink = window.SmartGrind.renderers._generateProblemLink(p);
         const problemMeta = window.SmartGrind.renderers._generateProblemMeta(p);

@@ -32,7 +32,7 @@ Object.assign(window.SmartGrind.api, {
 
     // Helper to remove category and associated problems
     _removeCategoryAndProblems: (topic) => {
-        // Remove from topicsData
+    // Remove from topicsData
         const index = window.SmartGrind.data.topicsData.indexOf(topic);
         if (index > -1) window.SmartGrind.data.topicsData.splice(index, 1);
 

@@ -146,7 +146,7 @@ Object.assign(window.SmartGrind.api, {
      * @throws {Error} Throws an error if the reset fails.
      */
     resetAll: async () => {
-        const confirmed = await window.SmartGrind.ui.showConfirm(`Are you sure you want to reset <b>ALL Problems</b>?</br></br>This will mark all problems as unsolved and restore any deleted problems across all categories.`);
+        const confirmed = await window.SmartGrind.ui.showConfirm('Are you sure you want to reset <b>ALL Problems</b>?</br></br>This will mark all problems as unsolved and restore any deleted problems across all categories.');
         if (!confirmed) return;
 
         // Store original state for rollback (deep copy)

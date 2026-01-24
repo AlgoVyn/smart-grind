@@ -53,7 +53,7 @@ window.SmartGrind.utils = {
             console.error('Clipboard API failed, trying fallback: ', err);
             // Fallback for older browsers or when clipboard API fails
             try {
-                const textArea = document.createElement("textarea");
+                const textArea = document.createElement('textarea');
                 textArea.value = text;
                 document.body.appendChild(textArea);
                 textArea.select();
@@ -129,7 +129,7 @@ window.SmartGrind.utils = {
 
         // Remove HTML tags and special characters that could be harmful
         sanitized = sanitized.replace(/<[^>]*>/g, ''); // Remove HTML tags
-        sanitized = sanitized.replace(/[\"\'\\]/g, ''); // Remove quotes and backslashes
+        sanitized = sanitized.replace(/["'\\]/g, ''); // Remove quotes and backslashes
 
         // Prevent script injection by removing script-related content
         sanitized = sanitized.replace(/javascript:/gi, '');
@@ -257,7 +257,7 @@ window.SmartGrind.utils = {
     },
 
     shouldShowProblem: (problem, filter, searchQuery, today) => {
-        // Apply filter
+    // Apply filter
         const filterFunctions = {
             'all': () => true,
             'unsolved': (p) => p.status === 'unsolved',

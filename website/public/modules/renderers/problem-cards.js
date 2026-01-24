@@ -156,15 +156,15 @@ export const problemCardRenderers = {
     // Helper to handle status actions (solve, review, reset)
     _handleStatusAction: async (button, p, action) => {
         switch (action) {
-            case 'solve':
-                await window.SmartGrind.renderers._handleSolve(button, p);
-                break;
-            case 'review':
-                await window.SmartGrind.renderers._handleReview(button, p);
-                break;
-            case 'reset':
-                await window.SmartGrind.renderers._handleReset(button, p);
-                break;
+        case 'solve':
+            await window.SmartGrind.renderers._handleSolve(button, p);
+            break;
+        case 'review':
+            await window.SmartGrind.renderers._handleReview(button, p);
+            break;
+        case 'reset':
+            await window.SmartGrind.renderers._handleReset(button, p);
+            break;
         }
     },
 

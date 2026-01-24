@@ -24,7 +24,7 @@ export const statsRenderers = {
         const targetTopicTitle = window.SmartGrind.state.ui.activeTopicId === 'all' ? null :
             window.SmartGrind.data.topicsData.find(t => t.id === window.SmartGrind.state.ui.activeTopicId)?.title;
 
-        window.SmartGrind.state.elements.currentFilterDisplay.innerText = targetTopicTitle || "All Problems";
+        window.SmartGrind.state.elements.currentFilterDisplay.innerText = targetTopicTitle || 'All Problems';
     },
 
     // Helper to update sidebar statistics

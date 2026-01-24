@@ -1,5 +1,5 @@
 // Consolidated tests for pattern solutions functionality
-import { describe, test, expect, beforeEach, jest, beforeAll } from '@jest/globals';
+import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
 
@@ -11,7 +11,7 @@ const { patterns } = window.SmartGrind;
 
 describe('Pattern Solutions Functionality', () => {
     beforeEach(() => {
-        // Mock the DOM
+    // Mock the DOM
         document.body.innerHTML = `
             <div id="solution-modal" class="hidden">
                 <div id="solution-content"></div>
@@ -63,7 +63,7 @@ describe('Pattern Solutions Functionality', () => {
     test('openPatternSolutionModal should show loading state', () => {
         const modal = document.getElementById('solution-modal');
         const content = document.getElementById('solution-content');
-        
+
         // Mock fetch
         global.fetch = jest.fn(() =>
             Promise.resolve({
@@ -73,14 +73,12 @@ describe('Pattern Solutions Functionality', () => {
         );
 
         window.SmartGrind.ui.openPatternSolutionModal('Backtracking');
-        
+
         expect(modal.classList.contains('hidden')).toBe(false);
         expect(content.innerHTML).toContain('Loading pattern solution...');
     });
 
     test('openPatternSolutionModal should convert pattern name to filename format', () => {
-        const content = document.getElementById('solution-content');
-        
         // Mock fetch to capture the URL
         let capturedUrl = '';
         global.fetch = jest.fn((url) => {
@@ -92,7 +90,7 @@ describe('Pattern Solutions Functionality', () => {
         });
 
         window.SmartGrind.ui.openPatternSolutionModal('Binary Search');
-        
+
         expect(capturedUrl).toBe('/smartgrind/patterns/binary-search.md');
     });
 
@@ -118,8 +116,6 @@ describe('Pattern Solutions Functionality', () => {
 });
 
 describe('Pattern to Markdown File Mapping with Real Data', () => {
-    // Import the actual data
-    const data = require('../public/modules/data.js');
 
     // Test the filename conversion logic (same as in ui-markdown.js)
     const convertPatternNameToFilename = (patternName) => {
@@ -127,7 +123,7 @@ describe('Pattern to Markdown File Mapping with Real Data', () => {
     };
 
     test('should map real pattern names to existing solution files', () => {
-        // Test a few real pattern names from the data
+    // Test a few real pattern names from the data
         const testCases = [
             {
                 patternName: 'Backtracking - Combination Sum',
@@ -154,13 +150,13 @@ describe('Pattern to Markdown File Mapping with Real Data', () => {
     });
 
     test('should verify solution files exist for pattern names', () => {
-        // This would require file system access, so we'll just test the mapping logic
+    // This would require file system access, so we'll just test the mapping logic
         const patternName = 'Backtracking - Combination Sum';
         const expectedFilename = 'backtracking-combination-sum';
         const actualFilename = convertPatternNameToFilename(patternName);
         
         expect(actualFilename).toBe(expectedFilename);
-        // In a real test, we would check if the file exists
+    // In a real test, we would check if the file exists
     });
 });
 
@@ -397,7 +393,7 @@ describe('Pattern Solutions Files Verification', () => {
 
 describe('Pattern Solutions Integration Tests', () => {
     beforeEach(() => {
-        // Mock the DOM
+    // Mock the DOM
         document.body.innerHTML = `
             <div id="solution-modal" class="hidden">
                 <div id="solution-content"></div>
@@ -487,8 +483,6 @@ describe('Pattern Solutions Integration Tests', () => {
     });
 
     test('should handle pattern names with multiple spaces', async () => {
-        const content = document.getElementById('solution-content');
-        
         // Mock fetch to capture the URL
         let capturedUrl = '';
         global.fetch = jest.fn((url) => {
@@ -500,10 +494,10 @@ describe('Pattern Solutions Integration Tests', () => {
         });
 
         window.SmartGrind.ui.openPatternSolutionModal('Binary Search Tree Iterator');
-        
+
         // Wait for async operations
         await new Promise(resolve => setTimeout(resolve, 100));
-        
+
         expect(capturedUrl).toBe('/smartgrind/patterns/binary-search-tree-iterator.md');
     });
 
@@ -547,7 +541,7 @@ describe('Pattern Solutions Integration Tests', () => {
 
 describe('Solution Modal Scroll Progress', () => {
     beforeEach(() => {
-        // Mock the DOM with progress bar
+    // Mock the DOM with progress bar
         document.body.innerHTML = `
             <div id="solution-modal" class="hidden">
                 <div id="solution-content" style="height: 400px; overflow-y: auto;"></div>
@@ -581,7 +575,7 @@ describe('Solution Modal Scroll Progress', () => {
         };
 
         // Define the modal functions for testing
-        window.SmartGrind.ui.openPatternSolutionModal = (patternName) => {
+        window.SmartGrind.ui.openPatternSolutionModal = (_patternName) => {
             const modal = document.getElementById('solution-modal');
             const content = document.getElementById('solution-content');
             if (!modal || !content) return;

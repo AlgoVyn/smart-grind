@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint public/modules/ functions/ tests/ --ext .js",
+    "lint:fix": "eslint public/modules/ functions/ tests/ --ext .js --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -20,6 +22,7 @@
     "@playwright/test": "^1.57.0",
     "@types/jest": "^30.0.0",
     "babel-jest": "^30.2.0",
+    "eslint": "^8.57.0",
     "http-server": "^14.1.1",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",

@@ -37,6 +37,12 @@ const _setupLocalUser = (categoryParam) => {
 
 // Check auth state and initialize app
 const checkAuth = async () => {
+    // Load UI modules dynamically for code splitting
+    await Promise.all([
+        import('./renderers.js'),
+        import('./ui/ui.js')
+    ]);
+
     // Extract category from URL path
     const path = window.location.pathname;
     let categoryParam = null;
@@ -74,7 +80,7 @@ const checkAuth = async () => {
     if (userType === 'local') {
         _setupLocalUser(categoryParam);
     } else {
-        // Show setup modal for orphaned signed-in state
+    // Show setup modal for orphaned signed-in state
         window.SmartGrind.state.elements.setupModal.classList.remove('hidden');
         window.SmartGrind.state.elements.appWrapper.classList.add('hidden');
         window.SmartGrind.state.elements.loadingScreen.classList.add('hidden');
