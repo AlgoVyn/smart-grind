@@ -39,7 +39,7 @@ async function verifyJWT(token, secret) {
         const secretKey = new TextEncoder().encode(secret);
         const { payload } = await jwtVerify(token, secretKey);
         return payload;
-    } catch (e) {
+    } catch (_e) {
         return null;
     }
 }
@@ -142,7 +142,7 @@ export async function onRequestPost({ request, env }) {
     let body;
     try {
         body = await request.json();
-    } catch (e) {
+    } catch (_e) {
         return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400 });
     }
 

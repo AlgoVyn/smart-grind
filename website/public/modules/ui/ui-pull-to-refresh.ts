@@ -68,7 +68,7 @@ window.SmartGrind.ui.pullToRefresh = {
                     if (typeof window.location.reload === 'function') {
                         window.location.reload();
                     }
-                } catch (e) {
+                } catch (_e) {
                     // Ignore - JSDOM may throw "Not implemented" errors
                 }
             }

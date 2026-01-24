@@ -1,4 +1,4 @@
-import { onRequestGet } from '../functions/api/auth.js';
+import { onRequestGet } from '../functions/api/auth.ts';
 
 // Mock jose
 jest.mock('jose', () => ({
@@ -10,36 +10,36 @@ jest.mock('jose', () => ({
 }));
 
 // Mock Request and Response
-global.Request = class Request {
-    constructor(url, options = {}) {
-        this.url = url;
-        this.method = options.method || 'GET';
-        this.headers = new Map(Object.entries(options.headers || {}));
-        this.body = options.body;
+(global as any).Request = class Request {
+    constructor(url: any, options: any = {}) {
+        (this as any).url = url;
+        (this as any).method = options.method || 'GET';
+        (this as any).headers = new Map(Object.entries(options.headers || {}));
+        (this as any).body = options.body;
     }
 
     async json() {
-        return JSON.parse(this.body);
+        return JSON.parse((this as any).body);
     }
 };
 
-global.Response = class Response {
-    constructor(body, options = {}) {
-        this.body = body;
-        this.status = options.status || 200;
-        this.headers = new Map(Object.entries(options.headers || {}));
+(global as any).Response = class Response {
+    constructor(body: any, options: any = {}) {
+        (this as any).body = body;
+        (this as any).status = options.status || 200;
+        (this as any).headers = new Map(Object.entries(options.headers || {}));
     }
 
     async text() {
-        return this.body;
+        return (this as any).body;
     }
 
     async json() {
-        return JSON.parse(this.body);
+        return JSON.parse((this as any).body);
     }
 };
 
-Response.redirect = (url, status) => new Response('', { status, headers: { Location: url } });
+(global as any).Response.redirect = (url: any, status: any) => new (global as any).Response('', { status, headers: { Location: url } });
 
 // crypto.subtle is mocked in jest.setup.js
 
@@ -69,11 +69,11 @@ describe('Auth API', () => {
         global.crypto.randomUUID = jest.fn().mockReturnValue('mock-uuid');
 
         // Mock crypto.subtle for legacy (if needed)
-        global.crypto.subtle.importKey.mockResolvedValue('mock-key');
-        global.crypto.subtle.sign.mockResolvedValue(new Uint8Array([1, 2, 3, 4]));
+        (global.crypto.subtle.importKey as any).mockResolvedValue('mock-key');
+        (global.crypto.subtle.sign as any).mockResolvedValue(new Uint8Array([1, 2, 3, 4]));
 
         // Mock rate limiting to allow requests
-        const authModule = require('../functions/api/auth.js');
+        const authModule = require('../functions/api/auth.ts');
         jest.spyOn(authModule, 'checkRateLimit').mockResolvedValue(false);
     });
 

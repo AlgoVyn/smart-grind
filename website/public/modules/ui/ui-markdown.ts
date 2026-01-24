@@ -43,7 +43,7 @@ window.SmartGrind.patterns.checkPatternSolutionExists = async function (patternN
     try {
         const response = await fetch(solutionFile, { method: 'HEAD' });
         return response.ok;
-    } catch (error) {
+    } catch (_error) {
         return false;
     }
 };
@@ -161,7 +161,7 @@ window.SmartGrind.ui.switchCarouselTab = (uniqueId, index) => {
     // Update Buttons
     const buttons = document.querySelectorAll(`.carousel-tab-btn-${uniqueId}`);
     buttons.forEach(btn => {
-        if (parseInt(btn.dataset.index) === index) {
+        if (parseInt((btn).dataset.index) === index) {
             btn.classList.remove('text-slate-400', 'hover:text-slate-200', 'hover:bg-slate-800/50');
             btn.classList.add('text-brand-400', 'bg-[#1e1e1e]');
         } else {

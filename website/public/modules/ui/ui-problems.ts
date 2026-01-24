@@ -19,7 +19,7 @@ window.SmartGrind.ui.bindProblemEvents = () => {
         const foundProblem = window.SmartGrind.state.problems.get(problemId);
 
         if (foundProblem) {
-            // Create a mock event object with the button as target
+            // Create a mock event object with the button
             const mockEvent = { target: button, stopPropagation: () => { } };
             window.SmartGrind.renderers.handleProblemCardClick(mockEvent, foundProblem);
         }

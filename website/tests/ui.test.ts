@@ -142,7 +142,7 @@ window.SmartGrind = {
 };
 
 // Now import the module
-import ui from '../public/modules/ui/ui.js';
+import ui from '../public/modules/ui/ui.ts';
 
 window.SmartGrind.ui = ui;
 
@@ -295,7 +295,7 @@ describe('SmartGrind UI', () => {
                     }
           
                     return sanitized;
-                } catch (e) {
+                } catch (_e) {
                     // If URL parsing fails, return empty string
                     return '';
                 }
@@ -522,7 +522,7 @@ describe('SmartGrind UI', () => {
             window.SmartGrind.ui.sidebarResizer.stopResize();
 
             expect(window.SmartGrind.ui.sidebarResizer.isResizing).toBe(false);
-            expect(localStorageSetItem).toHaveBeenCalledWith('sidebarWidth', expect.any(Number));
+            expect(localStorageSetItem).toHaveBeenCalledWith('sidebarWidth', expect.any(String));
         });
 
         test('loads width from localStorage', () => {
@@ -943,7 +943,7 @@ describe('SmartGrind UI', () => {
         test('shows confirm modal and returns promise', async () => {
             const promise = window.SmartGrind.ui.showConfirm('Test message');
 
-            expect(window.SmartGrind.state.elements.confirmMessage.textContent).toBe('Test message');
+            expect(window.SmartGrind.state.elements.confirmMessage.innerHTML).toBe('Test message');
             expect(window.SmartGrind.state.elements.confirmTitle.textContent).toBe('Confirm Action');
             expect(mockClassListRemove).toHaveBeenCalledWith('hidden');
 
@@ -956,7 +956,7 @@ describe('SmartGrind UI', () => {
         test('showConfirm resolves with false on cancel', async () => {
             const promise = window.SmartGrind.ui.showConfirm('Test message');
 
-            expect(window.SmartGrind.state.elements.confirmMessage.textContent).toBe('Test message');
+            expect(window.SmartGrind.state.elements.confirmMessage.innerHTML).toBe('Test message');
             expect(window.SmartGrind.state.elements.confirmTitle.textContent).toBe('Confirm Action');
             expect(mockClassListRemove).toHaveBeenCalledWith('hidden');
 

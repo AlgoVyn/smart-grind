@@ -6,6 +6,11 @@
 dist/
 build/
 
+# Generated JavaScript files (from TypeScript)
+website/public/modules/*.js
+website/public/modules/**/*.js
+website/functions/*.js
+
 # Dependencies
 node_modules/
 

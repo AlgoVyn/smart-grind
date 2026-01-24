@@ -42,7 +42,7 @@ Object.assign(window.SmartGrind.api, {
      */
     _restoreDeletedProblems: (problemIds) => {
         problemIds.forEach(id => {
-            if (window.SmartGrind.state.deletedProblemIds.has(id) && !id.startsWith('custom-')) {
+            if (window.SmartGrind.state.deletedProblemIds.has(id) && !(id).startsWith('custom-')) {
                 window.SmartGrind.state.deletedProblemIds.delete(id);
                 // Find probDef across all topics
                 let probDef = null;
@@ -85,7 +85,7 @@ Object.assign(window.SmartGrind.api, {
     _restoreAllDeletedProblems: () => {
         const deletedIds = Array.from(window.SmartGrind.state.deletedProblemIds);
         deletedIds.forEach(id => {
-            if (id.startsWith('custom-')) return; // Skip restoring custom problems
+            if ((id).startsWith('custom-')) return; // Skip restoring custom problems
             window.SmartGrind.state.deletedProblemIds.delete(id);
             // Try to find probDef across all topics first
             let probDef = null;

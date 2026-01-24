@@ -1,20 +1,23 @@
 export default {
+  preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.mjs'],
-  transform: {
-    '^.+\\.js$': 'babel-jest',
-    '^.+\\.mjs$': 'babel-jest',
-  },
+  extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^/smartgrind/(.*)$': '<rootDir>/public/$1',
   },
+  transform: {
+    '^.+\\.ts$': ['ts-jest', { useESM: true }],
+    '^.+\\.(js|mjs)$': 'babel-jest',
+  },
   testMatch: [
-    '<rootDir>/tests/**/*.test.js',
+    '<rootDir>/tests/**/*.test.(js|ts)',
   ],
   collectCoverageFrom: [
-    'public/modules/**/*.js',
-    'functions/**/*.js',
+    'public/modules/**/*.(js|ts)',
+    'functions/**/*.(js|ts)',
   ],
+  moduleFileExtensions: ['js', 'ts', 'mjs'],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   transformIgnorePatterns: [

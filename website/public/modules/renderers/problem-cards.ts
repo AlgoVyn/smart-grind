@@ -14,7 +14,9 @@ export const problemCardRenderers = {
 
     // Helper to perform async status change with loading and error handling
     _performStatusChange: async (button, p, statusUpdater, options = {}) => {
-        const { successMessage, errorMessage, onFinally } = options;
+        const successMessage = (options).successMessage;
+        const errorMessage = (options).errorMessage;
+        const onFinally = (options).onFinally;
 
         // Store original state for rollback on error
         const originalState = {

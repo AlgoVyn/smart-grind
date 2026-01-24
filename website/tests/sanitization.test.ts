@@ -4,7 +4,7 @@ const assert = require('assert');
 // Mock the SmartGrind namespace
 global.window = {
     SmartGrind: {
-        utils: require('../public/modules/utils.js')
+        utils: require('../public/modules/utils.ts')
     }
 };
 

@@ -76,7 +76,7 @@ window.SmartGrind.ui.showConfirm = (message, title = 'Confirm Action') => {
     return new Promise((resolve) => {
         window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.confirmModal, () => {
             window.SmartGrind.state.elements.confirmTitle.textContent = title;
-            window.SmartGrind.state.elements.confirmMessage.textContent = message;
+            window.SmartGrind.state.elements.confirmMessage.innerHTML = message;
         });
         window.SmartGrind.ui._confirmResolve = resolve;
     });
@@ -155,7 +155,7 @@ const validateInputs = ({ name, url, category, pattern }) => {
     }
     try {
         new URL(url);
-    } catch (e) {
+    } catch (_e) {
         window.SmartGrind.ui.showAlert('Please enter a valid URL for the problem.');
         return false;
     }
@@ -189,7 +189,8 @@ window.SmartGrind.ui.saveNewProblem = async () => {
     const inputs = getSanitizedInputs();
     if (!validateInputs(inputs)) return;
 
-    const newProb = createNewProblem(...Object.values(inputs));
+    const { name, url, category, pattern } = inputs;
+    const newProb = createNewProblem(name, url, category, pattern);
 
     // Update State
     window.SmartGrind.state.problems.set(newProb.id, newProb);

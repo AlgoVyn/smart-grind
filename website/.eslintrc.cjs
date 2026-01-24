@@ -11,11 +11,15 @@ module.exports = {
   },
   extends: [
     'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
   ],
+  parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 12,
     sourceType: 'module',
+    project: './tsconfig.json',
   },
+  plugins: ['@typescript-eslint'],
   rules: {
     'indent': ['error', 4],
     'linebreak-style': ['error', 'unix'],
@@ -27,10 +31,23 @@ module.exports = {
     'no-var': ['error'],
     'no-useless-escape': ['error'],
     'no-control-regex': ['off'], // Allow control characters in regex for sanitization
+    '@typescript-eslint/no-unused-vars': ['warn', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_', 'caughtErrorsIgnorePattern': '^_' }],
+    '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
   ignorePatterns: [
     'node_modules/',
     'dist/',
     'build/',
+  ],
+  overrides: [
+    {
+      files: ['**/*.test.ts'],
+      rules: {
+        '@typescript-eslint/no-require-imports': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
+      },
+    },
   ],
 };

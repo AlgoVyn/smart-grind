@@ -1,4 +1,4 @@
-import { onRequestGet, onRequestPost } from '../functions/api/user.js';
+import { onRequestGet, onRequestPost } from '../functions/api/user.ts';
 import { jwtVerify } from 'jose';
 
 // Mock jose

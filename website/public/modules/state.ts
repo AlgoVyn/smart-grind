@@ -57,7 +57,7 @@ window.SmartGrind.state = {
     // Save state to localStorage
     saveToStorage() {
         try {
-            // Exclude loading state as it's temporary
+            // Exclude loading state's temporary
             const problemsWithoutLoading = Object.fromEntries(
                 Array.from(this.problems.entries()).map(([id, p]) => {
                     const { loading: _loading, ...rest } = p;

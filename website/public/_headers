@@ -1,0 +1,20 @@
+# MIME type configuration for Cloudflare Pages
+# Ensure TypeScript files are served as JavaScript
+*.ts
+  Content-Type: application/javascript
+
+# Also ensure JS files are served correctly
+*.js
+  Content-Type: application/javascript
+
+# JSON files
+*.json
+  Content-Type: application/json
+
+# CSS files
+*.css
+  Content-Type: text/css
+
+# SVG files
+*.svg
+  Content-Type: image/svg+xml

@@ -1,4 +1,4 @@
-import '../public/modules/api.js';
+import '../public/modules/api.ts';
 
 describe('SmartGrind API Module', () => {
     let mockFetch;
@@ -173,7 +173,7 @@ describe('SmartGrind API Module', () => {
         test('should call _saveRemotely for signed-in user', async () => {
             window.SmartGrind.state.user.type = 'signed-in';
             const saveRemotelySpy = jest.spyOn(window.SmartGrind.api, '_saveRemotely');
-            saveRemotelySpy.mockResolvedValue();
+            saveRemotelySpy.mockResolvedValue(undefined);
 
             await window.SmartGrind.api._performSave();
 
@@ -195,7 +195,7 @@ describe('SmartGrind API Module', () => {
     describe('saveProblem', () => {
         test('should call _performSave', async () => {
             const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue();
+            performSaveSpy.mockResolvedValue(undefined);
 
             await window.SmartGrind.api.saveProblem({ id: '1' });
 
@@ -207,7 +207,7 @@ describe('SmartGrind API Module', () => {
         test('should delete problem and call _performSave', async () => {
             window.SmartGrind.state.problems.set('1', { id: '1' });
             const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue();
+            performSaveSpy.mockResolvedValue(undefined);
 
             await window.SmartGrind.api.saveDeletedId('1');
 
@@ -231,7 +231,7 @@ describe('SmartGrind API Module', () => {
     describe('saveData', () => {
         test('should call _performSave', async () => {
             const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue();
+            performSaveSpy.mockResolvedValue(undefined);
 
             await window.SmartGrind.api.saveData();
 
@@ -284,7 +284,7 @@ describe('SmartGrind API Module', () => {
                 }
             ];
             const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue();
+            performSaveSpy.mockResolvedValue(undefined);
 
             await window.SmartGrind.api.syncPlan();
 
@@ -312,7 +312,7 @@ describe('SmartGrind API Module', () => {
                 pattern: 'Old Pattern'
             });
             const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue();
+            performSaveSpy.mockResolvedValue(undefined);
 
             await window.SmartGrind.api.syncPlan();
 
@@ -334,7 +334,7 @@ describe('SmartGrind API Module', () => {
             const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
             const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue();
+            performSaveSpy.mockResolvedValue(undefined);
 
             await window.SmartGrind.api.deleteCategory('test-topic');
 
@@ -446,7 +446,7 @@ describe('SmartGrind API Module', () => {
             const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
             const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue();
+            performSaveSpy.mockResolvedValue(undefined);
 
             await window.SmartGrind.api.resetAll();
 
@@ -558,7 +558,7 @@ describe('SmartGrind API Module', () => {
             const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
             const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue();
+            performSaveSpy.mockResolvedValue(undefined);
 
             await window.SmartGrind.api.resetCategory('arrays');
 
@@ -635,7 +635,7 @@ describe('SmartGrind API Module', () => {
             const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
             const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue();
+            performSaveSpy.mockResolvedValue(undefined);
 
             await window.SmartGrind.api.resetCategory('arrays');
 

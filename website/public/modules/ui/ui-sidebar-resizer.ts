@@ -82,7 +82,7 @@ window.SmartGrind.ui.sidebarResizer = {
     saveWidth: () => {
         const sidebar = document.getElementById('main-sidebar');
         if (sidebar) {
-            localStorage.setItem('sidebarWidth', sidebar.offsetWidth);
+            localStorage.setItem('sidebarWidth', sidebar.offsetWidth.toString());
         }
     },
 

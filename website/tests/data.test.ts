@@ -1,4 +1,4 @@
-import '../public/modules/data.js';
+import '../public/modules/data.ts';
 
 describe('SmartGrind Data Module', () => {
     beforeEach(() => {

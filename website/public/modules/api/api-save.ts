@@ -86,7 +86,7 @@ Object.assign(window.SmartGrind.api, {
     },
 
     /**
-     * Saves the deletion of a problem by marking it as deleted and saving the state.
+     * Saves the deletion of a problem by marking it and saving the state.
      * @param {string} id - The ID of the problem to delete.
      * @throws {Error} Throws an error if the save fails.
      */

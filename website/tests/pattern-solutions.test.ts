@@ -4,8 +4,8 @@ import fs from 'fs';
 import path from 'path';
 
 // Mock the UI module which now includes pattern mapping
-global.window = {};
-require('../public/modules/ui/ui-markdown.js');
+(global as any).window = {};
+require('../public/modules/ui/ui-markdown.ts');
 
 const { patterns } = window.SmartGrind;
 
@@ -22,7 +22,7 @@ describe('Pattern Solutions Functionality', () => {
         window.SmartGrind = {
             ui: {
                 _renderMarkdown: jest.fn((markdown, contentElement) => {
-                    contentElement.innerHTML = `<div>${markdown}</div>`;
+                    (contentElement as HTMLElement).innerHTML = `<div>${markdown}</div>`;
                 }),
                 _configureMarkdownRenderer: jest.fn(() => ({ parse: (md) => md }))
             }
@@ -65,12 +65,12 @@ describe('Pattern Solutions Functionality', () => {
         const content = document.getElementById('solution-content');
 
         // Mock fetch
-        global.fetch = jest.fn(() =>
+        global.fetch = (jest.fn(() =>
             Promise.resolve({
                 ok: true,
                 text: () => Promise.resolve('# Pattern Solution')
             })
-        );
+        ) as any);
 
         window.SmartGrind.ui.openPatternSolutionModal('Backtracking');
 
@@ -82,12 +82,12 @@ describe('Pattern Solutions Functionality', () => {
         // Mock fetch to capture the URL
         let capturedUrl = '';
         global.fetch = jest.fn((url) => {
-            capturedUrl = url;
+            capturedUrl = url as string;
             return Promise.resolve({
                 ok: true,
                 text: () => Promise.resolve('# Pattern Solution')
             });
-        });
+        }) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('Binary Search');
 
@@ -103,7 +103,7 @@ describe('Pattern Solutions Functionality', () => {
                 ok: false,
                 status: 404
             })
-        );
+        ) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('NonExistent Pattern');
         
@@ -404,7 +404,7 @@ describe('Pattern Solutions Integration Tests', () => {
         window.SmartGrind = {
             ui: {
                 _renderMarkdown: jest.fn((markdown, contentElement) => {
-                    contentElement.innerHTML = `<div>${markdown}</div>`;
+                    (contentElement as HTMLElement).innerHTML = `<div>${markdown}</div>`;
                 }),
                 _configureMarkdownRenderer: jest.fn(() => ({ parse: (md) => md }))
             }
@@ -451,7 +451,7 @@ describe('Pattern Solutions Integration Tests', () => {
                 ok: true,
                 text: () => Promise.resolve('# Backtracking Pattern\n\nThis is a backtracking pattern solution.')
             })
-        );
+        ) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('Backtracking');
         
@@ -471,7 +471,7 @@ describe('Pattern Solutions Integration Tests', () => {
                 ok: true,
                 text: () => Promise.resolve('# Sliding Window Pattern\n\nThis is a sliding window pattern solution.')
             })
-        );
+        ) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('Sliding Window');
         
@@ -486,7 +486,7 @@ describe('Pattern Solutions Integration Tests', () => {
         // Mock fetch to capture the URL
         let capturedUrl = '';
         global.fetch = jest.fn((url) => {
-            capturedUrl = url;
+            capturedUrl = url as string;
             return Promise.resolve({
                 ok: true,
                 text: () => Promise.resolve('# Pattern Solution')
@@ -510,7 +510,7 @@ describe('Pattern Solutions Integration Tests', () => {
                 ok: false,
                 status: 404
             })
-        );
+        ) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('Non Existent Pattern');
         
@@ -527,7 +527,7 @@ describe('Pattern Solutions Integration Tests', () => {
         // Mock fetch to throw network error
         global.fetch = jest.fn(() =>
             Promise.reject(new Error('Network error'))
-        );
+        ) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('Some Pattern');
         
@@ -553,7 +553,7 @@ describe('Solution Modal Scroll Progress', () => {
         window.SmartGrind = {
             ui: {
                 _renderMarkdown: jest.fn((markdown, contentElement) => {
-                    contentElement.innerHTML = `<div style="height: 800px;">${markdown}</div>`;
+                    (contentElement as HTMLElement).innerHTML = `<div style="height: 800px;">${markdown}</div>`;
                 }),
                 _configureMarkdownRenderer: jest.fn(() => ({ parse: (md) => md })),
                 updateSolutionScrollProgress: () => {
@@ -673,7 +673,7 @@ describe('Solution Modal Scroll Progress', () => {
                 ok: true,
                 text: () => Promise.resolve('# Test Content')
             })
-        );
+        ) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('Test Pattern');
 

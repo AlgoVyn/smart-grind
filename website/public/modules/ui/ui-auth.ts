@@ -117,7 +117,7 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
             authCompleted = true;
             try {
                 if (!popup.closed) popup.close();
-            } catch (e) {
+            } catch (_e) {
                 // ignore
             }
             window.SmartGrind.utils.showToast('Sign-in timed out. Please try again.', 'error');
@@ -132,7 +132,7 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
                 clearInterval(checkPopupClosed);
                 handlePopupClosed();
             }
-        } catch (e) {
+        } catch (_e) {
             // COOP may block the check, ignore
         }
     }, 1000);
