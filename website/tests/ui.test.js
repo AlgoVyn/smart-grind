@@ -427,6 +427,68 @@ describe('SmartGrind UI', () => {
       // We just verify the isPulling is reset
       expect(window.SmartGrind.ui.pullToRefresh.isPulling).toBe(false);
     });
+
+    test('handles mouse down when at top', () => {
+      // Mock sidebar not open
+      window.SmartGrind.state.elements.mainSidebar.classList.contains = jest.fn(() => false);
+
+      // Mock modals as hidden
+      const hiddenModal = createMockElement();
+      hiddenModal.classList.contains = jest.fn(() => true); // contains 'hidden' returns true
+      window.SmartGrind.state.elements.setupModal = hiddenModal;
+      window.SmartGrind.state.elements.addProblemModal = hiddenModal;
+      window.SmartGrind.state.elements.signinModal = hiddenModal;
+      window.SmartGrind.state.elements.alertModal = hiddenModal;
+      window.SmartGrind.state.elements.confirmModal = hiddenModal;
+      window.SmartGrind.state.elements.solutionModal = hiddenModal;
+
+      const event = {
+        button: 0,
+        clientY: 100,
+        preventDefault: jest.fn(),
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleMouseDown(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.startY).toBe(100);
+      expect(window.SmartGrind.ui.pullToRefresh.isMousePulling).toBe(true);
+    });
+
+    test('handles mouse move with pull down', () => {
+      window.SmartGrind.ui.pullToRefresh.isMousePulling = true;
+      window.SmartGrind.ui.pullToRefresh.startY = 50;
+
+      const event = {
+        clientY: 100,
+        preventDefault: jest.fn(),
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleMouseMove(event);
+
+      expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    test('handles mouse end with sufficient pull', () => {
+      window.SmartGrind.ui.pullToRefresh.isMousePulling = true;
+      window.SmartGrind.ui.pullToRefresh.startY = 0;
+
+      const event = {
+        clientY: 150,
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleMouseEnd(event);
+
+      // We just verify the isMousePulling is reset
+      expect(window.SmartGrind.ui.pullToRefresh.isMousePulling).toBe(false);
+    });
+
+    test('handles mouse leave when pulling', () => {
+      window.SmartGrind.ui.pullToRefresh.isMousePulling = true;
+
+      window.SmartGrind.ui.pullToRefresh.handleMouseLeave();
+
+      expect(window.SmartGrind.ui.pullToRefresh.isMousePulling).toBe(false);
+    });
   });
 
   describe('sidebarResizer', () => {
@@ -1277,6 +1339,117 @@ describe('SmartGrind UI', () => {
       window.SmartGrind.ui.pullToRefresh.handleTouchEnd(event);
 
       expect(window.SmartGrind.ui.pullToRefresh.isPulling).toBe(false);
+    });
+
+    test('handleMouseDown does not start pulling when not at top', () => {
+      window.scrollY = 100;
+      window.SmartGrind.state.elements.contentScroll.scrollTop = 0;
+
+      const event = {
+        button: 0,
+        clientY: 100,
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleMouseDown(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isMousePulling).toBe(false);
+    });
+
+    test('handleMouseDown does not start pulling when sidebar is open', () => {
+      window.scrollY = 0;
+      window.SmartGrind.state.elements.contentScroll.scrollTop = 0;
+      window.SmartGrind.state.elements.mainSidebar.classList.contains = jest.fn(() => true);
+
+      const event = {
+        button: 0,
+        clientY: 100,
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleMouseDown(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isMousePulling).toBe(false);
+    });
+
+    test('handleMouseDown does not start pulling when modal is open', () => {
+      window.scrollY = 0;
+      window.SmartGrind.state.elements.contentScroll.scrollTop = 0;
+      window.SmartGrind.state.elements.mainSidebar.classList.contains = jest.fn(() => false);
+      const openModal = createMockElement();
+      openModal.classList.contains = jest.fn(() => false); // not hidden
+      window.SmartGrind.state.elements.setupModal = openModal;
+
+      const event = {
+        button: 0,
+        clientY: 100,
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleMouseDown(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isMousePulling).toBe(false);
+    });
+
+    test('handleMouseDown ignores non-left button', () => {
+      const event = {
+        button: 1,
+        clientY: 100,
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleMouseDown(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isMousePulling).toBe(false);
+    });
+
+    test('handleMouseMove does nothing when not pulling', () => {
+      window.SmartGrind.ui.pullToRefresh.isMousePulling = false;
+
+      const event = {
+        clientY: 100,
+        preventDefault: jest.fn(),
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleMouseMove(event);
+
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    test('handleMouseMove stops pulling when deltaY <= 0', () => {
+      window.SmartGrind.ui.pullToRefresh.isMousePulling = true;
+      window.SmartGrind.ui.pullToRefresh.startY = 50;
+
+      const event = {
+        clientY: 40,
+        preventDefault: jest.fn(),
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleMouseMove(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isMousePulling).toBe(false);
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    test('handleMouseEnd does nothing when not pulling', () => {
+      window.SmartGrind.ui.pullToRefresh.isMousePulling = false;
+
+      const event = {
+        clientY: 100,
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleMouseEnd(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isMousePulling).toBe(false);
+    });
+
+    test('handleMouseEnd does not reload when deltaY below threshold', () => {
+      window.SmartGrind.ui.pullToRefresh.isMousePulling = true;
+      window.SmartGrind.ui.pullToRefresh.startY = 0;
+
+      const event = {
+        clientY: 50,
+      };
+
+      window.SmartGrind.ui.pullToRefresh.handleMouseEnd(event);
+
+      expect(window.SmartGrind.ui.pullToRefresh.isMousePulling).toBe(false);
     });
   });
 
