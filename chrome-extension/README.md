@@ -1,143 +1,293 @@
-# Smart Grind - Smarter Problem Solving
+# Smart Grind - Chrome Extension 🧩
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 ![Chrome Extension](https://img.shields.io/badge/Platform-Chrome-blue)
+![Version](https://img.shields.io/badge/Version-1.0.0-yellow)
+![Last Updated](https://img.shields.io/badge/Last%20Updated-January%202025-blue)
 
 **Smart Grind** is a Chrome extension designed to help you grind LeetCode and other coding problems optimally. It enhances your problem-solving experience by injecting smart features directly into supported platforms like LeetCode, including AI-powered assistance for problem explanations.
 
-Visit the official website: [SmartGrind Chrome Extension](https://chromewebstore.google.com/detail/smartgrind/eaolfkdmfnnanbfkaejnkcfafpankcmp)
+📦 **Install from Chrome Web Store**: [SmartGrind Chrome Extension](https://chromewebstore.google.com/detail/smartgrind/eaolfkdmfnnanbfkaejnkcfafpankcmp)
 
-## Related Projects
+🌐 **Official Website**: [algovyn.com/smartgrind](https://algovyn.com/smartgrind)
 
-- **Smart Grind Web App**: A companion web application for pattern-based practice with spaced repetition. See [website/README.md](website/README.md) for details.
+---
+
+## Table of Contents
+
+- [Smart Grind - Chrome Extension 🧩](#smart-grind---chrome-extension-)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+    - [Core Functionality](#core-functionality)
+    - [Advanced Features](#advanced-features)
+    - [Technical Details](#technical-details)
+  - [Screenshots](#screenshots)
+  - [Installation](#installation)
+    - [From Chrome Web Store](#from-chrome-web-store)
+    - [From Source (Recommended for Developers)](#from-source-recommended-for-developers)
+  - [Usage](#usage)
+    - [Getting Started](#getting-started)
+    - [Using the Popup Interface](#using-the-popup-interface)
+    - [Using AI Assistance](#using-ai-assistance)
+    - [Understanding Ratings](#understanding-ratings)
+    - [Rating Calculation Method](#rating-calculation-method)
+    - [Tips for Effective Use](#tips-for-effective-use)
+    - [Troubleshooting](#troubleshooting)
+  - [Architecture](#architecture)
+    - [Extension Components](#extension-components)
+    - [Data Flow](#data-flow)
+    - [Permissions](#permissions)
+  - [Contributing](#contributing)
+    - [Development Setup](#development-setup)
+  - [License](#license)
+  - [Support](#support)
+
+---
 
 ## Features
 
 ### Core Functionality
-- **Problem Ratings Display**: Replaces LeetCode's default "Easy/Medium/Hard" labels with numerical difficulty ratings on problem pages and problem lists
-- **User Rating Estimation**: Calculates and displays your estimated LeetCode rating based on solved problems
-- **Random Problem Selection**: Browse and select random problems within specified rating ranges and tags for targeted practice
+
+| Feature | Description |
+|---------|-------------|
+| 📊 **Problem Ratings Display** | Replaces "Easy/Medium/Hard" with numerical ratings (0-3000) |
+| 📈 **User Rating Estimation** | Calculates your estimated LeetCode rating |
+| 🎲 **Random Problem Selection** | Browse random problems within rating ranges and tags |
+| 🏷️ **Tag-Based Filtering** | Filter by LeetCode tags (Array, DP, etc.) |
 
 ### Advanced Features
-- **Tag-Based Filtering**: Filter random problems by LeetCode tags (e.g., Array, Dynamic Programming, etc.)
-- **Progress Tracking**: Automatically tracks solved problems by monitoring submission status
-- **Persistent Settings**: Remembers your preferred rating ranges and tag filters between sessions
-- **Cross-Page Support**: Works on individual problem pages, problem lists, and contest pages
-- **AI Assistance**: Quick access to AI tools (ChatGPT, AI Studio, Grok) for detailed problem explanations directly from problem pages
+
+- ✅ **Progress Tracking** - Automatically tracks solved problems by monitoring submission status
+- 💾 **Persistent Settings** - Remembers your preferred rating ranges and tag filters
+- 🔄 **Cross-Page Support** - Works on problem pages, lists, and contest pages
+- 🤖 **AI Assistance** - Quick access to ChatGPT, AI Studio, Grok for explanations
 
 ### Technical Details
-- **Data Sources**: Uses community-sourced problem ratings and official LeetCode tags
-- **Storage**: Utilizes Chrome's sync and local storage for settings and cached data
-- **Performance**: Lightweight implementation with minimal impact on page load times
 
-For detailed information about data formats and sources, see [DATA_FORMAT.md](DATA_FORMAT.md).
+| Aspect | Details |
+|--------|---------|
+| **Data Sources** | Community-sourced problem ratings, official LeetCode tags |
+| **Storage** | Chrome's sync and local storage |
+| **Performance** | Lightweight, minimal page load impact |
+| **Manifest** | Version 3 (MV3) |
+
+> 📄 For detailed information about data formats and sources, see [DATA_FORMAT.md](DATA_FORMAT.md).
+
+---
+
+## Screenshots
+
+| Problem Page with Ratings | Popup Interface |
+|---------------------------|-----------------|
+| ![Problem Page](screenshots/image.png) | ![Popup](screenshots/image-1.png) |
+
+---
 
 ## Installation
 
+### From Chrome Web Store
+
+1. Visit the [SmartGrind listing](https://chromewebstore.google.com/detail/smartgrind/eaolfkdmfnnanbfkaejnkcfafpankcmp)
+2. Click **Add to Chrome**
+3. Navigate to LeetCode and enjoy enhanced features!
+
 ### From Source (Recommended for Developers)
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/AlgoVyn/smart-grind.git
-   ```
-2. Open Google Chrome and go to chrome://extensions/
-3. Enable Developer mode (top-right toggle)
-4. Click Load unpacked and select the cloned repository folder
+```bash
+# 1. Clone the repository
+git clone https://github.com/AlgoVyn/smart-grind.git
 
-### Future Availability
-The extension may become available on the Chrome Web Store — check the official website for updates.
+# 2. Open Google Chrome
+#    Navigate to: chrome://extensions/
+
+# 3. Enable Developer mode
+#    (toggle in top-right corner)
+
+# 4. Click "Load unpacked"
+#    Select the smart-grind/chrome-extension folder
+
+# 5. Visit LeetCode to see enhanced displays!
+```
+
+---
 
 ## Usage
 
 ### Getting Started
-1. **Install the Extension**: Load the unpacked extension in Chrome developer mode
-2. **Navigate to LeetCode**: Go to [leetcode.com](https://leetcode.com)
-3. **Automatic Activation**: The extension activates automatically on problem pages
-4. **Access Controls**: Click the SmartGrind icon in your toolbar to open the popup
+
+1. ✅ **Install** - Load the extension in Chrome developer mode
+2. 🌐 **Navigate** - Go to [leetcode.com](https://leetcode.com)
+3. ⚡ **Activate** - Extension activates automatically on problem pages
+4. 🎛️ **Access Controls** - Click the SmartGrind icon in toolbar
 
 ### Using the Popup Interface
-- **Current Rating**: View your estimated rating based on solved problems
-- **Rating Range**: Set minimum and maximum rating bounds for random problem selection
-- **Tag Filter**: Select specific problem tags to focus your practice
-- **Get Random Problem**: Click to open a random problem matching your criteria
+
+| Control | Description |
+|---------|-------------|
+| 📊 **Current Rating** | View your estimated rating based on solved problems |
+| 🎚️ **Rating Range** | Set min/max rating bounds for random selection |
+| 🏷️ **Tag Filter** | Select specific problem tags |
+| 🎲 **Get Random Problem** | Opens a random problem matching criteria |
 
 ### Using AI Assistance
-On individual problem pages, you'll see AI buttons in the top buttons area:
-- **ChatGPT Button**: Opens ChatGPT with a pre-filled prompt for detailed problem explanation
-- **AI Studio Button**: Opens Google AI Studio with the same prompt
-- **Grok Button**: Opens Grok AI with the prompt
-- Hover over buttons to see tooltips; buttons change color on hover for better interaction
+
+On problem pages, AI buttons appear in the top buttons area:
+
+| Button | AI Service | Action |
+|--------|------------|--------|
+| 🤖 | **ChatGPT** | Opens with pre-filled problem explanation prompt |
+| ✨ | **AI Studio (Gemini)** | Opens Google AI Studio with prompt |
+| 🚀 | **Grok** | Opens Grok AI with prompt |
+
+> 💡 Hover over buttons to see tooltips; buttons change color on hover
 
 ### Understanding Ratings
-- Ratings range from approximately 0 to 3000
-- Higher ratings indicate greater difficulty
-- Use rating ranges to practice at appropriate difficulty levels
+
+| Rating Range | Difficulty |
+|--------------|------------|
+| 0-800 | 🔰 Beginner |
+| 800-1200 | 🥉 Easy |
+| 1200-1600 | 🥈 Medium |
+| 1600-2000 | 🥇 Hard |
+| 2000-2500 | 🔥 Expert |
+| 2500-3000 | 👑 Master |
 
 ### Rating Calculation Method
-Your current rating is calculated using an exponentially weighted moving average (EMA) of your solved problem ratings, with Bayesian smoothing applied for users with fewer solved problems:
 
-1. **Recency Weighting**: Problems solved more recently have higher influence on your current rating
-2. **EMA Calculation**: Uses an alpha value of 0.2 for smoothing recent performance
-3. **Bayesian Smoothing**: For users with fewer than 100 solved problems, the rating is blended with the global average to reduce volatility
-4. **Confidence Factor**: The smoothing weight decreases as you solve more problems, giving more weight to your actual performance
+Your rating uses **Exponentially Weighted Moving Average (EMA)** with **Bayesian smoothing**:
+
+```
+1. Recency Weighting → Recent problems have higher influence
+2. EMA Calculation → Alpha = 0.2 for smoothing
+3. Bayesian Smoothing → For <100 solved problems, blends with global average
+4. Confidence Factor → Smoothing decreases as you solve more
+```
 
 ### Tips for Effective Use
-- **Pin the Extension**: Pin SmartGrind to your toolbar for quick access
-- **Grant Permissions**: Ensure activeTab permission is granted for full functionality
-- **Regular Practice**: Use random problem selection to maintain consistent practice across difficulty levels
-- **Track Progress**: Monitor your rating improvement over time
+
+| Tip | Why |
+|-----|-----|
+| 📌 **Pin the Extension** | Quick access from toolbar |
+| 🔐 **Grant Permissions** | Ensure activeTab for full functionality |
+| 📅 **Regular Practice** | Use random selection for consistent practice |
+| 📈 **Track Progress** | Monitor rating improvement over time |
 
 ### Troubleshooting
-- **Ratings Not Showing**: Ensure you're on a LeetCode problem page
-- **Popup Not Working**: Check that the extension is enabled and permissions are granted
-- **Data Not Loading**: Clear browser cache and reload the extension
+
+| Issue | Solution |
+|-------|----------|
+| ❌ Ratings Not Showing | Ensure you're on a LeetCode problem page |
+| ❌ Popup Not Working | Check extension is enabled and permissions granted |
+| ❌ Data Not Loading | Clear browser cache and reload extension |
+
+---
 
 ## Architecture
 
 ### Extension Components
-- **Manifest V3**: Modern Chrome extension structure with service worker
-- **Content Script**: Injects rating display and AI assistance functionality into LeetCode pages
-- **Popup Interface**: User interface for settings and random problem selection
-- **Background Service Worker**: Handles message passing and background tasks
-- **Data Files**: Static ratings and tags stored as web-accessible resources
+
+```
+┌─────────────────────────────────────────────┐
+│           SmartGrind Extension               │
+├─────────────────────────────────────────────┤
+│  manifest.json                              │
+│  ├── Content Script (content.js)            │
+│  │   ├── Injects rating displays            │
+│  │   └── Adds AI buttons                    │
+│  ├── Popup (popup.html + popup.js)          │
+│  │   ├── Settings UI                        │
+│  │   └── Random problem selector            │
+│  ├── Background (background.js)             │
+│  │   ├── Service worker                     │
+│  │   └── Message passing                    │
+│  └── Data Files                             │
+│      ├── ratings.txt                        │
+│      └── tags.txt                           │
+└─────────────────────────────────────────────┘
+```
 
 ### Data Flow
-1. **Page Load**: Content script loads ratings data, modifies problem displays, and injects AI buttons
-2. **User Interaction**: Popup communicates with content script for problem selection; AI buttons open external AI services
-3. **Progress Tracking**: Monitors submissions to update solved problem lists
-4. **Settings Persistence**: Syncs user preferences across browser sessions
+
+```
+┌──────────────┐     ┌─────────────────┐     ┌──────────────────┐
+│  Page Load   │────▶│ Content Script  │────▶│  Ratings Display │
+│              │     │ (injects UI)    │     │  + AI Buttons    │
+└──────────────┘     └─────────────────┘     └──────────────────┘
+                              │
+                              ▼
+                       ┌──────────────┐
+                       │   Popup UI   │
+                       │ (settings)   │
+                       └──────────────┘
+                              │
+                              ▼
+                       ┌──────────────┐
+                       │   Background │
+                       │   (storage)  │
+                       └──────────────┘
+```
 
 ### Permissions
-- **activeTab**: Required for interacting with LeetCode pages
-- **storage**: Used for caching data and storing user preferences
-- **tabs**: Enables opening new tabs for random problems
+
+| Permission | Purpose |
+|------------|---------|
+| `activeTab` | Interact with LeetCode pages |
+| `storage` | Cache data, store preferences |
+| `tabs` | Open new tabs for random problems |
+
+---
 
 ## Contributing
 
-Contributions are welcome!
+We welcome contributions! 🎉
 
-- **Bug Reports**: Open issues for bugs or unexpected behavior
-- **Feature Requests**: Suggest new functionality or improvements
-- **Code Contributions**: Submit pull requests with enhancements
+| Contribution Type | How to Help |
+|-------------------|-------------|
+| 🐛 **Bug Reports** | Open issues for bugs |
+| 💡 **Feature Requests** | Suggest new functionality |
+| 🔧 **Code Contributions** | Submit pull requests |
 
 ### Development Setup
-1. Clone the repository
-2. Load as unpacked extension in Chrome developer mode
-3. Make changes to source files
-4. Test functionality on LeetCode
-5. Submit pull request with description of changes
 
-Please follow the standard GitHub flow: fork → branch → commit → pull request.
+```bash
+# 1. Fork and clone
+git clone https://github.com/YOUR-USERNAME/smart-grind.git
+
+# 2. Load as unpacked extension
+#    chrome://extensions/ → Load unpacked
+
+# 3. Make changes to source files
+
+# 4. Test on LeetCode
+
+# 5. Submit PR
+```
+
+Please follow the standard GitHub flow: **fork → branch → commit → PR**
+
+---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
+
+---
 
 ## Support
 
-For questions, feedback, or support:
+| Need | Contact |
+|------|---------|
+| 🐛 **Bug Report** | [Open an Issue](https://github.com/AlgoVyn/smart-grind/issues) |
+| 💬 **General Questions** | [GitHub Discussions](https://github.com/AlgoVyn/smart-grind/discussions) |
+| 🌐 **Website** | [algovyn.com/smartgrind](https://algovyn.com/smartgrind) |
 
-- Visit the official site: [SmartGrind Chrome Extension](https://chromewebstore.google.com/detail/smartgrind/eaolfkdmfnnanbfkaejnkcfafpankcmp)
-- Open an issue on this repository
+---
 
-Happy grinding! 🚀
+<div align="center">
+
+**Happy grinding! 🚀**
+
+[![Follow on GitHub](https://img.shields.io/github/followers/AlgoVyn?label=Follow&style=social)](https://github.com/AlgoVyn)
+
+</div>
+

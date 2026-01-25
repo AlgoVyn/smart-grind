@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc && cp -r dist/public/modules/* public/modules/",
+    "build": "npm run type-check && tsc && cp -r dist/public/modules/* public/modules/ && find public/modules -name '*.js.map' -exec mv {} public/maps/ \\; && find public/modules -name '*.js' -exec bash -c 'relpath=$(realpath --relative-to=\"$(dirname \"$1\")\" \"public/maps/$(basename \"$1\" .js).js.map\"); sed -i \"s|# sourceMappingURL=.*|# sourceMappingURL=$relpath|\" \"$1\"' _ {} \\;",
     "lint": "eslint public/modules/ functions/ tests/ --ext .ts",
     "lint:fix": "eslint public/modules/ functions/ tests/ --ext .ts --fix",
     "type-check": "tsc --noEmit",
@@ -13,7 +13,7 @@
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "clean": "rm -rf dist public/modules/*.js public/modules/**/*.js"
+    "clean": "rm -rf dist public/modules/*.js public/modules/**/*.js public/maps/*.js.map"
   },
   "keywords": [],
   "author": "",

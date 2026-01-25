@@ -75,3 +75,9 @@ wrangler.toml
 # Tests
 playwright-report
 test-results
+
+# Generated files
+public/modules/**/*.js
+public/modules/**/*.js.map
+public/maps/*.js.map
+dist/

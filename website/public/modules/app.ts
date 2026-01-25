@@ -5,7 +5,7 @@ window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.app = {};
 
 // Initialize local user
-window.SmartGrind.app.initializeLocalUser = () => {
+window.SmartGrind.app.initializeLocalUser = async () => {
     window.SmartGrind.state.user.type = 'local';
     localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
 
@@ -16,8 +16,14 @@ window.SmartGrind.app.initializeLocalUser = () => {
     // Reset topicsData to original static data
     window.SmartGrind.data.resetTopicsData();
 
-    // Sync with static plan to ensure all problems exist
-    window.SmartGrind.api.syncPlan();
+    try {
+        // Sync with static plan to ensure all problems exist
+        await window.SmartGrind.api.syncPlan();
+    } catch (e) {
+        console.error('Error syncing plan:', e);
+        const message = e instanceof Error ? e.message : String(e);
+        window.SmartGrind.ui.showAlert(`Failed to sync problems: ${message}`);
+    }
 
     // Merge dynamically added problems into topicsData structure
     window.SmartGrind.api.mergeStructure();

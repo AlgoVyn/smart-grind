@@ -1,5 +1,7 @@
 // --- GLOBAL EVENTS ---
 
+import { Topic } from '../types.js';
+
 window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.ui = window.SmartGrind.ui || {};
 
@@ -12,8 +14,8 @@ window.SmartGrind.ui.bindGlobalEvents = () => {
     window.addEventListener('popstate', window.SmartGrind.ui.handlePopState);
 
     // Close sidebar on topic click (mobile)
-    window.SmartGrind.state.elements.topicList?.addEventListener('click', (e) => {
-        if (window.innerWidth < 768 && (e.target.closest('.sidebar-link') || e.target.closest('button'))) {
+    window.SmartGrind.state.elements.topicList?.addEventListener('click', (e: MouseEvent) => {
+        if (window.innerWidth < 768 && ((e.target as Element).closest('.sidebar-link') || (e.target as Element).closest('button'))) {
             window.SmartGrind.ui.toggleMobileMenu();
         }
     });
@@ -35,9 +37,9 @@ window.SmartGrind.ui._keyboardShortcuts = {
 };
 
 // Keyboard shortcuts
-window.SmartGrind.ui.handleKeyboard = (e) => {
+window.SmartGrind.ui.handleKeyboard = (e: KeyboardEvent) => {
     // Skip if typing in an input/textarea
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    if ((e.target as Element).tagName === 'INPUT' || (e.target as Element).tagName === 'TEXTAREA') {
     // Allow Escape to close modals even when focused on input
         if (e.key === 'Escape') {
             window.SmartGrind.ui._keyboardShortcuts['Escape']();
@@ -56,7 +58,7 @@ window.SmartGrind.ui.handleKeyboard = (e) => {
 // Browser navigation
 window.SmartGrind.ui.handlePopState = () => {
     const categoryParam = window.SmartGrind.utils.getUrlParameter('category');
-    const category = categoryParam && (window.SmartGrind.data.topicsData.some(t => t.id === categoryParam) || categoryParam === 'all')
+    const category = categoryParam && (window.SmartGrind.data.topicsData.some((t: Topic) => t.id === categoryParam) || categoryParam === 'all')
         ? categoryParam
         : 'all';
 

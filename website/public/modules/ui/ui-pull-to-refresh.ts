@@ -35,14 +35,14 @@ window.SmartGrind.ui.pullToRefresh = {
         return modals.some(modal => modal && !modal.classList.contains('hidden'));
     },
 
-    handleTouchStart: (e) => {
-        if (window.scrollY === 0 && window.SmartGrind.state.elements.contentScroll.scrollTop === 0 && !window.SmartGrind.state.elements.mainSidebar.classList.contains('translate-x-0') && !window.SmartGrind.ui.pullToRefresh.isAnyModalOpen()) {
+    handleTouchStart: (e: TouchEvent) => {
+        if (window.scrollY === 0 && window.SmartGrind.state.elements.contentScroll.scrollTop === 0 && !window.SmartGrind.state.elements.mainSidebar.classList.contains('translate-x-0') && !window.SmartGrind.ui.pullToRefresh.isAnyModalOpen() && e.touches[0]) {
             window.SmartGrind.ui.pullToRefresh.startY = e.touches[0].clientY;
             window.SmartGrind.ui.pullToRefresh.isPulling = true;
         }
     },
 
-    handleMove: (currentY, isPullingFlag) => {
+    handleMove: (currentY: number, isPullingFlag: string) => {
         if (!window.SmartGrind.ui.pullToRefresh[isPullingFlag]) return;
         const deltaY = currentY - window.SmartGrind.ui.pullToRefresh.startY;
         if (deltaY > 0) {
@@ -57,7 +57,7 @@ window.SmartGrind.ui.pullToRefresh = {
         }
     },
 
-    handleEnd: (currentY, isPullingFlag) => {
+    handleEnd: (currentY: number, isPullingFlag: string) => {
         if (!window.SmartGrind.ui.pullToRefresh[isPullingFlag]) return;
         const deltaY = currentY - window.SmartGrind.ui.pullToRefresh.startY;
         const appWrapper = document.getElementById('app-wrapper');
@@ -80,17 +80,19 @@ window.SmartGrind.ui.pullToRefresh = {
         window.SmartGrind.ui.pullToRefresh[isPullingFlag] = false;
     },
 
-    handleTouchMove: (e) => {
-        if (window.SmartGrind.ui.pullToRefresh.handleMove(e.touches[0].clientY, 'isPulling')) {
+    handleTouchMove: (e: TouchEvent) => {
+        if (e.touches[0] && window.SmartGrind.ui.pullToRefresh.handleMove(e.touches[0].clientY, 'isPulling')) {
             e.preventDefault(); // prevent default scrolling
         }
     },
 
-    handleTouchEnd: (e) => {
-        window.SmartGrind.ui.pullToRefresh.handleEnd(e.changedTouches[0].clientY, 'isPulling');
+    handleTouchEnd: (e: TouchEvent) => {
+        if (e.changedTouches[0]) {
+            window.SmartGrind.ui.pullToRefresh.handleEnd(e.changedTouches[0].clientY, 'isPulling');
+        }
     },
 
-    handleMouseDown: (e) => {
+    handleMouseDown: (e: MouseEvent) => {
         if (e.button !== 0) return; // Only left mouse button
         if (window.scrollY === 0 && window.SmartGrind.state.elements.contentScroll.scrollTop === 0 && !window.SmartGrind.state.elements.mainSidebar.classList.contains('translate-x-0') && !window.SmartGrind.ui.pullToRefresh.isAnyModalOpen() && !window.SmartGrind.ui.pullToRefresh.isMousePulling) {
             window.SmartGrind.ui.pullToRefresh.startY = e.clientY;
@@ -98,13 +100,13 @@ window.SmartGrind.ui.pullToRefresh = {
         }
     },
 
-    handleMouseMove: (e) => {
+    handleMouseMove: (e: MouseEvent) => {
         if (window.SmartGrind.ui.pullToRefresh.handleMove(e.clientY, 'isMousePulling')) {
             e.preventDefault(); // prevent default scrolling or selection
         }
     },
 
-    handleMouseEnd: (e) => {
+    handleMouseEnd: (e: MouseEvent) => {
         window.SmartGrind.ui.pullToRefresh.handleEnd(e.clientY, 'isMousePulling');
     },
 

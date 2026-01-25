@@ -1,20 +1,22 @@
 // --- API SAVE MODULE ---
 // Data saving operations
 
+import { UserData, Problem } from '../types.js';
+
 window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.api = window.SmartGrind.api || {};
 
 Object.assign(window.SmartGrind.api, {
     /**
-     * Prepares the current problem data for saving by serializing the problems map and deleted IDs.
-     * @returns {Object} The data object to save.
-     * @returns {Object} return.problems - Object of problem IDs to problem data.
-     * @returns {string[]} return.deletedIds - Array of deleted problem IDs.
-     */
-    _prepareDataForSave: () => ({
+      * Prepares the current problem data for saving by serializing the problems map and deleted IDs.
+      * @returns {Object} The data object to save.
+      * @returns {Object} return.problems - Object of problem IDs to problem data.
+      * @returns {string[]} return.deletedIds - Array of deleted problem IDs.
+      */
+    _prepareDataForSave: (): UserData => ({
         problems: Object.fromEntries(
-            Array.from(window.SmartGrind.state.problems.entries()).map(([id, p]) => {
-                const { loading: _loading, noteVisible: _noteVisible, ...rest } = p;
+            Array.from(window.SmartGrind.state.problems.entries() as IterableIterator<[string, Problem]>).map(([id, p]) => {
+                const { loading, noteVisible, ...rest } = p;
                 return [id, rest];
             })
         ),
@@ -29,10 +31,10 @@ Object.assign(window.SmartGrind.api, {
     },
 
     /**
-     * Saves the prepared data to the remote API.
-     * @throws {Error} Throws an error if the save request fails.
-     */
-    _saveRemotely: async () => {
+      * Saves the prepared data to the remote API.
+      * @throws {Error} Throws an error if the save request fails.
+      */
+    _saveRemotely: async (): Promise<void> => {
         const data = window.SmartGrind.api._prepareDataForSave();
         const response = await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
             method: 'POST',
@@ -42,7 +44,7 @@ Object.assign(window.SmartGrind.api, {
             body: JSON.stringify({ data })
         });
         if (!response.ok) {
-            const errorMessages = {
+            const errorMessages: Record<number, string> = {
                 401: 'Authentication failed. Please sign in again.',
                 500: 'Server error. Please try again later.'
             };
@@ -51,26 +53,27 @@ Object.assign(window.SmartGrind.api, {
     },
 
     /**
-     * Handles the save operation with error handling and UI updates.
-     * @param {Function} saveFn - The save function to execute (local or remote).
-     * @throws {Error} Throws the error if the save function fails.
-     */
-    _handleSaveOperation: async (saveFn) => {
+      * Handles the save operation with error handling and UI updates.
+      * @param {Function} saveFn - The save function to execute (local or remote).
+      * @throws {Error} Throws the error if the save function fails.
+      */
+    _handleSaveOperation: async (saveFn: () => Promise<void>): Promise<void> => {
         try {
             await saveFn();
             window.SmartGrind.renderers.updateStats();
         } catch (e) {
             console.error('Save error:', e);
-            window.SmartGrind.ui.showAlert(`Failed to save data: ${e.message}`);
+            const message = e instanceof Error ? e.message : String(e);
+            window.SmartGrind.ui.showAlert(`Failed to save data: ${message}`);
             throw e;
         }
     },
 
     /**
-     * Performs the save operation based on the user type (local or remote).
-     * @throws {Error} Throws an error if the save fails.
-     */
-    _performSave: async () => {
+      * Performs the save operation based on the user type (local or remote).
+      * @throws {Error} Throws an error if the save fails.
+      */
+    _performSave: async (): Promise<void> => {
         const saveFn = window.SmartGrind.state.user.type === 'local'
             ? window.SmartGrind.api._saveLocally
             : window.SmartGrind.api._saveRemotely;
@@ -78,19 +81,20 @@ Object.assign(window.SmartGrind.api, {
     },
 
     /**
-     * Saves a problem to storage or API.
-     * @throws {Error} Throws an error if the save fails.
-     */
-    saveProblem: async () => {
+      * Saves a problem to storage or API.
+      * @param {Problem} _problem - The problem being saved (for compatibility, not used).
+      * @throws {Error} Throws an error if the save fails.
+      */
+    saveProblem: async (_problem?: Problem): Promise<void> => {
         await window.SmartGrind.api._performSave();
     },
 
     /**
-     * Saves the deletion of a problem by marking it and saving the state.
-     * @param {string} id - The ID of the problem to delete.
-     * @throws {Error} Throws an error if the save fails.
-     */
-    saveDeletedId: async (id) => {
+      * Saves the deletion of a problem by marking it and saving the state.
+      * @param {string} id - The ID of the problem to delete.
+      * @throws {Error} Throws an error if the save fails.
+      */
+    saveDeletedId: async (id: string): Promise<void> => {
         const problem = window.SmartGrind.state.problems.get(id);
         try {
             window.SmartGrind.state.problems.delete(id);
@@ -100,7 +104,8 @@ Object.assign(window.SmartGrind.api, {
             window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
         } catch (e) {
             console.error('Delete save error:', e);
-            window.SmartGrind.ui.showAlert(`Failed to delete problem: ${e.message}`);
+            const message = e instanceof Error ? e.message : String(e);
+            window.SmartGrind.ui.showAlert(`Failed to delete problem: ${message}`);
             // Restore the problem if save failed
             if (problem) {
                 window.SmartGrind.state.problems.set(id, problem);
@@ -111,10 +116,10 @@ Object.assign(window.SmartGrind.api, {
     },
 
     /**
-     * Saves all current data to storage or API.
-     * @throws {Error} Throws an error if the save fails.
-     */
-    saveData: async () => {
+      * Saves all current data to storage or API.
+      * @throws {Error} Throws an error if the save fails.
+      */
+    saveData: async (): Promise<void> => {
         await window.SmartGrind.api._performSave();
     }
 });

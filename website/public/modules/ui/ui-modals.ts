@@ -4,8 +4,8 @@ window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.ui = window.SmartGrind.ui || {};
 
 // Generic modal handler factory
-window.SmartGrind.ui.createModalHandler = (modalEl, contentEl, closeCallback) => {
-    return (e) => {
+window.SmartGrind.ui.createModalHandler = (modalEl: HTMLElement, contentEl: HTMLElement | null, closeCallback?: () => void) => {
+    return (e: Event) => {
         if (e && e.target !== modalEl) {
             if (contentEl) e?.stopPropagation();
             return;
@@ -17,12 +17,12 @@ window.SmartGrind.ui.createModalHandler = (modalEl, contentEl, closeCallback) =>
 
 // Generic modal manager
 window.SmartGrind.ui.modalManager = {
-    show: (modalEl, setupCallback) => {
+    show: (modalEl: HTMLElement, setupCallback?: () => void) => {
         if (setupCallback) setupCallback();
         modalEl.classList.remove('hidden');
     },
 
-    hide: (modalEl, cleanupCallback) => {
+    hide: (modalEl: HTMLElement, cleanupCallback?: () => void) => {
         modalEl.classList.add('hidden');
         if (cleanupCallback) cleanupCallback();
     }
@@ -37,10 +37,12 @@ window.SmartGrind.ui.closeSigninModal = () => {
     window.SmartGrind.ui.modalManager.hide(window.SmartGrind.state.elements.signinModal);
 };
 
+import { Topic, Pattern } from '../types.js';
+
 window.SmartGrind.ui._setupAddModal = () => {
     // Populate category dropdown
     window.SmartGrind.state.elements.addProbCategory.innerHTML = '<option value="">-- Select or Type New --</option>' +
-        window.SmartGrind.data.topicsData.map(t => `<option value="${t.title}">${t.title}</option>`).join('');
+        window.SmartGrind.data.topicsData.map((t: Topic) => `<option value="${t.title}">${t.title}</option>`).join('');
 
     // Clear inputs
     ['addProbName', 'addProbUrl', 'addProbCategoryNew', 'addProbPatternNew'].forEach(id => {
@@ -60,7 +62,7 @@ window.SmartGrind.ui.closeAddModal = () => {
 };
 
 // Alert modal functions
-window.SmartGrind.ui.showAlert = (message, title = 'Alert') => {
+window.SmartGrind.ui.showAlert = (message: string, title = 'Alert') => {
     window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.alertModal, () => {
         window.SmartGrind.state.elements.alertTitle.textContent = title;
         window.SmartGrind.state.elements.alertMessage.textContent = message;
@@ -72,8 +74,8 @@ window.SmartGrind.ui.closeAlertModal = () => {
 };
 
 // Confirm modal functions
-window.SmartGrind.ui.showConfirm = (message, title = 'Confirm Action') => {
-    return new Promise((resolve) => {
+window.SmartGrind.ui.showConfirm = (message: string, title = 'Confirm Action') => {
+    return new Promise((resolve: (value: boolean) => void) => {
         window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.confirmModal, () => {
             window.SmartGrind.state.elements.confirmTitle.textContent = title;
             window.SmartGrind.state.elements.confirmMessage.innerHTML = message;
@@ -82,7 +84,7 @@ window.SmartGrind.ui.showConfirm = (message, title = 'Confirm Action') => {
     });
 };
 
-window.SmartGrind.ui.closeConfirmModal = (result) => {
+window.SmartGrind.ui.closeConfirmModal = (result: boolean) => {
     window.SmartGrind.ui.modalManager.hide(window.SmartGrind.state.elements.confirmModal, () => {
         if (window.SmartGrind.ui._confirmResolve) {
             window.SmartGrind.ui._confirmResolve(result);
@@ -91,7 +93,7 @@ window.SmartGrind.ui.closeConfirmModal = (result) => {
     });
 };
 
-window.SmartGrind.ui._toggleElementVisibility = (element, hide) => {
+window.SmartGrind.ui._toggleElementVisibility = (element: HTMLElement, hide: boolean) => {
     if (hide) {
         element.classList.add('hidden');
     } else {
@@ -99,8 +101,9 @@ window.SmartGrind.ui._toggleElementVisibility = (element, hide) => {
     }
 };
 
-window.SmartGrind.ui.handleCategoryChange = (e) => {
-    const val = e.target.value;
+window.SmartGrind.ui.handleCategoryChange = (e: Event) => {
+    const target = e.target as HTMLSelectElement;
+    const val = target.value;
     const categoryNewEl = window.SmartGrind.state.elements.addProbCategoryNew;
     const patternEl = window.SmartGrind.state.elements.addProbPattern;
     const patternNewEl = window.SmartGrind.state.elements.addProbPatternNew;
@@ -108,9 +111,9 @@ window.SmartGrind.ui.handleCategoryChange = (e) => {
     window.SmartGrind.ui._toggleElementVisibility(categoryNewEl, !!val);
 
     if (val) {
-        const topic = window.SmartGrind.data.topicsData.find(t => t.title === val);
+        const topic = window.SmartGrind.data.topicsData.find((t: Topic) => t.title === val);
         patternEl.innerHTML = topic
-            ? '<option value="">-- Select or Type New --</option>' + topic.patterns.map(p => `<option value="${p.name}">${p.name}</option>`).join('')
+            ? '<option value="">-- Select or Type New --</option>' + topic.patterns.map((p: Pattern) => `<option value="${p.name}">${p.name}</option>`).join('')
             : '<option value="">-- No Patterns Found --</option>';
     } else {
         patternEl.innerHTML = '<option value="">-- Select Category First --</option>';
@@ -118,8 +121,9 @@ window.SmartGrind.ui.handleCategoryChange = (e) => {
     window.SmartGrind.ui._toggleElementVisibility(patternNewEl, false);
 };
 
-window.SmartGrind.ui.handlePatternChange = (e) => {
-    window.SmartGrind.ui._toggleElementVisibility(window.SmartGrind.state.elements.addProbPatternNew, !!e.target.value);
+window.SmartGrind.ui.handlePatternChange = (e: Event) => {
+    const target = e.target as HTMLSelectElement;
+    window.SmartGrind.ui._toggleElementVisibility(window.SmartGrind.state.elements.addProbPatternNew, !!target.value);
 };
 
 window.SmartGrind.ui._getSanitizedInputs = () => {
@@ -136,7 +140,7 @@ window.SmartGrind.ui._getSanitizedInputs = () => {
     return { name, url, category, pattern };
 };
 
-window.SmartGrind.ui._validateInputs = ({ name, url, category, pattern }) => {
+window.SmartGrind.ui._validateInputs = ({ name, url, category, pattern }: { name: string, url: string, category: string, pattern: string }) => {
     if (!name.trim()) {
         window.SmartGrind.ui.showAlert('Problem name is required and cannot be empty after sanitization.');
         return false;
@@ -162,7 +166,7 @@ window.SmartGrind.ui._validateInputs = ({ name, url, category, pattern }) => {
     return true;
 };
 
-window.SmartGrind.ui._createNewProblem = (name, url, category, pattern) => {
+window.SmartGrind.ui._createNewProblem = (name: string, url: string, category: string, pattern: string) => {
     const id = 'custom-' + Date.now();
     return {
         id,

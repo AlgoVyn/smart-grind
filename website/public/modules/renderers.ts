@@ -9,7 +9,7 @@ import { problemCardRenderers } from './renderers/problem-cards.js';
 import { statsRenderers } from './renderers/stats.js';
 
 window.SmartGrind = window.SmartGrind || {};
-window.SmartGrind.ICONS = ICONS;
+window.SmartGrind['ICONS'] = ICONS;
 
 window.SmartGrind.renderers = {
     ...htmlGenerators,

@@ -1,6 +1,8 @@
 // --- STATE MANAGEMENT MODULE ---
 // Centralized state management for the application
 
+import { User, Problem, UIState } from './types.js';
+
 window.SmartGrind = window.SmartGrind || {};
 
 window.SmartGrind.state = {
@@ -9,11 +11,11 @@ window.SmartGrind.state = {
         type: 'local', // 'local' or 'signed-in'
         id: null,
         displayName: 'Local User'
-    },
+    } as User,
 
     // Problem data
-    problems: new Map(),
-    deletedProblemIds: new Set(),
+    problems: new Map<string, Problem>(),
+    deletedProblemIds: new Set<string>(),
 
     // UI state
     ui: {
@@ -21,10 +23,10 @@ window.SmartGrind.state = {
         currentFilter: 'all',
         searchQuery: '',
         preferredAI: localStorage.getItem('preferred-ai') || null
-    },
+    } as UIState,
 
     // DOM elements cache
-    elements: {},
+    elements: {} as Record<string, HTMLElement | null>,
 
     // Initialize state
     init() {
@@ -33,7 +35,7 @@ window.SmartGrind.state = {
     },
 
     // Load state from localStorage
-    loadFromStorage() {
+    loadFromStorage(): void {
         try {
             const problemsData = localStorage.getItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.PROBLEMS);
             const deletedIdsData = localStorage.getItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.DELETED_IDS);
@@ -45,22 +47,22 @@ window.SmartGrind.state = {
 
             this.problems = new Map(Object.entries(problemsObj));
             // Reset loading state for all problems on load
-            this.problems.forEach(p => p.loading = false);
+            this.problems.forEach((p: Problem) => p.loading = false);
             this.deletedProblemIds = new Set(deletedIdsArr);
             this.user.displayName = displayName;
-            this.user.type = userType;
+            this.user.type = userType as 'local' | 'signed-in';
         } catch (e) {
             console.error('Error loading state from storage:', e);
         }
     },
 
     // Save state to localStorage
-    saveToStorage() {
+    saveToStorage(): void {
         try {
             // Exclude loading state's temporary
             const problemsWithoutLoading = Object.fromEntries(
-                Array.from(this.problems.entries()).map(([id, p]) => {
-                    const { loading: _loading, ...rest } = p;
+                Array.from(this.problems.entries() as IterableIterator<[string, Problem]>).map(([id, p]) => {
+                    const { loading, ...rest } = p;
                     return [id, rest];
                 })
             );
@@ -74,7 +76,7 @@ window.SmartGrind.state = {
     },
 
     // Cache DOM elements
-    cacheElements() {
+    cacheElements(): void {
         this.elements = {
             setupModal: document.getElementById('setup-modal'),
             addProblemModal: document.getElementById('add-problem-modal'),
@@ -150,13 +152,13 @@ window.SmartGrind.state = {
     },
 
     // Update user state
-    setUser(userData) {
+    setUser(userData: Partial<User>): void {
         Object.assign(this.user, userData);
         this.saveToStorage();
     },
 
     // Update UI state
-    setUI(uiData) {
+    setUI(uiData: Partial<UIState>): void {
         Object.assign(this.ui, uiData);
     }
 };

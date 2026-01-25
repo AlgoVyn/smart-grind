@@ -19,10 +19,10 @@ window.SmartGrind.ui = window.SmartGrind.ui || {};
  * @param {boolean} loading - Whether to show loading state.
  * @param {string} [loadingText="Connecting..."] - Text to display while loading.
  */
-window.SmartGrind.ui.setButtonLoading = (button, loading, loadingText = 'Connecting...') => {
+window.SmartGrind.ui.setButtonLoading = (button: HTMLButtonElement, loading: boolean, loadingText = 'Connecting...') => {
     if (!button) return;
     button.disabled = loading;
-    button.innerHTML = loading ? loadingText : window.SmartGrind.GOOGLE_BUTTON_HTML;
+    button.innerHTML = loading ? loadingText : window.SmartGrind['GOOGLE_BUTTON_HTML'];
 };
 
 /**
@@ -52,7 +52,7 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
 
     let authCompleted = false;
 
-    const handleAuthSuccess = (data) => {
+    const handleAuthSuccess = (data: { userId: string; displayName: string }) => {
         const { userId, displayName } = data;
         localStorage.setItem('userId', userId);
         localStorage.setItem('displayName', displayName);
@@ -71,7 +71,7 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
         window.SmartGrind.state.elements.signinModal.classList.add('hidden');
     };
 
-    const handleAuthFailure = (data) => {
+    const handleAuthFailure = (data: { message: string }) => {
         const { message } = data;
         setTimeout(() => {
             window.SmartGrind.utils.showToast(`Sign-in failed: ${message}`, 'error');
@@ -87,7 +87,7 @@ window.SmartGrind.ui.handleGoogleLogin = () => {
     };
 
     // Listen for auth messages
-    const messageHandler = (event) => {
+    const messageHandler = (event: MessageEvent) => {
     // Strict origin check for security
         const expectedOrigin = window.location.origin;
         if (event.origin !== expectedOrigin) {
@@ -208,7 +208,7 @@ window.SmartGrind.ui.updateAuthUI = () => {
  * Shows an alert if a message is provided and toggles the visibility of the error element.
  * @param {string|null} msg - The error message to display, or null to hide the error.
  */
-window.SmartGrind.ui.showError = (msg) => {
+window.SmartGrind.ui.showError = (msg: string | null) => {
     window.SmartGrind.ui.showAuthError(window.SmartGrind.state.elements.setupError, msg);
 };
 
@@ -217,11 +217,11 @@ window.SmartGrind.ui.showError = (msg) => {
  * Shows an alert if a message is provided and toggles the visibility of the sign-in error element.
  * @param {string|null} msg - The error message to display, or null to hide the error.
  */
-window.SmartGrind.ui.showAuthError = (element, msg) => {
+window.SmartGrind.ui.showAuthError = (element: HTMLElement, msg: string | null) => {
     element.innerText = msg || '';
     element.classList.toggle('hidden', !msg);
 };
 
-window.SmartGrind.ui.showSigninError = (msg) => {
+window.SmartGrind.ui.showSigninError = (msg: string | null) => {
     window.SmartGrind.ui.showAuthError(window.SmartGrind.state.elements.signinError, msg);
 };

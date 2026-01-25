@@ -1,9 +1,11 @@
 // --- INITIALIZATION ---
 
+import { Topic } from './types.js';
+
 // Helper to apply category from URL
-const _applyCategory = (categoryParam) => {
+const _applyCategory = (categoryParam: string | null) => {
     if (categoryParam && categoryParam !== 'all') {
-        const validCategory = window.SmartGrind.data.topicsData.some(t => t.id === categoryParam);
+        const validCategory = window.SmartGrind.data.topicsData.some((t: Topic) => t.id === categoryParam);
         if (validCategory) {
             window.SmartGrind.state.ui.activeTopicId = categoryParam;
         }
@@ -14,7 +16,7 @@ const _applyCategory = (categoryParam) => {
 };
 
 // Helper to setup signed-in user
-const _setupSignedInUser = async (userId, displayName, categoryParam) => {
+const _setupSignedInUser = async (userId: string, displayName: string, categoryParam: string | null) => {
     localStorage.setItem('userId', userId);
     localStorage.setItem('displayName', displayName);
 
@@ -30,7 +32,7 @@ const _setupSignedInUser = async (userId, displayName, categoryParam) => {
 };
 
 // Helper to setup local user
-const _setupLocalUser = (categoryParam) => {
+const _setupLocalUser = (categoryParam: string | null) => {
     window.SmartGrind.app.initializeLocalUser();
     _applyCategory(categoryParam);
 };
@@ -49,7 +51,7 @@ const checkAuth = async () => {
     if (path === '/smartgrind/') {
         categoryParam = 'all';
     } else if (path.startsWith('/smartgrind/c/')) {
-        categoryParam = path.split('/smartgrind/c/')[1];
+        categoryParam = path.split('/smartgrind/c/')[1] || null;
     }
 
     // Check URL params for PWA auth callback
@@ -86,7 +88,7 @@ const checkAuth = async () => {
         window.SmartGrind.state.elements.loadingScreen.classList.add('hidden');
 
         window.SmartGrind.state.elements.googleLoginBtn.disabled = false;
-        window.SmartGrind.state.elements.googleLoginBtn.innerHTML = window.SmartGrind.GOOGLE_BUTTON_HTML;
+        window.SmartGrind.state.elements.googleLoginBtn.innerHTML = window.SmartGrind['GOOGLE_BUTTON_HTML'];
         window.SmartGrind.ui.updateAuthUI();
     }
 };

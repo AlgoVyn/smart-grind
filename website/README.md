@@ -1,76 +1,181 @@
-# Smart Grind - Pattern Practice Web App
+# Smart Grind - Pattern Practice Web App 🌐
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 ![Web App](https://img.shields.io/badge/Platform-Web-blue)
+![Node Version](https://img.shields.io/badge/Node-%3E%3D16-green)
+![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers-orange)
 
-**Smart Grind** is a web application designed to help you master coding patterns through structured practice and spaced repetition. It complements the Chrome extension by providing a comprehensive platform for tracking progress across various algorithmic patterns.
+**Smart Grind** is a comprehensive web application designed to help you master coding patterns through structured practice and spaced repetition. It complements the Chrome extension by providing a complete platform for tracking progress across various algorithmic patterns.
 
-Visit the official website: [algovyn.com/smartgrind](https://algovyn.com/smartgrind)
+📦 **Live Demo**: [algovyn.com/smartgrind](https://algovyn.com/smartgrind)
+
+📦 **Chrome Extension**: [SmartGrind Extension](https://chromewebstore.google.com/detail/smartgrind/eaolfkdmfnnanbfkaejnkcfafpankcmp)
+
+---
+
+## Table of Contents
+
+- [Smart Grind - Pattern Practice Web App 🌐](#smart-grind---pattern-practice-web-app-)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+    - [Core Functionality](#core-functionality)
+    - [Advanced Features](#advanced-features)
+    - [Technical Details](#technical-details)
+  - [Screenshots](#screenshots)
+  - [Why Smart Grind?](#why-smart-grind)
+    - [Benefits at a Glance](#benefits-at-a-glance)
+  - [Installation \& Setup](#installation--setup)
+    - [Prerequisites](#prerequisites)
+    - [Local Development](#local-development)
+    - [Environment Configuration](#environment-configuration)
+  - [Testing](#testing)
+    - [Unit Tests](#unit-tests)
+    - [End-to-End Tests](#end-to-end-tests)
+    - [Test Structure](#test-structure)
+  - [Usage](#usage)
+    - [Getting Started](#getting-started)
+    - [Navigation](#navigation)
+    - [Problem Management](#problem-management)
+    - [AI Assistance](#ai-assistance)
+    - [Additional Features](#additional-features)
+    - [Data Export/Import](#data-exportimport)
+      - [Export Format](#export-format)
+      - [Import](#import)
+  - [Architecture](#architecture)
+    - [Frontend Structure](#frontend-structure)
+    - [Backend (Cloudflare Workers)](#backend-cloudflare-workers)
+    - [Data Flow](#data-flow)
+    - [Key Components](#key-components)
+  - [API Reference](#api-reference)
+    - [Authentication Endpoints](#authentication-endpoints)
+      - [GET /api/auth?action=login](#get-apiauthactionlogin)
+      - [GET /api/auth (callback)](#get-apiauth-callback)
+    - [User Data Endpoints](#user-data-endpoints)
+      - [GET /api/user](#get-apiuser)
+      - [POST /api/user](#post-apiuser)
+  - [Contributing](#contributing)
+    - [Development Workflow](#development-workflow)
+    - [Code Style](#code-style)
+    - [Commit Message Guidelines](#commit-message-guidelines)
+    - [Pull Request Guidelines](#pull-request-guidelines)
+    - [Adding New Patterns](#adding-new-patterns)
+    - [Reporting Issues](#reporting-issues)
+  - [Troubleshooting](#troubleshooting)
+    - [Debug Mode](#debug-mode)
+  - [License](#license)
+  - [Support](#support)
+
+---
 
 ## Features
 
 ### Core Functionality
-- **Pattern-Based Learning**: Organized collection of LeetCode problems grouped by algorithmic patterns (Two Pointers, Sliding Window, etc.)
-- **Spaced Repetition System**: Intelligent review scheduling based on spaced repetition intervals (1, 3, 7, 14, 30, 60 days)
-- **Progress Tracking**: Visual progress bars and statistics for each pattern and overall progress
-- **Custom Problem Addition**: Add your own problems to track additional practice
+
+| Feature | Description |
+|---------|-------------|
+| 📚 **Pattern-Based Learning** | Problems organized by algorithmic patterns |
+| 🔄 **Spaced Repetition** | Review intervals: 1, 3, 7, 14, 30, 60 days |
+| 📊 **Progress Tracking** | Visual bars and statistics per pattern |
+| ➕ **Custom Problems** | Add your own practice problems |
 
 ### Advanced Features
-- **User Authentication**: Secure Google OAuth login with data synced across devices
-- **Topic Organization**: Problems organized by topics (Arrays, Trees, Graphs, etc.) and specific patterns within each topic
-- **Search and Filtering**: Search problems by name or notes, filter by status (All, Solved, Due for Review)
-- **Notes System**: Add personal notes to problems for better retention
-- **AI Integration**: Quick access to AI assistants (Gemini, Grok) with pre-filled prompts for problem explanations
-- **Export Functionality**: Export your progress data as JSON for backup (includes problems, notes, and review schedules)
+
+| Feature | Description |
+|---------|-------------|
+| 🔐 **User Authentication** | Secure Google OAuth with JWT |
+| 🗂️ **Topic Organization** | Hierarchical topics and patterns |
+| 🔍 **Search & Filtering** | By name, notes, status (All/Solved/Review) |
+| 📝 **Notes System** | Personal insights per problem |
+| 🤖 **AI Integration** | Gemini, Grok with pre-filled prompts |
+| 📤 **Export Functionality** | JSON backup of all progress |
+| 🎨 **Theme Toggle** | Light/dark mode support |
+| ⌨️ **Keyboard Shortcuts** | Quick actions for efficiency |
+| 📱 **Mobile Responsive** | Works on all screen sizes |
 
 ### Technical Details
-- **Authentication**: Google OAuth 2.0 with JWT tokens
-- **Data Storage**: Cloudflare Workers with KV storage for user data
-- **Frontend**: Vanilla JavaScript with Tailwind CSS for styling
-- **Responsive Design**: Mobile-first design with collapsible sidebar
-- **Performance**: Optimized for fast loading and smooth interactions
+
+| Aspect | Technology |
+|--------|------------|
+| **Authentication** | Google OAuth 2.0 with JWT |
+| **Storage** | Cloudflare Workers + KV |
+| **Frontend** | Vanilla JS + Tailwind CSS |
+| **Responsive** | Mobile-first design |
+| **Performance** | Optimized for fast loading |
+
+---
+
+## Screenshots
+
+| Dashboard View | Problem Details |
+|----------------|-----------------|
+| ![Dashboard](screenshots/image.png) | ![Problem](screenshots/image-1.png) |
+
+---
+
+## Why Smart Grind?
+
+| Problem | Smart Grind Solution |
+|---------|---------------------|
+| 😰 Too many problems to choose | 📊 Pattern-based organization narrows focus |
+| 📉 Forget solutions over time | 🔄 Spaced repetition schedules reviews |
+| 🎯 Don't know what to practice | 🎯 Targeted practice by difficulty & patterns |
+| 📝 Can't track insights | 📝 Built-in notes system |
+| 🤖 Need AI help | 🤖 One-click AI integration |
+
+### Benefits at a Glance
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SMART GRIND BENEFITS                      │
+├─────────────────────────────────────────────────────────────┤
+│  ⏱️  50% Faster Learning    │  Pattern-based organization   │
+│  📈  3x Better Retention    │  Spaced repetition system     │
+│  🎯  Sharper Focus          │  Difficulty-appropriate       │
+│  🤖  Instant AI Help        │  Pre-filled prompts           │
+│  📊  Clear Progress         │  Visual statistics            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## Installation & Setup
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn
-- Cloudflare account (for deployment)
+
+| Requirement | Version | Description |
+|-------------|---------|-------------|
+| Node.js | ≥ 16 | JavaScript runtime |
+| npm/yarn | Latest | Package manager |
+| Cloudflare Account | - | For deployment |
 
 ### Local Development
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/AlgoVyn/smart-grind.git
-   cd smart-grind/website
-   ```
+```bash
+# 1. Clone the repository
+git clone https://github.com/AlgoVyn/smart-grind.git
+cd smart-grind/website
 
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+# 2. Install dependencies
+npm install
 
-3. **Configure environment**:
-   - Copy `wrangler.toml.example` to `wrangler.toml`
-   - Set up your Cloudflare account and configure the following environment variables:
-     - `GOOGLE_CLIENT_ID`: Your Google OAuth client ID
-     - `GOOGLE_CLIENT_SECRET`: Your Google OAuth client secret
-     - `JWT_SECRET`: A secure secret for JWT signing
-     - `KV`: Cloudflare KV namespace for data storage
+# 3. Configure environment
+cp wrangler.toml.example wrangler.toml
 
-4. **Start development server**:
-   ```bash
-   wrangler pages dev public
-   ```
+# 4. Set up Cloudflare variables in wrangler.toml:
+#    - GOOGLE_CLIENT_ID
+#    - GOOGLE_CLIENT_SECRET
+#    - JWT_SECRET
+#    - KV namespace
 
-5. **Deploy to Cloudflare**:
-   ```bash
-   wrangler pages deploy public
-   ```
+# 5. Start development server
+wrangler pages dev public
+
+# 6. Open http://localhost:8788
+```
 
 ### Environment Configuration
 
-Create a `.env` file or configure in Cloudflare:
+Create a `.env` file or configure in `wrangler.toml`:
 
 ```env
 GOOGLE_CLIENT_ID=your_google_client_id
@@ -78,296 +183,365 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 JWT_SECRET=your_jwt_secret
 ```
 
+---
+
 ## Testing
 
-The project includes comprehensive testing to ensure reliability and prevent regressions.
-
 ### Unit Tests
-Run unit tests using Jest:
+
 ```bash
+# Run unit tests
 npm test
-```
 
-For continuous testing during development:
-```bash
+# Watch mode for development
 npm run test:watch
-```
 
-To generate coverage reports:
-```bash
+# Generate coverage report
 npm run test:coverage
 ```
 
 ### End-to-End Tests
-End-to-end tests are implemented with Playwright for browser automation.
 
-Run E2E tests:
 ```bash
+# Run E2E tests
 npm run test:e2e
-```
 
-Run E2E tests with UI mode for debugging:
-```bash
+# Run with UI mode (debugging)
 npm run test:e2e:ui
 ```
 
 ### Test Structure
-- **Unit Tests**: Located in `tests/` directory, covering modules, utilities, and core logic
-- **E2E Tests**: Located in `e2e/` directory, testing full user workflows
+
+```
+tests/
+├── api.test.ts          # API endpoint tests
+├── auth.test.ts         # Authentication tests
+├── data.test.ts         # Data module tests
+├── pattern-solutions.test.ts  # Pattern solutions
+├── renderers.test.ts    # UI rendering tests
+├── sanitization.test.ts # Input validation
+├── state.test.ts        # State management
+├── ui.test.ts           # UI component tests
+├── user.test.ts         # User functionality
+└── utils.test.ts        # Utility functions
+
+e2e/
+└── basic.spec.js        # Full user workflows
+```
+
+---
 
 ## Usage
 
 ### Getting Started
-1. **Access the App**: Navigate to the deployed URL or run locally
-2. **Sign In**: Click "Sign in with Google" to authenticate
-3. **Start Practicing**: Browse topics and patterns, click on problems to solve
+
+1. 🌐 **Access** - Navigate to deployed URL or run locally
+2. 🔐 **Sign In** - Click "Sign in with Google"
+3. 🎯 **Start** - Browse topics and click problems to solve
 
 ### Navigation
-- **Sidebar**: Browse topics and view progress percentages
-- **Main View**: See problems organized by patterns within topics
-- **Filters**: Switch between All, Solved, and Due for Review problems
-- **Search**: Use the search bar to find specific problems
+
+| Element | Description |
+|---------|-------------|
+| 📋 **Sidebar** | Browse topics, view progress % |
+| 📄 **Main View** | Problems organized by patterns |
+| 🔍 **Filters** | All / Solved / Due for Review |
+| 🔎 **Search** | Find by name or notes |
 
 ### Problem Management
-- **Solve Problems**: Mark problems as solved to start spaced repetition
-- **Review System**: Problems due for review appear with special highlighting
-- **Add Notes**: Click the notes button to add personal insights
-- **Custom Problems**: Use "Add Problem" to include additional practice problems
+
+| Action | How |
+|--------|-----|
+| ✅ Mark Solved | Click checkbox on problem |
+| 📝 Add Notes | Click notes button |
+| 📅 Review | Appears when due (highlighted) |
+| ➕ Add Problem | Use "Add Problem" button |
 
 ### AI Assistance
-- **Quick Prompts**: Click Gemini or Grok buttons to open AI services with pre-filled prompts
-- **AI Integration**: Opens the respective AI service with pre-filled prompts
-- **Prompt Content**: Automatically generates prompts asking for solution explanation, intuition, optimal approach, and complexity analysis
+
+| AI Service | How to Use |
+|------------|------------|
+| ✨ **Gemini** | Click Gemini button |
+| 🚀 **Grok** | Click Grok button |
+
+> 💡 Opens AI service with pre-filled prompt including problem description, intuition, optimal approach, and complexity analysis.
 
 ### Additional Features
-- **Theme Toggle**: Switch between light and dark themes (top-right corner)
-- **Keyboard Shortcuts**:
-  - `/`: Focus search bar
-  - `E`: Export progress data
-  - `Escape`: Close modals
-- **Export Functionality**: Download your progress as JSON for backup (press `E` or use export button)
-- **URL-based Navigation**: Shareable URLs for specific categories (e.g., `/smartgrind/c/arrays-hashing`)
 
-### Data Export/Import Format
+| Feature | Access | Description |
+|---------|--------|-------------|
+| 🎨 **Theme Toggle** | Top-right corner | Light/dark mode |
+| 🔍 **Focus Search** | Press `/` | Focus search bar |
+| 📤 **Export Data** | Press `E` or button | Download JSON backup |
+| 🔒 **Close Modals** | Press `Escape` | Close any modal |
+| 🔝 **Scroll to Top** | Auto-appear | When scrolling down |
+| 🔔 **Toast Notifications** | Auto | Action feedback |
 
-The application supports exporting and importing user progress data in JSON format for backup and migration purposes.
+### Data Export/Import
 
-**Export Format**:
+#### Export Format
+
 ```json
 {
   "problems": {
     "problem_id": {
       "solved": true,
-      "notes": "Personal notes for the problem",
+      "notes": "Personal notes",
       "reviewDate": "2024-01-15T00:00:00.000Z",
       "custom": true
     }
   },
-  "deletedIds": ["removed_problem_id"],
+  "deletedIds": ["removed_id"],
   "exportDate": "2024-01-10T12:00:00.000Z"
 }
 ```
 
-**Fields**:
-- `problems`: Object mapping problem IDs to progress data
-  - `solved`: Boolean indicating if the problem is marked as solved
-  - `notes`: String containing user notes
-  - `reviewDate`: ISO string of next review date (null if not scheduled)
-  - `custom`: Boolean for user-added problems
-- `deletedIds`: Array of IDs for problems removed by the user
-- `exportDate`: Timestamp of export
+#### Import
 
-**Import**: Upload a JSON file in the above format to restore progress. Existing data will be merged, with imported data taking precedence for conflicts.
-- **Mobile Responsive**: Optimized interface for mobile devices with collapsible sidebar
-- **Scroll to Top**: Automatic scroll-to-top button appears when scrolling down
-- **Toast Notifications**: Real-time feedback for actions like saving notes or solving problems
+Upload JSON file to restore progress. Existing data is merged (import takes precedence for conflicts).
+
+---
 
 ## Architecture
 
 ### Frontend Structure
-- **HTML**: Single-page application with semantic markup
-- **CSS**: Tailwind CSS for utility-first styling
-- **JavaScript**: Modular ES6+ code with event-driven architecture
+
+```
+public/
+├── index.html           # Single-page application
+├── styles.css           # Tailwind imports
+├── manifest.json        # PWA manifest
+├── logo.svg             # App logo
+├── modules/
+│   ├── app.ts           # Main application logic
+│   ├── api.ts           # API client
+│   ├── data.ts          # Data management
+│   ├── state.ts         # State management
+│   ├── renderers.ts     # UI rendering
+│   ├── types.ts         # TypeScript types
+│   └── utils.ts         # Utilities
+├── patterns/            # Pattern definitions
+├── solutions/           # Problem solutions
+└── _headers             # Cloudflare headers
+```
 
 ### Backend (Cloudflare Workers)
-- **Authentication**: `/api/auth` - Google OAuth flow and JWT generation
-- **User Data**: `/api/user` - CRUD operations for user progress data
-- **Storage**: Cloudflare KV for persistent, low-latency data storage
+
+```
+functions/api/
+├── auth.ts              # Google OAuth + JWT
+└── user.ts              # User data CRUD
+```
 
 ### Data Flow
-1. **Authentication**: User logs in via Google OAuth, receives JWT token
-2. **Data Loading**: App fetches user progress data from KV storage
-3. **Problem Sync**: Static problem data merged with user progress
-4. **Updates**: Changes saved back to KV via authenticated API calls
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      DATA FLOW                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   ┌─────────┐    OAuth    ┌─────────┐    JWT    ┌────────┐ │
+│   │  User   │ ─────────▶  │  Google │ ───────▶ │  App   │ │
+│   └─────────┘             └─────────┘          └────────┘ │
+│                                                          │
+│   ┌─────────┐    Fetch    ┌─────────┐    Store  ┌─────┐  │
+│   │  App    │ ─────────▶  │   KV    │ ◀───────  │User │  │
+│   └─────────┘             └─────────┘           └─────┘  │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ### Key Components
-- **Topic Sidebar**: Hierarchical navigation with progress indicators
-- **Problem Cards**: Interactive cards with status, notes, and actions
-- **Stats Dashboard**: Real-time progress visualization
-- **Modal System**: Add problems, authentication, and confirmations
+
+| Component | Description |
+|-----------|-------------|
+| 📋 **Topic Sidebar** | Hierarchical nav with progress |
+| 📇 **Problem Cards** | Interactive with status/actions |
+| 📊 **Stats Dashboard** | Real-time progress |
+| 📦 **Modal System** | Add problems, auth, confirmations |
+
+---
 
 ## API Reference
 
 ### Authentication Endpoints
 
 #### GET /api/auth?action=login
+
 Initiates Google OAuth flow.
 
-**Query Parameters**:
-- `action=login`: Required to start OAuth
+```
+Response: Redirects to Google OAuth
+```
 
-**Response**: Redirects to Google OAuth consent screen.
+#### GET /api/auth (callback)
 
-**Errors**:
-- 400 Bad Request: Invalid action parameter
+Handles OAuth callback.
 
-#### GET /api/auth (OAuth callback)
-Handles OAuth callback, generates JWT, and redirects to app.
-
-**Query Parameters** (from Google OAuth):
-- `code`: Authorization code
-- `state`: State parameter for CSRF protection
-
-**Response**: Redirects to the app with JWT token in URL fragment or cookie.
-
-**Errors**:
-- 400 Bad Request: Missing or invalid code
-- 401 Unauthorized: OAuth verification failed
+```
+Query: ?code=...&state=...
+Response: Redirects to app with JWT
+```
 
 ### User Data Endpoints
 
 #### GET /api/user
-Retrieves user progress data.
 
-**Headers**:
-- `Authorization: Bearer <jwt_token>` (required)
+```http
+Authorization: Bearer <jwt_token>
 
-**Response** (200 OK):
-```json
+Response:
 {
   "problems": {
-    "problem_id_1": {
+    "problem_id": {
       "solved": true,
-      "notes": "My solution notes",
+      "notes": "...",
       "reviewDate": "2024-01-15T00:00:00.000Z"
     }
   },
-  "deletedIds": ["old_problem_id"]
+  "deletedIds": ["id1"]
 }
 ```
-
-**Errors**:
-- 401 Unauthorized: Invalid or missing JWT token
-- 500 Internal Server Error: KV storage error
 
 #### POST /api/user
-Updates user progress data.
 
-**Headers**:
-- `Authorization: Bearer <jwt_token>` (required)
-- `Content-Type: application/json`
+```http
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
 
-**Body**:
-```json
+Body:
 {
   "data": {
-    "problems": {
-      "problem_id_1": {
-        "solved": true,
-        "notes": "Updated notes",
-        "reviewDate": "2024-01-15T00:00:00.000Z"
-      }
-    },
-    "deletedIds": ["old_problem_id"]
+    "problems": { ... },
+    "deletedIds": [...]
   }
 }
+
+Response: { "success": true, "message": "Data updated" }
 ```
 
-**Response** (200 OK):
-```json
-{
-  "success": true,
-  "message": "Data updated successfully"
-}
-```
-
-**Errors**:
-- 400 Bad Request: Invalid JSON or missing data
-- 401 Unauthorized: Invalid or missing JWT token
-- 500 Internal Server Error: KV storage error
+---
 
 ## Contributing
 
-We welcome contributions! Please follow these guidelines to ensure smooth collaboration.
+We welcome contributions! 🎉
 
 ### Development Workflow
-1. **Fork the repository** and clone your fork locally
-2. **Create a feature branch**: `git checkout -b feature/your-feature-name`
-3. **Make changes** following the code style guidelines
-4. **Run tests**: Ensure all unit and E2E tests pass
-5. **Test across devices**: Verify functionality on different screen sizes
-6. **Commit changes**: Use clear, descriptive commit messages
-7. **Submit a pull request**: Provide a detailed description of changes
+
+```bash
+# 1. Fork and clone
+git clone https://github.com/YOUR-USERNAME/smart-grind.git
+cd smart-grind/website
+
+# 2. Create branch
+git checkout -b feature/amazing-feature
+
+# 3. Make changes (follow code style)
+
+# 4. Run tests
+npm test && npm run test:e2e
+
+# 5. Commit (follow guidelines)
+git commit -m "feat: add amazing feature"
+
+# 6. Submit PR
+```
 
 ### Code Style
-- **JavaScript**: Use ES6+ features, consistent naming (camelCase for variables/functions)
-- **HTML/CSS**: Semantic markup, Tailwind utility classes
-- **Comments**: Add JSDoc comments for functions, inline comments for complex logic
-- **Formatting**: Use consistent indentation (2 spaces), no trailing whitespace
-- **Performance**: Optimize for mobile-first, minimize bundle size
+
+| Language | Style |
+|----------|-------|
+| **JavaScript** | ES6+, camelCase |
+| **HTML/CSS** | Semantic, Tailwind utilities |
+| **Comments** | JSDoc for functions |
 
 ### Commit Message Guidelines
-- Use present tense: "Add feature" not "Added feature"
-- Start with type: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `test:`
-- Keep first line under 50 characters
-- Example: `feat: add dark mode toggle`
+
+```
+<type>: <subject>
+
+Types:
+- feat: New feature
+- fix: Bug fix
+- docs: Documentation
+- style: Formatting
+- refactor: Restructuring
+- test: Testing
+```
 
 ### Pull Request Guidelines
-- **Title**: Clear and descriptive
-- **Description**: Explain what and why, include screenshots for UI changes
-- **Testing**: Describe how changes were tested
-- **Breaking Changes**: Note any breaking changes
+
+- ✅ Clear, descriptive title
+- 📝 Detailed description
+- 🖼️ Screenshots for UI changes
+- ✅ All tests pass
+- 📋 List of changes
 
 ### Adding New Patterns
-1. **Update data structure**: Modify `topicsData` in `public/modules/data.js`
-2. **Unique IDs**: Ensure all problem IDs are unique across the application
-3. **Problem format**:
-   ```javascript
-   {
-     id: "unique-id",
-     title: "Problem Title",
-     difficulty: "Easy|Medium|Hard",
-     url: "https://leetcode.com/problems/...",
-     patterns: ["pattern1", "pattern2"]
-   }
-   ```
-4. **Test thoroughly**: Verify the pattern appears in sidebar and filters work correctly
-5. **Update documentation**: Add any relevant notes in this README
+
+1. Update `topicsData` in `public/modules/data.ts`
+2. Use unique problem IDs
+3. Follow format:
+
+```typescript
+{
+  id: "unique-id",
+  title: "Problem Title",
+  difficulty: "Easy|Medium|Hard",
+  url: "https://leetcode.com/problems/...",
+  patterns: ["pattern1", "pattern2"]
+}
+```
 
 ### Reporting Issues
-- Use GitHub Issues with detailed descriptions
-- Include browser/OS information
-- Attach screenshots or console logs for bugs
+
+- Use GitHub Issues
+- Include browser/OS info
+- Attach screenshots/logs
+
+---
 
 ## Troubleshooting
 
-### Common Issues
-- **Login Issues**: Check Google OAuth configuration and redirect URIs
-- **Data Not Saving**: Verify JWT token validity and KV namespace setup
-- **UI Problems**: Clear browser cache and check console for errors
-- **Mobile Issues**: Ensure responsive design is working with browser dev tools
+| Issue | Solution |
+|-------|----------|
+| 🔐 Login issues | Check OAuth config, redirect URIs |
+| 💾 Data not saving | Verify JWT, KV namespace |
+| 🖥️ UI problems | Clear cache, check console |
+| 📱 Mobile issues | Test responsive in dev tools |
 
 ### Debug Mode
-Enable verbose logging by setting `localStorage.debug = 'true'` in browser console.
+
+Enable verbose logging:
+```javascript
+localStorage.debug = 'true'
+```
+
+---
 
 ## License
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
+---
+
 ## Support
 
-For questions, feedback, or support:
-- Visit the official site: [algovyn.com/smartgrind](https://algovyn.com/smartgrind)
-- Open an issue on this repository
+| Need | Contact |
+|------|---------|
+| 🐛 **Bug Report** | [Open Issue](https://github.com/AlgoVyn/smart-grind/issues) |
+| 💬 **Questions** | [GitHub Discussions](https://github.com/AlgoVyn/smart-grind/discussions) |
+| 🌐 **Website** | [algovyn.com/smartgrind](https://algovyn.com/smartgrind) |
 
-Happy practicing! 🚀
+---
+
+<div align="center">
+
+**Happy practicing! 🚀**
+
+[![Star on GitHub](https://img.shields.io/github/stars/AlgoVyn/smart-grind?style=social)](https://github.com/AlgoVyn/smart-grind)
+
+Made with ❤️ by the Smart Grind Team
+
+</div>
+

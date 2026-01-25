@@ -3,19 +3,19 @@
 
 window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.ui = window.SmartGrind.ui || {};
-window.SmartGrind.patterns = window.SmartGrind.patterns || {};
+window.SmartGrind['patterns'] = window.SmartGrind['patterns'] || {};
 
 // --- PATTERN TO MARKDOWN FILE MAPPING SYSTEM ---
 // Handles naming inconsistencies between pattern names and solution filenames
 
 // Function to get the correct filename for a pattern
-window.SmartGrind.patterns.getPatternFilename = function (patternName) {
+window.SmartGrind['patterns'].getPatternFilename = function (patternName: string) {
     // Use the automatic conversion for all patterns
     return this._convertPatternNameToFilename(patternName);
 };
 
 // Internal function for automatic pattern name to filename conversion
-window.SmartGrind.patterns._convertPatternNameToFilename = function (patternName) {
+window.SmartGrind['patterns']._convertPatternNameToFilename = function (patternName: string) {
     // Convert to lowercase and replace special characters with hyphens
     let cleaned = patternName
         .toLowerCase()
@@ -36,7 +36,7 @@ window.SmartGrind.patterns._convertPatternNameToFilename = function (patternName
 };
 
 // Function to check if a pattern solution file exists
-window.SmartGrind.patterns.checkPatternSolutionExists = async function (patternName) {
+window.SmartGrind['patterns'].checkPatternSolutionExists = async function (patternName: string) {
     const filename = this.getPatternFilename(patternName);
     const solutionFile = `/smartgrind/patterns/${filename}.md`;
 
@@ -61,7 +61,7 @@ window.SmartGrind.ui._configureMarkdownRenderer = () => {
     const renderer = new marked.Renderer();
 
     // Helper to escape HTML in code blocks
-    const escapeHtml = (unsafe) => {
+    const escapeHtml = (unsafe: string) => {
         return unsafe
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -70,7 +70,7 @@ window.SmartGrind.ui._configureMarkdownRenderer = () => {
             .replace(/'/g, '&#039;');
     };
 
-    renderer.code = (code, language) => {
+    renderer.code = (code: string | { lang: string; text: string }, language: string) => {
     // Handle both object and string parameters (marked update compatibility)
         if (typeof code === 'object') {
             language = code.lang;
@@ -80,12 +80,12 @@ window.SmartGrind.ui._configureMarkdownRenderer = () => {
         // CAROUSEL SUPPORT
         if (language === 'carousel') {
             const uniqueId = 'carousel-' + Math.random().toString(36).substr(2, 9);
-            const slides = code.split(/<!--\s*slide\s*-->/).filter(s => s.trim().length > 0);
+            const slides = code.split(/<!--\s*slide\s*-->/).filter((s: string) => s.trim().length > 0);
 
             let tabsHtml = '<div class="flex bg-[#1e1e1e] overflow-x-auto">';
             let panesHtml = '<div class="carousel-content bg-[#1e1e1e]">'; // Default dark background for code
 
-            slides.forEach((slide, index) => {
+            slides.forEach((slide: string, index: number) => {
                 // Extract language and code from the inner fenced block
                 // Matches: ```lang \n content ```
                 const match = slide.match(/```(\S+)\s*\n?([\s\S]*?)```/);
@@ -93,8 +93,8 @@ window.SmartGrind.ui._configureMarkdownRenderer = () => {
                 let innerCode = slide;
 
                 if (match) {
-                    innerLang = match[1];
-                    innerCode = match[2]; // inner code
+                    innerLang = match[1]!;
+                    innerCode = match[2]!; // inner code
                 }
 
                 // Escape the inner code
@@ -157,12 +157,12 @@ window.SmartGrind.ui._configureMarkdownRenderer = () => {
 };
 
 // Switch Carousel Tab
-window.SmartGrind.ui.switchCarouselTab = (uniqueId, index) => {
+window.SmartGrind.ui.switchCarouselTab = (uniqueId: string, index: number) => {
     // Update Buttons
     const buttons = document.querySelectorAll(`.carousel-tab-btn-${uniqueId}`);
     buttons.forEach(btn => {
         const htmlBtn = btn as HTMLElement;
-        if (parseInt(htmlBtn.dataset.index || '0') === index) {
+        if (parseInt(htmlBtn.dataset['index'] || '0') === index) {
             btn.classList.remove('text-slate-400', 'hover:text-slate-200', 'hover:bg-slate-800/50');
             btn.classList.add('text-brand-400', 'bg-[#1e1e1e]');
         } else {
@@ -193,9 +193,12 @@ window.SmartGrind.ui.switchCarouselTab = (uniqueId, index) => {
 };
 
 // Copy code to clipboard
-window.SmartGrind.ui.copyCode = (btn) => {
+window.SmartGrind.ui.copyCode = (btn: HTMLElement) => {
     const pre = btn.closest('pre');
-    const code = pre.querySelector('code').innerText;
+    if (!pre) return;
+    const codeEl = pre.querySelector('code');
+    if (!codeEl) return;
+    const code = codeEl.innerText;
     const originalHTML = btn.innerHTML;
     navigator.clipboard.writeText(code).then(() => {
         btn.classList.add('copied');
@@ -215,7 +218,7 @@ window.SmartGrind.ui.copyCode = (btn) => {
 };
 
 // Helper to render markdown content
-window.SmartGrind.ui._renderMarkdown = (markdown, contentElement) => {
+window.SmartGrind.ui._renderMarkdown = (markdown: string, contentElement: HTMLElement) => {
     const marked = window.SmartGrind.ui._configureMarkdownRenderer();
     if (!marked) {
         contentElement.innerHTML = '<p>Error: Markdown renderer not loaded. Please check your internet connection.</p>';
@@ -231,7 +234,7 @@ window.SmartGrind.ui._renderMarkdown = (markdown, contentElement) => {
     }
 };
 
-window.SmartGrind.ui._loadSolution = (solutionFile, loadingText, errorPrefix, extraErrorText = '') => {
+window.SmartGrind.ui._loadSolution = (solutionFile: string, loadingText: string, errorPrefix: string, extraErrorText = '') => {
     const modal = document.getElementById('solution-modal');
     const content = document.getElementById('solution-content');
     if (!modal || !content) return;
@@ -259,14 +262,14 @@ window.SmartGrind.ui._loadSolution = (solutionFile, loadingText, errorPrefix, ex
 };
 
 // Open solution modal
-window.SmartGrind.ui.openSolutionModal = (problemId) => {
+window.SmartGrind.ui.openSolutionModal = (problemId: string) => {
     const solutionFile = `/smartgrind/solutions/${problemId}.md`;
     window.SmartGrind.ui._loadSolution(solutionFile, 'Loading solution...', 'solution');
 };
 
 // Open pattern solution modal
-window.SmartGrind.ui.openPatternSolutionModal = (patternName) => {
-    const patternFilename = window.SmartGrind.patterns.getPatternFilename(patternName);
+window.SmartGrind.ui.openPatternSolutionModal = (patternName: string) => {
+    const patternFilename = window.SmartGrind['patterns'].getPatternFilename(patternName);
     const solutionFile = `/smartgrind/patterns/${patternFilename}.md`;
     window.SmartGrind.ui._loadSolution(solutionFile, 'Loading pattern solution...', 'pattern solution',
         '<p>This pattern may not have a dedicated solution file yet.</p>');

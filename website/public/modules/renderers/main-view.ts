@@ -1,9 +1,11 @@
 // --- MAIN VIEW RENDERERS MODULE ---
 // Main view rendering functions
 
+import { Topic } from '../types.js';
+
 export const mainViewRenderers = {
     // Helper to create an action button
-    _createActionButton: (icon, title, hoverColor, onClick) => {
+    _createActionButton: (icon: string, title: string, hoverColor: string, onClick: () => void) => {
         const button = document.createElement('button');
         button.className = `category-action-btn p-1 rounded hover:${hoverColor} text-theme-muted hover:text-${hoverColor.split('-')[1]}-400 transition-colors`;
         button.title = title;
@@ -21,9 +23,9 @@ export const mainViewRenderers = {
     },
 
     // Helper to set view title and action buttons
-    _setViewTitle: (filterTopicId) => {
+    _setViewTitle: (filterTopicId: string) => {
         const title = filterTopicId === 'all' ? 'All Problems' :
-            window.SmartGrind.data.topicsData.find(t => t.id === filterTopicId)?.title || 'Unknown Topic';
+            window.SmartGrind.data.topicsData.find((t: Topic) => t.id === filterTopicId)?.title || 'Unknown Topic';
         window.SmartGrind.state.elements.currentViewTitle.innerText = title;
 
         window.SmartGrind.renderers._removeExistingActionContainer();
@@ -35,7 +37,7 @@ export const mainViewRenderers = {
         if (filterTopicId === 'all') {
             // Reset All button for "All Problems" view
             const resetAllBtn = window.SmartGrind.renderers._createActionButton(
-                window.SmartGrind.ICONS.reset,
+                window.SmartGrind['ICONS'].reset,
                 'Reset All Problems',
                 'bg-blue-500/10',
                 () => window.SmartGrind.api.resetAll()
@@ -44,7 +46,7 @@ export const mainViewRenderers = {
         } else {
             // Reset and Delete buttons for specific topics
             const resetBtn = window.SmartGrind.renderers._createActionButton(
-                window.SmartGrind.ICONS.reset,
+                window.SmartGrind['ICONS'].reset,
                 'Reset Category Problems',
                 'bg-blue-500/10',
                 () => window.SmartGrind.api.resetCategory(filterTopicId)
@@ -52,7 +54,7 @@ export const mainViewRenderers = {
             buttonContainer.appendChild(resetBtn);
 
             const deleteBtn = window.SmartGrind.renderers._createActionButton(
-                window.SmartGrind.ICONS.delete,
+                window.SmartGrind['ICONS'].delete,
                 'Delete Category',
                 'bg-red-500/10',
                 () => window.SmartGrind.api.deleteCategory(filterTopicId)
@@ -64,7 +66,7 @@ export const mainViewRenderers = {
     },
 
     // Render main problem view
-    renderMainView: (filterTopicId) => {
+    renderMainView: (filterTopicId: string) => {
         window.SmartGrind.state.ui.activeTopicId = filterTopicId || window.SmartGrind.state.ui.activeTopicId;
         const container = window.SmartGrind.state.elements.problemsContainer;
         container.innerHTML = '';
@@ -76,9 +78,9 @@ export const mainViewRenderers = {
 
         const relevantTopics = window.SmartGrind.state.ui.activeTopicId === 'all' ?
             window.SmartGrind.data.topicsData :
-            window.SmartGrind.data.topicsData.filter(t => t.id === window.SmartGrind.state.ui.activeTopicId);
+            window.SmartGrind.data.topicsData.filter((t: Topic) => t.id === window.SmartGrind.state.ui.activeTopicId);
 
-        relevantTopics.forEach(topic => {
+        relevantTopics.forEach((topic: Topic) => {
             const topicSection = window.SmartGrind.renderers._renderTopicSection(topic, window.SmartGrind.state.ui.activeTopicId, today, visibleCountRef);
             if (topicSection) container.appendChild(topicSection);
         });

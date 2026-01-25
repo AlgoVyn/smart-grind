@@ -1,9 +1,11 @@
 // --- STATS RENDERERS MODULE ---
 // Statistics and filter rendering functions
 
+import { Topic } from '../types.js';
+
 export const statsRenderers = {
     // Helper to update main dashboard statistics
-    _updateMainStats: (stats) => {
+    _updateMainStats: (stats: { total: number; solved: number; due: number }) => {
         const { total, solved, due } = stats;
         const percentage = total > 0 ? (solved / total) * 100 : 0;
 
@@ -22,7 +24,7 @@ export const statsRenderers = {
         if (!window.SmartGrind.state.elements.currentFilterDisplay) return;
 
         const targetTopicTitle = window.SmartGrind.state.ui.activeTopicId === 'all' ? null :
-            window.SmartGrind.data.topicsData.find(t => t.id === window.SmartGrind.state.ui.activeTopicId)?.title;
+            window.SmartGrind.data.topicsData.find((t: Topic) => t.id === window.SmartGrind.state.ui.activeTopicId)?.title;
 
         window.SmartGrind.state.elements.currentFilterDisplay.innerText = targetTopicTitle || 'All Problems';
     },
@@ -41,7 +43,7 @@ export const statsRenderers = {
     },
 
     // Helper to update review banner
-    _updateReviewBanner: (due) => {
+    _updateReviewBanner: (due: number) => {
         if (due > 0) {
             window.SmartGrind.state.elements.reviewBanner.classList.remove('hidden');
             window.SmartGrind.state.elements.reviewCountBanner.innerText = due;
@@ -66,8 +68,8 @@ export const statsRenderers = {
 
     // Update filter button states
     updateFilterBtns: () => {
-        window.SmartGrind.state.elements.filterBtns.forEach(b => {
-            if (b.dataset.filter === window.SmartGrind.state.ui.currentFilter) {
+        window.SmartGrind.state.elements.filterBtns.forEach((b: HTMLElement) => {
+            if (b.dataset['filter'] === window.SmartGrind.state.ui.currentFilter) {
                 b.classList.add('bg-brand-600', 'text-white');
                 b.classList.remove('text-theme-bold');
             } else {

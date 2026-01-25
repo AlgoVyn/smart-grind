@@ -1,6 +1,8 @@
 // --- SIDEBAR RENDERERS MODULE ---
 // Sidebar rendering functions
 
+import { Topic } from '../types.js';
+
 export const sidebarRenderers = {
     // Render sidebar navigation (consolidated click handlers)
     renderSidebar: () => {
@@ -8,7 +10,7 @@ export const sidebarRenderers = {
         topicList.innerHTML = '';
 
         // Helper for topic navigation
-        const navigateToTopic = (topicId) => {
+        const navigateToTopic = (topicId: string) => {
             window.SmartGrind.renderers.setActiveTopic(topicId);
             window.SmartGrind.utils.updateUrlParameter('category', topicId === 'all' ? null : topicId);
             window.SmartGrind.renderers.renderMainView(topicId);
@@ -21,7 +23,7 @@ export const sidebarRenderers = {
         topicList.appendChild(allBtn);
 
         // Topic buttons
-        window.SmartGrind.data.topicsData.forEach(topic => {
+        window.SmartGrind.data.topicsData.forEach((topic: Topic) => {
             const btn = window.SmartGrind.renderers.createTopicButton(topic.id, topic.title);
             btn.onclick = () => navigateToTopic(topic.id);
             topicList.appendChild(btn);
@@ -29,12 +31,12 @@ export const sidebarRenderers = {
     },
 
     // Create a topic button for sidebar
-    createTopicButton: (topicId, title) => {
+    createTopicButton: (topicId: string, title: string) => {
         const btn = document.createElement('button');
         btn.type = 'button';
         const isActive = window.SmartGrind.state.ui.activeTopicId === topicId || (!window.SmartGrind.state.ui.activeTopicId && topicId === 'all');
         btn.className = `sidebar-link ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base hover:text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
-        btn.dataset.topicId = topicId;
+        btn.dataset['topicId'] = topicId;
 
         // Calculate progress
         const stats = window.SmartGrind.utils.getUniqueProblemsForTopic(topicId);
@@ -52,7 +54,7 @@ export const sidebarRenderers = {
     },
 
     // Set active topic in sidebar
-    setActiveTopic: (topicId) => {
+    setActiveTopic: (topicId: string) => {
         document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
         const activeBtn = document.querySelector(`[data-topic-id="${topicId}"]`) ||
             document.querySelector('.sidebar-link:first-child'); // All problems

@@ -24,10 +24,16 @@ window.SmartGrind.ui.sidebarResizer = {
         window.SmartGrind.ui.sidebarResizer.loadWidth();
     },
 
-    startResize: (e) => {
+    startResize: (e: MouseEvent | TouchEvent) => {
         e.preventDefault();
         window.SmartGrind.ui.sidebarResizer.isResizing = true;
-        window.SmartGrind.ui.sidebarResizer.startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+        if (e.type === 'touchstart') {
+            const touchEvent = e as TouchEvent;
+            window.SmartGrind.ui.sidebarResizer.startX = touchEvent.touches[0]?.clientX || 0;
+        } else {
+            const mouseEvent = e as MouseEvent;
+            window.SmartGrind.ui.sidebarResizer.startX = mouseEvent.clientX;
+        }
 
         const sidebar = document.getElementById('main-sidebar');
         if (sidebar) {
@@ -44,11 +50,18 @@ window.SmartGrind.ui.sidebarResizer = {
         document.body.classList.add('sidebar-resizing');
     },
 
-    resize: (e) => {
+    resize: (e: MouseEvent | TouchEvent) => {
         if (!window.SmartGrind.ui.sidebarResizer.isResizing) return;
         e.preventDefault();
 
-        const currentX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+        let currentX: number;
+        if (e.type === 'touchmove') {
+            const touchEvent = e as TouchEvent;
+            currentX = touchEvent.touches[0]?.clientX || 0;
+        } else {
+            const mouseEvent = e as MouseEvent;
+            currentX = mouseEvent.clientX;
+        }
         const diff = currentX - window.SmartGrind.ui.sidebarResizer.startX;
         let newWidth = window.SmartGrind.ui.sidebarResizer.startWidth + diff;
 
@@ -73,7 +86,8 @@ window.SmartGrind.ui.sidebarResizer = {
             ['touchend', 'stopResize']
         ];
         events.forEach(([event, method]) => {
-            document.removeEventListener(event, window.SmartGrind.ui.sidebarResizer[method]);
+            const handler = window.SmartGrind.ui.sidebarResizer[method as 'resize' | 'stopResize'];
+            document.removeEventListener(event as keyof DocumentEventMap, handler);
         });
 
         // Remove resizing class

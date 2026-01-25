@@ -6,9 +6,9 @@ window.SmartGrind.ui = window.SmartGrind.ui || {};
 // Bind navigation-related events
 window.SmartGrind.ui.bindNavigationEvents = () => {
     // Filter buttons
-    window.SmartGrind.state.elements.filterBtns?.forEach(btn => {
+    window.SmartGrind.state.elements.filterBtns?.forEach((btn: HTMLElement) => {
         btn.addEventListener('click', () => {
-            window.SmartGrind.state.ui.currentFilter = btn.dataset.filter;
+            window.SmartGrind.state.ui.currentFilter = btn.dataset['filter'];
             window.SmartGrind.renderers.updateFilterBtns();
             window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
         });
@@ -38,12 +38,12 @@ window.SmartGrind.ui.toggleTheme = () => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 };
 
-window.SmartGrind.ui._toggleSidebarClasses = (sidebar, addClasses, removeClasses) => {
-    addClasses.forEach(cls => sidebar.classList.add(cls));
-    removeClasses.forEach(cls => sidebar.classList.remove(cls));
+window.SmartGrind.ui._toggleSidebarClasses = (sidebar: HTMLElement, addClasses: string[], removeClasses: string[]) => {
+    addClasses.forEach((cls: string) => sidebar.classList.add(cls));
+    removeClasses.forEach((cls: string) => sidebar.classList.remove(cls));
 };
 
-window.SmartGrind.ui._toggleBackdrop = (backdrop, show) => {
+window.SmartGrind.ui._toggleBackdrop = (backdrop: HTMLElement, show: boolean) => {
     if (show) {
         backdrop.classList.remove('hidden');
         setTimeout(() => backdrop.classList.add('opacity-100'), 10);

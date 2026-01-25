@@ -1,27 +1,29 @@
 // --- UTILITIES MODULE ---
 // Helper functions and utilities
 
+import { Problem, Topic, ProblemDef } from './types.js';
+
 window.SmartGrind = window.SmartGrind || {};
 
 window.SmartGrind.utils = {
     // Date helpers
     getToday: () => new Date().toISOString().split('T')[0],
 
-    addDays: (date, days) => {
+    addDays: (date: string, days: number) => {
         const result = new Date(date);
         result.setDate(result.getDate() + days);
         return result.toISOString().split('T')[0];
     },
 
-    formatDate: (date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
+    formatDate: (date: string) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
 
     // URL helpers
-    getUrlParameter: (name) => {
+    getUrlParameter: (name: string) => {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name);
     },
 
-    updateUrlParameter: (name, value) => {
+    updateUrlParameter: (name: string, value: string | null) => {
         if (name === 'category') {
             if (value && value !== 'all') {
                 const newPath = `/smartgrind/c/${value}`;
@@ -45,7 +47,7 @@ window.SmartGrind.utils = {
     },
 
     // Clipboard helper
-    copyToClipboard: async (text) => {
+    copyToClipboard: async (text: string) => {
         try {
             await navigator.clipboard.writeText(text);
             window.SmartGrind.utils.showToast('Prompt copied to clipboard', 'success');
@@ -88,7 +90,7 @@ window.SmartGrind.utils = {
     },
 
     // Helper to build AI URL
-    _buildAIUrl: (provider, encodedPrompt) => {
+    _buildAIUrl: (provider: string, encodedPrompt: string) => {
         const config = window.SmartGrind.utils._aiProviders[provider];
         const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
@@ -101,7 +103,7 @@ window.SmartGrind.utils = {
     },
 
     // AI helper
-    askAI: async (problemName, provider) => {
+    askAI: async (problemName: string, provider: string) => {
         const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the detailed problem statement, examples, intuition, multiple approaches with code, and time/space complexity analysis. Include related problems, video tutorial links and followup questions with brief answers without code.`;
         const encodedPrompt = encodeURIComponent(aiPrompt);
 
@@ -118,7 +120,7 @@ window.SmartGrind.utils = {
     },
 
     // Input sanitization utilities
-    sanitizeInput: (input) => {
+    sanitizeInput: (input: string | null | undefined) => {
         if (!input) return '';
 
         // Trim whitespace
@@ -149,7 +151,7 @@ window.SmartGrind.utils = {
         return sanitized;
     },
     
-    sanitizeUrl: (url) => {
+    sanitizeUrl: (url: string | null | undefined) => {
         if (!url) return '';
         
         let sanitized = url.trim();
@@ -183,7 +185,7 @@ window.SmartGrind.utils = {
     },
     
     // Toast notifications
-    showToast: (msg, type = 'success') => {
+    showToast: (msg: string, type = 'success') => {
         const el = document.createElement('div');
         el.className = `px-4 py-3 rounded-lg shadow-lg text-sm font-medium text-white flex items-center gap-2 animate-fade-in ${type === 'success' ? 'bg-brand-600' : 'bg-red-500'}`;
         el.innerHTML = `<span>${msg}</span>`;
@@ -208,21 +210,21 @@ window.SmartGrind.utils = {
     },
 
     // Get next review date based on interval
-    getNextReviewDate: (today, intervalIndex) => {
+    getNextReviewDate: (today: string, intervalIndex: number) => {
         const daysToAdd = window.SmartGrind.data.SPACED_REPETITION_INTERVALS[intervalIndex];
         return window.SmartGrind.utils.addDays(today, daysToAdd);
     },
 
     // Helper to get unique problem IDs for a topic
-    getUniqueProblemIdsForTopic: (topicId) => {
+    getUniqueProblemIdsForTopic: (topicId: string) => {
         const ids = new Set();
         if (topicId === 'all') {
-            window.SmartGrind.state.problems.forEach((_, id) => ids.add(id));
+            window.SmartGrind.state.problems.forEach((_: Problem, id: string) => ids.add(id));
         } else {
-            const topicObj = window.SmartGrind.data.topicsData.find(t => t.id === topicId);
+            const topicObj = window.SmartGrind.data.topicsData.find((t: Topic) => t.id === topicId);
             if (topicObj) {
-                topicObj.patterns.forEach(pattern =>
-                    pattern.problems.forEach(pid => {
+                topicObj.patterns.forEach((pattern: { problems: (string | ProblemDef)[] }) =>
+                    pattern.problems.forEach((pid: string | ProblemDef) => {
                         const id = typeof pid === 'string' ? pid : pid.id;
                         if (window.SmartGrind.state.problems.has(id)) {
                             ids.add(id);
@@ -235,13 +237,13 @@ window.SmartGrind.utils = {
     },
 
     // Problem filtering and stats
-    getUniqueProblemsForTopic: (topicId) => {
+    getUniqueProblemsForTopic: (topicId: string) => {
         const today = window.SmartGrind.utils.getToday();
         const uniqueIds = window.SmartGrind.utils.getUniqueProblemIdsForTopic(topicId);
         let solved = 0;
         let due = 0;
 
-        uniqueIds.forEach(id => {
+        uniqueIds.forEach((id: string) => {
             const problem = window.SmartGrind.state.problems.get(id);
             if (problem.status === 'solved') {
                 solved++;
@@ -256,13 +258,13 @@ window.SmartGrind.utils = {
         };
     },
 
-    shouldShowProblem: (problem, filter, searchQuery, today) => {
+    shouldShowProblem: (problem: Problem, filter: string, searchQuery: string, today: string) => {
     // Apply filter
-        const filterFunctions = {
-            'all': () => true,
-            'unsolved': (p) => p.status === 'unsolved',
-            'solved': (p) => p.status === 'solved',
-            'review': (p, t) => p.status === 'solved' && p.nextReviewDate <= t
+        const filterFunctions: { [key: string]: (p: Problem, t: string) => boolean } = {
+            'all': (_p: Problem, _t: string) => true,
+            'unsolved': (p: Problem, _t: string) => p.status === 'unsolved',
+            'solved': (p: Problem, _t: string) => p.status === 'solved',
+            'review': (p: Problem, t: string) => p.status === 'solved' && p.nextReviewDate !== null && p.nextReviewDate <= t
         };
         const passesFilter = filterFunctions[filter] ? filterFunctions[filter](problem, today) : false;
 
