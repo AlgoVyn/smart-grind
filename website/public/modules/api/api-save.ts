@@ -16,7 +16,7 @@ Object.assign(window.SmartGrind.api, {
     _prepareDataForSave: (): UserData => ({
         problems: Object.fromEntries(
             Array.from(window.SmartGrind.state.problems.entries() as IterableIterator<[string, Problem]>).map(([id, p]) => {
-                const { loading, noteVisible, ...rest } = p;
+                const { loading: _loading, noteVisible: _noteVisible, ...rest } = p;
                 return [id, rest];
             })
         ),

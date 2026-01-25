@@ -62,7 +62,7 @@ window.SmartGrind.state = {
             // Exclude loading state's temporary
             const problemsWithoutLoading = Object.fromEntries(
                 Array.from(this.problems.entries() as IterableIterator<[string, Problem]>).map(([id, p]) => {
-                    const { loading, ...rest } = p;
+                    const { loading: _loading, ...rest } = p;
                     return [id, rest];
                 })
             );

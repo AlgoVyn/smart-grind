@@ -3,7 +3,7 @@
 
 import { Problem } from '../types.js';
 
-type ProblemCallback = (problem: Problem) => void;
+type ProblemCallback = (_problem: Problem) => void;
 
 export const problemCardRenderers = {
     // Helper to re-render a problem card
@@ -17,7 +17,7 @@ export const problemCardRenderers = {
     },
 
     // Helper to perform async status change with loading and error handling
-    _performStatusChange: async (button: HTMLElement, _p: Problem, statusUpdater: (problem: Problem) => void, options: { successMessage?: string; errorMessage?: string; onFinally?: ProblemCallback } = {}): Promise<void> => {
+    _performStatusChange: async (button: HTMLElement, _p: Problem, statusUpdater: (_problem: Problem) => void, options: { successMessage?: string; errorMessage?: string; onFinally?: ProblemCallback } = {}): Promise<void> => {
         const successMessage = options.successMessage;
         const errorMessage = options.errorMessage;
         const onFinally = options.onFinally;

@@ -260,11 +260,11 @@ window.SmartGrind.utils = {
 
     shouldShowProblem: (problem: Problem, filter: string, searchQuery: string, today: string) => {
     // Apply filter
-        const filterFunctions: { [key: string]: (p: Problem, t: string) => boolean } = {
+        const filterFunctions: { [key: string]: (_p: Problem, _t: string) => boolean } = {
             'all': (_p: Problem, _t: string) => true,
-            'unsolved': (p: Problem, _t: string) => p.status === 'unsolved',
-            'solved': (p: Problem, _t: string) => p.status === 'solved',
-            'review': (p: Problem, t: string) => p.status === 'solved' && p.nextReviewDate !== null && p.nextReviewDate <= t
+            'unsolved': (_p: Problem, _t: string) => _p.status === 'unsolved',
+            'solved': (_p: Problem, _t: string) => _p.status === 'solved',
+            'review': (_p: Problem, _t: string) => _p.status === 'solved' && _p.nextReviewDate !== null && _p.nextReviewDate <= _t
         };
         const passesFilter = filterFunctions[filter] ? filterFunctions[filter](problem, today) : false;
 

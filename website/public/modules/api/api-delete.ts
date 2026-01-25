@@ -7,12 +7,12 @@ window.SmartGrind = window.SmartGrind || {};
 window.SmartGrind.api = window.SmartGrind.api || {};
 
 Object.assign(window.SmartGrind.api, {
-  /**
+    /**
    * Helper to validate and get confirmation for category deletion.
    * @param {string} topicId - The ID of the topic to validate.
    * @returns {Promise<Topic | null>} The topic object if confirmed, null otherwise.
    */
-  _validateCategoryDeletion: async (topicId: string): Promise<Topic | null> => {
+    _validateCategoryDeletion: async (topicId: string): Promise<Topic | null> => {
         const topic = window.SmartGrind.data.topicsData.find((t: Topic) => t.id === topicId);
         if (!topic) {
             window.SmartGrind.ui.showAlert('Category not found.');

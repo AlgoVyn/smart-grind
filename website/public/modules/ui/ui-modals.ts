@@ -75,7 +75,7 @@ window.SmartGrind.ui.closeAlertModal = () => {
 
 // Confirm modal functions
 window.SmartGrind.ui.showConfirm = (message: string, title = 'Confirm Action') => {
-    return new Promise((resolve: (value: boolean) => void) => {
+    return new Promise((resolve: (_value: boolean) => void) => {
         window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.confirmModal, () => {
             window.SmartGrind.state.elements.confirmTitle.textContent = title;
             window.SmartGrind.state.elements.confirmMessage.innerHTML = message;
