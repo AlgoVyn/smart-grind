@@ -4,7 +4,10 @@ export default {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.mjs'],
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
-    '^/smartgrind/(.*)$': '<rootDir>/public/$1',
+    '^/smartgrind/(.*)\\.js$': '<rootDir>/public/$1',
+    '^(\\./.*)\\.js$': '$1',
+    '^\\.\\./(.*)\\.js$': '../$1',
+    '^\\../(.*)\\.js$': '../$1',
   },
   transform: {
     '^.+\\.ts$': ['ts-jest', { useESM: true }],

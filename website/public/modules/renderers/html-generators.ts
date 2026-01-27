@@ -2,18 +2,25 @@
 // HTML generation helper functions
 
 import { Problem, Topic, Pattern, ProblemDef } from '../types.js';
+import { data } from '../data.js';
+import { state } from '../state.js';
+import { utils } from '../utils.js';
+import { renderers } from '../renderers.js';
+import { ICONS } from './icons.js';
 
 export const htmlGenerators = {
     // Helper to check if a pattern is custom (not in original data)
     _isCustomPattern: (patternName: string) => {
-        return !window.SmartGrind.data.ORIGINAL_TOPICS_DATA?.some((topic: Topic) =>
+        if (!data.ORIGINAL_TOPICS_DATA) return true;
+        return !data.ORIGINAL_TOPICS_DATA.some((topic: Topic) =>
             topic.patterns.some((p: Pattern) => p.name === patternName)
         );
     },
 
     // Helper to check if a problem is custom
     _isCustomProblem: (problemId: string) => {
-        return !window.SmartGrind.data.ORIGINAL_TOPICS_DATA?.some((topic: Topic) =>
+        if (!data.ORIGINAL_TOPICS_DATA) return true;
+        return !data.ORIGINAL_TOPICS_DATA.some((topic: Topic) =>
             topic.patterns.some((pattern: Pattern) =>
                 pattern.problems.some((prob: string | ProblemDef) => typeof prob === 'string' ? prob === problemId : prob.id === problemId)
             )
@@ -45,21 +52,21 @@ export const htmlGenerators = {
     // Helper to filter visible problems for a pattern
     _getVisibleProblemsForPattern: (pattern: Pattern, today: string) => {
         const problems: Problem[] = [];
-        const searchQuery = window.SmartGrind.state.elements.problemSearch.value.toLowerCase().trim();
+        const searchQuery = (state.elements['problemSearch'] as HTMLInputElement | null)?.value.toLowerCase().trim() || '';
 
         pattern.problems.forEach((probDef: string | ProblemDef) => {
             const id = typeof probDef === 'string' ? probDef : probDef.id;
-            const p = window.SmartGrind.state.problems.get(id);
+            const p = state.problems.get(id);
             if (!p) return; // Skip if deleted
 
-            if (window.SmartGrind.utils.shouldShowProblem(p, window.SmartGrind.state.ui.currentFilter, searchQuery, today)) {
+            if (utils.shouldShowProblem(p, state.ui.currentFilter, searchQuery, today)) {
                 problems.push(p);
             }
         });
 
         // Sort review problems by next review date (ascending: oldest/overdue first)
-        if (window.SmartGrind.state.ui.currentFilter === 'review') {
-            return window.SmartGrind.renderers._sortReviewProblems(problems);
+        if (state.ui.currentFilter === 'review') {
+            return renderers._sortReviewProblems(problems);
         }
 
         return problems;
@@ -77,7 +84,7 @@ export const htmlGenerators = {
         patternHeader.appendChild(patternTitle);
 
         // Only show pattern solution button for non-custom patterns
-        if (!window.SmartGrind.renderers._isCustomPattern(pattern.name)) {
+        if (!renderers._isCustomPattern(pattern.name)) {
             const patternSolutionButton = document.createElement('button');
             patternSolutionButton.className = 'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
             patternSolutionButton.dataset['action'] = 'pattern-solution';
@@ -111,7 +118,7 @@ export const htmlGenerators = {
         let hasVisiblePattern = false;
 
         topic.patterns.forEach((pattern: Pattern) => {
-            const patternProblems = window.SmartGrind.renderers._getVisibleProblemsForPattern(pattern, today);
+            const patternProblems = renderers._getVisibleProblemsForPattern(pattern, today);
 
             if (patternProblems.length > 0) {
                 hasVisiblePattern = true;
@@ -119,7 +126,7 @@ export const htmlGenerators = {
                 const patternEl = document.createElement('div');
 
                 // Create pattern header with solution button
-                const patternHeader = window.SmartGrind.renderers._createPatternHeader(pattern);
+                const patternHeader = renderers._createPatternHeader(pattern);
                 patternEl.appendChild(patternHeader);
 
                 // Create grid for problem cards
@@ -127,7 +134,7 @@ export const htmlGenerators = {
                 grid.className = 'grid grid-cols-1 gap-3';
 
                 patternProblems.forEach((p: Problem) => {
-                    grid.appendChild(window.SmartGrind.renderers.createProblemCard(p));
+                    grid.appendChild(renderers.createProblemCard(p));
                 });
 
                 patternEl.appendChild(grid);
@@ -151,17 +158,17 @@ export const htmlGenerators = {
     // Helper to generate action button HTML
     _generateActionButton: (p: Problem) => {
         const isSolved = p.status === 'solved';
-        const isDue = isSolved && p.nextReviewDate !== null && p.nextReviewDate <= window.SmartGrind.utils.getToday();
+        const isDue = isSolved && p.nextReviewDate !== null && p.nextReviewDate <= utils.getToday();
         const action = isSolved ? (isDue ? 'review' : 'reset') : 'solve';
         const buttonClass = isSolved ? (isDue ? 'bg-amber-500 text-white hover:bg-amber-400' : 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold') : 'bg-brand-600 text-white hover:bg-brand-500 shadow-lg shadow-brand-500/20';
 
-        const buttonText = p.loading ? window.SmartGrind.renderers._getSpinner() : (isDue ? 'Review' : isSolved ? 'Reset' : 'Solve');
+        const buttonText = p.loading ? renderers._getSpinner() : (isDue ? 'Review' : isSolved ? 'Reset' : 'Solve');
         return `<button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors min-w-[70px] ${buttonClass}" ${p.loading ? 'disabled' : ''} data-action="${action}">${buttonText}</button>`;
     },
 
     // Helper to generate problem link HTML
     _generateProblemLink: (p: Problem) => {
-        const badge = window.SmartGrind.renderers._generateBadge(p, window.SmartGrind.utils.getToday());
+        const badge = renderers._generateBadge(p, utils.getToday());
         return `
             <div class="flex items-center gap-2 mb-1">
                 <a href="${p.url}" target="_blank" class="text-base font-medium text-theme-bold group-hover:text-brand-400 transition-colors truncate cursor-pointer">
@@ -175,7 +182,7 @@ export const htmlGenerators = {
     // Helper to generate problem metadata HTML
     _generateProblemMeta: (p: Problem) => `
         <div class="flex items-center gap-4 text-xs text-theme-muted font-mono">
-            <span>Next: ${p.nextReviewDate ? window.SmartGrind.utils.formatDate(p.nextReviewDate) : '--'}</span>
+            <span>Next: ${p.nextReviewDate ? utils.formatDate(p.nextReviewDate) : '--'}</span>
             <span class="${p.note ? 'text-brand-400' : ''}">${p.note ? 'Has Note' : ''}</span>
         </div>
     `,
@@ -199,12 +206,12 @@ export const htmlGenerators = {
 
     // Helper to generate action buttons HTML
     _generateActionButtons: (p: Problem) => {
-        const actionButton = window.SmartGrind.renderers._generateActionButton(p);
-        const isCustomProblem = window.SmartGrind.renderers._isCustomProblem(p.id);
+        const actionButton = renderers._generateActionButton(p);
+        const isCustomProblem = renderers._isCustomProblem(p.id);
 
         return `
             <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes">
-                ${window.SmartGrind['ICONS'].note}
+                ${ICONS.note}
             </button>
             ${!isCustomProblem ? `
             <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center" data-action="solution" title="View Solution">
@@ -219,7 +226,7 @@ export const htmlGenerators = {
             ` : ''}
             ${actionButton}
             <button class="action-btn p-2 rounded-lg hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors" data-action="delete" title="Delete Problem">
-                ${window.SmartGrind['ICONS'].delete}
+                ${ICONS.delete}
             </button>
         `;
     },
@@ -230,7 +237,7 @@ export const htmlGenerators = {
             <textarea class="w-full bg-dark-950 border border-theme rounded-lg p-3 text-sm text-theme-base focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none resize-none" rows="3" placeholder="Notes..." ${p.loading ? 'disabled' : ''}>${p.note || ''}</textarea>
             <div class="flex justify-end mt-2">
                 <button class="px-4 py-1.5 rounded-lg text-xs font-bold transition-colors min-w-[60px] bg-slate-700 hover:bg-slate-600 text-white" ${p.loading ? 'disabled' : ''} data-action="save-note">
-                    ${p.loading ? window.SmartGrind.renderers._getSpinner('h-3 w-3') : 'Save'}
+                    ${p.loading ? renderers._getSpinner('h-3 w-3') : 'Save'}
                 </button>
             </div>
         </div>
@@ -239,18 +246,19 @@ export const htmlGenerators = {
     // Helper to generate problem card HTML
     _generateProblemCardHTML: (p: Problem) => {
         const isSolved = p.status === 'solved';
-        const isDue = isSolved && p.nextReviewDate !== null && p.nextReviewDate <= window.SmartGrind.utils.getToday();
+        const today = utils.getToday();
+        const isDue = isSolved && p.nextReviewDate !== null && today && p.nextReviewDate <= today;
 
         const className = `group p-4 rounded-xl border transition-all duration-200 overflow-hidden ${isDue ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40' :
             isSolved ? 'bg-dark-800 border-brand-500/20 hover:border-brand-500/40' :
                 'bg-dark-800 border-theme hover:border-slate-400'
         }`;
 
-        const problemLink = window.SmartGrind.renderers._generateProblemLink(p);
-        const problemMeta = window.SmartGrind.renderers._generateProblemMeta(p);
-        const aiButtons = window.SmartGrind.renderers._generateAIButtons();
-        const actionButtons = window.SmartGrind.renderers._generateActionButtons(p);
-        const noteArea = window.SmartGrind.renderers._generateNoteArea(p);
+        const problemLink = renderers._generateProblemLink(p);
+        const problemMeta = renderers._generateProblemMeta(p);
+        const aiButtons = renderers._generateAIButtons();
+        const actionButtons = renderers._generateActionButtons(p);
+        const noteArea = renderers._generateNoteArea(p);
 
         return {
             className, innerHTML: `

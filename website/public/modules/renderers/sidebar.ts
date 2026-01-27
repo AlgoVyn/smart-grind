@@ -2,44 +2,50 @@
 // Sidebar rendering functions
 
 import { Topic } from '../types.js';
+import { state } from '../state.js';
+import { data } from '../data.js';
+import { utils } from '../utils.js';
+import { renderers } from '../renderers.js';
 
 export const sidebarRenderers = {
     // Render sidebar navigation (consolidated click handlers)
     renderSidebar: () => {
-        const topicList = window.SmartGrind.state.elements.topicList;
-        topicList.innerHTML = '';
+        const topicList = state.elements['topicList'];
+        if (topicList) {
+            topicList.innerHTML = '';
 
-        // Helper for topic navigation
-        const navigateToTopic = (topicId: string) => {
-            window.SmartGrind.renderers.setActiveTopic(topicId);
-            window.SmartGrind.utils.updateUrlParameter('category', topicId === 'all' ? null : topicId);
-            window.SmartGrind.renderers.renderMainView(topicId);
-            window.SmartGrind.utils.scrollToTop();
-        };
+            // Helper for topic navigation
+            const navigateToTopic = (topicId: string) => {
+                sidebarRenderers.setActiveTopic(topicId);
+                utils.updateUrlParameter('category', topicId === 'all' ? null : topicId);
+                renderers.renderMainView(topicId);
+                utils.scrollToTop();
+            };
 
-        // "All Problems" Link
-        const allBtn = window.SmartGrind.renderers.createTopicButton('all', 'All Problems');
-        allBtn.onclick = () => navigateToTopic('all');
-        topicList.appendChild(allBtn);
+            // "All Problems" Link
+            const allBtn = sidebarRenderers.createTopicButton('all', 'All Problems');
+            allBtn.onclick = () => navigateToTopic('all');
+            topicList.appendChild(allBtn);
 
-        // Topic buttons
-        window.SmartGrind.data.topicsData.forEach((topic: Topic) => {
-            const btn = window.SmartGrind.renderers.createTopicButton(topic.id, topic.title);
-            btn.onclick = () => navigateToTopic(topic.id);
-            topicList.appendChild(btn);
-        });
+            // Topic buttons
+            data.topicsData.forEach((topic: Topic) => {
+                const btn = sidebarRenderers.createTopicButton(topic.id, topic.title);
+                btn.onclick = () => navigateToTopic(topic.id);
+                topicList.appendChild(btn);
+            });
+        }
     },
 
     // Create a topic button for sidebar
     createTopicButton: (topicId: string, title: string) => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        const isActive = window.SmartGrind.state.ui.activeTopicId === topicId || (!window.SmartGrind.state.ui.activeTopicId && topicId === 'all');
+        const isActive = state.ui.activeTopicId === topicId || (!state.ui.activeTopicId && topicId === 'all');
         btn.className = `sidebar-link ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base hover:text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
         btn.dataset['topicId'] = topicId;
 
         // Calculate progress
-        const stats = window.SmartGrind.utils.getUniqueProblemsForTopic(topicId);
+        const stats = utils.getUniqueProblemsForTopic(topicId);
         const pct = stats.total > 0 ? Math.round((stats.solved / stats.total) * 100) : 0;
 
         btn.innerHTML = `
@@ -59,6 +65,6 @@ export const sidebarRenderers = {
         const activeBtn = document.querySelector(`[data-topic-id="${topicId}"]`) ||
             document.querySelector('.sidebar-link:first-child'); // All problems
         if (activeBtn) activeBtn.classList.add('active');
-        window.SmartGrind.state.ui.activeTopicId = topicId;
+        state.ui.activeTopicId = topicId;
     }
 };

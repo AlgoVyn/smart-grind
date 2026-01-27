@@ -1,18 +1,25 @@
 // --- INITIALIZATION ---
 
 import { Topic } from './types.js';
+import { state } from './state.js';
+import { data } from './data.js';
+import { api } from './api.js';
+import { renderers } from './renderers.js';
+import { ui } from './ui/ui.js';
+import { utils } from './utils.js';
+import { app } from './app.js';
 
 // Helper to apply category from URL
 const _applyCategory = (categoryParam: string | null) => {
     if (categoryParam && categoryParam !== 'all') {
-        const validCategory = window.SmartGrind.data.topicsData.some((t: Topic) => t.id === categoryParam);
+        const validCategory = data.topicsData.some((t: Topic) => t.id === categoryParam);
         if (validCategory) {
-            window.SmartGrind.state.ui.activeTopicId = categoryParam;
+            state.ui.activeTopicId = categoryParam;
         }
     }
-    window.SmartGrind.renderers.renderSidebar();
-    window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-    window.SmartGrind.utils.scrollToTop();
+    renderers.renderSidebar();
+    renderers.renderMainView(state.ui.activeTopicId);
+    utils.scrollToTop();
 };
 
 // Helper to setup signed-in user
@@ -20,20 +27,23 @@ const _setupSignedInUser = async (userId: string, displayName: string, categoryP
     localStorage.setItem('userId', userId);
     localStorage.setItem('displayName', displayName);
 
-    window.SmartGrind.state.user.id = userId;
-    window.SmartGrind.state.user.displayName = displayName;
-    window.SmartGrind.state.elements.userDisplay.innerText = displayName;
-    window.SmartGrind.state.user.type = 'signed-in';
-    localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
+    state.user.id = userId;
+    state.user.displayName = displayName;
+    const userDisplayEl = state.elements['userDisplay'];
+    if (userDisplayEl) {
+        userDisplayEl.innerText = displayName;
+    }
+    state.user.type = 'signed-in';
+    localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
 
-    await window.SmartGrind.api.loadData();
-    window.SmartGrind.ui.updateAuthUI();
+    await api.loadData();
+    ui.updateAuthUI();
     _applyCategory(categoryParam);
 };
 
 // Helper to setup local user
 const _setupLocalUser = (categoryParam: string | null) => {
-    window.SmartGrind.app.initializeLocalUser();
+    app.initializeLocalUser();
     _applyCategory(categoryParam);
 };
 
@@ -77,19 +87,26 @@ const checkAuth = async () => {
     }
 
     // Default to local user
-    const userType = localStorage.getItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE) || 'local';
+    const userType = localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE) || 'local';
 
     if (userType === 'local') {
         _setupLocalUser(categoryParam);
     } else {
-    // Show setup modal for orphaned signed-in state
-        window.SmartGrind.state.elements.setupModal.classList.remove('hidden');
-        window.SmartGrind.state.elements.appWrapper.classList.add('hidden');
-        window.SmartGrind.state.elements.loadingScreen.classList.add('hidden');
+        // Show setup modal for orphaned signed-in state
+        const setupModal = state.elements['setupModal'];
+        const appWrapper = state.elements['appWrapper'];
+        const loadingScreen = state.elements['loadingScreen'];
+        const googleLoginBtn = state.elements['googleLoginBtn'];
 
-        window.SmartGrind.state.elements.googleLoginBtn.disabled = false;
-        window.SmartGrind.state.elements.googleLoginBtn.innerHTML = window.SmartGrind['GOOGLE_BUTTON_HTML'];
-        window.SmartGrind.ui.updateAuthUI();
+        if (setupModal) setupModal.classList.remove('hidden');
+        if (appWrapper) appWrapper.classList.add('hidden');
+        if (loadingScreen) loadingScreen.classList.add('hidden');
+        if (googleLoginBtn) {
+            (googleLoginBtn as HTMLButtonElement).disabled = false;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            googleLoginBtn.innerHTML = (window as Window & { SmartGrind?: { GOOGLE_BUTTON_HTML?: string } }).SmartGrind?.['GOOGLE_BUTTON_HTML'] || '';
+        }
+        ui.updateAuthUI();
     }
 };
 

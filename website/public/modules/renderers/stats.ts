@@ -2,6 +2,10 @@
 // Statistics and filter rendering functions
 
 import { Topic } from '../types.js';
+import { state } from '../state.js';
+import { data } from '../data.js';
+import { utils } from '../utils.js';
+import { renderers } from '../renderers.js';
 
 export const statsRenderers = {
     // Helper to update main dashboard statistics
@@ -10,66 +14,82 @@ export const statsRenderers = {
         const percentage = total > 0 ? (solved / total) * 100 : 0;
 
         // Update main dashboard stats safely
-        if (window.SmartGrind.state.elements.mainTotalText) window.SmartGrind.state.elements.mainTotalText.innerText = total;
-        if (window.SmartGrind.state.elements.mainSolvedText) window.SmartGrind.state.elements.mainSolvedText.innerText = solved;
-        if (window.SmartGrind.state.elements.mainDueText) window.SmartGrind.state.elements.mainDueText.innerText = due;
-        if (window.SmartGrind.state.elements.mainSolvedBar) window.SmartGrind.state.elements.mainSolvedBar.style.width = `${percentage}%`;
-        if (window.SmartGrind.state.elements.mainDueBadge) {
-            window.SmartGrind.state.elements.mainDueBadge.classList.toggle('hidden', due === 0);
+        const mainTotalText = state.elements['mainTotalText'];
+        const mainSolvedText = state.elements['mainSolvedText'];
+        const mainDueText = state.elements['mainDueText'];
+        const mainSolvedBar = state.elements['mainSolvedBar'];
+        const mainDueBadge = state.elements['mainDueBadge'];
+        
+        if (mainTotalText) mainTotalText.innerText = total.toString();
+        if (mainSolvedText) mainSolvedText.innerText = solved.toString();
+        if (mainDueText) mainDueText.innerText = due.toString();
+        if (mainSolvedBar) mainSolvedBar.style.width = `${percentage}%`;
+        if (mainDueBadge) {
+            mainDueBadge.classList.toggle('hidden', due === 0);
         }
     },
 
     // Helper to update current filter display
     _updateCurrentFilterDisplay: () => {
-        if (!window.SmartGrind.state.elements.currentFilterDisplay) return;
+        const currentFilterDisplay = state.elements['currentFilterDisplay'];
+        if (!currentFilterDisplay) return;
 
-        const targetTopicTitle = window.SmartGrind.state.ui.activeTopicId === 'all' ? null :
-            window.SmartGrind.data.topicsData.find((t: Topic) => t.id === window.SmartGrind.state.ui.activeTopicId)?.title;
+        const targetTopicTitle = state.ui.activeTopicId === 'all' ? null :
+            data.topicsData.find((t: Topic) => t.id === state.ui.activeTopicId)?.title;
 
-        window.SmartGrind.state.elements.currentFilterDisplay.innerText = targetTopicTitle || 'All Problems';
+        currentFilterDisplay.innerText = targetTopicTitle || 'All Problems';
     },
 
     // Helper to update sidebar statistics
     _updateSidebarStats: () => {
-        const globalStats = window.SmartGrind.utils.getUniqueProblemsForTopic('all');
+        const globalStats = utils.getUniqueProblemsForTopic('all');
         const percentage = globalStats.total > 0 ? Math.round((globalStats.solved / globalStats.total) * 100) : 0;
 
-        if (window.SmartGrind.state.elements.sidebarSolvedText) {
-            window.SmartGrind.state.elements.sidebarSolvedText.innerText = `${percentage}%`;
+        const sidebarSolvedText = state.elements['sidebarSolvedText'];
+        const sidebarSolvedBar = state.elements['sidebarSolvedBar'];
+        
+        if (sidebarSolvedText) {
+            sidebarSolvedText.innerText = `${percentage}%`;
         }
-        if (window.SmartGrind.state.elements.sidebarSolvedBar) {
-            window.SmartGrind.state.elements.sidebarSolvedBar.style.width = `${globalStats.total > 0 ? (globalStats.solved / globalStats.total) * 100 : 0}%`;
+        if (sidebarSolvedBar) {
+            sidebarSolvedBar.style.width = `${globalStats.total > 0 ? (globalStats.solved / globalStats.total) * 100 : 0}%`;
         }
     },
 
     // Helper to update review banner
     _updateReviewBanner: (due: number) => {
+        const reviewBanner = state.elements['reviewBanner'];
+        const reviewCountBanner = state.elements['reviewCountBanner'];
+        
         if (due > 0) {
-            window.SmartGrind.state.elements.reviewBanner.classList.remove('hidden');
-            window.SmartGrind.state.elements.reviewCountBanner.innerText = due;
+            reviewBanner?.classList.remove('hidden');
+            if (reviewCountBanner) {
+                reviewCountBanner.innerText = due.toString();
+            }
         } else {
-            window.SmartGrind.state.elements.reviewBanner.classList.add('hidden');
+            reviewBanner?.classList.add('hidden');
         }
     },
 
     // Update statistics display
     updateStats: () => {
-        const stats = window.SmartGrind.utils.getUniqueProblemsForTopic(window.SmartGrind.state.ui.activeTopicId);
+        const stats = utils.getUniqueProblemsForTopic(state.ui.activeTopicId);
         const { due } = stats;
 
-        window.SmartGrind.renderers._updateMainStats(stats);
-        window.SmartGrind.renderers._updateCurrentFilterDisplay();
-        window.SmartGrind.renderers._updateSidebarStats();
-        window.SmartGrind.renderers._updateReviewBanner(due);
+        renderers._updateMainStats(stats);
+        renderers._updateCurrentFilterDisplay();
+        renderers._updateSidebarStats();
+        renderers._updateReviewBanner(due);
 
         // Refresh sidebar to update percentages
-        window.SmartGrind.renderers.renderSidebar();
+        renderers.renderSidebar();
     },
 
     // Update filter button states
     updateFilterBtns: () => {
-        window.SmartGrind.state.elements.filterBtns.forEach((b: HTMLElement) => {
-            if (b.dataset['filter'] === window.SmartGrind.state.ui.currentFilter) {
+        const filterBtns = state.elements['filterBtns'] as unknown as NodeListOf<HTMLElement>;
+        filterBtns?.forEach((b: HTMLElement) => {
+            if (b.dataset['filter'] === state.ui.currentFilter) {
                 b.classList.add('bg-brand-600', 'text-white');
                 b.classList.remove('text-theme-bold');
             } else {

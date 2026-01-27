@@ -1,56 +1,58 @@
 // --- MARKDOWN RENDERING AND SOLUTION MODAL ---
 // Includes pattern to markdown file mapping functionality
 
-window.SmartGrind = window.SmartGrind || {};
-window.SmartGrind.ui = window.SmartGrind.ui || {};
-window.SmartGrind['patterns'] = window.SmartGrind['patterns'] || {};
+import { utils } from '../utils.js';
 
 // --- PATTERN TO MARKDOWN FILE MAPPING SYSTEM ---
 // Handles naming inconsistencies between pattern names and solution filenames
 
-// Function to get the correct filename for a pattern
-window.SmartGrind['patterns'].getPatternFilename = function (patternName: string) {
-    // Use the automatic conversion for all patterns
-    return this._convertPatternNameToFilename(patternName);
-};
+export const patterns = {
+    // Function to get the correct filename for a pattern
+    getPatternFilename(patternName: string) {
+        // Use the automatic conversion for all patterns
+        return this._convertPatternNameToFilename(patternName);
+    },
 
-// Internal function for automatic pattern name to filename conversion
-window.SmartGrind['patterns']._convertPatternNameToFilename = function (patternName: string) {
-    // Convert to lowercase and replace special characters with hyphens
-    let cleaned = patternName
-        .toLowerCase()
-        .replace(/[\s/()&`'+-]+/g, '-')  // Replace spaces and special chars with hyphens
-        .replace(/-+/g, '-')             // Collapse multiple hyphens
-        .replace(/^-+|-+$/g, '');        // Trim hyphens from start/end
+    // Internal function for automatic pattern name to filename conversion
+    _convertPatternNameToFilename(patternName: string) {
+        // Convert to lowercase and replace special characters with hyphens
+        let cleaned = patternName
+            .toLowerCase()
+            .replace(/[\s/()&`'+-]+/g, '-')  // Replace spaces and special chars with hyphens
+            .replace(/-+/g, '-')             // Collapse multiple hyphens
+            .replace(/^-+|-+$/g, '');        // Trim hyphens from start/end
 
-    // Remove common suffix patterns that don't add value
-    cleaned = cleaned
-        .replace(/-pattern$/, '')
-        .replace(/-algorithm$/, '')
-        .replace(/-approach$/, '')
-        .replace(/-method$/, '')
-        .replace(/-technique$/, '')
-        .replace(/-style$/, '');
+        // Remove common suffix patterns that don't add value
+        cleaned = cleaned
+            .replace(/-pattern$/, '')
+            .replace(/-algorithm$/, '')
+            .replace(/-approach$/, '')
+            .replace(/-method$/, '')
+            .replace(/-technique$/, '')
+            .replace(/-style$/, '');
 
-    return cleaned;
-};
+        return cleaned;
+    },
 
-// Function to check if a pattern solution file exists
-window.SmartGrind['patterns'].checkPatternSolutionExists = async function (patternName: string) {
-    const filename = this.getPatternFilename(patternName);
-    const solutionFile = `/smartgrind/patterns/${filename}.md`;
+    // Function to check if a pattern solution file exists
+    async checkPatternSolutionExists(patternName: string) {
+        const filename = this.getPatternFilename(patternName);
+        const solutionFile = `/smartgrind/patterns/${filename}.md`;
 
-    try {
-        const response = await fetch(solutionFile, { method: 'HEAD' });
-        return response.ok;
-    } catch (_error) {
-        return false;
+        try {
+            const response = await fetch(solutionFile, { method: 'HEAD' });
+            return response.ok;
+        } catch (_error) {
+            return false;
+        }
     }
 };
 
 // Helper to configure markdown renderer
-window.SmartGrind.ui._configureMarkdownRenderer = () => {
-    if (typeof marked === 'undefined') return null;
+export const _configureMarkdownRenderer = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const marked = (window as unknown as { marked?: { setOptions: (_opts: { breaks: boolean; gfm: boolean }) => void; Renderer: new () => { code: (_code: string | { lang: string; text: string }, _language: string) => string } } }).marked;
+    if (!marked) return null;
 
     marked.setOptions({
         breaks: true,
@@ -58,7 +60,8 @@ window.SmartGrind.ui._configureMarkdownRenderer = () => {
     });
 
     // Custom renderer
-    const renderer = new marked.Renderer();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const renderer = new (window as any).marked.Renderer();
 
     // Helper to escape HTML in code blocks
     const escapeHtml = (unsafe: string) => {
@@ -71,7 +74,7 @@ window.SmartGrind.ui._configureMarkdownRenderer = () => {
     };
 
     renderer.code = (code: string | { lang: string; text: string }, language: string) => {
-    // Handle both object and string parameters (marked update compatibility)
+        // Handle both object and string parameters (marked update compatibility)
         if (typeof code === 'object') {
             language = code.lang;
             code = code.text;
@@ -149,15 +152,17 @@ window.SmartGrind.ui._configureMarkdownRenderer = () => {
         </div>`;
     };
 
-    marked.setOptions({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).marked.setOptions({
         renderer: renderer
     });
 
-    return marked;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (window as any).marked;
 };
 
 // Switch Carousel Tab
-window.SmartGrind.ui.switchCarouselTab = (uniqueId: string, index: number) => {
+export const switchCarouselTab = (uniqueId: string, index: number) => {
     // Update Buttons
     const buttons = document.querySelectorAll(`.carousel-tab-btn-${uniqueId}`);
     buttons.forEach(btn => {
@@ -193,7 +198,7 @@ window.SmartGrind.ui.switchCarouselTab = (uniqueId: string, index: number) => {
 };
 
 // Copy code to clipboard
-window.SmartGrind.ui.copyCode = (btn: HTMLElement) => {
+export const copyCode = (btn: HTMLElement) => {
     const pre = btn.closest('pre');
     if (!pre) return;
     const codeEl = pre.querySelector('code');
@@ -213,13 +218,13 @@ window.SmartGrind.ui.copyCode = (btn: HTMLElement) => {
         }, 2000);
     }).catch(err => {
         console.error('Failed to copy code: ', err);
-        window.SmartGrind.utils.showToast('Failed to copy code');
+        utils.showToast('Failed to copy code');
     });
 };
 
 // Helper to render markdown content
-window.SmartGrind.ui._renderMarkdown = (markdown: string, contentElement: HTMLElement) => {
-    const marked = window.SmartGrind.ui._configureMarkdownRenderer();
+export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) => {
+    const marked = _configureMarkdownRenderer();
     if (!marked) {
         contentElement.innerHTML = '<p>Error: Markdown renderer not loaded. Please check your internet connection.</p>';
         return;
@@ -229,12 +234,14 @@ window.SmartGrind.ui._renderMarkdown = (markdown: string, contentElement: HTMLEl
     contentElement.innerHTML = html;
 
     // Apply syntax highlighting
-    if (typeof Prism !== 'undefined') {
-        Prism.highlightAllUnder(contentElement);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const prism = (window as unknown as { Prism?: { highlightAllUnder: (_element: HTMLElement) => void } }).Prism;
+    if (prism) {
+        prism.highlightAllUnder(contentElement);
     }
 };
 
-window.SmartGrind.ui._loadSolution = (solutionFile: string, loadingText: string, errorPrefix: string, extraErrorText = '') => {
+const _loadSolution = (solutionFile: string, loadingText: string, errorPrefix: string, extraErrorText = '') => {
     const modal = document.getElementById('solution-modal');
     const content = document.getElementById('solution-content');
     if (!modal || !content) return;
@@ -250,10 +257,10 @@ window.SmartGrind.ui._loadSolution = (solutionFile: string, loadingText: string,
             }
             return response.text();
         })
-        .then(markdown => window.SmartGrind.ui._renderMarkdown(markdown, content))
+        .then(markdown => _renderMarkdown(markdown, content))
         .then(() => {
-            content.addEventListener('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
-            window.SmartGrind.ui.updateSolutionScrollProgress();
+            content.addEventListener('scroll', updateSolutionScrollProgress);
+            updateSolutionScrollProgress();
         })
         .catch(error => {
             content.innerHTML = `<p>Error loading ${errorPrefix}: ${error.message}</p>` +
@@ -262,21 +269,21 @@ window.SmartGrind.ui._loadSolution = (solutionFile: string, loadingText: string,
 };
 
 // Open solution modal
-window.SmartGrind.ui.openSolutionModal = (problemId: string) => {
+export const openSolutionModal = (problemId: string) => {
     const solutionFile = `/smartgrind/solutions/${problemId}.md`;
-    window.SmartGrind.ui._loadSolution(solutionFile, 'Loading solution...', 'solution');
+    _loadSolution(solutionFile, 'Loading solution...', 'solution');
 };
 
 // Open pattern solution modal
-window.SmartGrind.ui.openPatternSolutionModal = (patternName: string) => {
-    const patternFilename = window.SmartGrind['patterns'].getPatternFilename(patternName);
+export const openPatternSolutionModal = (patternName: string) => {
+    const patternFilename = patterns.getPatternFilename(patternName);
     const solutionFile = `/smartgrind/patterns/${patternFilename}.md`;
-    window.SmartGrind.ui._loadSolution(solutionFile, 'Loading pattern solution...', 'pattern solution',
+    _loadSolution(solutionFile, 'Loading pattern solution...', 'pattern solution',
         '<p>This pattern may not have a dedicated solution file yet.</p>');
 };
 
 // Close solution modal
-window.SmartGrind.ui.closeSolutionModal = () => {
+export const closeSolutionModal = () => {
     const modal = document.getElementById('solution-modal');
     if (modal) {
         modal.classList.add('hidden');
@@ -285,7 +292,7 @@ window.SmartGrind.ui.closeSolutionModal = () => {
     // Clean up scroll progress
     const content = document.getElementById('solution-content');
     if (content) {
-        content.removeEventListener('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
+        content.removeEventListener('scroll', updateSolutionScrollProgress);
     }
     const progressBar = document.getElementById('solution-scroll-progress');
     if (progressBar) {
@@ -294,7 +301,7 @@ window.SmartGrind.ui.closeSolutionModal = () => {
 };
 
 // Update solution scroll progress bar
-window.SmartGrind.ui.updateSolutionScrollProgress = () => {
+export const updateSolutionScrollProgress = () => {
     const content = document.getElementById('solution-content');
     if (!content) return;
 

@@ -1,23 +1,23 @@
 // --- SCROLL BUTTON ---
 
-window.SmartGrind = window.SmartGrind || {};
-window.SmartGrind.ui = window.SmartGrind.ui || {};
+import { state } from '../state.js';
+import { utils } from '../utils.js';
 
 // Scroll button
-window.SmartGrind.ui.initScrollButton = () => {
-    if (window.SmartGrind.state.elements.contentScroll && window.SmartGrind.state.elements.scrollToTopBtn) {
-        window.SmartGrind.state.elements.contentScroll.addEventListener('scroll', () => {
-            if (window.SmartGrind.state.elements.contentScroll.scrollTop > 300) {
+export const initScrollButton = () => {
+    if (state.elements['contentScroll'] && state.elements['scrollToTopBtn']) {
+        state.elements['contentScroll'].addEventListener('scroll', () => {
+            if (state.elements['contentScroll']!.scrollTop > 300) {
                 // Show button
-                window.SmartGrind.state.elements.scrollToTopBtn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+                state.elements['scrollToTopBtn']!.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
             } else {
                 // Hide button
-                window.SmartGrind.state.elements.scrollToTopBtn.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                state.elements['scrollToTopBtn']!.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
             }
         });
 
-        window.SmartGrind.state.elements.scrollToTopBtn.addEventListener('click', () => {
-            window.SmartGrind.utils.scrollToTop(true);
+        state.elements['scrollToTopBtn'].addEventListener('click', () => {
+            utils.scrollToTop(true);
         });
     }
 };

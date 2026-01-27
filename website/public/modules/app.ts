@@ -1,55 +1,71 @@
 // --- APP MODULE ---
 // Additional app-level functions
 
-window.SmartGrind = window.SmartGrind || {};
-window.SmartGrind.app = {};
+import { state } from './state.js';
+import { data } from './data.js';
+import { api } from './api.js';
+import { renderers } from './renderers.js';
+import { ui } from './ui/ui.js';
+import { utils } from './utils.js';
 
 // Initialize local user
-window.SmartGrind.app.initializeLocalUser = async () => {
-    window.SmartGrind.state.user.type = 'local';
-    localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
+export const initializeLocalUser = async () => {
+    state.user.type = 'local';
+    localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
 
-    window.SmartGrind.state.loadFromStorage();
-    const displayName = window.SmartGrind.state.user.displayName;
-    window.SmartGrind.state.elements.userDisplay.innerText = displayName;
+    state.loadFromStorage();
+    const displayName = state.user.displayName;
+    const userDisplay = state.elements['userDisplay'];
+    if (userDisplay) {
+        userDisplay.innerText = displayName;
+    }
 
     // Reset topicsData to original static data
-    window.SmartGrind.data.resetTopicsData();
+    data.resetTopicsData();
 
     try {
         // Sync with static plan to ensure all problems exist
-        await window.SmartGrind.api.syncPlan();
+        await api.syncPlan();
     } catch (e) {
         console.error('Error syncing plan:', e);
         const message = e instanceof Error ? e.message : String(e);
-        window.SmartGrind.ui.showAlert(`Failed to sync problems: ${message}`);
+        ui.showAlert(`Failed to sync problems: ${message}`);
     }
 
     // Merge dynamically added problems into topicsData structure
-    window.SmartGrind.api.mergeStructure();
+    api.mergeStructure();
 
-    window.SmartGrind.renderers.renderSidebar();
-    window.SmartGrind.renderers.renderMainView('all'); // Show all by default
-    window.SmartGrind.renderers.updateStats();
+    renderers.renderSidebar();
+    renderers.renderMainView('all'); // Show all by default
+    renderers.updateStats();
 
     // Initialize scroll button after DOM is ready
-    window.SmartGrind.ui.initScrollButton();
+    ui.initScrollButton();
 
-    window.SmartGrind.state.elements.setupModal.classList.add('hidden');
-    window.SmartGrind.state.elements.appWrapper.classList.remove('hidden');
-    window.SmartGrind.state.elements.loadingScreen.classList.add('hidden');
+    const setupModal = state.elements['setupModal'];
+    const appWrapper = state.elements['appWrapper'];
+    const loadingScreen = state.elements['loadingScreen'];
+    if (setupModal) {
+        setupModal.classList.add('hidden');
+    }
+    if (appWrapper) {
+        appWrapper.classList.remove('hidden');
+    }
+    if (loadingScreen) {
+        loadingScreen.classList.add('hidden');
+    }
 
     // Update auth UI
-    window.SmartGrind.ui.updateAuthUI();
+    ui.updateAuthUI();
 };
 
 // Export progress
-window.SmartGrind.app.exportProgress = () => {
+export const exportProgress = () => {
     const exportData = {
         exportDate: new Date().toISOString(),
         version: '1.0',
-        problems: Object.fromEntries(window.SmartGrind.state.problems),
-        deletedIds: Array.from(window.SmartGrind.state.deletedProblemIds)
+        problems: Object.fromEntries(state.problems),
+        deletedIds: Array.from(state.deletedProblemIds)
     };
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -62,5 +78,10 @@ window.SmartGrind.app.exportProgress = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    window.SmartGrind.utils.showToast('Progress exported successfully!', 'success');
+    utils.showToast('Progress exported successfully!', 'success');
+};
+
+export const app = {
+    initializeLocalUser,
+    exportProgress
 };

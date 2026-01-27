@@ -1,10 +1,14 @@
 // --- MODAL MANAGEMENT ---
 
-window.SmartGrind = window.SmartGrind || {};
-window.SmartGrind.ui = window.SmartGrind.ui || {};
+import { Topic, Pattern } from '../types.js';
+import { state } from '../state.js';
+import { data } from '../data.js';
+import { utils } from '../utils.js';
+import { api } from '../api.js';
+import { renderers } from '../renderers.js';
 
 // Generic modal handler factory
-window.SmartGrind.ui.createModalHandler = (modalEl: HTMLElement, contentEl: HTMLElement | null, closeCallback?: () => void) => {
+export const createModalHandler = (modalEl: HTMLElement, contentEl: HTMLElement | null | undefined, closeCallback?: () => void) => {
     return (e: Event) => {
         if (e && e.target !== modalEl) {
             if (contentEl) e?.stopPropagation();
@@ -16,7 +20,7 @@ window.SmartGrind.ui.createModalHandler = (modalEl: HTMLElement, contentEl: HTML
 };
 
 // Generic modal manager
-window.SmartGrind.ui.modalManager = {
+export const modalManager = {
     show: (modalEl: HTMLElement, setupCallback?: () => void) => {
         if (setupCallback) setupCallback();
         modalEl.classList.remove('hidden');
@@ -29,71 +33,147 @@ window.SmartGrind.ui.modalManager = {
 };
 
 // Modal functions
-window.SmartGrind.ui.openSigninModal = () => {
-    window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.signinModal);
+export const openSigninModal = () => {
+    const modalEl = state.elements['signinModal'];
+    if (modalEl) {
+        modalManager.show(modalEl);
+    }
 };
 
-window.SmartGrind.ui.closeSigninModal = () => {
-    window.SmartGrind.ui.modalManager.hide(window.SmartGrind.state.elements.signinModal);
+export const closeSigninModal = () => {
+    const modalEl = state.elements['signinModal'];
+    if (modalEl) {
+        modalManager.hide(modalEl);
+    }
 };
 
-import { Topic, Pattern } from '../types.js';
+export const openPatternSolutionModal = (_patternName: string) => {
+    // This function is implemented in ui-markdown.ts
+};
 
-window.SmartGrind.ui._setupAddModal = () => {
+let _confirmResolve: ((_value: boolean) => void) | null = null;
+
+export const _setupAddModal = () => {
     // Populate category dropdown
-    window.SmartGrind.state.elements.addProbCategory.innerHTML = '<option value="">-- Select or Type New --</option>' +
-        window.SmartGrind.data.topicsData.map((t: Topic) => `<option value="${t.title}">${t.title}</option>`).join('');
+    const categoryEl = state.elements['addProbCategory'];
+    const categoryNewEl = state.elements['addProbCategoryNew'];
+    const patternEl = state.elements['addProbPattern'];
+    const patternNewEl = state.elements['addProbPatternNew'];
+
+    if (categoryEl) {
+        categoryEl.innerHTML = '<option value="">-- Select or Type New --</option>' +
+            data.topicsData.map((t: Topic) => `<option value="${t.title}">${t.title}</option>`).join('');
+    }
 
     // Clear inputs
     ['addProbName', 'addProbUrl', 'addProbCategoryNew', 'addProbPatternNew'].forEach(id => {
-        window.SmartGrind.state.elements[id].value = '';
+        const element = state.elements[id] as HTMLInputElement;
+        if (element) element.value = '';
     });
-    window.SmartGrind.state.elements.addProbCategoryNew.classList.remove('hidden');
-    window.SmartGrind.state.elements.addProbPattern.innerHTML = '<option value="">-- Select Category First --</option>';
-    window.SmartGrind.state.elements.addProbPatternNew.classList.remove('hidden');
+
+    if (categoryNewEl) {
+        categoryNewEl.classList.remove('hidden');
+    }
+
+    if (patternEl) {
+        patternEl.innerHTML = '<option value="">-- Select Category First --</option>';
+    }
+
+    if (patternNewEl) {
+        patternNewEl.classList.remove('hidden');
+    }
 };
 
-window.SmartGrind.ui.openAddModal = () => {
-    window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.addProblemModal, window.SmartGrind.ui._setupAddModal);
+export const openAddModal = () => {
+    const modalEl = state.elements['addProblemModal'];
+    if (modalEl) {
+        modalManager.show(modalEl, _setupAddModal);
+    }
 };
 
-window.SmartGrind.ui.closeAddModal = () => {
-    window.SmartGrind.ui.modalManager.hide(window.SmartGrind.state.elements.addProblemModal);
+export const closeAddModal = () => {
+    const modalEl = state.elements['addProblemModal'];
+    if (modalEl) {
+        modalManager.hide(modalEl);
+    }
 };
 
 // Alert modal functions
-window.SmartGrind.ui.showAlert = (message: string, title = 'Alert') => {
-    window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.alertModal, () => {
-        window.SmartGrind.state.elements.alertTitle.textContent = title;
-        window.SmartGrind.state.elements.alertMessage.textContent = message;
-    });
+let showAlertCalled = false;
+let lastShowAlertMessage = '';
+let lastShowAlertTitle = '';
+
+export const showAlert = (message: string, title = 'Alert') => {
+    showAlertCalled = true;
+    lastShowAlertMessage = message;
+    lastShowAlertTitle = title;
+    const modalEl = state.elements['alertModal'];
+    if (modalEl) {
+        modalManager.show(modalEl, () => {
+            const titleEl = state.elements['alertTitle'];
+            const messageEl = state.elements['alertMessage'];
+            if (titleEl) {
+                titleEl.textContent = title;
+            }
+            if (messageEl) {
+                messageEl.textContent = message;
+            }
+        });
+    }
 };
 
-window.SmartGrind.ui.closeAlertModal = () => {
-    window.SmartGrind.ui.modalManager.hide(window.SmartGrind.state.elements.alertModal);
+export const getShowAlertHistory = () => ({
+    called: showAlertCalled,
+    lastMessage: lastShowAlertMessage,
+    lastTitle: lastShowAlertTitle
+});
+
+export const clearShowAlertHistory = () => {
+    showAlertCalled = false;
+    lastShowAlertMessage = '';
+    lastShowAlertTitle = '';
+};
+
+export const closeAlertModal = () => {
+    const modalEl = state.elements['alertModal'];
+    if (modalEl) {
+        modalManager.hide(modalEl);
+    }
 };
 
 // Confirm modal functions
-window.SmartGrind.ui.showConfirm = (message: string, title = 'Confirm Action') => {
+export const showConfirm = (message: string, title = 'Confirm Action') => {
     return new Promise((resolve: (_value: boolean) => void) => {
-        window.SmartGrind.ui.modalManager.show(window.SmartGrind.state.elements.confirmModal, () => {
-            window.SmartGrind.state.elements.confirmTitle.textContent = title;
-            window.SmartGrind.state.elements.confirmMessage.innerHTML = message;
-        });
-        window.SmartGrind.ui._confirmResolve = resolve;
-    });
-};
-
-window.SmartGrind.ui.closeConfirmModal = (result: boolean) => {
-    window.SmartGrind.ui.modalManager.hide(window.SmartGrind.state.elements.confirmModal, () => {
-        if (window.SmartGrind.ui._confirmResolve) {
-            window.SmartGrind.ui._confirmResolve(result);
-            window.SmartGrind.ui._confirmResolve = null;
+        const modalEl = state.elements['confirmModal'];
+        if (modalEl) {
+            modalManager.show(modalEl, () => {
+                const titleEl = state.elements['confirmTitle'];
+                const messageEl = state.elements['confirmMessage'];
+                if (titleEl) {
+                    titleEl.textContent = title;
+                }
+                if (messageEl) {
+                    messageEl.innerHTML = message;
+                }
+            });
+            _confirmResolve = resolve;
         }
     });
 };
 
-window.SmartGrind.ui._toggleElementVisibility = (element: HTMLElement, hide: boolean) => {
+export const closeConfirmModal = (result: boolean) => {
+    const modalEl = state.elements['confirmModal'];
+    if (modalEl) {
+        modalManager.hide(modalEl, () => {
+            if (_confirmResolve) {
+                _confirmResolve(result);
+                _confirmResolve = null;
+            }
+        });
+    }
+};
+
+export const _toggleElementVisibility = (element: HTMLElement, hide: boolean) => {
     if (hide) {
         element.classList.add('hidden');
     } else {
@@ -101,72 +181,80 @@ window.SmartGrind.ui._toggleElementVisibility = (element: HTMLElement, hide: boo
     }
 };
 
-window.SmartGrind.ui.handleCategoryChange = (e: Event) => {
+export const handleCategoryChange = (e: Event) => {
     const target = e.target as HTMLSelectElement;
     const val = target.value;
-    const categoryNewEl = window.SmartGrind.state.elements.addProbCategoryNew;
-    const patternEl = window.SmartGrind.state.elements.addProbPattern;
-    const patternNewEl = window.SmartGrind.state.elements.addProbPatternNew;
+    const categoryNewEl = state.elements['addProbCategoryNew'];
+    const patternEl = state.elements['addProbPattern'];
+    const patternNewEl = state.elements['addProbPatternNew'];
 
-    window.SmartGrind.ui._toggleElementVisibility(categoryNewEl, !!val);
+    if (categoryNewEl) {
+        _toggleElementVisibility(categoryNewEl, !!val);
+    }
 
-    if (val) {
-        const topic = window.SmartGrind.data.topicsData.find((t: Topic) => t.title === val);
+    if (val && patternEl) {
+        const topic = data.topicsData.find((t: Topic) => t.title === val);
         patternEl.innerHTML = topic
             ? '<option value="">-- Select or Type New --</option>' + topic.patterns.map((p: Pattern) => `<option value="${p.name}">${p.name}</option>`).join('')
             : '<option value="">-- No Patterns Found --</option>';
-    } else {
+    } else if (patternEl) {
         patternEl.innerHTML = '<option value="">-- Select Category First --</option>';
     }
-    window.SmartGrind.ui._toggleElementVisibility(patternNewEl, false);
+
+    if (patternNewEl) {
+        _toggleElementVisibility(patternNewEl, false);
+    }
 };
 
-window.SmartGrind.ui.handlePatternChange = (e: Event) => {
+export const handlePatternChange = (e: Event) => {
     const target = e.target as HTMLSelectElement;
-    window.SmartGrind.ui._toggleElementVisibility(window.SmartGrind.state.elements.addProbPatternNew, !!target.value);
+    const patternNewEl = state.elements['addProbPatternNew'];
+    if (patternNewEl) {
+        _toggleElementVisibility(patternNewEl, !!target.value);
+    }
 };
 
-window.SmartGrind.ui._getSanitizedInputs = () => {
-    const rawName = window.SmartGrind.state.elements.addProbName.value;
-    const rawUrl = window.SmartGrind.state.elements.addProbUrl.value;
-    let rawCategory = window.SmartGrind.state.elements.addProbCategory.value;
-    if (!rawCategory) rawCategory = window.SmartGrind.state.elements.addProbCategoryNew.value;
-    let rawPattern = window.SmartGrind.state.elements.addProbPattern.value;
-    if (!rawPattern || !window.SmartGrind.state.elements.addProbCategory.value) rawPattern = window.SmartGrind.state.elements.addProbPatternNew.value;
-    const name = window.SmartGrind.utils.sanitizeInput(rawName);
-    const url = window.SmartGrind.utils.sanitizeUrl(rawUrl);
-    const category = window.SmartGrind.utils.sanitizeInput(rawCategory);
-    const pattern = window.SmartGrind.utils.sanitizeInput(rawPattern);
+export const _getSanitizedInputs = () => {
+    const rawName = (state.elements['addProbName'] as HTMLInputElement | null)?.value || '';
+    const rawUrl = (state.elements['addProbUrl'] as HTMLInputElement | null)?.value || '';
+    let rawCategory = (state.elements['addProbCategory'] as HTMLSelectElement | null)?.value || '';
+    if (!rawCategory) rawCategory = (state.elements['addProbCategoryNew'] as HTMLInputElement | null)?.value || '';
+    let rawPattern = (state.elements['addProbPattern'] as HTMLSelectElement | null)?.value || '';
+    if (!rawPattern || !(state.elements['addProbCategory'] as HTMLSelectElement | null)?.value) rawPattern = (state.elements['addProbPatternNew'] as HTMLInputElement | null)?.value || '';
+    const name = utils.sanitizeInput(rawName);
+    const url = utils.sanitizeUrl(rawUrl);
+    const category = utils.sanitizeInput(rawCategory);
+    const pattern = utils.sanitizeInput(rawPattern);
     return { name, url, category, pattern };
 };
 
-window.SmartGrind.ui._validateInputs = ({ name, url, category, pattern }: { name: string, url: string, category: string, pattern: string }) => {
+export const _validateInputs = ({ name, url, category, pattern }: { name: string, url: string, category: string, pattern: string }, alertFunction = showAlert) => {
     if (!name.trim()) {
-        window.SmartGrind.ui.showAlert('Problem name is required and cannot be empty after sanitization.');
+        alertFunction('Problem name is required and cannot be empty after sanitization.');
         return false;
     }
     if (!url.trim()) {
-        window.SmartGrind.ui.showAlert('Problem URL is required and cannot be empty after sanitization.');
+        alertFunction('Problem URL is required and cannot be empty after sanitization.');
         return false;
     }
     if (!category.trim()) {
-        window.SmartGrind.ui.showAlert('Category is required and cannot be empty after sanitization.');
+        alertFunction('Category is required and cannot be empty after sanitization.');
         return false;
     }
     if (!pattern.trim()) {
-        window.SmartGrind.ui.showAlert('Pattern is required and cannot be empty after sanitization.');
+        alertFunction('Pattern is required and cannot be empty after sanitization.');
         return false;
     }
     try {
         new URL(url);
     } catch (_e) {
-        window.SmartGrind.ui.showAlert('Please enter a valid URL for the problem.');
+        alertFunction('Please enter a valid URL for the problem.');
         return false;
     }
     return true;
 };
 
-window.SmartGrind.ui._createNewProblem = (name: string, url: string, category: string, pattern: string) => {
+export const _createNewProblem = (name: string, url: string, category: string, pattern: string) => {
     const id = 'custom-' + Date.now();
     return {
         id,
@@ -174,7 +262,7 @@ window.SmartGrind.ui._createNewProblem = (name: string, url: string, category: s
         url,
         topic: category,
         pattern: pattern,
-        status: 'unsolved',
+        status: 'unsolved' as const,
         reviewInterval: 0,
         nextReviewDate: null,
         note: '',
@@ -182,26 +270,29 @@ window.SmartGrind.ui._createNewProblem = (name: string, url: string, category: s
     };
 };
 
-window.SmartGrind.ui._updateUIAfterAddingProblem = () => {
-    window.SmartGrind.state.elements.addProblemModal.classList.add('hidden');
-    window.SmartGrind.renderers.renderSidebar();
-    window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-    window.SmartGrind.utils.showToast('Problem added!');
+export const _updateUIAfterAddingProblem = () => {
+    const modalEl = state.elements['addProblemModal'];
+    if (modalEl) {
+        modalEl.classList.add('hidden');
+    }
+    renderers.renderSidebar();
+    renderers.renderMainView(state.ui.activeTopicId);
+    utils.showToast('Problem added!');
 };
 
-window.SmartGrind.ui.saveNewProblem = async () => {
-    const inputs = window.SmartGrind.ui._getSanitizedInputs();
-    if (!window.SmartGrind.ui._validateInputs(inputs)) return;
+export const saveNewProblem = async () => {
+    const inputs = _getSanitizedInputs();
+    if (!_validateInputs(inputs)) return;
 
     const { name, url, category, pattern } = inputs;
-    const newProb = window.SmartGrind.ui._createNewProblem(name, url, category, pattern);
+    const newProb = _createNewProblem(name, url, category, pattern);
 
     // Update State
-    window.SmartGrind.state.problems.set(newProb.id, newProb);
+    state.problems.set(newProb.id, newProb);
     // Update In-Memory Structure
-    window.SmartGrind.api.mergeStructure();
+    api.mergeStructure();
     // Save to Firebase
-    await window.SmartGrind.api.saveProblem(newProb);
+    await api.saveProblem(newProb);
 
-    window.SmartGrind.ui._updateUIAfterAddingProblem();
+    _updateUIAfterAddingProblem();
 };

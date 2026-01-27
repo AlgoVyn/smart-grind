@@ -1,49 +1,74 @@
 // --- NAVIGATION EVENTS ---
 
-window.SmartGrind = window.SmartGrind || {};
-window.SmartGrind.ui = window.SmartGrind.ui || {};
+import { state } from '../state.js';
+import { renderers } from '../renderers.js';
+import { utils } from '../utils.js';
 
 // Bind navigation-related events
-window.SmartGrind.ui.bindNavigationEvents = () => {
+export const bindNavigationEvents = () => {
     // Filter buttons
-    window.SmartGrind.state.elements.filterBtns?.forEach((btn: HTMLElement) => {
-        btn.addEventListener('click', () => {
-            window.SmartGrind.state.ui.currentFilter = btn.dataset['filter'];
-            window.SmartGrind.renderers.updateFilterBtns();
-            window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
+    const filterBtns = state.elements['filterBtns'];
+    if (filterBtns) {
+        (filterBtns as unknown as HTMLElement[]).forEach((btn: HTMLElement) => {
+            btn.addEventListener('click', () => {
+                state.ui.currentFilter = btn.dataset['filter'] || 'all';
+                renderers.updateFilterBtns();
+                renderers.renderMainView(state.ui.activeTopicId);
+            });
         });
-    });
+    }
 
     // Search
-    window.SmartGrind.state.elements.problemSearch?.addEventListener('input', () => {
-        window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
-    });
+    const problemSearch = state.elements['problemSearch'];
+    if (problemSearch) {
+        problemSearch.addEventListener('input', () => {
+            renderers.renderMainView(state.ui.activeTopicId);
+        });
+    }
 
     // Theme toggle
-    window.SmartGrind.state.elements.themeToggleBtn?.addEventListener('click', window.SmartGrind.ui.toggleTheme);
+    const themeToggleBtn = state.elements['themeToggleBtn'];
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', toggleTheme);
+    }
 
     // Mobile menu
-    window.SmartGrind.state.elements.mobileMenuBtn?.addEventListener('click', window.SmartGrind.ui.toggleMobileMenu);
-    window.SmartGrind.state.elements.mobileMenuBtnMain?.addEventListener('click', window.SmartGrind.ui.toggleMobileMenu);
-    window.SmartGrind.state.elements.sidebarBackdrop?.addEventListener('click', window.SmartGrind.ui.toggleMobileMenu);
+    const mobileMenuBtn = state.elements['mobileMenuBtn'];
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+    }
+    const mobileMenuBtnMain = state.elements['mobileMenuBtnMain'];
+    if (mobileMenuBtnMain) {
+        mobileMenuBtnMain.addEventListener('click', toggleMobileMenu);
+    }
+    const sidebarBackdrop = state.elements['sidebarBackdrop'];
+    if (sidebarBackdrop) {
+        sidebarBackdrop.addEventListener('click', toggleMobileMenu);
+    }
 
     // Logo clicks
-    window.SmartGrind.state.elements.sidebarLogo?.addEventListener('click', window.SmartGrind.ui.loadDefaultView);
-    window.SmartGrind.state.elements.mobileLogo?.addEventListener('click', window.SmartGrind.ui.loadDefaultView);
+    const sidebarLogo = state.elements['sidebarLogo'];
+    if (sidebarLogo) {
+        sidebarLogo.addEventListener('click', loadDefaultView);
+    }
+    const mobileLogo = state.elements['mobileLogo'];
+    if (mobileLogo) {
+        mobileLogo.addEventListener('click', loadDefaultView);
+    }
 };
 
 // Theme toggle
-window.SmartGrind.ui.toggleTheme = () => {
+export const toggleTheme = () => {
     const isDark = document.documentElement.classList.toggle('dark');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 };
 
-window.SmartGrind.ui._toggleSidebarClasses = (sidebar: HTMLElement, addClasses: string[], removeClasses: string[]) => {
+export const _toggleSidebarClasses = (sidebar: HTMLElement, addClasses: string[], removeClasses: string[]) => {
     addClasses.forEach((cls: string) => sidebar.classList.add(cls));
     removeClasses.forEach((cls: string) => sidebar.classList.remove(cls));
 };
 
-window.SmartGrind.ui._toggleBackdrop = (backdrop: HTMLElement, show: boolean) => {
+export const _toggleBackdrop = (backdrop: HTMLElement, show: boolean) => {
     if (show) {
         backdrop.classList.remove('hidden');
         setTimeout(() => backdrop.classList.add('opacity-100'), 10);
@@ -54,30 +79,38 @@ window.SmartGrind.ui._toggleBackdrop = (backdrop: HTMLElement, show: boolean) =>
 };
 
 // Mobile menu toggle
-window.SmartGrind.ui.toggleMobileMenu = () => {
-    const sidebar = window.SmartGrind.state.elements.mainSidebar;
-    const backdrop = window.SmartGrind.state.elements.sidebarBackdrop;
-    const isOpen = sidebar.classList.contains('translate-x-0');
+export const toggleMobileMenu = () => {
+    const sidebar = state.elements['mainSidebar'];
+    const backdrop = state.elements['sidebarBackdrop'];
+    if (sidebar) {
+        const isOpen = sidebar.classList.contains('translate-x-0');
 
-    if (isOpen) {
-        window.SmartGrind.ui._toggleSidebarClasses(sidebar, ['-translate-x-full'], ['translate-x-0']);
-        window.SmartGrind.ui._toggleBackdrop(backdrop, false);
-        document.body.style.overflow = '';
-    } else {
-        window.SmartGrind.ui._toggleSidebarClasses(sidebar, ['translate-x-0'], ['-translate-x-full']);
-        window.SmartGrind.ui._toggleBackdrop(backdrop, true);
-        document.body.style.overflow = 'hidden';
+        if (isOpen) {
+            _toggleSidebarClasses(sidebar, ['-translate-x-full'], ['translate-x-0']);
+            if (backdrop) {
+                _toggleBackdrop(backdrop, false);
+            }
+            document.body.style.overflow = '';
+        } else {
+            _toggleSidebarClasses(sidebar, ['translate-x-0'], ['-translate-x-full']);
+            if (backdrop) {
+                _toggleBackdrop(backdrop, true);
+            }
+            document.body.style.overflow = 'hidden';
+        }
     }
 };
 
 // Load default view (all problems)
-window.SmartGrind.ui.loadDefaultView = () => {
-    window.SmartGrind.renderers.setActiveTopic('all');
-    window.SmartGrind.utils.updateUrlParameter('category', null);
-    window.SmartGrind.renderers.renderMainView('all');
-    window.SmartGrind.utils.scrollToTop();
+export const loadDefaultView = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (renderers as any).setActiveTopic('all');
+    utils.updateUrlParameter('category', null);
+    renderers.renderMainView('all');
+    utils.scrollToTop();
     // Close mobile menu if open
-    if (window.innerWidth < 768 && window.SmartGrind.state.elements.mainSidebar.classList.contains('translate-x-0')) {
-        window.SmartGrind.ui.toggleMobileMenu();
+    const mainSidebar = state.elements['mainSidebar'];
+    if (window.innerWidth < 768 && mainSidebar && mainSidebar.classList.contains('translate-x-0')) {
+        toggleMobileMenu();
     }
 };

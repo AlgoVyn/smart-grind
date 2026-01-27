@@ -2,11 +2,8 @@
 
 import { UI_CONSTANTS } from './ui-constants.js';
 
-window.SmartGrind = window.SmartGrind || {};
-window.SmartGrind.ui = window.SmartGrind.ui || {};
-
 // Sidebar resizer functionality
-window.SmartGrind.ui.sidebarResizer = {
+export const sidebarResizer = {
     isResizing: false,
     startX: 0,
     startWidth: 0,
@@ -16,42 +13,42 @@ window.SmartGrind.ui.sidebarResizer = {
     init: () => {
         const resizer = document.getElementById('sidebar-resizer');
         if (resizer) {
-            resizer.addEventListener('mousedown', window.SmartGrind.ui.sidebarResizer.startResize);
+            resizer.addEventListener('mousedown', sidebarResizer.startResize);
             // Touch support
-            resizer.addEventListener('touchstart', window.SmartGrind.ui.sidebarResizer.startResize, { passive: false });
+            resizer.addEventListener('touchstart', sidebarResizer.startResize, { passive: false });
         }
         // Load saved width from localStorage
-        window.SmartGrind.ui.sidebarResizer.loadWidth();
+        sidebarResizer.loadWidth();
     },
 
     startResize: (e: MouseEvent | TouchEvent) => {
         e.preventDefault();
-        window.SmartGrind.ui.sidebarResizer.isResizing = true;
+        sidebarResizer.isResizing = true;
         if (e.type === 'touchstart') {
             const touchEvent = e as TouchEvent;
-            window.SmartGrind.ui.sidebarResizer.startX = touchEvent.touches[0]?.clientX || 0;
+            sidebarResizer.startX = touchEvent.touches[0]?.clientX || 0;
         } else {
             const mouseEvent = e as MouseEvent;
-            window.SmartGrind.ui.sidebarResizer.startX = mouseEvent.clientX;
+            sidebarResizer.startX = mouseEvent.clientX;
         }
 
         const sidebar = document.getElementById('main-sidebar');
         if (sidebar) {
-            window.SmartGrind.ui.sidebarResizer.startWidth = sidebar.offsetWidth;
+            sidebarResizer.startWidth = sidebar.offsetWidth;
         }
 
         // Add event listeners for dragging
-        document.addEventListener('mousemove', window.SmartGrind.ui.sidebarResizer.resize);
-        document.addEventListener('mouseup', window.SmartGrind.ui.sidebarResizer.stopResize);
-        document.addEventListener('touchmove', window.SmartGrind.ui.sidebarResizer.resize, { passive: false });
-        document.addEventListener('touchend', window.SmartGrind.ui.sidebarResizer.stopResize);
+        document.addEventListener('mousemove', sidebarResizer.resize);
+        document.addEventListener('mouseup', sidebarResizer.stopResize);
+        document.addEventListener('touchmove', sidebarResizer.resize, { passive: false });
+        document.addEventListener('touchend', sidebarResizer.stopResize);
 
         // Add resizing class for visual feedback
         document.body.classList.add('sidebar-resizing');
     },
 
     resize: (e: MouseEvent | TouchEvent) => {
-        if (!window.SmartGrind.ui.sidebarResizer.isResizing) return;
+        if (!sidebarResizer.isResizing) return;
         e.preventDefault();
 
         let currentX: number;
@@ -62,11 +59,11 @@ window.SmartGrind.ui.sidebarResizer = {
             const mouseEvent = e as MouseEvent;
             currentX = mouseEvent.clientX;
         }
-        const diff = currentX - window.SmartGrind.ui.sidebarResizer.startX;
-        let newWidth = window.SmartGrind.ui.sidebarResizer.startWidth + diff;
+        const diff = currentX - sidebarResizer.startX;
+        let newWidth = sidebarResizer.startWidth + diff;
 
         // Apply min/max constraints
-        newWidth = Math.max(window.SmartGrind.ui.sidebarResizer.minWidth, Math.min(window.SmartGrind.ui.sidebarResizer.maxWidth, newWidth));
+        newWidth = Math.max(sidebarResizer.minWidth, Math.min(sidebarResizer.maxWidth, newWidth));
 
         const sidebar = document.getElementById('main-sidebar');
         if (sidebar) {
@@ -75,8 +72,8 @@ window.SmartGrind.ui.sidebarResizer = {
     },
 
     stopResize: () => {
-        if (!window.SmartGrind.ui.sidebarResizer.isResizing) return;
-        window.SmartGrind.ui.sidebarResizer.isResizing = false;
+        if (!sidebarResizer.isResizing) return;
+        sidebarResizer.isResizing = false;
 
         // Remove event listeners
         const events = [
@@ -86,15 +83,15 @@ window.SmartGrind.ui.sidebarResizer = {
             ['touchend', 'stopResize']
         ];
         events.forEach(([event, method]) => {
-            const handler = window.SmartGrind.ui.sidebarResizer[method as 'resize' | 'stopResize'];
-            document.removeEventListener(event as keyof DocumentEventMap, handler);
+            const handler = sidebarResizer[method as 'resize' | 'stopResize'];
+            document.removeEventListener(event as keyof DocumentEventMap, handler as unknown as EventListener);
         });
 
         // Remove resizing class
         document.body.classList.remove('sidebar-resizing');
 
         // Save width to localStorage
-        window.SmartGrind.ui.sidebarResizer.saveWidth();
+        sidebarResizer.saveWidth();
     },
 
     saveWidth: () => {
@@ -111,7 +108,7 @@ window.SmartGrind.ui.sidebarResizer = {
             if (sidebar) {
                 const width = parseInt(savedWidth, 10);
                 // Apply min/max constraints when loading
-                const constrainedWidth = Math.max(window.SmartGrind.ui.sidebarResizer.minWidth, Math.min(window.SmartGrind.ui.sidebarResizer.maxWidth, width));
+                const constrainedWidth = Math.max(sidebarResizer.minWidth, Math.min(sidebarResizer.maxWidth, width));
                 sidebar.style.width = constrainedWidth + 'px';
             }
         }

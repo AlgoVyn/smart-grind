@@ -1,15 +1,15 @@
 // --- DATA MODULE ---
 // Contains static data and data structures
 
-window.SmartGrind = window.SmartGrind || {};
+import { Topic } from './types.js';
 
 // Static problem data organized by topic
-window.SmartGrind.data = {
+export const data = {
     // Cloudflare API base
     API_BASE: '/smartgrind/api',
 
     // --- DATA STRUCTURE (Flattened by Topic) ---
-    ORIGINAL_TOPICS_DATA: null, // Will be set below
+    ORIGINAL_TOPICS_DATA: null as Topic[] | null, // Will be set below
     topicsData: [
         {
             id: 'two-pointers', title: 'Two Pointer Patterns',
@@ -210,4 +210,4 @@ window.SmartGrind.data = {
 };
 
 // Initialize the data module
-window.SmartGrind.data.init();
+data.init();

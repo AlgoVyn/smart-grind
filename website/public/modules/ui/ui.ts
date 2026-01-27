@@ -1,27 +1,35 @@
 // --- UI MODULE ---
 // UI-specific functions and event handlers
 
-window.SmartGrind = window.SmartGrind || {};
-
-// Import all UI modules
-import './ui-constants.js';
-import './ui-pull-to-refresh.js';
-import './ui-sidebar-resizer.js';
-import './ui-modals.js';
-import './ui-auth.js';
-import './ui-navigation.js';
-import './ui-problems.js';
-import './ui-global.js';
-import './ui-scroll.js';
-import './ui-markdown.js';
-import './ui-bindings.js';
-import '../app.js';
+import { pullToRefresh } from './ui-pull-to-refresh.js';
+import { sidebarResizer } from './ui-sidebar-resizer.js';
+import * as uiModals from './ui-modals.js';
+import * as uiAuth from './ui-auth.js';
+import * as uiNavigation from './ui-navigation.js';
+import * as uiProblems from './ui-problems.js';
+import * as uiGlobal from './ui-global.js';
+import * as uiScroll from './ui-scroll.js';
+import * as uiMarkdown from './ui-markdown.js';
+import * as uiBindings from './ui-bindings.js';
+import { state } from '../state.js';
 import { checkAuth } from '../init.js';
 
-if (typeof jest === 'undefined') {
-    window.SmartGrind.state.init();
-    checkAuth();
-    window.SmartGrind.ui.init();
-}
+// Combine all UI modules into a single ui object
+export const ui = {
+    ...uiModals,
+    ...uiAuth,
+    ...uiNavigation,
+    ...uiProblems,
+    ...uiGlobal,
+    ...uiScroll,
+    ...uiMarkdown,
+    ...uiBindings,
+    pullToRefresh,
+    sidebarResizer
+};
 
-export default window.SmartGrind.ui;
+if (typeof jest === 'undefined') {
+    state.init();
+    checkAuth();
+    ui.init().catch(console.error);
+}

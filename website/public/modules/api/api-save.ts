@@ -2,46 +2,50 @@
 // Data saving operations
 
 import { UserData, Problem } from '../types.js';
+import { state } from '../state.js';
+import { data } from '../data.js';
+import { renderers } from '../renderers.js';
+import { ui } from '../ui/ui.js';
 
-window.SmartGrind = window.SmartGrind || {};
-window.SmartGrind.api = window.SmartGrind.api || {};
-
-Object.assign(window.SmartGrind.api, {
+// Export all functions as part of a single object
+export const apiSave = {
     /**
       * Prepares the current problem data for saving by serializing the problems map and deleted IDs.
       * @returns {Object} The data object to save.
       * @returns {Object} return.problems - Object of problem IDs to problem data.
       * @returns {string[]} return.deletedIds - Array of deleted problem IDs.
       */
-    _prepareDataForSave: (): UserData => ({
-        problems: Object.fromEntries(
-            Array.from(window.SmartGrind.state.problems.entries() as IterableIterator<[string, Problem]>).map(([id, p]) => {
-                const { loading: _loading, noteVisible: _noteVisible, ...rest } = p;
-                return [id, rest];
-            })
-        ),
-        deletedIds: Array.from(window.SmartGrind.state.deletedProblemIds)
-    }),
+    _prepareDataForSave(): UserData {
+        return {
+            problems: Object.fromEntries(
+                Array.from(state.problems.entries() as IterableIterator<[string, Problem]>).map(([id, p]) => {
+                    const { loading: _loading, noteVisible: _noteVisible, ...rest } = p;
+                    return [id, rest];
+                })
+            ),
+            deletedIds: Array.from(state.deletedProblemIds)
+        };
+    },
 
     /**
      * Saves the current state data to local storage.
      */
-    _saveLocally: () => {
-        window.SmartGrind.state.saveToStorage();
+    async _saveLocally() {
+        state.saveToStorage();
     },
 
     /**
       * Saves the prepared data to the remote API.
       * @throws {Error} Throws an error if the save request fails.
       */
-    _saveRemotely: async (): Promise<void> => {
-        const data = window.SmartGrind.api._prepareDataForSave();
-        const response = await fetch(`${window.SmartGrind.data.API_BASE}/user`, {
+    async _saveRemotely(): Promise<void> {
+        const dataToSave = this._prepareDataForSave();
+        const response = await fetch(`${data.API_BASE}/user`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ data })
+            body: JSON.stringify({ data: dataToSave })
         });
         if (!response.ok) {
             const errorMessages: Record<number, string> = {
@@ -57,14 +61,14 @@ Object.assign(window.SmartGrind.api, {
       * @param {Function} saveFn - The save function to execute (local or remote).
       * @throws {Error} Throws the error if the save function fails.
       */
-    _handleSaveOperation: async (saveFn: () => Promise<void>): Promise<void> => {
+    async _handleSaveOperation(saveFn: () => Promise<void>): Promise<void> {
         try {
             await saveFn();
-            window.SmartGrind.renderers.updateStats();
+            renderers.updateStats();
         } catch (e) {
             console.error('Save error:', e);
             const message = e instanceof Error ? e.message : String(e);
-            window.SmartGrind.ui.showAlert(`Failed to save data: ${message}`);
+            ui.showAlert(`Failed to save data: ${message}`);
             throw e;
         }
     },
@@ -73,11 +77,11 @@ Object.assign(window.SmartGrind.api, {
       * Performs the save operation based on the user type (local or remote).
       * @throws {Error} Throws an error if the save fails.
       */
-    _performSave: async (): Promise<void> => {
-        const saveFn = window.SmartGrind.state.user.type === 'local'
-            ? window.SmartGrind.api._saveLocally
-            : window.SmartGrind.api._saveRemotely;
-        await window.SmartGrind.api._handleSaveOperation(saveFn);
+    async _performSave(): Promise<void> {
+        const saveFn = state.user.type === 'local'
+            ? this._saveLocally.bind(this)
+            : this._saveRemotely.bind(this);
+        await this._handleSaveOperation(saveFn);
     },
 
     /**
@@ -85,8 +89,8 @@ Object.assign(window.SmartGrind.api, {
       * @param {Problem} _problem - The problem being saved (for compatibility, not used).
       * @throws {Error} Throws an error if the save fails.
       */
-    saveProblem: async (_problem?: Problem): Promise<void> => {
-        await window.SmartGrind.api._performSave();
+    async saveProblem(_problem?: Problem): Promise<void> {
+        await this._performSave();
     },
 
     /**
@@ -94,22 +98,22 @@ Object.assign(window.SmartGrind.api, {
       * @param {string} id - The ID of the problem to delete.
       * @throws {Error} Throws an error if the save fails.
       */
-    saveDeletedId: async (id: string): Promise<void> => {
-        const problem = window.SmartGrind.state.problems.get(id);
+    async saveDeletedId(id: string): Promise<void> {
+        const problem = state.problems.get(id);
         try {
-            window.SmartGrind.state.problems.delete(id);
-            window.SmartGrind.state.deletedProblemIds.add(id);
-            await window.SmartGrind.api._performSave();
+            state.problems.delete(id);
+            state.deletedProblemIds.add(id);
+            await this._performSave();
             // Re-render the view to remove the deleted problem
-            window.SmartGrind.renderers.renderMainView(window.SmartGrind.state.ui.activeTopicId);
+            renderers.renderMainView(state.ui.activeTopicId);
         } catch (e) {
             console.error('Delete save error:', e);
             const message = e instanceof Error ? e.message : String(e);
-            window.SmartGrind.ui.showAlert(`Failed to delete problem: ${message}`);
+            ui.showAlert(`Failed to delete problem: ${message}`);
             // Restore the problem if save failed
             if (problem) {
-                window.SmartGrind.state.problems.set(id, problem);
-                window.SmartGrind.state.deletedProblemIds.delete(id);
+                state.problems.set(id, problem);
+                state.deletedProblemIds.delete(id);
             }
             throw e;
         }
@@ -119,7 +123,17 @@ Object.assign(window.SmartGrind.api, {
       * Saves all current data to storage or API.
       * @throws {Error} Throws an error if the save fails.
       */
-    saveData: async (): Promise<void> => {
-        await window.SmartGrind.api._performSave();
+    async saveData(): Promise<void> {
+        await this._performSave();
     }
-});
+};
+
+// Export all functions as individual exports for backward compatibility
+export const _prepareDataForSave = apiSave._prepareDataForSave.bind(apiSave);
+export const _saveLocally = apiSave._saveLocally.bind(apiSave);
+export const _saveRemotely = apiSave._saveRemotely.bind(apiSave);
+export const _handleSaveOperation = apiSave._handleSaveOperation.bind(apiSave);
+export const _performSave = apiSave._performSave.bind(apiSave);
+export const saveProblem = apiSave.saveProblem.bind(apiSave);
+export const saveDeletedId = apiSave.saveDeletedId.bind(apiSave);
+export const saveData = apiSave.saveData.bind(apiSave);

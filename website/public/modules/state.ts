@@ -2,10 +2,9 @@
 // Centralized state management for the application
 
 import { User, Problem, UIState } from './types.js';
+import { data } from './data.js';
 
-window.SmartGrind = window.SmartGrind || {};
-
-window.SmartGrind.state = {
+export const state = {
     // User state
     user: {
         type: 'local', // 'local' or 'signed-in'
@@ -26,7 +25,8 @@ window.SmartGrind.state = {
     } as UIState,
 
     // DOM elements cache
-    elements: {} as Record<string, HTMLElement | null>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    elements: {} as any,
 
     // Initialize state
     init() {
@@ -37,10 +37,10 @@ window.SmartGrind.state = {
     // Load state from localStorage
     loadFromStorage(): void {
         try {
-            const problemsData = localStorage.getItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.PROBLEMS);
-            const deletedIdsData = localStorage.getItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.DELETED_IDS);
-            const displayName = localStorage.getItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.DISPLAY_NAME) || 'Local User';
-            const userType = localStorage.getItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE) || 'local';
+            const problemsData = localStorage.getItem(data.LOCAL_STORAGE_KEYS.PROBLEMS);
+            const deletedIdsData = localStorage.getItem(data.LOCAL_STORAGE_KEYS.DELETED_IDS);
+            const displayName = localStorage.getItem(data.LOCAL_STORAGE_KEYS.DISPLAY_NAME) || 'Local User';
+            const userType = localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE) || 'local';
 
             const problemsObj = problemsData ? JSON.parse(problemsData) : {};
             const deletedIdsArr = deletedIdsData ? JSON.parse(deletedIdsData) : [];
@@ -66,10 +66,10 @@ window.SmartGrind.state = {
                     return [id, rest];
                 })
             );
-            localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.PROBLEMS, JSON.stringify(problemsWithoutLoading));
-            localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.DELETED_IDS, JSON.stringify(Array.from(this.deletedProblemIds)));
-            localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.DISPLAY_NAME, this.user.displayName);
-            localStorage.setItem(window.SmartGrind.data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
+            localStorage.setItem(data.LOCAL_STORAGE_KEYS.PROBLEMS, JSON.stringify(problemsWithoutLoading));
+            localStorage.setItem(data.LOCAL_STORAGE_KEYS.DELETED_IDS, JSON.stringify(Array.from(this.deletedProblemIds)));
+            localStorage.setItem(data.LOCAL_STORAGE_KEYS.DISPLAY_NAME, this.user.displayName);
+            localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
         } catch (e) {
             console.error('Error saving state to storage:', e);
         }

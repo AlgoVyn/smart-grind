@@ -1,12 +1,13 @@
 // --- PROBLEM-RELATED EVENTS ---
 
-window.SmartGrind = window.SmartGrind || {};
-window.SmartGrind.ui = window.SmartGrind.ui || {};
+import { state } from '../state.js';
+import { renderers } from '../renderers.js';
+import { openPatternSolutionModal } from './ui-modals.js';
 
 // Bind problem-related events
-window.SmartGrind.ui.bindProblemEvents = () => {
+export const bindProblemEvents = () => {
     // Event delegation for problem card buttons
-    window.SmartGrind.state.elements.problemsContainer?.addEventListener('click', (e: MouseEvent) => {
+    state.elements['problemsContainer']?.addEventListener('click', (e: MouseEvent) => {
         const button = (e.target as Element).closest('button[data-action]');
         if (!button) return;
 
@@ -16,23 +17,38 @@ window.SmartGrind.ui.bindProblemEvents = () => {
         const problemId = card.dataset['problemId'];
         if (!problemId) return;
 
-        const foundProblem = window.SmartGrind.state.problems.get(problemId);
+        const foundProblem = state.problems.get(problemId);
 
         if (foundProblem) {
-            // Create a mock event object with the button
-            const mockEvent = { target: button, stopPropagation: () => { } };
-            window.SmartGrind.renderers.handleProblemCardClick(mockEvent, foundProblem);
+            // Create a mock event object with the button that matches Event interface
+            const mockEvent = {
+                target: button,
+                stopPropagation: () => {},
+                preventDefault: () => {},
+                bubbles: true,
+                cancelBubble: false,
+                cancelable: false,
+                composed: false,
+                currentTarget: button,
+                defaultPrevented: false,
+                eventPhase: 2,
+                isTrusted: true,
+                returnValue: true,
+                timeStamp: Date.now(),
+                type: 'click'
+            } as unknown as Event;
+            renderers.handleProblemCardClick(mockEvent, foundProblem);
         }
     });
 
     // Event delegation for pattern solution buttons (outside problem cards)
-    window.SmartGrind.state.elements.problemsContainer?.addEventListener('click', (e: MouseEvent) => {
+    state.elements['problemsContainer']?.addEventListener('click', (e: MouseEvent) => {
         const patternSolutionButton = (e.target as Element).closest('button[data-action="pattern-solution"]');
         if (!patternSolutionButton) return;
 
         const patternName = (patternSolutionButton as HTMLElement).dataset['pattern'];
         if (patternName) {
-            window.SmartGrind.ui.openPatternSolutionModal(patternName);
+            openPatternSolutionModal(patternName);
         }
     });
 };

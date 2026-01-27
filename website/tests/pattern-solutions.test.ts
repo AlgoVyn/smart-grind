@@ -2,12 +2,7 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
-
-// Mock the UI module which now includes pattern mapping
-(global as any).window = {};
-require('../public/modules/ui/ui-markdown.ts');
-
-const { patterns } = window.SmartGrind;
+import { patterns } from '../public/modules/ui/ui-markdown';
 
 describe('Pattern Solutions Functionality', () => {
     beforeEach(() => {

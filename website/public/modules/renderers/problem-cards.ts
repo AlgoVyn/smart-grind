@@ -2,6 +2,11 @@
 // Problem card related rendering functions
 
 import { Problem } from '../types.js';
+import { renderers } from '../renderers.js';
+import { api } from '../api.js';
+import { utils } from '../utils.js';
+import { ui } from '../ui/ui.js';
+import { state } from '../state.js';
 
 type ProblemCallback = (_problem: Problem) => void;
 
@@ -10,7 +15,7 @@ export const problemCardRenderers = {
     _reRenderCard: (button: HTMLElement, p: Problem): void => {
         const card = button.closest('.group');
         if (card) {
-            const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(p);
+            const { className, innerHTML } = renderers._generateProblemCardHTML(p);
             card.className = className;
             card.innerHTML = innerHTML;
         }
@@ -35,29 +40,29 @@ export const problemCardRenderers = {
         _p.loading = true;
 
         // Show loading state immediately
-        window.SmartGrind.renderers._reRenderCard(button, _p);
+        renderers._reRenderCard(button, _p);
 
         // Add delay for spinner visibility
         await new Promise<void>(resolve => setTimeout(resolve, 400));
 
         try {
-            await window.SmartGrind.api.saveProblem(_p);
+            await api.saveProblem(_p);
             if (successMessage) {
-                window.SmartGrind.utils.showToast(successMessage, 'success');
+                utils.showToast(successMessage, 'success');
             }
         } catch (error) {
             // Revert to original state on error
             Object.assign(_p, originalState);
             const errorMsg = error instanceof Error ? error.message : String(error);
             const message = errorMessage || `Failed to update problem: ${errorMsg}`;
-            window.SmartGrind.utils.showToast(message, 'error');
+            utils.showToast(message, 'error');
         } finally {
             _p.loading = false;
             // Custom finally behavior or default re-render
             if (onFinally) {
                 onFinally(_p);
             } else {
-                window.SmartGrind.renderers._reRenderAllCards(_p);
+                renderers._reRenderAllCards(_p);
             }
         }
     },
@@ -68,10 +73,10 @@ export const problemCardRenderers = {
         newCards.forEach((newCard: Element) => {
             const btn = newCard.querySelector('.action-btn[data-action]');
             if (btn) {
-                if (hideIfDueFilter && window.SmartGrind.state.ui.currentFilter === 'review') {
-                    window.SmartGrind.renderers._hideCardIfDueFilter(btn as HTMLElement);
+                if (hideIfDueFilter && state.ui.currentFilter === 'review') {
+                    renderers._hideCardIfDueFilter(btn as HTMLElement);
                 } else {
-                    window.SmartGrind.renderers._reRenderCard(btn as HTMLElement, p);
+                    renderers._reRenderCard(btn as HTMLElement, p);
                 }
             }
         });
@@ -79,7 +84,7 @@ export const problemCardRenderers = {
 
     // Helper to handle problem status changes
     _handleStatusChange: async (button: HTMLElement, p: Problem, newStatus: 'unsolved' | 'solved', interval = 0, nextDate: string | null = null): Promise<void> => {
-        await window.SmartGrind.renderers._performStatusChange(
+        await renderers._performStatusChange(
             button,
             p,
             (problem: Problem) => {
@@ -92,30 +97,31 @@ export const problemCardRenderers = {
 
     // Handle solve action
     _handleSolve: async (button: HTMLElement, p: Problem): Promise<void> => {
-        const today = window.SmartGrind.utils.getToday();
-        await window.SmartGrind.renderers._handleStatusChange(button, p, 'solved', 0, window.SmartGrind.utils.getNextReviewDate(today, 0));
+        const today = utils.getToday() || '2024-01-01'; // Default date if getToday() fails
+        const nextReviewDate = utils.getNextReviewDate(today, 0) || null;
+        await renderers._handleStatusChange(button, p, 'solved', 0, nextReviewDate);
     },
 
     // Handle review action
     _handleReview: async (button: HTMLElement, p: Problem): Promise<void> => {
-        const today = window.SmartGrind.utils.getToday();
+        const today = utils.getToday() || '2024-01-01'; // Default date if getToday() fails
         const newInterval = (p.reviewInterval || 0) + 1;
 
-        await window.SmartGrind.renderers._performStatusChange(
+        await renderers._performStatusChange(
             button,
             p,
             (problem: Problem) => {
                 problem.status = 'solved';
                 problem.reviewInterval = newInterval;
-                problem.nextReviewDate = window.SmartGrind.utils.getNextReviewDate(today, newInterval);
+                problem.nextReviewDate = utils.getNextReviewDate(today, newInterval) || null;
             },
             {
                 onFinally: (problem: Problem) => {
                     // Special handling for review filter: hide cards when reviewed
-                    if (window.SmartGrind.state.ui.currentFilter === 'review') {
-                        window.SmartGrind.renderers._reRenderAllCards(problem, true);
+                    if (state.ui.currentFilter === 'review') {
+                        renderers._reRenderAllCards(problem, true);
                     } else {
-                        window.SmartGrind.renderers._reRenderAllCards(problem);
+                        renderers._reRenderAllCards(problem);
                     }
                 }
             }
@@ -124,7 +130,7 @@ export const problemCardRenderers = {
 
     // Handle reset action
     _handleReset: async (button: HTMLElement, p: Problem): Promise<void> => {
-        await window.SmartGrind.renderers._handleStatusChange(button, p, 'unsolved', 0, null);
+        await renderers._handleStatusChange(button, p, 'unsolved', 0, null);
     },
 
     // Helper to hide card when due filter is active
@@ -145,43 +151,49 @@ export const problemCardRenderers = {
                 const topicSection = patternSection.parentElement;
                 if (topicSection && topicSection.querySelectorAll(':scope > div:not([style*="display: none"])').length === 0) {
                     topicSection.style.display = 'none';
-                    const currentFilter = window.SmartGrind.state.ui.currentFilter;
+                    const currentFilter = state.ui.currentFilter;
                     const allProblemsContainer = document.getElementById('problems-container');
                     if (allProblemsContainer) {
                         const visibleProblems = allProblemsContainer.querySelectorAll('.group:not([style*="display: none"])');
                         if (currentFilter === 'review' && visibleProblems.length === 0) {
-                            window.SmartGrind.state.elements.emptyState.classList.remove('hidden');
+                            const emptyState = state.elements['emptyState'];
+                            if (emptyState) {
+                                emptyState.classList.remove('hidden');
+                            }
                         } else {
-                            window.SmartGrind.state.elements.emptyState.classList.add('hidden');
+                            const emptyState = state.elements['emptyState'];
+                            if (emptyState) {
+                                emptyState.classList.add('hidden');
+                            }
                         }
                     }
                 }
             }
         }
 
-        window.SmartGrind.renderers.updateStats();
+        renderers.updateStats();
     },
 
     // Helper to handle status actions (solve, review, reset)
     _handleStatusAction: async (button: HTMLElement, p: Problem, action: string): Promise<void> => {
         switch (action) {
         case 'solve':
-            await window.SmartGrind.renderers._handleSolve(button, p);
+            await renderers._handleSolve(button, p);
             break;
         case 'review':
-            await window.SmartGrind.renderers._handleReview(button, p);
+            await renderers._handleReview(button, p);
             break;
         case 'reset':
-            await window.SmartGrind.renderers._handleReset(button, p);
+            await renderers._handleReset(button, p);
             break;
         }
     },
 
     // Helper to handle delete action
     _handleDeleteAction: async (p: Problem): Promise<void> => {
-        const confirmed = await window.SmartGrind.ui.showConfirm(`Delete "<b>${p.name}</b>"?`);
+        const confirmed = await ui.showConfirm(`Delete "<b>${p.name}</b>"?`);
         if (confirmed) {
-            await window.SmartGrind.api.saveDeletedId(p.id);
+            await api.saveDeletedId(p.id);
         }
     },
 
@@ -199,7 +211,7 @@ export const problemCardRenderers = {
         const textarea = button.closest('.note-area')?.querySelector('textarea') as HTMLTextAreaElement;
         if (!textarea) return;
 
-        await window.SmartGrind.renderers._performStatusChange(
+        await renderers._performStatusChange(
             button,
             p,
             (problem: Problem) => {
@@ -210,18 +222,19 @@ export const problemCardRenderers = {
 
     // Helper to handle AI assistant actions
     _handleAIActions: (p: Problem, action: string): void => {
-        const provider = action.split('-')[1];
-        window.SmartGrind.utils.askAI(p.name, provider);
+        const provider = (action.split('-')[1] || 'chatgpt') as 'chatgpt' | 'aistudio' | 'grok';
+        const problemName = p.name || 'Unknown Problem';
+        utils.askAI(problemName, provider);
     },
 
     // Helper to handle solution actions
     _handleSolutionActions: (button: HTMLElement, p: Problem, action: string): void => {
         if (action === 'solution') {
-            window.SmartGrind.ui.openSolutionModal(p.id);
+            ui.openSolutionModal(p.id);
         } else if (action === 'pattern-solution') {
             const patternName = button.dataset['pattern'];
             if (patternName) {
-                window.SmartGrind.ui.openPatternSolutionModal(patternName);
+                ui.openPatternSolutionModal(patternName);
             }
         }
     },
@@ -236,24 +249,24 @@ export const problemCardRenderers = {
 
         // Group actions by type for cleaner handling
         if (['solve', 'review', 'reset'].includes(action)) {
-            await window.SmartGrind.renderers._handleStatusAction(button, p, action);
+            await renderers._handleStatusAction(button, p, action);
         } else if (action === 'delete') {
-            await window.SmartGrind.renderers._handleDeleteAction(p);
+            await renderers._handleDeleteAction(p);
         } else if (action === 'note') {
-            window.SmartGrind.renderers._handleNoteToggle(button, p);
+            renderers._handleNoteToggle(button, p);
         } else if (action === 'save-note') {
-            await window.SmartGrind.renderers._handleNoteSave(button, p);
+            await renderers._handleNoteSave(button, p);
         } else if (['ask-chatgpt', 'ask-aistudio', 'ask-grok'].includes(action)) {
-            window.SmartGrind.renderers._handleAIActions(p, action);
+            renderers._handleAIActions(p, action);
         } else if (['solution', 'pattern-solution'].includes(action)) {
-            window.SmartGrind.renderers._handleSolutionActions(button, p, action);
+            renderers._handleSolutionActions(button, p, action);
         }
     },
 
     // Create a problem card element
     createProblemCard: (_p: Problem): HTMLElement => {
         const el = document.createElement('div');
-        const { className, innerHTML } = window.SmartGrind.renderers._generateProblemCardHTML(_p);
+        const { className, innerHTML } = renderers._generateProblemCardHTML(_p);
         el.className = className;
         el.dataset['problemId'] = _p.id;
         el.innerHTML = innerHTML;

@@ -40,6 +40,8 @@ module.exports = {
     'node_modules/',
     'dist/',
     'build/',
+    'coverage/',
+    'public/**/*.js',  // JS files are compiled from TS, don't lint separately
   ],
   overrides: [
     {

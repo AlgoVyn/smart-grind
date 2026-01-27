@@ -2,12 +2,15 @@
 // Helper functions and utilities
 
 import { Problem, Topic, ProblemDef } from './types.js';
+import { state } from './state.js';
+import { data } from './data.js';
 
-window.SmartGrind = window.SmartGrind || {};
-
-window.SmartGrind.utils = {
+export const utils = {
     // Date helpers
-    getToday: () => new Date().toISOString().split('T')[0],
+    getToday: (): string => {
+        const today = new Date().toISOString().split('T')[0];
+        return today ?? '2024-01-01'; // Default date if parsing fails
+    },
 
     addDays: (date: string, days: number) => {
         const result = new Date(date);
@@ -50,7 +53,7 @@ window.SmartGrind.utils = {
     copyToClipboard: async (text: string) => {
         try {
             await navigator.clipboard.writeText(text);
-            window.SmartGrind.utils.showToast('Prompt copied to clipboard', 'success');
+            utils.showToast('Prompt copied to clipboard', 'success');
         } catch (err) {
             console.error('Clipboard API failed, trying fallback: ', err);
             // Fallback for older browsers or when clipboard API fails
@@ -62,13 +65,13 @@ window.SmartGrind.utils = {
                 const success = document.execCommand('copy');
                 document.body.removeChild(textArea);
                 if (success) {
-                    window.SmartGrind.utils.showToast('Prompt copied to clipboard', 'success');
+                    utils.showToast('Prompt copied to clipboard', 'success');
                 } else {
                     throw new Error('execCommand returned false');
                 }
             } catch (fallbackErr) {
                 console.error('Fallback copy failed: ', fallbackErr);
-                window.SmartGrind.utils.showToast('Failed to copy prompt', 'error');
+                utils.showToast('Failed to copy prompt', 'error');
             }
         }
     },
@@ -90,8 +93,8 @@ window.SmartGrind.utils = {
     },
 
     // Helper to build AI URL
-    _buildAIUrl: (provider: string, encodedPrompt: string) => {
-        const config = window.SmartGrind.utils._aiProviders[provider];
+    _buildAIUrl: (provider: 'chatgpt' | 'aistudio' | 'grok', encodedPrompt: string) => {
+        const config = utils._aiProviders[provider];
         const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         if (isMobile) {
@@ -103,14 +106,14 @@ window.SmartGrind.utils = {
     },
 
     // AI helper
-    askAI: async (problemName: string, provider: string) => {
+    askAI: async (problemName: string, provider: 'chatgpt' | 'aistudio' | 'grok') => {
         const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the detailed problem statement, examples, intuition, multiple approaches with code, and time/space complexity analysis. Include related problems, video tutorial links and followup questions with brief answers without code.`;
         const encodedPrompt = encodeURIComponent(aiPrompt);
 
         localStorage.setItem('preferred-ai', provider);
-        window.SmartGrind.state.ui.preferredAI = provider;
+        state.ui.preferredAI = provider;
 
-        const url = window.SmartGrind.utils._buildAIUrl(provider, encodedPrompt);
+        const url = utils._buildAIUrl(provider, encodedPrompt);
 
         if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
             window.location.href = url;
@@ -189,7 +192,7 @@ window.SmartGrind.utils = {
         const el = document.createElement('div');
         el.className = `px-4 py-3 rounded-lg shadow-lg text-sm font-medium text-white flex items-center gap-2 animate-fade-in ${type === 'success' ? 'bg-brand-600' : 'bg-red-500'}`;
         el.innerHTML = `<span>${msg}</span>`;
-        window.SmartGrind.state.elements.toastContainer.appendChild(el);
+        state.elements.toastContainer.appendChild(el);
         setTimeout(() => {
             el.style.opacity = '0';
             el.style.transform = 'translateY(10px)';
@@ -200,7 +203,7 @@ window.SmartGrind.utils = {
     // Scroll helpers
     scrollToTop: (smooth = false) => {
         const behavior = smooth ? 'smooth' : 'instant';
-        const el = window.SmartGrind.state.elements.contentScroll;
+        const el = state.elements.contentScroll;
         if (el) {
             el.scrollTo({ top: 0, behavior: behavior });
         }
@@ -211,22 +214,22 @@ window.SmartGrind.utils = {
 
     // Get next review date based on interval
     getNextReviewDate: (today: string, intervalIndex: number) => {
-        const daysToAdd = window.SmartGrind.data.SPACED_REPETITION_INTERVALS[intervalIndex];
-        return window.SmartGrind.utils.addDays(today, daysToAdd);
+        const daysToAdd = data.SPACED_REPETITION_INTERVALS[intervalIndex] ?? 1;
+        return utils.addDays(today, daysToAdd);
     },
 
     // Helper to get unique problem IDs for a topic
     getUniqueProblemIdsForTopic: (topicId: string) => {
-        const ids = new Set();
+        const ids = new Set<string>();
         if (topicId === 'all') {
-            window.SmartGrind.state.problems.forEach((_: Problem, id: string) => ids.add(id));
+            state.problems.forEach((_: Problem, id: string) => ids.add(id));
         } else {
-            const topicObj = window.SmartGrind.data.topicsData.find((t: Topic) => t.id === topicId);
+            const topicObj = data.topicsData.find((t: Topic) => t.id === topicId);
             if (topicObj) {
                 topicObj.patterns.forEach((pattern: { problems: (string | ProblemDef)[] }) =>
                     pattern.problems.forEach((pid: string | ProblemDef) => {
                         const id = typeof pid === 'string' ? pid : pid.id;
-                        if (window.SmartGrind.state.problems.has(id)) {
+                        if (state.problems.has(id)) {
                             ids.add(id);
                         }
                     })
@@ -238,14 +241,14 @@ window.SmartGrind.utils = {
 
     // Problem filtering and stats
     getUniqueProblemsForTopic: (topicId: string) => {
-        const today = window.SmartGrind.utils.getToday();
-        const uniqueIds = window.SmartGrind.utils.getUniqueProblemIdsForTopic(topicId);
+        const today = utils.getToday();
+        const uniqueIds = utils.getUniqueProblemIdsForTopic(topicId);
         let solved = 0;
         let due = 0;
 
         uniqueIds.forEach((id: string) => {
-            const problem = window.SmartGrind.state.problems.get(id);
-            if (problem.status === 'solved') {
+            const problem = state.problems.get(id);
+            if (problem && problem.status === 'solved' && problem.nextReviewDate) {
                 solved++;
                 if (problem.nextReviewDate <= today) due++;
             }

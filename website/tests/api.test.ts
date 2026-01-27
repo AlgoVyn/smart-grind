@@ -1,4 +1,12 @@
-import '/smartgrind/modules/api.js';
+import { api } from '../public/modules/api.js';
+import { state } from '../public/modules/state.js';
+import { data } from '../public/modules/data.js';
+import { renderers } from '../public/modules/renderers.js';
+import { ui } from '../public/modules/ui/ui.js';
+import { utils } from '../public/modules/utils.js';
+
+// Import the api-save module
+import * as apiSave from '../public/modules/api/api-save.js';
 
 describe('SmartGrind API Module', () => {
     let mockFetch;
@@ -16,56 +24,46 @@ describe('SmartGrind API Module', () => {
 
         // Mock UI functions
         mockShowAlert = jest.fn();
-        window.SmartGrind.ui = {
-            showAlert: mockShowAlert,
-            showConfirm: jest.fn().mockResolvedValue(true),
-            initScrollButton: jest.fn(),
-        };
+        ui.showAlert = mockShowAlert;
+        ui.showConfirm = jest.fn().mockResolvedValue(true);
+        ui.initScrollButton = jest.fn();
 
         // Mock renderers
         mockUpdateStats = jest.fn();
         mockRenderSidebar = jest.fn();
         mockRenderMainView = jest.fn();
         mockUpdateFilterBtns = jest.fn();
-        window.SmartGrind.renderers = {
-            updateStats: mockUpdateStats,
-            renderSidebar: mockRenderSidebar,
-            renderMainView: mockRenderMainView,
-            updateFilterBtns: mockUpdateFilterBtns,
-        };
+        renderers.updateStats = mockUpdateStats;
+        renderers.renderSidebar = mockRenderSidebar;
+        renderers.renderMainView = mockRenderMainView;
+        renderers.updateFilterBtns = mockUpdateFilterBtns;
 
         // Mock state
         mockSaveToStorage = jest.fn();
-        window.SmartGrind.state = {
-            user: { type: 'local' },
-            problems: new Map([
-                ['1', { id: '1', name: 'Test Problem', status: 'unsolved' }]
-            ]),
-            deletedProblemIds: new Set(['2']),
-            saveToStorage: mockSaveToStorage,
-            elements: {
-                loadingScreen: { classList: { remove: jest.fn(), add: jest.fn() } },
-                setupModal: { classList: { remove: jest.fn(), add: jest.fn() } },
-                signinModal: { classList: { remove: jest.fn(), add: jest.fn() } },
-                appWrapper: { classList: { remove: jest.fn(), add: jest.fn() } },
-            },
-            ui: {
-                activeTopicId: 'all',
-            },
+        state.user = { type: 'local' };
+        state.problems = new Map([
+            ['1', { id: '1', name: 'Test Problem', status: 'unsolved' }]
+        ]);
+        state.deletedProblemIds = new Set(['2']);
+        state.saveToStorage = mockSaveToStorage;
+        state.elements = {
+            loadingScreen: { classList: { remove: jest.fn(), add: jest.fn() } },
+            setupModal: { classList: { remove: jest.fn(), add: jest.fn() } },
+            signinModal: { classList: { remove: jest.fn(), add: jest.fn() } },
+            appWrapper: { classList: { remove: jest.fn(), add: jest.fn() } },
+        };
+        state.ui = {
+            activeTopicId: 'all',
         };
 
         // Mock data
-        window.SmartGrind.data = {
-            API_BASE: '/smartgrind/api',
-            resetTopicsData: jest.fn(),
-            topicsData: [],
-        };
+        data.API_BASE = '/smartgrind/api';
+        data.resetTopicsData = jest.fn();
+        data.topicsData = [];
 
         // Mock utils
-        window.SmartGrind.utils = {
-            updateUrlParameter: jest.fn(),
-            showToast: jest.fn(),
-        };
+        utils.updateUrlParameter = jest.fn();
+        utils.showToast = jest.fn();
 
     });
 
@@ -75,7 +73,7 @@ describe('SmartGrind API Module', () => {
 
     describe('_saveLocally', () => {
         test('should call state.saveToStorage for local user', () => {
-            window.SmartGrind.api._saveLocally();
+            apiSave._saveLocally();
 
             expect(mockSaveToStorage).toHaveBeenCalled();
         });
@@ -83,25 +81,31 @@ describe('SmartGrind API Module', () => {
 
     describe('mergeStructure', () => {
         test('should add custom problems to topicsData', () => {
-            window.SmartGrind.data.topicsData = [];
-            window.SmartGrind.state.problems.clear();
-            window.SmartGrind.state.problems.set('custom-1', {
+            data.topicsData = [];
+            state.problems.clear();
+            state.problems.set('custom-1', {
                 id: 'custom-1',
                 name: 'Custom Problem',
                 url: 'https://example.com',
                 topic: 'Custom Topic',
                 pattern: 'Custom Pattern',
+                status: 'unsolved',
+                reviewInterval: 0,
+                nextReviewDate: null,
+                loading: false,
+                noteVisible: false,
+                note: ''
             });
 
-            window.SmartGrind.api.mergeStructure();
+            api.mergeStructure();
 
-            expect(window.SmartGrind.data.topicsData).toHaveLength(1);
-            expect(window.SmartGrind.data.topicsData[0].title).toBe('Custom Topic');
-            expect(window.SmartGrind.data.topicsData[0].patterns[0].problems).toHaveLength(1);
+            expect(data.topicsData).toHaveLength(1);
+            expect(data.topicsData[0].title).toBe('Custom Topic');
+            expect(data.topicsData[0].patterns[0].problems).toHaveLength(1);
         });
 
         test('should not duplicate existing problems', () => {
-            window.SmartGrind.data.topicsData = [
+            data.topicsData = [
                 {
                     id: 'test-topic',
                     title: 'Test Topic',
@@ -115,29 +119,35 @@ describe('SmartGrind API Module', () => {
                     ]
                 }
             ];
-            window.SmartGrind.state.problems.clear();
-            window.SmartGrind.state.problems.set('existing-1', {
+            state.problems.clear();
+            state.problems.set('existing-1', {
                 id: 'existing-1',
                 name: 'Existing Problem',
                 url: 'https://example.com',
                 topic: 'Test Topic',
                 pattern: 'Test Pattern',
+                status: 'unsolved',
+                reviewInterval: 0,
+                nextReviewDate: null,
+                loading: false,
+                noteVisible: false,
+                note: ''
             });
 
-            window.SmartGrind.api.mergeStructure();
+            api.mergeStructure();
 
-            expect(window.SmartGrind.data.topicsData[0].patterns[0].problems).toHaveLength(1);
+            expect(data.topicsData[0].patterns[0].problems).toHaveLength(1);
         });
     });
 
     describe('_saveRemotely', () => {
         test('should save data remotely for signed-in user', async () => {
-            window.SmartGrind.state.user.type = 'signed-in';
+            state.user.type = 'signed-in';
             mockFetch.mockResolvedValue({ ok: true });
 
-            await window.SmartGrind.api._saveRemotely();
+            await apiSave._saveRemotely();
 
-            expect(mockFetch).toHaveBeenCalledWith(`${window.SmartGrind.data.API_BASE}/user`, {
+            expect(mockFetch).toHaveBeenCalledWith(`${data.API_BASE}/user`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -149,93 +159,99 @@ describe('SmartGrind API Module', () => {
         test('should throw error on auth failure', async () => {
             mockFetch.mockResolvedValue({ ok: false, status: 401 });
 
-            await expect(window.SmartGrind.api._saveRemotely()).rejects.toThrow('Authentication failed. Please sign in again.');
+            await expect(apiSave._saveRemotely()).rejects.toThrow('Authentication failed. Please sign in again.');
         });
 
         test('should throw error on server error', async () => {
             mockFetch.mockResolvedValue({ ok: false, status: 500 });
 
-            await expect(window.SmartGrind.api._saveRemotely()).rejects.toThrow('Server error. Please try again later.');
+            await expect(apiSave._saveRemotely()).rejects.toThrow('Server error. Please try again later.');
         });
     });
 
     describe('_performSave', () => {
         test('should call _saveLocally for local user', async () => {
-            window.SmartGrind.state.user.type = 'local';
-            const saveLocallySpy = jest.spyOn(window.SmartGrind.api, '_saveLocally');
+            state.user.type = 'local';
 
-            await window.SmartGrind.api._performSave();
+            await apiSave._performSave();
 
-            expect(saveLocallySpy).toHaveBeenCalled();
+            expect(mockSaveToStorage).toHaveBeenCalled();
             expect(mockUpdateStats).toHaveBeenCalled();
         });
 
         test('should call _saveRemotely for signed-in user', async () => {
-            window.SmartGrind.state.user.type = 'signed-in';
-            const saveRemotelySpy = jest.spyOn(window.SmartGrind.api, '_saveRemotely');
-            saveRemotelySpy.mockResolvedValue(undefined);
+            state.user.type = 'signed-in';
+            mockFetch.mockResolvedValue({ ok: true });
 
-            await window.SmartGrind.api._performSave();
+            await apiSave._performSave();
 
-            expect(saveRemotelySpy).toHaveBeenCalled();
+            expect(mockFetch).toHaveBeenCalled();
             expect(mockUpdateStats).toHaveBeenCalled();
         });
 
         test('should show alert on save error', async () => {
-            window.SmartGrind.state.user.type = 'signed-in';
-            const saveRemotelySpy = jest.spyOn(window.SmartGrind.api, '_saveRemotely');
-            saveRemotelySpy.mockRejectedValue(new Error('Network error'));
+            state.user.type = 'signed-in';
+            mockFetch.mockResolvedValue({ ok: false, status: 500 });
 
-            await expect(window.SmartGrind.api._performSave()).rejects.toThrow('Network error');
+            await expect(apiSave._performSave()).rejects.toThrow('Server error. Please try again later.');
 
-            expect(mockShowAlert).toHaveBeenCalledWith('Failed to save data: Network error');
+            expect(mockShowAlert).toHaveBeenCalledWith('Failed to save data: Server error. Please try again later.');
         });
     });
 
     describe('saveProblem', () => {
         test('should call _performSave', async () => {
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue(undefined);
+            const _performSaveSpy = jest.spyOn(apiSave.apiSave, '_performSave').mockResolvedValue(undefined);
 
-            await window.SmartGrind.api.saveProblem({ id: '1' });
+            await api.saveProblem({ 
+                id: '1', 
+                name: 'Test Problem', 
+                status: 'unsolved', 
+                topic: 'Test Topic', 
+                pattern: 'Test Pattern', 
+                url: 'https://example.com',
+                reviewInterval: 0,
+                nextReviewDate: null
+            });
 
-            expect(performSaveSpy).toHaveBeenCalled();
+            expect(_performSaveSpy).toHaveBeenCalled();
+            _performSaveSpy.mockRestore();
         });
     });
 
     describe('saveDeletedId', () => {
         test('should delete problem and call _performSave', async () => {
-            window.SmartGrind.state.problems.set('1', { id: '1' });
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue(undefined);
+            state.problems.set('1', { id: '1' });
+            const _performSaveSpy = jest.spyOn(apiSave.apiSave, '_performSave').mockResolvedValue(undefined);
 
-            await window.SmartGrind.api.saveDeletedId('1');
+            await api.saveDeletedId('1');
 
-            expect(window.SmartGrind.state.problems.has('1')).toBe(false);
-            expect(window.SmartGrind.state.deletedProblemIds.has('1')).toBe(true);
-            expect(performSaveSpy).toHaveBeenCalled();
+            expect(state.problems.has('1')).toBe(false);
+            expect(state.deletedProblemIds.has('1')).toBe(true);
+            expect(_performSaveSpy).toHaveBeenCalled();
+            _performSaveSpy.mockRestore();
         });
 
         test('should restore problem on save failure', async () => {
-            window.SmartGrind.state.problems.set('1', { id: '1', name: 'Test' });
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockRejectedValue(new Error('Save failed'));
+            state.problems.set('1', { id: '1', name: 'Test' });
+            const _performSaveSpy = jest.spyOn(apiSave.apiSave, '_performSave').mockRejectedValue(new Error('Save failed'));
 
-            await expect(window.SmartGrind.api.saveDeletedId('1')).rejects.toThrow('Save failed');
+            await expect(api.saveDeletedId('1')).rejects.toThrow('Save failed');
 
-            expect(window.SmartGrind.state.problems.has('1')).toBe(true);
+            expect(state.problems.has('1')).toBe(true);
             expect(mockShowAlert).toHaveBeenCalledWith('Failed to delete problem: Save failed');
+            _performSaveSpy.mockRestore();
         });
     });
 
     describe('saveData', () => {
         test('should call _performSave', async () => {
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue(undefined);
+            const _performSaveSpy = jest.spyOn(apiSave.apiSave, '_performSave').mockResolvedValue(undefined);
 
-            await window.SmartGrind.api.saveData();
+            await api.saveData();
 
-            expect(performSaveSpy).toHaveBeenCalled();
+            expect(_performSaveSpy).toHaveBeenCalled();
+            _performSaveSpy.mockRestore();
         });
     });
 
@@ -244,10 +260,10 @@ describe('SmartGrind API Module', () => {
             const userData = { problems: { '1': { id: '1', name: 'Test Problem', status: 'unsolved' } }, deletedIds: ['2'] };
             mockFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(userData) });
 
-            await window.SmartGrind.api.loadData();
+            await api.loadData();
 
-            expect(window.SmartGrind.state.problems.get('1')).toEqual({ id: '1', name: 'Test Problem', status: 'unsolved', loading: false });
-            expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(true);
+            expect(state.problems.get('1')).toEqual({ id: '1', name: 'Test Problem', status: 'unsolved', loading: false });
+            expect(state.deletedProblemIds.has('2')).toBe(true);
             expect(mockRenderSidebar).toHaveBeenCalled();
             expect(mockRenderMainView).toHaveBeenCalledWith('all');
         });
@@ -255,16 +271,16 @@ describe('SmartGrind API Module', () => {
         test('should handle auth error', async () => {
             mockFetch.mockResolvedValue({ ok: false, status: 401 });
 
-            await window.SmartGrind.api.loadData();
+            await api.loadData();
 
-            expect(window.SmartGrind.state.elements.signinModal.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(state.elements.signinModal.classList.remove).toHaveBeenCalledWith('hidden');
             expect(mockShowAlert).toHaveBeenCalledWith('Failed to load data: Authentication failed. Please sign in again.');
         });
 
         test('should handle user not found', async () => {
             mockFetch.mockResolvedValue({ ok: false, status: 404 });
 
-            await window.SmartGrind.api.loadData();
+            await api.loadData();
 
             expect(mockShowAlert).toHaveBeenCalledWith('Failed to load data: User data not found. Starting with fresh data.');
         });
@@ -272,7 +288,7 @@ describe('SmartGrind API Module', () => {
 
     describe('syncPlan', () => {
         test('should add missing problems from topicsData', async () => {
-            window.SmartGrind.data.topicsData = [
+            data.topicsData = [
                 {
                     title: 'Test Topic',
                     patterns: [
@@ -283,17 +299,17 @@ describe('SmartGrind API Module', () => {
                     ]
                 }
             ];
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
+            const performSaveSpy = jest.spyOn(apiSave, '_performSave');
             performSaveSpy.mockResolvedValue(undefined);
 
-            await window.SmartGrind.api.syncPlan();
+            await api.syncPlan();
 
-            expect(window.SmartGrind.state.problems.has('new-1')).toBe(true);
+            expect(state.problems.has('new-1')).toBe(true);
             expect(performSaveSpy).toHaveBeenCalled();
         });
 
         test('should update existing problem metadata', async () => {
-            window.SmartGrind.data.topicsData = [
+            data.topicsData = [
                 {
                     title: 'Updated Topic',
                     patterns: [
@@ -304,19 +320,25 @@ describe('SmartGrind API Module', () => {
                     ]
                 }
             ];
-            window.SmartGrind.state.problems.set('existing-1', {
+            state.problems.set('existing-1', {
                 id: 'existing-1',
                 name: 'Old Name',
                 url: 'https://old.com',
                 topic: 'Old Topic',
-                pattern: 'Old Pattern'
+                pattern: 'Old Pattern',
+                status: 'unsolved',
+                reviewInterval: 0,
+                nextReviewDate: null,
+                loading: false,
+                noteVisible: false,
+                note: ''
             });
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
+            const performSaveSpy = jest.spyOn(apiSave, '_performSave');
             performSaveSpy.mockResolvedValue(undefined);
 
-            await window.SmartGrind.api.syncPlan();
+            await api.syncPlan();
 
-            const updated = window.SmartGrind.state.problems.get('existing-1');
+            const updated = state.problems.get('existing-1');
             expect(updated.name).toBe('Updated Name');
             expect(updated.url).toBe('https://updated.com');
             expect(updated.topic).toBe('Updated Topic');
@@ -326,61 +348,60 @@ describe('SmartGrind API Module', () => {
 
     describe('deleteCategory', () => {
         test('should delete category and associated problems', async () => {
-            window.SmartGrind.data.topicsData = [
+            data.topicsData = [
                 { id: 'test-topic', title: 'Test Topic', patterns: [] }
             ];
-            window.SmartGrind.state.problems.set('1', { id: '1', topic: 'Test Topic' });
-            window.SmartGrind.state.ui.activeTopicId = 'test-topic';
-            const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+            state.problems.set('1', { id: '1', topic: 'Test Topic' });
+            state.ui.activeTopicId = 'test-topic';
+            const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
+            const performSaveSpy = jest.spyOn(apiSave, '_performSave');
             performSaveSpy.mockResolvedValue(undefined);
 
-            await window.SmartGrind.api.deleteCategory('test-topic');
+            await api.deleteCategory('test-topic');
 
-            expect(window.SmartGrind.data.topicsData).toHaveLength(0);
-            expect(window.SmartGrind.state.problems.has('1')).toBe(false);
-            expect(window.SmartGrind.state.deletedProblemIds.has('1')).toBe(true);
-            expect(window.SmartGrind.state.ui.activeTopicId).toBe('all');
+            expect(data.topicsData).toHaveLength(0);
+            expect(state.problems.has('1')).toBe(false);
+            expect(state.deletedProblemIds.has('1')).toBe(true);
+            expect(state.ui.activeTopicId).toBe('all');
             expect(mockRenderSidebar).toHaveBeenCalled();
             expect(mockRenderMainView).toHaveBeenCalledWith('all');
         });
 
         test('should not delete if not confirmed', async () => {
-            window.SmartGrind.data.topicsData = [
+            data.topicsData = [
                 { id: 'test-topic', title: 'Test Topic', patterns: [] }
             ];
-            const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+            const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(false);
 
-            await window.SmartGrind.api.deleteCategory('test-topic');
+            await api.deleteCategory('test-topic');
 
-            expect(window.SmartGrind.data.topicsData).toHaveLength(1);
+            expect(data.topicsData).toHaveLength(1);
         });
 
         test('should show alert if category not found', async () => {
-            await window.SmartGrind.api.deleteCategory('nonexistent');
+            await api.deleteCategory('nonexistent');
 
             expect(mockShowAlert).toHaveBeenCalledWith('Category not found.');
         });
 
         test('should restore state on save failure', async () => {
-            window.SmartGrind.data.topicsData = [
+            data.topicsData = [
                 { id: 'test-topic', title: 'Test Topic', patterns: [] }
             ];
-            window.SmartGrind.state.problems.set('1', { id: '1', topic: 'Test Topic' });
-            window.SmartGrind.state.ui.activeTopicId = 'test-topic';
-            const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+            state.problems.set('1', { id: '1', topic: 'Test Topic' });
+            state.ui.activeTopicId = 'test-topic';
+            const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockRejectedValue(new Error('Save failed'));
+            const _performSaveSpy = jest.spyOn(apiSave.apiSave, '_performSave').mockRejectedValue(new Error('Save failed'));
 
-            await expect(window.SmartGrind.api.deleteCategory('test-topic')).rejects.toThrow('Save failed');
+            await expect(api.deleteCategory('test-topic')).rejects.toThrow('Save failed');
 
             // State should be restored
-            expect(window.SmartGrind.data.topicsData).toHaveLength(1);
-            expect(window.SmartGrind.state.problems.has('1')).toBe(true);
-            expect(window.SmartGrind.state.ui.activeTopicId).toBe('test-topic');
+            expect(data.topicsData).toHaveLength(1);
+            expect(state.problems.has('1')).toBe(true);
+            expect(state.ui.activeTopicId).toBe('test-topic');
             expect(mockShowAlert).toHaveBeenCalledWith('Failed to delete category: Save failed');
         });
     });
@@ -388,7 +409,7 @@ describe('SmartGrind API Module', () => {
     describe('resetAll', () => {
         beforeEach(() => {
             // Set up test data
-            window.SmartGrind.data.topicsData = [
+            data.topicsData = [
                 {
                     id: 'arrays',
                     title: 'Arrays',
@@ -417,56 +438,61 @@ describe('SmartGrind API Module', () => {
             ];
 
             // Set up existing problems
-            window.SmartGrind.state.problems.clear();
-            window.SmartGrind.state.problems.set('1', {
+            state.problems.clear();
+            state.problems.set('1', {
                 id: '1',
                 name: 'Two Sum',
                 status: 'solved',
                 reviewInterval: 3,
                 nextReviewDate: '2024-01-01',
                 topic: 'Arrays',
-                pattern: 'Two Sum'
+                pattern: 'Two Sum',
+                loading: false,
+                noteVisible: false,
+                note: ''
             });
-            window.SmartGrind.state.problems.set('3', {
+            state.problems.set('3', {
                 id: '3',
                 name: 'Valid Palindrome',
                 status: 'solved',
                 reviewInterval: 1,
                 nextReviewDate: '2024-01-02',
                 topic: 'Strings',
-                pattern: 'Palindrome'
+                pattern: 'Palindrome',
+                loading: false,
+                noteVisible: false,
+                note: ''
             });
 
             // Set up deleted problems
-            window.SmartGrind.state.deletedProblemIds.clear();
-            window.SmartGrind.state.deletedProblemIds.add('2'); // Add Two Numbers is deleted
+            state.deletedProblemIds.clear();
+            state.deletedProblemIds.add('2'); // Add Two Numbers is deleted
         });
 
         test('should reset all problems to unsolved and restore deleted problems when confirmed', async () => {
-            const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+            const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue(undefined);
+            const performSaveSpy = jest.spyOn(apiSave.apiSave, '_performSave').mockResolvedValue(undefined);
 
-            await window.SmartGrind.api.resetAll();
+            await api.resetAll();
 
             // Check confirmation was requested
             expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset <b>ALL Problems</b>?</br></br>This will mark all problems as unsolved and restore any deleted problems across all categories.');
 
             // Check existing problems were reset
-            const problem1 = window.SmartGrind.state.problems.get('1');
+            const problem1 = state.problems.get('1');
             expect(problem1.status).toBe('unsolved');
             expect(problem1.reviewInterval).toBe(0);
             expect(problem1.nextReviewDate).toBe(null);
 
-            const problem3 = window.SmartGrind.state.problems.get('3');
+            const problem3 = state.problems.get('3');
             expect(problem3.status).toBe('unsolved');
             expect(problem3.reviewInterval).toBe(0);
             expect(problem3.nextReviewDate).toBe(null);
 
             // Check deleted problem was restored
-            expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(false);
-            const problem2 = window.SmartGrind.state.problems.get('2');
+            expect(state.deletedProblemIds.has('2')).toBe(false);
+            const problem2 = state.problems.get('2');
             expect(problem2).toBeDefined();
             expect(problem2.id).toBe('2');
             expect(problem2.name).toBe('Add Two Numbers');
@@ -479,49 +505,48 @@ describe('SmartGrind API Module', () => {
             expect(mockUpdateFilterBtns).toHaveBeenCalled();
             expect(mockRenderSidebar).toHaveBeenCalled();
             expect(mockRenderMainView).toHaveBeenCalledWith('all');
-            expect(window.SmartGrind.utils.showToast).toHaveBeenCalledWith('All problems reset and restored');
+            expect(utils.showToast).toHaveBeenCalledWith('All problems reset and restored');
         });
 
         test('should not reset if confirmation is cancelled', async () => {
-            const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+            const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(false);
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
+            const performSaveSpy = jest.spyOn(apiSave, '_performSave');
 
-            await window.SmartGrind.api.resetAll();
+            await api.resetAll();
 
             // Check confirmation was requested
             expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset <b>ALL Problems</b>?</br></br>This will mark all problems as unsolved and restore any deleted problems across all categories.');
 
             // Check no changes were made
-            expect(window.SmartGrind.state.problems.get('1').status).toBe('solved');
-            expect(window.SmartGrind.state.problems.get('3').status).toBe('solved');
-            expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(true);
-            expect(window.SmartGrind.state.problems.has('2')).toBe(false);
+            expect(state.problems.get('1').status).toBe('solved');
+            expect(state.problems.get('3').status).toBe('solved');
+            expect(state.deletedProblemIds.has('2')).toBe(true);
+            expect(state.problems.has('2')).toBe(false);
 
             // Check save was not called
             expect(performSaveSpy).not.toHaveBeenCalled();
         });
 
         test('should handle save error gracefully', async () => {
-            const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+            const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockRejectedValue(new Error('Save failed'));
+            const _performSaveSpy = jest.spyOn(apiSave.apiSave, '_performSave').mockRejectedValue(new Error('Save failed'));
 
-            await expect(window.SmartGrind.api.resetAll()).rejects.toThrow('Save failed');
+            await expect(api.resetAll()).rejects.toThrow('Save failed');
 
             expect(mockShowAlert).toHaveBeenCalledWith('Failed to reset all problems: Save failed');
             // State should be restored
-            expect(window.SmartGrind.state.problems.get('1').status).toBe('solved');
-            expect(window.SmartGrind.state.problems.get('3').status).toBe('solved');
-            expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(true);
+            expect(state.problems.get('1').status).toBe('solved');
+            expect(state.problems.get('3').status).toBe('solved');
+            expect(state.deletedProblemIds.has('2')).toBe(true);
         });
     });
 
     describe('resetCategory', () => {
         beforeEach(() => {
             // Set up test data
-            window.SmartGrind.data.topicsData = [
+            data.topicsData = [
                 {
                     id: 'arrays',
                     title: 'Arrays',
@@ -538,42 +563,44 @@ describe('SmartGrind API Module', () => {
             ];
 
             // Set up existing problems
-            window.SmartGrind.state.problems.clear();
-            window.SmartGrind.state.problems.set('1', {
+            state.problems.clear();
+            state.problems.set('1', {
                 id: '1',
                 name: 'Two Sum',
                 status: 'solved',
                 reviewInterval: 3,
                 nextReviewDate: '2024-01-01',
                 topic: 'Arrays',
-                pattern: 'Two Sum'
+                pattern: 'Two Sum',
+                loading: false,
+                noteVisible: false,
+                note: ''
             });
 
             // Set up deleted problems
-            window.SmartGrind.state.deletedProblemIds.clear();
-            window.SmartGrind.state.deletedProblemIds.add('2'); // Add Two Numbers is deleted
+            state.deletedProblemIds.clear();
+            state.deletedProblemIds.add('2'); // Add Two Numbers is deleted
         });
 
         test('should reset category problems and restore deleted problems when confirmed', async () => {
-            const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+            const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue(undefined);
+            const performSaveSpy = jest.spyOn(apiSave.apiSave, '_performSave').mockResolvedValue(undefined);
 
-            await window.SmartGrind.api.resetCategory('arrays');
+            await api.resetCategory('arrays');
 
             // Check confirmation was requested
             expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset all problems in the category "<b>Arrays</b>"?</br></br>This will mark all problems as unsolved and restore any deleted problems.');
 
             // Check existing problem was reset
-            const problem1 = window.SmartGrind.state.problems.get('1');
+            const problem1 = state.problems.get('1');
             expect(problem1.status).toBe('unsolved');
             expect(problem1.reviewInterval).toBe(0);
             expect(problem1.nextReviewDate).toBe(null);
 
             // Check deleted problem was restored
-            expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(false);
-            const problem2 = window.SmartGrind.state.problems.get('2');
+            expect(state.deletedProblemIds.has('2')).toBe(false);
+            const problem2 = state.problems.get('2');
             expect(problem2).toBeDefined();
             expect(problem2.id).toBe('2');
             expect(problem2.name).toBe('Add Two Numbers');
@@ -586,66 +613,66 @@ describe('SmartGrind API Module', () => {
             expect(mockUpdateFilterBtns).toHaveBeenCalled();
             expect(mockRenderSidebar).toHaveBeenCalled();
             expect(mockRenderMainView).toHaveBeenCalledWith('all');
-            expect(window.SmartGrind.utils.showToast).toHaveBeenCalledWith('Category problems reset and restored');
+            expect(utils.showToast).toHaveBeenCalledWith('Category problems reset and restored');
         });
 
         test('should not reset if confirmation is cancelled', async () => {
-            const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+            const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(false);
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
+            const performSaveSpy = jest.spyOn(apiSave, '_performSave');
 
-            await window.SmartGrind.api.resetCategory('arrays');
+            await api.resetCategory('arrays');
 
             // Check confirmation was requested
             expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to reset all problems in the category "<b>Arrays</b>"?</br></br>This will mark all problems as unsolved and restore any deleted problems.');
 
             // Check no changes were made
-            expect(window.SmartGrind.state.problems.get('1').status).toBe('solved');
-            expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(true);
-            expect(window.SmartGrind.state.problems.has('2')).toBe(false);
+            expect(state.problems.get('1').status).toBe('solved');
+            expect(state.deletedProblemIds.has('2')).toBe(true);
+            expect(state.problems.has('2')).toBe(false);
 
             // Check save was not called
             expect(performSaveSpy).not.toHaveBeenCalled();
         });
 
         test('should handle save error gracefully', async () => {
-            const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+            const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockRejectedValue(new Error('Save failed'));
+            const _performSaveSpy = jest.spyOn(apiSave.apiSave, '_performSave').mockRejectedValue(new Error('Save failed'));
 
-            await expect(window.SmartGrind.api.resetCategory('arrays')).rejects.toThrow('Save failed');
+            await expect(api.resetCategory('arrays')).rejects.toThrow('Save failed');
 
             expect(mockShowAlert).toHaveBeenCalledWith('Failed to reset category: Save failed');
             // State should be restored
-            expect(window.SmartGrind.state.problems.get('1').status).toBe('solved');
-            expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(true);
+            expect(state.problems.get('1').status).toBe('solved');
+            expect(state.deletedProblemIds.has('2')).toBe(true);
         });
 
         test('should show alert if category not found', async () => {
-            await window.SmartGrind.api.resetCategory('nonexistent');
+            await api.resetCategory('nonexistent');
 
             expect(mockShowAlert).toHaveBeenCalledWith('Category not found.');
         });
 
         test('should handle problems with string IDs in topicsData', async () => {
             // Modify topicsData to have string IDs instead of objects
-            window.SmartGrind.data.topicsData[0].patterns[0].problems = ['1', '2'];
+            data.topicsData[0].patterns[0].problems = ['1', '2'];
 
-            const confirmSpy = jest.spyOn(window.SmartGrind.ui, 'showConfirm');
+            const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
-            const performSaveSpy = jest.spyOn(window.SmartGrind.api, '_performSave');
-            performSaveSpy.mockResolvedValue(undefined);
+            const _performSaveSpy = jest.spyOn(apiSave.apiSave, '_performSave').mockResolvedValue(undefined);
 
-            await window.SmartGrind.api.resetCategory('arrays');
+            await api.resetCategory('arrays');
 
             // Check deleted problem was restored with correct defaults
-            const problem2 = window.SmartGrind.state.problems.get('2');
+            const problem2 = state.problems.get('2');
             expect(problem2).toBeDefined();
             expect(problem2.id).toBe('2');
             expect(problem2.name).toBe('2'); // Falls back to ID as name
             expect(problem2.url).toBe('https://leetcode.com/problems/2/'); // Generated URL
             expect(problem2.status).toBe('unsolved');
+            
+            _performSaveSpy.mockRestore();
         });
     });
 });

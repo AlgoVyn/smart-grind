@@ -1,54 +1,41 @@
 // --- GLOBAL EVENTS ---
 
 import { Topic } from '../types.js';
-
-window.SmartGrind = window.SmartGrind || {};
-window.SmartGrind.ui = window.SmartGrind.ui || {};
-
-// Bind global events
-window.SmartGrind.ui.bindGlobalEvents = () => {
-    // Keyboard shortcuts
-    document.addEventListener('keydown', window.SmartGrind.ui.handleKeyboard);
-
-    // Browser navigation
-    window.addEventListener('popstate', window.SmartGrind.ui.handlePopState);
-
-    // Close sidebar on topic click (mobile)
-    window.SmartGrind.state.elements.topicList?.addEventListener('click', (e: MouseEvent) => {
-        if (window.innerWidth < 768 && ((e.target as Element).closest('.sidebar-link') || (e.target as Element).closest('button'))) {
-            window.SmartGrind.ui.toggleMobileMenu();
-        }
-    });
-};
+import { state } from '../state.js';
+import { data } from '../data.js';
+import { utils } from '../utils.js';
+import { renderers } from '../renderers.js';
+import { app } from '../app.js';
+import { toggleMobileMenu } from './ui-navigation.js';
 
 // Keyboard shortcuts map
-window.SmartGrind.ui._keyboardShortcuts = {
+const _keyboardShortcuts = {
     '/': () => {
-        window.SmartGrind.state.elements.problemSearch.focus();
+        state.elements['problemSearch']?.focus();
     },
     'Escape': () => {
-        if (!window.SmartGrind.state.elements.setupModal.classList.contains('hidden')) return; // Don't close setup modal
-        if (!window.SmartGrind.state.elements.addProblemModal.classList.contains('hidden')) {
-            window.SmartGrind.state.elements.addProblemModal.classList.add('hidden');
+        if (!state.elements['setupModal']?.classList.contains('hidden')) return; // Don't close setup modal
+        if (!state.elements['addProblemModal']?.classList.contains('hidden')) {
+            state.elements['addProblemModal']?.classList.add('hidden');
         }
     },
-    'e': () => window.SmartGrind.app.exportProgress(),
-    'E': () => window.SmartGrind.app.exportProgress()
+    'e': () => app.exportProgress(),
+    'E': () => app.exportProgress()
 };
 
 // Keyboard shortcuts
-window.SmartGrind.ui.handleKeyboard = (e: KeyboardEvent) => {
+export const handleKeyboard = (e: KeyboardEvent) => {
     // Skip if typing in an input/textarea
     if ((e.target as Element).tagName === 'INPUT' || (e.target as Element).tagName === 'TEXTAREA') {
-    // Allow Escape to close modals even when focused on input
+        // Allow Escape to close modals even when focused on input
         if (e.key === 'Escape') {
-            window.SmartGrind.ui._keyboardShortcuts['Escape']();
+            _keyboardShortcuts['Escape']();
             e.preventDefault();
         }
         return;
     }
 
-    const handler = window.SmartGrind.ui._keyboardShortcuts[e.key];
+    const handler = _keyboardShortcuts[e.key as keyof typeof _keyboardShortcuts];
     if (handler) {
         e.preventDefault();
         handler();
@@ -56,14 +43,30 @@ window.SmartGrind.ui.handleKeyboard = (e: KeyboardEvent) => {
 };
 
 // Browser navigation
-window.SmartGrind.ui.handlePopState = () => {
-    const categoryParam = window.SmartGrind.utils.getUrlParameter('category');
-    const category = categoryParam && (window.SmartGrind.data.topicsData.some((t: Topic) => t.id === categoryParam) || categoryParam === 'all')
+export const handlePopState = () => {
+    const categoryParam = utils.getUrlParameter('category');
+    const category = categoryParam && (data.topicsData.some((t: Topic) => t.id === categoryParam) || categoryParam === 'all')
         ? categoryParam
         : 'all';
 
-    window.SmartGrind.state.ui.activeTopicId = category;
-    window.SmartGrind.renderers.renderSidebar();
-    window.SmartGrind.renderers.renderMainView();
-    window.SmartGrind.utils.scrollToTop();
+    state.ui.activeTopicId = category;
+    renderers.renderSidebar();
+    renderers.renderMainView(state.ui.activeTopicId);
+    utils.scrollToTop();
+};
+
+// Bind global events
+export const bindGlobalEvents = () => {
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboard);
+
+    // Browser navigation
+    window.addEventListener('popstate', handlePopState);
+
+    // Close sidebar on topic click (mobile)
+    state.elements['topicList']?.addEventListener('click', (e: MouseEvent) => {
+        if (window.innerWidth < 768 && ((e.target as Element).closest('.sidebar-link') || (e.target as Element).closest('button'))) {
+            toggleMobileMenu();
+        }
+    });
 };

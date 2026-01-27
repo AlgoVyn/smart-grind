@@ -8,10 +8,9 @@ import { mainViewRenderers } from './renderers/main-view.js';
 import { problemCardRenderers } from './renderers/problem-cards.js';
 import { statsRenderers } from './renderers/stats.js';
 
-window.SmartGrind = window.SmartGrind || {};
-window.SmartGrind['ICONS'] = ICONS;
+export { ICONS };
 
-window.SmartGrind.renderers = {
+export const renderers = {
     ...htmlGenerators,
     ...sidebarRenderers,
     ...mainViewRenderers,

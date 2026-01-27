@@ -18,39 +18,31 @@ Object.defineProperty(global, 'localStorage', {
     writable: true,
 });
 
-// Now import the module
-import '../public/modules/state.ts';
+// Now import the modules
+import { state } from '../public/modules/state.ts';
+import { data as _data } from '../public/modules/data.ts';
+
 
 describe('SmartGrind State', () => {
     beforeEach(() => {
     // Reset mocks
         jest.clearAllMocks();
 
-        // Set up SmartGrind data
-        window.SmartGrind.data = {
-            LOCAL_STORAGE_KEYS: {
-                USER_TYPE: 'smartgrind-user-type',
-                PROBLEMS: 'smartgrind-local-problems',
-                DELETED_IDS: 'smartgrind-local-deleted-ids',
-                DISPLAY_NAME: 'smartgrind-local-display-name'
-            }
-        };
-
         // Reset state properties
-        window.SmartGrind.state.problems.clear();
-        window.SmartGrind.state.deletedProblemIds.clear();
-        window.SmartGrind.state.user = {
+        state.problems.clear();
+        state.deletedProblemIds.clear();
+        state.user = {
             type: 'local',
             id: null,
             displayName: 'Local User'
         };
-        window.SmartGrind.state.ui = {
+        state.ui = {
             activeTopicId: 'all',
             currentFilter: 'all',
             searchQuery: '',
             preferredAI: null
         };
-        window.SmartGrind.state.elements = {};
+        state.elements = {};
     });
 
     afterEach(() => {
@@ -59,10 +51,10 @@ describe('SmartGrind State', () => {
 
     describe('Initialization', () => {
         test('init calls loadFromStorage and cacheElements', () => {
-            const loadFromStorageSpy = jest.spyOn(window.SmartGrind.state, 'loadFromStorage');
-            const cacheElementsSpy = jest.spyOn(window.SmartGrind.state, 'cacheElements');
+            const loadFromStorageSpy = jest.spyOn(state, 'loadFromStorage');
+            const cacheElementsSpy = jest.spyOn(state, 'cacheElements');
 
-            window.SmartGrind.state.init();
+            state.init();
 
             expect(loadFromStorageSpy).toHaveBeenCalled();
             expect(cacheElementsSpy).toHaveBeenCalled();
@@ -86,30 +78,30 @@ describe('SmartGrind State', () => {
                 .mockReturnValueOnce(mockDisplayName)
                 .mockReturnValueOnce(mockUserType);
 
-            window.SmartGrind.state.loadFromStorage();
+            state.loadFromStorage();
 
-            expect(window.SmartGrind.state.problems.get('1')).toEqual({ id: '1', name: 'Test Problem', loading: false });
-            expect(window.SmartGrind.state.deletedProblemIds.has('2')).toBe(true);
-            expect(window.SmartGrind.state.deletedProblemIds.has('3')).toBe(true);
-            expect(window.SmartGrind.state.user.displayName).toBe('Test User');
-            expect(window.SmartGrind.state.user.type).toBe('signed-in');
+            expect(state.problems.get('1')).toEqual({ id: '1', name: 'Test Problem', loading: false });
+            expect(state.deletedProblemIds.has('2')).toBe(true);
+            expect(state.deletedProblemIds.has('3')).toBe(true);
+            expect(state.user.displayName).toBe('Test User');
+            expect(state.user.type).toBe('signed-in');
         });
 
         test('handles invalid JSON gracefully', () => {
             mockGetItem.mockReturnValue('invalid json');
 
-            expect(() => window.SmartGrind.state.loadFromStorage()).not.toThrow();
+            expect(() => state.loadFromStorage()).not.toThrow();
         });
     });
 
     describe('saveToStorage', () => {
         test('saves problems, deletedIds, displayName, and userType to localStorage', () => {
-            window.SmartGrind.state.problems.set('1', { id: '1', name: 'Test Problem' });
-            window.SmartGrind.state.deletedProblemIds.add('2');
-            window.SmartGrind.state.user.displayName = 'Test User';
-            window.SmartGrind.state.user.type = 'signed-in';
+            state.problems.set('1', { id: '1', name: 'Test Problem' });
+            state.deletedProblemIds.add('2');
+            state.user.displayName = 'Test User';
+            state.user.type = 'signed-in';
 
-            window.SmartGrind.state.saveToStorage();
+            state.saveToStorage();
 
             // Verify setItem was called for each key
             expect(mockSetItem).toHaveBeenCalled();
@@ -122,9 +114,9 @@ describe('SmartGrind State', () => {
             const originalGetElementById = document.getElementById;
             document.getElementById = jest.fn(() => mockElement);
 
-            window.SmartGrind.state.cacheElements();
+            state.cacheElements();
 
-            expect(window.SmartGrind.state.elements.setupModal).toBe(mockElement);
+            expect(state.elements.setupModal).toBe(mockElement);
 
             document.getElementById = originalGetElementById;
         });
@@ -132,12 +124,12 @@ describe('SmartGrind State', () => {
 
     describe('setUser', () => {
         test('updates user state and calls saveToStorage', () => {
-            const saveToStorageSpy = jest.spyOn(window.SmartGrind.state, 'saveToStorage');
+            const saveToStorageSpy = jest.spyOn(state, 'saveToStorage');
 
-            window.SmartGrind.state.setUser({ displayName: 'New User', type: 'signed-in' });
+            state.setUser({ displayName: 'New User', type: 'signed-in' });
 
-            expect(window.SmartGrind.state.user.displayName).toBe('New User');
-            expect(window.SmartGrind.state.user.type).toBe('signed-in');
+            expect(state.user.displayName).toBe('New User');
+            expect(state.user.type).toBe('signed-in');
             expect(saveToStorageSpy).toHaveBeenCalled();
 
             saveToStorageSpy.mockRestore();
@@ -146,10 +138,10 @@ describe('SmartGrind State', () => {
 
     describe('setUI', () => {
         test('updates UI state', () => {
-            window.SmartGrind.state.setUI({ activeTopicId: 'arrays', currentFilter: 'solved' });
+            state.setUI({ activeTopicId: 'arrays', currentFilter: 'solved' });
 
-            expect(window.SmartGrind.state.ui.activeTopicId).toBe('arrays');
-            expect(window.SmartGrind.state.ui.currentFilter).toBe('solved');
+            expect(state.ui.activeTopicId).toBe('arrays');
+            expect(state.ui.currentFilter).toBe('solved');
         });
     });
 });

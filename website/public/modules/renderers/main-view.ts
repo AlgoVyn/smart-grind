@@ -2,6 +2,12 @@
 // Main view rendering functions
 
 import { Topic } from '../types.js';
+import { state } from '../state.js';
+import { data } from '../data.js';
+import { utils } from '../utils.js';
+import { renderers } from '../renderers.js';
+import { api } from '../api.js';
+import { ICONS } from './icons.js';
 
 export const mainViewRenderers = {
     // Helper to create an action button
@@ -16,19 +22,25 @@ export const mainViewRenderers = {
 
     // Helper to remove existing action button container
     _removeExistingActionContainer: () => {
-        const existingContainer = window.SmartGrind.state.elements.currentViewTitle.nextElementSibling;
-        if (existingContainer?.classList.contains('category-action-container')) {
-            existingContainer.remove();
+        const currentViewTitle = state.elements['currentViewTitle'];
+        if (currentViewTitle) {
+            const existingContainer = currentViewTitle.nextElementSibling;
+            if (existingContainer?.classList.contains('category-action-container')) {
+                existingContainer.remove();
+            }
         }
     },
 
     // Helper to set view title and action buttons
     _setViewTitle: (filterTopicId: string) => {
         const title = filterTopicId === 'all' ? 'All Problems' :
-            window.SmartGrind.data.topicsData.find((t: Topic) => t.id === filterTopicId)?.title || 'Unknown Topic';
-        window.SmartGrind.state.elements.currentViewTitle.innerText = title;
+            data.topicsData.find((t: Topic) => t.id === filterTopicId)?.title || 'Unknown Topic';
+        const currentViewTitle = state.elements['currentViewTitle'];
+        if (currentViewTitle) {
+            currentViewTitle.innerText = title;
+        }
 
-        window.SmartGrind.renderers._removeExistingActionContainer();
+        renderers._removeExistingActionContainer();
 
         // Add action buttons
         const buttonContainer = document.createElement('div');
@@ -36,58 +48,67 @@ export const mainViewRenderers = {
 
         if (filterTopicId === 'all') {
             // Reset All button for "All Problems" view
-            const resetAllBtn = window.SmartGrind.renderers._createActionButton(
-                window.SmartGrind['ICONS'].reset,
+            const resetAllBtn = renderers._createActionButton(
+                ICONS.reset,
                 'Reset All Problems',
                 'bg-blue-500/10',
-                () => window.SmartGrind.api.resetAll()
+                () => api.resetAll()
             );
             buttonContainer.appendChild(resetAllBtn);
         } else {
             // Reset and Delete buttons for specific topics
-            const resetBtn = window.SmartGrind.renderers._createActionButton(
-                window.SmartGrind['ICONS'].reset,
+            const resetBtn = renderers._createActionButton(
+                ICONS.reset,
                 'Reset Category Problems',
                 'bg-blue-500/10',
-                () => window.SmartGrind.api.resetCategory(filterTopicId)
+                () => api.resetCategory(filterTopicId)
             );
             buttonContainer.appendChild(resetBtn);
 
-            const deleteBtn = window.SmartGrind.renderers._createActionButton(
-                window.SmartGrind['ICONS'].delete,
+            const deleteBtn = renderers._createActionButton(
+                ICONS.delete,
                 'Delete Category',
                 'bg-red-500/10',
-                () => window.SmartGrind.api.deleteCategory(filterTopicId)
+                () => api.deleteCategory(filterTopicId)
             );
             buttonContainer.appendChild(deleteBtn);
         }
 
-        window.SmartGrind.state.elements.currentViewTitle.insertAdjacentElement('afterend', buttonContainer);
+        if (currentViewTitle) {
+            currentViewTitle.insertAdjacentElement('afterend', buttonContainer);
+        }
     },
 
     // Render main problem view
     renderMainView: (filterTopicId: string) => {
-        window.SmartGrind.state.ui.activeTopicId = filterTopicId || window.SmartGrind.state.ui.activeTopicId;
-        const container = window.SmartGrind.state.elements.problemsContainer;
-        container.innerHTML = '';
+        state.ui.activeTopicId = filterTopicId || state.ui.activeTopicId;
+        const container = state.elements['problemsContainer'];
+        if (container) {
+            container.innerHTML = '';
+        }
 
-        window.SmartGrind.renderers._setViewTitle(window.SmartGrind.state.ui.activeTopicId);
+        renderers._setViewTitle(state.ui.activeTopicId);
 
-        const today = window.SmartGrind.utils.getToday();
+        const today = utils.getToday();
         const visibleCountRef = { count: 0 };
 
-        const relevantTopics = window.SmartGrind.state.ui.activeTopicId === 'all' ?
-            window.SmartGrind.data.topicsData :
-            window.SmartGrind.data.topicsData.filter((t: Topic) => t.id === window.SmartGrind.state.ui.activeTopicId);
+        const relevantTopics = state.ui.activeTopicId === 'all' ?
+            data.topicsData :
+            data.topicsData.filter((t: Topic) => t.id === state.ui.activeTopicId);
 
         relevantTopics.forEach((topic: Topic) => {
-            const topicSection = window.SmartGrind.renderers._renderTopicSection(topic, window.SmartGrind.state.ui.activeTopicId, today, visibleCountRef);
-            if (topicSection) container.appendChild(topicSection);
+            const topicSection = renderers._renderTopicSection(topic, state.ui.activeTopicId, today, visibleCountRef);
+            if (topicSection && container) {
+                container.appendChild(topicSection);
+            }
         });
 
         // Show empty state only when in review filter and no problems are visible
-        const shouldShowEmptyState = visibleCountRef.count === 0 && window.SmartGrind.state.ui.currentFilter === 'review';
-        window.SmartGrind.state.elements.emptyState.classList.toggle('hidden', !shouldShowEmptyState);
-        window.SmartGrind.renderers.updateStats();
+        const shouldShowEmptyState = visibleCountRef.count === 0 && state.ui.currentFilter === 'review';
+        const emptyState = state.elements['emptyState'];
+        if (emptyState) {
+            emptyState.classList.toggle('hidden', !shouldShowEmptyState);
+        }
+        renderers.updateStats();
     }
 };

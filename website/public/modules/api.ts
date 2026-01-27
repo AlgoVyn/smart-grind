@@ -1,13 +1,20 @@
 // --- API MODULE ---
 // API functions for data management
 
-import './api/api-save.js';
-import './api/api-load.js';
-import './api/api-sync.js';
-import './api/api-reset.js';
-import './api/api-delete.js';
+import { saveData, saveProblem, saveDeletedId } from './api/api-save.js';
+import { loadData } from './api/api-load.js';
+import { syncPlan, mergeStructure } from './api/api-sync.js';
+import { resetAll, resetCategory } from './api/api-reset.js';
+import { deleteCategory } from './api/api-delete.js';
 
-window.SmartGrind = window.SmartGrind || {};
-
-// The API functions will be attached to window.SmartGrind.api by the individual files
-// This provides a single entry point for all API functionality
+export const api = {
+    saveData,
+    saveProblem,
+    saveDeletedId,
+    loadData,
+    syncPlan,
+    mergeStructure,
+    resetAll,
+    resetCategory,
+    deleteCategory
+};
