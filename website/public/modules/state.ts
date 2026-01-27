@@ -4,6 +4,72 @@
 import { User, Problem, UIState } from './types.js';
 import { data } from './data.js';
 
+/**
+ * Interface for DOM element cache
+ */
+interface ElementCache {
+    setupModal: HTMLElement | null;
+    addProblemModal: HTMLElement | null;
+    signinModal: HTMLElement | null;
+    signinModalContent: HTMLElement | null;
+    alertModal: HTMLElement | null;
+    confirmModal: HTMLElement | null;
+    alertMessage: HTMLElement | null;
+    confirmMessage: HTMLElement | null;
+    alertTitle: HTMLElement | null;
+    confirmTitle: HTMLElement | null;
+    alertOkBtn: HTMLElement | null;
+    confirmOkBtn: HTMLElement | null;
+    confirmCancelBtn: HTMLElement | null;
+    appWrapper: HTMLElement | null;
+    loadingScreen: HTMLElement | null;
+    googleLoginBtn: HTMLElement | null;
+    modalGoogleLoginBtn: HTMLElement | null;
+    setupError: HTMLElement | null;
+    signinError: HTMLElement | null;
+    topicList: HTMLElement | null;
+    problemsContainer: HTMLElement | null;
+    mobileMenuBtn: HTMLElement | null;
+    openAddModalBtn: HTMLElement | null;
+    cancelAddBtn: HTMLElement | null;
+    saveAddBtn: HTMLElement | null;
+    addProbName: HTMLInputElement | null;
+    addProbUrl: HTMLInputElement | null;
+    addProbCategory: HTMLSelectElement | null;
+    addProbCategoryNew: HTMLInputElement | null;
+    addProbPattern: HTMLSelectElement | null;
+    addProbPatternNew: HTMLInputElement | null;
+    sidebarSolvedText: HTMLElement | null;
+    sidebarSolvedBar: HTMLElement | null;
+    mainTotalText: HTMLElement | null;
+    mainSolvedText: HTMLElement | null;
+    mainSolvedBar: HTMLElement | null;
+    mainDueText: HTMLElement | null;
+    mainDueBadge: HTMLElement | null;
+    currentFilterDisplay: HTMLElement | null;
+    contentScroll: HTMLElement | null;
+    emptyState: HTMLElement | null;
+    currentViewTitle: HTMLElement | null;
+    filterBtns: NodeListOf<Element>;
+    reviewBanner: HTMLElement | null;
+    reviewCountBanner: HTMLElement | null;
+    toastContainer: HTMLElement | null;
+    userDisplay: HTMLElement | null;
+    disconnectBtn: HTMLElement | null;
+    themeToggleBtn: HTMLElement | null;
+    problemSearch: HTMLInputElement | null;
+    mainSidebar: HTMLElement | null;
+    sidebarResizer: HTMLElement | null;
+    sidebarBackdrop: HTMLElement | null;
+    mobileMenuBtnMain: HTMLElement | null;
+    scrollToTopBtn: HTMLElement | null;
+    sidebarLogo: HTMLElement | null;
+    mobileLogo: HTMLElement | null;
+    solutionModal: HTMLElement | null;
+    solutionCloseBtn: HTMLElement | null;
+    headerDisconnectBtn: HTMLElement | null;
+}
+
 export const state = {
     // User state
     user: {
@@ -25,8 +91,7 @@ export const state = {
     } as UIState,
 
     // DOM elements cache
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    elements: {} as any,
+    elements: {} as Partial<ElementCache>,
 
     // Initialize state
     init() {
@@ -42,8 +107,18 @@ export const state = {
             const displayName = localStorage.getItem(data.LOCAL_STORAGE_KEYS.DISPLAY_NAME) || 'Local User';
             const userType = localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE) || 'local';
 
-            const problemsObj = problemsData ? JSON.parse(problemsData) : {};
-            const deletedIdsArr = deletedIdsData ? JSON.parse(deletedIdsData) : [];
+            // Safe JSON parsing with validation
+            const safeJsonParse = <T>(data: string | null, defaultValue: T): T => {
+                try {
+                    return data ? JSON.parse(data) : defaultValue;
+                } catch (e) {
+                    console.error('JSON parse error:', e);
+                    return defaultValue;
+                }
+            };
+
+            const problemsObj = safeJsonParse<Record<string, Problem>>(problemsData, {});
+            const deletedIdsArr = safeJsonParse<string[]>(deletedIdsData, []);
 
             this.problems = new Map(Object.entries(problemsObj));
             // Reset loading state for all problems on load
@@ -105,12 +180,12 @@ export const state = {
             openAddModalBtn: document.getElementById('open-add-modal-btn'),
             cancelAddBtn: document.getElementById('cancel-add-btn'),
             saveAddBtn: document.getElementById('save-add-btn'),
-            addProbName: document.getElementById('add-prob-name'),
-            addProbUrl: document.getElementById('add-prob-url'),
-            addProbCategory: document.getElementById('add-prob-category'),
-            addProbCategoryNew: document.getElementById('add-prob-category-new'),
-            addProbPattern: document.getElementById('add-prob-pattern'),
-            addProbPatternNew: document.getElementById('add-prob-pattern-new'),
+            addProbName: document.getElementById('add-prob-name') as HTMLInputElement | null,
+            addProbUrl: document.getElementById('add-prob-url') as HTMLInputElement | null,
+            addProbCategory: document.getElementById('add-prob-category') as HTMLSelectElement | null,
+            addProbCategoryNew: document.getElementById('add-prob-category-new') as HTMLInputElement | null,
+            addProbPattern: document.getElementById('add-prob-pattern') as HTMLSelectElement | null,
+            addProbPatternNew: document.getElementById('add-prob-pattern-new') as HTMLInputElement | null,
 
             // Sidebar Stats
             sidebarSolvedText: document.getElementById('sidebar-total-stat'),
@@ -134,7 +209,7 @@ export const state = {
             userDisplay: document.getElementById('user-display'),
             disconnectBtn: document.getElementById('disconnect-btn'),
             themeToggleBtn: document.getElementById('theme-toggle-btn'),
-            problemSearch: document.getElementById('problem-search'),
+            problemSearch: document.getElementById('problem-search') as HTMLInputElement | null,
             mainSidebar: document.getElementById('main-sidebar'),
             sidebarResizer: document.getElementById('sidebar-resizer'),
             sidebarBackdrop: document.getElementById('sidebar-backdrop'),

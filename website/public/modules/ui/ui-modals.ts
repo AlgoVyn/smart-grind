@@ -47,9 +47,7 @@ export const closeSigninModal = () => {
     }
 };
 
-export const openPatternSolutionModal = (_patternName: string) => {
-    // This function is implemented in ui-markdown.ts
-};
+
 
 let _confirmResolve: ((_value: boolean) => void) | null = null;
 
@@ -67,7 +65,7 @@ export const _setupAddModal = () => {
 
     // Clear inputs
     ['addProbName', 'addProbUrl', 'addProbCategoryNew', 'addProbPatternNew'].forEach(id => {
-        const element = state.elements[id] as HTMLInputElement;
+        const element = state.elements[id as keyof typeof state.elements] as HTMLInputElement | null;
         if (element) element.value = '';
     });
 

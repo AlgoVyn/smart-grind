@@ -2,7 +2,7 @@
 
 import { state } from '../state.js';
 import { renderers } from '../renderers.js';
-import { openPatternSolutionModal } from './ui-modals.js';
+import { openPatternSolutionModal } from './ui-markdown.js';
 
 // Bind problem-related events
 export const bindProblemEvents = () => {

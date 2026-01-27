@@ -28,10 +28,24 @@ export const apiSave = {
     },
 
     /**
-     * Saves the current state data to local storage.
-     */
+      * Saves the current state data to local storage.
+      */
     async _saveLocally() {
         state.saveToStorage();
+    },
+
+    /**
+      * Fetches a CSRF token from the API.
+      * @returns {Promise<string>} The CSRF token.
+      * @throws {Error} Throws an error if the fetch fails.
+      */
+    async _fetchCsrfToken(): Promise<string> {
+        const response = await fetch(`${data.API_BASE}/user?action=csrf`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch CSRF token');
+        }
+        const responseData: { csrfToken: string } = await response.json();
+        return responseData.csrfToken;
     },
 
     /**
@@ -40,16 +54,19 @@ export const apiSave = {
       */
     async _saveRemotely(): Promise<void> {
         const dataToSave = this._prepareDataForSave();
+        const csrfToken = await this._fetchCsrfToken();
         const response = await fetch(`${data.API_BASE}/user`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken
             },
             body: JSON.stringify({ data: dataToSave })
         });
         if (!response.ok) {
             const errorMessages: Record<number, string> = {
                 401: 'Authentication failed. Please sign in again.',
+                403: 'CSRF token validation failed. Please refresh the page and try again.',
                 500: 'Server error. Please try again later.'
             };
             throw new Error(errorMessages[response.status] || `Save failed: ${response.statusText}`);
@@ -59,7 +76,7 @@ export const apiSave = {
     /**
       * Handles the save operation with error handling and UI updates.
       * @param {Function} saveFn - The save function to execute (local or remote).
-      * @throws {Error} Throws the error if the save function fails.
+      * @throws {Error} Throws an error if the save function fails.
       */
     async _handleSaveOperation(saveFn: () => Promise<void>): Promise<void> {
         try {
@@ -67,8 +84,31 @@ export const apiSave = {
             renderers.updateStats();
         } catch (e) {
             console.error('Save error:', e);
-            const message = e instanceof Error ? e.message : String(e);
-            ui.showAlert(`Failed to save data: ${message}`);
+            
+            // Handle different error types with specific messages
+            let errorMessage: string;
+            
+            if (e instanceof TypeError && e.message.includes('fetch')) {
+                // Network error
+                errorMessage = 'Network error. Please check your internet connection and try again.';
+            } else if (e instanceof Error) {
+                // Check for specific error messages from _saveRemotely
+                if (e.message.includes('Authentication failed')) {
+                    errorMessage = 'Authentication failed. Please sign in again.';
+                } else if (e.message.includes('CSRF token validation failed')) {
+                    errorMessage = 'CSRF token validation failed. Please refresh the page and try again.';
+                } else if (e.message.includes('Server error')) {
+                    errorMessage = 'Server error. Please try again later.';
+                } else if (e.message.includes('Save failed')) {
+                    errorMessage = e.message;
+                } else {
+                    errorMessage = e.message;
+                }
+            } else {
+                errorMessage = String(e);
+            }
+            
+            ui.showAlert(`Failed to save data: ${errorMessage}`);
             throw e;
         }
     },

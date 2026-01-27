@@ -143,27 +143,34 @@ describe('SmartGrind API Module', () => {
     describe('_saveRemotely', () => {
         test('should save data remotely for signed-in user', async () => {
             state.user.type = 'signed-in';
-            mockFetch.mockResolvedValue({ ok: true });
+            mockFetch
+                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ csrfToken: 'test-token' }) })
+                .mockResolvedValueOnce({ ok: true });
 
             await apiSave._saveRemotely();
 
             expect(mockFetch).toHaveBeenCalledWith(`${data.API_BASE}/user`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': 'test-token'
                 },
                 body: JSON.stringify({ data: { problems: { '1': { id: '1', name: 'Test Problem', status: 'unsolved' } }, deletedIds: ['2'] } })
             });
         });
 
         test('should throw error on auth failure', async () => {
-            mockFetch.mockResolvedValue({ ok: false, status: 401 });
+            mockFetch
+                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ csrfToken: 'test-token' }) })
+                .mockResolvedValueOnce({ ok: false, status: 401 });
 
             await expect(apiSave._saveRemotely()).rejects.toThrow('Authentication failed. Please sign in again.');
         });
 
         test('should throw error on server error', async () => {
-            mockFetch.mockResolvedValue({ ok: false, status: 500 });
+            mockFetch
+                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ csrfToken: 'test-token' }) })
+                .mockResolvedValueOnce({ ok: false, status: 500 });
 
             await expect(apiSave._saveRemotely()).rejects.toThrow('Server error. Please try again later.');
         });
@@ -181,7 +188,9 @@ describe('SmartGrind API Module', () => {
 
         test('should call _saveRemotely for signed-in user', async () => {
             state.user.type = 'signed-in';
-            mockFetch.mockResolvedValue({ ok: true });
+            mockFetch
+                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ csrfToken: 'test-token' }) })
+                .mockResolvedValueOnce({ ok: true });
 
             await apiSave._performSave();
 
@@ -191,7 +200,9 @@ describe('SmartGrind API Module', () => {
 
         test('should show alert on save error', async () => {
             state.user.type = 'signed-in';
-            mockFetch.mockResolvedValue({ ok: false, status: 500 });
+            mockFetch
+                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ csrfToken: 'test-token' }) })
+                .mockResolvedValueOnce({ ok: false, status: 500 });
 
             await expect(apiSave._performSave()).rejects.toThrow('Server error. Please try again later.');
 

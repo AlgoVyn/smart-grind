@@ -39,8 +39,8 @@ export const setButtonLoading = (button: HTMLElement | null, loading: boolean, l
  */
 export const handleGoogleLogin = () => {
     showError(null);
-    const btn = state.elements.googleLoginBtn;
-    const modalBtn = state.elements.modalGoogleLoginBtn;
+    const btn = state.elements.googleLoginBtn ?? null;
+    const modalBtn = state.elements.modalGoogleLoginBtn ?? null;
     ui.setButtonLoading(btn, true);
     ui.setButtonLoading(modalBtn, true);
 
@@ -49,8 +49,8 @@ export const handleGoogleLogin = () => {
 
     if (!popup) {
         // Popup blocked
-        const btn = state.elements.googleLoginBtn;
-        const modalBtn = state.elements.modalGoogleLoginBtn;
+        const btn = state.elements.googleLoginBtn ?? null;
+        const modalBtn = state.elements.modalGoogleLoginBtn ?? null;
         ui.setButtonLoading(btn, false);
         ui.setButtonLoading(modalBtn, false);
         utils.showToast('Sign-in popup was blocked. Please allow popups for this site and try again.', 'error');
@@ -66,7 +66,9 @@ export const handleGoogleLogin = () => {
 
         state.user.id = userId;
         state.user.displayName = displayName;
-        state.elements.userDisplay.innerText = displayName;
+        if (state.elements.userDisplay) {
+            state.elements.userDisplay.innerText = displayName;
+        }
         state.user.type = 'signed-in';
         localStorage.setItem('smartgrind-user-type', 'signed-in');
 
@@ -74,8 +76,12 @@ export const handleGoogleLogin = () => {
         updateAuthUI();
 
         // Close any open sign-in modals
-        state.elements.setupModal.classList.add('hidden');
-        state.elements.signinModal.classList.add('hidden');
+        if (state.elements.setupModal) {
+            state.elements.setupModal.classList.add('hidden');
+        }
+        if (state.elements.signinModal) {
+            state.elements.signinModal.classList.add('hidden');
+        }
     };
 
     const handleAuthFailure = (data: { message: string }) => {
@@ -87,8 +93,8 @@ export const handleGoogleLogin = () => {
 
     const cleanupAuth = () => {
         window.removeEventListener('message', messageHandler);
-        const btn = state.elements.googleLoginBtn;
-        const modalBtn = state.elements.modalGoogleLoginBtn;
+        const btn = state.elements.googleLoginBtn ?? null;
+        const modalBtn = state.elements.modalGoogleLoginBtn ?? null;
         ui.setButtonLoading(btn, false);
         ui.setButtonLoading(modalBtn, false);
     };
@@ -145,10 +151,21 @@ export const handleGoogleLogin = () => {
     }, 1000);
 
     // Timeout to reset buttons if no auth response received
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
         clearInterval(checkPopupClosed);
         handleAuthTimeout();
     }, UI_CONSTANTS.AUTH_TIMEOUT);
+
+    // Ensure cleanup happens in all scenarios
+    try {
+        // The auth flow continues via messageHandler or timeout
+    } finally {
+        // This ensures cleanup even if an unexpected error occurs
+        if (authCompleted) {
+            clearInterval(checkPopupClosed);
+            clearTimeout(timeoutId);
+        }
+    }
 };
 
 /**
@@ -218,7 +235,7 @@ export const updateAuthUI = () => {
  * @param {string|null} msg - The error message to display, or null to hide the error.
  */
 export const showError = (msg: string | null) => {
-    showAuthError(state.elements.setupError, msg);
+    showAuthError(state.elements.setupError ?? null, msg);
 };
 
 /**
@@ -226,7 +243,7 @@ export const showError = (msg: string | null) => {
  * Shows an alert if a message is provided and toggles the visibility of the sign-in error element.
  * @param {string|null} msg - The error message to display, or null to hide the error.
  */
-export const showAuthError = (element: HTMLElement, msg: string | null) => {
+export const showAuthError = (element: HTMLElement | null, msg: string | null) => {
     if (element) {
         element.innerText = msg || '';
         element.classList.toggle('hidden', !msg);
@@ -234,5 +251,5 @@ export const showAuthError = (element: HTMLElement, msg: string | null) => {
 };
 
 export const showSigninError = (msg: string | null) => {
-    showAuthError(state.elements.signinError, msg);
+    showAuthError(state.elements.signinError ?? null, msg);
 };
