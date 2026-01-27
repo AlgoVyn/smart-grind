@@ -1,7 +1,7 @@
 import { SignJWT } from 'jose';
 
 /**
- * Rate limiting function using KV store
+ * Rate limiting function using KV store with sliding window algorithm
  * @param {Request} request - The request object
  * @param {Object} env - Environment variables
  * @param {number} maxRequests - Maximum requests allowed
@@ -10,38 +10,26 @@ import { SignJWT } from 'jose';
  */
 export async function checkRateLimit(request, env, maxRequests = 10, windowSeconds = 60) {
     const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
-    const key = `ratelimit_${clientIP}_${Math.floor(Date.now() / (windowSeconds * 1000))}`;
+    const key = `ratelimit_${clientIP}`;
 
     try {
-        const current = await env.KV.get(key);
-        const count = current ? parseInt(current) : 0;
+        const now = Date.now();
+        const windowStart = now - (windowSeconds * 1000);
+        const requests = await env.KV.get(key);
+        const parsedRequests = requests ? JSON.parse(requests) : [];
+        const validRequests = parsedRequests.filter((t: number) => t > windowStart);
 
-        if (count >= maxRequests) {
+        if (validRequests.length >= maxRequests) {
             return true; // Rate limited
         }
 
-        await env.KV.put(key, (count + 1).toString(), { expirationTtl: windowSeconds });
+        validRequests.push(now);
+        await env.KV.put(key, JSON.stringify(validRequests), { expirationTtl: windowSeconds });
         return false; // Not rate limited
     } catch (error) {
         console.error('Rate limit check error:', error);
         return false; // Allow request on error
     }
-}
-
-/**
- * Escapes HTML special characters to prevent XSS.
- * @param {string} str - The string to escape.
- * @returns {string} The escaped string.
- */
-function escapeHtml(str) {
-    const map = {
-        '&': '&',
-        '<': '<',
-        '>': '>',
-        '"': '"',
-        '\'': '&#039;'
-    };
-    return str.replace(/[&<>"']/g, m => map[m]);
 }
 
 /**
@@ -325,29 +313,27 @@ export async function onRequestGet({ request, env }) {
         }
 
         // Return HTML that handles auth for popup or fallback
-        const escapedDisplayName = escapeHtml(displayName);
         const html = `
     <!DOCTYPE html>
     <html>
     <head><title>Sign In Success</title></head>
     <body>
     <script>
-      const userId = '${userId.replace(/'/g, '\\\'')}';
-      const displayName = '${escapedDisplayName.replace(/'/g, '\\\'')}';
+      const authData = ${JSON.stringify({ userId, displayName })};
       if (window.opener) {
-        window.opener.postMessage({ type: 'auth-success', userId, displayName }, window.location.origin);
+        window.opener.postMessage({ type: 'auth-success', ...authData }, window.location.origin);
         setTimeout(() => window.close(), 500);
       } else {
-        localStorage.setItem('userId', userId);
-        localStorage.setItem('displayName', displayName);
-        window.location.href = '/smartgrind?userId=${encodeURIComponent(userId)}&displayName=${encodeURIComponent(displayName)}';
+        localStorage.setItem('userId', authData.userId);
+        localStorage.setItem('displayName', authData.displayName);
+        window.location.href = '/smartgrind?' + new URLSearchParams(authData).toString();
       }
     </script>
     </body>
     </html>`;
 
         // Set httpOnly cookie with the JWT
-        const cookieHeader = `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${24 * 60 * 60}; Path=/`;
+        const cookieHeader = `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${24 * 60 * 60}; Path=/smartgrind; Priority=High`;
 
         return new Response(html, {
             headers: {

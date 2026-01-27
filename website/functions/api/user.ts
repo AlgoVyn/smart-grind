@@ -1,7 +1,7 @@
 import { jwtVerify } from 'jose';
 
 /**
- * Rate limiting function using KV store
+ * Rate limiting function using KV store with sliding window algorithm
  * @param {Request} request - The request object
  * @param {Object} env - Environment variables
  * @param {number} maxRequests - Maximum requests allowed
@@ -10,17 +10,21 @@ import { jwtVerify } from 'jose';
  */
 export async function checkRateLimit(request, env, maxRequests = 30, windowSeconds = 60) {
     const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
-    const key = `ratelimit_${clientIP}_${Math.floor(Date.now() / (windowSeconds * 1000))}`;
+    const key = `ratelimit_${clientIP}`;
 
     try {
-        const current = await env.KV.get(key);
-        const count = current ? parseInt(current) : 0;
+        const now = Date.now();
+        const windowStart = now - (windowSeconds * 1000);
+        const requests = await env.KV.get(key);
+        const parsedRequests = requests ? JSON.parse(requests) : [];
+        const validRequests = parsedRequests.filter((t: number) => t > windowStart);
 
-        if (count >= maxRequests) {
+        if (validRequests.length >= maxRequests) {
             return true; // Rate limited
         }
 
-        await env.KV.put(key, (count + 1).toString(), { expirationTtl: windowSeconds });
+        validRequests.push(now);
+        await env.KV.put(key, JSON.stringify(validRequests), { expirationTtl: windowSeconds });
         return false; // Not rate limited
     } catch (error) {
         console.error('Rate limit check error:', error);
@@ -79,7 +83,30 @@ async function authenticate(request, env) {
 }
 
 /**
- * Handles GET requests to retrieve user data.
+ * Validates CSRF token for POST requests.
+ * @param {Request} request - The HTTP request object.
+ * @param {Object} env - Environment variables.
+ * @param {string} userId - The user ID.
+ * @returns {boolean} True if CSRF token is valid, false otherwise.
+ */
+async function validateCsrfToken(request, env, userId) {
+    const providedCsrf = request.headers.get('X-CSRF-Token');
+    if (!providedCsrf) {
+        return false;
+    }
+
+    const storedCsrf = await env.KV.get(`csrf_${userId}`);
+    if (!storedCsrf || providedCsrf !== storedCsrf) {
+        return false;
+    }
+
+    // Delete used CSRF token to prevent replay attacks
+    await env.KV.delete(`csrf_${userId}`);
+    return true;
+}
+
+/**
+ * Handles GET requests to retrieve user data or generate CSRF token.
  * @param {Object} context - The request context.
  * @param {Request} context.request - The HTTP request object.
  * @param {Object} context.env - Environment variables.
@@ -91,13 +118,38 @@ export async function onRequestGet({ request, env }) {
         return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429 });
     }
 
+    const url = new URL(request.url);
+    const action = url.searchParams.get('action');
+
+    // Handle CSRF token generation
+    if (action === 'csrf') {
+        const payload = await authenticate(request, env);
+        if (!payload) {
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+        }
+
+        const userId = payload.userId;
+        const userIdRegex = /^[a-zA-Z0-9_-]{1,100}$/;
+        if (!userId || typeof userId !== 'string' || !userIdRegex.test(userId)) {
+            return new Response(JSON.stringify({ error: 'Invalid userId' }), { status: 400 });
+        }
+
+        const csrfToken = crypto.randomUUID();
+        await env.KV.put(`csrf_${userId}`, csrfToken, { expirationTtl: 3600 });
+        return new Response(JSON.stringify({ csrfToken }), {
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }
+
+    // Handle user data retrieval
     const payload = await authenticate(request, env);
     if (!payload) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
 
     const userId = payload.userId;
-    if (!userId || typeof userId !== 'string' || userId.length > 100) {
+    const userIdRegex = /^[a-zA-Z0-9_-]{1,100}$/;
+    if (!userId || typeof userId !== 'string' || !userIdRegex.test(userId)) {
         return new Response(JSON.stringify({ error: 'Invalid userId' }), { status: 400 });
     }
 
@@ -135,8 +187,15 @@ export async function onRequestPost({ request, env }) {
     }
 
     const userId = payload.userId;
-    if (!userId || typeof userId !== 'string' || userId.length > 100) {
+    const userIdRegex = /^[a-zA-Z0-9_-]{1,100}$/;
+    if (!userId || typeof userId !== 'string' || !userIdRegex.test(userId)) {
         return new Response(JSON.stringify({ error: 'Invalid userId' }), { status: 400 });
+    }
+
+    // Validate CSRF token
+    const csrfValid = await validateCsrfToken(request, env, userId);
+    if (!csrfValid) {
+        return new Response(JSON.stringify({ error: 'Invalid CSRF token' }), { status: 403 });
     }
 
     let body;

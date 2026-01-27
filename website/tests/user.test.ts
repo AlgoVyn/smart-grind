@@ -6,6 +6,11 @@ jest.mock('jose', () => ({
     jwtVerify: jest.fn(),
 }));
 
+// Mock crypto.randomUUID
+global.crypto = {
+    randomUUID: jest.fn(() => 'test-csrf-token-12345'),
+};
+
 // Mock Request and Response
 global.Request = class Request {
     constructor(url, options = {}) {
@@ -49,6 +54,7 @@ describe('User API', () => {
         mockKV = {
             get: jest.fn(),
             put: jest.fn(),
+            delete: jest.fn(),
         };
 
         mockEnv = {
@@ -188,12 +194,32 @@ describe('User API', () => {
             expect(data.error).toBe('Unauthorized');
         });
 
-        test('should return 400 for invalid JSON', async () => {
+        test('should return 403 for missing CSRF token', async () => {
             jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
 
             const request = new Request('https://example.com/user', {
                 method: 'POST',
                 headers: { 'Authorization': 'Bearer header.payload.signature' },
+                body: JSON.stringify({ data: {} }),
+            });
+
+            const response = await onRequestPost({ request, env: mockEnv });
+
+            expect(response.status).toBe(403);
+            const data = await response.json();
+            expect(data.error).toBe('Invalid CSRF token');
+        });
+
+        test('should return 400 for invalid JSON', async () => {
+            jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
+            mockKV.get.mockResolvedValue('test-csrf-token-12345');
+
+            const request = new Request('https://example.com/user', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': 'Bearer header.payload.signature',
+                    'X-CSRF-Token': 'test-csrf-token-12345',
+                },
                 body: 'invalid json',
             });
 
@@ -206,10 +232,14 @@ describe('User API', () => {
 
         test('should return 400 for missing data', async () => {
             jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
+            mockKV.get.mockResolvedValue('test-csrf-token-12345');
 
             const request = new Request('https://example.com/user', {
                 method: 'POST',
-                headers: { 'Authorization': 'Bearer header.payload.signature' },
+                headers: { 
+                    'Authorization': 'Bearer header.payload.signature',
+                    'X-CSRF-Token': 'test-csrf-token-12345',
+                },
                 body: JSON.stringify({}),
             });
 
@@ -222,10 +252,14 @@ describe('User API', () => {
 
         test('should return 400 for invalid data type', async () => {
             jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
+            mockKV.get.mockResolvedValue('test-csrf-token-12345');
 
             const request = new Request('https://example.com/user', {
                 method: 'POST',
-                headers: { 'Authorization': 'Bearer header.payload.signature' },
+                headers: { 
+                    'Authorization': 'Bearer header.payload.signature',
+                    'X-CSRF-Token': 'test-csrf-token-12345',
+                },
                 body: JSON.stringify({ data: 'string' }),
             });
 
@@ -238,10 +272,14 @@ describe('User API', () => {
 
         test('should save data to KV and return OK', async () => {
             jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
+            mockKV.get.mockResolvedValue('test-csrf-token-12345');
 
             const request = new Request('https://example.com/user', {
                 method: 'POST',
-                headers: { 'Authorization': 'Bearer header.payload.signature' },
+                headers: { 
+                    'Authorization': 'Bearer header.payload.signature',
+                    'X-CSRF-Token': 'test-csrf-token-12345',
+                },
                 body: JSON.stringify({ data: { problems: {}, deletedIds: [] } }),
             });
 
@@ -254,11 +292,15 @@ describe('User API', () => {
 
         test('should return 500 on KV error', async () => {
             jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
+            mockKV.get.mockResolvedValue('test-csrf-token-12345');
             mockKV.put.mockRejectedValue(new Error('KV put error'));
 
             const request = new Request('https://example.com/user', {
                 method: 'POST',
-                headers: { 'Authorization': 'Bearer header.payload.signature' },
+                headers: { 
+                    'Authorization': 'Bearer header.payload.signature',
+                    'X-CSRF-Token': 'test-csrf-token-12345',
+                },
                 body: JSON.stringify({ data: {} }),
             });
 
