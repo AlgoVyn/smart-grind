@@ -2,113 +2,54 @@
 
 ## Problem Description
 
-Given a sorted array of distinct integers `nums` and a target value `target`, return the index if the `target` is found. If not, return the index where it would be inserted to maintain the sorted order.
+Given a sorted array of distinct integers and a target value, return the index if the target is found. If not, return the index where it would be inserted to maintain the sorted order.
 
-You must write an algorithm with O(log n) runtime complexity.
+You must write an algorithm that runs in `O(log n)` time complexity.
 
----
+### Examples
 
-## Examples
+**Example 1:**
 
-### Example 1
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| `nums = [1,3,5,6]`, `target = 5` | `2` | Target found at index 2 |
 
-**Input:**
-```python
-nums = [1, 3, 5, 6], target = 5
-```
+**Example 2:**
 
-**Output:**
-```python
-2
-```
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| `nums = [1,3,5,6]`, `target = 2` | `1` | Target would be inserted at index 1 |
 
-**Explanation:** 5 exists in nums at index 2
+**Example 3:**
 
----
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| `nums = [1,3,5,6]`, `target = 7` | `4` | Target would be inserted at index 4 (end of array) |
 
-### Example 2
+**Example 4:**
 
-**Input:**
-```python
-nums = [1, 3, 5, 6], target = 2
-```
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| `nums = [1,3,5,6]`, `target = 0` | `0` | Target would be inserted at index 0 (beginning of array) |
 
-**Output:**
-```python
-1
-```
+### Constraints
 
-**Explanation:** 2 does not exist in nums, but it would be inserted at index 1 to maintain sorted order
-
----
-
-### Example 3
-
-**Input:**
-```python
-nums = [1, 3, 5, 6], target = 7
-```
-
-**Output:**
-```python
-4
-```
-
-**Explanation:** 7 does not exist in nums, but it would be inserted at index 4 (after all elements)
+| Constraint | Description |
+|------------|-------------|
+| Array length | `1 <= nums.length <= 10^4` |
+| Value range | `-10^4 <= nums[i] <= 10^4` |
+| Array type | Sorted in non-decreasing order |
+| Element type | Distinct integers |
 
 ---
 
-### Example 4
+## Approach 1: Standard Binary Search
 
-**Input:**
-```python
-nums = [1, 3, 5, 6], target = 0
-```
+The standard binary search approach works by maintaining a search space and narrowing it down by half in each iteration.
 
-**Output:**
-```python
-0
-```
+### Implementation
 
-**Explanation:** 0 does not exist in nums, but it would be inserted at index 0 (before all elements)
-
----
-
-## Constraints
-
-- `1 <= nums.length <= 10^4`
-- `-10^4 < nums[i], target < 10^4`
-- All the integers in `nums` are unique
-- `nums` is sorted in ascending order
-
----
-
-## Intuition
-
-The problem asks us to find the position of a target value in a sorted array. If the target is not found, we need to return the position where it should be inserted to maintain the sorted order.
-
-This is a perfect use case for **Binary Search** because:
-1. The array is sorted
-2. We need O(log n) time complexity
-3. The answer is the point where the target would fit in the sorted order
-
-The key insight is that in a binary search:
-- If we find the target, we return its index
-- If we don't find it, the `left` pointer will end up at the insertion position
-
-When the search terminates:
-- `left` will be at the first position where `nums[left] >= target`
-- This is exactly where `target` should be inserted
-
----
-
-## Multiple Approaches
-
-### Approach 1: Standard Binary Search (Recommended)
-
-**Idea:** Use binary search to find the target. If not found, return the `left` pointer which indicates the insertion position.
-
-**Code:**
+````carousel
 ```python
 from typing import List
 
@@ -118,6 +59,7 @@ class Solution:
         
         while left <= right:
             mid = (left + right) // 2
+            
             if nums[mid] == target:
                 return mid
             elif nums[mid] < target:
@@ -125,24 +67,112 @@ class Solution:
             else:
                 right = mid - 1
         
-        # When target is not found, left is the insertion position
         return left
 ```
+<!-- slide -->
+```java
+class Solution {
+    public int searchInsert(int[] nums, int target) {
+        int left = 0;
+        int right = nums.length - 1;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            if (nums[mid] == target) {
+                return mid;
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return left;
+    }
+}
+```
+<!-- slide -->
+```cpp
+#include <vector>
+using namespace std;
 
-**Explanation:**
-- We maintain `left` and `right` pointers defining the search range
-- At each step, we check the middle element
-- If `nums[mid] < target`, the target must be in the right half → `left = mid + 1`
-- If `nums[mid] > target`, the target must be in the left half → `right = mid - 1`
-- When the loop ends, `left` is the first position where `nums[left] >= target`
+class Solution {
+public:
+    int searchInsert(vector<int>& nums, int target) {
+        int left = 0;
+        int right = nums.size() - 1;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            if (nums[mid] == target) {
+                return mid;
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return left;
+    }
+};
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number}
+ */
+var searchInsert = function(nums, target) {
+    let left = 0;
+    let right = nums.length - 1;
+    
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        
+        if (nums[mid] === target) {
+            return mid;
+        } else if (nums[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    
+    return left;
+};
+```
+````
+
+### Explanation
+
+1. **Initialize** pointers `left = 0` and `right = len(nums) - 1`
+2. **While** `left <= right`:
+   - Compute `mid = (left + right) // 2`
+   - If `nums[mid] == target`: Return `mid` immediately
+   - If `nums[mid] < target`: Search right half by setting `left = mid + 1`
+   - If `nums[mid] > target`: Search left half by setting `right = mid - 1`
+3. **Return** `left` — When the loop exits, `left` is the insertion position
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O(log n)` — Binary search on the array |
+| **Space** | `O(1)` — Constant extra space |
 
 ---
 
-### Approach 2: Lower Bound Binary Search
+## Approach 2: Lower Bound Binary Search
 
-**Idea:** Find the lower bound (first element >= target) directly.
+This approach directly finds the lower bound (first position where element >= target) using an exclusive right bound.
 
-**Code:**
+### Implementation
+
+````carousel
 ```python
 from typing import List
 
@@ -152,6 +182,7 @@ class Solution:
         
         while left < right:
             mid = (left + right) // 2
+            
             if nums[mid] < target:
                 left = mid + 1
             else:
@@ -159,53 +190,98 @@ class Solution:
         
         return left
 ```
-
-**Explanation:**
-- We use the "lower bound" pattern where `right` starts at `len(nums)`
-- The loop continues while `left < right`
-- When `nums[mid] < target`, we need to search right → `left = mid + 1`
-- Otherwise, we search left → `right = mid`
-- When loop ends, `left == right` is the insertion position
-
----
-
-### Approach 3: Recursive Binary Search
-
-**Idea:** Implement binary search recursively.
-
-**Code:**
-```python
-from typing import List
-
-class Solution:
-    def searchInsert(self, nums: List[int], target: int) -> int:
-        def binary_search(left: int, right: int) -> int:
-            if left > right:
-                return left
-            
-            mid = (left + right) // 2
-            if nums[mid] == target:
-                return mid
-            elif nums[mid] < target:
-                return binary_search(mid + 1, right)
-            else:
-                return binary_search(left, mid - 1)
+<!-- slide -->
+```java
+class Solution {
+    public int searchInsert(int[] nums, int target) {
+        int left = 0;
+        int right = nums.length;
         
-        return binary_search(0, len(nums) - 1)
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            
+            if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+        
+        return left;
+    }
+}
 ```
+<!-- slide -->
+```cpp
+#include <vector>
+using namespace std;
 
-**Explanation:**
-- Base case: when `left > right`, return `left` as insertion position
-- Recursive case: same logic as iterative approach
-- Returns immediately if target is found
+class Solution {
+public:
+    int searchInsert(vector<int>& nums, int target) {
+        int left = 0;
+        int right = nums.size();
+        
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            
+            if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+        
+        return left;
+    }
+};
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number}
+ */
+var searchInsert = function(nums, target) {
+    let left = 0;
+    let right = nums.length;
+    
+    while (left < right) {
+        const mid = Math.floor((left + right) / 2);
+        
+        if (nums[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    
+    return left;
+};
+```
+````
+
+### Explanation
+
+**Key difference:** This approach uses `right = len(nums)` (exclusive) and maintains the invariant that the target is always in `[left, right)`. When the loop exits, `left == right` which is the insertion position.
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O(log n)` — Binary search on the array |
+| **Space** | `O(1)` — Constant extra space |
 
 ---
 
-### Approach 4: Linear Scan (Brute Force)
+## Approach 3: Linear Search (Brute Force)
 
-**Idea:** Scan through the array until we find a position where target should be inserted.
+While not optimal, this approach is straightforward and works for small arrays.
 
-**Code:**
+### Implementation
+
+````carousel
 ```python
 from typing import List
 
@@ -216,129 +292,136 @@ class Solution:
                 return i
         return len(nums)
 ```
+<!-- slide -->
+```java
+class Solution {
+    public int searchInsert(int[] nums, int target) {
+        for (int i = 0; i < nums.length; i++) {
+            if (nums[i] >= target) {
+                return i;
+            }
+        }
+        return nums.length;
+    }
+}
+```
+<!-- slide -->
+```cpp
+#include <vector>
+using namespace std;
 
-**Explanation:**
-- Simple but inefficient approach
-- Returns first index where `nums[i] >= target`
-- If no such index exists, return `len(nums)` (insert at end)
+class Solution {
+public:
+    int searchInsert(vector<int>& nums, int target) {
+        for (int i = 0; i < nums.size(); i++) {
+            if (nums[i] >= target) {
+                return i;
+            }
+        }
+        return nums.size();
+    }
+};
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number}
+ */
+var searchInsert = function(nums, target) {
+    for (let i = 0; i < nums.length; i++) {
+        if (nums[i] >= target) {
+            return i;
+        }
+    }
+    return nums.length;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | `O(n)` — Single pass through the array |
+| **Space** | `O(1)` — Constant extra space |
 
 ---
 
-### Approach 5: Using bisect Module (Pythonic)
+## Intuition
 
-**Idea:** Use Python's built-in `bisect` module which implements binary search.
+The problem leverages the **sorted** property of the array. In a sorted array:
+- If `nums[mid] < target`, the target (if it exists) must be in the right half
+- If `nums[mid] > target`, the target (if it exists) must be in the left half
+- If `nums[mid] == target`, we've found the answer
 
-**Code:**
-```python
-from typing import List
-import bisect
+The magic happens when the target is not found. As we eliminate halves of the array, `left` will eventually point to the smallest index where `nums[left] >= target`. This is precisely where the target should be inserted to maintain sorted order.
 
-class Solution:
-    def searchInsert(self, nums: List[int], target: int) -> int:
-        return bisect.bisect_left(nums, target)
+**Visual Example:**
+```
+nums = [1, 3, 5, 6], target = 2
+
+Step 1: left=0, right=3, mid=1, nums[1]=3 > 2 → right=0
+Step 2: left=0, right=0, mid=0, nums[0]=1 < 2 → left=1
+Loop exits, return left=1 ✓
 ```
 
-**Explanation:**
-- `bisect_left` returns the insertion position to maintain sorted order
-- If target exists, it returns the leftmost position of target
-- If target doesn't exist, it returns where target should be inserted
-- This is the most Pythonic and concise solution
-
 ---
 
-## Time/Space Complexity Summary
+## Complexity Comparison
 
 | Approach | Time Complexity | Space Complexity | Notes |
 |----------|-----------------|------------------|-------|
-| Standard Binary Search | O(log n) | O(1) | Recommended, clean and efficient |
-| Lower Bound Binary Search | O(log n) | O(1) | Elegant variant |
-| Recursive Binary Search | O(log n) | O(log n) | Stack space for recursion |
-| Linear Scan | O(n) | O(1) | Simple but too slow for large arrays |
-| bisect Module | O(log n) | O(1) | Pythonic, uses built-in |
-
----
-
-## Detailed Complexity Analysis
-
-### Why O(log n) for Binary Search?
-
-In binary search, we start with a search range of n elements.
-- After 1 comparison: n/2 elements remain
-- After 2 comparisons: n/4 elements remain
-- After k comparisons: n/2^k elements remain
-
-The search continues until the range is empty, i.e., n/2^k < 1, which means k > log₂(n).
-
-Thus, the number of comparisons is O(log n).
-
-### Why return `left` when target not found?
-
-Consider the invariant during binary search:
-- All elements at indices < `left` are < target
-- All elements at indices > `right` are > target
-
-When the loop terminates (`left > right`):
-- `left` is the first position where `nums[left] >= target`
-- This is exactly where target should be inserted
+| Standard Binary Search | `O(log n)` | `O(1)` | Most intuitive approach |
+| Lower Bound Binary Search | `O(log n)` | `O(1)` | Elegant, uses exclusive right bound |
+| Linear Search | `O(n)` | `O(1)` | Simple but not optimal for large arrays |
 
 ---
 
 ## Related Problems
 
-| Problem | Description | Link |
-|---------|-------------|------|
-| **Binary Search** | Basic binary search implementation | [LC 704](https://leetcode.com/problems/binary-search/) / [Solution](./binary-search.md) |
-| **Find First and Last Occurrence** | Find first/last position of target in sorted array with duplicates | [LC 34](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/) / [Solution](./binary-search-find-first-last-occurrence.md) |
-| **Search in Rotated Sorted Array** | Search in a rotated sorted array | [LC 33](https://leetcode.com/problems/search-in-rotated-sorted-array/) |
-| **Search a 2D Matrix** | Search in a 2D matrix with sorted rows and columns | [LC 74](https://leetcode.com/problems/search-a-2d-matrix/) |
-| **Find Minimum in Rotated Sorted Array** | Find minimum in rotated sorted array | [LC 153](https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/) |
-| **Guess Number Higher or Lower** | Guess number with hint (higher/lower) | [LC 374](https://leetcode.com/problems/guess-number-higher-or-lower/) |
-| **Search Insert Position (Variations)** | With duplicates, 2D matrix, etc. | Practice variations |
+| Problem | Difficulty | Description |
+|---------|------------|-------------|
+| [First Bad Version](https://leetcode.com/problems/first-bad-version/) | Easy | Find first version where product goes bad using binary search |
+| [Search in Rotated Sorted Array](https://leetcode.com/problems/search-in-rotated-sorted-array/) | Medium | Search in a rotated sorted array |
+| [Find First and Last Position](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/) | Medium | Find all occurrences of a target |
+| [Binary Search](https://leetcode.com/problems/binary-search/) | Easy | Basic binary search implementation |
 
 ---
 
 ## Video Tutorials
 
-1. [NeetCode - Search Insert Position](https://www.youtube.com/watch?v=FYYE3D4eS7E)
-2. [Binary Search - Find Insert Position](https://www.youtube.com/watch?v=KA7xKdDsV6E)
-3. [Fraz - Binary Search Playlist](https://www.youtube.com/watch?v=13YBuu2X1cA)
-4. [Abdul Bari - Binary Search Explanation](https://www.youtube.com/watch?v=C2ap5_0pTuM)
+- [Binary Search - Search Insert Position (LeetCode)](https://www.youtube.com/watch?v=KA5j6S6Gtos) - NeetCode
+- [Search Insert Position - LeetCode 35 - Full Solution](https://www.youtube.com/watch?v=0AObExs5Ww0) - DataDaft
+- [Binary Search Explained - Search Insert Position](https://www.youtube.com/watch?v=V0tBdbJ_9tQ) - Kevin Naughton Jr.
 
 ---
 
 ## Follow-up Questions
 
-1. **What if the array contains duplicates?**  
-   Use `bisect_left` to find the leftmost position, or modify binary search to continue searching left after finding a match for the first occurrence.
+**Q: What if the array contains duplicates?**
 
-2. **How would you modify the solution for a 2D matrix?**  
-   First perform binary search on rows to find the target row, then binary search within that row. See "Search a 2D Matrix" (LC 74).
+**A:** If duplicates exist, binary search may return any index where the target appears. To find the first or last occurrence, you would need to modify the algorithm to continue searching in the appropriate direction after finding a match.
 
-3. **What if the array is rotated (like in Search in Rotated Sorted Array)?**  
-   You need to determine which half is sorted at each step and adjust the search accordingly.
+**Q: How would you handle integer overflow when calculating mid?**
 
-4. **How would you count how many numbers are less than the target?**  
-   The answer is exactly the insertion position! `searchInsert(nums, target)` returns the count of elements < target.
+**A:** Use the formula `mid = left + (right - left) // 2` instead of `(left + right) // 2`. This prevents overflow when `left + right` exceeds the maximum integer value.
 
-5. **Can you solve this without binary search using built-in functions?**  
-   In Python, you can use `bisect.bisect_left(nums, target)` which implements binary search internally.
+**Q: What if we need to find the upper bound (first element > target) instead?**
 
-6. **What if you need to insert multiple values efficiently?**  
-   Consider using a data structure like a balanced BST or skip list for O(log n) insertions.
+**A:** Modify the condition to `if nums[mid] <= target: left = mid + 1`. This finds the insertion position for the first element greater than the target.
 
-7. **How would you handle the case where you need to return the insertion position for multiple queries?**  
-   Preprocess the array into a structure that supports fast queries, or use fractional cascading if queries are related.
+**Q: Can we solve this without binary search?**
+
+**A:** Yes, using linear search as shown in Approach 3. However, this has O(n) time complexity, which is not optimal for large arrays.
+
+**Q: What happens if the target is smaller than all elements?**
+
+**A:** The binary search will eventually set `right = -1` and `left = 0`, returning 0 as the insertion position.
 
 ---
 
 ## Summary
 
-The Search Insert Position problem demonstrates the power of binary search on sorted arrays:
-
-- **Key Insight**: The insertion position is the first index where `nums[i] >= target`
-- **Algorithm**: Binary search with O(log n) time complexity
-- **Return Value**: Return the index if found, otherwise return `left` (or `right` + 1)
-- **Variations**: Can be extended to handle duplicates, 2D matrices, rotated arrays
-
-The standard binary search approach is both intuitive and efficient, making it the recommended solution for this problem.
-
+The Search Insert Position problem is a classic binary search application. The key insight is that when the target is not found, the binary search naturally terminates at the insertion position. Both binary search approaches achieve `O(log n)` time and `O(1)` space complexity, making them optimal for this problem.
