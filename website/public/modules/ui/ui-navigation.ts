@@ -63,7 +63,11 @@ export const toggleTheme = () => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 };
 
-export const _toggleSidebarClasses = (sidebar: HTMLElement, addClasses: string[], removeClasses: string[]) => {
+export const _toggleSidebarClasses = (
+    sidebar: HTMLElement,
+    addClasses: string[],
+    removeClasses: string[]
+) => {
     addClasses.forEach((cls: string) => sidebar.classList.add(cls));
     removeClasses.forEach((cls: string) => sidebar.classList.remove(cls));
 };

@@ -25,7 +25,11 @@ import { ui } from './ui.js';
  * @param {boolean} loading - Whether to show loading state.
  * @param {string} [loadingText="Connecting..."] - Text to display while loading.
  */
-export const setButtonLoading = (button: HTMLElement | null, loading: boolean, loadingText = 'Connecting...') => {
+export const setButtonLoading = (
+    button: HTMLElement | null,
+    loading: boolean,
+    loadingText = 'Connecting...'
+) => {
     if (!button) return;
     const btn = button as HTMLButtonElement;
     btn.disabled = loading;
@@ -53,7 +57,10 @@ export const handleGoogleLogin = () => {
         const modalBtn = state.elements.modalGoogleLoginBtn ?? null;
         ui.setButtonLoading(btn, false);
         ui.setButtonLoading(modalBtn, false);
-        utils.showToast('Sign-in popup was blocked. Please allow popups for this site and try again.', 'error');
+        utils.showToast(
+            'Sign-in popup was blocked. Please allow popups for this site and try again.',
+            'error'
+        );
         return;
     }
 
@@ -203,7 +210,9 @@ export const updateAuthUI = () => {
 
     if (disconnectBtn) {
         disconnectBtn.innerHTML = isLocal ? `${signInIcon} Sign In` : `${signOutIcon} Sign Out`;
-        disconnectBtn.title = isLocal ? 'Sign in to sync across devices' : 'Sign out and switch to local mode';
+        disconnectBtn.title = isLocal
+            ? 'Sign in to sync across devices'
+            : 'Sign out and switch to local mode';
     }
 };
 

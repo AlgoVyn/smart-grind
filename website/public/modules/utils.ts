@@ -18,7 +18,12 @@ export const utils = {
         return result.toISOString().split('T')[0];
     },
 
-    formatDate: (date: string) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
+    formatDate: (date: string) =>
+        new Date(date).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            timeZone: 'UTC',
+        }),
 
     // URL helpers
     getUrlParameter: (name: string) => {
@@ -44,7 +49,8 @@ export const utils = {
             }
 
             // Use history.pushState to update URL without page reload
-            const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+            const newUrl =
+                window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
             window.history.pushState({ path: newUrl }, '', newUrl);
         }
     },
@@ -78,28 +84,36 @@ export const utils = {
 
     // AI provider configurations
     _aiProviders: {
-        chatgpt: { 
-            mobileIntent: 'intent://chat.openai.com#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchatgpt.com%2F;end', 
-            desktopUrl: 'https://chatgpt.com/?q=' 
+        chatgpt: {
+            mobileIntent:
+                'intent://chat.openai.com#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchatgpt.com%2F;end',
+            desktopUrl: 'https://chatgpt.com/?q=',
         },
-        aistudio: { 
-            mobileIntent: 'intent://aistudio.google.com#Intent;scheme=https;package=com.google.ai.apps.aistudio;S.browser_fallback_url=https%3A%2F%2Faistudio.google.com;end', 
-            desktopUrl: 'https://aistudio.google.com/prompts/new_chat?prompt=' 
+        aistudio: {
+            mobileIntent:
+                'intent://aistudio.google.com#Intent;scheme=https;package=com.google.ai.apps.aistudio;S.browser_fallback_url=https%3A%2F%2Faistudio.google.com;end',
+            desktopUrl: 'https://aistudio.google.com/prompts/new_chat?prompt=',
         },
-        grok: { 
-            mobileIntent: 'intent://grok.com#Intent;scheme=https;package=com.xai.grok;S.browser_fallback_url=https%3A%2F%2Fgrok.com;end', 
-            desktopUrl: 'https://grok.com/?q=' 
-        }
+        grok: {
+            mobileIntent:
+                'intent://grok.com#Intent;scheme=https;package=com.xai.grok;S.browser_fallback_url=https%3A%2F%2Fgrok.com;end',
+            desktopUrl: 'https://grok.com/?q=',
+        },
     },
 
     // Helper to build AI URL
     _buildAIUrl: (provider: 'chatgpt' | 'aistudio' | 'grok', encodedPrompt: string) => {
         const config = utils._aiProviders[provider];
-        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+        );
 
         if (isMobile) {
             const fallbackParam = encodeURIComponent(`${config.desktopUrl}${encodedPrompt}`);
-            return config.mobileIntent.replace(/S\.browser_fallback_url=[^;]+/, `S.browser_fallback_url=${fallbackParam}`);
+            return config.mobileIntent.replace(
+                /S\.browser_fallback_url=[^;]+/,
+                `S.browser_fallback_url=${fallbackParam}`
+            );
         } else {
             return config.desktopUrl + encodedPrompt;
         }
@@ -153,40 +167,39 @@ export const utils = {
 
         return sanitized;
     },
-    
+
     sanitizeUrl: (url: string | null | undefined) => {
         if (!url) return '';
-        
+
         let sanitized = url.trim();
-        
+
         // Basic URL validation and sanitization
         try {
             // If it doesn't start with http:// or https://, prepend https://
             if (!sanitized.startsWith('http://') && !sanitized.startsWith('https://')) {
                 sanitized = 'https://' + sanitized;
             }
-            
+
             // Create URL object to validate
             new URL(sanitized);
-            
+
             // Remove any script-related content from URL
             sanitized = sanitized.replace(/javascript:/gi, '');
             sanitized = sanitized.replace(/data:/gi, '');
-            
         } catch (e) {
             // If URL parsing fails, return empty string
             console.warn('Invalid URL:', e);
             return '';
         }
-        
+
         // Limit URL length
         if (sanitized.length > 500) {
             sanitized = sanitized.substring(0, 500);
         }
-        
+
         return sanitized;
     },
-    
+
     // Toast notifications
     showToast: (msg: string, type = 'success') => {
         const el = document.createElement('div');
@@ -263,19 +276,22 @@ export const utils = {
         return {
             total: uniqueIds.size,
             solved,
-            due
+            due,
         };
     },
 
     shouldShowProblem: (problem: Problem, filter: string, searchQuery: string, today: string) => {
-    // Apply filter
+        // Apply filter
         const filterFunctions: { [key: string]: (_p: Problem, _t: string) => boolean } = {
-            'all': (_p: Problem, _t: string) => true,
-            'unsolved': (_p: Problem, _t: string) => _p.status === 'unsolved',
-            'solved': (_p: Problem, _t: string) => _p.status === 'solved',
-            'review': (_p: Problem, _t: string) => _p.status === 'solved' && _p.nextReviewDate !== null && _p.nextReviewDate <= _t
+            all: (_p: Problem, _t: string) => true,
+            unsolved: (_p: Problem, _t: string) => _p.status === 'unsolved',
+            solved: (_p: Problem, _t: string) => _p.status === 'solved',
+            review: (_p: Problem, _t: string) =>
+                _p.status === 'solved' && _p.nextReviewDate !== null && _p.nextReviewDate <= _t,
         };
-        const passesFilter = filterFunctions[filter] ? filterFunctions[filter](problem, today) : false;
+        const passesFilter = filterFunctions[filter]
+            ? filterFunctions[filter](problem, today)
+            : false;
 
         if (!passesFilter) return false;
 
@@ -288,5 +304,5 @@ export const utils = {
         }
 
         return true;
-    }
+    },
 };

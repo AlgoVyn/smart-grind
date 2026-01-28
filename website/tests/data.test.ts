@@ -49,7 +49,7 @@ describe('SmartGrind Data Module', () => {
             USER_TYPE: 'smartgrind-user-type',
             PROBLEMS: 'smartgrind-local-problems',
             DELETED_IDS: 'smartgrind-local-deleted-ids',
-            DISPLAY_NAME: 'smartgrind-local-display-name'
+            DISPLAY_NAME: 'smartgrind-local-display-name',
         };
 
         expect(data.LOCAL_STORAGE_KEYS).toEqual(expectedKeys);
@@ -100,10 +100,10 @@ describe('SmartGrind Data Module', () => {
             'greedy',
             'bit-manipulation',
             'string-manipulation',
-            'design'
+            'design',
         ];
 
-        const actualTopicIds = data.topicsData.map(topic => topic.id);
+        const actualTopicIds = data.topicsData.map((topic) => topic.id);
         expect(actualTopicIds).toEqual(expectedTopicIds);
     });
 });

@@ -13,14 +13,14 @@ const _keyboardShortcuts = {
     '/': () => {
         state.elements['problemSearch']?.focus();
     },
-    'Escape': () => {
+    Escape: () => {
         if (!state.elements['setupModal']?.classList.contains('hidden')) return; // Don't close setup modal
         if (!state.elements['addProblemModal']?.classList.contains('hidden')) {
             state.elements['addProblemModal']?.classList.add('hidden');
         }
     },
-    'e': () => app.exportProgress(),
-    'E': () => app.exportProgress()
+    e: () => app.exportProgress(),
+    E: () => app.exportProgress(),
 };
 
 // Keyboard shortcuts
@@ -45,9 +45,11 @@ export const handleKeyboard = (e: KeyboardEvent) => {
 // Browser navigation
 export const handlePopState = () => {
     const categoryParam = utils.getUrlParameter('category');
-    const category = categoryParam && (data.topicsData.some((t: Topic) => t.id === categoryParam) || categoryParam === 'all')
-        ? categoryParam
-        : 'all';
+    const category =
+        categoryParam &&
+        (data.topicsData.some((t: Topic) => t.id === categoryParam) || categoryParam === 'all')
+            ? categoryParam
+            : 'all';
 
     state.ui.activeTopicId = category;
     renderers.renderSidebar();
@@ -65,7 +67,11 @@ export const bindGlobalEvents = () => {
 
     // Close sidebar on topic click (mobile)
     state.elements['topicList']?.addEventListener('click', (e: MouseEvent) => {
-        if (window.innerWidth < 768 && ((e.target as Element).closest('.sidebar-link') || (e.target as Element).closest('button'))) {
+        if (
+            window.innerWidth < 768 &&
+            ((e.target as Element).closest('.sidebar-link') ||
+                (e.target as Element).closest('button'))
+        ) {
             toggleMobileMenu();
         }
     });

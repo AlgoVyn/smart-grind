@@ -25,7 +25,7 @@ export const ui = {
     ...uiMarkdown,
     ...uiBindings,
     pullToRefresh,
-    sidebarResizer
+    sidebarResizer,
 };
 
 if (typeof jest === 'undefined') {

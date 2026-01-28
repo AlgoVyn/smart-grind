@@ -22,7 +22,16 @@ export const problemCardRenderers = {
     },
 
     // Helper to perform async status change with loading and error handling
-    _performStatusChange: async (button: HTMLElement, _p: Problem, statusUpdater: (_problem: Problem) => void, options: { successMessage?: string; errorMessage?: string; onFinally?: ProblemCallback } = {}): Promise<void> => {
+    _performStatusChange: async (
+        button: HTMLElement,
+        _p: Problem,
+        statusUpdater: (_problem: Problem) => void,
+        options: {
+            successMessage?: string;
+            errorMessage?: string;
+            onFinally?: ProblemCallback;
+        } = {}
+    ): Promise<void> => {
         const successMessage = options.successMessage;
         const errorMessage = options.errorMessage;
         const onFinally = options.onFinally;
@@ -32,7 +41,7 @@ export const problemCardRenderers = {
             status: _p.status,
             reviewInterval: _p.reviewInterval,
             nextReviewDate: _p.nextReviewDate,
-            note: _p.note
+            note: _p.note,
         };
 
         // Apply status updates
@@ -43,7 +52,7 @@ export const problemCardRenderers = {
         renderers._reRenderCard(button, _p);
 
         // Add delay for spinner visibility
-        await new Promise<void>(resolve => setTimeout(resolve, 400));
+        await new Promise<void>((resolve) => setTimeout(resolve, 400));
 
         try {
             await api.saveProblem(_p);
@@ -83,16 +92,18 @@ export const problemCardRenderers = {
     },
 
     // Helper to handle problem status changes
-    _handleStatusChange: async (button: HTMLElement, p: Problem, newStatus: 'unsolved' | 'solved', interval = 0, nextDate: string | null = null): Promise<void> => {
-        await renderers._performStatusChange(
-            button,
-            p,
-            (problem: Problem) => {
-                problem.status = newStatus;
-                problem.reviewInterval = interval;
-                problem.nextReviewDate = nextDate;
-            }
-        );
+    _handleStatusChange: async (
+        button: HTMLElement,
+        p: Problem,
+        newStatus: 'unsolved' | 'solved',
+        interval = 0,
+        nextDate: string | null = null
+    ): Promise<void> => {
+        await renderers._performStatusChange(button, p, (problem: Problem) => {
+            problem.status = newStatus;
+            problem.reviewInterval = interval;
+            problem.nextReviewDate = nextDate;
+        });
     },
 
     // Handle solve action
@@ -123,7 +134,7 @@ export const problemCardRenderers = {
                     } else {
                         renderers._reRenderAllCards(problem);
                     }
-                }
+                },
             }
         );
     },
@@ -149,12 +160,18 @@ export const problemCardRenderers = {
 
                 // Check if topic section should be hidden
                 const topicSection = patternSection.parentElement;
-                if (topicSection && topicSection.querySelectorAll(':scope > div:not([style*="display: none"])').length === 0) {
+                if (
+                    topicSection &&
+                    topicSection.querySelectorAll(':scope > div:not([style*="display: none"])')
+                        .length === 0
+                ) {
                     topicSection.style.display = 'none';
                     const currentFilter = state.ui.currentFilter;
                     const allProblemsContainer = document.getElementById('problems-container');
                     if (allProblemsContainer) {
-                        const visibleProblems = allProblemsContainer.querySelectorAll('.group:not([style*="display: none"])');
+                        const visibleProblems = allProblemsContainer.querySelectorAll(
+                            '.group:not([style*="display: none"])'
+                        );
                         if (currentFilter === 'review' && visibleProblems.length === 0) {
                             const emptyState = state.elements['emptyState'];
                             if (emptyState) {
@@ -177,15 +194,15 @@ export const problemCardRenderers = {
     // Helper to handle status actions (solve, review, reset)
     _handleStatusAction: async (button: HTMLElement, p: Problem, action: string): Promise<void> => {
         switch (action) {
-        case 'solve':
-            await renderers._handleSolve(button, p);
-            break;
-        case 'review':
-            await renderers._handleReview(button, p);
-            break;
-        case 'reset':
-            await renderers._handleReset(button, p);
-            break;
+            case 'solve':
+                await renderers._handleSolve(button, p);
+                break;
+            case 'review':
+                await renderers._handleReview(button, p);
+                break;
+            case 'reset':
+                await renderers._handleReset(button, p);
+                break;
         }
     },
 
@@ -210,17 +227,15 @@ export const problemCardRenderers = {
 
     // Helper to handle note saving
     _handleNoteSave: async (button: HTMLElement, p: Problem): Promise<void> => {
-        const textarea = button.closest('.note-area')?.querySelector('textarea') as HTMLTextAreaElement;
+        const textarea = button
+            .closest('.note-area')
+            ?.querySelector('textarea') as HTMLTextAreaElement;
         if (!textarea) return;
 
-        await renderers._performStatusChange(
-            button,
-            p,
-            (problem: Problem) => {
-                // Sanitize note input before saving
-                problem.note = utils.sanitizeInput(textarea.value.trim());
-            }
-        );
+        await renderers._performStatusChange(button, p, (problem: Problem) => {
+            // Sanitize note input before saving
+            problem.note = utils.sanitizeInput(textarea.value.trim());
+        });
     },
 
     // Helper to handle AI assistant actions
@@ -275,5 +290,5 @@ export const problemCardRenderers = {
         el.innerHTML = innerHTML;
 
         return el;
-    }
+    },
 };

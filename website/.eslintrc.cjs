@@ -12,6 +12,7 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
+    'prettier',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -21,10 +22,8 @@ module.exports = {
   },
   plugins: ['@typescript-eslint'],
   rules: {
-    'indent': ['error', 4],
-    'linebreak-style': ['error', 'unix'],
-    'quotes': ['error', 'single', { 'avoidEscape': true }],
-    'semi': ['error', 'always'],
+    // Formatting rules handled by Prettier
+    // 'indent', 'quotes', 'semi', 'linebreak-style' are disabled by prettier
     'no-unused-vars': ['warn', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }],
     'no-console': ['off'], // Allow console in this codebase
     'prefer-const': ['error'],

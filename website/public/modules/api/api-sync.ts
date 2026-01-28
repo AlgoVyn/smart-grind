@@ -8,29 +8,35 @@ import { ui } from '../ui/ui.js';
 import { _performSave } from './api-save.js';
 
 /**
-      * Syncs the current problems with the static problem plan, adding new problems and updating metadata.
-      * @throws {Error} Throws an error if syncing fails.
-      */
+ * Syncs the current problems with the static problem plan, adding new problems and updating metadata.
+ * @throws {Error} Throws an error if syncing fails.
+ */
 export const syncPlan = async (): Promise<void> => {
     try {
         let changed = false;
         const saveObj = Object.fromEntries(state.problems);
 
         // Build a Map of problem definitions for O(1) lookup
-        const problemDefMap = new Map<string, { name: string; url: string; topic: string; pattern: string }>();
-        
+        const problemDefMap = new Map<
+            string,
+            { name: string; url: string; topic: string; pattern: string }
+        >();
+
         data.topicsData.forEach((topic: Topic) => {
             topic.patterns.forEach((pat: Pattern) => {
                 pat.problems.forEach((probDef: string | ProblemDef) => {
                     const id = typeof probDef === 'string' ? probDef : probDef.id;
                     const name = typeof probDef === 'string' ? probDef : probDef.name;
-                    const url = typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url;
-                    
+                    const url =
+                        typeof probDef === 'string'
+                            ? `https://leetcode.com/problems/${id}/`
+                            : probDef.url;
+
                     problemDefMap.set(id, {
                         name,
                         url,
                         topic: topic.title,
-                        pattern: pat.name
+                        pattern: pat.name,
                     });
                 });
             });
@@ -50,7 +56,7 @@ export const syncPlan = async (): Promise<void> => {
                     reviewInterval: 0,
                     nextReviewDate: null,
                     note: '',
-                    loading: false
+                    loading: false,
                 };
                 state.problems.set(id, newProb);
                 saveObj[id] = newProb;
@@ -103,7 +109,11 @@ export const mergeStructure = (): void => {
             let topic = data.topicsData.find((t: Topic) => t.title === p.topic);
             if (!topic) {
                 // Create new topic if needed
-                topic = { id: p.topic.toLowerCase().replace(/\s+/g, '-'), title: p.topic, patterns: [] };
+                topic = {
+                    id: p.topic.toLowerCase().replace(/\s+/g, '-'),
+                    title: p.topic,
+                    patterns: [],
+                };
                 data.topicsData.push(topic);
             }
 

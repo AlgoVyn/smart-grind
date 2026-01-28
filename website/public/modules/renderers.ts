@@ -15,5 +15,5 @@ export const renderers = {
     ...sidebarRenderers,
     ...mainViewRenderers,
     ...problemCardRenderers,
-    ...statsRenderers
+    ...statsRenderers,
 };

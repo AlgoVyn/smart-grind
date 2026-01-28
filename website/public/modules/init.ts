@@ -23,7 +23,11 @@ const _applyCategory = (categoryParam: string | null) => {
 };
 
 // Helper to setup signed-in user
-const _setupSignedInUser = async (userId: string, displayName: string, categoryParam: string | null) => {
+const _setupSignedInUser = async (
+    userId: string,
+    displayName: string,
+    categoryParam: string | null
+) => {
     localStorage.setItem('userId', userId);
     localStorage.setItem('displayName', displayName);
 
@@ -50,10 +54,7 @@ const _setupLocalUser = (categoryParam: string | null) => {
 // Check auth state and initialize app
 const checkAuth = async () => {
     // Load UI modules dynamically for code splitting
-    await Promise.all([
-        import('./renderers.js'),
-        import('./ui/ui.js')
-    ]);
+    await Promise.all([import('./renderers.js'), import('./ui/ui.js')]);
 
     // Extract category from URL path
     const path = window.location.pathname;
@@ -104,7 +105,10 @@ const checkAuth = async () => {
         if (googleLoginBtn) {
             (googleLoginBtn as HTMLButtonElement).disabled = false;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            googleLoginBtn.innerHTML = (window as Window & { SmartGrind?: { GOOGLE_BUTTON_HTML?: string } }).SmartGrind?.['GOOGLE_BUTTON_HTML'] || '';
+            googleLoginBtn.innerHTML =
+                (window as Window & { SmartGrind?: { GOOGLE_BUTTON_HTML?: string } }).SmartGrind?.[
+                    'GOOGLE_BUTTON_HTML'
+                ] || '';
         }
         ui.updateAuthUI();
     }

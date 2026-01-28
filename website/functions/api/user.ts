@@ -9,12 +9,15 @@ import { jwtVerify } from 'jose';
  * @returns {boolean} - True if rate limited
  */
 export async function checkRateLimit(request, env, maxRequests = 30, windowSeconds = 60) {
-    const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+    const clientIP =
+        request.headers.get('CF-Connecting-IP') ||
+        request.headers.get('X-Forwarded-For') ||
+        'unknown';
     const key = `ratelimit_${clientIP}`;
 
     try {
         const now = Date.now();
-        const windowStart = now - (windowSeconds * 1000);
+        const windowStart = now - windowSeconds * 1000;
         const requests = await env.KV.get(key);
         const parsedRequests = requests ? JSON.parse(requests) : [];
         const validRequests = parsedRequests.filter((t: number) => t > windowStart);
@@ -60,8 +63,8 @@ async function authenticate(request, env) {
     // Try cookie first
     const cookieHeader = request.headers.get('Cookie');
     if (cookieHeader) {
-        const cookies = cookieHeader.split(';').map(c => c.trim());
-        const authCookie = cookies.find(c => c.startsWith('auth_token='));
+        const cookies = cookieHeader.split(';').map((c) => c.trim());
+        const authCookie = cookies.find((c) => c.startsWith('auth_token='));
         if (authCookie) {
             token = authCookie.substring('auth_token='.length);
         }
@@ -114,7 +117,7 @@ async function validateCsrfToken(request, env, userId) {
  */
 export async function onRequestGet({ request, env }) {
     // Rate limiting: 30 requests per minute for data access (skip in tests)
-    if (typeof jest === 'undefined' && await checkRateLimit(request, env, 30, 60)) {
+    if (typeof jest === 'undefined' && (await checkRateLimit(request, env, 30, 60))) {
         return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429 });
     }
 
@@ -177,7 +180,7 @@ export async function onRequestGet({ request, env }) {
  */
 export async function onRequestPost({ request, env }) {
     // Rate limiting: 30 requests per minute for data access (skip in tests)
-    if (typeof jest === 'undefined' && await checkRateLimit(request, env, 30, 60)) {
+    if (typeof jest === 'undefined' && (await checkRateLimit(request, env, 30, 60))) {
         return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429 });
     }
 

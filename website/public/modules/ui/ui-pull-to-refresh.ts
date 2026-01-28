@@ -28,13 +28,19 @@ export const pullToRefresh = {
             state.elements['signinModal'],
             state.elements['alertModal'],
             state.elements['confirmModal'],
-            state.elements['solutionModal']
+            state.elements['solutionModal'],
         ];
-        return modals.some(modal => modal && !modal.classList.contains('hidden'));
+        return modals.some((modal) => modal && !modal.classList.contains('hidden'));
     },
 
     handleTouchStart: (e: TouchEvent) => {
-        if (window.scrollY === 0 && state.elements['contentScroll']!.scrollTop === 0 && !state.elements['mainSidebar']!.classList.contains('translate-x-0') && !pullToRefresh.isAnyModalOpen() && e.touches[0]) {
+        if (
+            window.scrollY === 0 &&
+            state.elements['contentScroll']!.scrollTop === 0 &&
+            !state.elements['mainSidebar']!.classList.contains('translate-x-0') &&
+            !pullToRefresh.isAnyModalOpen() &&
+            e.touches[0]
+        ) {
             pullToRefresh.startY = e.touches[0].clientY;
             pullToRefresh.isPulling = true;
         }
@@ -92,7 +98,13 @@ export const pullToRefresh = {
 
     handleMouseDown: (e: MouseEvent) => {
         if (e.button !== 0) return; // Only left mouse button
-        if (window.scrollY === 0 && state.elements['contentScroll']!.scrollTop === 0 && !state.elements['mainSidebar']!.classList.contains('translate-x-0') && !pullToRefresh.isAnyModalOpen() && !pullToRefresh.isMousePulling) {
+        if (
+            window.scrollY === 0 &&
+            state.elements['contentScroll']!.scrollTop === 0 &&
+            !state.elements['mainSidebar']!.classList.contains('translate-x-0') &&
+            !pullToRefresh.isAnyModalOpen() &&
+            !pullToRefresh.isMousePulling
+        ) {
             pullToRefresh.startY = e.clientY;
             pullToRefresh.isMousePulling = true;
         }
@@ -116,5 +128,5 @@ export const pullToRefresh = {
             }
             pullToRefresh.isMousePulling = false;
         }
-    }
+    },
 };

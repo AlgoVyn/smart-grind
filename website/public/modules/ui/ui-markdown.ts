@@ -18,9 +18,9 @@ export const patterns = {
         // Convert to lowercase and replace special characters with hyphens
         let cleaned = patternName
             .toLowerCase()
-            .replace(/[\s/()&`'+-]+/g, '-')  // Replace spaces and special chars with hyphens
-            .replace(/-+/g, '-')             // Collapse multiple hyphens
-            .replace(/^-+|-+$/g, '');        // Trim hyphens from start/end
+            .replace(/[\s/()&`'+-]+/g, '-') // Replace spaces and special chars with hyphens
+            .replace(/-+/g, '-') // Collapse multiple hyphens
+            .replace(/^-+|-+$/g, ''); // Trim hyphens from start/end
 
         // Remove common suffix patterns that don't add value
         cleaned = cleaned
@@ -45,18 +45,30 @@ export const patterns = {
         } catch (_error) {
             return false;
         }
-    }
+    },
 };
 
 // Helper to configure markdown renderer
 export const _configureMarkdownRenderer = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const marked = (window as unknown as { marked?: { setOptions: (_opts: { breaks: boolean; gfm: boolean }) => void; Renderer: new () => { code: (_code: string | { lang: string; text: string }, _language: string) => string } } }).marked;
+    const marked = (
+        window as unknown as {
+            marked?: {
+                setOptions: (_opts: { breaks: boolean; gfm: boolean }) => void;
+                Renderer: new () => {
+                    code: (
+                        _code: string | { lang: string; text: string },
+                        _language: string
+                    ) => string;
+                };
+            };
+        }
+    ).marked;
     if (!marked) return null;
 
     marked.setOptions({
         breaks: true,
-        gfm: true
+        gfm: true,
     });
 
     // Custom renderer
@@ -83,7 +95,9 @@ export const _configureMarkdownRenderer = () => {
         // CAROUSEL SUPPORT
         if (language === 'carousel') {
             const uniqueId = 'carousel-' + Math.random().toString(36).substr(2, 9);
-            const slides = code.split(/<!--\s*slide\s*-->/).filter((s: string) => s.trim().length > 0);
+            const slides = code
+                .split(/<!--\s*slide\s*-->/)
+                .filter((s: string) => s.trim().length > 0);
 
             let tabsHtml = '<div class="flex bg-[#1e1e1e] overflow-x-auto">';
             let panesHtml = '<div class="carousel-content bg-[#1e1e1e]">'; // Default dark background for code
@@ -103,14 +117,18 @@ export const _configureMarkdownRenderer = () => {
                 // Escape the inner code
                 innerCode = escapeHtml(innerCode);
 
-                const displayName = innerLang === 'cpp' ? 'C++' :
-                    innerLang === 'javascript' ? 'JavaScript' :
-                        innerLang.charAt(0).toUpperCase() + innerLang.slice(1);
+                const displayName =
+                    innerLang === 'cpp'
+                        ? 'C++'
+                        : innerLang === 'javascript'
+                          ? 'JavaScript'
+                          : innerLang.charAt(0).toUpperCase() + innerLang.slice(1);
 
                 // Tab Button
-                const activeTabClass = index === 0
-                    ? 'text-brand-400 bg-[#1e1e1e]'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50';
+                const activeTabClass =
+                    index === 0
+                        ? 'text-brand-400 bg-[#1e1e1e]'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50';
 
                 tabsHtml += `
                     <button onclick="window.SmartGrind.ui.switchCarouselTab('${uniqueId}', ${index})" 
@@ -124,7 +142,8 @@ export const _configureMarkdownRenderer = () => {
                 const langClass = `language-${innerLang}`;
 
                 // Copy Button (Absolute positioned inside the pane)
-                const copyBtn = '<button class="code-copy-btn absolute top-3 right-3 p-1.5 text-white/40 hover:text-white bg-slate-700/30 hover:bg-slate-600 rounded opacity-0 group-hover:opacity-100 transition-all z-10" onclick="window.SmartGrind.ui.copyCode(this)" title="Copy Code"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>';
+                const copyBtn =
+                    '<button class="code-copy-btn absolute top-3 right-3 p-1.5 text-white/40 hover:text-white bg-slate-700/30 hover:bg-slate-600 rounded opacity-0 group-hover:opacity-100 transition-all z-10" onclick="window.SmartGrind.ui.copyCode(this)" title="Copy Code"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>';
 
                 panesHtml += `
                     <div id="${uniqueId}-pane-${index}" class="${displayClass}">
@@ -145,7 +164,8 @@ export const _configureMarkdownRenderer = () => {
         const escapedCode = escapeHtml(code);
 
         // Use the same refined copy button style
-        const copyBtn = '<button class="code-copy-btn absolute top-3 right-3 p-1.5 text-white/40 hover:text-white bg-slate-700/30 hover:bg-slate-600 rounded opacity-0 group-hover:opacity-100 transition-all z-10" onclick="window.SmartGrind.ui.copyCode(this)" title="Copy Code"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>';
+        const copyBtn =
+            '<button class="code-copy-btn absolute top-3 right-3 p-1.5 text-white/40 hover:text-white bg-slate-700/30 hover:bg-slate-600 rounded opacity-0 group-hover:opacity-100 transition-all z-10" onclick="window.SmartGrind.ui.copyCode(this)" title="Copy Code"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>';
 
         return `<div class="relative mb-4 rounded-lg overflow-hidden bg-[#1e1e1e]">
             <pre class="${langClass} !m-0 !border-0 !shadow-none !bg-transparent relative"><code class="${langClass} !bg-transparent !border-0">${escapedCode}</code>${copyBtn}</pre>
@@ -154,7 +174,7 @@ export const _configureMarkdownRenderer = () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).marked.setOptions({
-        renderer: renderer
+        renderer: renderer,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -165,7 +185,7 @@ export const _configureMarkdownRenderer = () => {
 export const switchCarouselTab = (uniqueId: string, index: number) => {
     // Update Buttons
     const buttons = document.querySelectorAll(`.carousel-tab-btn-${uniqueId}`);
-    buttons.forEach(btn => {
+    buttons.forEach((btn) => {
         const htmlBtn = btn as HTMLElement;
         if (parseInt(htmlBtn.dataset['index'] || '0') === index) {
             btn.classList.remove('text-slate-400', 'hover:text-slate-200', 'hover:bg-slate-800/50');
@@ -185,7 +205,7 @@ export const switchCarouselTab = (uniqueId: string, index: number) => {
     if (!container) return;
     const allPanes = container.querySelectorAll('[id^="' + uniqueId + '-pane-"]');
 
-    allPanes.forEach(pane => {
+    allPanes.forEach((pane) => {
         pane.classList.add('hidden');
         pane.classList.remove('block');
     });
@@ -205,28 +225,33 @@ export const copyCode = (btn: HTMLElement) => {
     if (!codeEl) return;
     const code = codeEl.innerText;
     const originalHTML = btn.innerHTML;
-    navigator.clipboard.writeText(code).then(() => {
-        btn.classList.add('copied');
-        btn.style.color = '#4da6ff'; // Brand color for success
-        btn.style.opacity = '1';
-        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#4da6ff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
-        setTimeout(() => {
-            btn.classList.remove('copied');
-            btn.style.color = '';
-            btn.style.opacity = '';
-            btn.innerHTML = originalHTML;
-        }, 2000);
-    }).catch(err => {
-        console.error('Failed to copy code: ', err);
-        utils.showToast('Failed to copy code');
-    });
+    navigator.clipboard
+        .writeText(code)
+        .then(() => {
+            btn.classList.add('copied');
+            btn.style.color = '#4da6ff'; // Brand color for success
+            btn.style.opacity = '1';
+            btn.innerHTML =
+                '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#4da6ff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.style.color = '';
+                btn.style.opacity = '';
+                btn.innerHTML = originalHTML;
+            }, 2000);
+        })
+        .catch((err) => {
+            console.error('Failed to copy code: ', err);
+            utils.showToast('Failed to copy code');
+        });
 };
 
 // Helper to render markdown content
 export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) => {
     const marked = _configureMarkdownRenderer();
     if (!marked) {
-        contentElement.innerHTML = '<p>Error: Markdown renderer not loaded. Please check your internet connection.</p>';
+        contentElement.innerHTML =
+            '<p>Error: Markdown renderer not loaded. Please check your internet connection.</p>';
         return;
     }
 
@@ -235,13 +260,20 @@ export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) =
 
     // Apply syntax highlighting
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const prism = (window as unknown as { Prism?: { highlightAllUnder: (_element: HTMLElement) => void } }).Prism;
+    const prism = (
+        window as unknown as { Prism?: { highlightAllUnder: (_element: HTMLElement) => void } }
+    ).Prism;
     if (prism) {
         prism.highlightAllUnder(contentElement);
     }
 };
 
-const _loadSolution = (solutionFile: string, loadingText: string, errorPrefix: string, extraErrorText = '') => {
+const _loadSolution = (
+    solutionFile: string,
+    loadingText: string,
+    errorPrefix: string,
+    extraErrorText = ''
+) => {
     const modal = document.getElementById('solution-modal');
     const content = document.getElementById('solution-content');
     if (!modal || !content) return;
@@ -251,19 +283,20 @@ const _loadSolution = (solutionFile: string, loadingText: string, errorPrefix: s
     modal.classList.remove('hidden');
 
     fetch(solutionFile)
-        .then(response => {
+        .then((response) => {
             if (!response.ok) {
                 throw new Error(`Failed to load ${errorPrefix} file (status: ${response.status})`);
             }
             return response.text();
         })
-        .then(markdown => _renderMarkdown(markdown, content))
+        .then((markdown) => _renderMarkdown(markdown, content))
         .then(() => {
             content.addEventListener('scroll', updateSolutionScrollProgress);
             updateSolutionScrollProgress();
         })
-        .catch(error => {
-            content.innerHTML = `<p>Error loading ${errorPrefix}: ${error.message}</p>` +
+        .catch((error) => {
+            content.innerHTML =
+                `<p>Error loading ${errorPrefix}: ${error.message}</p>` +
                 `<p>File: ${solutionFile}</p>${extraErrorText}`;
         });
 };
@@ -278,8 +311,12 @@ export const openSolutionModal = (problemId: string) => {
 export const openPatternSolutionModal = (patternName: string) => {
     const patternFilename = patterns.getPatternFilename(patternName);
     const solutionFile = `/smartgrind/patterns/${patternFilename}.md`;
-    _loadSolution(solutionFile, 'Loading pattern solution...', 'pattern solution',
-        '<p>This pattern may not have a dedicated solution file yet.</p>');
+    _loadSolution(
+        solutionFile,
+        'Loading pattern solution...',
+        'pattern solution',
+        '<p>This pattern may not have a dedicated solution file yet.</p>'
+    );
 };
 
 // Close solution modal

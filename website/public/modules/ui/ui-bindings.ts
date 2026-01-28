@@ -5,7 +5,16 @@ import { initScrollButton } from './ui-scroll.js';
 import { pullToRefresh } from './ui-pull-to-refresh.js';
 import { sidebarResizer } from './ui-sidebar-resizer.js';
 import { updateAuthUI, handleGoogleLogin, handleLogout } from './ui-auth.js';
-import { createModalHandler, closeAlertModal, closeConfirmModal, openAddModal, closeAddModal, saveNewProblem, handleCategoryChange, handlePatternChange } from './ui-modals.js';
+import {
+    createModalHandler,
+    closeAlertModal,
+    closeConfirmModal,
+    openAddModal,
+    closeAddModal,
+    saveNewProblem,
+    handleCategoryChange,
+    handlePatternChange,
+} from './ui-modals.js';
 import { bindNavigationEvents } from './ui-navigation.js';
 import { bindProblemEvents } from './ui-problems.js';
 import { bindGlobalEvents } from './ui-global.js';
@@ -43,26 +52,29 @@ export const bindAuthEvents = () => {
 // Bind modal-related events
 export const bindModalEvents = () => {
     // Sign-in modal
-    state.elements['signinModal']?.addEventListener('click', createModalHandler(
-        state.elements['signinModal']!,
-        state.elements['signinModalContent'] || undefined,
-        undefined
-    ));
+    state.elements['signinModal']?.addEventListener(
+        'click',
+        createModalHandler(
+            state.elements['signinModal']!,
+            state.elements['signinModalContent'] || undefined,
+            undefined
+        )
+    );
 
     // Alert modal
-    state.elements['alertModal']?.addEventListener('click', createModalHandler(
-        state.elements['alertModal']!,
-        undefined,
-        undefined
-    ));
+    state.elements['alertModal']?.addEventListener(
+        'click',
+        createModalHandler(state.elements['alertModal']!, undefined, undefined)
+    );
     state.elements['alertOkBtn']?.addEventListener('click', closeAlertModal);
 
     // Confirm modal
-    state.elements['confirmModal']?.addEventListener('click', createModalHandler(
-        state.elements['confirmModal']!,
-        undefined,
-        () => closeConfirmModal(false)
-    ));
+    state.elements['confirmModal']?.addEventListener(
+        'click',
+        createModalHandler(state.elements['confirmModal']!, undefined, () =>
+            closeConfirmModal(false)
+        )
+    );
     state.elements['confirmOkBtn']?.addEventListener('click', () => closeConfirmModal(true));
     state.elements['confirmCancelBtn']?.addEventListener('click', () => closeConfirmModal(false));
 
@@ -75,9 +87,8 @@ export const bindModalEvents = () => {
 
     // Solution modal
     state.elements['solutionCloseBtn']?.addEventListener('click', closeSolutionModal);
-    state.elements['solutionModal']?.addEventListener('click', createModalHandler(
-        state.elements['solutionModal']!,
-        undefined,
-        undefined
-    ));
+    state.elements['solutionModal']?.addEventListener(
+        'click',
+        createModalHandler(state.elements['solutionModal']!, undefined, undefined)
+    );
 };

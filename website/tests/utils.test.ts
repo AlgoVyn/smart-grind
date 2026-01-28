@@ -31,7 +31,7 @@ import { data } from '../public/modules/data';
 
 describe('SmartGrind Utils', () => {
     beforeEach(() => {
-    // Reset mocks
+        // Reset mocks
         jest.clearAllMocks();
 
         // Set state and data
@@ -78,9 +78,12 @@ describe('SmartGrind Utils', () => {
         test('getUrlParameter returns correct value', () => {
             const originalURLSearchParams = global.URLSearchParams;
             const mockGet = jest.fn();
-            mockGet.mockReturnValueOnce('strings').mockReturnValueOnce('all').mockReturnValueOnce(null);
+            mockGet
+                .mockReturnValueOnce('strings')
+                .mockReturnValueOnce('all')
+                .mockReturnValueOnce(null);
             global.URLSearchParams = jest.fn(() => ({
-                get: mockGet
+                get: mockGet,
             }));
 
             expect(utils.getUrlParameter('category')).toBe('strings');
@@ -109,11 +112,7 @@ describe('SmartGrind Utils', () => {
             window.history.pushState = mockPushState;
 
             utils.updateUrlParameter('category', '');
-            expect(mockPushState).toHaveBeenCalledWith(
-                { path: '/smartgrind' },
-                '',
-                '/smartgrind'
-            );
+            expect(mockPushState).toHaveBeenCalledWith({ path: '/smartgrind' }, '', '/smartgrind');
 
             window.history.pushState = originalPushState;
         });
@@ -127,7 +126,7 @@ describe('SmartGrind Utils', () => {
                 get: jest.fn(),
                 set: mockSet,
                 delete: mockDelete,
-                toString: jest.fn(() => 'category=strings&filter=all')
+                toString: jest.fn(() => 'category=strings&filter=all'),
             }));
             window.history.pushState = mockPushState;
 
@@ -151,15 +150,14 @@ describe('SmartGrind Utils', () => {
 
             expect(state.elements.contentScroll.scrollTo).toHaveBeenCalledWith({
                 top: 0,
-                behavior: 'smooth'
+                behavior: 'smooth',
             });
             expect(window.scrollTo).toHaveBeenCalledWith({
                 top: 0,
-                behavior: 'smooth'
+                behavior: 'smooth',
             });
         });
     });
-
 
     describe('Toast notifications', () => {
         test('showToast displays success message', () => {
@@ -200,11 +198,11 @@ describe('SmartGrind Utils', () => {
         beforeEach(() => {
             state.problems.set('1', {
                 status: 'solved',
-                nextReviewDate: '2023-01-01'
+                nextReviewDate: '2023-01-01',
             });
             state.problems.set('2', {
                 status: 'unsolved',
-                nextReviewDate: '2023-01-05'
+                nextReviewDate: '2023-01-05',
             });
         });
 
@@ -225,7 +223,7 @@ describe('SmartGrind Utils', () => {
             // Add a solved problem with future review date
             state.problems.set('3', {
                 status: 'solved',
-                nextReviewDate: '2030-01-01' // Future date
+                nextReviewDate: '2030-01-01', // Future date
             });
 
             const result = utils.getUniqueProblemsForTopic('all');
@@ -241,7 +239,7 @@ describe('SmartGrind Utils', () => {
                 name: 'Two Sum',
                 status: 'solved',
                 nextReviewDate: '2023-01-01',
-                note: 'Easy problem'
+                note: 'Easy problem',
             };
 
             expect(utils.shouldShowProblem(problem, 'all', '', '2023-01-15')).toBe(true);
@@ -296,7 +294,7 @@ describe('SmartGrind Utils', () => {
             const originalUserAgent = navigator.userAgent;
             Object.defineProperty(navigator, 'userAgent', {
                 value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                configurable: true
+                configurable: true,
             });
 
             const problemName = 'Two Sum';
@@ -308,7 +306,10 @@ describe('SmartGrind Utils', () => {
             await utils.askAI(problemName, provider);
 
             expect(state.ui.preferredAI).toBe('aistudio');
-            expect(window.open).toHaveBeenCalledWith('https://aistudio.google.com/prompts/new_chat?prompt=Explain%20the%20solution%20for%20LeetCode%20problem%3A%20%22Two%20Sum%22.%20Provide%20the%20detailed%20problem%20statement%2C%20examples%2C%20intuition%2C%20multiple%20approaches%20with%20code%2C%20and%20time%2Fspace%20complexity%20analysis.%20Include%20related%20problems%2C%20video%20tutorial%20links%20and%20followup%20questions%20with%20brief%20answers%20without%20code.', '_blank');
+            expect(window.open).toHaveBeenCalledWith(
+                'https://aistudio.google.com/prompts/new_chat?prompt=Explain%20the%20solution%20for%20LeetCode%20problem%3A%20%22Two%20Sum%22.%20Provide%20the%20detailed%20problem%20statement%2C%20examples%2C%20intuition%2C%20multiple%20approaches%20with%20code%2C%20and%20time%2Fspace%20complexity%20analysis.%20Include%20related%20problems%2C%20video%20tutorial%20links%20and%20followup%20questions%20with%20brief%20answers%20without%20code.',
+                '_blank'
+            );
 
             consoleSpy.mockRestore();
             windowOpenSpy.mockRestore();
@@ -316,7 +317,7 @@ describe('SmartGrind Utils', () => {
             // Restore original user agent
             Object.defineProperty(navigator, 'userAgent', {
                 value: originalUserAgent,
-                configurable: true
+                configurable: true,
             });
         });
 
@@ -325,7 +326,7 @@ describe('SmartGrind Utils', () => {
             const originalUserAgent = navigator.userAgent;
             Object.defineProperty(navigator, 'userAgent', {
                 value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                configurable: true
+                configurable: true,
             });
 
             const problemName = 'Two Sum';
@@ -337,7 +338,10 @@ describe('SmartGrind Utils', () => {
             await utils.askAI(problemName, provider);
 
             expect(state.ui.preferredAI).toBe('grok');
-            expect(window.open).toHaveBeenCalledWith('https://grok.com/?q=Explain%20the%20solution%20for%20LeetCode%20problem%3A%20%22Two%20Sum%22.%20Provide%20the%20detailed%20problem%20statement%2C%20examples%2C%20intuition%2C%20multiple%20approaches%20with%20code%2C%20and%20time%2Fspace%20complexity%20analysis.%20Include%20related%20problems%2C%20video%20tutorial%20links%20and%20followup%20questions%20with%20brief%20answers%20without%20code.', '_blank');
+            expect(window.open).toHaveBeenCalledWith(
+                'https://grok.com/?q=Explain%20the%20solution%20for%20LeetCode%20problem%3A%20%22Two%20Sum%22.%20Provide%20the%20detailed%20problem%20statement%2C%20examples%2C%20intuition%2C%20multiple%20approaches%20with%20code%2C%20and%20time%2Fspace%20complexity%20analysis.%20Include%20related%20problems%2C%20video%20tutorial%20links%20and%20followup%20questions%20with%20brief%20answers%20without%20code.',
+                '_blank'
+            );
 
             consoleSpy.mockRestore();
             windowOpenSpy.mockRestore();
@@ -345,7 +349,7 @@ describe('SmartGrind Utils', () => {
             // Restore original user agent
             Object.defineProperty(navigator, 'userAgent', {
                 value: originalUserAgent,
-                configurable: true
+                configurable: true,
             });
         });
     });

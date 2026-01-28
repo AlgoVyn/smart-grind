@@ -83,7 +83,7 @@ describe('User API', () => {
 
         test('should return 401 for invalid authorization header', async () => {
             const request = new Request('https://example.com/user', {
-                headers: { 'Authorization': 'Invalid' },
+                headers: { Authorization: 'Invalid' },
             });
 
             const response = await onRequestGet({ request, env: mockEnv });
@@ -97,7 +97,7 @@ describe('User API', () => {
             jwtVerify.mockRejectedValue(new Error('Invalid token')); // Invalid token
 
             const request = new Request('https://example.com/user', {
-                headers: { 'Authorization': 'Bearer header.payload.signature' },
+                headers: { Authorization: 'Bearer header.payload.signature' },
             });
 
             const response = await onRequestGet({ request, env: mockEnv });
@@ -112,7 +112,7 @@ describe('User API', () => {
             jwtVerify.mockResolvedValue({ payload: { userId: 123 } }); // Not string
 
             const request = new Request('https://example.com/user', {
-                headers: { 'Authorization': 'Bearer header.payload.signature' },
+                headers: { Authorization: 'Bearer header.payload.signature' },
             });
 
             const response = await onRequestGet({ request, env: mockEnv });
@@ -126,7 +126,7 @@ describe('User API', () => {
             jwtVerify.mockResolvedValue({ payload: { userId: 'a'.repeat(101) } });
 
             const request = new Request('https://example.com/user', {
-                headers: { 'Authorization': 'Bearer header.payload.signature' },
+                headers: { Authorization: 'Bearer header.payload.signature' },
             });
 
             const response = await onRequestGet({ request, env: mockEnv });
@@ -137,10 +137,12 @@ describe('User API', () => {
         });
 
         test('should return user data from KV', async () => {
-            mockKV.get.mockResolvedValue(JSON.stringify({ problems: { '1': {} }, deletedIds: ['2'] }));
+            mockKV.get.mockResolvedValue(
+                JSON.stringify({ problems: { '1': {} }, deletedIds: ['2'] })
+            );
 
             const request = new Request('https://example.com/user', {
-                headers: { 'Authorization': 'Bearer header.payload.signature' },
+                headers: { Authorization: 'Bearer header.payload.signature' },
             });
 
             const response = await onRequestGet({ request, env: mockEnv });
@@ -155,7 +157,7 @@ describe('User API', () => {
             mockKV.get.mockResolvedValue(null);
 
             const request = new Request('https://example.com/user', {
-                headers: { 'Authorization': 'Bearer header.payload.signature' },
+                headers: { Authorization: 'Bearer header.payload.signature' },
             });
 
             const response = await onRequestGet({ request, env: mockEnv });
@@ -169,7 +171,7 @@ describe('User API', () => {
             mockKV.get.mockRejectedValue(new Error('KV error'));
 
             const request = new Request('https://example.com/user', {
-                headers: { 'Authorization': 'Bearer header.payload.signature' },
+                headers: { Authorization: 'Bearer header.payload.signature' },
             });
 
             const response = await onRequestGet({ request, env: mockEnv });
@@ -199,7 +201,7 @@ describe('User API', () => {
 
             const request = new Request('https://example.com/user', {
                 method: 'POST',
-                headers: { 'Authorization': 'Bearer header.payload.signature' },
+                headers: { Authorization: 'Bearer header.payload.signature' },
                 body: JSON.stringify({ data: {} }),
             });
 
@@ -216,8 +218,8 @@ describe('User API', () => {
 
             const request = new Request('https://example.com/user', {
                 method: 'POST',
-                headers: { 
-                    'Authorization': 'Bearer header.payload.signature',
+                headers: {
+                    Authorization: 'Bearer header.payload.signature',
                     'X-CSRF-Token': 'test-csrf-token-12345',
                 },
                 body: 'invalid json',
@@ -236,8 +238,8 @@ describe('User API', () => {
 
             const request = new Request('https://example.com/user', {
                 method: 'POST',
-                headers: { 
-                    'Authorization': 'Bearer header.payload.signature',
+                headers: {
+                    Authorization: 'Bearer header.payload.signature',
                     'X-CSRF-Token': 'test-csrf-token-12345',
                 },
                 body: JSON.stringify({}),
@@ -256,8 +258,8 @@ describe('User API', () => {
 
             const request = new Request('https://example.com/user', {
                 method: 'POST',
-                headers: { 
-                    'Authorization': 'Bearer header.payload.signature',
+                headers: {
+                    Authorization: 'Bearer header.payload.signature',
                     'X-CSRF-Token': 'test-csrf-token-12345',
                 },
                 body: JSON.stringify({ data: 'string' }),
@@ -276,8 +278,8 @@ describe('User API', () => {
 
             const request = new Request('https://example.com/user', {
                 method: 'POST',
-                headers: { 
-                    'Authorization': 'Bearer header.payload.signature',
+                headers: {
+                    Authorization: 'Bearer header.payload.signature',
                     'X-CSRF-Token': 'test-csrf-token-12345',
                 },
                 body: JSON.stringify({ data: { problems: {}, deletedIds: [] } }),
@@ -287,7 +289,10 @@ describe('User API', () => {
 
             expect(response.status).toBe(200);
             expect(await response.text()).toBe('OK');
-            expect(mockKV.put).toHaveBeenCalledWith('user123', JSON.stringify({ problems: {}, deletedIds: [] }));
+            expect(mockKV.put).toHaveBeenCalledWith(
+                'user123',
+                JSON.stringify({ problems: {}, deletedIds: [] })
+            );
         });
 
         test('should return 500 on KV error', async () => {
@@ -297,8 +302,8 @@ describe('User API', () => {
 
             const request = new Request('https://example.com/user', {
                 method: 'POST',
-                headers: { 
-                    'Authorization': 'Bearer header.payload.signature',
+                headers: {
+                    Authorization: 'Bearer header.payload.signature',
                     'X-CSRF-Token': 'test-csrf-token-12345',
                 },
                 body: JSON.stringify({ data: {} }),

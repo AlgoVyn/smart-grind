@@ -30,7 +30,7 @@ const createMockElement = (overrides = {}) => {
         removeEventListener: mockRemoveEventListener,
         dispatchEvent: (event) => {
             const handlers = eventListeners[event.type] || [];
-            handlers.forEach(handler => handler(event));
+            handlers.forEach((handler) => handler(event));
         },
         closest: jest.fn(),
         classList: {
@@ -123,7 +123,7 @@ Object.defineProperty(window, 'sessionStorage', {
 // Mock SmartGrind namespace before importing modules
 window.SmartGrind = {
     state: {
-        init: jest.fn(() => { }),
+        init: jest.fn(() => {}),
         user: {},
         ui: {},
         elements: {},
@@ -133,10 +133,10 @@ window.SmartGrind = {
     data: { LOCAL_STORAGE_KEYS: { USER_TYPE: 'userType' } },
     utils: {},
     api: {
-        loadData: jest.fn(() => { }),
+        loadData: jest.fn(() => {}),
     },
     app: {
-        initializeLocalUser: jest.fn(() => { }),
+        initializeLocalUser: jest.fn(() => {}),
     },
     renderers: {},
 };
@@ -152,7 +152,7 @@ import { renderers } from '../public/modules/renderers';
 
 describe('SmartGrind UI', () => {
     beforeEach(() => {
-    // Reset mocks
+        // Reset mocks
         jest.clearAllMocks();
 
         // Reset mockElement state
@@ -186,7 +186,7 @@ describe('SmartGrind UI', () => {
             displayName: 'Local User',
         };
         state.ui = {
-            activeTopicId: 'all'
+            activeTopicId: 'all',
         };
         state.elements = {
             googleLoginBtn: mockElement,
@@ -237,24 +237,28 @@ describe('SmartGrind UI', () => {
         };
         state.problems = new Map();
         state.deletedProblemIds = new Set();
-        
+
         data.topicsData = [{ id: 'arrays', title: 'Arrays' }];
         data.LOCAL_STORAGE_KEYS = { USER_TYPE: 'userType' };
         data.resetTopicsData = jest.fn();
         // Mock URL constructor and methods for tests
         const URLConstructor = class URL {
             constructor(url) {
-                if (!url || typeof url !== 'string' || !url.startsWith('http://') && !url.startsWith('https://')) {
+                if (
+                    !url ||
+                    typeof url !== 'string' ||
+                    (!url.startsWith('http://') && !url.startsWith('https://'))
+                ) {
                     throw new Error('Invalid URL');
                 }
                 this.href = url;
             }
         };
-    
+
         // Add static methods to the constructor
         URLConstructor.createObjectURL = jest.fn(() => 'mock-url');
         URLConstructor.revokeObjectURL = jest.fn();
-    
+
         window.URL = URLConstructor;
 
         utils = {
@@ -282,25 +286,25 @@ describe('SmartGrind UI', () => {
                     if (!sanitized.startsWith('http://') && !sanitized.startsWith('https://')) {
                         sanitized = 'https://' + sanitized;
                     }
-          
+
                     // Create URL object to validate
                     new URL(sanitized);
-          
+
                     // Remove any script-related content from URL
                     sanitized = sanitized.replace(/javascript:/gi, '');
                     sanitized = sanitized.replace(/data:/gi, '');
-          
+
                     // Limit URL length
                     if (sanitized.length > 500) {
                         sanitized = sanitized.substring(0, 500);
                     }
-          
+
                     return sanitized;
                 } catch (_e) {
                     // If URL parsing fails, return empty string
                     return '';
                 }
-            }
+            },
         };
         api = {
             loadData: jest.fn(),
@@ -326,9 +330,11 @@ describe('SmartGrind UI', () => {
                     exportDate: new Date().toISOString(),
                     version: '1.0',
                     problems: Object.fromEntries(state.problems),
-                    deletedIds: Array.from(state.deletedProblemIds)
+                    deletedIds: Array.from(state.deletedProblemIds),
                 };
-                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+                    type: 'application/json',
+                });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -356,7 +362,6 @@ describe('SmartGrind UI', () => {
 
     describe('init', () => {
         test('initializes UI components', async () => {
-
             state.init = jest.fn();
             renderers.updateFilterBtns = jest.fn();
 
@@ -567,7 +572,11 @@ describe('SmartGrind UI', () => {
 
             ui.handleGoogleLogin();
 
-            expect(mockOpen).toHaveBeenCalledWith('/smartgrind/api/auth?action=login', 'auth', 'width=500,height=600');
+            expect(mockOpen).toHaveBeenCalledWith(
+                '/smartgrind/api/auth?action=login',
+                'auth',
+                'width=500,height=600'
+            );
             expect(addEventListenerSpy).toHaveBeenCalledWith('message', expect.any(Function));
             addEventListenerSpy.mockRestore();
         });
@@ -583,7 +592,9 @@ describe('SmartGrind UI', () => {
                 data: { type: 'other-type' },
             };
 
-            const messageHandler = addEventListenerSpy.mock.calls.find(call => call[0] === 'message')[1];
+            const messageHandler = addEventListenerSpy.mock.calls.find(
+                (call) => call[0] === 'message'
+            )[1];
             messageHandler(messageEvent);
 
             expect(localStorageSetItem).not.toHaveBeenCalledWith('userId', expect.any(String));
@@ -631,14 +642,16 @@ describe('SmartGrind UI', () => {
         });
 
         test('opens signin modal for local users', () => {
-
-            
             // Import openSigninModal directly and spy on it
-            const { openSigninModal: _openSigninModal } = require('../public/modules/ui/ui-modals.js');
-            const openSigninModalSpy = jest.spyOn(require('../public/modules/ui/ui-modals.js'), 'openSigninModal');
+            const {
+                openSigninModal: _openSigninModal,
+            } = require('../public/modules/ui/ui-modals.js');
+            const openSigninModalSpy = jest.spyOn(
+                require('../public/modules/ui/ui-modals.js'),
+                'openSigninModal'
+            );
 
             ui.handleLogout();
-
 
             expect(openSigninModalSpy).toHaveBeenCalled();
         });
@@ -667,7 +680,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             const urlEl = {
                 value: 'https://example.com',
@@ -676,7 +689,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             const categoryEl = {
                 value: 'Arrays',
@@ -685,7 +698,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             const patternEl = {
                 value: 'Two Sum',
@@ -694,7 +707,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             const categoryNewEl = {
                 value: '',
@@ -703,7 +716,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             const patternNewEl = {
                 value: '',
@@ -712,7 +725,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             const problemModalEl = {
                 classList: {
@@ -720,7 +733,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
 
             state.elements.addProbName = nameEl;
@@ -765,7 +778,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             const urlEl = {
                 value: 'https://example.com',
@@ -774,7 +787,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             const categoryEl = {
                 value: 'Arrays',
@@ -783,7 +796,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             const patternEl = {
                 value: 'Two Sum',
@@ -792,7 +805,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             const categoryNewEl = {
                 value: '',
@@ -801,7 +814,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             const patternNewEl = {
                 value: '',
@@ -810,7 +823,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             const problemModalEl = {
                 classList: {
@@ -818,7 +831,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
 
             state.elements.addProbName = nameEl;
@@ -846,26 +859,56 @@ describe('SmartGrind UI', () => {
         test('saves new problem with custom pattern when category selected but pattern not', async () => {
             const nameEl = {
                 value: 'Test Problem',
-                classList: { add: mockClassListAdd, remove: mockClassListRemove, toggle: mockClassListToggle, contains: mockClassListContains },
+                classList: {
+                    add: mockClassListAdd,
+                    remove: mockClassListRemove,
+                    toggle: mockClassListToggle,
+                    contains: mockClassListContains,
+                },
             };
             const urlEl = {
                 value: 'https://example.com',
-                classList: { add: mockClassListAdd, remove: mockClassListRemove, toggle: mockClassListToggle, contains: mockClassListContains },
+                classList: {
+                    add: mockClassListAdd,
+                    remove: mockClassListRemove,
+                    toggle: mockClassListToggle,
+                    contains: mockClassListContains,
+                },
             };
             const categoryEl = {
                 value: 'Arrays',
-                classList: { add: mockClassListAdd, remove: mockClassListRemove, toggle: mockClassListToggle, contains: mockClassListContains },
+                classList: {
+                    add: mockClassListAdd,
+                    remove: mockClassListRemove,
+                    toggle: mockClassListToggle,
+                    contains: mockClassListContains,
+                },
             };
             const patternEl = {
                 value: '',
-                classList: { add: mockClassListAdd, remove: mockClassListRemove, toggle: mockClassListToggle, contains: mockClassListContains },
+                classList: {
+                    add: mockClassListAdd,
+                    remove: mockClassListRemove,
+                    toggle: mockClassListToggle,
+                    contains: mockClassListContains,
+                },
             };
             const patternNewEl = {
                 value: 'Custom Pattern',
-                classList: { add: mockClassListAdd, remove: mockClassListRemove, toggle: mockClassListToggle, contains: mockClassListContains },
+                classList: {
+                    add: mockClassListAdd,
+                    remove: mockClassListRemove,
+                    toggle: mockClassListToggle,
+                    contains: mockClassListContains,
+                },
             };
             const problemModalEl = {
-                classList: { add: mockClassListAdd, remove: mockClassListRemove, toggle: mockClassListToggle, contains: mockClassListContains },
+                classList: {
+                    add: mockClassListAdd,
+                    remove: mockClassListRemove,
+                    toggle: mockClassListToggle,
+                    contains: mockClassListContains,
+                },
             };
 
             state.elements.addProbName = nameEl;
@@ -966,13 +1009,14 @@ describe('SmartGrind UI', () => {
         test('allows HTML formatting tags in message', async () => {
             const promise = ui.showConfirm('<b>Bold</b> and <i>italic</i> text');
 
-            expect(state.elements.confirmMessage.innerHTML).toBe('<b>Bold</b> and <i>italic</i> text');
+            expect(state.elements.confirmMessage.innerHTML).toBe(
+                '<b>Bold</b> and <i>italic</i> text'
+            );
 
             ui.closeConfirmModal(true);
             await promise;
         });
     });
-
 
     describe('handleKeyboard', () => {
         test('focuses search on "/" key', () => {
@@ -1085,7 +1129,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             const alertModalEl = {
                 classList: {
@@ -1093,7 +1137,7 @@ describe('SmartGrind UI', () => {
                     remove: mockClassListRemove,
                     toggle: mockClassListToggle,
                     contains: mockClassListContains,
-                }
+                },
             };
             state.elements.alertMessage = alertMessageEl;
             state.elements.alertModal = alertModalEl;
@@ -1119,8 +1163,8 @@ describe('SmartGrind UI', () => {
             data.topicsData = [
                 {
                     title: 'Arrays',
-                    patterns: [{ name: 'Two Sum' }]
-                }
+                    patterns: [{ name: 'Two Sum' }],
+                },
             ];
             const event = { target: { value: 'Arrays' } };
 
@@ -1528,7 +1572,11 @@ describe('SmartGrind UI', () => {
             const scrollEvent = new Event('scroll');
             state.elements.contentScroll.dispatchEvent(scrollEvent);
 
-            expect(mockClassListRemove).toHaveBeenCalledWith('opacity-0', 'translate-y-4', 'pointer-events-none');
+            expect(mockClassListRemove).toHaveBeenCalledWith(
+                'opacity-0',
+                'translate-y-4',
+                'pointer-events-none'
+            );
         });
 
         test('hides scroll button when scrolled above threshold', () => {
@@ -1538,7 +1586,11 @@ describe('SmartGrind UI', () => {
             const scrollEvent = new Event('scroll');
             state.elements.contentScroll.dispatchEvent(scrollEvent);
 
-            expect(mockClassListAdd).toHaveBeenCalledWith('opacity-0', 'translate-y-4', 'pointer-events-none');
+            expect(mockClassListAdd).toHaveBeenCalledWith(
+                'opacity-0',
+                'translate-y-4',
+                'pointer-events-none'
+            );
         });
 
         test('initScrollButton does nothing when elements are null', () => {
@@ -1588,7 +1640,10 @@ describe('SmartGrind UI', () => {
                 expect(createObjectURLSpy).toHaveBeenCalled();
                 expect(mockClick).toHaveBeenCalled();
                 expect(revokeObjectURLSpy).toHaveBeenCalled();
-                expect(utils.showToast).toHaveBeenCalledWith('Progress exported successfully!', 'success');
+                expect(utils.showToast).toHaveBeenCalledWith(
+                    'Progress exported successfully!',
+                    'success'
+                );
 
                 createElementSpy.mockRestore();
                 createObjectURLSpy.mockRestore();
@@ -1604,15 +1659,14 @@ describe('SmartGrind UI', () => {
             window.innerWidth = 375; // Mobile width
             state.elements.mainSidebar.classList.contains = jest.fn(() => false);
             const link = {
-                classList: { contains: () => true }, closest: jest.fn((selector) => {
-
+                classList: { contains: () => true },
+                closest: jest.fn((selector) => {
                     if (selector === 'button' || selector === 'button[data-action]') return null;
 
                     if (selector === '.sidebar-link') return link;
 
                     return null;
-
-                })
+                }),
             };
             const event = {
                 type: 'click',
@@ -1628,17 +1682,19 @@ describe('SmartGrind UI', () => {
         test('handles problem card button click', () => {
             ui.bindEvents();
             const button = {
-                dataAction: 'some-action', closest: jest.fn((selector) => {
-
+                dataAction: 'some-action',
+                closest: jest.fn((selector) => {
                     if (selector === 'button[data-action]') return button;
 
                     if (selector === '.group') return card;
 
                     return null;
-
-                })
+                }),
             };
-            const card = { dataset: { problemId: 'test-problem' }, closest: jest.fn((selector) => selector === '.group' ? card : null) };
+            const card = {
+                dataset: { problemId: 'test-problem' },
+                closest: jest.fn((selector) => (selector === '.group' ? card : null)),
+            };
             const event = {
                 type: 'click',
                 target: button,
@@ -1681,13 +1737,17 @@ describe('SmartGrind UI', () => {
 
         test('handles problem card click when problemId not found', () => {
             ui.bindEvents();
-            const card = { dataset: {}, closest: jest.fn((selector) => selector === '.group' ? card : null) };
+            const card = {
+                dataset: {},
+                closest: jest.fn((selector) => (selector === '.group' ? card : null)),
+            };
             const button = {
-                dataAction: 'some-action', closest: jest.fn((selector) => {
+                dataAction: 'some-action',
+                closest: jest.fn((selector) => {
                     if (selector === 'button[data-action]') return button;
                     if (selector === '.group') return card;
                     return null;
-                })
+                }),
             };
             const event = {
                 type: 'click',
@@ -1702,13 +1762,17 @@ describe('SmartGrind UI', () => {
 
         test('handles problem card click when problem not found in state', () => {
             ui.bindEvents();
-            const card = { dataset: { problemId: 'nonexistent' }, closest: jest.fn((selector) => selector === '.group' ? card : null) };
+            const card = {
+                dataset: { problemId: 'nonexistent' },
+                closest: jest.fn((selector) => (selector === '.group' ? card : null)),
+            };
             const button = {
-                dataAction: 'some-action', closest: jest.fn((selector) => {
+                dataAction: 'some-action',
+                closest: jest.fn((selector) => {
                     if (selector === 'button[data-action]') return button;
                     if (selector === '.group') return card;
                     return null;
-                })
+                }),
             };
             const event = {
                 type: 'click',
@@ -1741,7 +1805,9 @@ describe('SmartGrind UI', () => {
             };
 
             // Get the message handler from the spy
-            const messageHandler = addEventListenerSpy.mock.calls.find(call => call[0] === 'message')[1];
+            const messageHandler = addEventListenerSpy.mock.calls.find(
+                (call) => call[0] === 'message'
+            )[1];
             messageHandler(messageEvent);
 
             expect(localStorageSetItem).toHaveBeenCalledWith('userId', 'test-user');
@@ -1765,7 +1831,9 @@ describe('SmartGrind UI', () => {
                 data: { type: 'auth-success' },
             };
 
-            const messageHandler = addEventListenerSpy.mock.calls.find(call => call[0] === 'message')[1];
+            const messageHandler = addEventListenerSpy.mock.calls.find(
+                (call) => call[0] === 'message'
+            )[1];
             messageHandler(messageEvent);
 
             expect(localStorageSetItem).not.toHaveBeenCalledWith('token', expect.any(String));
@@ -1873,7 +1941,7 @@ describe('SmartGrind UI', () => {
             const showToastSpy = jest.spyOn(utils, 'showToast');
 
             await ui.copyCode(mockBtn);
-            await new Promise(resolve => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 0));
 
             expect(showToastSpy).toHaveBeenCalledWith('Failed to copy code');
 
@@ -1904,7 +1972,7 @@ describe('SmartGrind UI', () => {
             window.Prism = { highlightAllUnder: jest.fn() };
 
             await ui.openSolutionModal('test-problem');
-            await new Promise(resolve => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 0));
 
             expect(mockModal.classList.remove).toHaveBeenCalledWith('hidden');
             expect(mockContent.innerHTML).toBe('<h1>Solution</h1>');
@@ -1931,7 +1999,7 @@ describe('SmartGrind UI', () => {
             );
 
             await ui.openSolutionModal('test-problem');
-            await new Promise(resolve => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 0));
 
             expect(mockContent.innerHTML).toContain('Error loading solution');
 
@@ -1967,7 +2035,9 @@ describe('SmartGrind UI', () => {
             ui.bindNavigationEvents();
 
             // Get the click handler
-            const clickHandler = btn.addEventListener.mock.calls.find(call => call[0] === 'click')[1];
+            const clickHandler = btn.addEventListener.mock.calls.find(
+                (call) => call[0] === 'click'
+            )[1];
 
             // Simulate click
             clickHandler();
@@ -1981,7 +2051,9 @@ describe('SmartGrind UI', () => {
     describe('handleKeyboard edge cases', () => {
         test('closes add problem modal on Escape', () => {
             jest.clearAllMocks();
-            state.elements.addProblemModal = { classList: { contains: jest.fn(() => true), add: jest.fn() } };
+            state.elements.addProblemModal = {
+                classList: { contains: jest.fn(() => true), add: jest.fn() },
+            };
             const event = {
                 key: 'Escape',
                 target: { tagName: 'DIV' },
@@ -2036,7 +2108,7 @@ describe('SmartGrind UI', () => {
             const _uiAuthModule = require('../public/modules/ui/ui-auth.js');
             jest.useFakeTimers();
             const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
-            setButtonLoadingSpy.mockImplementation(() => { });
+            setButtonLoadingSpy.mockImplementation(() => {});
             const mockPopup = { closed: false, close: jest.fn() };
             mockOpen.mockReturnValue(mockPopup);
 
@@ -2062,13 +2134,19 @@ describe('SmartGrind UI', () => {
             mockOpen.mockReturnValue(null);
             const showToastSpy = jest.spyOn(utils, 'showToast');
             const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
-            setButtonLoadingSpy.mockImplementation(() => { });
+            setButtonLoadingSpy.mockImplementation(() => {});
 
             ui.handleGoogleLogin();
 
-            expect(showToastSpy).toHaveBeenCalledWith('Sign-in popup was blocked. Please allow popups for this site and try again.', 'error');
+            expect(showToastSpy).toHaveBeenCalledWith(
+                'Sign-in popup was blocked. Please allow popups for this site and try again.',
+                'error'
+            );
             expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginBtn, false);
-            expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.modalGoogleLoginBtn, false);
+            expect(setButtonLoadingSpy).toHaveBeenCalledWith(
+                state.elements.modalGoogleLoginBtn,
+                false
+            );
 
             showToastSpy.mockRestore();
             setButtonLoadingSpy.mockRestore();
@@ -2082,7 +2160,7 @@ describe('SmartGrind UI', () => {
             mockOpen.mockReturnValue({});
             const showToastSpy = jest.spyOn(utils, 'showToast');
             const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
-            setButtonLoadingSpy.mockImplementation(() => { });
+            setButtonLoadingSpy.mockImplementation(() => {});
 
             ui.handleGoogleLogin();
 
@@ -2094,15 +2172,23 @@ describe('SmartGrind UI', () => {
                 },
             };
 
-            const messageHandler = addEventListenerSpy.mock.calls.find(call => call[0] === 'message')[1];
+            const messageHandler = addEventListenerSpy.mock.calls.find(
+                (call) => call[0] === 'message'
+            )[1];
             messageHandler(messageEvent);
 
             // Advance timers to execute setTimeout
             jest.advanceTimersByTime(100);
 
-            expect(showToastSpy).toHaveBeenCalledWith('Sign-in failed: Test failure message', 'error');
+            expect(showToastSpy).toHaveBeenCalledWith(
+                'Sign-in failed: Test failure message',
+                'error'
+            );
             expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginBtn, false);
-            expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.modalGoogleLoginBtn, false);
+            expect(setButtonLoadingSpy).toHaveBeenCalledWith(
+                state.elements.modalGoogleLoginBtn,
+                false
+            );
 
             addEventListenerSpy.mockRestore();
             showToastSpy.mockRestore();
@@ -2120,7 +2206,7 @@ describe('SmartGrind UI', () => {
             mockOpen.mockReturnValue(mockPopup);
             const showToastSpy = jest.spyOn(utils, 'showToast');
             const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
-            setButtonLoadingSpy.mockImplementation(() => { });
+            setButtonLoadingSpy.mockImplementation(() => {});
 
             ui.handleGoogleLogin();
 
@@ -2129,9 +2215,15 @@ describe('SmartGrind UI', () => {
             // Advance past the timeout period
             jest.advanceTimersByTime(UI_CONSTANTS.AUTH_TIMEOUT);
 
-            expect(showToastSpy).toHaveBeenCalledWith('Sign-in timed out. Please try again.', 'error');
+            expect(showToastSpy).toHaveBeenCalledWith(
+                'Sign-in timed out. Please try again.',
+                'error'
+            );
             expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginBtn, false);
-            expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.modalGoogleLoginBtn, false);
+            expect(setButtonLoadingSpy).toHaveBeenCalledWith(
+                state.elements.modalGoogleLoginBtn,
+                false
+            );
 
             addEventListenerSpy.mockRestore();
             showToastSpy.mockRestore();

@@ -36,13 +36,15 @@ export class ErrorBoundary {
         console.error('ErrorBoundary caught an error:', error);
 
         const message = error instanceof Error ? error.message : String(error);
-        
+
         // Show user-friendly alert
         ui.showAlert(`An error occurred: ${message}`);
 
         // Display fallback UI if container exists
         if (this.errorContainer) {
-            this.errorContainer.innerHTML = fallbackContent || `
+            this.errorContainer.innerHTML =
+                fallbackContent ||
+                `
                 <div class="error-fallback p-4 bg-red-50 border border-red-200 rounded-lg">
                     <h3 class="text-red-800 font-semibold mb-2">Something went wrong</h3>
                     <p class="text-red-600 text-sm">${this.sanitizeMessage(message)}</p>
@@ -84,7 +86,7 @@ export const setupGlobalErrorHandlers = (): void => {
     window.addEventListener('error', (event) => {
         console.error('Global error handler:', event.error);
         ui.showAlert(`An unexpected error occurred: ${event.message}`);
-        
+
         // Prevent default browser error handling
         event.preventDefault();
     });
@@ -94,7 +96,7 @@ export const setupGlobalErrorHandlers = (): void => {
         console.error('Unhandled promise rejection:', event.reason);
         const message = event.reason instanceof Error ? event.reason.message : String(event.reason);
         ui.showAlert(`An unexpected error occurred: ${message}`);
-        
+
         // Prevent default browser error handling
         event.preventDefault();
     });

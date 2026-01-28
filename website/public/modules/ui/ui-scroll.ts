@@ -9,10 +9,18 @@ export const initScrollButton = () => {
         state.elements['contentScroll'].addEventListener('scroll', () => {
             if (state.elements['contentScroll']!.scrollTop > 300) {
                 // Show button
-                state.elements['scrollToTopBtn']!.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+                state.elements['scrollToTopBtn']!.classList.remove(
+                    'opacity-0',
+                    'translate-y-4',
+                    'pointer-events-none'
+                );
             } else {
                 // Hide button
-                state.elements['scrollToTopBtn']!.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                state.elements['scrollToTopBtn']!.classList.add(
+                    'opacity-0',
+                    'translate-y-4',
+                    'pointer-events-none'
+                );
             }
         });
 

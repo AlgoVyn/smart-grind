@@ -35,7 +35,7 @@ export const bindProblemEvents = () => {
                 isTrusted: true,
                 returnValue: true,
                 timeStamp: Date.now(),
-                type: 'click'
+                type: 'click',
             } as unknown as Event;
             renderers.handleProblemCardClick(mockEvent, foundProblem);
         }
@@ -43,7 +43,9 @@ export const bindProblemEvents = () => {
 
     // Event delegation for pattern solution buttons (outside problem cards)
     state.elements['problemsContainer']?.addEventListener('click', (e: MouseEvent) => {
-        const patternSolutionButton = (e.target as Element).closest('button[data-action="pattern-solution"]');
+        const patternSolutionButton = (e.target as Element).closest(
+            'button[data-action="pattern-solution"]'
+        );
         if (!patternSolutionButton) return;
 
         const patternName = (patternSolutionButton as HTMLElement).dataset['pattern'];

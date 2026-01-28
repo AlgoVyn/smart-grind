@@ -40,7 +40,8 @@ export const sidebarRenderers = {
     createTopicButton: (topicId: string, title: string) => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        const isActive = state.ui.activeTopicId === topicId || (!state.ui.activeTopicId && topicId === 'all');
+        const isActive =
+            state.ui.activeTopicId === topicId || (!state.ui.activeTopicId && topicId === 'all');
         btn.className = `sidebar-link ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base hover:text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
         btn.dataset['topicId'] = topicId;
 
@@ -61,10 +62,11 @@ export const sidebarRenderers = {
 
     // Set active topic in sidebar
     setActiveTopic: (topicId: string) => {
-        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-        const activeBtn = document.querySelector(`[data-topic-id="${topicId}"]`) ||
+        document.querySelectorAll('.sidebar-link').forEach((l) => l.classList.remove('active'));
+        const activeBtn =
+            document.querySelector(`[data-topic-id="${topicId}"]`) ||
             document.querySelector('.sidebar-link:first-child'); // All problems
         if (activeBtn) activeBtn.classList.add('active');
         state.ui.activeTopicId = topicId;
-    }
+    },
 };

@@ -65,7 +65,7 @@ export const exportProgress = () => {
         exportDate: new Date().toISOString(),
         version: '1.0',
         problems: Object.fromEntries(state.problems),
-        deletedIds: Array.from(state.deletedProblemIds)
+        deletedIds: Array.from(state.deletedProblemIds),
     };
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -83,5 +83,5 @@ export const exportProgress = () => {
 
 export const app = {
     initializeLocalUser,
-    exportProgress
+    exportProgress,
 };

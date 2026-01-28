@@ -8,7 +8,11 @@ import { api } from '../api.js';
 import { renderers } from '../renderers.js';
 
 // Generic modal handler factory
-export const createModalHandler = (modalEl: HTMLElement, contentEl: HTMLElement | null | undefined, closeCallback?: () => void) => {
+export const createModalHandler = (
+    modalEl: HTMLElement,
+    contentEl: HTMLElement | null | undefined,
+    closeCallback?: () => void
+) => {
     return (e: Event) => {
         if (e && e.target !== modalEl) {
             if (contentEl) e?.stopPropagation();
@@ -29,7 +33,7 @@ export const modalManager = {
     hide: (modalEl: HTMLElement, cleanupCallback?: () => void) => {
         modalEl.classList.add('hidden');
         if (cleanupCallback) cleanupCallback();
-    }
+    },
 };
 
 // Modal functions
@@ -47,8 +51,6 @@ export const closeSigninModal = () => {
     }
 };
 
-
-
 let _confirmResolve: ((_value: boolean) => void) | null = null;
 
 export const _setupAddModal = () => {
@@ -59,13 +61,18 @@ export const _setupAddModal = () => {
     const patternNewEl = state.elements['addProbPatternNew'];
 
     if (categoryEl) {
-        categoryEl.innerHTML = '<option value="">-- Select or Type New --</option>' +
-            data.topicsData.map((t: Topic) => `<option value="${t.title}">${t.title}</option>`).join('');
+        categoryEl.innerHTML =
+            '<option value="">-- Select or Type New --</option>' +
+            data.topicsData
+                .map((t: Topic) => `<option value="${t.title}">${t.title}</option>`)
+                .join('');
     }
 
     // Clear inputs
-    ['addProbName', 'addProbUrl', 'addProbCategoryNew', 'addProbPatternNew'].forEach(id => {
-        const element = state.elements[id as keyof typeof state.elements] as HTMLInputElement | null;
+    ['addProbName', 'addProbUrl', 'addProbCategoryNew', 'addProbPatternNew'].forEach((id) => {
+        const element = state.elements[
+            id as keyof typeof state.elements
+        ] as HTMLInputElement | null;
         if (element) element.value = '';
     });
 
@@ -123,7 +130,7 @@ export const showAlert = (message: string, title = 'Alert') => {
 export const getShowAlertHistory = () => ({
     called: showAlertCalled,
     lastMessage: lastShowAlertMessage,
-    lastTitle: lastShowAlertTitle
+    lastTitle: lastShowAlertTitle,
 });
 
 export const clearShowAlertHistory = () => {
@@ -211,7 +218,10 @@ export const handleCategoryChange = (e: Event) => {
     if (val && patternEl) {
         const topic = data.topicsData.find((t: Topic) => t.title === val);
         patternEl.innerHTML = topic
-            ? '<option value="">-- Select or Type New --</option>' + topic.patterns.map((p: Pattern) => `<option value="${p.name}">${p.name}</option>`).join('')
+            ? '<option value="">-- Select or Type New --</option>' +
+              topic.patterns
+                  .map((p: Pattern) => `<option value="${p.name}">${p.name}</option>`)
+                  .join('')
             : '<option value="">-- No Patterns Found --</option>';
     } else if (patternEl) {
         patternEl.innerHTML = '<option value="">-- Select Category First --</option>';
@@ -234,9 +244,12 @@ export const _getSanitizedInputs = () => {
     const rawName = (state.elements['addProbName'] as HTMLInputElement | null)?.value || '';
     const rawUrl = (state.elements['addProbUrl'] as HTMLInputElement | null)?.value || '';
     let rawCategory = (state.elements['addProbCategory'] as HTMLSelectElement | null)?.value || '';
-    if (!rawCategory) rawCategory = (state.elements['addProbCategoryNew'] as HTMLInputElement | null)?.value || '';
+    if (!rawCategory)
+        rawCategory =
+            (state.elements['addProbCategoryNew'] as HTMLInputElement | null)?.value || '';
     let rawPattern = (state.elements['addProbPattern'] as HTMLSelectElement | null)?.value || '';
-    if (!rawPattern || !(state.elements['addProbCategory'] as HTMLSelectElement | null)?.value) rawPattern = (state.elements['addProbPatternNew'] as HTMLInputElement | null)?.value || '';
+    if (!rawPattern || !(state.elements['addProbCategory'] as HTMLSelectElement | null)?.value)
+        rawPattern = (state.elements['addProbPatternNew'] as HTMLInputElement | null)?.value || '';
     const name = utils.sanitizeInput(rawName);
     const url = utils.sanitizeUrl(rawUrl);
     const category = utils.sanitizeInput(rawCategory);
@@ -244,7 +257,15 @@ export const _getSanitizedInputs = () => {
     return { name, url, category, pattern };
 };
 
-export const _validateInputs = ({ name, url, category, pattern }: { name: string, url: string, category: string, pattern: string }, alertFunction = showAlert) => {
+export const _validateInputs = (
+    {
+        name,
+        url,
+        category,
+        pattern,
+    }: { name: string; url: string; category: string; pattern: string },
+    alertFunction = showAlert
+) => {
     if (!name.trim()) {
         alertFunction('Problem name is required and cannot be empty after sanitization.');
         return false;
@@ -282,7 +303,7 @@ export const _createNewProblem = (name: string, url: string, category: string, p
         reviewInterval: 0,
         nextReviewDate: null,
         note: '',
-        loading: false
+        loading: false,
     };
 };
 

@@ -16,5 +16,5 @@ export const api = {
     mergeStructure,
     resetAll,
     resetCategory,
-    deleteCategory
+    deleteCategory,
 };

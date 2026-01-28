@@ -10,11 +10,11 @@ import { utils } from '../utils.js';
 import { saveData } from './api-save.js';
 
 /**
-      * Gets all problem IDs for a given topic.
-      * @param {Object} topic - The topic object.
-      * @param {Object[]} topic.patterns - Array of patterns in the topic.
-      * @returns {Set<string>} Set of problem IDs.
-      */
+ * Gets all problem IDs for a given topic.
+ * @param {Object} topic - The topic object.
+ * @param {Object[]} topic.patterns - Array of patterns in the topic.
+ * @returns {Set<string>} Set of problem IDs.
+ */
 export const _getProblemIdsForTopic = (topic: Topic): Set<string> => {
     const ids = new Set<string>();
     topic.patterns.forEach((pattern: Pattern) => {
@@ -26,9 +26,9 @@ export const _getProblemIdsForTopic = (topic: Topic): Set<string> => {
 };
 
 /**
-      * Resets the specified problems to unsolved state.
-      * @param {Set<string>} problemIds - Set of problem IDs to reset.
-      */
+ * Resets the specified problems to unsolved state.
+ * @param {Set<string>} problemIds - Set of problem IDs to reset.
+ */
 export const _resetProblems = (problemIds: Set<string>): void => {
     problemIds.forEach((id: string) => {
         const p = state.problems.get(id);
@@ -41,9 +41,9 @@ export const _resetProblems = (problemIds: Set<string>): void => {
 };
 
 /**
-      * Restores deleted problems for the given problem IDs if they are not custom.
-      * @param {Set<string>} problemIds - Set of problem IDs to restore.
-      */
+ * Restores deleted problems for the given problem IDs if they are not custom.
+ * @param {Set<string>} problemIds - Set of problem IDs to restore.
+ */
 export const _restoreDeletedProblems = (problemIds: Set<string>): void => {
     problemIds.forEach((id: string) => {
         if (state.deletedProblemIds.has(id) && !id.startsWith('custom-')) {
@@ -54,7 +54,10 @@ export const _restoreDeletedProblems = (problemIds: Set<string>): void => {
             let patternName = '';
             for (const topic of data.topicsData) {
                 for (const pattern of topic.patterns) {
-                    const found = pattern.problems.find((prob: string | ProblemDef) => (typeof prob === 'string' ? prob : prob.id) === id);
+                    const found = pattern.problems.find(
+                        (prob: string | ProblemDef) =>
+                            (typeof prob === 'string' ? prob : prob.id) === id
+                    );
                     if (found) {
                         probDef = found;
                         topicTitle = topic.title;
@@ -68,14 +71,17 @@ export const _restoreDeletedProblems = (problemIds: Set<string>): void => {
                 const newProb: Problem = {
                     id: id,
                     name: typeof probDef === 'string' ? probDef : probDef.name,
-                    url: typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url,
+                    url:
+                        typeof probDef === 'string'
+                            ? `https://leetcode.com/problems/${id}/`
+                            : probDef.url,
                     status: 'unsolved',
                     topic: topicTitle,
                     pattern: patternName,
                     reviewInterval: 0,
                     nextReviewDate: null,
                     note: '',
-                    loading: false
+                    loading: false,
                 };
                 state.problems.set(id, newProb);
             }
@@ -84,8 +90,8 @@ export const _restoreDeletedProblems = (problemIds: Set<string>): void => {
 };
 
 /**
-      * Restores all deleted problems except custom ones.
-      */
+ * Restores all deleted problems except custom ones.
+ */
 export const _restoreAllDeletedProblems = (): void => {
     const deletedIds = Array.from(state.deletedProblemIds) as string[];
     deletedIds.forEach((id: string) => {
@@ -97,7 +103,10 @@ export const _restoreAllDeletedProblems = (): void => {
         let patternName = '';
         for (const topic of data.topicsData) {
             for (const pattern of topic.patterns) {
-                const found = pattern.problems.find((prob: string | ProblemDef) => (typeof prob === 'string' ? prob : prob.id) === id);
+                const found = pattern.problems.find(
+                    (prob: string | ProblemDef) =>
+                        (typeof prob === 'string' ? prob : prob.id) === id
+                );
                 if (found) {
                     probDef = found;
                     topicTitle = topic.title;
@@ -113,24 +122,28 @@ export const _restoreAllDeletedProblems = (): void => {
         const newProb: Problem = {
             id: id,
             name: probDef ? (typeof probDef === 'string' ? probDef : probDef.name) : id,
-            url: probDef ? (typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url) : `https://leetcode.com/problems/${id}/`,
+            url: probDef
+                ? typeof probDef === 'string'
+                    ? `https://leetcode.com/problems/${id}/`
+                    : probDef.url
+                : `https://leetcode.com/problems/${id}/`,
             status: 'unsolved',
             topic: topicTitle || 'Unknown',
             pattern: patternName || 'Unknown',
             reviewInterval: 0,
             nextReviewDate: null,
             note: '',
-            loading: false
+            loading: false,
         };
         state.problems.set(id, newProb);
     });
 };
 
 /**
-      * Performs the reset save operation and re-renders the UI with a toast message.
-      * @param {string} message - The toast message to display.
-      * @throws {Error} Throws an error if the save fails.
-      */
+ * Performs the reset save operation and re-renders the UI with a toast message.
+ * @param {string} message - The toast message to display.
+ * @throws {Error} Throws an error if the save fails.
+ */
 export const _performResetAndRender = async (message: string): Promise<void> => {
     await saveData();
     const currentFilter = state.ui.currentFilter;
@@ -146,16 +159,20 @@ export const _performResetAndRender = async (message: string): Promise<void> => 
 };
 
 /**
-      * Resets all problems to unsolved state and restores deleted problems.
-      * @throws {Error} Throws an error if the reset fails.
-      */
+ * Resets all problems to unsolved state and restores deleted problems.
+ * @throws {Error} Throws an error if the reset fails.
+ */
 export const resetAll = async (): Promise<void> => {
-    const confirmed = await ui.showConfirm('Are you sure you want to reset <b>ALL Problems</b>?</br></br>This will mark all problems as unsolved and restore any deleted problems across all categories.');
+    const confirmed = await ui.showConfirm(
+        'Are you sure you want to reset <b>ALL Problems</b>?</br></br>This will mark all problems as unsolved and restore any deleted problems across all categories.'
+    );
     if (!confirmed) return;
 
     // Store original state for rollback (deep copy)
     const originalProblems = new Map(
-        Array.from(state.problems.entries() as IterableIterator<[string, Problem]>).map(([id, p]) => [id, { ...p }])
+        Array.from(state.problems.entries() as IterableIterator<[string, Problem]>).map(
+            ([id, p]) => [id, { ...p }]
+        )
     );
     const originalDeletedIds = new Set(state.deletedProblemIds);
 
@@ -183,22 +200,26 @@ export const resetAll = async (): Promise<void> => {
 };
 
 /**
-      * Resets all problems in a category to unsolved state and restores deleted problems.
-      * @param {string} topicId - The ID of the topic to reset.
-      * @throws {Error} Throws an error if the reset fails.
-      */
+ * Resets all problems in a category to unsolved state and restores deleted problems.
+ * @param {string} topicId - The ID of the topic to reset.
+ * @throws {Error} Throws an error if the reset fails.
+ */
 export const resetCategory = async (topicId: string): Promise<void> => {
     const topic = data.topicsData.find((t: Topic) => t.id === topicId);
     if (!topic) {
         ui.showAlert('Category not found.');
         return;
     }
-    const confirmed = await ui.showConfirm(`Are you sure you want to reset all problems in the category "<b>${topic.title}</b>"?</br></br>This will mark all problems as unsolved and restore any deleted problems.`);
+    const confirmed = await ui.showConfirm(
+        `Are you sure you want to reset all problems in the category "<b>${topic.title}</b>"?</br></br>This will mark all problems as unsolved and restore any deleted problems.`
+    );
     if (!confirmed) return;
 
     // Store original state for rollback (deep copy)
     const originalProblems = new Map(
-        Array.from(state.problems.entries() as IterableIterator<[string, Problem]>).map(([id, p]) => [id, { ...p }])
+        Array.from(state.problems.entries() as IterableIterator<[string, Problem]>).map(
+            ([id, p]) => [id, { ...p }]
+        )
     );
     const originalDeletedIds = new Set(state.deletedProblemIds);
 

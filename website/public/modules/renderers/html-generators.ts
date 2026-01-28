@@ -22,7 +22,9 @@ export const htmlGenerators = {
         if (!data.ORIGINAL_TOPICS_DATA) return true;
         return !data.ORIGINAL_TOPICS_DATA.some((topic: Topic) =>
             topic.patterns.some((pattern: Pattern) =>
-                pattern.problems.some((prob: string | ProblemDef) => typeof prob === 'string' ? prob === problemId : prob.id === problemId)
+                pattern.problems.some((prob: string | ProblemDef) =>
+                    typeof prob === 'string' ? prob === problemId : prob.id === problemId
+                )
             )
         );
     },
@@ -52,7 +54,10 @@ export const htmlGenerators = {
     // Helper to filter visible problems for a pattern
     _getVisibleProblemsForPattern: (pattern: Pattern, today: string) => {
         const problems: Problem[] = [];
-        const searchQuery = (state.elements['problemSearch'] as HTMLInputElement | null)?.value.toLowerCase().trim() || '';
+        const searchQuery =
+            (state.elements['problemSearch'] as HTMLInputElement | null)?.value
+                .toLowerCase()
+                .trim() || '';
 
         pattern.problems.forEach((probDef: string | ProblemDef) => {
             const id = typeof probDef === 'string' ? probDef : probDef.id;
@@ -87,7 +92,8 @@ export const htmlGenerators = {
         // Only show pattern solution button for non-custom patterns
         if (!renderers._isCustomPattern(pattern.name)) {
             const patternSolutionButton = document.createElement('button');
-            patternSolutionButton.className = 'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
+            patternSolutionButton.className =
+                'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
             patternSolutionButton.dataset['action'] = 'pattern-solution';
             patternSolutionButton.dataset['pattern'] = pattern.name;
             patternSolutionButton.title = 'View Pattern Solution';
@@ -107,14 +113,24 @@ export const htmlGenerators = {
     },
 
     // Helper to render a topic section
-    _renderTopicSection: (topic: Topic, filterTopicId: string, today: string, visibleCountRef: { count: number }) => {
+    _renderTopicSection: (
+        topic: Topic,
+        filterTopicId: string,
+        today: string,
+        visibleCountRef: { count: number }
+    ) => {
         const topicSection = document.createElement('div');
         topicSection.className = 'space-y-6';
 
         // Only show header if viewing all
         if (filterTopicId === 'all') {
             // Escape topic title to prevent XSS
-            const escapedTitle = (topic.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+            const escapedTitle = (topic.title || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
             topicSection.innerHTML = `<h3 class="text-xl font-bold text-theme-bold border-b border-theme pb-2">${escapedTitle}</h3>`;
         }
 
@@ -152,10 +168,11 @@ export const htmlGenerators = {
     _generateBadge: (p: Problem, today: string) => {
         const isSolved = p.status === 'solved';
         const isDue = isSolved && p.nextReviewDate !== null && p.nextReviewDate <= today;
-        return isDue ?
-            '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-500 uppercase tracking-wide">Review</span>' :
-            isSolved ?
-                '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/20 text-brand-400 uppercase tracking-wide">Solved</span>' : '';
+        return isDue
+            ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-500 uppercase tracking-wide">Review</span>'
+            : isSolved
+              ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/20 text-brand-400 uppercase tracking-wide">Solved</span>'
+              : '';
     },
 
     // Helper to generate action button HTML
@@ -163,9 +180,19 @@ export const htmlGenerators = {
         const isSolved = p.status === 'solved';
         const isDue = isSolved && p.nextReviewDate !== null && p.nextReviewDate <= utils.getToday();
         const action = isSolved ? (isDue ? 'review' : 'reset') : 'solve';
-        const buttonClass = isSolved ? (isDue ? 'bg-amber-500 text-white hover:bg-amber-400' : 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold') : 'bg-brand-600 text-white hover:bg-brand-500 shadow-lg shadow-brand-500/20';
+        const buttonClass = isSolved
+            ? isDue
+                ? 'bg-amber-500 text-white hover:bg-amber-400'
+                : 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold'
+            : 'bg-brand-600 text-white hover:bg-brand-500 shadow-lg shadow-brand-500/20';
 
-        const buttonText = p.loading ? renderers._getSpinner() : (isDue ? 'Review' : isSolved ? 'Reset' : 'Solve');
+        const buttonText = p.loading
+            ? renderers._getSpinner()
+            : isDue
+              ? 'Review'
+              : isSolved
+                ? 'Reset'
+                : 'Solve';
         return `<button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors min-w-[70px] ${buttonClass}" ${p.loading ? 'disabled' : ''} data-action="${action}">${buttonText}</button>`;
     },
 
@@ -173,7 +200,12 @@ export const htmlGenerators = {
     _generateProblemLink: (p: Problem) => {
         const badge = renderers._generateBadge(p, utils.getToday());
         // Escape problem name to prevent XSS
-        const escapedName = (p.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        const escapedName = (p.name || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
         return `
             <div class="flex items-center gap-2 mb-1">
                 <a href="${p.url}" target="_blank" class="text-base font-medium text-theme-bold group-hover:text-brand-400 transition-colors truncate cursor-pointer">
@@ -218,7 +250,9 @@ export const htmlGenerators = {
             <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes">
                 ${ICONS.note}
             </button>
-            ${!isCustomProblem ? `
+            ${
+                !isCustomProblem
+                    ? `
             <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center" data-action="solution" title="View Solution">
                 <svg fill="currentColor" class="w-4 h-4" viewBox="0 0 24 24">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -228,7 +262,9 @@ export const htmlGenerators = {
                     <polyline points="10,9 9,9 8,9"/>
                 </svg>
             </button>
-            ` : ''}
+            `
+                    : ''
+            }
             ${actionButton}
             <button class="action-btn p-2 rounded-lg hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors" data-action="delete" title="Delete Problem">
                 ${ICONS.delete}
@@ -239,7 +275,12 @@ export const htmlGenerators = {
     // Helper to generate note area HTML
     _generateNoteArea: (p: Problem) => {
         // Escape note content to prevent XSS when displayed in textarea
-        const escapedNote = (p.note || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        const escapedNote = (p.note || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
         return `
         <div class="note-area ${p.noteVisible ? '' : 'hidden'} mt-3 pt-3 border-t border-theme">
             <textarea class="w-full bg-dark-950 border border-theme rounded-lg p-3 text-sm text-theme-base focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none resize-none" rows="3" placeholder="Notes..." ${p.loading ? 'disabled' : ''}>${escapedNote}</textarea>
@@ -258,9 +299,12 @@ export const htmlGenerators = {
         const today = utils.getToday();
         const isDue = isSolved && p.nextReviewDate !== null && today && p.nextReviewDate <= today;
 
-        const className = `group p-4 rounded-xl border transition-all duration-200 overflow-hidden ${isDue ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40' :
-            isSolved ? 'bg-dark-800 border-brand-500/20 hover:border-brand-500/40' :
-                'bg-dark-800 border-theme hover:border-slate-400'
+        const className = `group p-4 rounded-xl border transition-all duration-200 overflow-hidden ${
+            isDue
+                ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40'
+                : isSolved
+                  ? 'bg-dark-800 border-brand-500/20 hover:border-brand-500/40'
+                  : 'bg-dark-800 border-theme hover:border-slate-400'
         }`;
 
         const problemLink = renderers._generateProblemLink(p);
@@ -270,7 +314,8 @@ export const htmlGenerators = {
         const noteArea = renderers._generateNoteArea(p);
 
         return {
-            className, innerHTML: `
+            className,
+            innerHTML: `
             <div class="flex flex-col sm:flex-row justify-between gap-4">
                 <div class="flex-1 overflow-hidden">
                     ${problemLink}
@@ -282,6 +327,7 @@ export const htmlGenerators = {
                 </div>
             </div>
             ${noteArea}
-        ` };
-    }
+        `,
+        };
+    },
 };

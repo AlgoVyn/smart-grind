@@ -9,12 +9,15 @@ import { SignJWT } from 'jose';
  * @returns {boolean} - True if rate limited
  */
 export async function checkRateLimit(request, env, maxRequests = 10, windowSeconds = 60) {
-    const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+    const clientIP =
+        request.headers.get('CF-Connecting-IP') ||
+        request.headers.get('X-Forwarded-For') ||
+        'unknown';
     const key = `ratelimit_${clientIP}`;
 
     try {
         const now = Date.now();
-        const windowStart = now - (windowSeconds * 1000);
+        const windowStart = now - windowSeconds * 1000;
         const requests = await env.KV.get(key);
         const parsedRequests = requests ? JSON.parse(requests) : [];
         const validRequests = parsedRequests.filter((t: number) => t > windowStart);
@@ -42,7 +45,7 @@ async function signJWT(payload, secret) {
     const secretKey = new TextEncoder().encode(secret);
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: 'HS256' })
-        .setExpirationTime(Math.floor(Date.now() / 1000) + (24 * 60 * 60)) // 24 hours
+        .setExpirationTime(Math.floor(Date.now() / 1000) + 24 * 60 * 60) // 24 hours
         .sign(secretKey);
 }
 
@@ -69,7 +72,7 @@ function validateOAuthCode(params) {
  */
 export async function onRequestGet({ request, env }) {
     // Rate limiting: 10 requests per minute (skip in tests)
-    if (typeof jest === 'undefined' && await checkRateLimit(request, env, 10, 60)) {
+    if (typeof jest === 'undefined' && (await checkRateLimit(request, env, 10, 60))) {
         return new Response('Rate limit exceeded', { status: 429 });
     }
 
@@ -78,25 +81,26 @@ export async function onRequestGet({ request, env }) {
     const action = url.searchParams.get('action');
 
     if (action === 'login') {
-    // Generate random state for CSRF protection
+        // Generate random state for CSRF protection
         const state = crypto.randomUUID();
         // Store state in KV with short TTL (5 minutes)
         await env.KV.put(`oauth_state_${state}`, 'valid', { expirationTtl: 300 });
 
         // Redirect to Google OAuth
-        const googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' +
-        `client_id=${env.GOOGLE_CLIENT_ID}&` +
-        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-        'response_type=code&' +
-        'scope=openid%20email%20profile&' +
-        `state=${encodeURIComponent(state)}`;
+        const googleAuthUrl =
+            'https://accounts.google.com/o/oauth2/v2/auth?' +
+            `client_id=${env.GOOGLE_CLIENT_ID}&` +
+            `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+            'response_type=code&' +
+            'scope=openid%20email%20profile&' +
+            `state=${encodeURIComponent(state)}`;
 
         return Response.redirect(googleAuthUrl, 302);
     }
 
     const state = url.searchParams.get('state');
     if (state) {
-    // Verify state parameter
+        // Verify state parameter
         const storedState = await env.KV.get(`oauth_state_${state}`);
         if (!storedState) {
             const html = `
@@ -148,12 +152,16 @@ export async function onRequestGet({ request, env }) {
                     client_secret: env.GOOGLE_CLIENT_SECRET,
                     code,
                     grant_type: 'authorization_code',
-                    redirect_uri: redirectUri
-                })
+                    redirect_uri: redirectUri,
+                }),
             });
 
             if (!tokenResponse.ok) {
-                console.error('Token exchange failed:', tokenResponse.status, await tokenResponse.text());
+                console.error(
+                    'Token exchange failed:',
+                    tokenResponse.status,
+                    await tokenResponse.text()
+                );
                 const html = `
         <!DOCTYPE html>
         <html>
@@ -168,7 +176,10 @@ export async function onRequestGet({ request, env }) {
         <p>Sign in failed: Token exchange error.</p>
         </body>
         </html>`;
-                return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 500 });
+                return new Response(html, {
+                    headers: { 'Content-Type': 'text/html' },
+                    status: 500,
+                });
             }
 
             tokenData = await tokenResponse.json();
@@ -188,7 +199,10 @@ export async function onRequestGet({ request, env }) {
         <p>Sign in failed: No access token.</p>
         </body>
         </html>`;
-                return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 400 });
+                return new Response(html, {
+                    headers: { 'Content-Type': 'text/html' },
+                    status: 400,
+                });
             }
         } catch (error) {
             console.error('Token exchange error:', error);
@@ -215,11 +229,15 @@ export async function onRequestGet({ request, env }) {
         try {
             // Get user info
             const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-                headers: { Authorization: `Bearer ${accessToken}` }
+                headers: { Authorization: `Bearer ${accessToken}` },
             });
 
             if (!userResponse.ok) {
-                console.error('User info fetch failed:', userResponse.status, await userResponse.text());
+                console.error(
+                    'User info fetch failed:',
+                    userResponse.status,
+                    await userResponse.text()
+                );
                 const html = `
         <!DOCTYPE html>
         <html>
@@ -234,7 +252,10 @@ export async function onRequestGet({ request, env }) {
         <p>Sign in failed: User info error.</p>
         </body>
         </html>`;
-                return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 500 });
+                return new Response(html, {
+                    headers: { 'Content-Type': 'text/html' },
+                    status: 500,
+                });
             }
 
             user = await userResponse.json();
@@ -254,7 +275,10 @@ export async function onRequestGet({ request, env }) {
         <p>Sign in failed: Invalid user data.</p>
         </body>
         </html>`;
-                return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 400 });
+                return new Response(html, {
+                    headers: { 'Content-Type': 'text/html' },
+                    status: 400,
+                });
             }
         } catch (error) {
             console.error('User info fetch error:', error);
@@ -282,10 +306,13 @@ export async function onRequestGet({ request, env }) {
             throw new Error('JWT_SECRET environment variable is not set');
         }
         // Generate JWT
-        const token = await signJWT({
-            userId,
-            displayName
-        }, env.JWT_SECRET);
+        const token = await signJWT(
+            {
+                userId,
+                displayName,
+            },
+            env.JWT_SECRET
+        );
 
         // Store user data in KV only if new user
         try {
@@ -339,8 +366,8 @@ export async function onRequestGet({ request, env }) {
             headers: {
                 'Content-Type': 'text/html',
                 'Set-Cookie': cookieHeader,
-                'Content-Security-Policy': 'base-uri \'self\' https://accounts.google.com'
-            }
+                'Content-Security-Policy': "base-uri 'self' https://accounts.google.com",
+            },
         });
     }
 

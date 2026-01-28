@@ -19,7 +19,7 @@ export const statsRenderers = {
         const mainDueText = state.elements['mainDueText'];
         const mainSolvedBar = state.elements['mainSolvedBar'];
         const mainDueBadge = state.elements['mainDueBadge'];
-        
+
         if (mainTotalText) mainTotalText.innerText = total.toString();
         if (mainSolvedText) mainSolvedText.innerText = solved.toString();
         if (mainDueText) mainDueText.innerText = due.toString();
@@ -34,8 +34,10 @@ export const statsRenderers = {
         const currentFilterDisplay = state.elements['currentFilterDisplay'];
         if (!currentFilterDisplay) return;
 
-        const targetTopicTitle = state.ui.activeTopicId === 'all' ? null :
-            data.topicsData.find((t: Topic) => t.id === state.ui.activeTopicId)?.title;
+        const targetTopicTitle =
+            state.ui.activeTopicId === 'all'
+                ? null
+                : data.topicsData.find((t: Topic) => t.id === state.ui.activeTopicId)?.title;
 
         currentFilterDisplay.innerText = targetTopicTitle || 'All Problems';
     },
@@ -43,11 +45,12 @@ export const statsRenderers = {
     // Helper to update sidebar statistics
     _updateSidebarStats: () => {
         const globalStats = utils.getUniqueProblemsForTopic('all');
-        const percentage = globalStats.total > 0 ? Math.round((globalStats.solved / globalStats.total) * 100) : 0;
+        const percentage =
+            globalStats.total > 0 ? Math.round((globalStats.solved / globalStats.total) * 100) : 0;
 
         const sidebarSolvedText = state.elements['sidebarSolvedText'];
         const sidebarSolvedBar = state.elements['sidebarSolvedBar'];
-        
+
         if (sidebarSolvedText) {
             sidebarSolvedText.innerText = `${percentage}%`;
         }
@@ -60,7 +63,7 @@ export const statsRenderers = {
     _updateReviewBanner: (due: number) => {
         const reviewBanner = state.elements['reviewBanner'];
         const reviewCountBanner = state.elements['reviewCountBanner'];
-        
+
         if (due > 0) {
             reviewBanner?.classList.remove('hidden');
             if (reviewCountBanner) {
@@ -97,5 +100,5 @@ export const statsRenderers = {
                 b.classList.add('text-theme-bold');
             }
         });
-    }
+    },
 };

@@ -75,7 +75,7 @@ export const state = {
     user: {
         type: 'local', // 'local' or 'signed-in'
         id: null,
-        displayName: 'Local User'
+        displayName: 'Local User',
     } as User,
 
     // Problem data
@@ -87,7 +87,7 @@ export const state = {
         activeTopicId: 'all',
         currentFilter: 'all',
         searchQuery: '',
-        preferredAI: localStorage.getItem('preferred-ai') || null
+        preferredAI: localStorage.getItem('preferred-ai') || null,
     } as UIState,
 
     // DOM elements cache
@@ -104,7 +104,8 @@ export const state = {
         try {
             const problemsData = localStorage.getItem(data.LOCAL_STORAGE_KEYS.PROBLEMS);
             const deletedIdsData = localStorage.getItem(data.LOCAL_STORAGE_KEYS.DELETED_IDS);
-            const displayName = localStorage.getItem(data.LOCAL_STORAGE_KEYS.DISPLAY_NAME) || 'Local User';
+            const displayName =
+                localStorage.getItem(data.LOCAL_STORAGE_KEYS.DISPLAY_NAME) || 'Local User';
             const userType = localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE) || 'local';
 
             // Safe JSON parsing with validation
@@ -122,7 +123,7 @@ export const state = {
 
             this.problems = new Map(Object.entries(problemsObj));
             // Reset loading state for all problems on load
-            this.problems.forEach((p: Problem) => p.loading = false);
+            this.problems.forEach((p: Problem) => (p.loading = false));
             this.deletedProblemIds = new Set(deletedIdsArr);
             this.user.displayName = displayName;
             this.user.type = userType as 'local' | 'signed-in';
@@ -136,13 +137,21 @@ export const state = {
         try {
             // Exclude loading state's temporary
             const problemsWithoutLoading = Object.fromEntries(
-                Array.from(this.problems.entries() as IterableIterator<[string, Problem]>).map(([id, p]) => {
-                    const { loading: _loading, ...rest } = p;
-                    return [id, rest];
-                })
+                Array.from(this.problems.entries() as IterableIterator<[string, Problem]>).map(
+                    ([id, p]) => {
+                        const { loading: _loading, ...rest } = p;
+                        return [id, rest];
+                    }
+                )
             );
-            localStorage.setItem(data.LOCAL_STORAGE_KEYS.PROBLEMS, JSON.stringify(problemsWithoutLoading));
-            localStorage.setItem(data.LOCAL_STORAGE_KEYS.DELETED_IDS, JSON.stringify(Array.from(this.deletedProblemIds)));
+            localStorage.setItem(
+                data.LOCAL_STORAGE_KEYS.PROBLEMS,
+                JSON.stringify(problemsWithoutLoading)
+            );
+            localStorage.setItem(
+                data.LOCAL_STORAGE_KEYS.DELETED_IDS,
+                JSON.stringify(Array.from(this.deletedProblemIds))
+            );
             localStorage.setItem(data.LOCAL_STORAGE_KEYS.DISPLAY_NAME, this.user.displayName);
             localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
         } catch (e) {
@@ -182,10 +191,16 @@ export const state = {
             saveAddBtn: document.getElementById('save-add-btn'),
             addProbName: document.getElementById('add-prob-name') as HTMLInputElement | null,
             addProbUrl: document.getElementById('add-prob-url') as HTMLInputElement | null,
-            addProbCategory: document.getElementById('add-prob-category') as HTMLSelectElement | null,
-            addProbCategoryNew: document.getElementById('add-prob-category-new') as HTMLInputElement | null,
+            addProbCategory: document.getElementById(
+                'add-prob-category'
+            ) as HTMLSelectElement | null,
+            addProbCategoryNew: document.getElementById(
+                'add-prob-category-new'
+            ) as HTMLInputElement | null,
             addProbPattern: document.getElementById('add-prob-pattern') as HTMLSelectElement | null,
-            addProbPatternNew: document.getElementById('add-prob-pattern-new') as HTMLInputElement | null,
+            addProbPatternNew: document.getElementById(
+                'add-prob-pattern-new'
+            ) as HTMLInputElement | null,
 
             // Sidebar Stats
             sidebarSolvedText: document.getElementById('sidebar-total-stat'),
@@ -235,5 +250,5 @@ export const state = {
     // Update UI state
     setUI(uiData: Partial<UIState>): void {
         Object.assign(this.ui, uiData);
-    }
+    },
 };

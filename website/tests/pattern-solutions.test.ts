@@ -6,7 +6,7 @@ import { patterns } from '../public/modules/ui/ui-markdown';
 
 describe('Pattern Solutions Functionality', () => {
     beforeEach(() => {
-    // Mock the DOM
+        // Mock the DOM
         document.body.innerHTML = `
             <div id="solution-modal" class="hidden">
                 <div id="solution-content"></div>
@@ -19,8 +19,8 @@ describe('Pattern Solutions Functionality', () => {
                 _renderMarkdown: jest.fn((markdown, contentElement) => {
                     (contentElement as HTMLElement).innerHTML = `<div>${markdown}</div>`;
                 }),
-                _configureMarkdownRenderer: jest.fn(() => ({ parse: (md) => md }))
-            }
+                _configureMarkdownRenderer: jest.fn(() => ({ parse: (md) => md })),
+            },
         };
 
         // Define the function directly for testing
@@ -30,26 +30,38 @@ describe('Pattern Solutions Functionality', () => {
             if (!modal || !content) return;
 
             // Show loading
-            content.innerHTML = '<div class="loading flex items-center justify-center min-h-[200px]"><div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div><span class="ml-3 text-theme-muted">Loading pattern solution...</span></div>';
+            content.innerHTML =
+                '<div class="loading flex items-center justify-center min-h-[200px]"><div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div><span class="ml-3 text-theme-muted">Loading pattern solution...</span></div>';
             modal.classList.remove('hidden');
 
             // Convert pattern name to filename format (e.g., "Backtracking" -> "backtracking")
-            const patternFilename = patternName.toLowerCase().replace(/[\s/()]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-            
+            const patternFilename = patternName
+                .toLowerCase()
+                .replace(/[\s/()]+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-+|-+$/g, '');
+
             // Try to find a pattern solution file
             const solutionFile = `/smartgrind/patterns/${patternFilename}.md`;
-            
+
             fetch(solutionFile)
-                .then(response => {
+                .then((response) => {
                     if (!response.ok) {
-                        throw new Error('Failed to load pattern solution file (status: ' + response.status + ')');
+                        throw new Error(
+                            'Failed to load pattern solution file (status: ' + response.status + ')'
+                        );
                     }
                     return response.text();
                 })
-                .then(markdown => window.SmartGrind.ui._renderMarkdown(markdown, content))
-                .catch(error => {
-                    content.innerHTML = '<p>Error loading pattern solution: ' + error.message + '</p>' +
-                        '<p>File: ' + solutionFile + '</p>' +
+                .then((markdown) => window.SmartGrind.ui._renderMarkdown(markdown, content))
+                .catch((error) => {
+                    content.innerHTML =
+                        '<p>Error loading pattern solution: ' +
+                        error.message +
+                        '</p>' +
+                        '<p>File: ' +
+                        solutionFile +
+                        '</p>' +
                         '<p>This pattern may not have a dedicated solution file yet.</p>';
                 });
         };
@@ -60,12 +72,12 @@ describe('Pattern Solutions Functionality', () => {
         const content = document.getElementById('solution-content');
 
         // Mock fetch
-        global.fetch = (jest.fn(() =>
+        global.fetch = jest.fn(() =>
             Promise.resolve({
                 ok: true,
-                text: () => Promise.resolve('# Pattern Solution')
+                text: () => Promise.resolve('# Pattern Solution'),
             })
-        ) as any);
+        ) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('Backtracking');
 
@@ -80,7 +92,7 @@ describe('Pattern Solutions Functionality', () => {
             capturedUrl = url as string;
             return Promise.resolve({
                 ok: true,
-                text: () => Promise.resolve('# Pattern Solution')
+                text: () => Promise.resolve('# Pattern Solution'),
             });
         }) as any;
 
@@ -91,51 +103,56 @@ describe('Pattern Solutions Functionality', () => {
 
     test('openPatternSolutionModal should handle errors gracefully', async () => {
         const content = document.getElementById('solution-content');
-        
+
         // Mock fetch to return error
         global.fetch = jest.fn(() =>
             Promise.resolve({
                 ok: false,
-                status: 404
+                status: 404,
             })
         ) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('NonExistent Pattern');
-        
+
         // Wait for the fetch to complete
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         expect(content.innerHTML).toContain('Error loading pattern solution');
-        expect(content.innerHTML).toContain('This pattern may not have a dedicated solution file yet');
+        expect(content.innerHTML).toContain(
+            'This pattern may not have a dedicated solution file yet'
+        );
     });
 });
 
 describe('Pattern to Markdown File Mapping with Real Data', () => {
-
     // Test the filename conversion logic (same as in ui-markdown.js)
     const convertPatternNameToFilename = (patternName) => {
-        return patternName.toLowerCase().replace(/[\s/()]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+        return patternName
+            .toLowerCase()
+            .replace(/[\s/()]+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-+|-+$/g, '');
     };
 
     test('should map real pattern names to existing solution files', () => {
-    // Test a few real pattern names from the data
+        // Test a few real pattern names from the data
         const testCases = [
             {
                 patternName: 'Backtracking - Combination Sum',
-                expectedFilename: 'backtracking-combination-sum'
+                expectedFilename: 'backtracking-combination-sum',
             },
             {
                 patternName: 'Binary Search - On Answer / Condition Function',
-                expectedFilename: 'binary-search-on-answer-condition-function'
+                expectedFilename: 'binary-search-on-answer-condition-function',
             },
             {
                 patternName: 'Backtracking - Subsets (Include/Exclude)',
-                expectedFilename: 'backtracking-subsets-include-exclude'
+                expectedFilename: 'backtracking-subsets-include-exclude',
             },
             {
                 patternName: 'Backtracking - N-Queens / Constraint Satisfaction',
-                expectedFilename: 'backtracking-n-queens-constraint-satisfaction'
-            }
+                expectedFilename: 'backtracking-n-queens-constraint-satisfaction',
+            },
         ];
 
         testCases.forEach(({ patternName, expectedFilename }) => {
@@ -145,13 +162,13 @@ describe('Pattern to Markdown File Mapping with Real Data', () => {
     });
 
     test('should verify solution files exist for pattern names', () => {
-    // This would require file system access, so we'll just test the mapping logic
+        // This would require file system access, so we'll just test the mapping logic
         const patternName = 'Backtracking - Combination Sum';
         const expectedFilename = 'backtracking-combination-sum';
         const actualFilename = convertPatternNameToFilename(patternName);
-        
+
         expect(actualFilename).toBe(expectedFilename);
-    // In a real test, we would check if the file exists
+        // In a real test, we would check if the file exists
     });
 });
 
@@ -166,20 +183,20 @@ describe('Pattern Mapping System', () => {
         const testCases = [
             {
                 patternName: 'Two Pointers - Converging (Sorted Array Target Sum)',
-                expectedFilename: 'two-pointers-converging-sorted-array-target-sum'
+                expectedFilename: 'two-pointers-converging-sorted-array-target-sum',
             },
             {
-                patternName: 'Graph BFS - Topological Sort (Kahn\'s Algorithm)',
-                expectedFilename: 'graph-bfs-topological-sort-kahn-s'
+                patternName: "Graph BFS - Topological Sort (Kahn's Algorithm)",
+                expectedFilename: 'graph-bfs-topological-sort-kahn-s',
             },
             {
                 patternName: 'Sqrt(x)',
-                expectedFilename: 'sqrt-x'
+                expectedFilename: 'sqrt-x',
             },
             {
                 patternName: 'Insert Delete GetRandom O(1)',
-                expectedFilename: 'insert-delete-getrandom-o-1'
-            }
+                expectedFilename: 'insert-delete-getrandom-o-1',
+            },
         ];
 
         testCases.forEach(({ patternName, expectedFilename }) => {
@@ -192,16 +209,16 @@ describe('Pattern Mapping System', () => {
         const testCases = [
             {
                 patternName: 'Backtracking - Combination Sum',
-                expectedFilename: 'backtracking-combination-sum'
+                expectedFilename: 'backtracking-combination-sum',
             },
             {
                 patternName: 'Binary Search - On Answer / Condition Function',
-                expectedFilename: 'binary-search-on-answer-condition-function'
+                expectedFilename: 'binary-search-on-answer-condition-function',
             },
             {
                 patternName: 'Sliding Window',
-                expectedFilename: 'sliding-window'
-            }
+                expectedFilename: 'sliding-window',
+            },
         ];
 
         testCases.forEach(({ patternName, expectedFilename }) => {
@@ -212,23 +229,68 @@ describe('Pattern Mapping System', () => {
 
     test('should handle consistent automatic conversion for all patterns', () => {
         const namingConsistencies = [
-            { patternName: 'Two Pointers - Converging (Sorted Array Target Sum)', expected: 'two-pointers-converging-sorted-array-target-sum' },
-            { patternName: 'Two Pointers - Fast & Slow (Cycle Detection)', expected: 'two-pointers-fast-slow-cycle-detection' },
-            { patternName: 'Two Pointers - Fixed Separation (Nth Node from End)', expected: 'two-pointers-fixed-separation-nth-node-from-end' },
-            { patternName: 'Two Pointers - Expanding From Center (Palindromes)', expected: 'two-pointers-expanding-from-center-palindromes' },
-            { patternName: 'Sliding Window - Fixed Size (Subarray Calculation)', expected: 'sliding-window-fixed-size-subarray-calculation' },
-            { patternName: 'Sliding Window - Variable Size (Condition-Based)', expected: 'sliding-window-variable-size-condition-based' },
-            { patternName: 'Longest Subarray of 1\'s After Deleting One Element', expected: 'longest-subarray-of-1-s-after-deleting-one-element' },
-            { patternName: 'Graph BFS - Topological Sort (Kahn\'s Algorithm)', expected: 'graph-bfs-topological-sort-kahn-s' },
-            { patternName: 'Graph - Shortest Path (Dijkstra\'s Algorithm)', expected: 'graph-shortest-path-dijkstra-s' },
-            { patternName: 'Graph - Shortest Path (Bellman-Ford / BFS+K)', expected: 'graph-shortest-path-bellman-ford-bfs-k' },
-            { patternName: 'Bridges & Articulation Points (Tarjan low-link)', expected: 'bridges-articulation-points-tarjan-low-link' },
-            { patternName: 'Minimum Spanning Tree (Kruskal / Prim / DSU + heap)', expected: 'minimum-spanning-tree-kruskal-prim-dsu-heap' },
-            { patternName: 'Bidirectional BFS (BFS optimization for known source & target)', expected: 'bidirectional-bfs-bfs-optimization-for-known-source-target' },
+            {
+                patternName: 'Two Pointers - Converging (Sorted Array Target Sum)',
+                expected: 'two-pointers-converging-sorted-array-target-sum',
+            },
+            {
+                patternName: 'Two Pointers - Fast & Slow (Cycle Detection)',
+                expected: 'two-pointers-fast-slow-cycle-detection',
+            },
+            {
+                patternName: 'Two Pointers - Fixed Separation (Nth Node from End)',
+                expected: 'two-pointers-fixed-separation-nth-node-from-end',
+            },
+            {
+                patternName: 'Two Pointers - Expanding From Center (Palindromes)',
+                expected: 'two-pointers-expanding-from-center-palindromes',
+            },
+            {
+                patternName: 'Sliding Window - Fixed Size (Subarray Calculation)',
+                expected: 'sliding-window-fixed-size-subarray-calculation',
+            },
+            {
+                patternName: 'Sliding Window - Variable Size (Condition-Based)',
+                expected: 'sliding-window-variable-size-condition-based',
+            },
+            {
+                patternName: "Longest Subarray of 1's After Deleting One Element",
+                expected: 'longest-subarray-of-1-s-after-deleting-one-element',
+            },
+            {
+                patternName: "Graph BFS - Topological Sort (Kahn's Algorithm)",
+                expected: 'graph-bfs-topological-sort-kahn-s',
+            },
+            {
+                patternName: "Graph - Shortest Path (Dijkstra's Algorithm)",
+                expected: 'graph-shortest-path-dijkstra-s',
+            },
+            {
+                patternName: 'Graph - Shortest Path (Bellman-Ford / BFS+K)',
+                expected: 'graph-shortest-path-bellman-ford-bfs-k',
+            },
+            {
+                patternName: 'Bridges & Articulation Points (Tarjan low-link)',
+                expected: 'bridges-articulation-points-tarjan-low-link',
+            },
+            {
+                patternName: 'Minimum Spanning Tree (Kruskal / Prim / DSU + heap)',
+                expected: 'minimum-spanning-tree-kruskal-prim-dsu-heap',
+            },
+            {
+                patternName: 'Bidirectional BFS (BFS optimization for known source & target)',
+                expected: 'bidirectional-bfs-bfs-optimization-for-known-source-target',
+            },
             { patternName: 'Sqrt(x)', expected: 'sqrt-x' },
-            { patternName: 'DP - 1D Array (Kadane\'s Algorithm for Max/Min Subarray)', expected: 'dp-1d-array-kadane-s-algorithm-for-max-min-subarray' },
-            { patternName: 'Insert Delete GetRandom O(1)', expected: 'insert-delete-getrandom-o-1' },
-            { patternName: 'All O`one Data Structure', expected: 'all-o-one-data-structure' }
+            {
+                patternName: "DP - 1D Array (Kadane's Algorithm for Max/Min Subarray)",
+                expected: 'dp-1d-array-kadane-s-algorithm-for-max-min-subarray',
+            },
+            {
+                patternName: 'Insert Delete GetRandom O(1)',
+                expected: 'insert-delete-getrandom-o-1',
+            },
+            { patternName: 'All O`one Data Structure', expected: 'all-o-one-data-structure' },
         ];
 
         namingConsistencies.forEach(({ patternName, expected }) => {
@@ -240,12 +302,15 @@ describe('Pattern Mapping System', () => {
     test('should handle edge cases in automatic conversion', () => {
         const edgeCases = [
             { patternName: 'Simple Pattern', expected: 'simple' },
-            { patternName: 'Pattern With Multiple   Spaces', expected: 'pattern-with-multiple-spaces' },
+            {
+                patternName: 'Pattern With Multiple   Spaces',
+                expected: 'pattern-with-multiple-spaces',
+            },
             { patternName: 'Pattern-With-Dashes', expected: 'pattern-with-dashes' },
             { patternName: 'Pattern/With/Slashes', expected: 'pattern-with-slashes' },
             { patternName: 'Pattern (With Parentheses)', expected: 'pattern-with-parentheses' },
             { patternName: 'Pattern - With Suffix Pattern', expected: 'pattern-with-suffix' },
-            { patternName: 'Pattern - With Suffix Algorithm', expected: 'pattern-with-suffix' }
+            { patternName: 'Pattern - With Suffix Algorithm', expected: 'pattern-with-suffix' },
         ];
 
         edgeCases.forEach(({ patternName, expected }) => {
@@ -258,14 +323,18 @@ describe('Pattern Mapping System', () => {
 describe('Pattern to Markdown File Mapping Validation', () => {
     // Test the filename conversion logic
     const convertPatternNameToFilename = (patternName) => {
-        return patternName.toLowerCase().replace(/[\s/()]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+        return patternName
+            .toLowerCase()
+            .replace(/[\s/()]+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-+|-+$/g, '');
     };
 
     test('should handle pattern names with slashes correctly', () => {
         const patternName = 'Binary Search - On Answer / Condition Function';
         const expectedFilename = 'binary-search-on-answer-condition-function';
         const actualFilename = convertPatternNameToFilename(patternName);
-        
+
         expect(actualFilename).toBe(expectedFilename);
     });
 
@@ -273,7 +342,7 @@ describe('Pattern to Markdown File Mapping Validation', () => {
         const patternName = 'Backtracking - Combination Sum';
         const expectedFilename = 'backtracking-combination-sum';
         const actualFilename = convertPatternNameToFilename(patternName);
-        
+
         expect(actualFilename).toBe(expectedFilename);
     });
 
@@ -281,7 +350,7 @@ describe('Pattern to Markdown File Mapping Validation', () => {
         const patternName = 'Two Pointers -  Expanding From Center (Palindromes)';
         const expectedFilename = 'two-pointers-expanding-from-center-palindromes';
         const actualFilename = convertPatternNameToFilename(patternName);
-        
+
         expect(actualFilename).toBe(expectedFilename);
     });
 
@@ -289,7 +358,7 @@ describe('Pattern to Markdown File Mapping Validation', () => {
         const patternName = 'Sliding Window';
         const expectedFilename = 'sliding-window';
         const actualFilename = convertPatternNameToFilename(patternName);
-        
+
         expect(actualFilename).toBe(expectedFilename);
     });
 
@@ -297,7 +366,7 @@ describe('Pattern to Markdown File Mapping Validation', () => {
         const patternName = 'DP - 2D Array (Unique Paths on Grid)';
         const expectedFilename = 'dp-2d-array-unique-paths-on-grid';
         const actualFilename = convertPatternNameToFilename(patternName);
-        
+
         expect(actualFilename).toBe(expectedFilename);
     });
 
@@ -305,7 +374,7 @@ describe('Pattern to Markdown File Mapping Validation', () => {
         const patternName = 'Graph - Shortest Path / Bellman-Ford / BFS+K';
         const expectedFilename = 'graph-shortest-path-bellman-ford-bfs+k';
         const actualFilename = convertPatternNameToFilename(patternName);
-        
+
         expect(actualFilename).toBe(expectedFilename);
     });
 });
@@ -316,17 +385,19 @@ describe('Pattern Solutions Files Verification', () => {
     test('should have pattern solution files in the solutions directory', () => {
         const files = fs.readdirSync(solutionsDir);
         expect(files.length).toBeGreaterThan(0);
-        
+
         // Check for some expected pattern files
-        const patternFiles = files.filter(file => file.includes('backtracking') || file.includes('sliding-window'));
+        const patternFiles = files.filter(
+            (file) => file.includes('backtracking') || file.includes('sliding-window')
+        );
         expect(patternFiles.length).toBeGreaterThan(0);
     });
 
     test('should have backtracking pattern solution files', () => {
         const files = fs.readdirSync(solutionsDir);
-        const backtrackingFiles = files.filter(file => file.includes('backtracking'));
+        const backtrackingFiles = files.filter((file) => file.includes('backtracking'));
         expect(backtrackingFiles.length).toBeGreaterThan(0);
-        
+
         // Check that at least one backtracking file exists and is readable
         const backtrackingFile = backtrackingFiles[0];
         const filePath = path.join(solutionsDir, backtrackingFile);
@@ -337,9 +408,9 @@ describe('Pattern Solutions Files Verification', () => {
 
     test('should have sliding window pattern solution files', () => {
         const files = fs.readdirSync(solutionsDir);
-        const slidingWindowFiles = files.filter(file => file.includes('sliding-window'));
+        const slidingWindowFiles = files.filter((file) => file.includes('sliding-window'));
         expect(slidingWindowFiles.length).toBeGreaterThan(0);
-        
+
         // Check that at least one sliding window file exists and is readable
         const slidingWindowFile = slidingWindowFiles[0];
         const filePath = path.join(solutionsDir, slidingWindowFile);
@@ -350,7 +421,7 @@ describe('Pattern Solutions Files Verification', () => {
 
     test('should have various pattern categories represented', () => {
         const files = fs.readdirSync(solutionsDir);
-        
+
         // Check for different pattern categories
         const patternCategories = [
             'backtracking',
@@ -358,26 +429,26 @@ describe('Pattern Solutions Files Verification', () => {
             'binary-search',
             'graph',
             'dp',
-            'tree'
+            'tree',
         ];
-        
-        const foundCategories = patternCategories.filter(category =>
-            files.some(file => file.includes(category))
+
+        const foundCategories = patternCategories.filter((category) =>
+            files.some((file) => file.includes(category))
         );
-        
+
         expect(foundCategories.length).toBeGreaterThan(2); // Should have at least 3 different pattern categories
     });
 
     test('pattern solution files should have proper markdown structure', () => {
         const files = fs.readdirSync(solutionsDir);
-        
+
         // Test a few random files for proper markdown structure
         const testFiles = files.slice(0, 3); // Test first 3 files
-        
-        testFiles.forEach(file => {
+
+        testFiles.forEach((file) => {
             const filePath = path.join(solutionsDir, file);
             const content = fs.readFileSync(filePath, 'utf8');
-            
+
             // Basic markdown structure checks
             expect(content).toMatch(/^#/); // Should start with a header
             expect(content).toContain('##'); // Should have subsections
@@ -388,7 +459,7 @@ describe('Pattern Solutions Files Verification', () => {
 
 describe('Pattern Solutions Integration Tests', () => {
     beforeEach(() => {
-    // Mock the DOM
+        // Mock the DOM
         document.body.innerHTML = `
             <div id="solution-modal" class="hidden">
                 <div id="solution-content"></div>
@@ -401,8 +472,8 @@ describe('Pattern Solutions Integration Tests', () => {
                 _renderMarkdown: jest.fn((markdown, contentElement) => {
                     (contentElement as HTMLElement).innerHTML = `<div>${markdown}</div>`;
                 }),
-                _configureMarkdownRenderer: jest.fn(() => ({ parse: (md) => md }))
-            }
+                _configureMarkdownRenderer: jest.fn(() => ({ parse: (md) => md })),
+            },
         };
 
         // Define the function directly for testing
@@ -412,26 +483,34 @@ describe('Pattern Solutions Integration Tests', () => {
             if (!modal || !content) return;
 
             // Show loading
-            content.innerHTML = '<div class="loading flex items-center justify-center min-h-[200px]"><div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div><span class="ml-3 text-theme-muted">Loading pattern solution...</span></div>';
+            content.innerHTML =
+                '<div class="loading flex items-center justify-center min-h-[200px]"><div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div><span class="ml-3 text-theme-muted">Loading pattern solution...</span></div>';
             modal.classList.remove('hidden');
 
             // Convert pattern name to filename format (e.g., "Backtracking" -> "backtracking")
             const patternFilename = patternName.toLowerCase().replace(/\s+/g, '-');
-            
+
             // Try to find a pattern solution file
             const solutionFile = `/smartgrind/patterns/${patternFilename}.md`;
-            
+
             fetch(solutionFile)
-                .then(response => {
+                .then((response) => {
                     if (!response.ok) {
-                        throw new Error('Failed to load pattern solution file (status: ' + response.status + ')');
+                        throw new Error(
+                            'Failed to load pattern solution file (status: ' + response.status + ')'
+                        );
                     }
                     return response.text();
                 })
-                .then(markdown => window.SmartGrind.ui._renderMarkdown(markdown, content))
-                .catch(error => {
-                    content.innerHTML = '<p>Error loading pattern solution: ' + error.message + '</p>' +
-                        '<p>File: ' + solutionFile + '</p>' +
+                .then((markdown) => window.SmartGrind.ui._renderMarkdown(markdown, content))
+                .catch((error) => {
+                    content.innerHTML =
+                        '<p>Error loading pattern solution: ' +
+                        error.message +
+                        '</p>' +
+                        '<p>File: ' +
+                        solutionFile +
+                        '</p>' +
                         '<p>This pattern may not have a dedicated solution file yet.</p>';
                 });
         };
@@ -439,40 +518,46 @@ describe('Pattern Solutions Integration Tests', () => {
 
     test('should load and display backtracking pattern solution', async () => {
         const content = document.getElementById('solution-content');
-        
+
         // Mock fetch to return actual backtracking content
         global.fetch = jest.fn(() =>
             Promise.resolve({
                 ok: true,
-                text: () => Promise.resolve('# Backtracking Pattern\n\nThis is a backtracking pattern solution.')
+                text: () =>
+                    Promise.resolve(
+                        '# Backtracking Pattern\n\nThis is a backtracking pattern solution.'
+                    ),
             })
         ) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('Backtracking');
-        
+
         // Wait for async operations
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         expect(content.innerHTML).toContain('Backtracking Pattern');
         expect(content.innerHTML).toContain('This is a backtracking pattern solution');
     });
 
     test('should load and display sliding window pattern solution', async () => {
         const content = document.getElementById('solution-content');
-        
+
         // Mock fetch to return actual sliding window content
         global.fetch = jest.fn(() =>
             Promise.resolve({
                 ok: true,
-                text: () => Promise.resolve('# Sliding Window Pattern\n\nThis is a sliding window pattern solution.')
+                text: () =>
+                    Promise.resolve(
+                        '# Sliding Window Pattern\n\nThis is a sliding window pattern solution.'
+                    ),
             })
         ) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('Sliding Window');
-        
+
         // Wait for async operations
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         expect(content.innerHTML).toContain('Sliding Window Pattern');
         expect(content.innerHTML).toContain('This is a sliding window pattern solution');
     });
@@ -484,51 +569,51 @@ describe('Pattern Solutions Integration Tests', () => {
             capturedUrl = url as string;
             return Promise.resolve({
                 ok: true,
-                text: () => Promise.resolve('# Pattern Solution')
+                text: () => Promise.resolve('# Pattern Solution'),
             });
         });
 
         window.SmartGrind.ui.openPatternSolutionModal('Binary Search Tree Iterator');
 
         // Wait for async operations
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(capturedUrl).toBe('/smartgrind/patterns/binary-search-tree-iterator.md');
     });
 
     test('should show appropriate error for non-existent pattern', async () => {
         const content = document.getElementById('solution-content');
-        
+
         // Mock fetch to return 404
         global.fetch = jest.fn(() =>
             Promise.resolve({
                 ok: false,
-                status: 404
+                status: 404,
             })
         ) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('Non Existent Pattern');
-        
+
         // Wait for async operations
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         expect(content.innerHTML).toContain('Error loading pattern solution');
-        expect(content.innerHTML).toContain('This pattern may not have a dedicated solution file yet');
+        expect(content.innerHTML).toContain(
+            'This pattern may not have a dedicated solution file yet'
+        );
     });
 
     test('should handle network errors gracefully', async () => {
         const content = document.getElementById('solution-content');
-        
+
         // Mock fetch to throw network error
-        global.fetch = jest.fn(() =>
-            Promise.reject(new Error('Network error'))
-        ) as any;
+        global.fetch = jest.fn(() => Promise.reject(new Error('Network error'))) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('Some Pattern');
-        
+
         // Wait for async operations
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         expect(content.innerHTML).toContain('Error loading pattern solution');
         expect(content.innerHTML).toContain('Network error');
     });
@@ -536,7 +621,7 @@ describe('Pattern Solutions Integration Tests', () => {
 
 describe('Solution Modal Scroll Progress', () => {
     beforeEach(() => {
-    // Mock the DOM with progress bar
+        // Mock the DOM with progress bar
         document.body.innerHTML = `
             <div id="solution-modal" class="hidden">
                 <div id="solution-content" style="height: 400px; overflow-y: auto;"></div>
@@ -548,7 +633,8 @@ describe('Solution Modal Scroll Progress', () => {
         window.SmartGrind = {
             ui: {
                 _renderMarkdown: jest.fn((markdown, contentElement) => {
-                    (contentElement as HTMLElement).innerHTML = `<div style="height: 800px;">${markdown}</div>`;
+                    (contentElement as HTMLElement).innerHTML =
+                        `<div style="height: 800px;">${markdown}</div>`;
                 }),
                 _configureMarkdownRenderer: jest.fn(() => ({ parse: (md) => md })),
                 updateSolutionScrollProgress: () => {
@@ -565,8 +651,8 @@ describe('Solution Modal Scroll Progress', () => {
                     if (progressBar) {
                         progressBar.style.width = Math.min(100, Math.max(0, progress)) + '%';
                     }
-                }
-            }
+                },
+            },
         };
 
         // Define the modal functions for testing
@@ -581,7 +667,10 @@ describe('Solution Modal Scroll Progress', () => {
             // Simulate loading content
             setTimeout(() => {
                 window.SmartGrind.ui._renderMarkdown('# Test Content', content);
-                content.addEventListener('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
+                content.addEventListener(
+                    'scroll',
+                    window.SmartGrind.ui.updateSolutionScrollProgress
+                );
                 window.SmartGrind.ui.updateSolutionScrollProgress();
             }, 10);
         };
@@ -594,7 +683,10 @@ describe('Solution Modal Scroll Progress', () => {
 
             const content = document.getElementById('solution-content');
             if (content) {
-                content.removeEventListener('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
+                content.removeEventListener(
+                    'scroll',
+                    window.SmartGrind.ui.updateSolutionScrollProgress
+                );
             }
 
             const progressBar = document.getElementById('solution-scroll-progress');
@@ -666,16 +758,19 @@ describe('Solution Modal Scroll Progress', () => {
         global.fetch = jest.fn(() =>
             Promise.resolve({
                 ok: true,
-                text: () => Promise.resolve('# Test Content')
+                text: () => Promise.resolve('# Test Content'),
             })
         ) as any;
 
         window.SmartGrind.ui.openPatternSolutionModal('Test Pattern');
 
         // Wait for the content to load
-        await new Promise(resolve => setTimeout(resolve, 20));
+        await new Promise((resolve) => setTimeout(resolve, 20));
 
-        expect(addEventListenerSpy).toHaveBeenCalledWith('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
+        expect(addEventListenerSpy).toHaveBeenCalledWith(
+            'scroll',
+            window.SmartGrind.ui.updateSolutionScrollProgress
+        );
     });
 
     test('closeSolutionModal should remove scroll event listener and reset progress', () => {
@@ -688,7 +783,10 @@ describe('Solution Modal Scroll Progress', () => {
 
         window.SmartGrind.ui.closeSolutionModal();
 
-        expect(removeEventListenerSpy).toHaveBeenCalledWith('scroll', window.SmartGrind.ui.updateSolutionScrollProgress);
+        expect(removeEventListenerSpy).toHaveBeenCalledWith(
+            'scroll',
+            window.SmartGrind.ui.updateSolutionScrollProgress
+        );
         expect(progressBar.style.width).toBe('0%');
     });
 

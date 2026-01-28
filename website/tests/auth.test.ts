@@ -39,7 +39,8 @@ jest.mock('jose', () => ({
     }
 };
 
-(global as any).Response.redirect = (url: any, status: any) => new (global as any).Response('', { status, headers: { Location: url } });
+(global as any).Response.redirect = (url: any, status: any) =>
+    new (global as any).Response('', { status, headers: { Location: url } });
 
 // crypto.subtle is mocked in jest.setup.js
 
@@ -88,17 +89,25 @@ describe('Auth API', () => {
             const response = await onRequestGet({ request, env: mockEnv });
 
             expect(response.status).toBe(302);
-            expect(response.headers.get('Location')).toContain('https://accounts.google.com/o/oauth2/v2/auth');
+            expect(response.headers.get('Location')).toContain(
+                'https://accounts.google.com/o/oauth2/v2/auth'
+            );
             expect(response.headers.get('Location')).toContain('client_id=test-client-id');
-            expect(response.headers.get('Location')).toContain('redirect_uri=https%3A%2F%2Falgovyn.com%2Fsmartgrind%2Fapi%2Fauth');
+            expect(response.headers.get('Location')).toContain(
+                'redirect_uri=https%3A%2F%2Falgovyn.com%2Fsmartgrind%2Fapi%2Fauth'
+            );
             expect(response.headers.get('Location')).toContain('state=mock-uuid');
-            expect(mockKV.put).toHaveBeenCalledWith('oauth_state_mock-uuid', 'valid', { expirationTtl: 300 });
+            expect(mockKV.put).toHaveBeenCalledWith('oauth_state_mock-uuid', 'valid', {
+                expirationTtl: 300,
+            });
         });
 
         test('should return HTML with failure for invalid state in callback', async () => {
             mockKV.get.mockResolvedValue(null); // Invalid state
 
-            const request = new Request('https://example.com/auth?state=invalid-state&code=valid-code');
+            const request = new Request(
+                'https://example.com/auth?state=invalid-state&code=valid-code'
+            );
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -127,7 +136,9 @@ describe('Auth API', () => {
             mockKV.get.mockResolvedValue('valid'); // Valid state
 
             const longCode = 'a'.repeat(1001);
-            const request = new Request(`https://example.com/auth?state=mock-uuid&code=${longCode}`);
+            const request = new Request(
+                `https://example.com/auth?state=mock-uuid&code=${longCode}`
+            );
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -156,7 +167,10 @@ describe('Auth API', () => {
         test('should return HTML with failure for invalid user data', async () => {
             mockKV.get.mockResolvedValue('valid'); // Valid state
             mockFetch
-                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ access_token: 'token' }) })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ access_token: 'token' }),
+                })
                 .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) }); // No id
 
             const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
@@ -176,8 +190,19 @@ describe('Auth API', () => {
                 .mockResolvedValueOnce(null); // User check
 
             mockFetch
-                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ access_token: 'token' }) })
-                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ id: 'user123', name: 'Test User', email: 'test@example.com' }) });
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ access_token: 'token' }),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () =>
+                        Promise.resolve({
+                            id: 'user123',
+                            name: 'Test User',
+                            email: 'test@example.com',
+                        }),
+                });
 
             const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
 
@@ -189,7 +214,10 @@ describe('Auth API', () => {
             expect(html).toContain('auth-success');
             expect(html).toContain('user123');
             expect(html).toContain('Test User');
-            expect(mockKV.put).toHaveBeenCalledWith('user123', JSON.stringify({ problems: {}, deletedIds: [] }));
+            expect(mockKV.put).toHaveBeenCalledWith(
+                'user123',
+                JSON.stringify({ problems: {}, deletedIds: [] })
+            );
             expect(mockKV.delete).toHaveBeenCalledWith('oauth_state_mock-uuid');
         });
 
@@ -199,8 +227,14 @@ describe('Auth API', () => {
                 .mockResolvedValueOnce('existing-data'); // Existing user
 
             mockFetch
-                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ access_token: 'token' }) })
-                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ id: 'user123', name: 'Test User' }) });
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ access_token: 'token' }),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ id: 'user123', name: 'Test User' }),
+                });
 
             const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
 
@@ -224,8 +258,14 @@ describe('Auth API', () => {
                 .mockResolvedValueOnce(null); // User check
 
             mockFetch
-                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ access_token: 'token' }) })
-                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ id: 'user123', email: 'test@example.com' }) });
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ access_token: 'token' }),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ id: 'user123', email: 'test@example.com' }),
+                });
 
             const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
 
@@ -242,8 +282,14 @@ describe('Auth API', () => {
                 .mockResolvedValueOnce(null); // User check
 
             mockFetch
-                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ access_token: 'token' }) })
-                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ id: 'user123' }) });
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ access_token: 'token' }),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ id: 'user123' }),
+                });
 
             const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
 
@@ -272,7 +318,10 @@ describe('Auth API', () => {
         test('should return HTML with failure message for user info network error', async () => {
             mockKV.get.mockResolvedValue('valid'); // Valid state
             mockFetch
-                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ access_token: 'token' }) })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ access_token: 'token' }),
+                })
                 .mockRejectedValueOnce(new Error('Network error'));
 
             const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
@@ -292,8 +341,14 @@ describe('Auth API', () => {
                 .mockRejectedValueOnce(new Error('KV error')); // User check
 
             mockFetch
-                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ access_token: 'token' }) })
-                .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ id: 'user123', name: 'Test User' }) });
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ access_token: 'token' }),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ id: 'user123', name: 'Test User' }),
+                });
 
             const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
 

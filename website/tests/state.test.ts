@@ -22,10 +22,9 @@ Object.defineProperty(global, 'localStorage', {
 import { state } from '../public/modules/state.ts';
 import { data as _data } from '../public/modules/data.ts';
 
-
 describe('SmartGrind State', () => {
     beforeEach(() => {
-    // Reset mocks
+        // Reset mocks
         jest.clearAllMocks();
 
         // Reset state properties
@@ -34,13 +33,13 @@ describe('SmartGrind State', () => {
         state.user = {
             type: 'local',
             id: null,
-            displayName: 'Local User'
+            displayName: 'Local User',
         };
         state.ui = {
             activeTopicId: 'all',
             currentFilter: 'all',
             searchQuery: '',
-            preferredAI: null
+            preferredAI: null,
         };
         state.elements = {};
     });
@@ -80,7 +79,11 @@ describe('SmartGrind State', () => {
 
             state.loadFromStorage();
 
-            expect(state.problems.get('1')).toEqual({ id: '1', name: 'Test Problem', loading: false });
+            expect(state.problems.get('1')).toEqual({
+                id: '1',
+                name: 'Test Problem',
+                loading: false,
+            });
             expect(state.deletedProblemIds.has('2')).toBe(true);
             expect(state.deletedProblemIds.has('3')).toBe(true);
             expect(state.user.displayName).toBe('Test User');

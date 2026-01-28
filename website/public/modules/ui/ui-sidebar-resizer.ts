@@ -80,11 +80,14 @@ export const sidebarResizer = {
             ['mousemove', 'resize'],
             ['mouseup', 'stopResize'],
             ['touchmove', 'resize'],
-            ['touchend', 'stopResize']
+            ['touchend', 'stopResize'],
         ];
         events.forEach(([event, method]) => {
             const handler = sidebarResizer[method as 'resize' | 'stopResize'];
-            document.removeEventListener(event as keyof DocumentEventMap, handler as unknown as EventListener);
+            document.removeEventListener(
+                event as keyof DocumentEventMap,
+                handler as unknown as EventListener
+            );
         });
 
         // Remove resizing class
@@ -108,9 +111,12 @@ export const sidebarResizer = {
             if (sidebar) {
                 const width = parseInt(savedWidth, 10);
                 // Apply min/max constraints when loading
-                const constrainedWidth = Math.max(sidebarResizer.minWidth, Math.min(sidebarResizer.maxWidth, width));
+                const constrainedWidth = Math.max(
+                    sidebarResizer.minWidth,
+                    Math.min(sidebarResizer.maxWidth, width)
+                );
                 sidebar.style.width = constrainedWidth + 'px';
             }
         }
-    }
+    },
 };
