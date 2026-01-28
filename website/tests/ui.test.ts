@@ -472,7 +472,7 @@ describe('SmartGrind UI', () => {
 
             ui.pullToRefresh.handleMouseEnd(event);
 
-            // We just verify the isMousePulling is reset
+            // We just verify the isPulling is reset
             expect(ui.pullToRefresh.isMousePulling).toBe(false);
         });
 
@@ -962,7 +962,17 @@ describe('SmartGrind UI', () => {
             const result = await promise;
             expect(result).toBe(false);
         });
+
+        test('allows HTML formatting tags in message', async () => {
+            const promise = ui.showConfirm('<b>Bold</b> and <i>italic</i> text');
+
+            expect(state.elements.confirmMessage.innerHTML).toBe('<b>Bold</b> and <i>italic</i> text');
+
+            ui.closeConfirmModal(true);
+            await promise;
+        });
     });
+
 
     describe('handleKeyboard', () => {
         test('focuses search on "/" key', () => {
@@ -1425,7 +1435,7 @@ describe('SmartGrind UI', () => {
             ui.pullToRefresh.isMousePulling = false;
 
             const event = {
-                clientY: 100,
+                clientY: 150,
             };
 
             ui.pullToRefresh.handleMouseEnd(event);
@@ -2102,8 +2112,9 @@ describe('SmartGrind UI', () => {
     });
 
     describe('handleGoogleLogin popup closed', () => {
-        test('shows toast when popup is closed without auth', () => {
+        test('shows timeout toast when popup is closed without auth', () => {
             jest.useFakeTimers();
+            const { UI_CONSTANTS } = require('../public/modules/ui/ui-constants.js');
             const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
             const mockPopup = { closed: false, close: jest.fn() };
             mockOpen.mockReturnValue(mockPopup);
@@ -2113,11 +2124,12 @@ describe('SmartGrind UI', () => {
 
             ui.handleGoogleLogin();
 
-            // Simulate popup closing after 1 second
+            // Simulate popup closing (no longer detected by polling)
             mockPopup.closed = true;
-            jest.advanceTimersByTime(1000);
+            // Advance past the timeout period
+            jest.advanceTimersByTime(UI_CONSTANTS.AUTH_TIMEOUT);
 
-            expect(showToastSpy).toHaveBeenCalledWith('Sign-in was cancelled.', 'error');
+            expect(showToastSpy).toHaveBeenCalledWith('Sign-in timed out. Please try again.', 'error');
             expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginBtn, false);
             expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.modalGoogleLoginBtn, false);
 

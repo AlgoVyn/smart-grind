@@ -191,7 +191,9 @@ export const problemCardRenderers = {
 
     // Helper to handle delete action
     _handleDeleteAction: async (p: Problem): Promise<void> => {
-        const confirmed = await ui.showConfirm(`Delete "<b>${p.name}</b>"?`);
+        // Sanitize problem name before displaying in confirmation
+        const sanitizedName = utils.sanitizeInput(p.name);
+        const confirmed = await ui.showConfirm(`Delete "<b>${sanitizedName}</b>"?`);
         if (confirmed) {
             await api.saveDeletedId(p.id);
         }
@@ -215,7 +217,8 @@ export const problemCardRenderers = {
             button,
             p,
             (problem: Problem) => {
-                problem.note = textarea.value.trim();
+                // Sanitize note input before saving
+                problem.note = utils.sanitizeInput(textarea.value.trim());
             }
         );
     },

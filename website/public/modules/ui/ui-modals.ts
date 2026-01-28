@@ -151,7 +151,25 @@ export const showConfirm = (message: string, title = 'Confirm Action') => {
                     titleEl.textContent = title;
                 }
                 if (messageEl) {
-                    messageEl.innerHTML = message;
+                    // Allow basic formatting tags while sanitizing potentially dangerous content
+                    // First, escape HTML entities to prevent XSS
+                    let sanitized = message
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                    // Then restore allowed formatting tags
+                    sanitized = sanitized
+                        .replace(/&lt;b&gt;/g, '<b>')
+                        .replace(/&lt;\/b&gt;/g, '</b>')
+                        .replace(/&lt;i&gt;/g, '<i>')
+                        .replace(/&lt;\/i&gt;/g, '</i>')
+                        .replace(/&lt;u&gt;/g, '<u>')
+                        .replace(/&lt;\/u&gt;/g, '</u>')
+                        .replace(/&lt;br\s*\/?&gt;/g, '<br>')
+                        .replace(/&lt;\/br&gt;/g, '<br>');
+                    messageEl.innerHTML = sanitized;
                 }
             });
             _confirmResolve = resolve;

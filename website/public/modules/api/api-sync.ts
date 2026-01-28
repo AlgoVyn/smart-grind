@@ -16,45 +16,59 @@ export const syncPlan = async (): Promise<void> => {
         let changed = false;
         const saveObj = Object.fromEntries(state.problems);
 
-        // Iterate through all predefined problems in topicsData
+        // Build a Map of problem definitions for O(1) lookup
+        const problemDefMap = new Map<string, { name: string; url: string; topic: string; pattern: string }>();
+        
         data.topicsData.forEach((topic: Topic) => {
             topic.patterns.forEach((pat: Pattern) => {
                 pat.problems.forEach((probDef: string | ProblemDef) => {
                     const id = typeof probDef === 'string' ? probDef : probDef.id;
-
-                    // Add new problems if not present and not deleted
-                    if (!state.problems.has(id) && !state.deletedProblemIds.has(id)) {
-                        const newProb: Problem = {
-                            id: id,
-                            name: typeof probDef === 'string' ? probDef : probDef.name,
-                            url: typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url,
-                            status: 'unsolved',
-                            topic: topic.title,
-                            pattern: pat.name,
-                            reviewInterval: 0,
-                            nextReviewDate: null,
-                            note: '',
-                            loading: false
-                        };
-                        state.problems.set(id, newProb);
-                        saveObj[id] = newProb;
-                        changed = true;
-                    }
-                    // Sync metadata for existing problems to ensure consistency
-                    else if (state.problems.has(id)) {
-                        const p = state.problems.get(id)!;
-                        if (!p.topic || !p.url || p.url !== (typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url) || p.pattern !== pat.name) {
-                            p.topic = topic.title;
-                            p.pattern = pat.name;
-                            p.url = typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url;
-                            p.name = typeof probDef === 'string' ? probDef : probDef.name;
-                            state.problems.set(id, p);
-                            saveObj[id] = p;
-                            changed = true;
-                        }
-                    }
+                    const name = typeof probDef === 'string' ? probDef : probDef.name;
+                    const url = typeof probDef === 'string' ? `https://leetcode.com/problems/${id}/` : probDef.url;
+                    
+                    problemDefMap.set(id, {
+                        name,
+                        url,
+                        topic: topic.title,
+                        pattern: pat.name
+                    });
                 });
             });
+        });
+
+        // Process problems using O(1) lookups
+        problemDefMap.forEach((def, id) => {
+            // Add new problems if not present and not deleted
+            if (!state.problems.has(id) && !state.deletedProblemIds.has(id)) {
+                const newProb: Problem = {
+                    id: id,
+                    name: def.name,
+                    url: def.url,
+                    status: 'unsolved',
+                    topic: def.topic,
+                    pattern: def.pattern,
+                    reviewInterval: 0,
+                    nextReviewDate: null,
+                    note: '',
+                    loading: false
+                };
+                state.problems.set(id, newProb);
+                saveObj[id] = newProb;
+                changed = true;
+            }
+            // Sync metadata for existing problems to ensure consistency
+            else if (state.problems.has(id)) {
+                const p = state.problems.get(id)!;
+                if (!p.topic || !p.url || p.url !== def.url || p.pattern !== def.pattern) {
+                    p.topic = def.topic;
+                    p.pattern = def.pattern;
+                    p.url = def.url;
+                    p.name = def.name;
+                    state.problems.set(id, p);
+                    saveObj[id] = p;
+                    changed = true;
+                }
+            }
         });
 
         // Save changes if any were made

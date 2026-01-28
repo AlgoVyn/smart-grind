@@ -21,6 +21,15 @@ declare global {
     [key: string]: any;
   }
 
+  interface ImportMetaEnv {
+    readonly VITE_API_BASE?: string;
+    [key: string]: any;
+  }
+
+  interface ImportMeta {
+    readonly env: ImportMetaEnv;
+  }
+
   const marked: any;
   const Prism: any;
 }

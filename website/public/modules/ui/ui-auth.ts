@@ -117,42 +117,21 @@ export const handleGoogleLogin = () => {
     };
     window.addEventListener('message', messageHandler);
 
-    const handlePopupClosed = () => {
-        if (!authCompleted) {
-            authCompleted = true;
-            utils.showToast('Sign-in was cancelled.', 'error');
-            cleanupAuth();
-        }
-    };
-
     const handleAuthTimeout = () => {
         if (!authCompleted) {
             authCompleted = true;
             try {
                 if (!popup.closed) popup.close();
             } catch (_e) {
-                // ignore
+                // COOP may block the check, ignore
             }
             utils.showToast('Sign-in timed out. Please try again.', 'error');
             cleanupAuth();
         }
     };
 
-    // Check if popup is closed without auth
-    const checkPopupClosed = setInterval(() => {
-        try {
-            if (popup.closed) {
-                clearInterval(checkPopupClosed);
-                handlePopupClosed();
-            }
-        } catch (_e) {
-            // COOP may block the check, ignore
-        }
-    }, 1000);
-
     // Timeout to reset buttons if no auth response received
     const timeoutId = setTimeout(() => {
-        clearInterval(checkPopupClosed);
         handleAuthTimeout();
     }, UI_CONSTANTS.AUTH_TIMEOUT);
 
@@ -162,7 +141,6 @@ export const handleGoogleLogin = () => {
     } finally {
         // This ensures cleanup even if an unexpected error occurs
         if (authCompleted) {
-            clearInterval(checkPopupClosed);
             clearTimeout(timeoutId);
         }
     }

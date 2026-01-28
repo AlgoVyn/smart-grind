@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+coverage/
+public/**/*.js
+public/**/*.js.map
+functions/dist/
+e2e/
+screenshots/
+*.min.js
+*.min.css

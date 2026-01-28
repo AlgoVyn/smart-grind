@@ -79,6 +79,7 @@ export const htmlGenerators = {
 
         const patternTitle = document.createElement('h4');
         patternTitle.className = 'text-sm font-bold text-brand-400 uppercase tracking-wider';
+        // Use textContent to prevent XSS (already safe, but good practice)
         patternTitle.textContent = pattern.name;
 
         patternHeader.appendChild(patternTitle);
@@ -112,7 +113,9 @@ export const htmlGenerators = {
 
         // Only show header if viewing all
         if (filterTopicId === 'all') {
-            topicSection.innerHTML = `<h3 class="text-xl font-bold text-theme-bold border-b border-theme pb-2">${topic.title}</h3>`;
+            // Escape topic title to prevent XSS
+            const escapedTitle = (topic.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+            topicSection.innerHTML = `<h3 class="text-xl font-bold text-theme-bold border-b border-theme pb-2">${escapedTitle}</h3>`;
         }
 
         let hasVisiblePattern = false;
@@ -169,10 +172,12 @@ export const htmlGenerators = {
     // Helper to generate problem link HTML
     _generateProblemLink: (p: Problem) => {
         const badge = renderers._generateBadge(p, utils.getToday());
+        // Escape problem name to prevent XSS
+        const escapedName = (p.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         return `
             <div class="flex items-center gap-2 mb-1">
                 <a href="${p.url}" target="_blank" class="text-base font-medium text-theme-bold group-hover:text-brand-400 transition-colors truncate cursor-pointer">
-                    ${p.name}
+                    ${escapedName}
                 </a>
                 ${badge}
             </div>
@@ -232,16 +237,20 @@ export const htmlGenerators = {
     },
 
     // Helper to generate note area HTML
-    _generateNoteArea: (p: Problem) => `
+    _generateNoteArea: (p: Problem) => {
+        // Escape note content to prevent XSS when displayed in textarea
+        const escapedNote = (p.note || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        return `
         <div class="note-area ${p.noteVisible ? '' : 'hidden'} mt-3 pt-3 border-t border-theme">
-            <textarea class="w-full bg-dark-950 border border-theme rounded-lg p-3 text-sm text-theme-base focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none resize-none" rows="3" placeholder="Notes..." ${p.loading ? 'disabled' : ''}>${p.note || ''}</textarea>
+            <textarea class="w-full bg-dark-950 border border-theme rounded-lg p-3 text-sm text-theme-base focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none resize-none" rows="3" placeholder="Notes..." ${p.loading ? 'disabled' : ''}>${escapedNote}</textarea>
             <div class="flex justify-end mt-2">
                 <button class="px-4 py-1.5 rounded-lg text-xs font-bold transition-colors min-w-[60px] bg-slate-700 hover:bg-slate-600 text-white" ${p.loading ? 'disabled' : ''} data-action="save-note">
                     ${p.loading ? renderers._getSpinner('h-3 w-3') : 'Save'}
                 </button>
             </div>
         </div>
-    `,
+    `;
+    },
 
     // Helper to generate problem card HTML
     _generateProblemCardHTML: (p: Problem) => {

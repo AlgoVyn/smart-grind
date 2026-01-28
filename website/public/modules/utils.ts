@@ -191,7 +191,10 @@ export const utils = {
     showToast: (msg: string, type = 'success') => {
         const el = document.createElement('div');
         el.className = `px-4 py-3 rounded-lg shadow-lg text-sm font-medium text-white flex items-center gap-2 animate-fade-in ${type === 'success' ? 'bg-brand-600' : 'bg-red-500'}`;
-        el.innerHTML = `<span>${msg}</span>`;
+        // Use textContent instead of innerHTML to prevent XSS
+        const span = document.createElement('span');
+        span.textContent = msg;
+        el.appendChild(span);
         const toastContainer = state.elements.toastContainer;
         if (toastContainer) {
             toastContainer.appendChild(el);
