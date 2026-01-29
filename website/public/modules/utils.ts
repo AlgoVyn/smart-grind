@@ -311,16 +311,22 @@ export const utils = {
         return true;
     },
 
-    // Get available review dates from problems (only due dates)
-    getAvailableReviewDates: (today: string): string[] => {
+    // Get available review dates from problems
+    getAvailableReviewDates: (today: string, filter: string): string[] => {
         const dates = new Set<string>();
         state.problems.forEach((problem: Problem) => {
-            if (
-                problem.status === 'solved' &&
-                problem.nextReviewDate !== null &&
-                problem.nextReviewDate <= today
-            ) {
-                dates.add(problem.nextReviewDate);
+            if (problem.status === 'solved' && problem.nextReviewDate !== null) {
+                // For review filter: only include due dates (today or earlier)
+                // For solved filter: include all solved dates
+                const isDue = problem.nextReviewDate <= today;
+                if (filter === 'review') {
+                    if (isDue) {
+                        dates.add(problem.nextReviewDate);
+                    }
+                } else {
+                    // For solved mode, include all dates
+                    dates.add(problem.nextReviewDate);
+                }
             }
         });
         // Sort dates ascending (oldest first)

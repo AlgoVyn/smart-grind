@@ -360,20 +360,20 @@ describe('SmartGrind Utils', () => {
 
         test('returns only due dates (today or earlier)', () => {
             const today = '2023-01-20';
-            const dates = utils.getAvailableReviewDates(today);
+            const dates = utils.getAvailableReviewDates(today, 'review');
             // Only dates on or before today should be included
             expect(dates).toEqual(['2023-01-01', '2023-01-15']);
         });
 
         test('excludes future dates', () => {
             const today = '2023-01-20';
-            const dates = utils.getAvailableReviewDates(today);
+            const dates = utils.getAvailableReviewDates(today, 'review');
             expect(dates).not.toContain('2030-01-01');
         });
 
         test('excludes unsolved problems', () => {
             const today = '2023-01-20';
-            const dates = utils.getAvailableReviewDates(today);
+            const dates = utils.getAvailableReviewDates(today, 'review');
             expect(dates).not.toContain('2023-01-10');
         });
 
@@ -391,13 +391,13 @@ describe('SmartGrind Utils', () => {
                 note: '',
             });
             const today = '2023-01-20';
-            const dates = utils.getAvailableReviewDates(today);
+            const dates = utils.getAvailableReviewDates(today, 'review');
             expect(dates).toEqual([]);
         });
 
         test('sorts dates in ascending order', () => {
             const today = '2023-01-20';
-            const dates = utils.getAvailableReviewDates(today);
+            const dates = utils.getAvailableReviewDates(today, 'review');
             expect(dates[0]).toBe('2023-01-01');
             expect(dates[1]).toBe('2023-01-15');
         });
@@ -416,7 +416,7 @@ describe('SmartGrind Utils', () => {
                 note: '',
             });
             const today = '2023-01-20';
-            const dates = utils.getAvailableReviewDates(today);
+            const dates = utils.getAvailableReviewDates(today, 'review');
             expect(dates).toContain('2023-01-20');
         });
     });
