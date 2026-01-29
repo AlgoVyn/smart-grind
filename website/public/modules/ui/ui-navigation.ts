@@ -78,9 +78,9 @@ export const bindNavigationEvents = () => {
 
 // Toggle date filter visibility based on current filter
 export const toggleDateFilterVisibility = (show: boolean) => {
-    const reviewDateFilter = state.elements['reviewDateFilter'];
-    if (reviewDateFilter) {
-        reviewDateFilter.classList.toggle('hidden', !show);
+    const dateFilterContainer = state.elements['dateFilterContainer'];
+    if (dateFilterContainer) {
+        dateFilterContainer.classList.toggle('hidden', !show);
     }
 };
 

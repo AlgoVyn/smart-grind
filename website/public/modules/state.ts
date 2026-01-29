@@ -69,6 +69,7 @@ interface ElementCache {
     solutionCloseBtn: HTMLElement | null;
     headerDisconnectBtn: HTMLElement | null;
     reviewDateFilter: HTMLSelectElement | null;
+    dateFilterContainer: HTMLElement | null;
 }
 
 export const state = {
@@ -244,6 +245,8 @@ export const state = {
             reviewDateFilter: document.getElementById(
                 'review-date-filter'
             ) as HTMLSelectElement | null,
+
+            dateFilterContainer: document.getElementById('date-filter-container'),
         };
     },
 
