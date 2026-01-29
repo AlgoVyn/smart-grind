@@ -11,7 +11,12 @@ export const bindNavigationEvents = () => {
     if (filterBtns) {
         (filterBtns as unknown as HTMLElement[]).forEach((btn: HTMLElement) => {
             btn.addEventListener('click', () => {
-                state.ui.currentFilter = btn.dataset['filter'] || 'all';
+                const newFilter = btn.dataset['filter'] || 'all';
+                // Reset date filter when switching to review or solved
+                if (newFilter === 'review' || newFilter === 'solved') {
+                    state.ui.reviewDateFilter = null;
+                }
+                state.ui.currentFilter = newFilter;
                 renderers.updateFilterBtns();
                 renderers.renderMainView(state.ui.activeTopicId);
             });
