@@ -353,31 +353,71 @@ describe('SmartGrind Utils', () => {
                 topic: 'arrays',
                 pattern: 'sliding-window',
                 reviewInterval: 1,
-                nextReviewDate: '2023-01-01',
+                nextReviewDate: '2030-01-01', // Future date - should not be included
                 note: '',
             });
         });
 
-        test('returns all review dates from solved problems', () => {
-            const dates = utils.getAvailableReviewDates();
+        test('returns only due dates (today or earlier)', () => {
+            const today = '2023-01-20';
+            const dates = utils.getAvailableReviewDates(today);
+            // Only dates on or before today should be included
             expect(dates).toEqual(['2023-01-01', '2023-01-15']);
         });
 
+        test('excludes future dates', () => {
+            const today = '2023-01-20';
+            const dates = utils.getAvailableReviewDates(today);
+            expect(dates).not.toContain('2030-01-01');
+        });
+
         test('excludes unsolved problems', () => {
-            const dates = utils.getAvailableReviewDates();
+            const today = '2023-01-20';
+            const dates = utils.getAvailableReviewDates(today);
             expect(dates).not.toContain('2023-01-10');
         });
 
-        test('returns empty array when no solved problems', () => {
+        test('returns empty array when no due problems', () => {
             state.problems.clear();
-            const dates = utils.getAvailableReviewDates();
+            state.problems.set('1', {
+                id: '1',
+                name: 'Problem 1',
+                url: 'https://leetcode.com/1',
+                status: 'solved',
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
+                nextReviewDate: '2030-01-01', // Future date
+                note: '',
+            });
+            const today = '2023-01-20';
+            const dates = utils.getAvailableReviewDates(today);
             expect(dates).toEqual([]);
         });
 
         test('sorts dates in ascending order', () => {
-            const dates = utils.getAvailableReviewDates();
+            const today = '2023-01-20';
+            const dates = utils.getAvailableReviewDates(today);
             expect(dates[0]).toBe('2023-01-01');
             expect(dates[1]).toBe('2023-01-15');
+        });
+
+        test('includes dates equal to today', () => {
+            state.problems.clear();
+            state.problems.set('1', {
+                id: '1',
+                name: 'Problem 1',
+                url: 'https://leetcode.com/1',
+                status: 'solved',
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
+                nextReviewDate: '2023-01-20', // Same as today
+                note: '',
+            });
+            const today = '2023-01-20';
+            const dates = utils.getAvailableReviewDates(today);
+            expect(dates).toContain('2023-01-20');
         });
     });
 

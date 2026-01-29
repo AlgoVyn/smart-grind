@@ -311,11 +311,15 @@ export const utils = {
         return true;
     },
 
-    // Get available review dates from problems
-    getAvailableReviewDates: (): string[] => {
+    // Get available review dates from problems (only due dates)
+    getAvailableReviewDates: (today: string): string[] => {
         const dates = new Set<string>();
         state.problems.forEach((problem: Problem) => {
-            if (problem.status === 'solved' && problem.nextReviewDate !== null) {
+            if (
+                problem.status === 'solved' &&
+                problem.nextReviewDate !== null &&
+                problem.nextReviewDate <= today
+            ) {
                 dates.add(problem.nextReviewDate);
             }
         });

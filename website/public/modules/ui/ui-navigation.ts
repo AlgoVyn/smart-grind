@@ -79,7 +79,8 @@ export const populateDateFilter = () => {
     const reviewDateFilter = state.elements['reviewDateFilter'];
     if (!reviewDateFilter) return;
 
-    const availableDates = utils.getAvailableReviewDates();
+    const today = utils.getToday();
+    const availableDates = utils.getAvailableReviewDates(today);
 
     // Save current selection
     const currentSelection = reviewDateFilter.value;

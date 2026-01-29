@@ -59,7 +59,9 @@ We must split into 3 subarrays (each element becomes its own subarray):
 ## Intuition
 
 The key insight is that the answer (minimized largest sum) lies between two bounds:
+
 1. **Lower bound**: The maximum single element in the array. We can't split a single element into smaller parts, so the largest subarray sum must be at least as big as the largest element.
+
 2. **Upper bound**: The sum of all elements. If we put all elements in one subarray, that's the maximum possible sum.
 
 The relationship between the candidate largest sum and the number of subarrays needed is **monotonic**:
@@ -89,6 +91,7 @@ This is the most efficient approach that leverages binary search on the possible
 
 #### Code
 
+````carousel
 ```python
 from typing import List
 
@@ -121,6 +124,121 @@ class Solution:
         
         return left
 ```
+<!-- slide -->
+```cpp
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class Solution {
+public:
+    bool canSplit(vector<int>& nums, int k, long long mid) {
+        int count = 1;
+        long long current_sum = 0;
+        
+        for (int num : nums) {
+            current_sum += num;
+            if (current_sum > mid) {
+                count++;
+                current_sum = num;
+                if (count > k) return false;
+            }
+        }
+        return true;
+    }
+    
+    int splitArray(vector<int>& nums, int k) {
+        long long left = *max_element(nums.begin(), nums.end());
+        long long right = 0;
+        for (int num : nums) right += num;
+        
+        while (left < right) {
+            long long mid = left + (right - left) / 2;
+            if (canSplit(nums, k, mid)) {
+                right = mid;
+            } else {
+                left = mid + 1;
+            }
+        }
+        return left;
+    }
+};
+```
+<!-- slide -->
+```java
+import java.util.*;
+
+class Solution {
+    private boolean canSplit(int[] nums, int k, long mid) {
+        int count = 1;
+        long currentSum = 0;
+        
+        for (int num : nums) {
+            currentSum += num;
+            if (currentSum > mid) {
+                count++;
+                currentSum = num;
+                if (count > k) return false;
+            }
+        }
+        return true;
+    }
+    
+    public int splitArray(int[] nums, int k) {
+        long left = Arrays.stream(nums).max().getAsInt();
+        long right = Arrays.stream(nums).sum();
+        
+        while (left < right) {
+            long mid = left + (right - left) / 2;
+            if (canSplit(nums, k, mid)) {
+                right = mid;
+            } else {
+                left = mid + 1;
+            }
+        }
+        return (int)left;
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} k
+ * @return {number}
+ */
+var splitArray = function(nums, k) {
+    const canSplit = (mid) => {
+        let count = 1;
+        let currentSum = 0;
+        
+        for (const num of nums) {
+            currentSum += num;
+            if (currentSum > mid) {
+                count++;
+                currentSum = num;
+                if (count > k) return false;
+            }
+        }
+        return true;
+    };
+    
+    const left = Math.max(...nums);
+    const right = nums.reduce((a, b) => a + b, 0);
+    
+    while (left < right) {
+        const mid = Math.floor((left + right) / 2);
+        if (canSplit(mid)) {
+            right = mid;
+        } else {
+            left = mid + 1;
+        }
+    }
+    
+    return left;
+};
+```
+````
 
 #### Step-by-Step Example
 
@@ -172,6 +290,7 @@ Let `dp[i][j]` be the minimum possible largest sum when considering the first `i
 
 #### Code
 
+````carousel
 ```python
 from typing import List
 import math
@@ -197,6 +316,351 @@ class Solution:
         
         return dp[n][k]
 ```
+<!-- slide -->
+```cpp
+#include <vector>
+#include <algorithm>
+#include <climits>
+using namespace std;
+
+class Solution {
+public:
+    int splitArray(vector<int>& nums, int k) {
+        int n = nums.size();
+        
+        // Prefix sums
+        vector<long long> prefix(n + 1, 0);
+        for (int i = 0; i < n; i++) {
+            prefix[i + 1] = prefix[i] + nums[i];
+        }
+        
+        // dp[i][j] = minimum largest sum for first i elements with j subarrays
+        vector<vector<long long>> dp(n + 1, vector<long long>(k + 1, LLONG_MAX));
+        dp[0][0] = 0;
+        
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= min(i, k); j++) {
+                for (int p = j - 1; p < i; p++) {
+                    long long current_sum = prefix[i] - prefix[p];
+                    dp[i][j] = min(dp[i][j], max(dp[p][j - 1], current_sum));
+                }
+            }
+        }
+        
+        return (int)dp[n][k];
+    }
+};
+```
+<!-- slide -->
+```java
+import java.util.*;
+
+class Solution {
+    public int splitArray(int[] nums, int k) {
+        int n = nums.length;
+        
+        // Prefix sums
+        long[] prefix = new long[n + 1];
+        for (int i = 0; i < n; i++) {
+            prefix[i + 1] = prefix[i] + nums[i];
+        }
+        
+        // dp[i][j] = minimum largest sum for first i elements with j subarrays
+        long[][] dp = new long[n + 1][k + 1];
+        for (int i = 0; i <= n; i++) {
+            Arrays.fill(dp[i], Long.MAX_VALUE);
+        }
+        dp[0][0] = 0;
+        
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= Math.min(i, k); j++) {
+                for (int p = j - 1; p < i; p++) {
+                    long current_sum = prefix[i] - prefix[p];
+                    dp[i][j] = Math.min(dp[i][j], Math.max(dp[p][j - 1], current_sum));
+                }
+            }
+        }
+        
+        return (int)dp[n][k];
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} k
+ * @return {number}
+ */
+var splitArray = function(nums, k) {
+    const n = nums.length;
+    
+    // Prefix sums
+    const prefix = new Array(n + 1).fill(0);
+    for (let i = 0; i < n; i++) {
+        prefix[i + 1] = prefix[i] + nums[i];
+    }
+    
+    // dp[i][j] = minimum largest sum for first i elements with j subarrays
+    const dp = Array.from({ length: n + 1 }, () => 
+        Array(k + 1).fill(Infinity)
+    );
+    dp[0][0] = 0;
+    
+    for (let i = 1; i <= n; i++) {
+        for (let j = 1; j <= Math.min(i, k); j++) {
+            for (let p = j - 1; p < i; p++) {
+                const current_sum = prefix[i] - prefix[p];
+                dp[i][j] = Math.min(dp[i][j], Math.max(dp[p][j - 1], current_sum));
+            }
+        }
+    }
+    
+    return dp[n][k];
+};
+```
+````
+
+### Approach 3: Dynamic Programming - Top-Down with Memoization
+
+This approach uses recursion with memoization to explore all possible ways to split the array. It has the same time complexity as bottom-up DP but can be more intuitive to implement.
+
+#### Algorithm
+
+Let `dp(i, j)` be the minimum possible largest sum when considering the subarray from index `i` to end, split into `j` subarrays.
+
+1. Use memoization cache to store computed results
+2. Base cases:
+   - If `j == 1`: return sum of remaining elements
+   - If `j == i`: return max element (each element is its own subarray)
+3. Recursive case:
+   - For each possible split point `p` (from `i` to `n - j + 1`):
+     - `current_sum = sum(i...p)`
+     - `result = min(result, max(current_sum, dp(p + 1, j - 1)))`
+4. Return and cache the result
+
+#### Code
+
+````carousel
+```python
+from typing import List
+import functools
+
+class Solution:
+    def splitArray(self, nums: List[int], k: int) -> int:
+        n = len(nums)
+        
+        # Prefix sums for O(1) subarray sum queries
+        prefix = [0] * (n + 1)
+        for i in range(n):
+            prefix[i + 1] = prefix[i] + nums[i]
+        
+        # Helper function to get sum from i to j (inclusive)
+        def get_sum(i: int, j: int) -> int:
+            return prefix[j + 1] - prefix[i]
+        
+        @functools.lru_cache(maxsize=None)
+        def dp(i: int, j: int) -> int:
+            """Minimum largest sum for subarray starting at i with j subarrays"""
+            # Base case: only one subarray, take all remaining elements
+            if j == 1:
+                return get_sum(i, n - 1)
+            
+            # Base case: each element is its own subarray
+            if j == n - i:
+                return max(nums[i:])
+            
+            min_result = float('inf')
+            
+            # Try all possible split points
+            # We need at least j-1 elements remaining after split
+            for p in range(i, n - j + 1):
+                current_sum = get_sum(i, p)
+                # The largest sum is max of current subarray and recursive result
+                next_result = dp(p + 1, j - 1)
+                min_result = min(min_result, max(current_sum, next_result))
+                # Optimization: if current_sum already exceeds min_result, break
+                if min_result == current_sum:
+                    break
+            
+            return min_result
+        
+        return dp(0, k)
+```
+<!-- slide -->
+```cpp
+#include <vector>
+#include <algorithm>
+#include <climits>
+#include <functional>
+#include <cstring>
+using namespace std;
+
+class Solution {
+private:
+    vector<int> nums;
+    vector<long long> prefix;
+    vector<vector<long long>> memo;
+    int n;
+    
+    long long get_sum(int i, int j) {
+        return prefix[j + 1] - prefix[i];
+    }
+    
+    long long dp(int i, int j) {
+        // Base case: only one subarray
+        if (j == 1) {
+            return get_sum(i, n - 1);
+        }
+        
+        // Base case: each element is its own subarray
+        if (j == n - i) {
+            return *max_element(nums.begin() + i, nums.end());
+        }
+        
+        if (memo[i][j] != -1) return memo[i][j];
+        
+        long long min_result = LLONG_MAX;
+        
+        // Try all possible split points
+        for (int p = i; p <= n - j; p++) {
+            long long current_sum = get_sum(i, p);
+            long long next_result = dp(p + 1, j - 1);
+            min_result = min(min_result, max(current_sum, next_result));
+        }
+        
+        memo[i][j] = min_result;
+        return min_result;
+    }
+    
+public:
+    int splitArray(vector<int>& nums, int k) {
+        this->nums = nums;
+        this->n = nums.size();
+        
+        // Prefix sums
+        prefix.assign(n + 1, 0);
+        for (int i = 0; i < n; i++) {
+            prefix[i + 1] = prefix[i] + nums[i];
+        }
+        
+        // Memo table: -1 means not computed
+        memo.assign(n + 1, vector<long long>(k + 1, -1));
+        
+        return (int)dp(0, k);
+    }
+};
+```
+<!-- slide -->
+```java
+import java.util.*;
+
+class Solution {
+    private int[] nums;
+    private long[] prefix;
+    private Long[][] memo;
+    private int n;
+    
+    private long get_sum(int i, int j) {
+        return prefix[j + 1] - prefix[i];
+    }
+    
+    private long dp(int i, int j) {
+        // Base case: only one subarray
+        if (j == 1) {
+            return get_sum(i, n - 1);
+        }
+        
+        // Base case: each element is its own subarray
+        if (j == n - i) {
+            return Arrays.stream(nums, i, n).max().getAsInt();
+        }
+        
+        if (memo[i][j] != null) return memo[i][j];
+        
+        long minResult = Long.MAX_VALUE;
+        
+        // Try all possible split points
+        for (int p = i; p <= n - j; p++) {
+            long currentSum = get_sum(i, p);
+            long nextResult = dp(p + 1, j - 1);
+            minResult = Math.min(minResult, Math.max(currentSum, nextResult));
+        }
+        
+        memo[i][j] = minResult;
+        return minResult;
+    }
+    
+    public int splitArray(int[] nums, int k) {
+        this.nums = nums;
+        this.n = nums.length;
+        
+        // Prefix sums
+        prefix = new long[n + 1];
+        for (int i = 0; i < n; i++) {
+            prefix[i + 1] = prefix[i] + nums[i];
+        }
+        
+        // Memo table: null means not computed
+        memo = new Long[n + 1][k + 1];
+        
+        return (int)dp(0, k);
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} k
+ * @return {number}
+ */
+var splitArray = function(nums, k) {
+    const n = nums.length;
+    
+    // Prefix sums
+    const prefix = new Array(n + 1).fill(0);
+    for (let i = 0; i < n; i++) {
+        prefix[i + 1] = prefix[i] + nums[i];
+    }
+    
+    const get_sum = (i, j) => prefix[j + 1] - prefix[i];
+    
+    // Memoization cache
+    const memo = new Map();
+    
+    const dp = (i, j) => {
+        // Create cache key
+        const key = `${i},${j}`;
+        if (memo.has(key)) return memo.get(key);
+        
+        // Base case: only one subarray
+        if (j === 1) {
+            return get_sum(i, n - 1);
+        }
+        
+        // Base case: each element is its own subarray
+        if (j === n - i) {
+            return Math.max(...nums.slice(i));
+        }
+        
+        let minResult = Infinity;
+        
+        // Try all possible split points
+        for (let p = i; p <= n - j; p++) {
+            const currentSum = get_sum(i, p);
+            const nextResult = dp(p + 1, j - 1);
+            minResult = Math.min(minResult, Math.max(currentSum, nextResult));
+        }
+        
+        memo.set(key, minResult);
+        return minResult;
+    };
+    
+    return dp(0, k);
+};
+```
+````
 
 ---
 
@@ -210,17 +674,26 @@ class Solution:
 - **Space Complexity**: O(1)
   - Only uses a few variables for the check
 
-### Dynamic Programming Approach
+### Dynamic Programming (Bottom-Up)
 - **Time Complexity**: O(n² × k)
   - Three nested loops: i (1 to n), j (1 to k), p (j-1 to i-1)
 - **Space Complexity**: O(n × k)
   - DP table stores n × k values
 
+### Dynamic Programming (Top-Down with Memoization)
+- **Time Complexity**: O(n² × k)
+  - Each state (i, j) is computed once
+  - For each state, we iterate through possible split points (O(n))
+- **Space Complexity**: O(n × k)
+  - Memoization cache stores n × k states
+  - Recursion stack depth: O(k)
+
 ### Comparison
 | Approach | Time | Space | Practical? |
 |----------|------|-------|------------|
 | Binary Search | O(n log S) | O(1) | ✅ Optimal |
-| Dynamic Programming | O(n² k) | O(n k) | ❌ Too slow for n=1000 |
+| DP Bottom-Up | O(n² k) | O(n k) | ❌ Too slow for n=1000 |
+| DP Top-Down | O(n² k) | O(n k) | ❌ Too slow for n=1000 |
 
 ---
 
