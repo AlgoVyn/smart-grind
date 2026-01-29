@@ -68,6 +68,7 @@ interface ElementCache {
     solutionModal: HTMLElement | null;
     solutionCloseBtn: HTMLElement | null;
     headerDisconnectBtn: HTMLElement | null;
+    reviewDateFilter: HTMLSelectElement | null;
 }
 
 export const state = {
@@ -88,6 +89,7 @@ export const state = {
         currentFilter: 'all',
         searchQuery: '',
         preferredAI: localStorage.getItem('preferred-ai') || null,
+        reviewDateFilter: null,
     } as UIState,
 
     // DOM elements cache
@@ -238,6 +240,10 @@ export const state = {
             solutionCloseBtn: document.getElementById('solution-close-btn'),
 
             headerDisconnectBtn: document.getElementById('header-disconnect-btn'),
+
+            reviewDateFilter: document.getElementById(
+                'review-date-filter'
+            ) as HTMLSelectElement | null,
         };
     },
 

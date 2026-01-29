@@ -295,6 +295,11 @@ export const utils = {
 
         if (!passesFilter) return false;
 
+        // Apply date filter for review and solved modes
+        if ((filter === 'review' || filter === 'solved') && state.ui.reviewDateFilter) {
+            if (problem.nextReviewDate !== state.ui.reviewDateFilter) return false;
+        }
+
         // Apply search
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
@@ -304,5 +309,17 @@ export const utils = {
         }
 
         return true;
+    },
+
+    // Get available review dates from problems
+    getAvailableReviewDates: (): string[] => {
+        const dates = new Set<string>();
+        state.problems.forEach((problem: Problem) => {
+            if (problem.status === 'solved' && problem.nextReviewDate !== null) {
+                dates.add(problem.nextReviewDate);
+            }
+        });
+        // Sort dates ascending (oldest first)
+        return Array.from(dates).sort();
     },
 };

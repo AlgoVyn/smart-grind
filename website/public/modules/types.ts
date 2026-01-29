@@ -48,4 +48,5 @@ export interface UIState {
     currentFilter: string;
     searchQuery: string;
     preferredAI: string | null;
+    reviewDateFilter: string | null;
 }

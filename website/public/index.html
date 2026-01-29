@@ -452,14 +452,23 @@
                 </div>
 
                 <!-- Filters -->
-                <div class="flex items-center bg-dark-800 rounded-lg p-0.5 border border-slate-700/50">
-                    <button data-filter="all"
-                        class="filter-btn active px-3 py-1.5 rounded-md text-xs font-medium text-theme-bold hover:text-theme-base transition-all">All</button>
-                    <button data-filter="review"
-                        class="filter-btn px-3 py-1.5 rounded-md text-xs font-medium text-theme-bold hover:text-theme-base transition-all">Due</button>
-                    <button data-filter="solved"
-                        class="filter-btn px-3 py-1.5 rounded-md text-xs font-medium text-theme-bold hover:text-theme-base transition-all">Solved</button>
-
+                <div class="flex items-center gap-2">
+                    <!-- Date Filter Dropdown (shown in review/solved mode) -->
+                    <div class="bg-dark-800 rounded-lg p-0.5 border border-slate-700/50">
+                        <select id="review-date-filter" 
+                            class="hidden bg-transparent border-none rounded-md px-3 py-1.5 text-xs font-medium text-theme-bold focus:outline-none focus:ring-0 cursor-pointer" 
+                            style="-webkit-appearance: none; -moz-appearance: none; appearance: none;">
+                            <option value="">By Date</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center bg-dark-800 rounded-lg p-0.5 border border-slate-700/50">
+                        <button data-filter="all"
+                            class="filter-btn active px-3 py-1.5 rounded-md text-xs font-medium text-theme-bold hover:text-theme-base transition-all">All</button>
+                        <button data-filter="review"
+                            class="filter-btn px-3 py-1.5 rounded-md text-xs font-medium text-theme-bold hover:text-theme-base transition-all">Due</button>
+                        <button data-filter="solved"
+                            class="filter-btn px-3 py-1.5 rounded-md text-xs font-medium text-theme-bold hover:text-theme-base transition-all">Solved</button>
+                    </div>
                 </div>
             </header>
 

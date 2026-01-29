@@ -18,6 +18,15 @@ export const bindNavigationEvents = () => {
         });
     }
 
+    // Review date filter
+    const reviewDateFilter = state.elements['reviewDateFilter'];
+    if (reviewDateFilter) {
+        reviewDateFilter.addEventListener('change', () => {
+            state.ui.reviewDateFilter = reviewDateFilter.value || null;
+            renderers.renderMainView(state.ui.activeTopicId);
+        });
+    }
+
     // Search
     const problemSearch = state.elements['problemSearch'];
     if (problemSearch) {
@@ -54,6 +63,41 @@ export const bindNavigationEvents = () => {
     const mobileLogo = state.elements['mobileLogo'];
     if (mobileLogo) {
         mobileLogo.addEventListener('click', loadDefaultView);
+    }
+};
+
+// Toggle date filter visibility based on current filter
+export const toggleDateFilterVisibility = (show: boolean) => {
+    const reviewDateFilter = state.elements['reviewDateFilter'];
+    if (reviewDateFilter) {
+        reviewDateFilter.classList.toggle('hidden', !show);
+    }
+};
+
+// Populate date filter dropdown with available dates
+export const populateDateFilter = () => {
+    const reviewDateFilter = state.elements['reviewDateFilter'];
+    if (!reviewDateFilter) return;
+
+    const availableDates = utils.getAvailableReviewDates();
+
+    // Save current selection
+    const currentSelection = reviewDateFilter.value;
+
+    // Clear existing options (except first)
+    reviewDateFilter.innerHTML = '<option value="">All Dates</option>';
+
+    // Add dates from oldest to newest
+    availableDates.forEach((date: string) => {
+        const option = document.createElement('option');
+        option.value = date;
+        option.textContent = utils.formatDate(date);
+        reviewDateFilter.appendChild(option);
+    });
+
+    // Restore selection if still valid
+    if (currentSelection && availableDates.includes(currentSelection)) {
+        reviewDateFilter.value = currentSelection;
     }
 };
 

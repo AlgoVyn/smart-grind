@@ -251,6 +251,134 @@ describe('SmartGrind Utils', () => {
             expect(utils.shouldShowProblem(problem, 'all', 'two', '2023-01-15')).toBe(true);
             expect(utils.shouldShowProblem(problem, 'all', 'hard', '2023-01-15')).toBe(false);
         });
+
+        test('shouldShowProblem filters by date in review mode', () => {
+            const problem1 = {
+                id: '1',
+                name: 'Two Sum',
+                status: 'solved',
+                nextReviewDate: '2023-01-01',
+                note: '',
+            };
+            const problem2 = {
+                id: '2',
+                name: 'Three Sum',
+                status: 'solved',
+                nextReviewDate: '2023-01-15',
+                note: '',
+            };
+
+            // Set date filter
+            state.ui.reviewDateFilter = '2023-01-01';
+
+            expect(utils.shouldShowProblem(problem1, 'review', '', '2023-01-15')).toBe(true);
+            expect(utils.shouldShowProblem(problem2, 'review', '', '2023-01-15')).toBe(false);
+
+            // Clear date filter
+            state.ui.reviewDateFilter = null;
+            expect(utils.shouldShowProblem(problem1, 'review', '', '2023-01-15')).toBe(true);
+            expect(utils.shouldShowProblem(problem2, 'review', '', '2023-01-15')).toBe(true);
+        });
+
+        test('shouldShowProblem filters by date in solved mode', () => {
+            const problem1 = {
+                id: '1',
+                name: 'Two Sum',
+                status: 'solved',
+                nextReviewDate: '2023-01-01',
+                note: '',
+            };
+            const problem2 = {
+                id: '2',
+                name: 'Three Sum',
+                status: 'solved',
+                nextReviewDate: '2023-01-15',
+                note: '',
+            };
+
+            // Set date filter
+            state.ui.reviewDateFilter = '2023-01-01';
+
+            expect(utils.shouldShowProblem(problem1, 'solved', '', '2023-01-15')).toBe(true);
+            expect(utils.shouldShowProblem(problem2, 'solved', '', '2023-01-15')).toBe(false);
+
+            // Clear date filter
+            state.ui.reviewDateFilter = null;
+            expect(utils.shouldShowProblem(problem1, 'solved', '', '2023-01-15')).toBe(true);
+            expect(utils.shouldShowProblem(problem2, 'solved', '', '2023-01-15')).toBe(true);
+        });
+    });
+
+    describe('getAvailableReviewDates', () => {
+        beforeEach(() => {
+            state.problems.clear();
+            state.problems.set('1', {
+                id: '1',
+                name: 'Problem 1',
+                url: 'https://leetcode.com/1',
+                status: 'solved',
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
+                nextReviewDate: '2023-01-01',
+                note: '',
+            });
+            state.problems.set('2', {
+                id: '2',
+                name: 'Problem 2',
+                url: 'https://leetcode.com/2',
+                status: 'solved',
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
+                nextReviewDate: '2023-01-15',
+                note: '',
+            });
+            state.problems.set('3', {
+                id: '3',
+                name: 'Problem 3',
+                url: 'https://leetcode.com/3',
+                status: 'unsolved',
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
+                nextReviewDate: '2023-01-10',
+                note: '',
+            });
+            state.problems.set('4', {
+                id: '4',
+                name: 'Problem 4',
+                url: 'https://leetcode.com/4',
+                status: 'solved',
+                topic: 'arrays',
+                pattern: 'sliding-window',
+                reviewInterval: 1,
+                nextReviewDate: '2023-01-01',
+                note: '',
+            });
+        });
+
+        test('returns all review dates from solved problems', () => {
+            const dates = utils.getAvailableReviewDates();
+            expect(dates).toEqual(['2023-01-01', '2023-01-15']);
+        });
+
+        test('excludes unsolved problems', () => {
+            const dates = utils.getAvailableReviewDates();
+            expect(dates).not.toContain('2023-01-10');
+        });
+
+        test('returns empty array when no solved problems', () => {
+            state.problems.clear();
+            const dates = utils.getAvailableReviewDates();
+            expect(dates).toEqual([]);
+        });
+
+        test('sorts dates in ascending order', () => {
+            const dates = utils.getAvailableReviewDates();
+            expect(dates[0]).toBe('2023-01-01');
+            expect(dates[1]).toBe('2023-01-15');
+        });
     });
 
     describe('copyToClipboard', () => {

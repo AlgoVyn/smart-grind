@@ -8,6 +8,7 @@ import { utils } from '../utils.js';
 import { renderers } from '../renderers.js';
 import { api } from '../api.js';
 import { ICONS } from './icons.js';
+import { ui } from '../ui/ui.js';
 
 export const mainViewRenderers = {
     // Helper to create an action button
@@ -91,6 +92,14 @@ export const mainViewRenderers = {
         }
 
         renderers._setViewTitle(state.ui.activeTopicId);
+
+        // Update date filter visibility and populate dates when in review or solved mode
+        const showDateFilter =
+            state.ui.currentFilter === 'review' || state.ui.currentFilter === 'solved';
+        ui.toggleDateFilterVisibility(showDateFilter);
+        if (showDateFilter) {
+            ui.populateDateFilter();
+        }
 
         const today = utils.getToday();
         const visibleCountRef = { count: 0 };

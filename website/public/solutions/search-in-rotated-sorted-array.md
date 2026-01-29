@@ -125,7 +125,9 @@ This allows us to reduce the search space by half at each step, achieving O(log 
 
 **Idea:** Perform binary search while determining which half is sorted at each step.
 
-**Code:**
+**Implementation:**
+
+````carousel
 ```python
 from typing import List
 
@@ -160,6 +162,131 @@ class Solution:
         
         return -1
 ```
+<!-- slide -->
+```java
+class Solution {
+    public int search(int[] nums, int target) {
+        int left = 0, right = nums.length - 1;
+        
+        while (left <= right) {
+            int mid = (left + right) / 2;
+            
+            // Found the target
+            if (nums[mid] == target) {
+                return mid;
+            }
+            
+            // Check if left half is sorted
+            if (nums[left] <= nums[mid]) {
+                // Left half is sorted
+                if (nums[left] <= target && target < nums[mid]) {
+                    // Target is in left half
+                    right = mid - 1;
+                } else {
+                    // Target is in right half
+                    left = mid + 1;
+                }
+            } else {
+                // Right half is sorted
+                if (nums[mid] < target && target <= nums[right]) {
+                    // Target is in right half
+                    left = mid + 1;
+                } else {
+                    // Target is in left half
+                    right = mid - 1;
+                }
+            }
+        }
+        
+        return -1;
+    }
+}
+```
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    int search(vector<int>& nums, int target) {
+        int left = 0, right = nums.size() - 1;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            // Found the target
+            if (nums[mid] == target) {
+                return mid;
+            }
+            
+            // Check if left half is sorted
+            if (nums[left] <= nums[mid]) {
+                // Left half is sorted
+                if (nums[left] <= target && target < nums[mid]) {
+                    // Target is in left half
+                    right = mid - 1;
+                } else {
+                    // Target is in right half
+                    left = mid + 1;
+                }
+            } else {
+                // Right half is sorted
+                if (nums[mid] < target && target <= nums[right]) {
+                    // Target is in right half
+                    left = mid + 1;
+                } else {
+                    // Target is in left half
+                    right = mid - 1;
+                }
+            }
+        }
+        
+        return -1;
+    }
+};
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number}
+ */
+var search = function(nums, target) {
+    let left = 0, right = nums.length - 1;
+    
+    while (left <= right) {
+        let mid = Math.floor((left + right) / 2);
+        
+        // Found the target
+        if (nums[mid] === target) {
+            return mid;
+        }
+        
+        // Check if left half is sorted
+        if (nums[left] <= nums[mid]) {
+            // Left half is sorted
+            if (nums[left] <= target && target < nums[mid]) {
+                // Target is in left half
+                right = mid - 1;
+            } else {
+                // Target is in right half
+                left = mid + 1;
+            }
+        } else {
+            // Right half is sorted
+            if (nums[mid] < target && target <= nums[right]) {
+                // Target is in right half
+                left = mid + 1;
+            } else {
+                // Target is in left half
+                right = mid - 1;
+            }
+        }
+    }
+    
+    return -1;
+};
+```
+````
 
 **Explanation:**
 - At each iteration, we check which half (left or right of mid) is sorted
@@ -173,7 +300,9 @@ class Solution:
 
 **Idea:** First find the pivot (minimum element) index, then perform binary search on the appropriate half.
 
-**Code:**
+**Implementation:**
+
+````carousel
 ```python
 from typing import List
 
@@ -216,6 +345,164 @@ class Solution:
         
         return -1
 ```
+<!-- slide -->
+```java
+class Solution {
+    public int search(int[] nums, int target) {
+        if (nums.length == 0) {
+            return -1;
+        }
+        
+        // Step 1: Find the pivot (index of minimum element)
+        int left = 0, right = nums.length - 1;
+        
+        // Find the pivot using binary search
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] > nums[right]) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+        
+        int pivot = left;
+        
+        // Step 2: Determine which half to search
+        // Compare target with first element to decide the search space
+        if (pivot > 0 && nums[0] <= target && target <= nums[pivot - 1]) {
+            // Search in left half (0 to pivot-1)
+            left = 0;
+            right = pivot - 1;
+        } else {
+            // Search in right half (pivot to end)
+            left = pivot;
+            right = nums.length - 1;
+        }
+        
+        // Step 3: Standard binary search
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) {
+                return mid;
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return -1;
+    }
+}
+```
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    int search(vector<int>& nums, int target) {
+        if (nums.empty()) {
+            return -1;
+        }
+        
+        // Step 1: Find the pivot (index of minimum element)
+        int left = 0, right = nums.size() - 1;
+        
+        // Find the pivot using binary search
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] > nums[right]) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+        
+        int pivot = left;
+        
+        // Step 2: Determine which half to search
+        // Compare target with first element to decide the search space
+        if (pivot > 0 && nums[0] <= target && target <= nums[pivot - 1]) {
+            // Search in left half (0 to pivot-1)
+            left = 0;
+            right = pivot - 1;
+        } else {
+            // Search in right half (pivot to end)
+            left = pivot;
+            right = nums.size() - 1;
+        }
+        
+        // Step 3: Standard binary search
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) {
+                return mid;
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return -1;
+    }
+};
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number}
+ */
+var search = function(nums, target) {
+    if (nums.length === 0) {
+        return -1;
+    }
+    
+    // Step 1: Find the pivot (index of minimum element)
+    let left = 0, right = nums.length - 1;
+    
+    // Find the pivot using binary search
+    while (left < right) {
+        let mid = Math.floor(left + (right - left) / 2);
+        if (nums[mid] > nums[right]) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    
+    let pivot = left;
+    
+    // Step 2: Determine which half to search
+    // Compare target with first element to decide the search space
+    if (pivot > 0 && nums[0] <= target && target <= nums[pivot - 1]) {
+        // Search in left half (0 to pivot-1)
+        left = 0;
+        right = pivot - 1;
+    } else {
+        // Search in right half (pivot to end)
+        left = pivot;
+        right = nums.length - 1;
+    }
+    
+    // Step 3: Standard binary search
+    while (left <= right) {
+        let mid = Math.floor(left + (right - left) / 2);
+        if (nums[mid] === target) {
+            return mid;
+        } else if (nums[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    
+    return -1;
+};
+```
+````
 
 **Explanation:**
 - First pass finds the pivot (minimum element) which indicates where the rotation occurred
@@ -228,7 +515,9 @@ class Solution:
 
 **Idea:** Simply iterate through the array to find the target.
 
-**Code:**
+**Implementation:**
+
+````carousel
 ```python
 from typing import List
 
@@ -239,6 +528,50 @@ class Solution:
                 return i
         return -1
 ```
+<!-- slide -->
+```java
+class Solution {
+    public int search(int[] nums, int target) {
+        for (int i = 0; i < nums.length; i++) {
+            if (nums[i] == target) {
+                return i;
+            }
+        }
+        return -1;
+    }
+}
+```
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    int search(vector<int>& nums, int target) {
+        for (int i = 0; i < nums.size(); i++) {
+            if (nums[i] == target) {
+                return i;
+            }
+        }
+        return -1;
+    }
+};
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number}
+ */
+var search = function(nums, target) {
+    for (let i = 0; i < nums.length; i++) {
+        if (nums[i] === target) {
+            return i;
+        }
+    }
+    return -1;
+};
+```
+````
 
 **Explanation:**
 - Straightforward approach: check each element
@@ -251,7 +584,9 @@ class Solution:
 
 **Idea:** Implement the modified binary search recursively.
 
-**Code:**
+**Implementation:**
+
+````carousel
 ```python
 from typing import List
 
@@ -280,6 +615,117 @@ class Solution:
         
         return binary_search(0, len(nums) - 1)
 ```
+<!-- slide -->
+```java
+class Solution {
+    public int search(int[] nums, int target) {
+        return binarySearch(nums, 0, nums.length - 1, target);
+    }
+    
+    private int binarySearch(int[] nums, int left, int right, int target) {
+        if (left > right) {
+            return -1;
+        }
+        
+        int mid = left + (right - left) / 2;
+        
+        if (nums[mid] == target) {
+            return mid;
+        }
+        
+        // Check if left half is sorted
+        if (nums[left] <= nums[mid]) {
+            if (nums[left] <= target && target < nums[mid]) {
+                return binarySearch(nums, left, mid - 1, target);
+            } else {
+                return binarySearch(nums, mid + 1, right, target);
+            }
+        } else {
+            if (nums[mid] < target && target <= nums[right]) {
+                return binarySearch(nums, mid + 1, right, target);
+            } else {
+                return binarySearch(nums, left, mid - 1, target);
+            }
+        }
+    }
+}
+```
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    int search(vector<int>& nums, int target) {
+        return binarySearch(nums, 0, nums.size() - 1, target);
+    }
+    
+private:
+    int binarySearch(vector<int>& nums, int left, int right, int target) {
+        if (left > right) {
+            return -1;
+        }
+        
+        int mid = left + (right - left) / 2;
+        
+        if (nums[mid] == target) {
+            return mid;
+        }
+        
+        // Check if left half is sorted
+        if (nums[left] <= nums[mid]) {
+            if (nums[left] <= target && target < nums[mid]) {
+                return binarySearch(nums, left, mid - 1, target);
+            } else {
+                return binarySearch(nums, mid + 1, right, target);
+            }
+        } else {
+            if (nums[mid] < target && target <= nums[right]) {
+                return binarySearch(nums, mid + 1, right, target);
+            } else {
+                return binarySearch(nums, left, mid - 1, target);
+            }
+        }
+    }
+};
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number}
+ */
+var search = function(nums, target) {
+    const binarySearch = (left, right) => {
+        if (left > right) {
+            return -1;
+        }
+        
+        const mid = Math.floor(left + (right - left) / 2);
+        
+        if (nums[mid] === target) {
+            return mid;
+        }
+        
+        // Check if left half is sorted
+        if (nums[left] <= nums[mid]) {
+            if (nums[left] <= target && target < nums[mid]) {
+                return binarySearch(left, mid - 1);
+            } else {
+                return binarySearch(mid + 1, right);
+            }
+        } else {
+            if (nums[mid] < target && target <= nums[right]) {
+                return binarySearch(mid + 1, right);
+            } else {
+                return binarySearch(left, mid - 1);
+            }
+        }
+    };
+    
+    return binarySearch(0, nums.length - 1);
+};
+```
+````
 
 **Explanation:**
 - Same logic as Approach 1 but implemented recursively
@@ -293,7 +739,9 @@ class Solution:
 
 **Idea:** First calculate the shift amount (rotation count), then adjust indices to perform standard binary search. This approach transforms the problem into a regular binary search by accounting for the rotation.
 
-**Code:**
+**Implementation:**
+
+````carousel
 ```python
 from typing import List
 
@@ -340,8 +788,180 @@ class Solution:
         
         return -1
 ```
+<!-- slide -->
+```java
+class Solution {
+    public int search(int[] nums, int target) {
+        if (nums.length == 0) {
+            return -1;
+        }
+        
+        int n = nums.length;
+        
+        // Step 1: Find the shift amount (rotation count)
+        int left = 0, right = n - 1;
+        
+        // Find the index of the minimum element (pivot)
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] > nums[right]) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+        
+        int shift = left;  // Number of positions the array was rotated
+        
+        // Step 2: Determine which half contains the target
+        // Compare target with first element to decide the search space
+        if (shift > 0 && nums[0] <= target && target <= nums[shift - 1]) {
+            // Target is in the first half (before pivot)
+            left = 0;
+            right = shift - 1;
+        } else if (shift < n && nums[shift] <= target && target <= nums[n - 1]) {
+            // Target is in the second half (from pivot to end)
+            left = shift;
+            right = n - 1;
+        } else {
+            return -1;
+        }
+        
+        // Step 3: Standard binary search in the determined range
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) {
+                return mid;
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return -1;
+    }
+}
+```
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    int search(vector<int>& nums, int target) {
+        if (nums.empty()) {
+            return -1;
+        }
+        
+        int n = nums.size();
+        
+        // Step 1: Find the shift amount (rotation count)
+        int left = 0, right = n - 1;
+        
+        // Find the index of the minimum element (pivot)
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] > nums[right]) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+        
+        int shift = left;  // Number of positions the array was rotated
+        
+        // Step 2: Determine which half contains the target
+        // Compare target with first element to decide the search space
+        if (shift > 0 && nums[0] <= target && target <= nums[shift - 1]) {
+            // Target is in the first half (before pivot)
+            left = 0;
+            right = shift - 1;
+        } else if (shift < n && nums[shift] <= target && target <= nums[n - 1]) {
+            // Target is in the second half (from pivot to end)
+            left = shift;
+            right = n - 1;
+        } else {
+            return -1;
+        }
+        
+        // Step 3: Standard binary search in the determined range
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) {
+                return mid;
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return -1;
+    }
+};
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number}
+ */
+var search = function(nums, target) {
+    if (nums.length === 0) {
+        return -1;
+    }
+    
+    const n = nums.length;
+    
+    // Step 1: Find the shift amount (rotation count)
+    let left = 0, right = n - 1;
+    
+    // Find the index of the minimum element (pivot)
+    while (left < right) {
+        const mid = Math.floor(left + (right - left) / 2);
+        if (nums[mid] > nums[right]) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    
+    const shift = left;  // Number of positions the array was rotated
+    
+    // Step 2: Determine which half contains the target
+    // Compare target with first element to decide the search space
+    if (shift > 0 && nums[0] <= target && target <= nums[shift - 1]) {
+        // Target is in the first half (before pivot)
+        left = 0;
+        right = shift - 1;
+    } else if (shift < n && nums[shift] <= target && target <= nums[n - 1]) {
+        // Target is in the second half (from pivot to end)
+        left = shift;
+        right = n - 1;
+    } else {
+        return -1;
+    }
+    
+    // Step 3: Standard binary search in the determined range
+    while (left <= right) {
+        const mid = Math.floor(left + (right - left) / 2);
+        if (nums[mid] === target) {
+            return mid;
+        } else if (nums[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    
+    return -1;
+};
+```
+````
 
 **Alternative Implementation - Direct Index Transformation:**
+
+````carousel
 ```python
 from typing import List
 
@@ -384,6 +1004,140 @@ class Solution:
         
         return -1
 ```
+<!-- slide -->
+```java
+class Solution {
+    public int search(int[] nums, int target) {
+        if (nums.length == 0) {
+            return -1;
+        }
+        
+        int n = nums.length;
+        
+        // Find the shift amount using binary search
+        int left = 0, right = n - 1;
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] > nums[right]) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+        
+        int shift = left;
+        
+        // Binary search with index transformation
+        int left2 = 0, right2 = n - 1;
+        
+        while (left2 <= right2) {
+            int mid = left2 + (right2 - left2) / 2;
+            int rotatedMid = (mid + shift) % n;
+            
+            if (nums[rotatedMid] == target) {
+                return rotatedMid;
+            } else if (nums[rotatedMid] < target) {
+                left2 = mid + 1;
+            } else {
+                right2 = mid - 1;
+            }
+        }
+        
+        return -1;
+    }
+}
+```
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    int search(vector<int>& nums, int target) {
+        if (nums.empty()) {
+            return -1;
+        }
+        
+        int n = nums.size();
+        
+        // Find the shift amount using binary search
+        int left = 0, right = n - 1;
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] > nums[right]) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+        
+        int shift = left;
+        
+        // Binary search with index transformation
+        int left2 = 0, right2 = n - 1;
+        
+        while (left2 <= right2) {
+            int mid = left2 + (right2 - left2) / 2;
+            int rotatedMid = (mid + shift) % n;
+            
+            if (nums[rotatedMid] == target) {
+                return rotatedMid;
+            } else if (nums[rotatedMid] < target) {
+                left2 = mid + 1;
+            } else {
+                right2 = mid - 1;
+            }
+        }
+        
+        return -1;
+    }
+};
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number}
+ */
+var search = function(nums, target) {
+    if (nums.length === 0) {
+        return -1;
+    }
+    
+    const n = nums.length;
+    
+    // Find the shift amount using binary search
+    let left = 0, right = n - 1;
+    while (left < right) {
+        const mid = Math.floor(left + (right - left) / 2);
+        if (nums[mid] > nums[right]) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    
+    const shift = left;
+    
+    // Binary search with index transformation
+    let left2 = 0, right2 = n - 1;
+    
+    while (left2 <= right2) {
+        const mid = Math.floor(left2 + (right2 - left2) / 2);
+        const rotatedMid = (mid + shift) % n;
+        
+        if (nums[rotatedMid] === target) {
+            return rotatedMid;
+        } else if (nums[rotatedMid] < target) {
+            left2 = mid + 1;
+        } else {
+            right2 = mid - 1;
+        }
+    }
+    
+    return -1;
+};
+```
+````
 
 **Explanation:**
 - **Step 1 (Find Shift):** Use binary search to find the pivot (minimum element). The pivot index is the rotation count (shift).
@@ -467,43 +1221,43 @@ The linear scan visits each element exactly once in the worst case (target not f
 ## Follow-up Questions
 
 1. **What if the array can contain duplicates?**  
-   When duplicates are present, the standard approach may fail because `nums[left] == nums[mid]` doesn't tell us which half is sorted. In this case, we need to handle duplicates by incrementing `left` when `nums[left] == nums[mid]`. However, this degrades to O(n) in the worst case. See [Search in Rotated Sorted Array II](./search-in-rotated-sorted-array-ii.md).
+   **Answer:** When duplicates are present, the standard approach may fail because `nums[left] == nums[mid]` doesn't tell us which half is sorted. In this case, we need to handle duplicates by incrementing `left` when `nums[left] == nums[mid]`. However, this degrades to O(n) in the worst case. See [Search in Rotated Sorted Array II](./search-in-rotated-sorted-array-ii.md).
 
 2. **How would you modify the solution to find the rotation count?**  
-   The rotation count is equal to the index of the minimum element. You can find this by locating the pivot using binary search that finds the minimum element.
+   **Answer:** The rotation count is equal to the index of the minimum element. You can find this by locating the pivot using binary search that finds the minimum element.
 
 3. **What if the array is rotated right instead of left?**  
-   The approach remains the same; you just need to adjust the pivot logic. A right rotation can be treated as a left rotation by `n - k` positions.
+   **Answer:** The approach remains the same; you just need to adjust the pivot logic. A right rotation can be treated as a left rotation by `n - k` positions.
 
 4. **How would you search for all occurrences of the target?**  
-   First find one occurrence using the rotated binary search, then expand left and right to find all occurrences. Alternatively, find the pivot and use two binary searches.
+   **Answer:** First find one occurrence using the rotated binary search, then expand left and right to find all occurrences. Alternatively, find the pivot and use two binary searches.
 
 5. **Can you solve this without comparing with nums[left]?**  
-   Yes, you can compare with `nums[right]` instead. The logic is symmetric: if `nums[mid] <= nums[right]`, the right half is sorted.
+   **Answer:** Yes, you can compare with `nums[right]` instead. The logic is symmetric: if `nums[mid] <= nums[right]`, the right half is sorted.
 
 6. **How would you handle a very large array that doesn't fit in memory?**  
-   For external sorting scenarios, you'd need to adapt the algorithm for disk-based access patterns, possibly using a modified binary search that minimizes disk reads.
+   **Answer:** For external sorting scenarios, you'd need to adapt the algorithm for disk-based access patterns, possibly using a modified binary search that minimizes disk reads.
 
 7. **What if the array is rotated multiple times (more than once)?**  
-   The solution still works because the array is still a rotated sorted array regardless of how many times it's rotated. The pivot detection logic handles any number of rotations.
+   **Answer:** The solution still works because the array is still a rotated sorted array regardless of how many times it's rotated. The pivot detection logic handles any number of rotations.
 
 8. **How would you modify the solution to count how many times the array is rotated?**  
-   The rotation count equals the index of the minimum element. After finding the pivot (minimum element's index), return that index as the rotation count.
+   **Answer:** The rotation count equals the index of the minimum element. After finding the pivot (minimum element's index), return that index as the rotation count.
 
 9. **What if you need to search for a range of values instead of a single target?**  
-   You can use the rotated binary search to find the lower bound (first element >= min of range) and upper bound (first element > max of range), then return all indices in that range.
+   **Answer:** You can use the rotated binary search to find the lower bound (first element >= min of range) and upper bound (first element > max of range), then return all indices in that range.
 
 10. **How would you test edge cases for this problem?**  
-    Test with: empty array (if allowed), single element, no rotation, target at beginning, target at end, target not present, target is minimum, target is maximum, all rotations.
+    **Answer:** Test with: empty array (if allowed), single element, no rotation, target at beginning, target at end, target not present, target is minimum, target is maximum, all rotations.
 
 11. **What is the difference between Approach 2 (Find Pivot + Binary Search) and Approach 5 (Binary Search with Shift)?**  
-    Both approaches calculate the rotation count, but they use it differently:
+    **Answer:** Both approaches calculate the rotation count, but they use it differently:
     - Approach 2 searches in a specific half determined by comparing target with the first element
     - Approach 5 transforms the indices using modulo arithmetic, allowing standard binary search on the "virtually unrotated" array
     - Approach 5 is more elegant when you need to perform multiple searches on the same rotated array
 
 12. **How would you modify the shift-based approach to find all occurrences of the target?**  
-    After finding one occurrence using the shift-based binary search, you can expand outward to find all adjacent occurrences since the array contains unique elements, you only need to verify one occurrence. If duplicates were allowed, you would need to search left and right from the found index.
+    **Answer:** After finding one occurrence using the shift-based binary search, you can expand outward to find all adjacent occurrences since the array contains unique elements, you only need to verify one occurrence. If duplicates were allowed, you would need to search left and right from the found index.
 
 ---
 
@@ -519,3 +1273,8 @@ The **Search in Rotated Sorted Array** problem demonstrates the power of modifie
 
 The single-pass modified binary search is the most efficient and recommended approach, achieving O(log n) time with O(1) space.
 
+---
+
+## LeetCode Link
+
+[Search in Rotated Sorted Array - LeetCode](https://leetcode.com/problems/search-in-rotated-sorted-array/)
