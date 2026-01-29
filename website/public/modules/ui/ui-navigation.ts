@@ -15,6 +15,11 @@ export const bindNavigationEvents = () => {
                 // Reset date filter when switching to review or solved
                 if (newFilter === 'review' || newFilter === 'solved') {
                     state.ui.reviewDateFilter = null;
+                    // Also reset the dropdown to "All Dates"
+                    const reviewDateFilterEl = state.elements['reviewDateFilter'];
+                    if (reviewDateFilterEl) {
+                        reviewDateFilterEl.value = '';
+                    }
                 }
                 state.ui.currentFilter = newFilter;
                 renderers.updateFilterBtns();
