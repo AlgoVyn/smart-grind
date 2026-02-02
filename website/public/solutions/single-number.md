@@ -102,6 +102,7 @@ This is the optimal solution that achieves both O(n) time and O(1) space complex
 
 #### Algorithm
 
+````carousel
 ```python
 from typing import List
 
@@ -124,6 +125,57 @@ class Solution:
         
         return result
 ```
+<!-- slide -->
+```cpp
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    int singleNumber(vector<int>& nums) {
+        int result = 0;
+        
+        for (int num : nums) {
+            result ^= num;
+        }
+        
+        return result;
+    }
+};
+```
+<!-- slide -->
+```java
+import java.util.List;
+
+class Solution {
+    public int singleNumber(int[] nums) {
+        int result = 0;
+        
+        for (int num : nums) {
+            result ^= num;
+        }
+        
+        return result;
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var singleNumber = function(nums) {
+    let result = 0;
+    
+    for (let i = 0; i < nums.length; i++) {
+        result ^= nums[i];
+    }
+    
+    return result;
+};
+```
+````
 
 #### How It Works (Step-by-Step Example)
 
@@ -160,8 +212,15 @@ This is a simpler approach using a hash set to track seen numbers.
 4. If the number is already in the set, remove it (it's a duplicate)
 5. The remaining element in the set is the answer
 
-#### Python Implementation
+#### Why This Works
 
+- First occurrence: Number added to set
+- Second occurrence: Number removed from set
+- Only the single number stays in the set
+
+#### Implementation
+
+````carousel
 ```python
 from typing import List
 
@@ -178,12 +237,75 @@ class Solution:
         # Only one element remains in the set
         return seen.pop()
 ```
+<!-- slide -->
+```cpp
+#include <unordered_set>
+#include <vector>
+using namespace std;
 
-#### Why This Works
+class Solution {
+public:
+    int singleNumber(vector<int>& nums) {
+        unordered_set<int> seen;
+        
+        for (int num : nums) {
+            if (seen.count(num)) {
+                seen.erase(num);  // Remove when seen second time
+            } else {
+                seen.insert(num); // Add when seen first time
+            }
+        }
+        
+        return *seen.begin();  // Only one element remains
+    }
+};
+```
+<!-- slide -->
+```java
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Iterator;
 
-- First occurrence: Number added to set
-- Second occurrence: Number removed from set
-- Only the single number stays in the set
+class Solution {
+    public int singleNumber(int[] nums) {
+        Set<Integer> seen = new HashSet<>();
+        
+        for (int num : nums) {
+            if (seen.contains(num)) {
+                seen.remove(num);  // Remove when seen second time
+            } else {
+                seen.add(num);     // Add when seen first time
+            }
+        }
+        
+        // Only one element remains in the set
+        Iterator<Integer> it = seen.iterator();
+        return it.next();
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var singleNumber = function(nums) {
+    const seen = new Set();
+    
+    for (const num of nums) {
+        if (seen.has(num)) {
+            seen.delete(num);  // Remove when seen second time
+        } else {
+            seen.add(num);     // Add when seen first time
+        }
+    }
+    
+    // Only one element remains in the set
+    return seen.values().next().value;
+};
+```
+````
 
 #### Time and Space Complexity
 
@@ -210,8 +332,19 @@ However, since we don't know which elements are unique without preprocessing, we
 Single = 2 × (Sum of set) - Sum of array
 ```
 
-#### Python Implementation
+#### Step-by-Step Example
 
+For `nums = [4, 1, 2, 1, 2]`:
+```
+unique_sum = {1, 2, 4} = 1 + 2 + 4 = 7
+total_sum = 4 + 1 + 2 + 1 + 2 = 10
+
+Single = 2 × 7 - 10 = 14 - 10 = 4 ✓
+```
+
+#### Implementation
+
+````carousel
 ```python
 from typing import List
 
@@ -228,16 +361,76 @@ class Solution:
         # And: total_sum = sum of pairs + single
         return 2 * unique_sum - total_sum
 ```
+<!-- slide -->
+```cpp
+#include <unordered_set>
+#include <vector>
+using namespace std;
 
-#### Step-by-Step Example
-
-For `nums = [4, 1, 2, 1, 2]`:
+class Solution {
+public:
+    int singleNumber(vector<int>& nums) {
+        unordered_set<int> uniqueSet;
+        long long unique_sum = 0;
+        long long total_sum = 0;
+        
+        for (int num : nums) {
+            total_sum += num;
+            if (uniqueSet.find(num) == uniqueSet.end()) {
+                unique_sum += num;
+                uniqueSet.insert(num);
+            }
+        }
+        
+        return 2 * unique_sum - total_sum;
+    }
+};
 ```
-unique_sum = {1, 2, 4} = 1 + 2 + 4 = 7
-total_sum = 4 + 1 + 2 + 1 + 2 = 10
+<!-- slide -->
+```java
+import java.util.HashSet;
+import java.util.Set;
 
-Single = 2 × 7 - 10 = 14 - 10 = 4 ✓
+class Solution {
+    public int singleNumber(int[] nums) {
+        Set<Integer> uniqueSet = new HashSet<>();
+        long unique_sum = 0;
+        long total_sum = 0;
+        
+        for (int num : nums) {
+            total_sum += num;
+            if (uniqueSet.add(num)) {
+                unique_sum += num;
+            }
+        }
+        
+        return (int)(2 * unique_sum - total_sum);
+    }
+}
 ```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var singleNumber = function(nums) {
+    const uniqueSet = new Set();
+    let unique_sum = 0;
+    let total_sum = 0;
+    
+    for (const num of nums) {
+        total_sum += num;
+        if (!uniqueSet.has(num)) {
+            unique_sum += num;
+            uniqueSet.add(num);
+        }
+    }
+    
+    return 2 * unique_sum - total_sum;
+};
+```
+````
 
 #### Time and Space Complexity
 
@@ -259,8 +452,9 @@ A straightforward approach that sorts the array and finds the single element.
 3. Find the pair where elements don't match
 4. Return the unmatched element
 
-#### Python Implementation
+#### Implementation
 
+````carousel
 ```python
 from typing import List
 
@@ -280,6 +474,85 @@ class Solution:
         # Last element is the answer (if not checked yet)
         return nums[-1]
 ```
+<!-- slide -->
+```cpp
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class Solution {
+public:
+    int singleNumber(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        
+        // Check first element
+        if (nums.size() == 1 || nums[0] != nums[1]) {
+            return nums[0];
+        }
+        
+        // Check pairs
+        for (size_t i = 1; i + 1 < nums.size(); i += 2) {
+            if (nums[i] != nums[i + 1]) {
+                return nums[i];
+            }
+        }
+        
+        // Last element is the answer
+        return nums.back();
+    }
+};
+```
+<!-- slide -->
+```java
+import java.util.Arrays;
+
+class Solution {
+    public int singleNumber(int[] nums) {
+        Arrays.sort(nums);
+        
+        // Check first element
+        if (nums.length == 1 || nums[0] != nums[1]) {
+            return nums[0];
+        }
+        
+        // Check pairs
+        for (int i = 1; i + 1 < nums.length; i += 2) {
+            if (nums[i] != nums[i + 1]) {
+                return nums[i];
+            }
+        }
+        
+        // Last element is the answer
+        return nums[nums.length - 1];
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var singleNumber = function(nums) {
+    nums.sort((a, b) => a - b);
+    
+    // Check first element
+    if (nums.length === 1 || nums[0] !== nums[1]) {
+        return nums[0];
+    }
+    
+    // Check pairs
+    for (let i = 1; i + 1 < nums.length; i += 2) {
+        if (nums[i] !== nums[i + 1]) {
+            return nums[i];
+        }
+    }
+    
+    // Last element is the answer
+    return nums[nums.length - 1];
+};
+```
+````
 
 #### Time and Space Complexity
 
@@ -328,25 +601,25 @@ class Solution:
 ### Edge Cases to Consider
 
 1. **Single Element Array**
-   ```python
+   ```
    nums = [1] → Output: 1
    ```
    The algorithm correctly handles this case.
 
 2. **Negative Numbers**
-   ```python
+   ```
    nums = [-1, -1, 2] → Output: 2
    ```
    XOR works correctly with negative numbers (two's complement representation).
 
 3. **Zero in the Array**
-   ```python
+   ```
    nums = [0, 1, 1] → Output: 0
    ```
    Remember: `0 ^ 0 = 0` and `0 ^ x = x`.
 
 4. **Large Numbers**
-   ```python
+   ```
    nums = [30000, -30000, 30000] → Output: -30000
    ```
    Works with numbers at the boundary of the constraint range.
@@ -481,7 +754,20 @@ class Solution:
    - XOR and XNOR are the only binary operations with these properties
 
 8. **How does this relate to finding a cycle in a linked list?**
-   - The XOR approach can be viewed as finding the "start" of a pattern repetition
+   - The XOR approach can be viewed as finding the "start" of a pattern repetition, much like how Floyd's Tortoise and Hare algorithm finds the start of a cycle in a linked list
+   - **Key Analogy**: In linked list cycle detection, two pointers move at different speeds. When they meet inside a cycle, we find the cycle's entry point by resetting one pointer to the start
+   - **Pattern Recognition**: Both problems involve identifying where a repeating pattern deviates or breaks
+   - **XOR as "Cycle Detection" for Numbers**:
+     - Imagine each number in the array "points to" its duplicate (like a linked list node pointing to next)
+     - Pairs form cycles: a → a → a (self-loop back to itself)
+     - The single element is the "entry point" that doesn't connect back to anything
+     - XOR effectively "finds" this unique entry point by canceling out all the cycles (pairs)
+   - **Mathematical Connection**:
+     - In cycle detection: `distance from head to cycle = distance from meeting point to cycle`
+     - In Single Number: XOR of all elements = XOR of all pairs (which cancel) + single element
+     - Both use the property that "same things cancel out" (pairs in XOR, cycle in linked list)
+   - **Memoryless Navigation**: Both algorithms work in O(1) space by using clever navigation (two pointers for cycle detection, XOR accumulation for single number)
+   - **Real-world Parallel**: Just as cycle detection helps find memory leaks or infinite loops in programs, finding the single number helps identify anomalies in data streams where duplicates are expected
 
 9. **How would you extend this to find K single elements in an array where all others appear M times?**
    - Generalize the bit counting approach from Single Number II
@@ -507,3 +793,9 @@ The **Single Number** problem is a classic example of using bitwise operations f
 2. **Single Pass**: One iteration through the array is sufficient
 3. **Constant Space**: Only one variable needed regardless of input size
 4. **Universal Application**: Works with positive, negative, and zero values
+
+---
+
+## LeetCode Link
+
+[Single Number - LeetCode](https://leetcode.com/problems/single-number/)

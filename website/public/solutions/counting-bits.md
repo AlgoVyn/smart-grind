@@ -66,7 +66,7 @@ Binary representations:
   7 --> 111     (3 ones)
   8 --> 1000    (1 one)
   9 --> 1001    (2 ones)
- 10 --> 1010    (2 ones)
+  10 --> 1010   (2 ones)
 ```
 
 ### Visual Binary Table
@@ -143,6 +143,16 @@ This is the optimal solution that achieves O(n) time complexity by leveraging th
 
 #### Algorithm
 
+The algorithm works as follows:
+1. Initialize an array `ans` of size `n + 1` with all zeros
+2. For each integer `i` from 1 to n:
+   - Compute `ans[i] = ans[i // 2] + (i % 2)`
+   - This uses the fact that `i // 2` is always less than `i` (already computed)
+3. Return the array
+
+#### Implementation
+
+````carousel
 ```python
 from typing import List
 
@@ -165,6 +175,57 @@ class Solution:
         
         return ans
 ```
+<!-- slide -->
+```cpp
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    vector<int> countBits(int n) {
+        vector<int> ans(n + 1, 0);
+        
+        for (int i = 1; i <= n; i++) {
+            ans[i] = ans[i / 2] + (i % 2);
+        }
+        
+        return ans;
+    }
+};
+```
+<!-- slide -->
+```java
+import java.util.*;
+
+class Solution {
+    public int[] countBits(int n) {
+        int[] ans = new int[n + 1];
+        
+        for (int i = 1; i <= n; i++) {
+            ans[i] = ans[i / 2] + (i % 2);
+        }
+        
+        return ans;
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number} n - non-negative integer
+ * @return {number[]}
+ */
+var countBits = function(n) {
+    const ans = new Array(n + 1).fill(0);
+    
+    for (let i = 1; i <= n; i++) {
+        ans[i] = ans[Math.floor(i / 2)] + (i % 2);
+    }
+    
+    return ans;
+};
+```
+````
 
 #### Step-by-Step Example for n = 5
 
@@ -193,6 +254,16 @@ This approach uses Brian Kernighan's insight that `i & (i-1)` removes the lowest
 
 #### Algorithm
 
+The algorithm works as follows:
+1. Initialize an array `ans` of size `n + 1` with all zeros
+2. For each integer `i` from 1 to n:
+   - Compute `ans[i] = ans[i & (i - 1)] + 1`
+   - This uses the fact that `i & (i - 1)` is always less than `i`
+3. Return the array
+
+#### Implementation
+
+````carousel
 ```python
 from typing import List
 
@@ -215,6 +286,55 @@ class Solution:
         
         return ans
 ```
+<!-- slide -->
+```cpp
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    vector<int> countBits(int n) {
+        vector<int> ans(n + 1, 0);
+        
+        for (int i = 1; i <= n; i++) {
+            ans[i] = ans[i & (i - 1)] + 1;
+        }
+        
+        return ans;
+    }
+};
+```
+<!-- slide -->
+```java
+class Solution {
+    public int[] countBits(int n) {
+        int[] ans = new int[n + 1];
+        
+        for (int i = 1; i <= n; i++) {
+            ans[i] = ans[i & (i - 1)] + 1;
+        }
+        
+        return ans;
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number} n - non-negative integer
+ * @return {number[]}
+ */
+var countBits = function(n) {
+    const ans = new Array(n + 1).fill(0);
+    
+    for (let i = 1; i <= n; i++) {
+        ans[i] = ans[i & (i - 1)] + 1;
+    }
+    
+    return ans;
+};
+```
+````
 
 #### How It Works
 
@@ -245,6 +365,16 @@ This approach isolates the lowest set bit using `i & -i` and adds 1 to the count
 
 #### Algorithm
 
+The algorithm works as follows:
+1. Initialize an array `ans` of size `n + 1` with all zeros
+2. For each integer `i` from 1 to n:
+   - Compute `lowest_bit = i & -i` (isolates the lowest set bit)
+   - Compute `ans[i] = ans[i - lowest_bit] + 1`
+3. Return the array
+
+#### Implementation
+
+````carousel
 ```python
 from typing import List
 
@@ -268,6 +398,58 @@ class Solution:
         
         return ans
 ```
+<!-- slide -->
+```cpp
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    vector<int> countBits(int n) {
+        vector<int> ans(n + 1, 0);
+        
+        for (int i = 1; i <= n; i++) {
+            int lowest_bit = i & -i;
+            ans[i] = ans[i - lowest_bit] + 1;
+        }
+        
+        return ans;
+    }
+};
+```
+<!-- slide -->
+```java
+class Solution {
+    public int[] countBits(int n) {
+        int[] ans = new int[n + 1];
+        
+        for (int i = 1; i <= n; i++) {
+            int lowestBit = i & -i;
+            ans[i] = ans[i - lowestBit] + 1;
+        }
+        
+        return ans;
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number} n - non-negative integer
+ * @return {number[]}
+ */
+var countBits = function(n) {
+    const ans = new Array(n + 1).fill(0);
+    
+    for (let i = 1; i <= n; i++) {
+        const lowestBit = i & -i;
+        ans[i] = ans[i - lowestBit] + 1;
+    }
+    
+    return ans;
+};
+```
+````
 
 #### How It Works
 
@@ -300,6 +482,14 @@ Python provides a built-in method `int.bit_count()` that directly counts set bit
 
 #### Algorithm
 
+The algorithm is simple:
+1. Use a list comprehension to create an array
+2. For each integer `i` from 0 to n, compute `i.bit_count()`
+3. Return the array
+
+#### Implementation
+
+````carousel
 ```python
 from typing import List
 
@@ -315,11 +505,64 @@ class Solution:
         """
         return [i.bit_count() for i in range(n + 1)]
 ```
+<!-- slide -->
+```cpp
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    vector<int> countBits(int n) {
+        vector<int> ans(n + 1, 0);
+        
+        for (int i = 0; i <= n; i++) {
+            ans[i] = __builtin_popcount(i);
+        }
+        
+        return ans;
+    }
+};
+```
+<!-- slide -->
+```java
+import java.util.*;
+
+class Solution {
+    public int[] countBits(int n) {
+        int[] ans = new int[n + 1];
+        
+        for (int i = 0; i <= n; i++) {
+            ans[i] = Integer.bitCount(i);
+        }
+        
+        return ans;
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number} n - non-negative integer
+ * @return {number[]}
+ */
+var countBits = function(n) {
+    const ans = [];
+    
+    for (let i = 0; i <= n; i++) {
+        ans.push(i.toString(2).split('1').length - 1);
+    }
+    
+    return ans;
+};
+```
+````
 
 #### Explanation
+
 - `i.bit_count()` is a Python 3.8+ method that returns the number of ones in the binary representation
-- It's implemented in C, making it very fast
-- The list comprehension creates the result array in one line
+- In C++, `__builtin_popcount()` is a GCC/Clang builtin function
+- In Java, `Integer.bitCount()` does the same
+- In JavaScript, we convert to binary string and count '1's
 
 #### Time and Space Complexity
 
@@ -336,6 +579,16 @@ This approach precomputes a lookup table for 8-bit values and uses it to count b
 
 #### Algorithm
 
+The algorithm works as follows:
+1. Precompute a lookup table for 8-bit values (0-255)
+2. For each integer `i` from 0 to n:
+   - Break the number into bytes
+   - Sum the lookup values for each byte
+3. Return the array
+
+#### Implementation
+
+````carousel
 ```python
 from typing import List
 
@@ -384,8 +637,127 @@ class Solution:
         
         return ans
 ```
+<!-- slide -->
+```cpp
+#include <vector>
+using namespace std;
+
+class Solution {
+private:
+    static const int LOOKUP_SIZE = 256;
+    static const int lookup[LOOKUP_SIZE];
+    
+    static int initLookup() {
+        int table[LOOKUP_SIZE] = {};
+        for (int i = 0; i < LOOKUP_SIZE; i++) {
+            table[i] = __builtin_popcount(i);
+        }
+        return 0;
+    }
+
+public:
+    vector<int> countBits(int n) {
+        static int dummy = initLookup();
+        vector<int> ans(n + 1, 0);
+        
+        for (int i = 0; i <= n; i++) {
+            ans[i] = lookup[i & 0xff] + 
+                    lookup[(i >> 8) & 0xff] + 
+                    lookup[(i >> 16) & 0xff] + 
+                    lookup[(i >> 24) & 0xff];
+        }
+        
+        return ans;
+    }
+};
+
+const int Solution::lookup[Solution::LOOKUP_SIZE] = {
+    0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4,
+    1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,
+    1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,
+    2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
+    1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,
+    2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
+    2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
+    3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
+    1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,
+    2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
+    2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
+    3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
+    2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
+    3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
+    3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
+    4,5,5,6,5,6,6,7,5,6,6,7,6,7,7,8
+};
+```
+<!-- slide -->
+```java
+class Solution {
+    private static final int[] LOOKUP = new int[256];
+    
+    static {
+        for (int i = 0; i < 256; i++) {
+            LOOKUP[i] = Integer.bitCount(i);
+        }
+    }
+    
+    public int[] countBits(int n) {
+        int[] ans = new int[n + 1];
+        
+        for (int i = 0; i <= n; i++) {
+            ans[i] = LOOKUP[i & 0xff] + 
+                    LOOKUP[(i >> 8) & 0xff] + 
+                    LOOKUP[(i >> 16) & 0xff] + 
+                    LOOKUP[(i >> 24) & 0xff];
+        }
+        
+        return ans;
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number} n - non-negative integer
+ * @return {number[]}
+ */
+var countBits = function(n) {
+    // Precomputed lookup table for 8-bit values (0-255)
+    const lookup = [
+        0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4,
+        1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,
+        1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,
+        2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
+        1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,
+        2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
+        2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
+        3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
+        1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,
+        2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
+        2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
+        3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
+        2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
+        3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
+        3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
+        4,5,5,6,5,6,6,7,5,6,6,7,6,7,7,8
+    ];
+    
+    const ans = new Array(n + 1).fill(0);
+    
+    for (let i = 0; i <= n; i++) {
+        ans[i] = lookup[i & 0xff] + 
+                lookup[(i >> 8) & 0xff] + 
+                lookup[(i >> 16) & 0xff] + 
+                lookup[(i >> 24) & 0xff];
+    }
+    
+    return ans;
+};
+```
+````
 
 #### How It Works
+
 - The lookup table stores the count of set bits for each 8-bit value (0-255)
 - For numbers up to 255, we can directly index the table
 - For larger numbers, we break them into 4 bytes and sum the results
@@ -401,10 +773,21 @@ class Solution:
 
 ### Approach 6: Dynamic Programming with Most Significant Bit (MSB)
 
-This approach uses the highest power of 2 (most significant bit) to compute the bit count. The insight is that any number can be expressed as the MSB plus the remainder.
+This approach uses the highest power of 2 (most significant bit) to compute the bit count.
 
 #### Algorithm
 
+The algorithm works as follows:
+1. Initialize an array `ans` of size `n + 1` with all zeros
+2. Track the current highest power of 2 (msb)
+3. For each integer `i` from 1 to n:
+   - Update msb when we reach a new power of 2
+   - Compute `ans[i] = ans[i - msb] + 1`
+4. Return the array
+
+#### Implementation
+
+````carousel
 ```python
 from typing import List
 
@@ -438,6 +821,67 @@ class Solution:
         
         return ans
 ```
+<!-- slide -->
+```cpp
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    vector<int> countBits(int n) {
+        vector<int> ans(n + 1, 0);
+        int msb = 1;
+        
+        for (int i = 1; i <= n; i++) {
+            if (i == msb * 2) {
+                msb *= 2;
+            }
+            ans[i] = ans[i - msb] + 1;
+        }
+        
+        return ans;
+    }
+};
+```
+<!-- slide -->
+```java
+class Solution {
+    public int[] countBits(int n) {
+        int[] ans = new int[n + 1];
+        int msb = 1;
+        
+        for (int i = 1; i <= n; i++) {
+            if (i == msb * 2) {
+                msb *= 2;
+            }
+            ans[i] = ans[i - msb] + 1;
+        }
+        
+        return ans;
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number} n - non-negative integer
+ * @return {number[]}
+ */
+var countBits = function(n) {
+    const ans = new Array(n + 1).fill(0);
+    let msb = 1;
+    
+    for (let i = 1; i <= n; i++) {
+        if (i === msb * 2) {
+            msb *= 2;
+        }
+        ans[i] = ans[i - msb] + 1;
+    }
+    
+    return ans;
+};
+```
+````
 
 #### How It Works
 
@@ -470,27 +914,6 @@ bits(i) = 1 (for the MSB) + bits(remainder)
 
 This works because the MSB contributes exactly one set bit, and the remainder is always smaller than the MSB (so its bit count is already computed).
 
-#### Finding the MSB Efficiently
-
-There are multiple ways to find the highest power of 2:
-
-**Method 1: Using bit shifting (as shown above)**
-```python
-# Keep doubling msb until it reaches or exceeds i
-if i == msb * 2:
-    msb *= 2
-```
-
-**Method 2: Using bit length**
-```python
-msb = 1 << (i.bit_length() - 1)
-```
-
-**Method 3: Using highest one bit**
-```python
-msb = 1 << (31 - i.bit_length())
-```
-
 #### Time and Space Complexity
 
 | Aspect | Complexity |
@@ -506,6 +929,16 @@ This is an optimized version of the MSB approach using Python's built-in `bit_le
 
 #### Algorithm
 
+The algorithm works as follows:
+1. Initialize an array `ans` of size `n + 1` with all zeros
+2. For each integer `i` from 1 to n:
+   - Compute `msb = 1 << (i.bit_length() - 1)` using bit_length()
+   - Compute `ans[i] = ans[i - msb] + 1`
+3. Return the array
+
+#### Implementation
+
+````carousel
 ```python
 from typing import List
 
@@ -530,6 +963,58 @@ class Solution:
         
         return ans
 ```
+<!-- slide -->
+```cpp
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    vector<int> countBits(int n) {
+        vector<int> ans(n + 1, 0);
+        
+        for (int i = 1; i <= n; i++) {
+            int msb = 1 << (31 - __builtin_clz(i));
+            ans[i] = ans[i - msb] + 1;
+        }
+        
+        return ans;
+    }
+};
+```
+<!-- slide -->
+```java
+class Solution {
+    public int[] countBits(int n) {
+        int[] ans = new int[n + 1];
+        
+        for (int i = 1; i <= n; i++) {
+            int msb = 1 << (31 - Integer.numberOfLeadingZeros(i));
+            ans[i] = ans[i - msb] + 1;
+        }
+        
+        return ans;
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number} n - non-negative integer
+ * @return {number[]}
+ */
+var countBits = function(n) {
+    const ans = new Array(n + 1).fill(0);
+    
+    for (let i = 1; i <= n; i++) {
+        const msb = 1 << (i.toString(2).length - 1);
+        ans[i] = ans[i - msb] + 1;
+    }
+    
+    return ans;
+};
+```
+````
 
 #### How It Works
 
@@ -597,28 +1082,28 @@ i = 8: bit_length() = 4, msb = 1 << 3 = 8
 ### Edge Cases to Consider
 
 1. **n = 0**
-   ```python
+   ```
    Input: n = 0
    Output: [0]
    Explanation: Only number 0, which has 0 set bits.
    ```
 
 2. **n = 1**
-   ```python
+   ```
    Input: n = 1
    Output: [0, 1]
    Explanation: 0 -> 0, 1 -> 1 (one set bit).
    ```
 
 3. **Large n (n = 10^5)**
-   ```python
+   ```
    Input: n = 100000
    Output: [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, ...]  (100001 elements)
    Explanation: The O(n) solution handles this easily.
    ```
 
 4. **Power of 2**
-   ```python
+   ```
    Input: n = 8
    Output: [0, 1, 1, 2, 1, 2, 2, 3, 1, 2]
    Explanation: Powers of 2 always have exactly 1 set bit.
@@ -861,3 +1346,8 @@ MSB Approach:
 
 Both approaches yield the same result, demonstrating the flexibility of dynamic programming solutions for this problem.
 
+---
+
+## LeetCode Link
+
+[Counting Bits - LeetCode](https://leetcode.com/problems/counting-bits/)
