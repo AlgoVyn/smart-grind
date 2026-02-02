@@ -10,7 +10,8 @@
         content="coding patterns, LeetCode practice, spaced repetition, algorithm training, programming problems, AI coding assistant">
     <title>SmartGrind: Master Coding Patterns with Spaced Repetition</title>
     <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://algovyn.com data:; connect-src 'self' https://algovyn.com; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self';">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://algovyn.com data:; connect-src 'self' https://algovyn.com; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self';">
     <link rel="canonical" href="https://algovyn.com/smartgrind">
     <meta property="og:site_name" content="AlgoVyn - SmartGrind">
     <!-- Open Graph -->
@@ -286,27 +287,53 @@
     <!-- SOLUTION MODAL -->
     <div id="solution-modal"
         class="hidden fixed inset-0 z-[70] flex items-start justify-center bg-dark-950/95 backdrop-blur-sm p-4 pt-8">
-        <div
-            class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-4xl h-[calc(100vh-4rem)] border border-slate-700/50 flex flex-col">
+        <div id="solution-container"
+            class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-6xl h-[calc(100vh-4rem)] border border-slate-700/50 flex flex-col transition-all duration-300">
             <div class="p-6 border-b border-slate-700/50 flex justify-between items-center flex-shrink-0">
                 <div class="flex-1">
                     <h3 class="text-lg font-bold text-theme-bold">Solution</h3>
                     <div class="mt-2 w-full bg-slate-600 h-1 rounded-full overflow-hidden">
-                        <div id="solution-scroll-progress" class="bg-brand-500 h-full rounded-full transition-all duration-150" style="width: 0%"></div>
+                        <div id="solution-scroll-progress"
+                            class="bg-brand-500 h-full rounded-full transition-all duration-150" style="width: 0%">
+                        </div>
                     </div>
                 </div>
+                <!-- TOC Toggle -->
+                <button id="toc-toggle-btn"
+                    class="p-2 rounded-lg hover:bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors ml-4"
+                    title="Toggle Table of Contents">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
                 <button id="solution-close-btn"
-                    class="p-2 rounded-lg hover:bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors ml-4">
+                    class="p-2 rounded-lg hover:bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors ml-2">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
-            <div id="solution-content" class="flex-1 overflow-y-auto p-6">
-                <div class="loading flex items-center justify-center min-h-[200px]">
-                    <div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div>
-                    <span class="ml-3 text-theme-muted">Loading solution...</span>
+
+            <div class="flex flex-1 overflow-hidden relative">
+                <!-- Main Content -->
+                <div id="solution-content" class="flex-1 overflow-y-auto p-6 scroll-smooth">
+                    <div class="loading flex items-center justify-center min-h-[200px]">
+                        <div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin">
+                        </div>
+                        <span class="ml-3 text-theme-muted">Loading solution...</span>
+                    </div>
+                </div>
+
+                <!-- Table of Contents Sidebar -->
+                <div id="solution-toc"
+                    class="hidden md:block w-64 border-l border-slate-700/50 bg-dark-900/30 p-4 overflow-y-auto shrink-0 text-sm">
+                    <p class="text-xs font-bold text-theme-muted uppercase tracking-wider mb-4 pl-2">Contents</p>
+                    <nav id="toc-list" class="flex flex-col space-y-1">
+                        <!-- TOC Items injected here -->
+                    </nav>
                 </div>
             </div>
         </div>
@@ -454,9 +481,10 @@
                 <!-- Filters -->
                 <div class="flex items-center gap-2">
                     <!-- Date Filter Dropdown (shown in review/solved mode) -->
-                    <div id="date-filter-container" class="hidden bg-dark-800 rounded-lg p-0.5 border border-slate-700/50">
-                        <select id="review-date-filter" 
-                            class="bg-transparent border-none rounded-md px-3 py-1.5 text-xs font-medium text-theme-bold focus:outline-none focus:ring-0 cursor-pointer" 
+                    <div id="date-filter-container"
+                        class="hidden bg-dark-800 rounded-lg p-0.5 border border-slate-700/50">
+                        <select id="review-date-filter"
+                            class="bg-transparent border-none rounded-md px-3 py-1.5 text-xs font-medium text-theme-bold focus:outline-none focus:ring-0 cursor-pointer"
                             style="-webkit-appearance: none; -moz-appearance: none; appearance: none;">
                             <option value="">By Date</option>
                         </select>
@@ -608,15 +636,20 @@
         integrity="sha384-06z5D//U/xpvxZHuUz92xBvq3DqBBFi7Up53HRrbV7Jlv7Yvh/MZ7oenfUe9iCEt"
         crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"
-        integrity="sha384-7LHwxHIDSHTBleLmgDWZbC/IMJsfYfFVOihKhvsrxYW4j47YQcRwZja4ToFE3bA8" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js" integrity="sha384-gaD4ncierlmWk42Z3BmTp37/z+Dqt8V4Wf74UjTvFeo+M+SgnEI6Ysd98pWhksQv" crossorigin="anonymous"
+        integrity="sha384-7LHwxHIDSHTBleLmgDWZbC/IMJsfYfFVOihKhvsrxYW4j47YQcRwZja4ToFE3bA8" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"
+        integrity="sha384-gaD4ncierlmWk42Z3BmTp37/z+Dqt8V4Wf74UjTvFeo+M+SgnEI6Ysd98pWhksQv" crossorigin="anonymous"
         referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"
-        integrity="sha384-NiOrAquf32LSG3Vuig99LKS03EZPUuM8a51NOp+XXsqx08hUVo3wbNWALY7K/2J8" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        integrity="sha384-NiOrAquf32LSG3Vuig99LKS03EZPUuM8a51NOp+XXsqx08hUVo3wbNWALY7K/2J8" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"
-        integrity="sha384-DioAMZB4yk91W6LuFit5wJDh8c5Ov09f/MBvja94y0PodMqTpTZeBeejqpRUru7D" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        integrity="sha384-DioAMZB4yk91W6LuFit5wJDh8c5Ov09f/MBvja94y0PodMqTpTZeBeejqpRUru7D" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"
-        integrity="sha384-WJdEkJKrbsqw0evQ4GB6mlsKe5cGTxBOw4KAEIa52ZLB7DDpliGkwdme/HMa5n1m" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        integrity="sha384-WJdEkJKrbsqw0evQ4GB6mlsKe5cGTxBOw4KAEIa52ZLB7DDpliGkwdme/HMa5n1m" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
     <script type="module" src="/smartgrind/modules/data.js" defer></script>
     <script type="module" src="/smartgrind/modules/state.js" defer></script>
     <script type="module" src="/smartgrind/modules/utils.js" defer></script>

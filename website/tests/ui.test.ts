@@ -51,6 +51,7 @@ const createMockElement = (overrides = {}) => {
         textContent: '',
         nextElementSibling: null,
         dataset: {},
+        querySelectorAll: jest.fn(() => []),
         ...overrides,
     };
 };

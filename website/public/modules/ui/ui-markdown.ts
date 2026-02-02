@@ -6,6 +6,8 @@ import { utils } from '../utils.js';
 // --- PATTERN TO MARKDOWN FILE MAPPING SYSTEM ---
 // Handles naming inconsistencies between pattern names and solution filenames
 
+let currentTOC: { id: string; text: string; level: number }[] = [];
+
 export const patterns = {
     // Function to get the correct filename for a pattern
     getPatternFilename(patternName: string) {
@@ -172,6 +174,55 @@ export const _configureMarkdownRenderer = () => {
         </div>`;
     };
 
+    renderer.heading = (
+        text: string | { text: string; depth?: number; raw?: string },
+        level: number,
+        raw?: string
+    ) => {
+        let headingText = '';
+        let headingLevel = level;
+        let headingRaw = raw;
+
+        // Handle object input (token) from newer marked versions
+        if (typeof text === 'object' && text !== null) {
+            const token = text as { text: string; depth?: number; raw?: string };
+            headingText = token.text || '';
+            if (token.depth) headingLevel = token.depth;
+            if (token.raw) headingRaw = token.raw;
+        } else {
+            headingText = String(text || '');
+        }
+
+        // Ensure inputs are strings to prevent runtime errors
+        const idSource = headingRaw || headingText || '';
+        let id = String(idSource)
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/\s+/g, '-');
+
+        // Handle duplicate IDs
+        const existingCount = currentTOC.filter(
+            (item) => item.id.replace(/-\d+$/, '') === id
+        ).length;
+        if (existingCount > 0) {
+            id = `${id}-${existingCount}`;
+        }
+
+        // Strip HTML tags from text for TOC display
+        const plainText = headingText.replace(/<[^>]*>?/gm, '');
+        currentTOC.push({ id, text: plainText, level: headingLevel });
+
+        return `<h${headingLevel} id="${id}" class="scroll-mt-24 mb-4 mt-8 font-bold text-theme-bold group flex items-center gap-2">
+            ${headingText}
+            <a href="#${id}" class="opacity-0 group-hover:opacity-100 text-theme-muted hover:text-brand-500 transition-opacity" onclick="event.preventDefault(); document.getElementById('${id}').scrollIntoView({behavior: 'smooth'})">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                </svg>
+            </a>
+        </h${headingLevel}>`;
+    };
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).marked.setOptions({
         renderer: renderer,
@@ -246,6 +297,42 @@ export const copyCode = (btn: HTMLElement) => {
         });
 };
 
+// Helper to separate TOC rendering logic
+const _renderTOC = () => {
+    const tocList = document.getElementById('toc-list');
+    if (!tocList) return;
+
+    if (currentTOC.length === 0) {
+        tocList.innerHTML =
+            '<li class="text-xs text-theme-muted italic pl-3">No sections found</li>';
+        return;
+    }
+
+    const html = currentTOC
+        .map((item) => {
+            // Indent based on level (h1=0, h2=1, etc. relative to min)
+            // But usually h1 is title, h2 are sections.
+            // Let's just do simple indentation.
+            let paddingLeft = 0.75; // default for h1/h2
+            if (item.level > 2) {
+                paddingLeft = (item.level - 2) * 0.75 + 0.75;
+            }
+
+            return `
+            <a href="#${item.id}" 
+               class="toc-link block text-xs py-1.5 border-l-2 border-transparent text-theme-muted hover:text-theme-base transition-colors truncate"
+               style="padding-left: ${paddingLeft}rem"
+               data-id="${item.id}"
+               onclick="event.preventDefault(); document.getElementById('${item.id}')?.scrollIntoView({behavior: 'smooth'});">
+                ${item.text}
+            </a>
+        `;
+        })
+        .join('');
+
+    tocList.innerHTML = html;
+};
+
 // Helper to render markdown content
 export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) => {
     const marked = _configureMarkdownRenderer();
@@ -255,8 +342,11 @@ export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) =
         return;
     }
 
+    currentTOC = [];
     const html = marked.parse(markdown);
     contentElement.innerHTML = html;
+
+    _renderTOC();
 
     // Apply syntax highlighting
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -337,7 +427,7 @@ export const closeSolutionModal = () => {
     }
 };
 
-// Update solution scroll progress bar
+// Update solution scroll progress bar and TOC active state
 export const updateSolutionScrollProgress = () => {
     const content = document.getElementById('solution-content');
     if (!content) return;
@@ -351,5 +441,169 @@ export const updateSolutionScrollProgress = () => {
     const progressBar = document.getElementById('solution-scroll-progress');
     if (progressBar) {
         progressBar.style.width = Math.min(100, Math.max(0, progress)) + '%';
+    }
+
+    // TOC Scroll Spy
+    // Find the current active header
+    const headers = Array.from(content.querySelectorAll('h1, h2, h3'));
+    let activeId = '';
+
+    // Offset for sticky headers or padding
+    const offset = 100;
+
+    for (const header of headers) {
+        const top = (header as HTMLElement).offsetTop;
+        if (scrollTop >= top - offset) {
+            activeId = header.id;
+        } else {
+            break;
+        }
+    }
+
+    // If activeId is empty and we are at top, maybe pick first?
+    if (!activeId && headers.length > 0 && scrollTop < 100) {
+        activeId = headers[0]?.id || '';
+    }
+
+    // Update TOC classes
+    const tocLinks = document.querySelectorAll('.toc-link');
+    tocLinks.forEach((link) => {
+        if (link.getAttribute('data-id') === activeId) {
+            link.classList.add(
+                'text-brand-400',
+                'font-medium',
+                'border-l-2',
+                'border-brand-500',
+                'bg-brand-500/10',
+                'pl-2'
+            );
+            link.classList.remove(
+                'text-theme-muted',
+                'hover:text-theme-base',
+                'border-l-2',
+                'border-transparent',
+                'pl-3'
+            );
+
+            // Scroll TOC to keep active item in view
+            const tocContainer = document.getElementById('solution-toc');
+            if (tocContainer) {
+                const linkTop = (link as HTMLElement).offsetTop;
+                const containerHeight = tocContainer.clientHeight;
+                const containerScroll = tocContainer.scrollTop;
+
+                if (linkTop < containerScroll || linkTop > containerScroll + containerHeight) {
+                    (link as HTMLElement).scrollIntoView({ block: 'nearest' });
+                }
+            }
+        } else {
+            link.classList.remove(
+                'text-brand-400',
+                'font-medium',
+                'border-l-2',
+                'border-brand-500',
+                'bg-brand-500/10',
+                'pl-2'
+            );
+            link.classList.add(
+                'text-theme-muted',
+                'hover:text-theme-base',
+                'border-l-2',
+                'border-transparent',
+                'pl-3'
+            );
+        }
+    });
+};
+
+// Toggle TOC visibility with support for both mobile (overlay) and desktop (layout)
+export const toggleTOC = () => {
+    const toc = document.getElementById('solution-toc');
+    const container = document.getElementById('solution-container');
+    if (!toc) return;
+
+    const isDesktop = window.innerWidth >= 768; // Tailwind md breakpoint
+
+    if (isDesktop) {
+        // Desktop Toggle Logic
+        // In desktop, the sidebar is controlled by 'md:block' (visible).
+        // To hide it, we must ensure it has 'hidden' and does NOT have 'md:block'.
+
+        if (toc.classList.contains('md:block')) {
+            // HIDE
+            toc.classList.remove('md:block');
+            toc.classList.add('hidden');
+
+            // Shrink container
+            if (container) {
+                container.classList.remove('max-w-6xl');
+                container.classList.add('max-w-4xl');
+            }
+        } else {
+            // SHOW
+            toc.classList.add('md:block');
+            toc.classList.remove('hidden');
+
+            // Expand container
+            if (container) {
+                container.classList.remove('max-w-4xl');
+                container.classList.add('max-w-6xl');
+            }
+
+            // Ensure no leftover mobile overlay classes
+            toc.classList.remove(
+                'absolute',
+                'right-0',
+                'top-0',
+                'bottom-0',
+                'z-50',
+                'bg-dark-900',
+                'shadow-xl',
+                'border-l',
+                'border-slate-700',
+                'h-full'
+            );
+        }
+    } else {
+        // Mobile Toggle Logic (Overlay)
+        // Ensure container is wide enough on mobile? Usually max-w-full or similar matters less, but let's keep it consistent.
+        // Actually on mobile max-w-6xl or 4xl creates same width (100% usually with padding).
+
+        if (toc.classList.contains('hidden')) {
+            // SHOW (Overlay)
+            toc.classList.remove('hidden');
+            // Increased Z-Index to 50 to beat code blocks
+            toc.classList.add(
+                'absolute',
+                'right-0',
+                'top-0',
+                'bottom-0',
+                'z-50',
+                'bg-dark-900',
+                'shadow-xl',
+                'border-l',
+                'border-slate-700',
+                'h-full',
+                'w-3/4',
+                'max-w-xs'
+            );
+        } else {
+            // HIDE
+            toc.classList.add('hidden');
+            toc.classList.remove(
+                'absolute',
+                'right-0',
+                'top-0',
+                'bottom-0',
+                'z-50',
+                'bg-dark-900',
+                'shadow-xl',
+                'border-l',
+                'border-slate-700',
+                'h-full',
+                'w-3/4',
+                'max-w-xs'
+            );
+        }
     }
 };

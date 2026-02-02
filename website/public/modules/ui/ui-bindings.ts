@@ -18,7 +18,7 @@ import {
 import { bindNavigationEvents } from './ui-navigation.js';
 import { bindProblemEvents } from './ui-problems.js';
 import { bindGlobalEvents } from './ui-global.js';
-import { closeSolutionModal } from './ui-markdown.js';
+import { closeSolutionModal, toggleTOC } from './ui-markdown.js';
 
 // Initialize UI components
 export const init = async () => {
@@ -91,4 +91,7 @@ export const bindModalEvents = () => {
         'click',
         createModalHandler(state.elements['solutionModal']!, undefined, undefined)
     );
+
+    // TOC Toggle
+    document.getElementById('toc-toggle-btn')?.addEventListener('click', toggleTOC);
 };
