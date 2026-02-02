@@ -143,13 +143,13 @@ window.SmartGrind = {
 };
 
 // Now import the module
-import { ui } from '../public/modules/ui/ui';
-import { state } from '../public/modules/state';
-import { data } from '../public/modules/data';
-import { utils } from '../public/modules/utils';
-import { api } from '../public/modules/api';
-import { app } from '../public/modules/app';
-import { renderers } from '../public/modules/renderers';
+import { ui } from '../src/ui/ui';
+import { state } from '../src/state';
+import { data } from '../src/data';
+import { utils } from '../src/utils';
+import { api } from '../src/api';
+import { app } from '../src/app';
+import { renderers } from '../src/renderers';
 
 describe('SmartGrind UI', () => {
     beforeEach(() => {
@@ -646,9 +646,9 @@ describe('SmartGrind UI', () => {
             // Import openSigninModal directly and spy on it
             const {
                 openSigninModal: _openSigninModal,
-            } = require('../public/modules/ui/ui-modals.js');
+            } = require('../src/ui/ui-modals');
             const openSigninModalSpy = jest.spyOn(
-                require('../public/modules/ui/ui-modals.js'),
+                require('../src/ui/ui-modals'),
                 'openSigninModal'
             );
 
@@ -762,7 +762,7 @@ describe('SmartGrind UI', () => {
             state.elements.addProbPatternNew = { value: '' };
 
             // Call the private functions directly
-            const uiModals = require('../public/modules/ui/ui-modals.js');
+            const uiModals = require('../src/ui/ui-modals');
             const inputs = uiModals._getSanitizedInputs();
             const isValid = uiModals._validateInputs(inputs);
 
@@ -2105,8 +2105,8 @@ describe('SmartGrind UI', () => {
 
     describe('handleGoogleLogin timeout', () => {
         test('resets buttons after timeout', () => {
-            const { UI_CONSTANTS } = require('../public/modules/ui/ui-constants.js');
-            const _uiAuthModule = require('../public/modules/ui/ui-auth.js');
+            const { UI_CONSTANTS } = require('../src/ui/ui-constants');
+            const _uiAuthModule = require('../src/ui/ui-auth');
             jest.useFakeTimers();
             const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
             setButtonLoadingSpy.mockImplementation(() => {});
@@ -2114,7 +2114,7 @@ describe('SmartGrind UI', () => {
             mockOpen.mockReturnValue(mockPopup);
 
             // Mock utils.showToast to prevent DOM operations
-            const utilsModule = require('../public/modules/utils.js');
+            const utilsModule = require('../src/utils');
             jest.spyOn(utilsModule.utils, 'showToast').mockImplementation(() => {});
 
             // Call handleGoogleLogin to start the timeout
@@ -2201,7 +2201,7 @@ describe('SmartGrind UI', () => {
     describe('handleGoogleLogin popup closed', () => {
         test('shows timeout toast when popup is closed without auth', () => {
             jest.useFakeTimers();
-            const { UI_CONSTANTS } = require('../public/modules/ui/ui-constants.js');
+            const { UI_CONSTANTS } = require('../src/ui/ui-constants');
             const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
             const mockPopup = { closed: false, close: jest.fn() };
             mockOpen.mockReturnValue(mockPopup);

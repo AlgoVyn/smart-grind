@@ -36,7 +36,7 @@ window.Prism = {
 };
 
 // Import the module after mocking
-import * as uiMarkdown from '../public/modules/ui/ui-markdown';
+import * as uiMarkdown from '../src/ui/ui-markdown';
 
 describe('UI Markdown', () => {
     let mockTocElement;

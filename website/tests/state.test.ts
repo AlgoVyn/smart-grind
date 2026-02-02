@@ -19,8 +19,8 @@ Object.defineProperty(global, 'localStorage', {
 });
 
 // Now import the modules
-import { state } from '../public/modules/state.ts';
-import { data as _data } from '../public/modules/data.ts';
+import { state } from '../src/state.ts';
+import { data as _data } from '../src/data.ts';
 
 describe('SmartGrind State', () => {
     beforeEach(() => {

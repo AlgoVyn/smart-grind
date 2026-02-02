@@ -27,12 +27,20 @@
     "outDir": "./dist",
     "rootDir": ".",
     "sourceMap": true,
-    "types": ["jest", "node"],
-    "lib": ["ES2020", "DOM", "DOM.Iterable"]
+    "types": [
+      "jest",
+      "node"
+    ],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ]
   },
   "include": [
-    "public/modules/**/*",
-    "types/**/*"
+    "src/**/*",
+    "types/**/*",
+    "vite.config.ts"
   ],
   "exclude": [
     "node_modules",

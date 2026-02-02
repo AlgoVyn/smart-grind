@@ -1,6 +1,6 @@
 // Test suite for input sanitization functions
 import { expect } from '@jest/globals';
-import { utils } from '../public/modules/utils';
+import { utils } from '../src/utils';
 
 describe('Input Sanitization Tests', () => {
     describe('sanitizeInput()', () => {

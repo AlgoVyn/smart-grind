@@ -2,7 +2,7 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
-import { patterns } from '../public/modules/ui/ui-markdown';
+import { patterns } from '../src/ui/ui-markdown';
 
 describe('Pattern Solutions Functionality', () => {
     beforeEach(() => {

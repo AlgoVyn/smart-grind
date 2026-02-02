@@ -47,13 +47,13 @@ const createMockElement = () => {
 const mockElement = createMockElement();
 
 // Now import the module
-import { renderers } from '../public/modules/renderers';
-import { ICONS } from '../public/modules/renderers/icons';
-import { state } from '../public/modules/state';
-import { data } from '../public/modules/data';
-import { utils } from '../public/modules/utils';
-import { api } from '../public/modules/api';
-import { ui } from '../public/modules/ui/ui';
+import { renderers } from '../src/renderers';
+import { ICONS } from '../src/renderers/icons';
+import { state } from '../src/state';
+import { data } from '../src/data';
+import { utils } from '../src/utils';
+import { api } from '../src/api';
+import { ui } from '../src/ui/ui';
 
 describe('SmartGrind Renderers', () => {
     beforeEach(() => {

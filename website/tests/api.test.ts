@@ -1,12 +1,12 @@
-import { api } from '../public/modules/api.js';
-import { state } from '../public/modules/state.js';
-import { data } from '../public/modules/data.js';
-import { renderers } from '../public/modules/renderers.js';
-import { ui } from '../public/modules/ui/ui.js';
-import { utils } from '../public/modules/utils.js';
+import { api } from '../src/api';
+import { state } from '../src/state';
+import { data } from '../src/data';
+import { renderers } from '../src/renderers';
+import { ui } from '../src/ui/ui';
+import { utils } from '../src/utils';
 
 // Import the api-save module
-import * as apiSave from '../public/modules/api/api-save.js';
+import * as apiSave from '../src/api/api-save';
 
 describe('SmartGrind API Module', () => {
     let mockFetch;

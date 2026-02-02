@@ -25,9 +25,9 @@ global.window.document = mockDocument;
 global.window.scrollTo = mockScrollTo;
 
 // Now import the module
-import { utils } from '../public/modules/utils';
-import { state } from '../public/modules/state';
-import { data } from '../public/modules/data';
+import { utils } from '../src/utils';
+import { state } from '../src/state';
+import { data } from '../src/data';
 
 describe('SmartGrind Utils', () => {
     beforeEach(() => {

@@ -1,4 +1,4 @@
-import { data } from '../public/modules/data';
+import { data } from '../src/data';
 
 describe('SmartGrind Data Module', () => {
     beforeEach(() => {

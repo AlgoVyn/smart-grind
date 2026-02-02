@@ -1,20 +1,20 @@
 # MIME type configuration for Cloudflare Pages
-# Ensure TypeScript files are served as JavaScript
-*.ts
+# Ensure JS and CSS are served correctly
+# (Vite handles most of this, but good to have safety)
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/*.js
   Content-Type: application/javascript
 
-# Also ensure JS files are served correctly
-*.js
-  Content-Type: application/javascript
-
-# JSON files
-*.json
+/*.json
   Content-Type: application/json
 
-# CSS files
-*.css
+/*.css
   Content-Type: text/css
 
-# SVG files
-*.svg
+/*.svg
   Content-Type: image/svg+xml

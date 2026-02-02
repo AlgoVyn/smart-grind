@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Master coding patterns with SmartGrind's spaced repetition system. Practice LeetCode problems efficiently, track progress, and improve algorithmic skills with AI-assisted learning.">
+    <meta name="keywords"
+        content="coding patterns, LeetCode practice, spaced repetition, algorithm training, programming problems, AI coding assistant">
+    <title>SmartGrind: Master Coding Patterns with Spaced Repetition</title>
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://algovyn.com data:; connect-src 'self' https://algovyn.com; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self';">
+    <link rel="canonical" href="https://algovyn.com/smartgrind">
+    <meta property="og:site_name" content="AlgoVyn - SmartGrind">
+    <!-- Open Graph -->
+    <meta property="og:title" content="SmartGrind: Master Coding Patterns with Spaced Repetition">
+    <meta property="og:description"
+        content="Practice LeetCode problems efficiently with AI assistance and track progress across devices.">
+    <meta property="og:image" content="https://algovyn.com/smartgrind/logo.svg">
+    <meta property="og:url" content="https://algovyn.com/smartgrind">
+    <meta property="og:type" content="website">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SmartGrind: Master Coding Patterns with Spaced Repetition">
+    <meta name="twitter:description"
+        content="Practice LeetCode problems efficiently with AI assistance and track progress across devices.">
+    <meta name="twitter:image" content="https://algovyn.com/smartgrind/logo.svg">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" sizes="any">
+    <link rel="apple-touch-icon" href="/logo.svg">
+    <link rel="manifest" href="/manifest.json">
+    <link href="/src/styles.css" rel="stylesheet">
+
+    <!-- Theme Initialization (Prevent Flash) -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
+
+    <!-- Structured Data - Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AlgoVyn",
+      "url": "https://algovyn.com",
+      "logo": "https://algovyn.com/favicon.svg"
+    }
+    </script>
+    <!-- Structured Data - WebApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "SmartGrind",
+      "description": "A web app for mastering coding patterns through spaced repetition.",
+      "url": "https://algovyn.com/smartgrind",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "AlgoVyn"
+      }
+    }
+    </script>
+</head>
+
+<body class="h-full bg-dark-950 text-theme-base antialiased flex flex-col md:flex-row overflow-hidden">
+
+    <!-- TOASTS -->
+    <div id="toast-container" class="fixed bottom-6 right-6 flex flex-col gap-3 pointer-events-none"
+        style="z-index: 80;"></div>
+
+
+    <!-- SETUP MODAL (Auth) -->
+    <div id="setup-modal"
+        class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-dark-950/90 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div class="bg-dark-800 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/50 overflow-hidden">
+            <div class="p-8">
+                <div class="flex items-center gap-3 mb-6">
+                    <img src="/logo.svg" alt="SmartGrind Logo" class="w-10 h-10 object-contain">
+                    <h2 class="text-2xl font-bold text-theme-bold">SmartGrind</h2>
+                </div>
+                <div class="flex flex-col items-center justify-center space-y-6">
+                    <button id="google-login-button"
+                        class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 text-slate-900 font-semibold py-3 px-4 rounded-lg transition-all shadow-lg mt-2">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path
+                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                fill="#4285F4" />
+                            <path
+                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                fill="#34A853" />
+                            <path
+                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                fill="#FBBC05" />
+                            <path
+                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                fill="#EA4335" />
+                        </svg>
+                        Sign in with Google
+                    </button>
+
+                    <div id="setup-error"
+                        class="hidden w-full p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center">
+                    </div>
+
+                    <p class="text-[11px] text-theme-muted text-center">
+
+                        Your progress will be securely synced to your Google account.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD PROBLEM MODAL -->
+    <div id="add-problem-modal"
+        class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-dark-950/80 backdrop-blur-sm p-4">
+        <div class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-lg border border-theme">
+
+            <div class="p-6">
+                <h3 class="text-lg font-bold text-theme-bold mb-4">Add Custom Problem</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs text-theme-muted uppercase font-semibold mb-1">
+                            Problem Name</label>
+                        <input id="add-prob-name" type="text"
+                            class="w-full bg-dark-950 border border-theme rounded px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none"
+                            placeholder="e.g. Valid Sudoku">
+
+                    </div>
+                    <div>
+                        <label class="block text-xs text-theme-muted uppercase font-semibold mb-1">
+                            URL</label>
+                        <input id="add-prob-url" type="text"
+                            class="w-full bg-dark-950 border border-theme rounded px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none"
+                            placeholder="https://leetcode.com/...">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-theme-muted uppercase font-semibold mb-1">
+                                Category</label>
+                            <select id="add-prob-category"
+                                class="w-full bg-dark-950 border border-theme rounded px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none">
+                                <!-- Populated by JS -->
+                            </select>
+                            <input id="add-prob-category-new" type="text"
+                                class="hidden mt-2 w-full bg-dark-950 border border-theme rounded px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none"
+                                placeholder="New Category Name">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-theme-muted uppercase font-semibold mb-1">
+                                Pattern</label>
+                            <select id="add-prob-pattern"
+                                class="w-full bg-dark-950 border border-theme rounded px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none">
+                                <!-- Populated by JS -->
+                            </select>
+                            <input id="add-prob-pattern-new" type="text"
+                                class="hidden mt-2 w-full bg-dark-950 border border-theme rounded px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none"
+                                placeholder="New Pattern Name">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button id="cancel-add-btn"
+                        class="px-4 py-2 text-sm text-theme-muted hover:text-theme-bold">Cancel</button>
+
+                    <button id="save-add-btn"
+                        class="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white rounded font-medium">Add
+                        Problem</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIGN IN MODAL -->
+    <div id="signin-modal"
+        class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-dark-950/80 backdrop-blur-sm p-4">
+        <div class="bg-dark-800 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/50 overflow-hidden"
+            id="signin-modal-content">
+            <div class="p-8">
+                <div class="flex items-center gap-3 mb-6">
+                    <img src="/logo.svg" alt="SmartGrind Logo" class="w-10 h-10 object-contain">
+                    <h2 class="text-2xl font-bold text-theme-bold">Sign In</h2>
+                </div>
+                <div class="flex flex-col items-center justify-center space-y-6">
+                    <button id="modal-google-login-button"
+                        class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 text-slate-900 font-semibold py-3 px-4 rounded-lg transition-all shadow-lg mt-2">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path
+                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                fill="#4285F4" />
+                            <path
+                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                fill="#34A853" />
+                            <path
+                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                fill="#FBBC05" />
+                            <path
+                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                fill="#EA4335" />
+                        </svg>
+                        Sign in with Google
+                    </button>
+
+                    <div id="signin-error"
+                        class="hidden w-full p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center">
+                    </div>
+
+                    <p class="text-[11px] text-theme-muted text-center">
+                        Sign in to sync your progress across devices.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERT MODAL -->
+    <div id="alert-modal"
+        class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-md border border-theme">
+            <div class="p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <div
+                        class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <h3 id="alert-title" class="text-lg font-bold text-theme-bold">Alert</h3>
+                </div>
+                <p id="alert-message" class="text-theme-base mb-6 leading-relaxed"></p>
+                <div class="flex justify-end">
+                    <button id="alert-ok-btn"
+                        class="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirm-modal"
+        class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-md border border-theme">
+            <div class="p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <div
+                        class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-500 shrink-0">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <h3 id="confirm-title" class="text-lg font-bold text-theme-bold">Confirm Action</h3>
+                </div>
+                <p id="confirm-message" class="text-theme-base mb-6 leading-relaxed"></p>
+                <div class="flex justify-end gap-3">
+                    <button id="confirm-cancel-btn"
+                        class="px-6 py-2.5 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600 rounded-lg font-semibold transition-all duration-200">Cancel</button>
+                    <button id="confirm-ok-btn"
+                        class="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOLUTION MODAL -->
+    <div id="solution-modal"
+        class="hidden fixed inset-0 z-[70] flex items-start justify-center bg-dark-950/95 backdrop-blur-sm p-4 pt-8">
+        <div id="solution-container"
+            class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-6xl h-[calc(100vh-4rem)] border border-slate-700/50 flex flex-col transition-all duration-300">
+            <div class="p-6 border-b border-slate-700/50 flex justify-between items-center flex-shrink-0">
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-theme-bold">Solution</h3>
+                    <div class="mt-2 w-full bg-slate-600 h-1 rounded-full overflow-hidden">
+                        <div id="solution-scroll-progress"
+                            class="bg-brand-500 h-full rounded-full transition-all duration-150" style="width: 0%">
+                        </div>
+                    </div>
+                </div>
+                <!-- TOC Toggle -->
+                <button id="toc-toggle-btn"
+                    class="p-2 rounded-lg hover:bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors ml-4"
+                    title="Toggle Table of Contents">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
+                <button id="solution-close-btn"
+                    class="p-2 rounded-lg hover:bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors ml-2">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="flex flex-1 overflow-hidden relative">
+                <!-- Main Content -->
+                <div id="solution-content" class="flex-1 overflow-y-auto p-6 scroll-smooth">
+                    <div class="loading flex items-center justify-center min-h-[200px]">
+                        <div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin">
+                        </div>
+                        <span class="ml-3 text-theme-muted">Loading solution...</span>
+                    </div>
+                </div>
+
+                <!-- Table of Contents Sidebar -->
+                <div id="solution-toc"
+                    class="hidden md:block w-64 border-l border-slate-700/50 bg-dark-900/30 p-4 overflow-y-auto shrink-0 text-sm">
+                    <p class="text-xs font-bold text-theme-muted uppercase tracking-wider mb-4 pl-2">Contents</p>
+                    <nav id="toc-list" class="flex flex-col space-y-1">
+                        <!-- TOC Items injected here -->
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen" class="fixed inset-0 z-[60] bg-dark-950 flex flex-col items-center justify-center">
+        <div class="w-12 h-12 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div>
+        <p class="mt-4 text-theme-muted font-mono text-sm">Syncing...</p>
+
+    </div>
+
+    <!-- MAIN APP LAYOUT -->
+    <div id="app-wrapper" class="hidden flex-1 w-full h-full md:flex transition-transform duration-200">
+
+        <!-- Sidebar Backdrop (Mobile) -->
+        <div id="sidebar-backdrop"
+            class="fixed inset-0 bg-black/60 z-40 hidden opacity-0 transition-opacity duration-300 md:hidden backdrop-blur-sm">
+        </div>
+
+        <!-- SIDEBAR (Topics) -->
+        <aside id="main-sidebar"
+            class="fixed inset-y-0 left-0 md:relative md:translate-x-0 -translate-x-full transition-transform duration-300 bg-dark-900 border-r border-slate-800 flex flex-col shrink-0 h-full z-50 md:z-20"
+            style="width: 18rem;">
+            <!-- Sidebar Resizer -->
+
+            <div id="sidebar-resizer"
+                class="hidden md:block absolute right-0 top-0 w-1.5 h-full cursor-col-resize hover:bg-brand-500/30 group z-30 transition-colors">
+                <div class="h-full w-px bg-transparent group-hover:bg-brand-500/50 mx-auto"></div>
+            </div>
+
+            <!-- Sidebar Header -->
+            <div
+                class="p-5 border-b border-slate-800 flex justify-between items-center bg-dark-900/50 backdrop-blur-md sticky top-0 z-10">
+                <button id="sidebar-logo" type="button" class="flex items-center gap-2.5 cursor-pointer">
+                    <img src="/logo.svg" alt="SmartGrind Logo" class="w-8 h-8 object-contain">
+                    <span class="font-bold text-theme-bold tracking-tight">SmartGrind</span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <!-- Theme Toggle -->
+                    <button id="theme-toggle-btn"
+                        class="p-1.5 rounded-lg text-theme-muted hover:text-theme-bold transition-colors"
+                        title="Toggle Theme">
+                        <svg class="w-5 h-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+                        </svg>
+                        <svg class="w-5 h-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
+
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-btn" class="md:hidden text-theme-muted hover:text-theme-bold">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Stats Mini (Sidebar) -->
+            <div class="p-5 border-b border-slate-800 bg-dark-800/30">
+                <div class="flex justify-between items-end mb-2">
+                    <span class="text-xs font-semibold text-theme-muted uppercase">Total Progress</span>
+
+                    <span id="sidebar-total-stat" class="text-sm font-bold text-theme-bold">0%</span>
+
+                </div>
+                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div id="sidebar-total-bar" class="bg-brand-500 h-full rounded-full transition-all duration-700"
+                        style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between items-center mt-3 text-[10px] text-theme-muted font-mono">
+
+                    <span id="user-display" class="truncate max-w-[120px]">Guest</span>
+                    <button id="disconnect-btn" class="hover:text-red-400 transition-colors flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Sign Out
+                    </button>
+                </div>
+
+                <button id="open-add-modal-btn"
+                    class="w-full mt-4 flex items-center justify-center gap-2 py-2 border border-theme rounded hover:bg-dark-800 text-xs text-theme-base transition-colors">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Problem
+                </button>
+
+            </div>
+
+            <!-- Topic List -->
+            <div id="topic-list" class="flex-1 overflow-y-auto py-2 touch-pan-y">
+                <!-- Injected via JS -->
+            </div>
+
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main id="main-scroll" class="flex-1 flex flex-col h-full overflow-hidden bg-dark-950 relative">
+            <!-- Mobile Header -->
+            <div
+                class="md:hidden sticky top-0 z-30 p-4 border-b border-slate-800 bg-dark-950/80 backdrop-blur-md flex justify-between items-center">
+                <button id="mobile-logo" type="button" class="flex items-center gap-2.5 cursor-pointer">
+                    <img src="/logo.svg" alt="SmartGrind Logo" class="w-7 h-7 object-contain">
+                    <span class="font-bold text-theme-bold tracking-tight text-sm">SmartGrind</span>
+                </button>
+                <button id="mobile-menu-btn-main" class="p-2 text-theme-muted hover:text-theme-bold transition-colors">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
+            </div>
+
+
+            <!-- Top Bar -->
+            <header
+                class="h-16 border-b border-theme flex items-center justify-between px-6 bg-dark-900/80 backdrop-blur-md z-10 shrink-0">
+                <div class="flex items-center gap-4 flex-1 mr-4">
+                    <h2 id="current-view-title"
+                        class="text-lg font-bold text-theme-bold whitespace-nowrap hidden sm:block">Dashboard</h2>
+                    <!-- Search Bar -->
+                    <div class="relative flex-1 max-w-md">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-4 w-4 text-theme-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </span>
+                        <input id="problem-search" type="text"
+                            class="block w-full pl-10 pr-3 py-2 border border-theme rounded-lg bg-dark-800 text-sm placeholder-theme-muted focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                            placeholder="Search problems...">
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex items-center gap-2">
+                    <!-- Date Filter Dropdown (shown in review/solved mode) -->
+                    <div id="date-filter-container"
+                        class="hidden bg-dark-800 rounded-lg p-0.5 border border-slate-700/50">
+                        <select id="review-date-filter"
+                            class="bg-transparent border-none rounded-md px-3 py-1.5 text-xs font-medium text-theme-bold focus:outline-none focus:ring-0 cursor-pointer"
+                            style="-webkit-appearance: none; -moz-appearance: none; appearance: none;">
+                            <option value="">By Date</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center bg-dark-800 rounded-lg p-0.5 border border-slate-700/50">
+                        <button data-filter="all"
+                            class="filter-btn active px-3 py-1.5 rounded-md text-xs font-medium text-theme-bold hover:text-theme-base transition-all">All</button>
+                        <button data-filter="review"
+                            class="filter-btn px-3 py-1.5 rounded-md text-xs font-medium text-theme-bold hover:text-theme-base transition-all">Due</button>
+                        <button data-filter="solved"
+                            class="filter-btn px-3 py-1.5 rounded-md text-xs font-medium text-theme-bold hover:text-theme-base transition-all">Solved</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Scrollable Content Area -->
+            <div id="content-scroll" class="flex-1 overflow-y-auto p-4 md:p-8">
+                <div class="max-w-4xl mx-auto space-y-8">
+
+                    <!-- Stats Overview (Main Dashboard) -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Total Problems Stat -->
+                        <div class="bg-dark-800 border border-theme rounded-xl p-4 shadow-sm relative overflow-hidden">
+                            <div
+                                class="absolute top-0 right-0 w-16 h-16 bg-brand-500/10 rounded-full blur-xl -mr-8 -mt-8">
+                            </div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span
+                                    class="text-theme-muted text-xs uppercase font-semibold tracking-wider">Total</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                    stroke="currentColor" class="w-4 h-4 text-brand-400">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <div class="flex items-baseline gap-2">
+                                <span id="stat-total" class="text-2xl font-bold text-theme-bold">0</span>
+                            </div>
+                        </div>
+
+                        <!-- Solved Stat -->
+                        <div class="bg-dark-800 border border-theme rounded-xl p-4 shadow-sm">
+                            <div class="flex items-center justify-between mb-2">
+                                <span
+                                    class="text-theme-muted text-xs uppercase font-semibold tracking-wider">Solved</span>
+                                <div class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]">
+                                </div>
+                            </div>
+                            <div class="flex items-baseline gap-1">
+                                <span id="stat-solved" class="text-2xl font-bold text-theme-bold">0</span>
+                            </div>
+                            <div class="w-full bg-slate-700 h-1 mt-3 rounded-full overflow-hidden">
+                                <div id="progress-bar-solved"
+                                    class="bg-green-500 h-full rounded-full transition-all duration-1000"
+                                    style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Due Stat -->
+                        <div class="bg-dark-800 border border-theme rounded-xl p-4 shadow-sm relative overflow-hidden">
+                            <div
+                                class="absolute top-0 right-0 w-16 h-16 bg-yellow-500/10 rounded-full blur-xl -mr-8 -mt-8">
+                            </div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span
+                                    class="text-theme-muted text-xs uppercase font-semibold tracking-wider">Reviews</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                    stroke="currentColor" class="w-4 h-4 text-yellow-500">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div class="flex items-baseline gap-2">
+                                <span id="stat-due" class="text-2xl font-bold text-theme-bold">0</span>
+                                <span
+                                    class="text-xs font-medium bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-full hidden"
+                                    id="stat-due-badge">Due Now</span>
+                            </div>
+                            <p class="text-xs text-theme-muted mt-1">Items needing repetition</p>
+
+                        </div>
+
+
+                    </div>
+
+                    <!-- Review Alert -->
+                    <div id="review-banner"
+                        class="hidden bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-center justify-between gap-4 animate-fade-in">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-theme-bold">Spaced Repetition Due</h3>
+                                <p class="text-xs text-theme-base">You have <span id="review-count-banner">0</span>
+                                    problems to review today.</p>
+
+                            </div>
+                        </div>
+                        <button onclick="window.scrollToReview()"
+                            class="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-md font-bold hover:bg-amber-400 transition-colors">Review
+                            Now</button>
+                    </div>
+
+                    <!-- Problem List Container -->
+                    <div id="problems-container" class="space-y-10 pb-20">
+                        <!-- Problems injected here -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center">
+                        <div class="w-16 h-16 bg-dark-800 rounded-full flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-theme-bold">All caught up!</h3>
+                        <p class="text-theme-muted text-sm mt-1">No problems match your current filter.</p>
+
+                    </div>
+
+                </div>
+            </div>
+
+
+
+        </main>
+
+        <!-- Scroll to Top Button -->
+        <button id="scroll-to-top-btn"
+            class="fixed bottom-6 right-6 z-50 p-3 rounded-full bg-brand-600 text-white shadow-lg hover:bg-brand-500 transition-all opacity-0 translate-y-4 pointer-events-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- LOGIC -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+        integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+        integrity="sha384-06z5D//U/xpvxZHuUz92xBvq3DqBBFi7Up53HRrbV7Jlv7Yvh/MZ7oenfUe9iCEt"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"
+        integrity="sha384-7LHwxHIDSHTBleLmgDWZbC/IMJsfYfFVOihKhvsrxYW4j47YQcRwZja4ToFE3bA8" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"
+        integrity="sha384-gaD4ncierlmWk42Z3BmTp37/z+Dqt8V4Wf74UjTvFeo+M+SgnEI6Ysd98pWhksQv" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"
+        integrity="sha384-NiOrAquf32LSG3Vuig99LKS03EZPUuM8a51NOp+XXsqx08hUVo3wbNWALY7K/2J8" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"
+        integrity="sha384-DioAMZB4yk91W6LuFit5wJDh8c5Ov09f/MBvja94y0PodMqTpTZeBeejqpRUru7D" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"
+        integrity="sha384-WJdEkJKrbsqw0evQ4GB6mlsKe5cGTxBOw4KAEIa52ZLB7DDpliGkwdme/HMa5n1m" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+    <script type="module" src="/src/data.ts"></script>
+    <script type="module" src="/src/state.ts"></script>
+    <script type="module" src="/src/utils.ts"></script>
+    <script type="module" src="/src/api.ts"></script>
+    <script type="module" src="/src/renderers.ts"></script>
+    <script type="module" src="/src/ui/ui.ts"></script>
+</body>
+
+</html>
