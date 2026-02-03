@@ -79,7 +79,7 @@
 
 | Problem Page with Ratings | Popup Interface |
 |---------------------------|-----------------|
-| ![Problem Page](screenshots/image.png) | ![Popup](screenshots/image-1.png) |
+| ![Problem Page](screenshots/extension-problem-view.png) | ![Popup](screenshots/extension-popup.png) |
 
 ---
 

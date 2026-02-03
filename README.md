@@ -6,9 +6,9 @@
 ![GitHub Issues](https://img.shields.io/github/issues/AlgoVyn/smart-grind?style=flat-square)
 ![Last Commit](https://img.shields.io/github/last-commit/AlgoVyn/smart-grind?style=flat-square)
 
-**Smart Grind** is a comprehensive platform designed to help you master coding problems through optimal practice and intelligent tracking. It consists of two main components: a Chrome extension for enhanced LeetCode experience and a web application for structured pattern-based learning.
+**Smart Grind** is a powerful platform built to help you master coding challenges through intelligent tracking and optimized practice. It combines a **Chrome extension** for a seamless LeetCode experience with a **web application** for structured, pattern-based learning.
 
-Visit the official website: [algovyn.com/smartgrind](https://algovyn.com/smartgrind)
+🚀 **Get Started:** [algovyn.com/smartgrind](https://algovyn.com/smartgrind)
 
 ---
 
@@ -152,14 +152,14 @@ smart-grind/
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|------------|
+| Aspect | Technology |
+|:---|:---|
 | **Chrome Extension** | JavaScript, Manifest V3 |
 | **Frontend** | Vanilla JavaScript, Tailwind CSS |
 | **Backend** | Cloudflare Workers (Edge Functions) |
 | **Authentication** | Google OAuth 2.0, JWT |
 | **Storage** | Cloudflare KV (Key-Value Store) |
-| **Testing** | Jest (Unit), Playwright (E2E) |
+| **Testing** | Vitest (Unit), Playwright (E2E) |
 | **Deployment** | Cloudflare Pages |
 
 ---

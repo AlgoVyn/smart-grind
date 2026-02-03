@@ -108,7 +108,7 @@
 
 | Dashboard View | Problem Details |
 |----------------|-----------------|
-| ![Dashboard](screenshots/image.png) | ![Problem](screenshots/image-1.png) |
+| ![Dashboard](screenshots/website-dashboard.png) | ![Problem](screenshots/website-problem-view.png) |
 
 ---
 
