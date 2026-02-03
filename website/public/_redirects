@@ -5,6 +5,10 @@
 /smartgrind/solutions/* /solutions/:splat 200
 /smartgrind/patterns/* /patterns/:splat 200
 
+# Directory-level fallbacks
+/smartgrind/solutions /solutions/ 200
+/smartgrind/patterns /patterns/ 200
+
 # SPA fallback: redirect all other /smartgrind/ paths to index.html
 /smartgrind/* /index.html 200
 
