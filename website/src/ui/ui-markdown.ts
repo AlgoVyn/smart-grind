@@ -39,7 +39,7 @@ export const patterns = {
     // Function to check if a pattern solution file exists
     async checkPatternSolutionExists(patternName: string) {
         const filename = this.getPatternFilename(patternName);
-        const solutionFile = `/patterns/${filename}.md`;
+        const solutionFile = `patterns/${filename}.md`;
 
         try {
             const response = await fetch(solutionFile, { method: 'HEAD' });
@@ -123,8 +123,8 @@ export const _configureMarkdownRenderer = () => {
                     innerLang === 'cpp'
                         ? 'C++'
                         : innerLang === 'javascript'
-                          ? 'JavaScript'
-                          : innerLang.charAt(0).toUpperCase() + innerLang.slice(1);
+                            ? 'JavaScript'
+                            : innerLang.charAt(0).toUpperCase() + innerLang.slice(1);
 
                 // Tab Button
                 const activeTabClass =
@@ -393,14 +393,14 @@ const _loadSolution = (
 
 // Open solution modal
 export const openSolutionModal = (problemId: string) => {
-    const solutionFile = `/solutions/${problemId}.md`;
+    const solutionFile = `solutions/${problemId}.md`;
     _loadSolution(solutionFile, 'Loading solution...', 'solution');
 };
 
 // Open pattern solution modal
 export const openPatternSolutionModal = (patternName: string) => {
     const patternFilename = patterns.getPatternFilename(patternName);
-    const solutionFile = `/patterns/${patternFilename}.md`;
+    const solutionFile = `patterns/${patternFilename}.md`;
     _loadSolution(
         solutionFile,
         'Loading pattern solution...',

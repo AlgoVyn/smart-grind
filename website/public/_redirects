@@ -2,6 +2,8 @@
 /smartgrind/assets/* /assets/:splat 200
 /smartgrind/logo.svg /logo.svg 200
 /smartgrind/manifest.json /manifest.json 200
+/smartgrind/solutions/* /solutions/:splat 200
+/smartgrind/patterns/* /patterns/:splat 200
 
 # SPA fallback: redirect all other /smartgrind/ paths to index.html
 /smartgrind/* /index.html 200

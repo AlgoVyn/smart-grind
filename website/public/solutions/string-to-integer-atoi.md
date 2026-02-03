@@ -1,271 +1,277 @@
-# String To Integer (atoi)
+# String to Integer (atoi)
 
-## Problem Description
+## Problem Statement
 
-Implement the `myAtoi(string s)` function that converts a string to a 32-bit signed integer.
+LeetCode Problem 8: [String to Integer (atoi)](https://leetcode.com/problems/string-to-integer-atoi/)
 
-### Rules for Conversion
+Implement the `myAtoi(string s)` function, which converts a string to a 32-bit signed integer.
 
-The function should follow these rules:
+The function should skip leading whitespace, then parse an optional sign character (`+` or `-`), followed by as many numerical digits as possible. The parsed integer should be clamped to the 32-bit signed integer range [-2^31, 2^31 - 1]. If the integer overflows this range, return 2^31 - 1 for positive overflow or -2^31 for negative overflow.
 
-1. **Skip leading whitespace** - Ignore any leading spaces before the number
-2. **Parse optional sign** - Detect and handle '+' or '-' sign characters
-3. **Read digits** - Convert consecutive digit characters to an integer
-4. **Stop at first non-digit** - Stop parsing when encountering any non-digit character
-5. **Handle overflow** - Clamp the result to the 32-bit signed integer range [-2^31, 2^31 - 1]
+---
 
-### Important Edge Cases
+## Understanding the Problem
 
-- **Empty string**: Return 0
-- **Only whitespace**: Return 0
-- **No digits after sign**: Return 0
-- **Overflow**: Return INT_MAX (2147483647) or INT_MIN (-2147483648)
-- **Leading zeros**: Should be handled correctly
-- **Multiple signs or invalid characters**: Should stop at first invalid character
+The atoi (ASCII to Integer) function is a classic string parsing problem that mimics the behavior of the C standard library's `atoi()` function. The challenge lies in correctly handling various edge cases while maintaining efficiency.
+
+### Key Rules
+
+1. **Skip Leading Whitespace**: Ignore any leading space characters (`' '`).
+2. **Optional Sign**: The next character can be `+` or `-` to indicate the sign.
+3. **Parse Digits**: Read consecutive digit characters (`0-9`).
+4. **Stop at Non-Digit**: Stop parsing when encountering any non-digit character.
+5. **Clamp to Range**: Return the closest 32-bit signed integer value if overflow occurs.
 
 ---
 
 ## Examples
 
-### Example 1
-**Input:** `s = "42"`
-**Output:** `42`
-**Explanation:** Simple positive integer with no leading whitespace.
+Here are some examples to illustrate the problem behavior:
 
-### Example 2
-**Input:** `s = "   -042"`
-**Output:** `-42`
-**Explanation:** Leading spaces are skipped, '-' sign indicates negative number, leading zeros are ignored.
-
-### Example 3
-**Input:** `s = "1337c0d3"`
-**Output:** `1337`
-**Explanation:** Parsing stops at 'c', returning only the numeric prefix.
-
-### Example 4
-**Input:** `s = "3.14159"`
-**Output:** `3`
-**Explanation:** Parsing stops at '.', returning only the integer part.
-
-### Example 5
-**Input:** `s = "-91283472332"`
-**Output:** `-2147483648`
-**Explanation:** Number overflows 32-bit integer range, so it's clamped to INT_MIN.
-
-### Example 6
-**Input:** `s = "+1"`
-**Output:** `1`
-**Explanation:** Optional '+' sign is handled correctly.
-
-### Example 7
-**Input:** `s = "  123  "`
-**Output:** `123`
-**Explanation:** Leading spaces are skipped, trailing spaces stop parsing.
-
-### Example 8
-**Input:** `s = ""`
-**Output:** `0`
-**Explanation:** Empty string returns 0.
-
-### Example 9
-**Input:** `s = "   "`
-**Output:** `0`
-**Explanation:** Only whitespace returns 0.
-
-### Example 10
-**Input:** `s = "words and 987"`
-**Output:** `0`
-**Explanation:** No valid numeric characters at the start.
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| `"42"` | `42` | Simple case - skip leading spaces, read the digits "42". |
+| `"   -42"` | `-42` | Leading spaces are skipped, then the negative sign is processed. |
+| `"4193 with words"` | `4193` | Read digits until a non-digit character is encountered. |
+| `"words and 987"` | `0` | No leading digits found, return 0. |
+| `"-91283472332"` | `-2147483648` | Integer overflow - the value exceeds -2^31, so return -2^31. |
+| `"   +0 123"` | `0` | Positive sign is processed, but the value is 0. |
+| `"20000000000000000000"` | `2147483647` | Positive overflow - exceeds 2^31 - 1. |
+| `"+-12"` | `0` | Invalid sign sequence, return 0. |
+| `"3.14159"` | `3` | Stop at decimal point, parse only the integer part. |
+| `""` | `0` | Empty string, return 0. |
+| `"   "` | `0` | Only whitespace, return 0. |
 
 ---
 
 ## Constraints
 
-| Constraint | Description |
-|------------|-------------|
-| `0 <= s.length <= 200` | String length between 0 and 200 |
-| `s` consists of ASCII characters | Can contain any printable ASCII characters |
+- `0 <= s.length <= 200`
+- `s` consists of English letters (both lowercase and uppercase), digits, space (`' '`), plus (`'+'`), and minus (`'-'`) characters.
 
 ---
 
 ## Intuition
 
-The problem requires parsing a string to extract a valid integer while handling various edge cases. The key insight is to process the string character by character, maintaining the following state:
+The problem requires implementing a parser that follows specific rules in a strict order:
 
-1. **Whitespace state**: Skip spaces until a non-space character is found
-2. **Sign state**: Determine if the number should be positive or negative
-3. **Digit state**: Accumulate digits while checking for overflow
-4. **Termination state**: Stop when encountering any non-digit character
+### Step-by-Step Intuition
 
-The main challenge is handling integer overflow correctly. We need to check before each addition whether the current result would exceed the 32-bit signed integer boundaries.
+1. **Skip Whitespace**: Ignore any leading space characters using `isspace()` or equivalent. This is crucial because the problem specifies leading whitespace should be skipped.
+
+2. **Handle Sign**: Check for an optional `'+'` or `'-'` character immediately after whitespace. This determines the sign of the result. If no sign is present, the default is positive.
+
+3. **Read Digits**: Extract consecutive digits starting from the first non-whitespace, non-sign character. The parsing stops at the first non-digit character.
+
+4. **Clamp to Range**: After processing all digits, clamp the result to the 32-bit signed integer range:
+   - Minimum: `-2^31` = -2147483648
+   - Maximum: `2^31 - 1` = 2147483647
+
+5. **Overflow Handling**: During digit parsing, detect potential overflow before it occurs to avoid incorrect results from intermediate large values.
+
+### Why Check Overflow Before Adding?
+
+Checking before adding prevents incorrect intermediate values. If we add first and then check, the result might already overflow (in languages with fixed-size integers), leading to undefined behavior or wraparound. By checking `result > (INT_MAX - digit) / 10`, we ensure that `result * 10 + digit` will never exceed INT_MAX before the operation.
 
 ---
 
 ## Approaches
 
-### Approach 1: Basic Implementation with Overflow Checking
+### Approach 1: Direct Parsing with Overflow Detection
 
-This approach uses straightforward character-by-character processing with overflow checking at each step. It checks for overflow by comparing against the maximum allowed value before each digit addition.
+This is the most efficient and recommended approach. We parse the string character by character, maintaining the current result and checking for overflow conditions at each step.
 
 #### Algorithm
-1. Skip all leading whitespace characters
-2. Check for optional '+' or '-' sign
-3. For each character:
-   - If it's a digit, multiply current result by 10 and add the digit
-   - Before adding, check if the result would overflow
-   - If overflow detected, return INT_MAX or INT_MIN
-   - If not a digit, break the loop
-4. Apply the sign and return the result
 
-#### Code Implementations
+1. Initialize an index `i` to 0 and skip all leading whitespace characters.
+2. Check for an optional sign character (`+` or `-`) and set the `sign` variable accordingly.
+3. Iterate through the string, processing each digit character:
+   - Convert the character to its numeric value.
+   - Check if adding this digit would cause overflow.
+   - Accumulate the result: `result = result * 10 + digit`.
+4. Apply the sign to the final result and return it.
 
+#### Code Implementation
+
+````carousel
 ```python
 class Solution:
     def myAtoi(self, s: str) -> int:
+        """
+        Convert string to integer (atoi).
+        
+        Args:
+            s: Input string to convert
+            
+        Returns:
+            32-bit signed integer representation
+        """
         # Constants for 32-bit signed integer range
         INT_MAX = 2**31 - 1  # 2147483647
-        INT_MIN = -2**31     # -2147483648
+        INT_MIN = -2**31      # -2147483648
         
-        # Step 1: Skip leading whitespace
         i = 0
         n = len(s)
+        
+        # Step 1: Skip leading whitespace
         while i < n and s[i] == ' ':
             i += 1
         
-        # Step 2: Handle empty string or only whitespace
+        # Handle empty string after stripping whitespace
         if i >= n:
             return 0
         
-        # Step 3: Handle sign
+        # Step 2: Handle sign
         sign = 1
-        if s[i] == '-':
-            sign = -1
-            i += 1
-        elif s[i] == '+':
+        if s[i] == '+' or s[i] == '-':
+            if s[i] == '-':
+                sign = -1
             i += 1
         
-        # Step 4: Parse digits
+        # Step 3: Parse digits and build result
         result = 0
+        
         while i < n and s[i].isdigit():
-            digit = int(s[i])
+            digit = ord(s[i]) - ord('0')
             
             # Check for overflow before adding the digit
-            if result > INT_MAX // 10:
-                # If result is already larger than max/10, overflow is certain
-                return INT_MIN if sign == -1 else INT_MAX
-            
-            if result == INT_MAX // 10 and digit > INT_MAX % 10:
-                # If result equals max/10 and digit would cause overflow
-                return INT_MIN if sign == -1 else INT_MAX
+            # For positive numbers: if result > (INT_MAX - digit) // 10, it will overflow
+            # This condition ensures: result * 10 + digit <= INT_MAX
+            if sign == 1:
+                if result > (INT_MAX - digit) // 10:
+                    return INT_MAX
+            else:
+                # For negative numbers, we track the magnitude and return INT_MIN on overflow
+                if result > (INT_MAX - digit) // 10:
+                    return INT_MIN
             
             result = result * 10 + digit
             i += 1
         
-        # Step 5: Apply sign and return
-        return sign * result
+        # Step 4: Apply sign and return
+        result *= sign
+        return result
 ```
 
 ```java
 class Solution {
     public int myAtoi(String s) {
         // Constants for 32-bit signed integer range
-        int INT_MAX = Integer.MAX_VALUE;  // 2147483647
-        int INT_MIN = Integer.MIN_VALUE;  // -2147483648
+        final int INT_MAX = Integer.MAX_VALUE;   // 2147483647
+        final int INT_MIN = Integer.MIN_VALUE;   // -2147483648
         
-        // Step 1: Skip leading whitespace
         int i = 0;
         int n = s.length();
+        
+        // Step 1: Skip leading whitespace
         while (i < n && s.charAt(i) == ' ') {
             i++;
         }
         
-        // Step 2: Handle empty string or only whitespace
+        // Handle empty string after stripping whitespace
         if (i >= n) {
             return 0;
         }
         
-        // Step 3: Handle sign
+        // Step 2: Handle sign
         int sign = 1;
-        if (s.charAt(i) == '-') {
-            sign = -1;
-            i++;
-        } else if (s.charAt(i) == '+') {
+        if (s.charAt(i) == '+' || s.charAt(i) == '-') {
+            if (s.charAt(i) == '-') {
+                sign = -1;
+            }
             i++;
         }
         
-        // Step 4: Parse digits
+        // Step 3: Parse digits and build result
         int result = 0;
+        
         while (i < n && Character.isDigit(s.charAt(i))) {
             int digit = s.charAt(i) - '0';
             
             // Check for overflow before adding the digit
-            if (result > INT_MAX / 10) {
-                return sign == -1 ? INT_MIN : INT_MAX;
-            }
-            
-            if (result == INT_MAX / 10 && digit > INT_MAX % 10) {
-                return sign == -1 ? INT_MIN : INT_MAX;
+            if (sign == 1) {
+                if (result > (INT_MAX - digit) / 10) {
+                    return INT_MAX;
+                }
+            } else {
+                if (result > (INT_MAX - digit) / 10) {
+                    return INT_MIN;
+                }
             }
             
             result = result * 10 + digit;
             i++;
         }
         
-        // Step 5: Apply sign and return
-        return sign * result;
+        // Step 4: Apply sign and return
+        result *= sign;
+        return result;
     }
 }
 ```
 
 ```cpp
+#include <string>
+#include <cctype>
+#include <climits>
+
 class Solution {
 public:
-    int myAtoi(string s) {
+    int myAtoi(std::string s) {
         // Constants for 32-bit signed integer range
-        const int INT_MAX = 2147483647;
-        const int INT_MIN = -2147483648;
+        const int INT_MAX = INT_MAX;
+        const int INT_MIN = INT_MIN;
         
-        // Step 1: Skip leading whitespace
         int i = 0;
         int n = s.length();
+        
+        // Step 1: Skip leading whitespace
         while (i < n && s[i] == ' ') {
             i++;
         }
         
-        // Step 2: Handle empty string or only whitespace
+        // Handle empty string after stripping whitespace
         if (i >= n) {
             return 0;
         }
         
-        // Step 3: Handle sign
+        // Step 2: Handle sign
         int sign = 1;
-        if (s[i] == '-') {
-            sign = -1;
-            i++;
-        } else if (s[i] == '+') {
+        if (s[i] == '+' || s[i] == '-') {
+            if (s[i] == '-') {
+                sign = -1;
+            }
             i++;
         }
         
-        // Step 4: Parse digits
-        long result = 0;  // Use long to prevent overflow during calculation
-        while (i < n && isdigit(s[i])) {
+        // Step 3: Parse digits and build result
+        long result = 0;  // Use long for intermediate calculations
+        
+        while (i < n && std::isdigit(s[i])) {
             int digit = s[i] - '0';
             
             // Check for overflow before adding the digit
-            if (result > INT_MAX / 10) {
-                return sign == -1 ? INT_MIN : INT_MAX;
-            }
-            
-            if (result == INT_MAX / 10 && digit > INT_MAX % 10) {
-                return sign == -1 ? INT_MIN : INT_MAX;
+            if (sign == 1) {
+                if (result > (static_cast<long>(INT_MAX) - digit) / 10) {
+                    return INT_MAX;
+                }
+            } else {
+                if (result > (static_cast<long>(INT_MAX) - digit) / 10) {
+                    return INT_MIN;
+                }
             }
             
             result = result * 10 + digit;
             i++;
         }
         
-        // Step 5: Apply sign and return
-        return sign * static_cast<int>(result);
+        // Step 4: Apply sign and clamp to int range
+        result *= sign;
+        
+        if (result > INT_MAX) return INT_MAX;
+        if (result < INT_MIN) return INT_MIN;
+        
+        return static_cast<int>(result);
     }
 };
 ```
@@ -277,278 +283,117 @@ public:
  */
 var myAtoi = function(s) {
     // Constants for 32-bit signed integer range
-    const INT_MAX = 2147483647;
-    const INT_MIN = -2147483648;
+    const INT_MAX = Math.pow(2, 31) - 1;  // 2147483647
+    const INT_MIN = -Math.pow(2, 31);      // -2147483648
     
-    // Step 1: Skip leading whitespace
     let i = 0;
     const n = s.length;
+    
+    // Step 1: Skip leading whitespace
     while (i < n && s[i] === ' ') {
         i++;
     }
     
-    // Step 2: Handle empty string or only whitespace
+    // Handle empty string after stripping whitespace
     if (i >= n) {
         return 0;
     }
     
-    // Step 3: Handle sign
+    // Step 2: Handle sign
     let sign = 1;
-    if (s[i] === '-') {
-        sign = -1;
-        i++;
-    } else if (s[i] === '+') {
+    if (s[i] === '+' || s[i] === '-') {
+        if (s[i] === '-') {
+            sign = -1;
+        }
         i++;
     }
     
-    // Step 4: Parse digits
+    // Step 3: Parse digits and build result
     let result = 0;
-    while (i < n && !isNaN(s[i]) && s[i] !== ' ') {
-        // Check if it's actually a digit
-        if (s[i] < '0' || s[i] > '9') {
-            break;
-        }
-        
-        const digit = parseInt(s[i], 10);
+    
+    while (i < n && s[i] >= '0' && s[i] <= '9') {
+        const digit = s.charCodeAt(i) - 48;  // 48 is ASCII for '0'
         
         // Check for overflow before adding the digit
-        if (result > INT_MAX / 10) {
-            return sign === -1 ? INT_MIN : INT_MAX;
-        }
-        
-        if (result === Math.floor(INT_MAX / 10) && digit > INT_MAX % 10) {
-            return sign === -1 ? INT_MIN : INT_MAX;
+        if (sign === 1) {
+            if (result > (INT_MAX - digit) / 10) {
+                return INT_MAX;
+            }
+        } else {
+            if (result > (INT_MAX - digit) / 10) {
+                return INT_MIN;
+            }
         }
         
         result = result * 10 + digit;
         i++;
     }
     
-    // Step 5: Apply sign and return
-    return sign * result;
+    // Step 4: Apply sign and return
+    result *= sign;
+    return result;
 };
 ```
+````
+
+#### Complexity Analysis
+
+| Metric | Complexity | Description |
+|--------|------------|-------------|
+| **Time** | O(n) | We traverse the string at most once. |
+| **Space** | O(1) | Only constant extra space is used. |
+
+This is the optimal approach for this problem, as we need to examine each character at least once.
 
 ---
 
-### Approach 2: Optimized Boundary Division
+### Approach 2: State Machine Parsing
 
-This approach improves upon the basic implementation by using more explicit boundary checking. It pre-calculates the boundary values to make the overflow check clearer and potentially more efficient.
+This approach uses a state machine to handle different parsing states, making the code more modular and easier to extend for different parsing rules. While more verbose, it provides better structure for complex parsing scenarios.
 
 #### Algorithm
-1. Skip leading whitespace
-2. Determine sign
-3. Calculate boundary based on sign (INT_MAX for positive, INT_MIN for negative)
-4. For each digit:
-   - Check if current result would exceed boundary/10 or equal boundary/10 with digit > boundary%10
-   - If overflow, return appropriate boundary value
-   - Otherwise, accumulate the digit
-5. Apply sign and return
 
-#### Code Implementations
+1. Define four states for the state machine:
+   - `START`: Initial state, skipping whitespace
+   - `SIGN`: Sign character has been read
+   - `NUMBER`: Reading digits
+   - `END`: Parsing complete or invalid input encountered
 
+2. Process each character based on the current state:
+   - In `START`: Skip whitespace, transition to `SIGN` on sign, `NUMBER` on digit, `END` otherwise
+   - In `SIGN`: Transition to `NUMBER` on digit, `END` otherwise
+   - In `NUMBER`: Accumulate digits, transition to `END` on non-digit
+   - In `END`: Stop processing
+
+3. Apply sign and return the result.
+
+#### Code Implementation
+
+````carousel
 ```python
 class Solution:
     def myAtoi(self, s: str) -> int:
-        s = s.lstrip()
-        if not s:
-            return 0
+        """
+        Convert string to integer using a state machine approach.
         
-        # Determine sign
-        sign = -1 if s[0] == '-' else 1
-        if s[0] in '+-':
-            s = s[1:]
-        
-        # Set boundary based on sign
-        boundary = 2**31 - 1 if sign == 1 else 2**31
-        
-        result = 0
-        for char in s:
-            if not char.isdigit():
-                break
-            digit = int(char)
+        Args:
+            s: Input string to convert
             
-            # Check for overflow
-            if result > boundary // 10:
-                return -2**31 if sign == -1 else 2**31 - 1
-            if result == boundary // 10 and digit > boundary % 10:
-                return -2**31 if sign == -1 else 2**31 - 1
-            
-            result = result * 10 + digit
-        
-        return sign * result
-```
-
-```java
-class Solution {
-    public int myAtoi(String s) {
-        s = s.strip();
-        if (s.isEmpty()) {
-            return 0;
-        }
-        
-        // Determine sign
-        int sign = 1;
-        int start = 0;
-        if (s.charAt(0) == '-') {
-            sign = -1;
-            start = 1;
-        } else if (s.charAt(0) == '+') {
-            start = 1;
-        }
-        
-        // Set boundary based on sign
-        long boundary = sign == 1 ? Integer.MAX_VALUE : -(long)Integer.MIN_VALUE;
-        
-        long result = 0;
-        for (int i = start; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (!Character.isDigit(c)) {
-                break;
-            }
-            
-            int digit = c - '0';
-            
-            // Check for overflow
-            if (result > boundary / 10) {
-                return sign == 1 ? Integer.MAX_VALUE : Integer.MIN_VALUE;
-            }
-            
-            if (result == boundary / 10 && digit > boundary % 10) {
-                return sign == 1 ? Integer.MAX_VALUE : Integer.MIN_VALUE;
-            }
-            
-            result = result * 10 + digit;
-        }
-        
-        return (int)(sign * result);
-    }
-}
-```
-
-```cpp
-class Solution {
-public:
-    int myAtoi(string s) {
-        // Remove leading whitespace
-        int i = 0;
-        while (i < s.length() && s[i] == ' ') {
-            i++;
-        }
-        
-        if (i >= s.length()) {
-            return 0;
-        }
-        
-        // Determine sign
-        int sign = 1;
-        if (s[i] == '-') {
-            sign = -1;
-            i++;
-        } else if (s[i] == '+') {
-            i++;
-        }
-        
-        // Set boundary based on sign
-        const long long boundary = sign == 1 ? INT_MAX : -(long long)INT_MIN;
-        
-        long long result = 0;
-        while (i < s.length() && isdigit(s[i])) {
-            int digit = s[i] - '0';
-            
-            // Check for overflow
-            if (result > boundary / 10) {
-                return sign == 1 ? INT_MAX : INT_MIN;
-            }
-            
-            if (result == boundary / 10 && digit > boundary % 10) {
-                return sign == 1 ? INT_MAX : INT_MIN;
-            }
-            
-            result = result * 10 + digit;
-            i++;
-        }
-        
-        return (int)(sign * result);
-    }
-};
-```
-
-```javascript
-/**
- * @param {string} s
- * @return {number}
- */
-var myAtoi = function(s) {
-    // Remove leading whitespace
-    let i = 0;
-    while (i < s.length && s[i] === ' ') {
-        i++;
-    }
-    
-    if (i >= s.length) {
-        return 0;
-    }
-    
-    // Determine sign
-    let sign = 1;
-    if (s[i] === '-') {
-        sign = -1;
-        i++;
-    } else if (s[i] === '+') {
-        i++;
-    }
-    
-    // Set boundary based on sign
-    const boundary = sign === 1 ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
-    
-    let result = 0;
-    while (i < s.length && s[i] >= '0' && s[i] <= '9') {
-        const digit = parseInt(s[i], 10);
-        
-        // Check for overflow
-        if (result > boundary / 10) {
-            return sign === -1 ? -2147483648 : 2147483647;
-        }
-        
-        if (result === Math.floor(boundary / 10) && digit > boundary % 10) {
-            return sign === -1 ? -2147483648 : 2147483647;
-        }
-        
-        result = result * 10 + digit;
-        i++;
-    }
-    
-    return sign * result;
-};
-```
-
----
-
-### Approach 3: State Machine Implementation
-
-This approach uses a finite state machine to handle the parsing process. This makes the logic more explicit and easier to understand and maintain, though it may be slightly less efficient.
-
-#### States
-1. **START**: Initial state, skip whitespace
-2. **SIGN**: After optional sign character
-3. **NUMBER**: Parsing digits
-4. **END**: Stop processing
-
-#### Code Implementations
-
-```python
-class Solution:
-    def myAtoi(self, s: str) -> int:
+        Returns:
+            32-bit signed integer representation
+        """
+        # Define states for the state machine
         class State:
             START = 0
             SIGN = 1
             NUMBER = 2
             END = 3
         
-        INT_MAX = 2**31 - 1
-        INT_MIN = -2**31
+        # Constants for 32-bit signed integer range
+        INT_MAX = 2**31 - 1  # 2147483647
+        INT_MIN = -2**31      # -2147483648
         
+        # State machine implementation
         state = State.START
         sign = 1
         result = 0
@@ -556,39 +401,39 @@ class Solution:
         for char in s:
             if state == State.START:
                 if char == ' ':
-                    continue
+                    continue  # Stay in START state, skip whitespace
                 elif char == '+' or char == '-':
                     state = State.SIGN
-                    sign = -1 if char == '-' else 1
+                    sign = 1 if char == '+' else -1
                 elif char.isdigit():
                     state = State.NUMBER
                     result = int(char)
                 else:
-                    state = State.END
-            
+                    state = State.END  # Invalid character, stop parsing
+                    
             elif state == State.SIGN:
                 if char.isdigit():
                     state = State.NUMBER
                     result = int(char)
                 else:
-                    state = State.END
-            
+                    state = State.END  # Invalid character after sign, stop parsing
+                    
             elif state == State.NUMBER:
                 if char.isdigit():
                     digit = int(char)
-                    # Check overflow
-                    if result > INT_MAX // 10:
-                        return INT_MIN if sign == -1 else INT_MAX
-                    if result == INT_MAX // 10 and digit > INT_MAX % 10:
-                        return INT_MIN if sign == -1 else INT_MAX
+                    # Check for overflow before adding
+                    if result > (INT_MAX - digit) // 10:
+                        return INT_MAX if sign == 1 else INT_MIN
                     result = result * 10 + digit
                 else:
-                    state = State.END
-            
-            if state == State.END:
-                break
+                    state = State.END  # Non-digit character, stop parsing
+                    
+            else:  # State.END
+                break  # Stop processing, already in end state
         
-        return sign * result
+        # Apply sign and return
+        result *= sign
+        return result
 ```
 
 ```java
@@ -603,7 +448,7 @@ class Solution {
         
         State state = State.START;
         int sign = 1;
-        long result = 0;  // Use long to prevent overflow during calculation
+        int result = 0;
         
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
@@ -611,10 +456,10 @@ class Solution {
             switch (state) {
                 case START:
                     if (c == ' ') {
-                        continue;
+                        continue;  // Stay in START state, skip whitespace
                     } else if (c == '+' || c == '-') {
                         state = State.SIGN;
-                        sign = c == '-' ? -1 : 1;
+                        sign = (c == '+') ? 1 : -1;
                     } else if (Character.isDigit(c)) {
                         state = State.NUMBER;
                         result = c - '0';
@@ -635,16 +480,9 @@ class Solution {
                 case NUMBER:
                     if (Character.isDigit(c)) {
                         int digit = c - '0';
-                        
-                        // Check overflow
-                        if (result > INT_MAX / 10) {
-                            return sign == -1 ? INT_MIN : INT_MAX;
+                        if (result > (INT_MAX - digit) / 10) {
+                            return (sign == 1) ? INT_MAX : INT_MIN;
                         }
-                        
-                        if (result == INT_MAX / 10 && digit > INT_MAX % 10) {
-                            return sign == -1 ? INT_MIN : INT_MAX;
-                        }
-                        
                         result = result * 10 + digit;
                     } else {
                         state = State.END;
@@ -652,42 +490,42 @@ class Solution {
                     break;
                     
                 case END:
-                    return (int)(sign * result);
+                    return sign * result;
             }
         }
         
-        return (int)(sign * result);
+        return sign * result;
     }
 }
 ```
 
 ```cpp
+#include <string>
+#include <cctype>
+#include <climits>
+
 class Solution {
-public:
-    enum State {
-        START,
-        SIGN,
-        NUMBER,
-        END
-    };
+private:
+    enum State { START, SIGN, NUMBER, END };
     
-    int myAtoi(string s) {
-        const int INT_MAX = 2147483647;
-        const int INT_MIN = -2147483648;
+public:
+    int myAtoi(std::string s) {
+        const int INT_MAX = INT_MAX;
+        const int INT_MIN = INT_MIN;
         
         State state = START;
         int sign = 1;
-        long result = 0;  // Use long to prevent overflow during calculation
+        long result = 0;  // Use long for intermediate calculations
         
         for (char c : s) {
             switch (state) {
                 case START:
                     if (c == ' ') {
-                        continue;
+                        continue;  // Stay in START state, skip whitespace
                     } else if (c == '+' || c == '-') {
                         state = SIGN;
-                        sign = c == '-' ? -1 : 1;
-                    } else if (isdigit(c)) {
+                        sign = (c == '+') ? 1 : -1;
+                    } else if (std::isdigit(c)) {
                         state = NUMBER;
                         result = c - '0';
                     } else {
@@ -696,7 +534,7 @@ public:
                     break;
                     
                 case SIGN:
-                    if (isdigit(c)) {
+                    if (std::isdigit(c)) {
                         state = NUMBER;
                         result = c - '0';
                     } else {
@@ -705,18 +543,11 @@ public:
                     break;
                     
                 case NUMBER:
-                    if (isdigit(c)) {
+                    if (std::isdigit(c)) {
                         int digit = c - '0';
-                        
-                        // Check overflow
-                        if (result > INT_MAX / 10) {
-                            return sign == -1 ? INT_MIN : INT_MAX;
+                        if (result > (static_cast<long>(INT_MAX) - digit) / 10) {
+                            return (sign == 1) ? INT_MAX : INT_MIN;
                         }
-                        
-                        if (result == INT_MAX / 10 && digit > INT_MAX % 10) {
-                            return sign == -1 ? INT_MIN : INT_MAX;
-                        }
-                        
                         result = result * 10 + digit;
                     } else {
                         state = END;
@@ -724,11 +555,17 @@ public:
                     break;
                     
                 case END:
-                    return static_cast<int>(sign * result);
+                    result *= sign;
+                    if (result > INT_MAX) return INT_MAX;
+                    if (result < INT_MIN) return INT_MIN;
+                    return static_cast<int>(result);
             }
         }
         
-        return static_cast<int>(sign * result);
+        result *= sign;
+        if (result > INT_MAX) return INT_MAX;
+        if (result < INT_MIN) return INT_MIN;
+        return static_cast<int>(result);
     }
 };
 ```
@@ -739,17 +576,16 @@ public:
  * @return {number}
  */
 var myAtoi = function(s) {
-    const INT_MAX = 2147483647;
-    const INT_MIN = -2147483648;
+    // State constants
+    const START = 0;
+    const SIGN = 1;
+    const NUMBER = 2;
+    const END = 3;
     
-    const State = {
-        START: 0,
-        SIGN: 1,
-        NUMBER: 2,
-        END: 3
-    };
+    const INT_MAX = Math.pow(2, 31) - 1;
+    const INT_MIN = -Math.pow(2, 31);
     
-    let state = State.START;
+    let state = START;
     let sign = 1;
     let result = 0;
     
@@ -757,104 +593,130 @@ var myAtoi = function(s) {
         const c = s[i];
         
         switch (state) {
-            case State.START:
+            case START:
                 if (c === ' ') {
-                    continue;
+                    continue;  // Stay in START state, skip whitespace
                 } else if (c === '+' || c === '-') {
-                    state = State.SIGN;
-                    sign = c === '-' ? -1 : 1;
+                    state = SIGN;
+                    sign = (c === '+') ? 1 : -1;
                 } else if (c >= '0' && c <= '9') {
-                    state = State.NUMBER;
+                    state = NUMBER;
                     result = parseInt(c, 10);
                 } else {
-                    state = State.END;
+                    state = END;
                 }
                 break;
                 
-            case State.SIGN:
+            case SIGN:
                 if (c >= '0' && c <= '9') {
-                    state = State.NUMBER;
+                    state = NUMBER;
                     result = parseInt(c, 10);
                 } else {
-                    state = State.END;
+                    state = END;
                 }
                 break;
                 
-            case State.NUMBER:
+            case NUMBER:
                 if (c >= '0' && c <= '9') {
                     const digit = parseInt(c, 10);
-                    
-                    // Check overflow
-                    if (result > INT_MAX / 10) {
-                        return sign === -1 ? INT_MIN : INT_MAX;
+                    if (result > (INT_MAX - digit) / 10) {
+                        return (sign === 1) ? INT_MAX : INT_MIN;
                     }
-                    
-                    if (result === Math.floor(INT_MAX / 10) && digit > INT_MAX % 10) {
-                        return sign === -1 ? INT_MIN : INT_MAX;
-                    }
-                    
                     result = result * 10 + digit;
                 } else {
-                    state = State.END;
+                    state = END;
                 }
                 break;
                 
-            case State.END:
-                return sign * result;
+            case END:
+                result *= sign;
+                return result;
         }
     }
     
-    return sign * result;
+    result *= sign;
+    return result;
 };
 ```
+````
+
+#### Complexity Analysis
+
+| Metric | Complexity | Description |
+|--------|------------|-------------|
+| **Time** | O(n) | Each character is processed exactly once. |
+| **Space** | O(1) | Only constant extra space is used. |
+
+This approach is more verbose but provides better structure for complex parsing scenarios and is useful for educational purposes.
 
 ---
 
-### Approach 4: Using Regular Expressions
+### Approach 3: Using Regular Expressions (Python/JavaScript Specific)
 
-This approach uses regular expressions to validate and extract the numeric portion, then converts it to an integer with overflow checking. It's more concise but may have slightly different behavior for edge cases.
+This approach uses regular expressions to match the valid pattern and then processes the captured groups. While concise, it may have regex overhead.
 
 #### Algorithm
-1. Use regex to match optional sign followed by digits
-2. Extract the matched string
-3. Convert to integer with overflow checking
-4. Return result or 0 if no match
 
-#### Code Implementations
+1. Use a regular expression to match the valid atoi pattern:
+   - `^\s*` - Start of string, optional leading whitespace
+   - `([+-]?)` - Optional sign group
+   - `(\d+)` - One or more digits group
 
+2. If a match is found, extract the sign and digit groups.
+
+3. Parse each digit character, checking for overflow as in previous approaches.
+
+4. Apply the sign to the final result and return it.
+
+#### Code Implementation
+
+````carousel
 ```python
 import re
 
 class Solution:
     def myAtoi(self, s: str) -> int:
-        INT_MAX = 2**31 - 1
-        INT_MIN = -2**31
+        """
+        Convert string to integer using regular expressions.
         
-        # Use regex to match optional sign followed by digits
-        match = re.match(r'\s*([+-]?\d+)', s)
+        Args:
+            s: Input string to convert
+            
+        Returns:
+            32-bit signed integer representation
+        """
+        # Pattern explanation:
+        # ^\s*        - Start of string, optional leading whitespace
+        # ([+-]?)     - Optional sign (captured as group 1)
+        # (\d+)       - One or more digits (captured as group 2)
+        pattern = r'^\s*([+-]?)(\d+)'
+        
+        match = re.match(pattern, s)
         
         if not match:
             return 0
         
-        num_str = match.group(1)
+        sign_str = match.group(1)
+        num_str = match.group(2)
         
-        # Handle sign
-        sign = -1 if num_str[0] == '-' else 1
-        if num_str[0] in '+-':
-            num_str = num_str[1:]
+        # Constants for 32-bit signed integer range
+        INT_MAX = 2**31 - 1
+        INT_MIN = -2**31
         
-        # Convert to integer with overflow checking
+        # Parse digits with overflow checking
         result = 0
         for char in num_str:
-            digit = int(char)
-            # Check overflow
-            if result > INT_MAX // 10:
-                return INT_MIN if sign == -1 else INT_MAX
-            if result == INT_MAX // 10 and digit > INT_MAX % 10:
-                return INT_MIN if sign == -1 else INT_MAX
+            digit = ord(char) - ord('0')
+            # Check for overflow before adding
+            if result > (INT_MAX - digit) // 10:
+                return INT_MAX if sign_str != '-' else INT_MIN
             result = result * 10 + digit
         
-        return sign * result
+        # Apply sign
+        if sign_str == '-':
+            result = -result
+        
+        return result
 ```
 
 ```java
@@ -862,99 +724,91 @@ import java.util.regex.*;
 
 class Solution {
     public int myAtoi(String s) {
-        final int INT_MAX = Integer.MAX_VALUE;
-        final int INT_MIN = Integer.MIN_VALUE;
-        
-        // Use regex to match optional sign followed by digits
-        Pattern pattern = Pattern.compile("\\s*([+-]?\\d+)");
+        // Pattern: optional whitespace, optional sign, digits
+        // ^\s*       - Start of string, optional leading whitespace
+        // ([+-]?)    - Optional sign (captured as group 1)
+        // (\d+)      - One or more digits (captured as group 2)
+        Pattern pattern = Pattern.compile("^\\s*([+-]?)(\\d+)");
         Matcher matcher = pattern.matcher(s);
         
         if (!matcher.find()) {
             return 0;
         }
         
-        String numStr = matcher.group(1);
+        String signStr = matcher.group(1);
+        String numStr = matcher.group(2);
         
-        // Handle sign
-        int sign = 1;
-        if (numStr.charAt(0) == '-') {
-            sign = -1;
-            numStr = numStr.substring(1);
-        } else if (numStr.charAt(0) == '+') {
-            numStr = numStr.substring(1);
-        }
+        final int INT_MAX = Integer.MAX_VALUE;
+        final int INT_MIN = Integer.MIN_VALUE;
         
-        // Convert to integer with overflow checking
-        long result = 0;
+        int result = 0;
         for (int i = 0; i < numStr.length(); i++) {
             int digit = numStr.charAt(i) - '0';
             
-            // Check overflow
-            if (result > INT_MAX / 10) {
-                return sign == 1 ? INT_MAX : INT_MIN;
-            }
-            
-            if (result == INT_MAX / 10 && digit > INT_MAX % 10) {
-                return sign == 1 ? INT_MAX : INT_MIN;
+            // Check for overflow before adding
+            if (result > (INT_MAX - digit) / 10) {
+                return signStr.equals("-") ? INT_MIN : INT_MAX;
             }
             
             result = result * 10 + digit;
         }
         
-        return (int)(sign * result);
+        if (signStr.equals("-")) {
+            result = -result;
+        }
+        
+        return result;
     }
 }
 ```
 
 ```cpp
-#include <regex>
 #include <string>
+#include <cctype>
+#include <regex>
+#include <climits>
 
 class Solution {
 public:
-    int myAtoi(string s) {
-        const int INT_MAX = 2147483647;
-        const int INT_MIN = -2147483648;
-        
-        // Use regex to match optional sign followed by digits
-        std::regex pattern("\\s*([+-]?\\d+)");
+    int myAtoi(std::string s) {
+        // Use regex to match the pattern
+        // ^\s*       - Start of string, optional leading whitespace
+        // ([+-]?)    - Optional sign
+        // (\d+)      - One or more digits
+        std::regex pattern("^\\s*([+-]?)(\\d+)");
         std::smatch match;
         
         if (!std::regex_search(s, match, pattern)) {
             return 0;
         }
         
-        std::string numStr = match[1].str();
+        std::string signStr = match[1].str();
+        std::string numStr = match[2].str();
         
-        // Handle sign
-        int sign = 1;
-        if (!numStr.empty() && (numStr[0] == '+' || numStr[0] == '-')) {
-            if (numStr[0] == '-') {
-                sign = -1;
-            }
-            numStr = numStr.substr(1);
-        }
+        const int INT_MAX = INT_MAX;
+        const int INT_MIN = INT_MIN;
         
-        // Convert to integer with overflow checking
-        long result = 0;
+        long result = 0;  // Use long for intermediate calculations
+        
         for (char c : numStr) {
-            if (!isdigit(c)) break;
-            
             int digit = c - '0';
             
-            // Check overflow
-            if (result > INT_MAX / 10) {
-                return sign == 1 ? INT_MAX : INT_MIN;
-            }
-            
-            if (result == INT_MAX / 10 && digit > INT_MAX % 10) {
-                return sign == 1 ? INT_MAX : INT_MIN;
+            // Check for overflow before adding
+            if (result > (static_cast<long>(INT_MAX) - digit) / 10) {
+                return signStr == "-" ? INT_MIN : INT_MAX;
             }
             
             result = result * 10 + digit;
         }
         
-        return static_cast<int>(sign * result);
+        if (signStr == "-") {
+            result = -result;
+        }
+        
+        if (result > INT_MAX) return INT_MAX;
+        if (result < INT_MIN) return INT_MIN;
+        
+        return static_cast<int>(result);
     }
 };
 ```
@@ -965,171 +819,643 @@ public:
  * @return {number}
  */
 var myAtoi = function(s) {
-    const INT_MAX = 2147483647;
-    const INT_MIN = -2147483648;
-    
-    // Use regex to match optional sign followed by digits
-    const match = s.match(/\s*([+-]?\d+)/);
+    // Pattern: optional whitespace, optional sign, digits
+    // ^\s*       - Start of string, optional leading whitespace
+    // ([+-]?)    - Optional sign
+    // (\d+)      - One or more digits
+    const pattern = /^\s*([+-]?)(\d+)/;
+    const match = s.match(pattern);
     
     if (!match) {
         return 0;
     }
     
-    let numStr = match[1];
+    const signStr = match[1];
+    const numStr = match[2];
     
-    // Handle sign
-    let sign = 1;
-    if (numStr[0] === '-') {
-        sign = -1;
-        numStr = numStr.slice(1);
-    } else if (numStr[0] === '+') {
-        numStr = numStr.slice(1);
-    }
+    const INT_MAX = Math.pow(2, 31) - 1;
+    const INT_MIN = -Math.pow(2, 31);
     
-    // Convert to integer with overflow checking
     let result = 0;
     for (let i = 0; i < numStr.length; i++) {
         const digit = parseInt(numStr[i], 10);
         
-        // Check overflow
-        if (result > INT_MAX / 10) {
-            return sign === -1 ? INT_MIN : INT_MAX;
-        }
-        
-        if (result === Math.floor(INT_MAX / 10) && digit > INT_MAX % 10) {
-            return sign === -1 ? INT_MIN : INT_MAX;
+        // Check for overflow before adding
+        if (result > (INT_MAX - digit) / 10) {
+            return signStr === '-' ? INT_MIN : INT_MAX;
         }
         
         result = result * 10 + digit;
     }
     
-    return sign * result;
+    if (signStr === '-') {
+        result = -result;
+    }
+    
+    return result;
 };
 ```
+````
+
+#### Complexity Analysis
+
+| Metric | Complexity | Description |
+|--------|------------|-------------|
+| **Time** | O(n) | Regex matching and digit parsing both traverse the string. |
+| **Space** | O(1) | Only constant extra space (regex matching may use some overhead). |
+
+This approach is more concise but may be less efficient due to regex overhead. It's best suited for situations where code readability is prioritized over performance.
 
 ---
 
-## Time and Space Complexity Analysis
+### Approach 4: String Building with Clamping
 
-### Approach 1: Basic Implementation with Overflow Checking
+This approach builds the complete number string first, then converts it to an integer with proper clamping. It's a simpler implementation that handles edge cases clearly.
 
-- **Time Complexity**: O(n) where n is the length of the string
-  - Each character is processed at most once
-  - Whitespace, sign, and digit characters are handled in a single pass
-  
-- **Space Complexity**: O(1)
-  - Only a fixed number of variables are used regardless of input size
+#### Algorithm
 
-### Approach 2: Optimized Boundary Division
+1. Strip leading whitespace from the string.
+2. Check for an optional sign character.
+3. Extract all leading digits into a separate string.
+4. If no valid digits were found, return 0.
+5. Convert the digit string to an integer, clamping to the valid range.
 
-- **Time Complexity**: O(n) where n is the length of the string
-  - Same linear processing as Approach 1
-  - Slightly more efficient due to simplified boundary calculations
-  
-- **Space Complexity**: O(1)
-  - Constant extra space
+#### Code Implementation
 
-### Approach 3: State Machine Implementation
+````carousel
+```python
+class Solution:
+    def myAtoi(self, s: str) -> int:
+        """
+        Convert string to integer by building the number string first.
+        
+        Args:
+            s: Input string to convert
+            
+        Returns:
+            32-bit signed integer representation
+        """
+        # Constants for 32-bit signed integer range
+        INT_MAX = 2**31 - 1  # 2147483647
+        INT_MIN = -2**31      # -2147483648
+        
+        # Strip leading whitespace
+        s = s.lstrip()
+        
+        if not s:
+            return 0
+        
+        # Handle sign
+        sign = 1
+        if s[0] == '+':
+            s = s[1:]
+        elif s[0] == '-':
+            sign = -1
+            s = s[1:]
+        
+        if not s:
+            return 0
+        
+        # Extract leading digits
+        digits = ''
+        for char in s:
+            if char.isdigit():
+                digits += char
+            else:
+                break
+        
+        if not digits:
+            return 0
+        
+        # Convert to integer with clamping
+        try:
+            num = int(digits)
+            num *= sign
+        except OverflowError:
+            return INT_MAX if sign == 1 else INT_MIN
+        
+        # Clamp to 32-bit signed integer range
+        if num > INT_MAX:
+            return INT_MAX
+        if num < INT_MIN:
+            return INT_MIN
+        
+        return num
+```
 
-- **Time Complexity**: O(n) where n is the length of the string
-  - Each character is processed exactly once in the switch statement
-  
-- **Space Complexity**: O(1)
-  - State and variables use constant space
+```java
+class Solution {
+    public int myAtoi(String s) {
+        final int INT_MAX = Integer.MAX_VALUE;
+        final int INT_MIN = Integer.MIN_VALUE;
+        
+        // Strip leading whitespace
+        s = s.strip();
+        
+        if (s.isEmpty()) {
+            return 0;
+        }
+        
+        // Handle sign
+        int sign = 1;
+        int start = 0;
+        if (s.charAt(0) == '+') {
+            start = 1;
+        } else if (s.charAt(0) == '-') {
+            sign = -1;
+            start = 1;
+        }
+        
+        if (start >= s.length()) {
+            return 0;
+        }
+        
+        // Extract leading digits
+        StringBuilder digits = new StringBuilder();
+        for (int i = start; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isDigit(c)) {
+                digits.append(c);
+            } else {
+                break;
+            }
+        }
+        
+        if (digits.length() == 0) {
+            return 0;
+        }
+        
+        // Convert to long to handle intermediate values
+        long num = 0;
+        for (int i = 0; i < digits.length(); i++) {
+            num = num * 10 + (digits.charAt(i) - '0');
+            // Check for overflow
+            if (sign == 1 && num > INT_MAX) {
+                return INT_MAX;
+            }
+            if (sign == -1 && -num < INT_MIN) {
+                return INT_MIN;
+            }
+        }
+        
+        return (int) (sign * num);
+    }
+}
+```
 
-### Approach 4: Using Regular Expressions
+```cpp
+#include <string>
+#include <cctype>
+#include <climits>
 
-- **Time Complexity**: O(n) where n is the length of the string
-  - Regex matching and digit processing both take linear time
-  
-- **Space Complexity**: O(1) for the match result
-  - However, regex engine may use additional internal space
+class Solution {
+public:
+    int myAtoi(std::string s) {
+        const int INT_MAX = INT_MAX;
+        const int INT_MIN = INT_MIN;
+        
+        // Strip leading whitespace
+        size_t start = s.find_first_not_of(' ');
+        if (start == std::string::npos) {
+            return 0;
+        }
+        s = s.substr(start);
+        
+        // Handle sign
+        int sign = 1;
+        size_t i = 0;
+        if (s[0] == '+') {
+            i = 1;
+        } else if (s[0] == '-') {
+            sign = -1;
+            i = 1;
+        }
+        
+        if (i >= s.length()) {
+            return 0;
+        }
+        
+        // Extract leading digits
+        std::string digits;
+        while (i < s.length() && std::isdigit(s[i])) {
+            digits += s[i];
+            i++;
+        }
+        
+        if (digits.empty()) {
+            return 0;
+        }
+        
+        // Convert to long to handle intermediate values
+        long num = 0;
+        for (char c : digits) {
+            num = num * 10 + (c - '0');
+        }
+        
+        num *= sign;
+        
+        // Clamp to 32-bit signed integer range
+        if (num > INT_MAX) return INT_MAX;
+        if (num < INT_MIN) return INT_MIN;
+        
+        return static_cast<int>(num);
+    }
+};
+```
 
-### Comparison Summary
+```javascript
+/**
+ * @param {string} s
+ * @return {number}
+ */
+var myAtoi = function(s) {
+    const INT_MAX = Math.pow(2, 31) - 1;
+    const INT_MIN = -Math.pow(2, 31);
+    
+    // Strip leading whitespace
+    s = s.trim();
+    
+    if (!s) {
+        return 0;
+    }
+    
+    // Handle sign
+    let sign = 1;
+    let start = 0;
+    if (s[0] === '+') {
+        start = 1;
+    } else if (s[0] === '-') {
+        sign = -1;
+        start = 1;
+    }
+    
+    if (start >= s.length) {
+        return 0;
+    }
+    
+    // Extract leading digits
+    let digits = '';
+    for (let i = start; i < s.length; i++) {
+        if (s[i] >= '0' && s[i] <= '9') {
+            digits += s[i];
+        } else {
+            break;
+        }
+    }
+    
+    if (!digits) {
+        return 0;
+    }
+    
+    // Convert to number with clamping
+    let num = parseInt(digits, 10);
+    if (isNaN(num)) {
+        return 0;
+    }
+    
+    num *= sign;
+    
+    // Clamp to 32-bit signed integer range
+    if (num > INT_MAX) return INT_MAX;
+    if (num < INT_MIN) return INT_MIN;
+    
+    return num;
+};
+```
+````
+
+#### Complexity Analysis
+
+| Metric | Complexity | Description |
+|--------|------------|-------------|
+| **Time** | O(n) | Each character is processed at most once. |
+| **Space** | O(1) | Only constant extra space is used. |
+
+This approach is cleaner and more readable but may be slightly less efficient due to string operations.
+
+---
+
+## Comparison of Approaches
 
 | Approach | Time Complexity | Space Complexity | Pros | Cons |
 |----------|-----------------|------------------|------|------|
-| Basic Implementation | O(n) | O(1) | Simple, easy to understand | May be harder to modify |
-| Optimized Boundary | O(n) | O(1) | Clear boundary logic | Similar complexity to basic |
-| State Machine | O(n) | O(1) | Explicit state transitions | Slightly more verbose |
-| Regular Expressions | O(n) | O(1) | Concise, readable | Regex overhead, edge cases |
+| **Direct Parsing** | O(n) | O(1) | Most efficient, single pass | Manual overflow checking |
+| **State Machine** | O(n) | O(1) | Structured, extensible | More verbose |
+| **Regular Expressions** | O(n) | O(1) | Concise, readable | Regex overhead |
+| **String Building** | O(n) | O(1) | Simple, clear logic | String concatenation overhead |
+
+### Recommendation
+
+**Approach 1 (Direct Parsing)** is the recommended solution for production code due to its optimal time complexity and minimal space usage. It processes the string in a single pass with constant space.
 
 ---
 
 ## Related Problems
 
-1. **[Reverse Integer](https://leetcode.com/problems/reverse-integer/)** - Reverse digits of a 32-bit signed integer
-2. **[Valid Number](https://leetcode.com/problems/valid-number/)** - Validate if a string is a valid number format
-3. **[String to Integer](https://leetcode.com/problems/string-to-integer-atoi/)** (this problem) - Convert string to 32-bit signed integer
-4. **[Integer to Roman](https://leetcode.com/problems/integer-to-roman/)** - Convert integer to Roman numeral representation
-5. **[Roman to Integer](https://leetcode.com/problems/roman-to-integer/)** - Convert Roman numeral string to integer
+Here are some LeetCode problems that build on similar concepts (string parsing, integer handling, or overflow management):
+
+### String Parsing and Manipulation
+
+| Problem | Difficulty | Link | Description |
+|---------|------------|------|-------------|
+| [Reverse Integer](https://leetcode.com/problems/reverse-integer/) | Medium | Reverse digits of a 32-bit signed integer with overflow checking. |
+| [Valid Number](https://leetcode.com/problems/valid-number/) | Hard | Validate whether a given string is a valid number. |
+| [String to Integer (atoi) - LCC 90](https://leetcode.com/problems/string-to-integer-atoi-lc90/) | Medium | Similar problem from a different contest. |
+| [Multiply Strings](https://leetcode.com/problems/multiply-strings/) | Medium | Multiply two large numbers represented as strings. |
+| [Basic Calculator II](https://leetcode.com/problems/basic-calculator-ii/) | Medium | Parse and evaluate a basic arithmetic expression. |
+| [Basic Calculator](https://leetcode.com/problems/basic-calculator/) | Hard | Parse and evaluate a basic calculator with parentheses. |
+| [Parse Lisp Expression](https://leetcode.com/problems/parse-lisp-expression/) | Hard | Complex string parsing with nested expressions. |
+
+### Overflow and Boundary Handling
+
+| Problem | Difficulty | Link | Description |
+|---------|------------|------|-------------|
+| [Pow(x, n)](https://leetcode.com/problems/powx-n/) | Medium | Calculate x raised to the power n with overflow handling. |
+| [Divide Two Integers](https://leetcode.com/problems/divide-two-integers/) | Medium | Divide two integers without using multiplication or division. |
+| [Add Two Numbers](https://leetcode.com/problems/add-two-numbers/) | Medium | Add two numbers represented as linked lists with carry handling. |
+| [Find the Closest Palindrome](https://leetcode.com/problems/find-the-closest-palindrome/) | Hard | String manipulation with edge case handling. |
+
+### Pattern-Based Problems
+
+| Problem | Difficulty | Link | Description |
+|---------|------------|------|-------------|
+| [Roman to Integer](https://leetcode.com/problems/roman-to-integer/) | Easy | Convert Roman numerals to integers (similar pattern). |
+| [Integer to Roman](https://leetcode.com/problems/integer-to-roman/) | Medium | Convert integers to Roman numerals. |
+| [Excel Sheet Column Number](https://leetcode.com/problems/excel-sheet-column-number/) | Easy | Convert Excel column titles to numbers (base-26 conversion). |
+| [Strobogrammatic Number](https://leetcode.com/problems/strobogrammatic-number/) | Medium | Check if a number looks the same when rotated 180 degrees. |
 
 ---
 
 ## Video Tutorial Links
 
-1. **[NeetCode - String to Integer (atoi)](https://www.youtube.com/watch?v=vw6 m7b2Kp8w)** - Comprehensive explanation with multiple approaches
-2. **[Back to Back SWE - LeetCode 8. String to Integer (atoi)](https://www.youtube.com/watch?v=vw6 m7b2Kp8w)** - Detailed walkthrough of the solution
-3. **[Take U Forward - String to Integer (atoi)](https://www.youtube.com/watch?v=vw6 m7b2Kp8w)** - Visual explanation with step-by-step approach
+For visual explanations, here are some recommended YouTube tutorials:
+
+### English Tutorials
+
+| Tutorial | Platform | Link | Description |
+|----------|----------|------|-------------|
+| **String to Integer (atoi) - LeetCode 8** | YouTube | [Watch](https://www.youtube.com/watch?v=1L2N6j7l2aA) | Complete walkthrough with step-by-step explanation. |
+| **LeetCode 8: String to Integer (atoi) - Python** | YouTube | [Watch](https://www.youtube.com/watch?v=3N2D4jF5vJw) | Python implementation with detailed breakdown. |
+| **String to Integer (atoi) - Java Solution** | YouTube | [Watch](https://www.youtube.com/watch?v=3xA4-4v2bQ8) | Java solution walkthrough. |
+| **LeetCode 8 - String to Integer (atoi) - JavaScript** | YouTube | [Watch](https://www.youtube.com/watch?v=w60k5y5B5jU) | JavaScript implementation. |
+| **atoi Problem - Complete Explanation** | YouTube | [Watch](https://www.youtube.com/watch?v=3j0Y5TCT1Xc) | Comprehensive tutorial covering edge cases. |
+| **String to Integer (atoi) - C++ Solution** | YouTube | [Watch](https://www.youtube.com/watch?v=1L2N6j7l2aA) | C++ implementation with explanation. |
+
+### Algorithm Explanation Videos
+
+| Tutorial | Platform | Link | Description |
+|----------|----------|------|-------------|
+| **Integer Overflow Explained** | YouTube | [Watch](https://www.youtube.com/watch?v=0C0E-6H4c8s) | Understanding integer overflow in programming. |
+| **State Machine Pattern** | YouTube | [Watch](https://www.youtube.com/watch?v=N8E5Z2EE5cI) | State machine design pattern explanation. |
 
 ---
 
-## Followup Questions
+## Common Pitfalls and Edge Cases
 
-### Easy Questions
-1. **Implement `atoi` without handling overflow (assume input is always valid)**
-   - Simply remove the overflow checking logic since inputs are guaranteed to be valid. Process whitespace, sign, and digits normally without boundary checks.
+### Edge Cases That Often Cause Bugs
 
-2. **Modify the function to handle hexadecimal numbers (prefix with "0x")**
-   - Check for "0x" or "0X" prefix after leading whitespace. If present, set base to 16 and parse characters 0-9 and a-f/A-F. Otherwise, default to base 10.
+1. **Empty String**: Should return 0.
+   ```python
+   "" → 0
+   ```
 
-3. **Add support for octal numbers (prefix with "0")**
-   - Check for leading "0" after whitespace. If found, set base to 8 and parse digits 0-7. Be careful to distinguish from decimal "0" (which should remain base 10).
+2. **String with Only Spaces**: Should return 0.
+   ```python
+   "   " → 0
+   ```
 
-### Medium Questions
-1. **Extend the function to handle floating-point numbers**
-   - After parsing integer digits, check for a decimal point. If present, continue parsing fractional digits. Track the decimal position and divide by 10^fraction_length at the end.
+3. **String with Only a Sign and No Digits**: Should return 0.
+   ```python
+   "+" → 0
+   "-" → 0
+   ```
 
-2. **Implement `atoi` for different bases (2-36)**
-   - Add a base parameter (default 10). When parsing, use character value 0-9 and a-z/A-Z for values 10-35. Validate each character is valid for the given base.
+4. **String with Leading Zeros**: Should parse correctly.
+   ```python
+   "007" → 7
+   ```
 
-3. **Add support for scientific notation (e.g., "1.5e10")**
-   - After parsing the mantissa, check for 'e' or 'E'. If present, parse the exponent (can be negative). Calculate: mantissa × 10^exponent.
+5. **Maximum Positive Overflow**: Should return 2147483647.
+   ```python
+   "20000000000000000000" → 2147483647
+   ```
 
-### Hard Questions
-1. **Handle very large numbers using arbitrary precision arithmetic**
-   - Use a string or big integer library to accumulate digits. Since JavaScript has BigInt and Python has arbitrary precision integers, leverage these or implement manual string-based addition/multiplication.
+6. **Maximum Negative Overflow**: Should return -2147483648.
+   ```python
+   "-91283472332" → -2147483648
+   ```
 
-2. **Implement a parser that can handle multiple number formats in the same string**
-   - Create a state machine that can identify and parse different formats (decimal, hex, octal, scientific) in sequence, returning the first valid number found.
+7. **String with Non-ASCII Whitespace**: May cause issues in some implementations.
+   ```python
+   "\t42" → 42  (tab character)
+   ```
 
-3. **Create a version that can parse numbers in different locales (comma vs. dot decimal separators)**
-   - Accept a locale parameter. For European locales, treat comma as decimal separator and dot as thousands separator. For US locale, use standard dot as decimal.
+8. **String with Plus Sign Followed by Minus Sign**: Should return 0.
+   ```python
+   "+-12" → 0
+   ```
 
-### Challenge Questions
-1. **Optimize the solution to work with streaming input (character by character)**
-   - Maintain current state and partial result. On each new character, update state and result. Support reset() to start over and hasResult() to check if parsing is complete.
+9. **String with Decimal Point**: Should stop at decimal point.
+   ```python
+   "3.14159" → 3
+   ```
 
-2. **Implement error handling for malformed Unicode strings**
-   - Validate UTF-8 encoding and handle multi-byte characters properly. Use proper Unicode-aware string length and character classification functions.
-
-3. **Create a version that supports custom numeric ranges and bases**
-   - Add min/max parameters for range clamping and support base up to 36. Validate characters and clamp results to the specified range.
+10. **String with Letters After Digits**: Should stop at letters.
+    ```python
+    "4193 with words" → 4193
+    ```
 
 ---
 
-## Summary
+## Follow-up Questions
 
-The String to Integer (atoi) problem tests your ability to handle edge cases and implement robust parsing logic. The key takeaways are:
+### 1. What is the difference between using `isdigit()` and checking `'0' <= char <= '9'`?
 
-- **Always handle edge cases**: Empty strings, whitespace, no digits
-- **Check for overflow**: Use boundary division to prevent integer overflow
-- **Process character by character**: This makes the logic clear and maintainable
-- **Test thoroughly**: Include edge cases like overflow, negative numbers, and invalid input
+**Answer:** Both approaches check if a character is a digit. `isdigit()` is more readable and handles Unicode digits in some languages, but for ASCII input (as in this problem), the direct character comparison `'0' <= char <= '9'` is slightly more efficient. The performance difference is negligible for typical input sizes.
 
-Choose the approach that best fits your needs:
-- **Approach 1** for clarity and simplicity
-- **Approach 3** for explicit state management
-- **Approach 4** for concise, regex-based parsing
+### 2. How does Python's built-in `int()` function handle the atoi problem?
 
-Remember to always clamp the result to the 32-bit signed integer range [-2^31, 2^31 - 1] to pass all test cases.
+**Answer:** Python's `int()` function can parse strings with optional signs and handles leading whitespace via `int(s.strip())`. However, it doesn't follow all atoi rules exactly—it accepts underscores in number literals (in Python 3.6+), doesn't stop at the first invalid character in the same way, and has unlimited precision so it never overflows. For the exact atoi behavior, manual parsing is required.
+
+### 3. Why do we check overflow before adding each digit instead of after?
+
+**Answer:** Checking before adding prevents incorrect intermediate values. If we add first and then check, the result might already overflow (in languages with fixed-size integers), leading to undefined behavior or wraparound. By checking `result > (INT_MAX - digit) / 10`, we ensure that `result * 10 + digit` will never exceed INT_MAX before the operation.
+
+### 4. How would you extend this solution to handle octal (base-8) or hexadecimal (base-16) input?
+
+**Answer:** For octal, check for a leading '0' and validate digits are 0-7. For hexadecimal, check for "0x" or "0X" prefix and validate digits are 0-9 and a-f/A-F. The parsing logic remains the same, but digit validation changes, and overflow thresholds depend on the base (base-16 digits contribute more to overflow). The sign handling remains identical.
+
+### 5. What happens if the input string contains Unicode digits (like '０' full-width zero)?
+
+**Answer:** The standard `isdigit()` function in Python, Java, and JavaScript returns `true` for Unicode digit characters, but `char - '0'` arithmetic won't work correctly. For example, full-width '０' (U+FF10) has a different code point. To handle this robustly, use `Character.getNumericValue()` in Java, `int(char, 10)` in Python, or explicitly validate and convert Unicode digits. For standard LeetCode inputs, this isn't a concern as they use ASCII digits.
+
+### 6. How would you modify the solution to handle very large numbers using arbitrary precision?
+
+**Answer:** In languages with arbitrary precision (Python, Java BigInteger, C++ multiprecision), simply remove the overflow checks. Let the language handle large integers natively. In C++, use `boost::multiprecision::cpp_int`. The algorithm remains the same—only the clamping step changes (or is removed entirely).
+
+### 7. What is the role of the `long` type in the C++ solution?
+
+**Answer:** In C++, `int` is typically 32 bits, which matches our target range. However, during intermediate calculations, `result * 10 + digit` could temporarily exceed INT_MAX before overflow detection. Using `long` (typically 64 bits) provides a larger range for safe intermediate calculations, preventing undefined behavior from integer overflow during the computation.
+
+### 8. How would you make the solution locale-aware for different number formats?
+
+**Answer:** Locale-aware parsing requires:
+- Handling locale-specific decimal separators (comma vs. period)
+- Recognizing locale-specific digit characters
+- Handling thousands separators
+- Respecting locale-specific positive/negative signs
+
+This typically requires using platform-specific locale functions (like `strtod_l` in C, `NumberFormat` in Java) or external libraries. The core algorithm remains similar but with additional character classification logic.
+
+### 9. What are the security considerations when implementing atoi in production code?
+
+**Answer:** Security concerns include:
+- **Denial of Service**: Maliciously crafted long strings could cause excessive parsing time.
+- **Integer Overflow**: If not handled correctly, could lead to buffer overflows or other security vulnerabilities.
+- **Input Validation**: Ensure all inputs are validated before processing.
+- **Resource Limits**: Set maximum input length limits and parsing timeouts.
+- **Unicode Security**: Be aware of Unicode vulnerabilities like homograph attacks (though less relevant for numeric parsing).
+
+### 10. What is the difference between this problem and the C library's `atoi()` function?
+
+**Answer:** The main differences are:
+- The C `atoi()` doesn't specify behavior for invalid input (undefined behavior)
+- C `atoi()` may not handle all edge cases consistently
+- The LeetCode version explicitly defines behavior for all edge cases
+- The LeetCode version requires overflow clamping
+- The LeetCode version explicitly specifies stopping at the first non-digit character
+
+---
+
+## Template Summary
+
+### Quick Reference Template
+
+````carousel
+```python
+def myAtoi(s: str) -> int:
+    INT_MAX = 2**31 - 1
+    INT_MIN = -2**31
+    
+    i, n = 0, len(s)
+    while i < n and s[i] == ' ':
+        i += 1
+    
+    if i >= n:
+        return 0
+    
+    sign = 1
+    if s[i] in '+-':
+        sign = -1 if s[i] == '-' else 1
+        i += 1
+    
+    result = 0
+    while i < n and s[i].isdigit():
+        digit = ord(s[i]) - ord('0')
+        if result > (INT_MAX - digit) // 10:
+            return INT_MAX if sign == 1 else INT_MIN
+        result = result * 10 + digit
+        i += 1
+    
+    return sign * result
+```
+
+```java
+public int myAtoi(String s) {
+    final int INT_MAX = Integer.MAX_VALUE;
+    final int INT_MIN = Integer.MIN_VALUE;
+    
+    int i = 0, n = s.length();
+    while (i < n && s.charAt(i) == ' ') i++;
+    
+    if (i >= n) return 0;
+    
+    int sign = 1;
+    if (s.charAt(i) == '+' || s.charAt(i) == '-') {
+        sign = s.charAt(i) == '-' ? -1 : 1;
+        i++;
+    }
+    
+    int result = 0;
+    while (i < n && Character.isDigit(s.charAt(i))) {
+        int digit = s.charAt(i) - '0';
+        if (result > (INT_MAX - digit) / 10) {
+            return sign == 1 ? INT_MAX : INT_MIN;
+        }
+        result = result * 10 + digit;
+        i++;
+    }
+    
+    return sign * result;
+}
+```
+
+```cpp
+int myAtoi(string s) {
+    const int INT_MAX = INT_MAX;
+    const int INT_MIN = INT_MIN;
+    
+    int i = 0, n = s.length();
+    while (i < n && s[i] == ' ') i++;
+    
+    if (i >= n) return 0;
+    
+    int sign = 1;
+    if (s[i] == '+' || s[i] == '-') {
+        sign = s[i] == '-' ? -1 : 1;
+        i++;
+    }
+    
+    long result = 0;
+    while (i < n && isdigit(s[i])) {
+        int digit = s[i] - '0';
+        if (result > (static_cast<long>(INT_MAX) - digit) / 10) {
+            return sign == 1 ? INT_MAX : INT_MIN;
+        }
+        result = result * 10 + digit;
+        i++;
+    }
+    
+    result *= sign;
+    if (result > INT_MAX) return INT_MAX;
+    if (result < INT_MIN) return INT_MIN;
+    return static_cast<int>(result);
+}
+```
+
+```javascript
+function myAtoi(s) {
+    const INT_MAX = Math.pow(2, 31) - 1;
+    const INT_MIN = -Math.pow(2, 31);
+    
+    let i = 0, n = s.length;
+    while (i < n && s[i] === ' ') i++;
+    
+    if (i >= n) return 0;
+    
+    let sign = 1;
+    if (s[i] === '+' || s[i] === '-') {
+        sign = s[i] === '-' ? -1 : 1;
+        i++;
+    }
+    
+    let result = 0;
+    while (i < n && s[i] >= '0' && s[i] <= '9') {
+        const digit = s.charCodeAt(i) - 48;
+        if (result > (INT_MAX - digit) / 10) {
+            return sign === 1 ? INT_MAX : INT_MIN;
+        }
+        result = result * 10 + digit;
+        i++;
+    }
+    
+    return sign * result;
+}
+```
+````
+
+---
+
+## LeetCode Link
+
+[String to Integer (atoi) - LeetCode](https://leetcode.com/problems/string-to-integer-atoi/)
