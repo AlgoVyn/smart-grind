@@ -2,7 +2,9 @@
 
 ## Problem Description
 
-Roman numerals are represented by seven different symbols:
+Roman numerals are an ancient numeral system originating from Rome and used throughout the Roman Empire. They represent numbers using combinations of letters from the Latin alphabet.
+
+**Roman Numeral Symbols and Values:**
 
 | Symbol | Value |
 |--------|-------|
@@ -14,22 +16,31 @@ Roman numerals are represented by seven different symbols:
 | D      | 500   |
 | M      | 1000  |
 
-Roman numerals are usually written from largest to smallest, from left to right. However, there are special cases where a smaller numeral precedes a larger numeral, indicating subtraction. For example:
+**Understanding Subtractive Notation:**
 
-- **IV** = 4 (5 - 1)
-- **IX** = 9 (10 - 1)
-- **XL** = 40 (50 - 10)
-- **XC** = 90 (100 - 10)
-- **CD** = 400 (500 - 100)
-- **CM** = 900 (1000 - 100)
+Roman numerals follow specific rules for combination:
 
-Given a Roman numeral string, convert it to an integer.
+1. **Standard Notation:** Symbols are written from largest to smallest, left to right (additive)
+   - `III` = 1 + 1 + 1 = 3
+   - `VIII` = 5 + 1 + 1 + 1 = 8
 
-This is one of the most fundamental string manipulation problems and frequently appears in technical interviews. It tests your understanding of:
-- String parsing and iteration
-- Handling special cases (subtractive notation)
-- Hash maps for symbol-value mapping
-- Time/space complexity optimization
+2. **Subtractive Notation:** A smaller value before a larger value indicates subtraction
+   - `IV` = 5 - 1 = 4
+   - `IX` = 10 - 1 = 9
+   - `XL` = 50 - 10 = 40
+   - `XC` = 100 - 10 = 90
+   - `CD` = 500 - 100 = 400
+   - `CM` = 1000 - 100 = 900
+
+**Problem Statement:**
+
+Given a string `s` representing a Roman numeral, convert it to its corresponding integer value.
+
+This problem is a classic string parsing challenge that tests your ability to:
+- Understand and implement specific rules (subtractive notation)
+- Process strings efficiently with O(n) time complexity
+- Handle edge cases and boundary conditions
+- Choose the optimal algorithmic approach
 
 ---
 
@@ -47,7 +58,7 @@ s = "III"
 3
 ```
 
-**Explanation:** III = 3 (1 + 1 + 1)
+**Explanation:** `III` = 3 (1 + 1 + 1) — three `I` symbols simply add up.
 
 ---
 
@@ -63,7 +74,7 @@ s = "IV"
 4
 ```
 
-**Explanation:** IV = 4 (5 - 1, subtractive notation)
+**Explanation:** `IV` = 4 (5 - 1) — this demonstrates the subtractive notation where `I` (1) precedes `V` (5).
 
 ---
 
@@ -79,7 +90,7 @@ s = "IX"
 9
 ```
 
-**Explanation:** IX = 9 (10 - 1, subtractive notation)
+**Explanation:** `IX` = 9 (10 - 1) — another subtractive notation example.
 
 ---
 
@@ -95,7 +106,7 @@ s = "LVIII"
 58
 ```
 
-**Explanation:** LVIII = 58 (50 + 5 + 1 + 1 + 1)
+**Explanation:** `LVIII` = 58 (50 + 5 + 1 + 1 + 1) — this combines additive symbols.
 
 ---
 
@@ -111,95 +122,80 @@ s = "MCMXCIV"
 1994
 ```
 
-**Explanation:** MCMXCIV = 1994 (1000 + 900 + 90 + 4)
-- M = 1000
-- CM = 900 (1000 - 100)
-- XC = 90 (100 - 10)
-- IV = 4 (5 - 1)
+**Explanation:** `MCMXCIV` = 1994 (1000 + 900 + 90 + 4)
+- `M` = 1000
+- `CM` = 900 (1000 - 100)
+- `XC` = 90 (100 - 10)
+- `IV` = 4 (5 - 1)
 
 ---
 
 ## Constraints
 
-- `1 <= s.length <= 15`
-- `s` contains only the characters: 'I', 'V', 'X', 'L', 'C', 'D', 'M'
-- `s` is guaranteed to be a valid Roman numeral representing an integer in the range [1, 3999]
+| Constraint | Description |
+|------------|-------------|
+| `1 ≤ s.length ≤ 15` | Input string length is very small |
+| Valid Characters | Only 'I', 'V', 'X', 'L', 'C', 'D', 'M' |
+| Valid Range | Result is guaranteed to be in [1, 3999] |
 
 ---
 
 ## Intuition
 
-The key insight behind converting Roman numerals to integers is understanding the **subtractive notation**. In Roman numerals:
+The core challenge in converting Roman numerals to integers is handling **subtractive notation**. The key insight is:
 
-1. When a symbol of **lesser value** appears **before** a symbol of **greater value**, it means subtraction
-2. Otherwise, it means addition
+> **When a symbol of lesser value appears before a symbol of greater value, it means subtraction; otherwise, it means addition.**
 
-There are two main strategies to handle this:
+This observation leads to two elegant solution strategies:
 
-### Strategy 1: Left-to-Right with Lookahead
-Process characters from left to right, and look at the next character to determine if we should subtract or add the current value.
+### Strategy 1: Right-to-Left Processing
 
-### Strategy 2: Right-to-Left Processing
-Process characters from right to left. Keep track of the previous value seen. If the current value is less than the previous value, subtract it; otherwise, add it. This elegantly handles subtractive notation without lookahead.
+Process characters from right to left while tracking the previous value. If the current value is less than the previously seen value, subtract it; otherwise, add it. This elegantly handles subtractive notation without needing lookahead.
+
+**Why it works:** When processing from right to left, the "previous" value you see is actually the next character in the original left-to-right order. Subtractive pairs like `IV` are automatically detected because `V` (5) > `I` (1), so `I` gets subtracted.
+
+### Strategy 2: Left-to-Right with Lookahead
+
+Process characters from left to right and look ahead to the next character. If the next character has a greater value, subtract the current value; otherwise, add it.
+
+**Why it works:** This directly models the Roman numeral rules by checking whether the current symbol should be subtracted based on what follows it.
 
 ---
 
-## Approach 1: Left-to-Right with Lookahead ⭐
+## Approach 1: Right-to-Left Processing ⭐ (Most Elegant)
 
 ### Algorithm
-1. Create a dictionary mapping each Roman symbol to its integer value
-2. Initialize the total result to 0
-3. Iterate through each character in the string:
-   - Look ahead to the next character (if it exists)
-   - If the next character represents a larger value, subtract the current value
-   - Otherwise, add the current value to the total
+
+1. Create a lookup table mapping each Roman symbol to its integer value
+2. Initialize `total = 0` and `prevValue = 0`
+3. Iterate through the string from right to left:
+   - Get the current symbol's value
+   - If `currentValue < prevValue`, subtract it from total (subtractive notation)
+   - Otherwise, add it to total
+   - Update `prevValue` to the current value
 4. Return the total
 
 ### Why This Works
-This approach directly models the Roman numeral rules. By checking the next symbol's value, we can determine whether the current symbol should be added or subtracted according to the subtractive notation rules.
+
+This approach elegantly handles subtractive notation by leveraging the fact that when we process right-to-left, the "previous" value we track is actually the value that comes after the current symbol in the original string. For subtractive pairs like `IV`:
+- Process `V` first: add 5, prevValue = 5
+- Process `I` next: current (1) < prev (5), so subtract 1
+- Result: 5 - 1 = 4
 
 ### Code
 
-````carousel
+```carousel
 <!-- slide -->
 ```python
 class Solution:
-    def romanToInt_lookahead(self, s: str) -> int:
+    def romanToInt(self, s: str) -> int:
         """
-        Convert Roman numeral to integer using left-to-right lookahead.
+        Convert Roman numeral to integer using right-to-left processing.
         
         Time: O(n) where n is the length of the string
         Space: O(1) for the symbol mapping dictionary
-        """
-        roman_values = {
-            'I': 1,
-            'V': 5,
-            'X': 10,
-            'L': 50,
-            'C': 100,
-            'D': 500,
-            'M': 1000
-        }
         
-        total = 0
-        i = 0
-        
-        while i < len(s):
-            current_value = roman_values[s[i]]
-            
-            # Check if there's a next character and if it has a greater value
-            if i + 1 < len(s) and roman_values[s[i + 1]] > current_value:
-                total -= current_value
-            else:
-                total += current_value
-            
-            i += 1
-        
-        return total
-    
-    def romanToInt_optimized(self, s: str) -> int:
-        """
-        Optimized version using a single pass with conditional checks.
+        This is the most elegant and commonly used approach.
         """
         roman_values = {
             'I': 1,
@@ -233,7 +229,7 @@ class Solution:
 class Solution {
     public int romanToInt(String s) {
         /**
-         * Convert Roman numeral to integer using left-to-right lookahead.
+         * Convert Roman numeral to integer using right-to-left processing.
          *
          * Time: O(n) where n is the length of the string
          * Space: O(1) for the symbol mapping array
@@ -359,50 +355,63 @@ var romanToInt = function(s) {
     return total;
 };
 ```
-````
----
+```
 
 ### Time Complexity
-**O(n)**, where `n` is the length of the string (at most 15 characters)
+
+**O(n)**, where `n` is the length of the string (at most 15 characters).
 
 ### Space Complexity
-**O(1)**, as we use a fixed-size dictionary/array for symbol mapping
+
+**O(1)**, as we use a fixed-size dictionary for symbol mapping, regardless of input size.
 
 ### Pros
-- Simple and intuitive
-- Easy to understand and implement
-- Handles all Roman numeral rules correctly
+
+- ✅ Elegant and concise solution
+- ✅ No lookahead or boundary checking needed
+- ✅ Easy to understand and implement
+- ✅ Excellent performance with minimal operations
+- ✅ Only requires tracking one additional variable
 
 ### Cons
-- Requires understanding of subtractive notation
-- The lookahead version needs boundary checking
+
+- ❗ May not be intuitive at first glance
+- ❗ Requires understanding of why right-to-left processing works
 
 ---
 
 ## Approach 2: Direct Subtractive Pattern Matching ⭐⭐
 
 ### Algorithm
-1. Create a dictionary mapping Roman symbols to their values
-2. Handle special subtractive cases directly (IV, IX, XL, XC, CD, CM)
-3. Replace these patterns with their corresponding values
-4. Sum up all remaining individual values
+
+1. Create two lookup tables: one for individual symbols and one for subtractive patterns
+2. Initialize `total = 0` and iterate with index `i = 0`
+3. At each step:
+   - Check if the current and next characters form a known subtractive pattern (e.g., "IV", "IX")
+   - If yes, add the pattern's value and skip both characters
+   - Otherwise, add the individual symbol's value and move to the next character
+4. Return the total
 
 ### Why This Works
-By pre-handling all possible subtractive combinations, we can simplify the problem to just summing individual values. This approach makes the logic very explicit and easy to follow.
+
+By explicitly handling all possible subtractive combinations upfront, we simplify the problem to just summing values. This approach makes the Roman numeral rules very explicit in the code.
 
 ### Code
 
-````carousel
+```carousel
 <!-- slide -->
 ```python
 class Solution:
-    def romanToInt_patterns(self, s: str) -> int:
+    def romanToInt(self, s: str) -> int:
         """
         Convert Roman numeral to integer by handling subtractive patterns directly.
         
         Time: O(n) where n is the length of the string
         Space: O(1) for the symbol and pattern mappings
+        
+        This approach makes the subtractive rules very explicit.
         """
+        # Define single symbol values
         roman_values = {
             'I': 1,
             'V': 5,
@@ -413,6 +422,7 @@ class Solution:
             'M': 1000
         }
         
+        # Define all possible subtractive combinations
         subtractive_patterns = {
             'IV': 4,
             'IX': 9,
@@ -433,43 +443,6 @@ class Solution:
             else:
                 total += roman_values[s[i]]
                 i += 1
-        
-        return total
-    
-    def romanToInt_comprehensive(self, s: str) -> int:
-        """
-        Comprehensive version with all subtractive patterns handled.
-        """
-        # Define all possible subtractive combinations
-        subtractive = {
-            'IV': 4, 'IX': 9,
-            'XL': 40, 'XC': 90,
-            'CD': 400, 'CM': 900
-        }
-        
-        # Define single symbol values
-        symbols = {
-            'I': 1, 'V': 5,
-            'X': 10, 'L': 50,
-            'C': 100, 'D': 500,
-            'M': 1000
-        }
-        
-        total = 0
-        i = 0
-        
-        while i < len(s):
-            # Check two-character pattern first
-            if i + 1 < len(s):
-                two_char = s[i] + s[i + 1]
-                if two_char in subtractive:
-                    total += subtractive[two_char]
-                    i += 2
-                    continue
-            
-            # Add single character value
-            total += symbols[s[i]]
-            i += 1
         
         return total
 ```
@@ -610,43 +583,51 @@ var romanToInt = function(s) {
     return total;
 };
 ```
-````
----
+```
 
 ### Time Complexity
-**O(n)**, where `n` is the length of the string
+
+**O(n)**, where `n` is the length of the string.
 
 ### Space Complexity
-**O(1)**, as we use fixed-size mappings
+
+**O(1)**, as we use fixed-size mappings for symbols and patterns.
 
 ### Pros
-- Very explicit about subtractive patterns
-- Easy to understand the logic
-- No need to remember the right-to-left trick
+
+- ✅ Very explicit about subtractive patterns
+- ✅ Easy to understand the logic flow
+- ✅ No need to remember the right-to-left trick
+- ✅ Clear mapping between patterns and their values
 
 ### Cons
-- Slightly more code than the right-to-left approach
-- Pattern matching for each pair
+
+- ❗ More code than the right-to-left approach
+- ❗ Pattern matching overhead (though negligible for small strings)
+- ❗ Requires maintaining two lookup tables
 
 ---
 
-## Approach 3: Using Switch/Case (Language-Native)
+## Approach 3: Conditional Logic (Language-Native)
 
 ### Algorithm
-This approach uses the language's native switch/case or pattern matching capabilities to handle each character directly, with special cases for subtractive patterns.
+
+This approach uses the language's native switch/case or conditional logic to handle each character directly, with nested conditionals for subtractive patterns.
 
 ### Code
 
-````carousel
+```carousel
 <!-- slide -->
 ```python
 class Solution:
-    def romanToInt_switch(self, s: str) -> int:
+    def romanToInt(self, s: str) -> int:
         """
         Convert Roman numeral to integer using conditional logic.
         
         Time: O(n) where n is the length of the string
         Space: O(1)
+        
+        This approach is verbose but explicit about each case.
         """
         total = 0
         i = 0
@@ -962,24 +943,29 @@ var romanToInt = function(s) {
     return total;
 };
 ```
-````
----
+```
 
 ### Time Complexity
-**O(n)**, where `n` is the length of the string
+
+**O(n)**, where `n` is the length of the string.
 
 ### Space Complexity
-**O(1)**, no additional space needed
+
+**O(1)**, no additional data structures needed.
 
 ### Pros
-- Very explicit about each case
-- No data structures needed
-- Fast execution
+
+- ✅ Very explicit about each case
+- ✅ No dictionary/hash table overhead
+- ✅ Fast execution with direct conditionals
+- ✅ Easy to debug and trace
 
 ### Cons
-- More verbose code
-- More repetitive code
-- Harder to maintain if Roman numeral system changes
+
+- ❗ More verbose code
+- ❗ Repetitive code structure
+- ❗ Harder to maintain if rules change
+- ❗ Not as elegant as other approaches
 
 ---
 
@@ -994,46 +980,39 @@ prev_value = 0
 ```
 
 ### Step 1: Process 'V' (from right)
-- current_value = 5
-- 5 < 0? No
-- total = 0 + 5 = 5
-- prev_value = 5
+- `current_value = 5`
+- `5 < 0`? No → `total = 0 + 5 = 5`
+- `prev_value = 5`
 
 ### Step 2: Process 'I'
-- current_value = 1
-- 1 < 5? Yes
-- total = 5 - 1 = 4
-- prev_value = 1
+- `current_value = 1`
+- `1 < 5`? Yes → `total = 5 - 1 = 4`
+- `prev_value = 1`
 
 ### Step 3: Process 'C'
-- current_value = 100
-- 100 < 1? No
-- total = 4 + 100 = 104
-- prev_value = 100
+- `current_value = 100`
+- `100 < 1`? No → `total = 4 + 100 = 104`
+- `prev_value = 100`
 
 ### Step 4: Process 'X'
-- current_value = 10
-- 10 < 100? Yes
-- total = 104 - 10 = 94
-- prev_value = 10
+- `current_value = 10`
+- `10 < 100`? Yes → `total = 104 - 10 = 94`
+- `prev_value = 10`
 
 ### Step 5: Process 'M'
-- current_value = 1000
-- 1000 < 10? No
-- total = 94 + 1000 = 1094
-- prev_value = 1000
+- `current_value = 1000`
+- `1000 < 10`? No → `total = 94 + 1000 = 1094`
+- `prev_value = 1000`
 
 ### Step 6: Process 'C'
-- current_value = 100
-- 100 < 1000? Yes
-- total = 1094 - 100 = 994
-- prev_value = 100
+- `current_value = 100`
+- `100 < 1000`? Yes → `total = 1094 - 100 = 994`
+- `prev_value = 100`
 
 ### Step 7: Process 'M'
-- current_value = 1000
-- 1000 < 100? No
-- total = 994 + 1000 = 1994
-- prev_value = 1000
+- `current_value = 1000`
+- `1000 < 100`? No → `total = 994 + 1000 = 1994`
+- `prev_value = 1000`
 
 ### Final Result
 ```
@@ -1047,70 +1026,113 @@ prev_value = 0
 | Approach | Time Complexity | Space Complexity | Best For |
 |----------|-----------------|------------------|----------|
 | Right-to-Left Processing | O(n) | O(1) | **Optimal - most elegant** |
-| Pattern Matching | O(n) | O(1) | Explicit logic |
-| Switch/Case | O(n) | O(1) | Language-native style |
+| Pattern Matching | O(n) | O(1) | Explicit logic and clarity |
+| Conditional Logic | O(n) | O(1) | Language-native style |
+
+All approaches achieve optimal O(n) time complexity for this problem.
 
 ---
 
 ## Related Problems
 
-1. **[Integer to Roman](integer-to-roman.md)** - Reverse of this problem (convert integer to Roman numeral)
-2. **[Roman to Integer II](https://leetcode.com/problems/roman-to-integer-ii/)** - Variant with additional constraints
-3. **[Valid Parentheses](valid-parentheses.md)** - Similar stack-based parsing problem
-4. **[Basic Calculator](basic-calculator.md)** - More complex expression evaluation
+| Problem | Difficulty | Description |
+|---------|------------|-------------|
+| [Integer to Roman](/solutions/integer-to-roman.md) | Medium | Reverse of this problem - convert integer to Roman numeral |
+| [Roman to Integer II](https://leetcode.com/problems/roman-to-integer-ii/) | Easy | Variant with additional validation constraints |
+| [Valid Parentheses](/solutions/valid-parentheses.md) | Easy | Similar stack-based parsing problem |
+| [Basic Calculator II](/solutions/basic-calculator-ii.md) | Medium | More complex expression evaluation |
 
 ---
 
 ## Video Tutorials
 
-- [NeetCode - Roman to Integer Solution](https://www.youtube.com/watch?v=3j-oG-7k1r0)
-- [Back to Back SWE - Roman to Integer](https://www.youtube.com/watch?v=3j-oG-7k1r0)
-- [LeetCode Official Solution](https://www.youtube.com/watch?v=3j-oG-7k1r0)
-- [TechDive - Roman to Integer](https://www.youtube.com/watch?v=vlggw8219hQ)
+| Tutorial | Platform | Link |
+|----------|----------|------|
+| NeetCode - Roman to Integer Solution | YouTube | [Watch](https://www.youtube.com/watch?v=3j-oG-7k1r0) |
+| Back to Back SWE - Roman to Integer | YouTube | [Watch](https://www.youtube.com/watch?v=9K3oO88nCqU) |
+| LeetCode Official Solution | YouTube | [Watch](https://www.youtube.com/watch?v=3j-oG-7k1r0) |
+| TechDive - Roman to Integer | YouTube | [Watch](https://www.youtube.com/watch?v=vlggw8219hQ) |
 
 ---
 
 ## Follow-up Questions
 
-1. **How would you modify the solution to handle Roman numerals beyond 3999?**
-   - Answer: Implement the overline notation or use parentheses to represent multiplication by 1000.
+**1. How would you modify the solution to handle Roman numerals beyond 3999?**
 
-2. **What if you needed to validate that a Roman numeral string is valid?**
-   - Answer: Add checks for invalid patterns (e.g., 'IL', 'IC', 'XD', etc.) and repeated symbols (e.g., 'IIII', 'VV').
+Extended Roman numerals use overline notation where a bar over a symbol multiplies its value by 1000. For example, V̄ = 5000. Implementation would require extending the symbol-value mapping and handling these special characters.
 
-3. **How would you convert from Roman to Integer and back to verify correctness?**
-   - Answer: Implement both `romanToInt` and `intToRoman` functions and test round-trip conversion.
+**2. What if you needed to validate that a Roman numeral string is valid?**
 
-4. **What is the maximum value this problem can handle?**
-   - Answer: 3999 (MMMCMXCIX) within the given constraints.
+Add validation checks for:
+- Invalid patterns (e.g., 'IL', 'IC', 'XD' which are not standard)
+- Excessive repetitions (e.g., 'IIII', 'VV' - maximum 3 consecutive 'I', 'X', 'C', 'M')
+- Invalid placement of subtractive symbols
 
-5. **How would you handle invalid input strings?**
-   - Answer: Add validation to check that all characters are valid Roman numerals.
+**3. How would you verify correctness through round-trip conversion?**
 
-6. **What if Roman numerals had additional symbols (like in extended Roman numerals)?**
-   - Answer: Extend the symbol-value mapping dictionary and subtractive pattern dictionary accordingly.
+Implement both `romanToInt()` and `intToRoman()` functions. Test that converting Roman → Integer → Roman produces the original string for all valid inputs in the range [1, 3999].
 
-7. **How would you optimize this for very long strings (beyond the constraint)?**
-   - Answer: All approaches are already O(n), so they scale linearly. The constant factors are very small.
+**4. What is the maximum value this problem can handle?**
 
-8. **What if you needed to process millions of Roman numerals?**
-   - Answer: All approaches are O(n) with O(1) space, making them very efficient for batch processing.
+3999 (MMMCMXCIX). This is because the Roman numeral system traditionally doesn't have a standard representation for 4000+ using standard symbols.
+
+**5. How would you handle invalid input strings?**
+
+Add input validation:
+- Check that all characters are valid Roman numerals (I, V, X, L, C, D, M)
+- Check for empty strings
+- Return an error code or throw an exception for invalid inputs
+
+**6. What if Roman numerals had additional symbols (like in extended Roman numerals)?**
+
+Extend the symbol-value mapping dictionary and subtractive pattern dictionary to include the new symbols. The algorithmic approach remains the same.
+
+**7. How would you optimize this for very long strings (beyond the constraint)?**
+
+All approaches are already O(n), making them efficient. For extremely long strings, the constant factors become more relevant:
+- Right-to-left processing has minimal overhead
+- Pattern matching may have slightly higher constant factors due to substring operations
+- Consider using array indexing instead of dictionaries for marginal performance gains
+
+**8. What if you needed to process millions of Roman numerals?**
+
+All approaches are O(n) with O(1) space, making them highly efficient for batch processing:
+- The right-to-left approach is fastest due to minimal operations
+- Consider parallel processing for independent conversions
+- Use streaming to handle large datasets without loading everything into memory
 
 ---
 
 ## Common Mistakes to Avoid
 
-1. **Not handling subtractive notation correctly** - Always check if a smaller value precedes a larger one
-2. **Processing in the wrong direction** - Left-to-right requires lookahead; right-to-left requires tracking previous value
-3. **Forgetting boundary checks** - Always check if `i + 1 < len(s)` before accessing the next character
-4. **Using hardcoded values** - Use a dictionary/mapping for better maintainability
-5. **Not understanding Roman numeral rules** - Study the subtractive notation before implementing
+1. **❌ Not handling subtractive notation correctly**
+   - Always check if a smaller value precedes a larger one
+   - The right-to-left approach automatically handles this
+
+2. **❌ Processing in the wrong direction**
+   - Left-to-right requires lookahead; right-to-left requires tracking previous value
+   - Choose one direction and stick with it consistently
+
+3. **❌ Forgetting boundary checks**
+   - Always check `i + 1 < len(s)` before accessing the next character
+   - This prevents index out of bounds errors
+
+4. **❌ Using hardcoded values without explanation**
+   - Use a dictionary/mapping for better maintainability
+   - Makes the code self-documenting
+
+5. **❌ Not understanding Roman numeral rules**
+   - Study the subtractive notation before implementing
+   - Understand the six valid subtractive pairs
+
+6. **❌ Not testing edge cases**
+   - Test with "I", "IV", "IX", "XL", "XC", "CD", "CM"
+   - Test with maximum value "MMMCMXCIX" = 3999
 
 ---
 
 ## References
 
 - [LeetCode 13 - Roman to Integer](https://leetcode.com/problems/roman-to-integer/)
-- Roman Numeral Rules: https://en.wikipedia.org/wiki/Roman_numerals
-- Subtractive Notation in Roman Numerals
-
+- [Roman Numerals - Wikipedia](https://en.wikipedia.org/wiki/Roman_numerals)
+- [Subtractive Notation in Roman Numerals](https://en.wikipedia.org/wiki/Roman_numerals#Additive_notation)

@@ -1,6 +1,5 @@
 // Mock dependencies
 const mockGetElementById = jest.spyOn(document, 'getElementById');
-const mockQuerySelectorAll = jest.spyOn(document, 'querySelectorAll');
 const mockClassListAdd = jest.fn();
 const mockClassListRemove = jest.fn();
 const mockClassListToggle = jest.fn();

@@ -1,6 +1,12 @@
 // --- UTILITIES MODULE ---
 // Helper functions and utilities
 
+declare global {
+    interface Window {
+        VITE_BASE_URL?: string;
+    }
+}
+
 import { Problem, Topic, ProblemDef } from './types';
 import { state } from './state';
 import { data } from './data';
@@ -29,6 +35,10 @@ export const utils = {
     getUrlParameter: (name: string) => {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name);
+    },
+
+    getBaseUrl: () => {
+        return window.VITE_BASE_URL || '/smartgrind/';
     },
 
     updateUrlParameter: (name: string, value: string | null) => {

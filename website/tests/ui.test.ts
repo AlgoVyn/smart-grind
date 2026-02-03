@@ -267,6 +267,7 @@ describe('SmartGrind UI', () => {
             updateUrlParameter: jest.fn(),
             scrollToTop: jest.fn(),
             getUrlParameter: jest.fn(),
+            getBaseUrl: jest.fn(() => '/smartgrind/'),
             sanitizeInput: (input) => {
                 if (!input) return '';
                 let sanitized = input.trim();

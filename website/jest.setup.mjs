@@ -2,14 +2,8 @@
 import 'jest-environment-jsdom';
 import { TextEncoder, TextDecoder } from 'util';
 
-// Mock import.meta.env for Vite environment variables
-global.import = {
-    meta: {
-        env: {
-            VITE_API_BASE: '/smartgrind/api',
-        },
-    },
-};
+// Mock base URL for Vite environment
+global.window.VITE_BASE_URL = '/smartgrind/';
 
 // Create a reusable mock factory
 const createLocalStorageMock = () => {
