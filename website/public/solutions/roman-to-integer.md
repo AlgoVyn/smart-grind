@@ -1,5 +1,7 @@
 # Roman to Integer
 
+> **Pattern:** [String - Roman to Integer Conversion](/patterns/string-roman-to-integer-conversion.md)
+
 ## Problem Description
 
 Roman numerals are an ancient numeral system originating from Rome and used throughout the Roman Empire. They represent numbers using combinations of letters from the Latin alphabet.
@@ -184,7 +186,7 @@ This approach elegantly handles subtractive notation by leveraging the fact that
 
 ### Code
 
-```carousel
+````carousel
 <!-- slide -->
 ```python
 class Solution:
@@ -355,7 +357,7 @@ var romanToInt = function(s) {
     return total;
 };
 ```
-```
+````
 
 ### Time Complexity
 
@@ -398,7 +400,7 @@ By explicitly handling all possible subtractive combinations upfront, we simplif
 
 ### Code
 
-```carousel
+````carousel
 <!-- slide -->
 ```python
 class Solution:
@@ -583,7 +585,7 @@ var romanToInt = function(s) {
     return total;
 };
 ```
-```
+````
 
 ### Time Complexity
 
@@ -616,7 +618,7 @@ This approach uses the language's native switch/case or conditional logic to han
 
 ### Code
 
-```carousel
+````carousel
 <!-- slide -->
 ```python
 class Solution:
@@ -943,7 +945,7 @@ var romanToInt = function(s) {
     return total;
 };
 ```
-```
+````
 
 ### Time Complexity
 

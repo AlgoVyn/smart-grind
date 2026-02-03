@@ -1,394 +1,154 @@
 # Group Anagrams
 
-## Problem Description
+## Problem Statement
+
+LeetCode Problem 49: Group Anagrams
 
 Given an array of strings `strs`, group the anagrams together. You can return the answer in any order.
 
-An **anagram** is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once. For example, "eat", "tea", and "ate" are all anagrams of each other because they contain the same characters ('a', 'e', 't') with the same frequencies but in different orders.
+An anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once. For example, "eat", "ate", and "tea" are all anagrams of each other.
 
-This is one of the most fundamental string manipulation problems and frequently appears in technical interviews. It tests your understanding of:
-- Character frequency counting
-- Hash maps for grouping
-- String sorting as a keying mechanism
-- Time/space complexity trade-offs
+### Examples
 
----
+Here are some examples to illustrate the problem:
 
-## Examples
+- **Input:** `strs = ["eat","tea","tan","ate","nat","bat"]`<br>
+  **Output:** `[["eat","ate","tea"],["tan","nat"],["bat"]]`<br>
+  **Explanation:** "eat", "tea", and "ate" share the same character counts. "tan" and "nat" share the same character counts. "bat" is unique.
 
-**Example 1:**
+- **Input:** `strs = [""]`<br>
+  **Output:** `[[""]]`<br>
+  **Explanation:** An empty string is a valid anagram of another empty string.
 
-**Input:**
-```python
-strs = ["eat","tea","tan","ate","nat","bat"]
-```
+- **Input:** `strs = ["a"]`<br>
+  **Output:** `[["a"]]`<br>
+  **Explanation:** A single character is only anagram to itself.
 
-**Output:**
-```python
-[["bat"],["nat","tan"],["ate","eat","tea"]]
-```
+- **Input:** `strs = ["", "b"]`<br>
+  **Output:** `[[""],["b"]]`<br>
+  **Explanation:** The empty string and "b" have different character counts.
 
-**Explanation:**
-- There is no string in strs that can be rearranged to form "bat", so "bat" is in its own group.
-- The strings "nat" and "tan" are anagrams as they can be rearranged to form each other.
-- The strings "ate", "eat", and "tea" are anagrams as they can be rearranged to form each other.
-
----
-
-**Example 2:**
-
-**Input:**
-```python
-strs = [""]
-```
-
-**Output:**
-```python
-[[""]]
-```
-
-**Explanation:** An empty string is an anagram of itself (it contains zero characters, which matches the character count of any other empty string).
-
----
-
-**Example 3:**
-
-**Input:**
-```python
-strs = ["a"]
-```
-
-**Output:**
-```python
-[["a"]]
-```
-
-**Explanation:** A single character string is an anagram of itself.
-
----
-
-**Example 4:**
-
-**Input:**
-```python
-strs = ["arc","car","rat","tar","star"]
-```
-
-**Output:**
-```python
-[["arc","car"],["rat","tar"],["star"]]
-```
-
-**Explanation:**
-- "arc" and "car" are anagrams (both contain 'a', 'r', 'c')
-- "rat" and "tar" are anagrams (both contain 'r', 'a', 't')
-- "star" has no anagrams in the list
-
----
-
-## Constraints
+### Constraints
 
 - `1 <= strs.length <= 10^4`
 - `0 <= strs[i].length <= 100`
 - `strs[i]` consists of lowercase English letters ('a' to 'z')
 
----
+### Intuition
 
-## Intuition
+The key insight is that two strings are anagrams if and only if they have identical character counts. This means:
 
-The key insight behind grouping anagrams is that **anagrams share the same character frequency signature**. Two strings are anagrams if and only if they have identical counts for each character.
+1. Strings with the same frequency of each character belong to the same group.
+2. We need a way to create a canonical representation (key) for strings that share the same character counts.
 
-There are two main strategies to generate a unique key for grouping:
+For example:
+- "eat" → {a: 1, e: 1, t: 1}
+- "ate" → {a: 1, e: 1, t: 1}
+- "tea" → {a: 1, e: 1, t: 1}
 
-### Strategy 1: Sorting
-If two strings are anagrams, sorting their characters will produce identical results. For example:
-- "eat" → sorted → "aet"
-- "tea" → sorted → "aet"
-- "tan" → sorted → "ant"
-
-This is the simplest approach but has O(k log k) time per string due to sorting.
-
-### Strategy 2: Character Frequency Count
-We can use a tuple or string of character counts as the key. Since there are only 26 lowercase letters, we can create an array of 26 integers representing counts for 'a' through 'z':
-- "eat" → [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-- "tea" → [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
-This approach is O(k) per string, where k is the string length.
+All three produce the same frequency map and should be grouped together.
 
 ---
 
-## Approach 1: Sorting (Simple) ⭐
+## Approach 1: Character Frequency Counting with Hash Map (Primary and Efficient)
 
-### Algorithm
-1. Create a dictionary (hash map) to group strings by their sorted representation
-2. For each string in the input array:
-   - Sort the characters of the string
-   - Use the sorted string as a key in the dictionary
-   - Append the original string to the list associated with that key
-3. Return all values from the dictionary as the grouped result
+This approach uses a frequency-based key to group anagrams efficiently. We count characters in each string and use the count tuple as the key in a hash map.
 
-### Why This Works
-Sorting transforms all anagrams into an identical canonical form. Since anagrams contain exactly the same characters (just in different orders), sorting will always produce the same result for any group of anagrams.
-
-### Code
+### Implementation
 
 ````carousel
-<!-- slide -->
 ```python
-from typing import List
 from collections import defaultdict
+from typing import List
 
 class Solution:
-    def groupAnagrams_sorting(self, strs: List[str]) -> List[List[str]]:
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
         """
-        Group anagrams by sorting each string and using it as a key.
+        Group anagrams using character frequency counting.
         
-        Time: O(n * k * log k) where n is number of strings, k is max string length
-        Space: O(n * k) for storing grouped strings
-        """
-        groups = defaultdict(list)
-        for s in strs:
-            # Sort the string to create a canonical key
-            sorted_key = ''.join(sorted(s))
-            groups[sorted_key].append(s)
-        return list(groups.values())
-```
-<!-- slide -->
-```java
-import java.util.*;
-
-class Solution {
-    public List<List<String>> groupAnagrams(String[] strs) {
-        /**
-         * Group anagrams by sorting each string and using it as a key.
-         *
-         * Time: O(n * k * log k) where n is number of strings, k is max string length
-         * Space: O(n * k) for storing grouped strings
-         */
-        Map<String, List<String>> groups = new HashMap<>();
-        
-        for (String s : strs) {
-            // Sort the string to create a canonical key
-            char[] chars = s.toCharArray();
-            Arrays.sort(chars);
-            String sortedKey = new String(chars);
-            
-            groups.computeIfAbsent(sortedKey, k -> new ArrayList<>()).add(s);
-        }
-        
-        return new ArrayList<>(groups.values());
-    }
-}
-```
-<!-- slide -->
-```cpp
-#include <vector>
-#include <string>
-#include <algorithm>
-#include <unordered_map>
-
-class Solution {
-public:
-    std::vector<std::vector<std::string>> groupAnagrams(std::vector<std::string>& strs) {
-        /**
-         * Group anagrams by sorting each string and using it as a key.
-         *
-         * Time: O(n * k * log k) where n is number of strings, k is max string length
-         * Space: O(n * k) for storing grouped strings
-         */
-        std::unordered_map<std::string, std::vector<std::string>> groups;
-        
-        for (const std::string& s : strs) {
-            std::string sortedKey = s;
-            std::sort(sortedKey.begin(), sortedKey.end());
-            groups[sortedKey].push_back(s);
-        }
-        
-        std::vector<std::vector<std::string>> result;
-        for (auto& pair : groups) {
-            result.push_back(pair.second);
-        }
-        
-        return result;
-    }
-};
-```
-<!-- slide -->
-```javascript
-/**
- * Group anagrams by sorting each string and using it as a key.
- * 
- * Time: O(n * k * log k) where n is number of strings, k is max string length
- * Space: O(n * k) for storing grouped strings
- * 
- * @param {string[]} strs - Array of input strings
- * @return {string[][]} - Array of grouped anagrams
- */
-var groupAnagrams = function(strs) {
-    const groups = new Map();
-    
-    for (const s of strs) {
-        // Sort the string to create a canonical key
-        const sortedKey = s.split('').sort().join('');
-        
-        if (!groups.has(sortedKey)) {
-            groups.set(sortedKey, []);
-        }
-        groups.get(sortedKey).push(s);
-    }
-    
-    return Array.from(groups.values());
-};
-```
-````
----
-
-### Time Complexity
-**O(n × k × log k)**, where:
-- `n` is the number of strings (up to 10^4)
-- `k` is the maximum string length (up to 100)
-- The `log k` factor comes from sorting each string
-
-### Space Complexity
-**O(n × k)** for storing all strings in the groups (in the worst case, each string is its own group)
-
-### Pros
-- Simple and intuitive
-- Easy to implement correctly
-- Works for any character set (not limited to lowercase letters)
-
-### Cons
-- Sorting each string adds overhead
-- Not optimal for short strings with many duplicates
-
----
-
-## Approach 2: Character Frequency Count (Optimal) ⭐⭐
-
-### Algorithm
-1. Create a dictionary to group strings by their character frequency signature
-2. For each string in the input array:
-   - Count occurrences of each character (26 counters for lowercase letters)
-   - Convert the count array to a tuple or string to use as a key
-   - Append the original string to the group for that key
-3. Return all groups
-
-### Why This Works
-Two strings are anagrams if and only if they have identical character frequency counts. By using the frequency count as a key, we create a unique identifier for each anagram group without the overhead of sorting.
-
-### Code
-
-````carousel
-<!-- slide -->
-```python
-from typing import List
-from collections import defaultdict
-
-class Solution:
-    def groupAnagrams_frequency(self, strs: List[str]) -> List[List[str]]:
-        """
-        Group anagrams by counting character frequencies.
-        
-        Time: O(n * k) where n is number of strings, k is max string length
-        Space: O(n * k) for storing grouped strings
+        Time Complexity: O(N * K) where N is number of strings and K is average string length
+        Space Complexity: O(N * K) for storing groups
         """
         groups = defaultdict(list)
         
         for s in strs:
-            # Create a count array for 26 lowercase letters
+            # Create a frequency count array for 26 lowercase letters
             count = [0] * 26
+            
             for char in s:
                 count[ord(char) - ord('a')] += 1
             
-            # Convert count array to tuple for use as dict key
+            # Use tuple of counts as key (tuples are hashable)
             key = tuple(count)
             groups[key].append(s)
         
         return list(groups.values())
-    
-    def groupAnagrams_optimized(self, strs: List[str]) -> List[List[str]]:
-        """
-        Optimized version using a string key instead of tuple.
-        Slightly better space efficiency for large inputs.
-        """
-        groups = defaultdict(list)
-        
-        for s in strs:
-            # Create a count string key (more compact than tuple)
-            count = [0] * 26
-            for char in s:
-                count[ord(char) - ord('a')] += 1
-            key = '#'.join(map(str, count))
-            groups[key].append(s)
-        
-        return list(groups.values())
 ```
-<!-- slide -->
+
 ```java
 import java.util.*;
 
 class Solution {
     public List<List<String>> groupAnagrams(String[] strs) {
-        /**
-         * Group anagrams by counting character frequencies.
+        /*
+         * Group anagrams using character frequency counting.
          *
-         * Time: O(n * k) where n is number of strings, k is max string length
-         * Space: O(n * k) for storing grouped strings
+         * Time Complexity: O(N * K) where N is number of strings and K is average string length
+         * Space Complexity: O(N * K) for storing groups
          */
-        if (strs == null || strs.length == 0) return new ArrayList<>();
+        if (strs == null || strs.length == 0) {
+            return new ArrayList<>();
+        }
         
         Map<String, List<String>> groups = new HashMap<>();
         
         for (String s : strs) {
-            // Count character frequencies
-            int[] count = new int[26];
+            // Create a frequency count array for 26 lowercase letters
+            char[] count = new char[26];
+            
             for (char c : s.toCharArray()) {
                 count[c - 'a']++;
             }
             
-            // Build a unique key from the count array
-            StringBuilder key = new StringBuilder();
-            for (int freq : count) {
-                key.append('#').append(freq);
-            }
-            String keyStr = key.toString();
-            
-            groups.computeIfAbsent(keyStr, k -> new ArrayList<>()).add(s);
+            // Create key from count array
+            String key = new String(count);
+            groups.computeIfAbsent(key, k -> new ArrayList<>()).add(s);
         }
         
         return new ArrayList<>(groups.values());
     }
 }
 ```
-<!-- slide -->
+
 ```cpp
 #include <vector>
 #include <string>
-#include <algorithm>
 #include <unordered_map>
+#include <algorithm>
 
 class Solution {
 public:
     std::vector<std::vector<std::string>> groupAnagrams(std::vector<std::string>& strs) {
-        /**
-         * Group anagrams by counting character frequencies.
+        /*
+         * Group anagrams using character frequency counting.
          *
-         * Time: O(n * k) where n is number of strings, k is max string length
-         * Space: O(n * k) for storing grouped strings
+         * Time Complexity: O(N * K) where N is number of strings and K is average string length
+         * Space Complexity: O(N * K) for storing groups
          */
         std::unordered_map<std::string, std::vector<std::string>> groups;
         
         for (const std::string& s : strs) {
-            // Count character frequencies (26 lowercase letters)
-            int count[26] = {0};
+            // Create a frequency count array for 26 lowercase letters
+            std::vector<int> count(26, 0);
+            
             for (char c : s) {
                 count[c - 'a']++;
             }
             
-            // Create a string key from the count array
+            // Create key from count vector
             std::string key;
             for (int i = 0; i < 26; i++) {
-                key += '#' + std::to_string(count[i]);
+                key += std::to_string(count[i]) + '#';
             }
             
             groups[key].push_back(s);
@@ -403,30 +163,30 @@ public:
     }
 };
 ```
-<!-- slide -->
+
 ```javascript
 /**
- * Group anagrams by counting character frequencies.
- * 
- * Time: O(n * k) where n is number of strings, k is max string length
- * Space: O(n * k) for storing grouped strings
- * 
- * @param {string[]} strs - Array of input strings
- * @return {string[][]} - Array of grouped anagrams
+ * @param {string[]} strs
+ * @return {string[][]}
  */
 var groupAnagrams = function(strs) {
+    /*
+     * Group anagrams using character frequency counting.
+     *
+     * Time Complexity: O(N * K) where N is number of strings and K is average string length
+     * Space Complexity: O(N * K) for storing groups
+     */
     const groups = new Map();
     
     for (const s of strs) {
-        // Count character frequencies for 26 lowercase letters
+        // Create a frequency count array for 26 lowercase letters
         const count = new Array(26).fill(0);
         
         for (let i = 0; i < s.length; i++) {
-            const charCode = s.charCodeAt(i) - 'a'.charCodeAt(0);
-            count[charCode]++;
+            count[s.charCodeAt(i) - 97]++;
         }
         
-        // Create a unique key from the count array
+        // Use count array as key (converted to string)
         const key = count.join('#');
         
         if (!groups.has(key)) {
@@ -439,64 +199,196 @@ var groupAnagrams = function(strs) {
 };
 ```
 ````
+
+### Explanation Step-by-Step
+
+1. **Initialize Hash Map:** Create a hash map (dictionary) to store groups of anagrams. The key will be a canonical representation of character counts.
+
+2. **Process Each String:** For each string in the input array:
+   - Create a count array of size 26 (one for each lowercase letter)
+   - Iterate through the string and increment the count for each character
+
+3. **Generate Key:** Convert the count array to a hashable key:
+   - In Python/Java: Convert to tuple/string
+   - In C++: Build a string representation with separators
+   - In JavaScript: Join array with separators
+
+4. **Group Strings:** Add the current string to the list associated with its key in the hash map.
+
+5. **Return Results:** Extract all values from the hash map and return them as the result.
+
+### Complexity Analysis
+
+- **Time Complexity:** O(N × K) where N is the number of strings and K is the average string length. Each string is processed once, and character counting is O(K). Hash map operations are O(1) on average.
+- **Space Complexity:** O(N × K) for storing all strings in their respective groups, plus O(26) = O(1) for the count array.
+
+This is the optimal approach for this problem given the constraints.
+
 ---
 
-### Time Complexity
-**O(n × k)**, where:
-- `n` is the number of strings (up to 10^4)
-- `k` is the maximum string length (up to 100)
+## Approach 2: Sorted String as Key (Simpler but Less Efficient)
 
-We iterate through each character of each string exactly once.
+This approach uses the sorted version of each string as the key. Since anagrams sort to the same result, this groups them effectively.
 
-### Space Complexity
-**O(n × k)** for storing all strings in the groups, plus **O(1)** extra space for the count array (fixed size of 26)
-
-### Pros
-- Linear time complexity - optimal for this problem
-- No sorting overhead
-- More efficient for longer strings
-
-### Cons
-- Slightly more complex implementation
-- Requires understanding of hash map operations
-- The key generation is more involved than sorting
-
----
-
-## Approach 3: Prime Product (Alternative)
-
-### Algorithm
-1. Assign each letter a unique prime number (a=2, b=3, c=5, etc.)
-2. For each string, compute the product of prime values for its characters
-3. Use this product as a unique key for grouping (anagrams will have the same product)
-4. Return grouped results
-
-### Why This Works
-The Fundamental Theorem of Arithmetic states that every integer greater than 1 has a unique prime factorization. By assigning each letter a unique prime, the product of primes for a string's characters will be unique to that multiset of characters. This product serves as a perfect hash for the anagram group.
-
-### Code
+### Implementation
 
 ````carousel
-<!-- slide -->
 ```python
-from typing import List
 from collections import defaultdict
+from typing import List
 
 class Solution:
-    def groupAnagrams_prime(self, strs: List[str]) -> List[List[str]]:
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
+        """
+        Group anagrams using sorted string as key.
+        
+        Time Complexity: O(N * K * log K) where N is number of strings and K is average string length
+        Space Complexity: O(N * K) for storing groups
+        """
+        groups = defaultdict(list)
+        
+        for s in strs:
+            # Sort the string to get canonical form
+            sorted_key = ''.join(sorted(s))
+            groups[sorted_key].append(s)
+        
+        return list(groups.values())
+```
+
+```java
+import java.util.*;
+
+class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        /*
+         * Group anagrams using sorted string as key.
+         *
+         * Time Complexity: O(N * K * log K) where N is number of strings and K is average string length
+         * Space Complexity: O(N * K) for storing groups
+         */
+        if (strs == null || strs.length == 0) {
+            return new ArrayList<>();
+        }
+        
+        Map<String, List<String>> groups = new HashMap<>();
+        
+        for (String s : strs) {
+            char[] chars = s.toCharArray();
+            Arrays.sort(chars);
+            String key = new String(chars);
+            groups.computeIfAbsent(key, k -> new ArrayList<>()).add(s);
+        }
+        
+        return new ArrayList<>(groups.values());
+    }
+}
+```
+
+```cpp
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <algorithm>
+
+class Solution {
+public:
+    std::vector<std::vector<std::string>> groupAnagrams(std::vector<std::string>& strs) {
+        /*
+         * Group anagrams using sorted string as key.
+         *
+         * Time Complexity: O(N * K * log K) where N is number of strings and K is average string length
+         * Space Complexity: O(N * K) for storing groups
+         */
+        std::unordered_map<std::string, std::vector<std::string>> groups;
+        
+        for (const std::string& s : strs) {
+            std::string key = s;
+            std::sort(key.begin(), key.end());
+            groups[key].push_back(s);
+        }
+        
+        std::vector<std::vector<std::string>> result;
+        for (auto& pair : groups) {
+            result.push_back(pair.second);
+        }
+        
+        return result;
+    }
+};
+```
+
+```javascript
+/**
+ * @param {string[]} strs
+ * @return {string[][]}
+ */
+var groupAnagrams = function(strs) {
+    /*
+     * Group anagrams using sorted string as key.
+     *
+     * Time Complexity: O(N * K * log K) where N is number of strings and K is average string length
+     * Space Complexity: O(N * K) for storing groups
+     */
+    const groups = new Map();
+    
+    for (const s of strs) {
+        const key = s.split('').sort().join('');
+        
+        if (!groups.has(key)) {
+            groups.set(key, []);
+        }
+        groups.get(key).push(s);
+    }
+    
+    return Array.from(groups.values());
+};
+```
+````
+
+### Explanation Step-by-Step
+
+1. **Initialize Hash Map:** Create a hash map to store groups of anagrams.
+
+2. **Process Each String:** For each string in the input array:
+   - Sort the characters of the string alphabetically
+   - Use the sorted string as the key (since anagrams sort to the same result)
+
+3. **Group Strings:** Add the original string to the list associated with its sorted key.
+
+4. **Return Results:** Extract all values from the hash map and return them as the result.
+
+### Complexity Analysis
+
+- **Time Complexity:** O(N × K × log K) where N is the number of strings and K is the average string length. The sorting step dominates with O(K log K) per string.
+- **Space Complexity:** O(N × K) for storing all strings and O(K) for the sorted key of each string.
+
+This approach is simpler to implement but less efficient than Approach 1 for longer strings.
+
+---
+
+## Approach 3: Prime Number Multiplication (Mathematical)
+
+This approach assigns each letter a unique prime number and uses the product of these primes as the key. Since prime factorization is unique, strings with the same character counts will have the same product.
+
+### Implementation
+
+````carousel
+```python
+from collections import defaultdict
+from typing import List
+
+class Solution:
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
         """
         Group anagrams using prime number multiplication.
         
-        Time: O(n * k) where n is number of strings, k is max string length
-        Space: O(n * k) for storing grouped strings
+        Time Complexity: O(N * K) where N is number of strings and K is average string length
+        Space Complexity: O(N * K) for storing groups
         """
-        # Assign prime numbers to each letter
-        primes = {
-            'a': 2, 'b': 3, 'c': 5, 'd': 7, 'e': 11, 'f': 13, 'g': 17, 'h': 19,
-            'i': 23, 'j': 29, 'k': 31, 'l': 37, 'm': 41, 'n': 43, 'o': 47,
-            'p': 53, 'q': 59, 'r': 61, 's': 67, 't': 71, 'u': 73, 'v': 79,
-            'w': 83, 'x': 89, 'y': 97, 'z': 101
-        }
+        # First 26 prime numbers for each letter
+        primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 
+                  31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 
+                  73, 79, 83, 89, 97, 101]
         
         groups = defaultdict(list)
         
@@ -504,56 +396,39 @@ class Solution:
             # Calculate product of primes for each character
             product = 1
             for char in s:
-                product *= primes[char]
-            groups[product].append(s)
-        
-        return list(groups.values())
-    
-    def groupAnagrams_prime_optimized(self, strs: List[str]) -> List[List[str]]:
-        """
-        Optimized version using a list of primes for faster lookup.
-        """
-        primes = [
-            2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 
-            43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101
-        ]
-        
-        groups = defaultdict(list)
-        
-        for s in strs:
-            product = 1
-            for char in s:
                 product *= primes[ord(char) - ord('a')]
             groups[product].append(s)
         
         return list(groups.values())
 ```
-<!-- slide -->
+
 ```java
 import java.util.*;
 
 class Solution {
-    // Prime numbers for each letter a-z
-    private static final int[] PRIMES = {
-        2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41,
-        43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101
-    };
-    
     public List<List<String>> groupAnagrams(String[] strs) {
-        /**
+        /*
          * Group anagrams using prime number multiplication.
          *
-         * Time: O(n * k) where n is number of strings, k is max string length
-         * Space: O(n * k) for storing grouped strings
+         * Time Complexity: O(N * K) where N is number of strings and K is average string length
+         * Space Complexity: O(N * K) for storing groups
          */
+        if (strs == null || strs.length == 0) {
+            return new ArrayList<>();
+        }
+        
+        // First 26 prime numbers for each letter
+        int[] primes = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 
+                        31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 
+                        73, 79, 83, 89, 97, 101};
+        
         Map<Long, List<String>> groups = new HashMap<>();
         
         for (String s : strs) {
             long product = 1;
             for (char c : s.toCharArray()) {
-                product *= PRIMES[c - 'a'];
+                product *= primes[c - 'a'];
             }
-            
             groups.computeIfAbsent(product, k -> new ArrayList<>()).add(s);
         }
         
@@ -561,36 +436,33 @@ class Solution {
     }
 }
 ```
-<!-- slide -->
+
 ```cpp
 #include <vector>
 #include <string>
 #include <unordered_map>
 
 class Solution {
-private:
-    // Prime numbers for each letter a-z
-    static constexpr int PRIMES[26] = {
-        2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41,
-        43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101
-    };
-    
 public:
     std::vector<std::vector<std::string>> groupAnagrams(std::vector<std::string>& strs) {
-        /**
+        /*
          * Group anagrams using prime number multiplication.
          *
-         * Time: O(n * k) where n is number of strings, k is max string length
-         * Space: O(n * k) for storing grouped strings
+         * Time Complexity: O(N * K) where N is number of strings and K is average string length
+         * Space Complexity: O(N * K) for storing groups
          */
+        // First 26 prime numbers for each letter
+        std::vector<int> primes = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 
+                                   31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 
+                                   73, 79, 83, 89, 97, 101};
+        
         std::unordered_map<long long, std::vector<std::string>> groups;
         
         for (const std::string& s : strs) {
             long long product = 1;
             for (char c : s) {
-                product *= PRIMES[c - 'a'];
+                product *= primes[c - 'a'];
             }
-            
             groups[product].push_back(s);
         }
         
@@ -603,32 +475,30 @@ public:
     }
 };
 ```
-<!-- slide -->
+
 ```javascript
 /**
- * Group anagrams using prime number multiplication.
- * 
- * Time: O(n * k) where n is number of strings, k is max string length
- * Space: O(n * k) for storing grouped strings
- * 
- * @param {string[]} strs - Array of input strings
- * @return {string[][]} - Array of grouped anagrams
+ * @param {string[]} strs
+ * @return {string[][]}
  */
 var groupAnagrams = function(strs) {
-    // Prime numbers for each letter a-z
-    const primes = [
-        2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41,
-        43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101
-    ];
+    /*
+     * Group anagrams using prime number multiplication.
+     *
+     * Time Complexity: O(N * K) where N is number of strings and K is average string length
+     * Space Complexity: O(N * K) for storing groups
+     */
+    // First 26 prime numbers for each letter
+    const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 
+                    31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 
+                    73, 79, 83, 89, 97, 101];
     
     const groups = new Map();
     
     for (const s of strs) {
         let product = 1;
-        
         for (let i = 0; i < s.length; i++) {
-            const index = s.charCodeAt(i) - 'a'.charCodeAt(0);
-            product *= primes[index];
+            product *= primes[s.charCodeAt(i) - 97];
         }
         
         if (!groups.has(product)) {
@@ -641,161 +511,307 @@ var groupAnagrams = function(strs) {
 };
 ```
 ````
+
+### Explanation Step-by-Step
+
+1. **Prime Number Mapping:** Assign a unique prime number to each letter ('a' = 2, 'b' = 3, etc.).
+
+2. **Initialize Hash Map:** Create a hash map with the product as the key.
+
+3. **Process Each String:** For each string:
+   - Calculate the product of primes corresponding to each character
+   - Since prime factorization is unique, strings with identical character counts will have identical products
+
+4. **Group Strings:** Add the original string to the list associated with its product key.
+
+5. **Return Results:** Extract all values from the hash map and return them as the result.
+
+### Complexity Analysis
+
+- **Time Complexity:** O(N × K) where N is the number of strings and K is the average string length. Multiplication is O(1) per character.
+- **Space Complexity:** O(N × K) for storing all strings.
+
+**Note:** This approach can have integer overflow issues for very long strings in languages without arbitrary-precision integers. The maximum product for a 100-character string using the given primes is manageable but should be tested.
+
 ---
 
-### Time Complexity
-**O(n × k)** for computing products plus **O(n)** for hash map operations
+## Approach 4: Using Counter with String Key (Python-Specific)
 
-### Space Complexity
-**O(n × k)** for storing all strings
+Python's `collections.Counter` provides a concise way to represent character frequencies, and it can be used as a dictionary key since it's hashable in certain contexts.
 
-### Warning: Integer Overflow
-For very long strings, the product can exceed JavaScript's safe integer limit (Number.MAX_SAFE_INTEGER = 9 quadrillion) or C++'s 64-bit integer limit. For strings up to 100 characters, the maximum product is well within safe limits (101^100 ≈ 1.37e200, which overflows 64-bit integers).
+### Implementation
 
-**In practice, use Approach 2 (Character Frequency) for safety.**
-
-### Pros
-- Elegant mathematical solution
-- Constant-time key comparison (single integer comparison)
-- No string concatenation overhead
-
-### Cons
-- Potential for integer overflow with long strings
-- Less intuitive than frequency counting
-- Limited to lowercase letters (or small character sets)
-
----
-
-## Step-by-Step Example
-
-Let's trace through `strs = ["eat", "tea", "tan", "ate", "nat", "bat"]` using Approach 2 (Character Frequency):
-
-### Initial State
-```
-groups = {}
-```
-
-### Step 1: Process "eat"
-- Count: a=1, e=1, t=1 (all others=0)
-- Key: [1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0]
-- groups = {"1#0#0#0#1#0#0#0#0#0#0#0#0#1#...": ["eat"]}
-
-### Step 2: Process "tea"
-- Count: a=1, e=1, t=1 (same as "eat")
-- Same key as "eat"
-- groups = {"1#0#0#0#1#0#0#0#0#0#0#0#0#1#...": ["eat", "tea"]}
-
-### Step 3: Process "tan"
-- Count: a=1, n=1, t=1
-- Different key from "eat"
-- groups = {
-    "1#0#0#0#1#0#0#0#0#0#0#0#0#1#...": ["eat", "tea"],
-    "1#0#0#0#0#0#0#0#0#0#0#1#0#1#...": ["tan"]
-  }
-
-### Step 4: Process "ate"
-- Count: a=1, e=1, t=1 (same as "eat" and "tea")
-- Same key as "eat"
-- groups = {
-    "1#0#0#0#1#0#0#0#0#0#0#0#0#1#...": ["eat", "tea", "ate"],
-    "1#0#0#0#0#0#0#0#0#0#0#1#0#1#...": ["tan"]
-  }
-
-### Step 5: Process "nat"
-- Count: a=1, n=1, t=1 (same as "tan")
-- Same key as "tan"
-- groups = {
-    "1#0#0#0#1#0#0#0#0#0#0#0#0#1#...": ["eat", "tea", "ate"],
-    "1#0#0#0#0#0#0#0#0#0#0#1#0#1#...": ["tan", "nat"]
-  }
-
-### Step 6: Process "bat"
-- Count: a=1, b=1, t=1
-- New key
-- groups = {
-    "1#0#0#0#1#0#0#0#0#0#0#0#0#1#...": ["eat", "tea", "ate"],
-    "1#0#0#0#0#0#0#0#0#0#0#1#0#1#...": ["tan", "nat"],
-    "0#1#0#0#1#0#0#0#0#0#0#0#0#1#...": ["bat"]
-  }
-
-### Final Result
+````carousel
 ```python
-[["eat", "tea", "ate"], ["tan", "nat"], ["bat"]]
+from collections import Counter, defaultdict
+from typing import List
+
+class Solution:
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
+        """
+        Group anagrams using Counter as key.
+        
+        Time Complexity: O(N * K) where N is number of strings and K is average string length
+        Space Complexity: O(N * K) for storing groups
+        """
+        groups = defaultdict(list)
+        
+        for s in strs:
+            # Create a frozenset of character counts
+            # Using tuple of sorted items for hashability
+            key = tuple(sorted(Counter(s).items()))
+            groups[key].append(s)
+        
+        return list(groups.values())
 ```
-(Order may vary based on hash map iteration order)
+
+```java
+import java.util.*;
+
+class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        /*
+         * Java equivalent using HashMap with custom key representation.
+         *
+         * Time Complexity: O(N * K) where N is number of strings and K is average string length
+         * Space Complexity: O(N * K) for storing groups
+         */
+        if (strs == null || strs.length == 0) {
+            return new ArrayList<>();
+        }
+        
+        Map<String, List<String>> groups = new HashMap<>();
+        
+        for (String s : strs) {
+            int[] count = new int[26];
+            for (char c : s.toCharArray()) {
+                count[c - 'a']++;
+            }
+            
+            // Create key string representing counts
+            StringBuilder keyBuilder = new StringBuilder();
+            for (int i = 0; i < 26; i++) {
+                if (count[i] > 0) {
+                    keyBuilder.append((char)('a' + i));
+                    keyBuilder.append(count[i]);
+                }
+            }
+            String key = keyBuilder.toString();
+            
+            groups.computeIfAbsent(key, k -> new ArrayList<>()).add(s);
+        }
+        
+        return new ArrayList<>(groups.values());
+    }
+}
+```
+
+```cpp
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <algorithm>
+
+class Solution {
+public:
+    std::vector<std::vector<std::string>> groupAnagrams(std::vector<std::string>& strs) {
+        /*
+         * C++ equivalent using frequency-based key.
+         *
+         * Time Complexity: O(N * K) where N is number of strings and K is average string length
+         * Space Complexity: O(N * K) for storing groups
+         */
+        std::unordered_map<std::string, std::vector<std::string>> groups;
+        
+        for (const std::string& s : strs) {
+            std::vector<int> count(26, 0);
+            for (char c : s) {
+                count[c - 'a']++;
+            }
+            
+            std::string key;
+            for (int i = 0; i < 26; i++) {
+                if (count[i] > 0) {
+                    key += std::to_string(count[i]) + char('a' + i);
+                }
+            }
+            
+            groups[key].push_back(s);
+        }
+        
+        std::vector<std::vector<std::string>> result;
+        for (auto& pair : groups) {
+            result.push_back(pair.second);
+        }
+        
+        return result;
+    }
+};
+```
+
+```javascript
+/**
+ * @param {string[]} strs
+ * @return {string[][]}
+ */
+var groupAnagrams = function(strs) {
+    /*
+     * JavaScript equivalent using frequency-based key.
+     *
+     * Time Complexity: O(N * K) where N is number of strings and K is average string length
+     * Space Complexity: O(N * K) for storing groups
+     */
+    const groups = new Map();
+    
+    for (const s of strs) {
+        const count = new Array(26).fill(0);
+        for (let i = 0; i < s.length; i++) {
+            count[s.charCodeAt(i) - 97]++;
+        }
+        
+        // Create key string representing counts
+        let key = '';
+        for (let i = 0; i < 26; i++) {
+            if (count[i] > 0) {
+                key += count[i] + String.fromCharCode(97 + i);
+            }
+        }
+        
+        if (!groups.has(key)) {
+            groups.set(key, []);
+        }
+        groups.get(key).push(s);
+    }
+    
+    return Array.from(groups.values());
+};
+```
+````
+
+### Explanation Step-by-Step
+
+1. **Count Characters:** For each string, count the occurrences of each character.
+
+2. **Create Key:** Convert the count information into a hashable key format:
+   - Python: Use `Counter` and convert to sorted tuple of items
+   - Other languages: Build a string representation of non-zero counts
+
+3. **Group Strings:** Add the string to the appropriate group based on its key.
+
+4. **Return Results:** Extract and return all groups.
+
+### Complexity Analysis
+
+- **Time Complexity:** O(N × K) for counting plus O(1) for key generation.
+- **Space Complexity:** O(N × K) for storing all strings.
 
 ---
 
-## Time Complexity Comparison
+## Comparison of Approaches
 
-| Approach | Time Complexity | Space Complexity | Best For |
-|----------|-----------------|------------------|----------|
-| Sorting | O(n × k × log k) | O(n × k) | Simplicity, any character set |
-| Character Frequency | O(n × k) | O(n × k) | **Optimal - large inputs** |
-| Prime Product | O(n × k) | O(n × k) | Educational purposes |
+| Approach | Time Complexity | Space Complexity | Pros | Cons |
+|----------|-----------------|------------------|------|------|
+| Frequency Count | O(N × K) | O(N × K) | Optimal, handles long strings well | Slightly more complex key generation |
+| Sorted String | O(N × K × log K) | O(N × K) | Simple to understand and implement | Slower for longer strings |
+| Prime Multiplication | O(N × K) | O(N × K) | Mathematical elegance | Potential overflow, requires careful prime selection |
+| Counter-based | O(N × K) | O(N × K) | Pythonic and readable | Language-specific features |
 
 ---
 
 ## Related Problems
 
-1. **[Valid Anagram](valid-anagram.md)** - Check if two strings are anagrams (simpler version)
-2. **[Find All Anagrams in a String](find-all-anagrams-in-a-string.md)** - Find all starting indices of anagrams of pattern p in string s
-3. **[Group Anagrams II](https://leetcode.com/problems/group-anagrams/)** - Variant with different constraints
-4. **[Palindrome Permutation](https://leetcode.com/problems/palindrome-permutation/)** - Check if characters can be rearranged to form a palindrome
-5. **[Minimum Number of Steps to Make Two Strings Anagram](https://leetcode.com/problems/minimum-number-of-steps-to-make-two-strings-anagram/)** - Find minimum changes to make strings anagrams
+Here are some LeetCode problems that build on similar concepts (string manipulation, character counting, or grouping):
+
+- [Valid Anagram (Easy)](https://leetcode.com/problems/valid-anagram/) - Determine if two strings are anagrams of each other.
+- [Find All Anagrams in a String (Medium)](https://leetcode.com/problems/find-all-anagrams-in-a-string/) - Find all anagram starting indices in a string.
+- [Permutation in String (Medium)](https://leetcode.com/problems/permutation-in-string/) - Check if a string contains a permutation of another.
+- [Find the Difference of Two Arrays (Easy)](https://leetcode.com/problems/find-the-difference-of-two-arrays/) - Group-based problem using character counts.
+- [ Ransom Note (Easy)](https://leetcode.com/problems/ransom-note/) - Character frequency matching problem.
+- [Minimum Number of Steps to Make Two Strings Anagram (Medium)](https://leetcode.com/problems/minimum-number-of-steps-to-make-two-strings-anagram/) - Character count differences.
+- [Group Shifted Strings (Medium)](https://leetcode.com/problems/group-shifted-strings/) - Group strings that are shifted versions of each other.
 
 ---
 
-## Video Tutorials
+## Video Tutorial Links
 
-- [NeetCode - Group Anagrams Solution](https://www.youtube.com/watch?v=pt-2kGj4-Uk)
-- [Back to Back SWE - Group Anagrams](https://www.youtube.com/watch?v=vhgT3f91pm0)
-- [LeetCode Official Solution](https://www.youtube.com/watch?v=pt-2kGj4-Uk)
-- [TechDive - Group Anagrams](https://www.youtube.com/watch?v=vlggw8219hQ)
+For visual explanations, here are some recommended YouTube tutorials:
+
+- [Group Anagrams (LeetCode 49) | Full solution with visuals and animations](https://www.youtube.com/watch?v=vT4sJUnO3JU) - Comprehensive explanation of the frequency count approach.
+- [Group Anagrams - LeetCode 49 - Python](https://www.youtube.com/watch?v=ptdg7A_fjvw) - Python implementation with detailed breakdown.
+- [LeetCode 49. Group Anagrams Solution Explained](https://www.youtube.com/watch?v=0B-l0Bg_k54) - Java implementation with explanation.
+- [Group Anagrams (LeetCode 49) - JavaScript](https://www.youtube.com/watch?v=asc3xX7xGWs) - JavaScript solution walkthrough.
 
 ---
 
 ## Follow-up Questions
 
-1. **How would you modify the solution if the input could contain uppercase letters?**
-   - Answer: Convert all characters to lowercase first, or expand the count array to handle 52 letters.
+1. **How would you modify the solution if the input could contain uppercase letters and digits in addition to lowercase letters?**
 
-2. **What if the input strings could contain Unicode characters?**
-   - Answer: Use a HashMap/Map to count character frequencies dynamically instead of a fixed-size array.
+   **Answer:** You would need to expand your count array or key generation to accommodate the additional character types. For uppercase + lowercase + digits (26 + 26 + 10 = 62 characters), you could use an array of size 62 or a dictionary/map for sparse representation. Alternatively, use a sorted string or prime multiplication with a larger set of primes.
 
-3. **How would you return groups in alphabetical order?**
-   - Answer: After grouping, sort each group's strings and optionally sort the groups by their first element.
+2. **What if the strings can be very long (thousands of characters)? How does this affect performance?**
 
-4. **Can you solve this problem without using extra space (in-place)?**
-   - Answer: No, this problem inherently requires grouping, which needs additional data structures.
+   **Answer:** The frequency count approach (Approach 1) remains optimal at O(N × K). The sorted string approach (Approach 2) becomes significantly slower due to O(K log K) sorting. For very long strings, consider using counting sort since characters are from a limited alphabet (26 letters), which reduces sorting to O(K). The prime multiplication approach may also face integer overflow for extremely long strings.
 
-5. **What if you needed to count the number of unique anagram groups?**
-   - Answer: Simply return the size of the groups dictionary/hash map.
+3. **How would you handle Unicode characters beyond ASCII?**
 
-6. **How would you optimize for memory if the input is extremely large?**
-   - Answer: Consider streaming approaches or external sorting for disk-based data.
+   **Answer:** For Unicode, you would need to:
+   - Use a hash map (dictionary) for character counts instead of a fixed-size array
+   - For sorted string approach, Unicode sorting may vary by language/library
+   - Prime multiplication becomes impractical due to the large number of possible characters
+   - Consider using `defaultdict(int)` in Python or `HashMap<Character, Integer>` in Java for counting
 
-7. **What if you were asked to do this in a distributed system?**
-   - Answer: Use MapReduce - map each string to its sorted/counted key, then reduce by key.
+4. **How would you implement this if you needed to return the groups sorted alphabetically within each group?**
 
-8. **How would you handle strings with spaces and punctuation?**
-   - Answer: Preprocess by removing non-letter characters before counting.
+   **Answer:** After collecting all groups, sort each individual group's strings alphabetically before returning. In Python: `for group in groups.values(): group.sort()`. In Java: `Collections.sort(group)`. This adds O(G × S × log S) where G is number of groups and S is average group size.
+
+5. **What if you needed to count the total number of unique characters across all groups?**
+
+   **Answer:** This is a set union problem. You could:
+   - Iterate through all strings and build a global frequency count
+   - Or use a Set of all characters seen across all strings
+   - The answer is simply the number of unique characters, which for lowercase letters is at most 26
+
+6. **How would you modify the solution to handle extremely large inputs (millions of strings) with limited memory?**
+
+   **Answer:** For large-scale processing:
+   - Use streaming approaches to process strings in batches
+   - Consider external sorting for the sorted approach
+   - Use disk-based hash maps or databases for persistence
+   - Implement map-reduce patterns for distributed processing
+   - Consider approximate grouping algorithms if exact results aren't required
+
+7. **What if you needed to find the largest group of anagrams?**
+
+   **Answer:** Track the group sizes as you build them and keep track of the maximum. This can be done by maintaining variables for `max_size` and `largest_group` as you process each string. The final answer is `largest_group` after processing all strings.
+
+8. **How would you implement this if the strings could contain Unicode graphemes (like emoji) that may be composed of multiple code points?**
+
+   **Answer:** You would need proper Unicode normalization before processing:
+   - Use `unicodedata.normalize('NFC', s)` in Python to normalize composed characters
+   - Use appropriate normalization libraries in other languages
+   - The counting approach works at the code point level, which may over-count graphemes
+   - Consider using regex with grapheme cluster support if available
+
+9. **What are the thread-safety concerns with the hash map approach, and how would you address them?**
+
+   **Answer:** Hash map operations are not atomic in most languages. For multi-threaded scenarios:
+   - Use thread-safe data structures (ConcurrentHashMap in Java, concurrent dictionary in C#)
+   - Use locks/mutexes around critical sections
+   - Process strings in parallel but use a thread-safe aggregator
+   - Consider divide-and-conquer: partition strings, process in parallel, merge results
+
+10. **How would you estimate memory usage before processing if given a large dataset?**
+
+    **Answer:** Estimate based on:
+    - Total characters: N × K
+    - Hash map overhead: ~2-3x the data size for Java/Python
+    - Key storage: frequency arrays use constant O(1) space, sorted strings use O(K)
+    - For frequency approach: estimate (N × average_group_size × average_string_length)
+    - Use sampling: process a small subset to estimate average sizes
 
 ---
 
-## Common Mistakes to Avoid
+## LeetCode Link
 
-1. **Not handling empty strings** - Empty strings are valid anagrams of each other
-2. **Using a list as a dictionary key in Python** - Lists are not hashable; use tuple() instead
-3. **Forgetting that sorting is O(k log k)** - Can be slow for many long strings
-4. **Not considering case sensitivity** - Decide if 'A' and 'a' are the same
-5. **Integer overflow in prime product approach** - Use big integers or switch to frequency counting
-
----
-
-## References
-
-- [LeetCode 49 - Group Anagrams](https://leetcode.com/problems/group-anagrams/)
-- Character Frequency Pattern: Efficient counting for fixed character sets
-- Hash Map Grouping: Classic technique for clustering similar items
-
+[Group Anagrams - LeetCode](https://leetcode.com/problems/group-anagrams/)
