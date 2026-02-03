@@ -1,12 +1,10 @@
-# Support legacy paths if needed, while rooting at /
-/smartgrind/api/*    /api/:splat   200
+# Handle the /smartgrind/ prefix by stripping it for static assets
+/smartgrind/assets/* /assets/:splat 200
 /smartgrind/logo.svg /logo.svg 200
 /smartgrind/manifest.json /manifest.json 200
-/smartgrind/styles.css /styles.css 200
-/smartgrind/modules/* /assets/:splat 200
-/smartgrind/solutions/* /solutions/:splat 200
-/smartgrind/patterns/* /patterns/:splat 200
-/smartgrind/*    /index.html   200
 
-# SPA fallback
+# SPA fallback: redirect all other /smartgrind/ paths to index.html
+/smartgrind/* /index.html 200
+
+# Global SPA fallback
 /* /index.html 200

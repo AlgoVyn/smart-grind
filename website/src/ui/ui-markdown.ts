@@ -123,8 +123,8 @@ export const _configureMarkdownRenderer = () => {
                     innerLang === 'cpp'
                         ? 'C++'
                         : innerLang === 'javascript'
-                            ? 'JavaScript'
-                            : innerLang.charAt(0).toUpperCase() + innerLang.slice(1);
+                          ? 'JavaScript'
+                          : innerLang.charAt(0).toUpperCase() + innerLang.slice(1);
 
                 // Tab Button
                 const activeTabClass =

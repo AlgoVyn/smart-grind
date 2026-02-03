@@ -2,14 +2,14 @@
   "name": "SmartGrind",
   "short_name": "SmartGrind",
   "description": "Master coding patterns with spaced repetition.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#0f0f23",
   "theme_color": "#0085d0",
   "icons": [
     {
-      "src": "/logo.svg",
+      "src": "logo.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"

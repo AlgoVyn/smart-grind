@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 import path from 'path';
 
 export default defineConfig({
+    base: '/smartgrind/',
     root: '.',
     publicDir: 'public',
     build: {

@@ -644,9 +644,7 @@ describe('SmartGrind UI', () => {
 
         test('opens signin modal for local users', () => {
             // Import openSigninModal directly and spy on it
-            const {
-                openSigninModal: _openSigninModal,
-            } = require('../src/ui/ui-modals');
+            const { openSigninModal: _openSigninModal } = require('../src/ui/ui-modals');
             const openSigninModalSpy = jest.spyOn(
                 require('../src/ui/ui-modals'),
                 'openSigninModal'
