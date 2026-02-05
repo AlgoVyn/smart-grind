@@ -64,6 +64,22 @@ describe('SmartGrind API Module', () => {
         utils.showToast = jest.fn();
     });
 
+    /**
+     * Helper to create a mock response with proper URL and headers for origin validation
+     */
+    const createMockResponse = (options: { ok: boolean; status?: number; json?: () => Promise<any>; url?: string }) => ({
+        ...options,
+        url: options.url || '/smartgrind/api/user',
+        headers: {
+            get: (name: string) => {
+                if (name === 'Origin') {
+                    return window.location.origin;
+                }
+                return null;
+            }
+        }
+    });
+
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -145,11 +161,11 @@ describe('SmartGrind API Module', () => {
         test('should save data remotely for signed-in user', async () => {
             state.user.type = 'signed-in';
             mockFetch
-                .mockResolvedValueOnce({
+                .mockResolvedValueOnce(createMockResponse({
                     ok: true,
                     json: () => Promise.resolve({ csrfToken: 'test-token' }),
-                })
-                .mockResolvedValueOnce({ ok: true });
+                }))
+                .mockResolvedValueOnce(createMockResponse({ ok: true }));
 
             await apiSave._saveRemotely();
 
@@ -170,11 +186,11 @@ describe('SmartGrind API Module', () => {
 
         test('should throw error on auth failure', async () => {
             mockFetch
-                .mockResolvedValueOnce({
+                .mockResolvedValueOnce(createMockResponse({
                     ok: true,
                     json: () => Promise.resolve({ csrfToken: 'test-token' }),
-                })
-                .mockResolvedValueOnce({ ok: false, status: 401 });
+                }))
+                .mockResolvedValueOnce(createMockResponse({ ok: false, status: 401 }));
 
             await expect(apiSave._saveRemotely()).rejects.toThrow(
                 'Authentication failed. Please sign in again.'
@@ -183,11 +199,11 @@ describe('SmartGrind API Module', () => {
 
         test('should throw error on server error', async () => {
             mockFetch
-                .mockResolvedValueOnce({
+                .mockResolvedValueOnce(createMockResponse({
                     ok: true,
                     json: () => Promise.resolve({ csrfToken: 'test-token' }),
-                })
-                .mockResolvedValueOnce({ ok: false, status: 500 });
+                }))
+                .mockResolvedValueOnce(createMockResponse({ ok: false, status: 500 }));
 
             await expect(apiSave._saveRemotely()).rejects.toThrow(
                 'Server error. Please try again later.'
@@ -208,11 +224,11 @@ describe('SmartGrind API Module', () => {
         test('should call _saveRemotely for signed-in user', async () => {
             state.user.type = 'signed-in';
             mockFetch
-                .mockResolvedValueOnce({
+                .mockResolvedValueOnce(createMockResponse({
                     ok: true,
                     json: () => Promise.resolve({ csrfToken: 'test-token' }),
-                })
-                .mockResolvedValueOnce({ ok: true });
+                }))
+                .mockResolvedValueOnce(createMockResponse({ ok: true }));
 
             await apiSave._performSave();
 
@@ -223,11 +239,11 @@ describe('SmartGrind API Module', () => {
         test('should show alert on save error', async () => {
             state.user.type = 'signed-in';
             mockFetch
-                .mockResolvedValueOnce({
+                .mockResolvedValueOnce(createMockResponse({
                     ok: true,
                     json: () => Promise.resolve({ csrfToken: 'test-token' }),
-                })
-                .mockResolvedValueOnce({ ok: false, status: 500 });
+                }))
+                .mockResolvedValueOnce(createMockResponse({ ok: false, status: 500 }));
 
             await expect(apiSave._performSave()).rejects.toThrow(
                 'Server error. Please try again later.'
@@ -309,7 +325,7 @@ describe('SmartGrind API Module', () => {
                 problems: { '1': { id: '1', name: 'Test Problem', status: 'unsolved' } },
                 deletedIds: ['2'],
             };
-            mockFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(userData) });
+            mockFetch.mockResolvedValue(createMockResponse({ ok: true, json: () => Promise.resolve(userData) }));
 
             await api.loadData();
 
@@ -325,7 +341,7 @@ describe('SmartGrind API Module', () => {
         });
 
         test('should handle auth error', async () => {
-            mockFetch.mockResolvedValue({ ok: false, status: 401 });
+            mockFetch.mockResolvedValue(createMockResponse({ ok: false, status: 401 }));
 
             await api.loadData();
 
@@ -336,7 +352,7 @@ describe('SmartGrind API Module', () => {
         });
 
         test('should handle user not found', async () => {
-            mockFetch.mockResolvedValue({ ok: false, status: 404 });
+            mockFetch.mockResolvedValue(createMockResponse({ ok: false, status: 404 }));
 
             await api.loadData();
 

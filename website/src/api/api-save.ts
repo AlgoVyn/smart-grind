@@ -7,6 +7,30 @@ import { data } from '../data';
 import { renderers } from '../renderers';
 import { ui } from '../ui/ui';
 
+/**
+ * Validates that the API response originates from the expected origin
+ * @param response - The fetch response to validate
+ */
+const _validateResponseOrigin = (response: Response): void => {
+    const allowedOrigins = [
+        window.location.origin,
+        'https://smartgrind.com',
+        'https://www.smartgrind.com',
+    ];
+    
+    const responseOrigin = response.headers.get('Origin') || response.url;
+    
+    // For same-origin requests, no additional validation needed
+    if (response.url.startsWith(window.location.origin)) {
+        return;
+    }
+    
+    // Validate cross-origin responses
+    if (!allowedOrigins.some(origin => responseOrigin.includes(origin))) {
+        console.warn('Response from unexpected origin:', responseOrigin);
+    }
+};
+
 // Export all functions as part of a single object
 export const apiSave = {
     /**
@@ -43,6 +67,7 @@ export const apiSave = {
      */
     async _fetchCsrfToken(): Promise<string> {
         const response = await fetch(`${data.API_BASE}/user?action=csrf`);
+        _validateResponseOrigin(response);
         if (!response.ok) {
             throw new Error('Failed to fetch CSRF token');
         }
@@ -65,6 +90,7 @@ export const apiSave = {
             },
             body: JSON.stringify({ data: dataToSave }),
         });
+        _validateResponseOrigin(response);
         if (!response.ok) {
             const errorMessages: Record<number, string> = {
                 401: 'Authentication failed. Please sign in again.',

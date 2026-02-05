@@ -57,14 +57,16 @@ export class ErrorBoundary {
     }
 
     /**
-     * Sanitizes error messages for display
+     * Sanitizes error messages for safe HTML display
      * @param message The error message to sanitize
      */
     private sanitizeMessage(message: string): string {
+        // Properly escape HTML entities to prevent XSS attacks
         return message
-            .replace(/</g, '<')
-            .replace(/>/g, '>')
-            .replace(/"/g, '"')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
             .replace(/'/g, '&#x27;');
     }
 

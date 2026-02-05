@@ -84,20 +84,54 @@ export const statsRenderers = {
         renderers._updateSidebarStats();
         renderers._updateReviewBanner(due);
 
-        // Refresh sidebar to update percentages
-        renderers.renderSidebar();
+        // Only update sidebar stats percentages instead of full re-render (performance optimization)
+        renderers._updateSidebarStatsOnly();
     },
 
-    // Update filter button states
+    // Optimized: Update only sidebar stats percentages without full re-render
+    _updateSidebarStatsOnly: () => {
+        // Cache all topic stats to avoid recalculating for each button
+        const statsCache = new Map<string, { total: number; solved: number }>();
+        data.topicsData.forEach((topic: Topic) => {
+            statsCache.set(topic.id, utils.getUniqueProblemsForTopic(topic.id));
+        });
+
+        // Update all topic buttons in a single pass using dataset (compatible with mock)
+        const topicBtns = document.querySelectorAll('.sidebar-link[data-topic-id]');
+        topicBtns.forEach((btn) => {
+            const htmlBtn = btn as HTMLElement;
+            const topicId = htmlBtn.dataset['topicId']; // Use dataset instead of getAttribute
+            const stats = topicId ? statsCache.get(topicId) : null;
+            if (stats) {
+                const pct = stats.total > 0 ? Math.round((stats.solved / stats.total) * 100) : 0;
+                const pctSpan = htmlBtn.querySelector('span:last-child');
+                if (pctSpan) {
+                    pctSpan.textContent = `${pct}%`;
+                    pctSpan.className = pct === 100 
+                        ? 'text-[10px] text-green-400 font-mono min-w-[24px] text-right transition-colors'
+                        : 'text-[10px] text-theme-muted group-hover:text-theme-base font-mono min-w-[24px] text-right transition-colors';
+                }
+            }
+        });
+    },
+
+    // Update filter button states (optimized with batch class updates)
     updateFilterBtns: () => {
         const filterBtns = state.elements['filterBtns'] as unknown as NodeListOf<HTMLElement>;
-        filterBtns?.forEach((b: HTMLElement) => {
-            if (b.dataset['filter'] === state.ui.currentFilter) {
-                b.classList.add('bg-brand-600', 'text-white');
-                b.classList.remove('text-theme-bold');
+        if (!filterBtns) return;
+
+        // Pre-define class lists to avoid repeated string concatenation
+        const activeClasses = ['bg-brand-600', 'text-white'];
+        const inactiveClasses = ['text-theme-bold'];
+
+        filterBtns.forEach((b: HTMLElement) => {
+            const isActive = b.dataset['filter'] === state.ui.currentFilter;
+            if (isActive) {
+                b.classList.remove(...inactiveClasses);
+                b.classList.add(...activeClasses);
             } else {
-                b.classList.remove('bg-brand-600', 'text-white');
-                b.classList.add('text-theme-bold');
+                b.classList.remove(...activeClasses);
+                b.classList.add(...inactiveClasses);
             }
         });
     },

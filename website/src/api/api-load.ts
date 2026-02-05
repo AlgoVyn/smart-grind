@@ -9,6 +9,30 @@ import { ui } from '../ui/ui';
 import { syncPlan, mergeStructure } from './api-sync';
 
 /**
+ * Validates that the API response originates from the expected origin
+ * @param response - The fetch response to validate
+ */
+const _validateResponseOrigin = (response: Response): void => {
+    const allowedOrigins = [
+        window.location.origin,
+        'https://smartgrind.com',
+        'https://www.smartgrind.com',
+    ];
+    
+    const responseOrigin = response.headers.get('Origin') || response.url;
+    
+    // For same-origin requests, no additional validation needed
+    if (response.url.startsWith(window.location.origin)) {
+        return;
+    }
+    
+    // Validate cross-origin responses
+    if (!allowedOrigins.some(origin => responseOrigin.includes(origin))) {
+        console.warn('Response from unexpected origin:', responseOrigin);
+    }
+};
+
+/**
  * Handles API response errors by throwing appropriate error messages.
  * @param {Response} response - The fetch response object.
  * @throws {Error} Throws an error with a user-friendly message based on status.
@@ -66,7 +90,7 @@ export const loadData = async (): Promise<void> => {
 
     try {
         const response = await fetch(`${data.API_BASE}/user`);
-
+        _validateResponseOrigin(response);
         if (!response.ok) _handleApiError(response);
 
         const userData: UserData = await response.json();

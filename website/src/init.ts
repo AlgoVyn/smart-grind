@@ -1,4 +1,11 @@
 // --- INITIALIZATION ---
+// IMPORTANT SECURITY NOTES:
+// - LocalStorage is used for storing user session data.
+// - WARNING: LocalStorage is vulnerable to XSS attacks. If malicious code can access the page,
+//   it can read all localStorage data. For production with sensitive data:
+//   - Consider using httpOnly cookies for authentication tokens
+//   - Implement Content Security Policy (CSP) headers
+//   - Encrypt sensitive data before storing
 
 import { Topic } from './types';
 import { state } from './state';
@@ -73,9 +80,22 @@ const checkAuth = async () => {
 
     // Handle PWA auth callback
     if (urlToken && urlUserId && urlDisplayName) {
-        localStorage.setItem('token', urlToken);
+        // Validate token format before storing (basic validation)
+        // Tokens should be non-empty and reasonably sized
+        if (urlToken.length < 10 || urlToken.length > 1000) {
+            console.error('Invalid token format received');
+            ui.showAlert('Invalid authentication token. Please try signing in again.');
+            return;
+        }
+        
+        // Sanitize display name to prevent XSS
+        const sanitizedDisplayName = utils.sanitizeInput(urlDisplayName) || 'User';
+        
+        // Clear URL parameters immediately for security
         window.history.replaceState({}, document.title, window.location.pathname);
-        await _setupSignedInUser(urlUserId, urlDisplayName, categoryParam);
+        
+        localStorage.setItem('token', urlToken);
+        await _setupSignedInUser(urlUserId, sanitizedDisplayName, categoryParam);
         return;
     }
 

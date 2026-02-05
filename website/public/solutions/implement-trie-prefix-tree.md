@@ -2,157 +2,150 @@
 
 ## Problem Description
 
-A **Trie** (pronounced "try") or prefix tree is a tree data structure used to efficiently store and retrieve keys in a dataset of strings. Common applications include autocomplete suggestions, spell checkers, and IP routing (longest prefix matching).
+A [Trie](https://en.wikipedia.org/wiki/Trie) (also known as a prefix tree) is a tree-like data structure that efficiently stores and retrieves strings based on their prefixes. Each node in the trie represents a character, and the path from the root to a node represents a prefix of one or more inserted words.
 
-Implement the `Trie` class with the following methods:
+Implement a Trie class that supports the following operations:
 
-- `Trie()` - Initializes the trie object.
-- `void insert(String word)` - Inserts the string `word` into the trie.
-- `boolean search(String word)` - Returns `true` if the string `word` is in the trie (i.e., was inserted before), and `false` otherwise.
-- `boolean startsWith(String prefix)` - Returns `true` if there is any previously inserted string that has the prefix `prefix`, and `false` otherwise.
-
----
-
-## Examples
+1. **`insert(word)`** - Inserts a string `word` into the trie.
+2. **`search(word)`** - Returns `true` if the string `word` is in the trie (i.e., inserted previously).
+3. **`startsWith(prefix)`** - Returns `true` if there is any string in the trie that has the `prefix`.
 
 ### Example 1
 
 **Input:**
-```python
-["Trie", "insert", "search", "search", "startsWith", "insert", "search"]
-[[], ["apple"], ["apple"], ["app"], ["app"], ["app"], ["app"]]
+```
+Trie obj = new Trie();
+obj.insert("apple");
+obj.search("apple");   // returns true
+obj.search("app");     // returns false
+obj.startsWith("app"); // returns true
+obj.insert("app");
+obj.search("app");     // returns true
 ```
 
-**Output:**
-```python
-[null, null, true, false, true, null, true]
-```
-
-**Explanation:**
-```python
-Trie trie = new Trie();
-trie.insert("apple");
-trie.search("apple");    // return true
-trie.search("app");      // return false (prefix but not complete word)
-trie.startsWith("app");  // return true (prefix exists)
-trie.insert("app");
-trie.search("app");      // return true (now "app" is a complete word)
-```
+**Output:** Operations complete successfully with expected results.
 
 ### Example 2
 
 **Input:**
-```python
-["Trie", "insert", "search", "startsWith"]
-[[], ["hello"], ["hello"], ["hell"]]
+```
+Trie obj = new Trie();
+obj.insert("cad");
+obj.startsWith("ca");  // returns true
+obj.search("ca");      // returns false (not inserted)
+obj.insert("ca");
+obj.search("ca");      // returns true
 ```
 
-**Output:**
-```python
-[null, null, true, true]
-```
+**Output:** Operations complete successfully with expected results.
 
-### Example 3
+### Constraints
 
-**Input:**
-```python
-["Trie", "search", "startsWith", "insert", "search", "startsWith"]
-[[], ["a"], ["ab"], ["ab"], ["ab"], ["a"]]
-```
-
-**Output:**
-```python
-[null, false, false, null, true, true]
-```
-
----
-
-## Constraints
-
+- `word` and `prefix` consist only of lowercase English letters (`a` to `z`)
 - `1 <= word.length, prefix.length <= 2000`
-- `word` and `prefix` consist only of lowercase English letters (`'a'` to `'z'`).
-- At most `3 * 10⁴` calls in total will be made to `insert`, `search`, and `startsWith`.
-- Methods `search` and `startsWith` will be called on at most `3000` different words or prefixes.
+- Up to `10^4` operations may be performed
+- All operations are called with valid inputs
 
 ---
 
 ## Intuition
 
-The key insight behind a Trie is to leverage the structure of strings to enable efficient prefix-based operations:
+The trie data structure exploits the fact that strings share common prefixes. Instead of storing each string independently, we share nodes for common character prefixes, making prefix-based operations extremely efficient.
 
-1. **Tree Structure**: Each node in the trie represents a character. The root represents an empty string, and paths from root to nodes represent prefixes.
+### Key Insights
 
-2. **Shared Prefixes**: Words with common prefixes share the same nodes, making storage efficient for datasets with many related words.
+1. **Tree Structure**: A trie is a tree where each path from the root represents a string or prefix. The root is an empty node, and each edge represents a character.
 
-3. **Early Termination**: During search operations, we can quickly determine if a prefix exists by traversing the tree character by character.
+2. **Node Design**: Each node needs:
+   - An array or map of children (26 for lowercase letters)
+   - A boolean flag indicating if this node marks the end of a valid word
 
-4. **End-of-Word Marker**: Each node needs a flag to indicate whether it marks the end of a valid word (distinguishing "app" from "apple").
+3. **Efficiency**: By following character-by-character paths, we can:
+   - Insert a word in O(L) time where L is the word length
+   - Search for a word in O(L) time
+   - Check for a prefix in O(P) time where P is the prefix length
+
+### Why Use a Trie?
+
+- **Prefix Queries**: Unlike hash tables, tries excel at prefix-based operations like `startsWith()`
+- **Alphabetical Ordering**: Words are stored in sorted order naturally
+- **Space Efficiency for Related Words**: Words sharing prefixes share nodes
+- **No Hash Collisions**: Direct character-based lookup
 
 ---
 
-## Approach 1: Hash Map-based Trie ⭐
+## Approach 1: Array-Based Trie (Most Common)
 
-### Algorithm
+This is the standard implementation using an array of size 26 for children at each node.
 
-This approach uses a dictionary/hash map to store child nodes, providing flexibility and ease of implementation.
-
-1. **Node Structure**: Each node contains:
-   - `children`: A dictionary mapping characters to child nodes
-   - `is_end`: A boolean flag indicating if this node completes a word
-
-2. **Insert**: Traverse/create nodes for each character, mark `is_end = True` at the end.
-
-3. **Search**: Traverse characters, check if path exists and if final node has `is_end = True`.
-
-4. **startsWith**: Traverse characters, only check if path exists (don't verify `is_end`).
+### Python Solution
 
 ````carousel
-<!-- slide -->
 ```python
+class TrieNode:
+    def __init__(self):
+        self.children = [None] * 26
+        self.is_end_of_word = False
+
 class Trie:
     def __init__(self):
-        self.children = {}  # Maps character to child Trie node
-        self.is_end = False  # Marks the end of a word
-
+        self.root = TrieNode()
+    
+    def _char_to_index(self, char: str) -> int:
+        """Convert a character to its index (0-25)"""
+        return ord(char) - ord('a')
+    
     def insert(self, word: str) -> None:
-        """Inserts the string word into the trie."""
-        node = self
-        for c in word:
-            if c not in node.children:
-                node.children[c] = Trie()
-            node = node.children[c]
-        node.is_end = True
-
+        """Inserts a word into the trie"""
+        node = self.root
+        for char in word:
+            index = self._char_to_index(char)
+            if node.children[index] is None:
+                node.children[index] = TrieNode()
+            node = node.children[index]
+        node.is_end_of_word = True
+    
     def search(self, word: str) -> bool:
-        """Returns true if the string word is in the trie."""
-        node = self
-        for c in word:
-            if c not in node.children:
-                return False
-            node = node.children[c]
-        return node.is_end
-
+        """Searches for a word in the trie"""
+        node = self._search_prefix(word)
+        return node is not None and node.is_end_of_word
+    
     def startsWith(self, prefix: str) -> bool:
-        """Returns true if there is a word with the given prefix."""
-        node = self
-        for c in prefix:
-            if c not in node.children:
-                return False
-            node = node.children[c]
-        return True
+        """Checks if any word starts with the given prefix"""
+        return self._search_prefix(prefix) is not None
+    
+    def _search_prefix(self, prefix: str) -> TrieNode:
+        """Helper function to search for a prefix and return the node"""
+        node = self.root
+        for char in prefix:
+            index = self._char_to_index(char)
+            if node.children[index] is None:
+                return None
+            node = node.children[index]
+        return node
 ```
-
 <!-- slide -->
 ```cpp
-class Trie {
-    
-private:
-    struct TrieNode {
-        unordered_map<char, TrieNode*> children;
-        bool is_end = false;
-    };
-    TrieNode* root;
+#include <vector>
+#include <string>
+using namespace std;
 
+class TrieNode {
+public:
+    vector<TrieNode*> children;
+    bool is_end_of_word;
+    
+    TrieNode() : children(26, nullptr), is_end_of_word(false) {}
+};
+
+class Trie {
+private:
+    TrieNode* root;
+    
+    int charToIndex(char c) {
+        return c - 'a';
+    }
+    
 public:
     Trie() {
         root = new TrieNode();
@@ -161,46 +154,51 @@ public:
     void insert(string word) {
         TrieNode* node = root;
         for (char c : word) {
-            if (node->children.find(c) == node->children.end()) {
-                node->children[c] = new TrieNode();
+            int index = charToIndex(c);
+            if (node->children[index] == nullptr) {
+                node->children[index] = new TrieNode();
             }
-            node = node->children[c];
+            node = node->children[index];
         }
-        node->is_end = true;
+        node->is_end_of_word = true;
     }
     
     bool search(string word) {
-        TrieNode* node = root;
-        for (char c : word) {
-            if (node->children.find(c) == node->children.end()) {
-                return false;
-            }
-            node = node->children[c];
-        }
-        return node->is_end;
+        TrieNode* node = searchPrefix(word);
+        return node != nullptr && node->is_end_of_word;
     }
     
     bool startsWith(string prefix) {
+        return searchPrefix(prefix) != nullptr;
+    }
+    
+private:
+    TrieNode* searchPrefix(string prefix) {
         TrieNode* node = root;
         for (char c : prefix) {
-            if (node->children.find(c) == node->children.end()) {
-                return false;
+            int index = charToIndex(c);
+            if (node->children[index] == nullptr) {
+                return nullptr;
             }
-            node = node->children[c];
+            node = node->children[index];
         }
-        return true;
+        return node;
     }
 };
 ```
-
 <!-- slide -->
 ```java
-class Trie {
-    private class TrieNode {
-        Map<Character, TrieNode> children = new HashMap<>();
-        boolean is_end = false;
-    }
+class TrieNode {
+    TrieNode[] children;
+    boolean isEndOfWord;
     
+    TrieNode() {
+        children = new TrieNode[26];
+        isEndOfWord = false;
+    }
+}
+
+class Trie {
     private TrieNode root;
     
     public Trie() {
@@ -209,408 +207,195 @@ class Trie {
     
     public void insert(String word) {
         TrieNode node = root;
-        for (char c : word.toCharArray()) {
-            node.children.putIfAbsent(c, new TrieNode());
-            node = node.children.get(c);
+        for (int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            int index = c - 'a';
+            if (node.children[index] == null) {
+                node.children[index] = new TrieNode();
+            }
+            node = node.children[index];
         }
-        node.is_end = true;
+        node.isEndOfWord = true;
     }
     
     public boolean search(String word) {
-        TrieNode node = root;
-        for (char c : word.toCharArray()) {
-            if (!node.children.containsKey(c)) {
-                return false;
-            }
-            node = node.children.get(c);
-        }
-        return node.is_end;
+        TrieNode node = searchPrefix(word);
+        return node != null && node.isEndOfWord;
     }
     
     public boolean startsWith(String prefix) {
+        return searchPrefix(prefix) != null;
+    }
+    
+    private TrieNode searchPrefix(String prefix) {
         TrieNode node = root;
-        for (char c : prefix.toCharArray()) {
-            if (!node.children.containsKey(c)) {
-                return false;
+        for (int i = 0; i < prefix.length(); i++) {
+            char c = prefix.charAt(i);
+            int index = c - 'a';
+            if (node.children[index] == null) {
+                return null;
             }
-            node = node.children.get(c);
+            node = node.children[index];
         }
-        return true;
+        return node;
     }
 }
 ```
-
 <!-- slide -->
 ```javascript
+class TrieNode {
+    constructor() {
+        this.children = {};
+        this.isEndOfWord = false;
+    }
+}
+
 class Trie {
     constructor() {
         this.root = new TrieNode();
     }
     
+    /**
+     * @param {string} word
+     * @return {void}
+     */
     insert(word) {
         let node = this.root;
         for (let i = 0; i < word.length; i++) {
             const char = word[i];
-            if (!node.children.has(char)) {
-                node.children.set(char, new TrieNode());
+            if (!node.children[char]) {
+                node.children[char] = new TrieNode();
             }
-            node = node.children.get(char);
+            node = node.children[char];
         }
-        node.is_end = true;
+        node.isEndOfWord = true;
     }
     
+    /**
+     * @param {string} word
+     * @return {boolean}
+     */
     search(word) {
-        let node = this.root;
-        for (let i = 0; i < word.length; i++) {
-            const char = word[i];
-            if (!node.children.has(char)) {
-                return false;
-            }
-            node = node.children.get(char);
-        }
-        return node.is_end;
+        const node = this.searchPrefix(word);
+        return node !== null && node.isEndOfWord;
     }
     
+    /**
+     * @param {string} prefix
+     * @return {boolean}
+     */
     startsWith(prefix) {
+        return this.searchPrefix(prefix) !== null;
+    }
+    
+    /**
+     * @param {string} prefix
+     * @return {TrieNode|null}
+     */
+    searchPrefix(prefix) {
         let node = this.root;
         for (let i = 0; i < prefix.length; i++) {
             const char = prefix[i];
-            if (!node.children.has(char)) {
-                return false;
+            if (!node.children[char]) {
+                return null;
             }
-            node = node.children.get(char);
+            node = node.children[char];
         }
-        return true;
-    }
-}
-
-class TrieNode {
-    constructor() {
-        this.children = new Map();
-        this.is_end = false;
+        return node;
     }
 }
 ```
 ````
+
+### Explanation
+
+1. **TrieNode Class**: Each node contains:
+   - `children`: Array of 26 child nodes (one for each letter)
+   - `is_end_of_word`: Boolean indicating if this node completes a word
+
+2. **insert()**: Traverses/creates nodes for each character, marking the final node as end-of-word.
+
+3. **search()**: Traverses the trie following the word's characters. Returns true only if we reach the end and it's marked as a word.
+
+4. **startsWith()**: Same traversal as search but doesn't require end-of-word marking.
+
+### Complexity Analysis
+
+| Metric | Complexity |
+|--------|-------------|
+| **Time Complexity (insert)** | O(L) where L is the word length |
+| **Time Complexity (search)** | O(L) where L is the word length |
+| **Time Complexity (startsWith)** | O(P) where P is the prefix length |
+| **Space Complexity** | O(N × L) where N is the number of words and L is average word length |
+
+### Why This Works
+
+The array-based trie provides O(1) access to child nodes by using direct indexing. Each operation simply traverses the trie character by character, creating or following nodes as needed. The space-time tradeoff is acceptable since we're optimizing for fast lookups.
+
 ---
 
-### Time Complexity
+## Approach 2: HashMap-Based Trie (Space Optimized)
 
-| Operation | Time Complexity | Space Complexity |
-|-----------|-----------------|------------------|
-| Insert | O(m) | O(m) where m is word length |
-| Search | O(m) | O(1) |
-| startsWith | O(m) | O(1) |
+This approach uses a HashMap instead of a fixed-size array for children, saving space when the alphabet is sparse.
 
-### Space Complexity
-
-**Overall:** O(n * m) where n is the number of words and m is the average word length.
-
----
-
-## Approach 2: Array-based Trie
-
-### Algorithm
-
-This approach uses a fixed-size array (size 26 for lowercase letters) to store child nodes, providing faster access at the cost of more memory.
-
-1. **Node Structure**: Each node contains:
-   - `children`: An array of size 26, initialized to `null`
-   - `is_end`: A boolean flag
-
-2. **Index Calculation**: `index = ord(char) - ord('a')` to map characters to array indices.
+### Python Solution
 
 ````carousel
-<!-- slide -->
-```python
-class Trie:
-    def __init__(self):
-        self.children = [None] * 26
-        self.is_end = False
-
-    def insert(self, word: str) -> None:
-        node = self
-        for c in word:
-            idx = ord(c) - ord('a')
-            if not node.children[idx]:
-                node.children[idx] = Trie()
-            node = node.children[idx]
-        node.is_end = True
-
-    def search(self, word: str) -> bool:
-        node = self
-        for c in word:
-            idx = ord(c) - ord('a')
-            if not node.children[idx]:
-                return False
-            node = node.children[idx]
-        return node.is_end
-
-    def startsWith(self, prefix: str) -> bool:
-        node = self
-        for c in prefix:
-            idx = ord(c) - ord('a')
-            if not node.children[idx]:
-                return False
-            node = node.children[idx]
-        return True
-```
-
-<!-- slide -->
-```cpp
-class Trie {
-
-private:
-    struct TrieNode {
-        TrieNode* children[26];
-        bool is_end;
-        TrieNode() {
-            for (int i = 0; i < 26; i++) {
-                children[i] = nullptr;
-            }
-            is_end = false;
-        }
-    };
-    TrieNode* root;
-
-public:
-    Trie() {
-        root = new TrieNode();
-    }
-    
-    void insert(string word) {
-        TrieNode* node = root;
-        for (char c : word) {
-            int idx = c - 'a';
-            if (!node->children[idx]) {
-                node->children[idx] = new TrieNode();
-            }
-            node = node->children[idx];
-        }
-        node->is_end = true;
-    }
-    
-    bool search(string word) {
-        TrieNode* node = root;
-        for (char c : word) {
-            int idx = c - 'a';
-            if (!node->children[idx]) {
-                return false;
-            }
-            node = node->children[idx];
-        }
-        return node->is_end;
-    }
-    
-    bool startsWith(string prefix) {
-        TrieNode* node = root;
-        for (char c : prefix) {
-            int idx = c - 'a';
-            if (!node->children[idx]) {
-                return false;
-            }
-            node = node->children[idx];
-        }
-        return true;
-    }
-};
-```
-
-<!-- slide -->
-```java
-class Trie {
-    private class TrieNode {
-        TrieNode[] children = new TrieNode[26];
-        boolean is_end = false;
-    }
-    
-    private TrieNode root;
-    
-    public Trie() {
-        root = new TrieNode();
-    }
-    
-    public void insert(String word) {
-        TrieNode node = root;
-        for (int i = 0; i < word.length(); i++) {
-            int idx = word.charAt(i) - 'a';
-            if (node.children[idx] == null) {
-                node.children[idx] = new TrieNode();
-            }
-            node = node.children[idx];
-        }
-        node.is_end = true;
-    }
-    
-    public boolean search(String word) {
-        TrieNode node = root;
-        for (int i = 0; i < word.length(); i++) {
-            int idx = word.charAt(i) - 'a';
-            if (node.children[idx] == null) {
-                return false;
-            }
-            node = node.children[idx];
-        }
-        return node.is_end;
-    }
-    
-    public boolean startsWith(String prefix) {
-        TrieNode node = root;
-        for (int i = 0; i < prefix.length(); i++) {
-            int idx = prefix.charAt(i) - 'a';
-            if (node.children[idx] == null) {
-                return false;
-            }
-            node = node.children[idx];
-        }
-        return true;
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-class Trie {
-    constructor() {
-        this.root = new TrieNode();
-    }
-    
-    insert(word) {
-        let node = this.root;
-        for (let i = 0; i < word.length; i++) {
-            const idx = word.charCodeAt(i) - 97;
-            if (!node.children[idx]) {
-                node.children[idx] = new TrieNode();
-            }
-            node = node.children[idx];
-        }
-        node.is_end = true;
-    }
-    
-    search(word) {
-        let node = this.root;
-        for (let i = 0; i < word.length; i++) {
-            const idx = word.charCodeAt(i) - 97;
-            if (!node.children[idx]) {
-                return false;
-            }
-            node = node.children[idx];
-        }
-        return node.is_end;
-    }
-    
-    startsWith(prefix) {
-        let node = this.root;
-        for (let i = 0; i < prefix.length; i++) {
-            const idx = prefix.charCodeAt(i) - 97;
-            if (!node.children[idx]) {
-                return false;
-            }
-            node = node.children[idx];
-        }
-        return true;
-    }
-}
-
-class TrieNode {
-    constructor() {
-        this.children = new Array(26).fill(null);
-        this.is_end = false;
-    }
-}
-```
-````
----
-
-### Time Complexity
-
-| Operation | Time Complexity | Space Complexity |
-|-----------|-----------------|------------------|
-| Insert | O(m) | O(m) where m is word length |
-| Search | O(m) | O(1) |
-| startsWith | O(m) | O(1) |
-
-### Space Complexity
-
-**Overall:** O(n * m) but with higher constant factor due to fixed 26-element arrays even when not needed.
-
----
-
-## Approach 3: Trie with Counters (Prefix Frequency)
-
-### Algorithm
-
-Enhanced trie that maintains a count of how many words pass through each node, useful for autocomplete ranking.
-
-1. **Node Structure**: Each node contains:
-   - `children`: Dictionary mapping characters to child nodes
-   - `is_end`: Boolean flag for end of word
-   - `count`: Integer tracking how many words have this prefix
-
-2. **Insert**: Increment count at each node along the path.
-
-3. **Search Prefix with Count**: Return the count for a prefix.
-
-````carousel
-<!-- slide -->
 ```python
 class TrieNode:
     def __init__(self):
         self.children = {}
-        self.is_end = False
-        self.count = 0  # Number of words with this prefix
+        self.is_end_of_word = False
 
 class Trie:
     def __init__(self):
         self.root = TrieNode()
     
     def insert(self, word: str) -> None:
+        """Inserts a word into the trie"""
         node = self.root
-        for c in word:
-            if c not in node.children:
-                node.children[c] = TrieNode()
-            node = node.children[c]
-            node.count += 1  # Increment count for this prefix
-        node.is_end = True
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_end_of_word = True
     
     def search(self, word: str) -> bool:
-        node = self.root
-        for c in word:
-            if c not in node.children:
-                return False
-            node = node.children[c]
-        return node.is_end
+        """Searches for a word in the trie"""
+        node = self._search_prefix(word)
+        return node is not None and node.is_end_of_word
     
     def startsWith(self, prefix: str) -> bool:
-        node = self.root
-        for c in prefix:
-            if c not in node.children:
-                return False
-            node = node.children[c]
-        return True
+        """Checks if any word starts with the given prefix"""
+        return self._search_prefix(prefix) is not None
     
-    def prefixCount(self, prefix: str) -> int:
-        """Returns the number of words with the given prefix."""
+    def _search_prefix(self, prefix: str) -> TrieNode:
+        """Helper function to search for a prefix and return the node"""
         node = self.root
-        for c in prefix:
-            if c not in node.children:
-                return 0
-            node = node.children[c]
-        return node.count
+        for char in prefix:
+            if char not in node.children:
+                return None
+            node = node.children[char]
+        return node
 ```
-
 <!-- slide -->
 ```cpp
+#include <unordered_map>
+#include <string>
+using namespace std;
+
+class TrieNode {
+public:
+    unordered_map<char, TrieNode*> children;
+    bool is_end_of_word;
+    
+    TrieNode() : is_end_of_word(false) {}
+};
+
 class Trie {
-
 private:
-    struct TrieNode {
-        unordered_map<char, TrieNode*> children;
-        bool is_end = false;
-        int count = 0;
-    };
     TrieNode* root;
-
+    
 public:
     Trie() {
         root = new TrieNode();
@@ -623,55 +408,48 @@ public:
                 node->children[c] = new TrieNode();
             }
             node = node->children[c];
-            node->count++;
         }
-        node->is_end = true;
+        node->is_end_of_word = true;
     }
     
     bool search(string word) {
-        TrieNode* node = root;
-        for (char c : word) {
-            if (node->children.find(c) == node->children.end()) {
-                return false;
-            }
-            node = node->children[c];
-        }
-        return node->is_end;
+        TrieNode* node = searchPrefix(word);
+        return node != nullptr && node->is_end_of_word;
     }
     
     bool startsWith(string prefix) {
-        TrieNode* node = root;
-        for (char c : prefix) {
-            if (node->children.find(c) == node->children.end()) {
-                return false;
-            }
-            node = node->children[c];
-        }
-        return true;
+        return searchPrefix(prefix) != nullptr;
     }
     
-    int prefixCount(string prefix) {
+private:
+    TrieNode* searchPrefix(string prefix) {
         TrieNode* node = root;
         for (char c : prefix) {
             if (node->children.find(c) == node->children.end()) {
-                return 0;
+                return nullptr;
             }
             node = node->children[c];
         }
-        return node->count;
+        return node;
     }
 };
 ```
-
 <!-- slide -->
 ```java
-class Trie {
-    private class TrieNode {
-        Map<Character, TrieNode> children = new HashMap<>();
-        boolean is_end = false;
-        int count = 0;
-    }
+import java.util.HashMap;
+import java.util.Map;
+
+class TrieNode {
+    Map<Character, TrieNode> children;
+    boolean isEndOfWord;
     
+    TrieNode() {
+        children = new HashMap<>();
+        isEndOfWord = false;
+    }
+}
+
+class Trie {
     private TrieNode root;
     
     public Trie() {
@@ -680,56 +458,56 @@ class Trie {
     
     public void insert(String word) {
         TrieNode node = root;
-        for (char c : word.toCharArray()) {
-            node.children.putIfAbsent(c, new TrieNode());
+        for (int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            if (!node.children.containsKey(c)) {
+                node.children.put(c, new TrieNode());
+            }
             node = node.children.get(c);
-            node.count++;
         }
-        node.is_end = true;
+        node.isEndOfWord = true;
     }
     
     public boolean search(String word) {
-        TrieNode node = root;
-        for (char c : word.toCharArray()) {
-            if (!node.children.containsKey(c)) {
-                return false;
-            }
-            node = node.children.get(c);
-        }
-        return node.is_end;
+        TrieNode node = searchPrefix(word);
+        return node != null && node.isEndOfWord;
     }
     
     public boolean startsWith(String prefix) {
-        TrieNode node = root;
-        for (char c : prefix.toCharArray()) {
-            if (!node.children.containsKey(c)) {
-                return false;
-            }
-            node = node.children.get(c);
-        }
-        return true;
+        return searchPrefix(prefix) != null;
     }
     
-    public int prefixCount(String prefix) {
+    private TrieNode searchPrefix(String prefix) {
         TrieNode node = root;
-        for (char c : prefix.toCharArray()) {
+        for (int i = 0; i < prefix.length(); i++) {
+            char c = prefix.charAt(i);
             if (!node.children.containsKey(c)) {
-                return 0;
+                return null;
             }
             node = node.children.get(c);
         }
-        return node.count;
+        return node;
     }
 }
 ```
-
 <!-- slide -->
 ```javascript
+class TrieNode {
+    constructor() {
+        this.children = new Map();
+        this.isEndOfWord = false;
+    }
+}
+
 class Trie {
     constructor() {
         this.root = new TrieNode();
     }
     
+    /**
+     * @param {string} word
+     * @return {void}
+     */
     insert(word) {
         let node = this.root;
         for (let i = 0; i < word.length; i++) {
@@ -738,203 +516,741 @@ class Trie {
                 node.children.set(char, new TrieNode());
             }
             node = node.children.get(char);
-            node.count++;
         }
-        node.is_end = true;
+        node.isEndOfWord = true;
     }
     
+    /**
+     * @param {string} word
+     * @return {boolean}
+     */
     search(word) {
-        let node = this.root;
-        for (let i = 0; i < word.length; i++) {
-            const char = word[i];
-            if (!node.children.has(char)) {
-                return false;
-            }
-            node = node.children.get(char);
-        }
-        return node.is_end;
+        const node = this.searchPrefix(word);
+        return node !== null && node.isEndOfWord;
     }
     
+    /**
+     * @param {string} prefix
+     * @return {boolean}
+     */
     startsWith(prefix) {
-        let node = this.root;
-        for (let i = 0; i < prefix.length; i++) {
-            const char = prefix[i];
-            if (!node.children.has(char)) {
-                return false;
-            }
-            node = node.children.get(char);
-        }
-        return true;
+        return this.searchPrefix(prefix) !== null;
     }
     
-    prefixCount(prefix) {
+    /**
+     * @param {string} prefix
+     * @return {TrieNode|null}
+     */
+    searchPrefix(prefix) {
         let node = this.root;
         for (let i = 0; i < prefix.length; i++) {
             const char = prefix[i];
             if (!node.children.has(char)) {
-                return 0;
+                return null;
             }
             node = node.children.get(char);
         }
-        return node.count;
-    }
-}
-
-class TrieNode {
-    constructor() {
-        this.children = new Map();
-        this.is_end = false;
-        this.count = 0;
+        return node;
     }
 }
 ```
 ````
----
 
-### Time Complexity
+### Explanation
 
-| Operation | Time Complexity | Space Complexity |
-|-----------|-----------------|------------------|
-| Insert | O(m) | O(m) |
-| Search | O(m) | O(1) |
-| startsWith | O(m) | O(1) |
-| prefixCount | O(m) | O(1) |
+1. **HashMap for Children**: Instead of a fixed array, we use a HashMap/Map to store only existing child nodes.
 
-### Space Complexity
+2. **Dynamic Allocation**: Child nodes are created only when needed.
 
-**Overall:** O(n * m) for all word storage plus O(m) for counts.
+3. **Character Access**: Uses `O(1)` average-case lookup with hash-based containers.
 
----
+### Complexity Analysis
 
-## Step-by-Step Example
+| Metric | Complexity |
+|--------|-------------|
+| **Time Complexity (insert)** | O(L) average case |
+| **Time Complexity (search)** | O(L) average case |
+| **Time Complexity (startsWith)** | O(P) average case |
+| **Space Complexity** | O(N × L) but often less than array-based for sparse tries |
 
-Let's trace through inserting and searching words in a Trie:
+### When to Use This Approach
 
-### Step 1: Initialize Empty Trie
-```
-root: {is_end: false, children: {}}
-```
-
-### Step 2: Insert "apple"
-```
-root -> 'a': {is_end: false, children: {}}
-'a' -> 'p': {is_end: false, children: {}}
-'p' -> 'p': {is_end: false, children: {}}
-'p' -> 'l': {is_end: false, children: {}}
-'l' -> 'e': {is_end: true, children: {}}
-```
-
-### Step 3: Insert "app"
-```
-root -> 'a': {is_end: false, children: {}}
-'a' -> 'p': {is_end: false, children: {}}
-'p' -> 'p': {is_end: true, children: {}}  # Marked as end
-```
-
-### Step 4: Search "apple"
-- Traverse 'a' → 'p' → 'p' → 'l' → 'e'
-- Check `is_end` at 'e': `true`
-- Return `true` ✓
-
-### Step 5: Search "app"
-- Traverse 'a' → 'p' → 'p'
-- Check `is_end` at second 'p': `true`
-- Return `true` ✓
-
-### Step 6: Search "ap" (prefix only)
-- Traverse 'a' → 'p'
-- Check `is_end` at 'p': `false`
-- Return `false` ✓
-
-### Step 7: startsWith("ap")
-- Traverse 'a' → 'p'
-- Path exists: return `true` ✓
+- When the alphabet is large or unknown
+- When memory is a concern (sparse character usage)
+- When characters are not from a small, fixed set
 
 ---
 
-## Key Optimizations
+## Approach 3: Trie with Count-Based Prefix Tracking
 
-1. **Hash Map vs Array**: Use hash maps for sparse alphabets (memory efficient), arrays for dense alphabets (faster access).
+This enhanced version tracks the number of words passing through each node, enabling prefix counting operations.
 
-2. **Early Termination**: Stop traversal immediately when a character is not found.
+### Python Solution
 
-3. **Lazy Node Creation**: Only create nodes when needed during insertion.
+````carousel
+```python
+class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end_of_word = False
+        self.prefix_count = 0  # Number of words with this prefix
 
-4. **End-of-Word Flag**: Efficiently distinguishes between prefixes and complete words.
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+    
+    def insert(self, word: str) -> None:
+        """Inserts a word into the trie and updates prefix counts"""
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+            node.prefix_count += 1
+        node.is_end_of_word = True
+    
+    def search(self, word: str) -> bool:
+        """Searches for a word in the trie"""
+        node = self._search_prefix(word)
+        return node is not None and node.is_end_of_word
+    
+    def startsWith(self, prefix: str) -> bool:
+        """Checks if any word starts with the given prefix"""
+        return self._search_prefix(prefix) is not None
+    
+    def countPrefix(self, prefix: str) -> int:
+        """Returns the number of words that start with the given prefix"""
+        node = self._search_prefix(prefix)
+        return node.prefix_count if node is not None else 0
+    
+    def _search_prefix(self, prefix: str) -> TrieNode:
+        """Helper function to search for a prefix and return the node"""
+        node = self.root
+        for char in prefix:
+            if char not in node.children:
+                return None
+            node = node.children[char]
+        return node
+```
+<!-- slide -->
+```cpp
+#include <unordered_map>
+#include <string>
+using namespace std;
+
+class TrieNode {
+public:
+    unordered_map<char, TrieNode*> children;
+    bool is_end_of_word;
+    int prefix_count;
+    
+    TrieNode() : is_end_of_word(false), prefix_count(0) {}
+};
+
+class Trie {
+private:
+    TrieNode* root;
+    
+public:
+    Trie() {
+        root = new TrieNode();
+    }
+    
+    void insert(string word) {
+        TrieNode* node = root;
+        for (char c : word) {
+            if (node->children.find(c) == node->children.end()) {
+                node->children[c] = new TrieNode();
+            }
+            node = node->children[c];
+            node->prefix_count++;
+        }
+        node->is_end_of_word = true;
+    }
+    
+    bool search(string word) {
+        TrieNode* node = searchPrefix(word);
+        return node != nullptr && node->is_end_of_word;
+    }
+    
+    bool startsWith(string prefix) {
+        return searchPrefix(prefix) != nullptr;
+    }
+    
+    int countPrefix(string prefix) {
+        TrieNode* node = searchPrefix(prefix);
+        return node != nullptr ? node->prefix_count : 0;
+    }
+    
+private:
+    TrieNode* searchPrefix(string prefix) {
+        TrieNode* node = root;
+        for (char c : prefix) {
+            if (node->children.find(c) == node->children.end()) {
+                return nullptr;
+            }
+            node = node->children[c];
+        }
+        return node;
+    }
+};
+```
+<!-- slide -->
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+class TrieNode {
+    Map<Character, TrieNode> children;
+    boolean isEndOfWord;
+    int prefixCount;
+    
+    TrieNode() {
+        children = new HashMap<>();
+        isEndOfWord = false;
+        prefixCount = 0;
+    }
+}
+
+class Trie {
+    private TrieNode root;
+    
+    public Trie() {
+        root = new TrieNode();
+    }
+    
+    public void insert(String word) {
+        TrieNode node = root;
+        for (int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            if (!node.children.containsKey(c)) {
+                node.children.put(c, new TrieNode());
+            }
+            node = node.children.get(c);
+            node.prefixCount++;
+        }
+        node.isEndOfWord = true;
+    }
+    
+    public boolean search(String word) {
+        TrieNode node = searchPrefix(word);
+        return node != null && node.isEndOfWord;
+    }
+    
+    public boolean startsWith(String prefix) {
+        return searchPrefix(prefix) != null;
+    }
+    
+    public int countPrefix(String prefix) {
+        TrieNode node = searchPrefix(prefix);
+        return node != null ? node.prefixCount : 0;
+    }
+    
+    private TrieNode searchPrefix(String prefix) {
+        TrieNode node = root;
+        for (int i = 0; i < prefix.length(); i++) {
+            char c = prefix.charAt(i);
+            if (!node.children.containsKey(c)) {
+                return null;
+            }
+            node = node.children.get(c);
+        }
+        return node;
+    }
+}
+```
+<!-- slide -->
+```javascript
+class TrieNode {
+    constructor() {
+        this.children = new Map();
+        this.isEndOfWord = false;
+        this.prefixCount = 0;
+    }
+}
+
+class Trie {
+    constructor() {
+        this.root = new TrieNode();
+    }
+    
+    /**
+     * @param {string} word
+     * @return {void}
+     */
+    insert(word) {
+        let node = this.root;
+        for (let i = 0; i < word.length; i++) {
+            const char = word[i];
+            if (!node.children.has(char)) {
+                node.children.set(char, new TrieNode());
+            }
+            node = node.children.get(char);
+            node.prefixCount++;
+        }
+        node.isEndOfWord = true;
+    }
+    
+    /**
+     * @param {string} word
+     * @return {boolean}
+     */
+    search(word) {
+        const node = this.searchPrefix(word);
+        return node !== null && node.isEndOfWord;
+    }
+    
+    /**
+     * @param {string} prefix
+     * @return {boolean}
+     */
+    startsWith(prefix) {
+        return this.searchPrefix(prefix) !== null;
+    }
+    
+    /**
+     * @param {string} prefix
+     * @return {number}
+     */
+    countPrefix(prefix) {
+        const node = this.searchPrefix(prefix);
+        return node !== null ? node.prefixCount : 0;
+    }
+    
+    /**
+     * @param {string} prefix
+     * @return {TrieNode|null}
+     */
+    searchPrefix(prefix) {
+        let node = this.root;
+        for (let i = 0; i < prefix.length; i++) {
+            const char = prefix[i];
+            if (!node.children.has(char)) {
+                return null;
+            }
+            node = node.children.get(char);
+        }
+        return node;
+    }
+}
+```
+````
+
+### Explanation
+
+1. **prefix_count**: Each node tracks how many words pass through it (have this prefix).
+
+2. **Enhanced Insert**: Increments count at each node during insertion.
+
+3. **countPrefix()**: New method that returns how many inserted words have the given prefix.
+
+### Complexity Analysis
+
+| Metric | Complexity |
+|--------|-------------|
+| **Time Complexity (insert)** | O(L) |
+| **Time Complexity (search)** | O(L) |
+| **Time Complexity (startsWith)** | O(P) |
+| **Time Complexity (countPrefix)** | O(P) |
+| **Space Complexity** | O(N × L) with additional O(N × L) for counts |
+
+### Use Cases
+
+- Counting how many words have a given prefix
+- Autocomplete systems with frequency information
+- Dictionary applications with prefix statistics
 
 ---
 
-## Time Complexity Comparison
+## Approach 4: Optimized Memory with Node Pool
 
-| Approach | Insert | Search | startsWith | Space | Best For |
-|----------|--------|--------|------------|-------|----------|
-| Hash Map | O(m) | O(m) | O(m) | O(n*m) | General use, memory efficiency |
-| Array | O(m) | O(m) | O(m) | O(26*n*m) | Fixed alphabet, speed priority |
-| With Counters | O(m) | O(m) | O(m) | O(n*m) | Autocomplete, frequency queries |
+For memory-constrained environments, this approach pre-allocates nodes from a pool instead of dynamic allocation.
+
+### Python Solution
+
+````carousel
+```python
+class TrieNode:
+    __slots__ = ['children', 'is_end_of_word', 'next_free']
+    
+    def __init__(self):
+        self.children = [-1] * 26  # Store indices instead of references
+        self.is_end_of_word = False
+        self.next_free = -1
+
+class Trie:
+    def __init__(self, max_nodes=10000):
+        self.node_pool = [TrieNode() for _ in range(max_nodes)]
+        self.node_count = 1  # Node 0 is the root
+        self.root = 0
+    
+    def insert(self, word: str) -> None:
+        """Inserts a word into the trie using node pool"""
+        node = self.root
+        for char in word:
+            index = ord(char) - ord('a')
+            next_node = self.node_pool[node].children[index]
+            
+            if next_node == -1:
+                next_node = self.node_count
+                self.node_count += 1
+                self.node_pool[node].children[index] = next_node
+                self.node_pool[next_node].children = [-1] * 26
+            
+            node = next_node
+        self.node_pool[node].is_end_of_word = True
+    
+    def search(self, word: str) -> bool:
+        """Searches for a word in the trie"""
+        node = self._search_prefix(word)
+        return node != -1 and self.node_pool[node].is_end_of_word
+    
+    def startsWith(self, prefix: str) -> bool:
+        """Checks if any word starts with the given prefix"""
+        return self._search_prefix(prefix) != -1
+    
+    def _search_prefix(self, prefix: str) -> int:
+        """Helper function to search for a prefix and return node index"""
+        node = self.root
+        for char in prefix:
+            index = ord(char) - ord('a')
+            next_node = self.node_pool[node].children[index]
+            if next_node == -1:
+                return -1
+            node = next_node
+        return node
+```
+<!-- slide -->
+```cpp
+#include <vector>
+#include <string>
+#include <cstring>
+using namespace std;
+
+class TrieNode {
+public:
+    int children[26];
+    bool is_end_of_word;
+    
+    TrieNode() {
+        memset(children, -1, sizeof(children));
+        is_end_of_word = false;
+    }
+};
+
+class Trie {
+private:
+    vector<TrieNode> node_pool;
+    int node_count;
+    int root;
+    
+public:
+    Trie(int max_nodes = 10000) {
+        node_pool.resize(max_nodes);
+        node_count = 1;  // Node 0 is the root
+        root = 0;
+    }
+    
+    void insert(string word) {
+        int node = root;
+        for (char c : word) {
+            int index = c - 'a';
+            int next_node = node_pool[node].children[index];
+            
+            if (next_node == -1) {
+                next_node = node_count++;
+                node_pool[node].children[index] = next_node;
+                // Note: node_pool[next_node] is already initialized by the constructor
+            }
+            
+            node = next_node;
+        }
+        node_pool[node].is_end_of_word = true;
+    }
+    
+    bool search(string word) {
+        int node = searchPrefix(word);
+        return node != -1 && node_pool[node].is_end_of_word;
+    }
+    
+    bool startsWith(string prefix) {
+        return searchPrefix(prefix) != -1;
+    }
+    
+private:
+    int searchPrefix(string prefix) {
+        int node = root;
+        for (char c : prefix) {
+            int index = c - 'a';
+            int next_node = node_pool[node].children[index];
+            if (next_node == -1) {
+                return -1;
+            }
+            node = next_node;
+        }
+        return node;
+    }
+};
+```
+<!-- slide -->
+```java
+class TrieNode {
+    int[] children;
+    boolean isEndOfWord;
+    
+    TrieNode() {
+        children = new int[26];
+        Arrays.fill(children, -1);
+        isEndOfWord = false;
+    }
+}
+
+class Trie {
+    private List<TrieNode> nodePool;
+    private int nodeCount;
+    private int root;
+    
+    public Trie(int maxNodes) {
+        nodePool = new ArrayList<>(maxNodes);
+        for (int i = 0; i < maxNodes; i++) {
+            nodePool.add(new TrieNode());
+        }
+        nodeCount = 1;
+        root = 0;
+    }
+    
+    public void insert(String word) {
+        int node = root;
+        for (int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            int index = c - 'a';
+            int nextNode = nodePool.get(node).children[index];
+            
+            if (nextNode == -1) {
+                nextNode = nodeCount++;
+                nodePool.get(node).children[index] = nextNode;
+            }
+            
+            node = nextNode;
+        }
+        nodePool.get(node).isEndOfWord = true;
+    }
+    
+    public boolean search(String word) {
+        int node = searchPrefix(word);
+        return node != -1 && nodePool.get(node).isEndOfWord;
+    }
+    
+    public boolean startsWith(String prefix) {
+        return searchPrefix(prefix) != -1;
+    }
+    
+    private int searchPrefix(String prefix) {
+        int node = root;
+        for (int i = 0; i < prefix.length(); i++) {
+            char c = prefix.charAt(i);
+            int index = c - 'a';
+            int nextNode = nodePool.get(node).children[index];
+            if (nextNode == -1) {
+                return -1;
+            }
+            node = nextNode;
+        }
+        return node;
+    }
+}
+```
+<!-- slide -->
+```javascript
+class TrieNode {
+    constructor() {
+        this.children = new Array(26).fill(-1);
+        this.isEndOfWord = false;
+    }
+}
+
+class Trie {
+    constructor(maxNodes = 10000) {
+        this.nodePool = new Array(maxNodes).fill(null).map(() => new TrieNode());
+        this.nodeCount = 1;
+        this.root = 0;
+    }
+    
+    /**
+     * @param {string} word
+     * @return {void}
+     */
+    insert(word) {
+        let node = this.root;
+        for (let i = 0; i < word.length; i++) {
+            const index = word.charCodeAt(i) - 97;
+            let nextNode = this.nodePool[node].children[index];
+            
+            if (nextNode === -1) {
+                nextNode = this.nodeCount++;
+                this.nodePool[node].children[index] = nextNode;
+                this.nodePool[nextNode] = new TrieNode();
+            }
+            
+            node = nextNode;
+        }
+        this.nodePool[node].isEndOfWord = true;
+    }
+    
+    /**
+     * @param {string} word
+     * @return {boolean}
+     */
+    search(word) {
+        const node = this.searchPrefix(word);
+        return node !== -1 && this.nodePool[node].isEndOfWord;
+    }
+    
+    /**
+     * @param {string} prefix
+     * @return {boolean}
+     */
+    startsWith(prefix) {
+        return this.searchPrefix(prefix) !== -1;
+    }
+    
+    /**
+     * @param {string} prefix
+     * @return {number}
+     */
+    searchPrefix(prefix) {
+        let node = this.root;
+        for (let i = 0; i < prefix.length; i++) {
+            const index = prefix.charCodeAt(i) - 97;
+            let nextNode = this.nodePool[node].children[index];
+            if (nextNode === -1) {
+                return -1;
+            }
+            node = nextNode;
+        }
+        return node;
+    }
+}
+```
+````
+
+### Explanation
+
+1. **Node Pool**: Pre-allocates a fixed number of nodes to avoid dynamic memory allocation overhead.
+
+2. **Integer Indices**: Uses integer indices instead of object references for better cache locality.
+
+3. **__slots__ in Python**: Reduces memory overhead by preventing dynamic attribute creation.
+
+### Complexity Analysis
+
+| Metric | Complexity |
+|--------|-------------|
+| **Time Complexity (insert)** | O(L) |
+| **Time Complexity (search)** | O(L) |
+| **Time Complexity (startsWith)** | O(P) |
+| **Space Complexity** | O(M) where M is the maximum number of nodes |
+
+### When to Use This Approach
+
+- Memory-constrained environments
+- Real-time systems requiring predictable memory usage
+- Systems with many trie instances
 
 ---
 
 ## Related Problems
 
-1. **[Design Add And Search Words Data Structure](design-add-and-search-words-data-structure.md)** - Trie with wildcard support
-2. **[Word Search II](https://leetcode.com/problems/word-search-ii/)** - Find all words in a grid using Trie
-3. **[Prefix and Suffix Search](https://leetcode.com/problems/prefix-and-suffix-search/)** - Find words with given prefix and suffix
-4. **[Longest Word in Dictionary](longest-word-in-dictionary.md)** - Build words character by character
-5. **[Replace Words](https://leetcode.com/problems/replace-words/)** - Replace words with shortest matching root
-6. **[Implement Magic Dictionary](https://leetcode.com/problems/implement-magic-dictionary/)** - Trie with one-character difference
+| Problem | Difficulty | Description |
+|---------|------------|-------------|
+| **[Implement Trie (Prefix Tree)](https://leetcode.com/problems/implement-trie-prefix-tree/)** | Medium | Implement a Trie (this problem) |
+| **[Design Add and Search Words Data Structure](https://leetcode.com/problems/design-add-and-search-words-data-structure/)** | Medium | Trie with wildcard pattern matching |
+| **[Word Search II](https://leetcode.com/problems/word-search-ii/)** | Hard | Find all words in a board using a trie |
+| **[Prefix and Suffix Search](https://leetcode.com/problems/prefix-and-suffix-search/)** | Hard | Find longest word that has given prefix and suffix |
+| **[Stream of Characters](https://leetcode.com/problems/stream-of-characters/)** | Hard | Check if any suffix of the stream forms a word |
+| **[Replace Words](https://leetcode.com/problems/replace-words/)** | Medium | Replace words with their shortest matching root |
+| **[Maximum XOR of Two Numbers in an Array](https://leetcode.com/problems/maximum-xor-of-two-numbers-in-an-array/)** | Medium | Can be solved using a binary trie |
+| **[Map Sum Pairs](https://leetcode.com/problems/map-sum-pairs/)** | Medium | Trie with prefix sum tracking |
+
+### Extended Applications
+
+1. **Autocomplete Systems**: Trie-based autocomplete in search engines and IDEs
+2. **Spell Checkers**: Efficiently check if words exist in a dictionary
+3. **IP Routing**: Longest prefix matching in network routers
+4. **DNA Sequencing**: Pattern matching in biological sequences
+5. **Word Games**: Boggle solvers, crossword puzzle generators
+
+---
+
+## Followup Questions
+
+### 1. How would you implement delete/remove functionality in the trie?
+
+To delete a word, you would traverse to the node representing the last character of the word, unmark the `is_end_of_word` flag, and then optionally prune nodes that are no longer needed (nodes with no children and not marked as end-of-word). The pruning should be done recursively up the tree.
+
+### 2. How would you handle Unicode characters or extended alphabets?
+
+Instead of a fixed array of size 26, you would use a HashMap/Map to store character-to-node mappings. This allows handling any Unicode character without pre-allocating a massive array. The time complexity remains O(L) with average-case O(1) lookups.
+
+### 3. How can you find the longest word in the trie that is a prefix of a given string?
+
+You would traverse the trie following the given string, keeping track of the last node where `is_end_of_word` was true. The longest word ending at each position can be found during this traversal. This is useful in autocomplete and word completion systems.
+
+### 4. How would you implement a method to find all words with a given prefix?
+
+After finding the node representing the prefix, you would perform a DFS/BFS traversal from that node to collect all words. Each time you encounter a node marked as `is_end_of_word`, you add the current path as a valid word.
+
+### 5. How can you serialize and deserialize a trie?
+
+Serialize by performing a pre-order traversal, storing node markers and end-of-word flags. Deserialize by reconstructing nodes from the serialized data. This is useful for saving tries to disk or transmitting over networks.
+
+### 6. How would you implement case-insensitive search?
+
+Convert all words to lowercase (or uppercase) before inserting and during search operations. This ensures consistent comparisons regardless of input case.
+
+### 7. How can you optimize a trie for very long words with many common prefixes?
+
+For words with extensive shared prefixes, the basic trie structure is already optimal. However, you could implement path compression (compressing chains of single-child nodes into single edges with labels) to reduce memory usage and improve traversal speed.
 
 ---
 
 ## Video Tutorials
 
-- [NeetCode - Implement Trie (Prefix Tree)](https://www.youtube.com/watch?v=0I1IqUN-2nM)
-- [Back to Back SWE - Trie Introduction](https://www.youtube.com/watch?v=nK3LfUvEeO4)
-- [LeetCode Official Solution](https://www.youtube.com/watch?v=br7tDBg7On0)
-- [Abdul Bari - Trie Data Structure](https://www.youtube.com/watch?v=ocN9sC93dLU)
-- [Eric Programming - Trie Visualization](https://www.youtube.com/watch?v=wT7i94-aJ5U)
+1. **[LeetCode 208 - Implement Trie (Prefix Tree) - Full Solution](https://www.youtube.com/watch?v=6PXv7k40Nqw)** - Complete walkthrough
+2. **[Trie Data Structure - Introduction and Implementation](https://www.youtube.com/watch?v=7XmS8M2pGdw)** - Detailed explanation
+3. **[Prefix Tree - LeetCode Problem Solving](https://www.youtube.com/watch?v=8D3W8T4X4Ww)** - Problem-solving approach
 
 ---
 
-## Follow-up Questions
+## Complexity Comparison of Approaches
 
-1. **How would you modify the Trie to support uppercase letters and other characters?**
-   - Expand the alphabet size in array-based implementation or use maps with appropriate key mapping for hash map approach.
-
-2. **How would you delete a word from the Trie?**
-   - Traverse to the word's nodes, mark `is_end = false`, and recursively delete nodes that have no children and aren't end-of-word markers.
-
-3. **How would you count the number of words with a given prefix?**
-   - Add a `count` field to each node that increments during insertion, allowing O(m) prefix count queries.
-
-4. **How would you find all words with a given prefix?**
-   - Traverse to the prefix node, then perform DFS/BFS to collect all words from that node.
-
-5. **How would you serialize and deserialize a Trie?**
-   - Use preorder traversal to store nodes, including character, end-of-word flag, and children information.
-
-6. **What are the trade-offs between array-based and hash map-based Trie implementations?**
-   - Arrays: O(1) access but waste space for unused children. Hash maps: memory efficient but O(1) average access with overhead.
-
-7. **How would you optimize a Trie for very long strings (e.g., DNA sequences)?**
-   - Consider compression techniques like Patricia Trie (radix tree) to reduce space.
+| Approach | Insert | Search | startsWith | Space | Best For |
+|----------|--------|--------|------------|-------|----------|
+| **Array-Based** | O(L) | O(L) | O(P) | O(N×L) | Fixed alphabet, maximum speed |
+| **HashMap-Based** | O(L) avg | O(L) avg | O(P) avg | O(N×L) | Dynamic alphabets, memory efficiency |
+| **Count-Based** | O(L) | O(L) | O(P) | O(N×L) | Prefix counting, autocomplete |
+| **Node Pool** | O(L) | O(L) | O(P) | O(M) | Memory-constrained systems |
 
 ---
 
-## Common Mistakes to Avoid
+## Summary
 
-1. **Forgetting to mark end-of-word**: Causes "app" to be found when searching for "apple"
-2. **Not handling empty strings**: Decide whether to support empty string insertion
-3. **Memory leaks in C++**: Remember to delete dynamically allocated nodes
-4. **Index out of bounds in array approach**: Validate character range before array access
-5. **Not checking for null children**: Causes null pointer exceptions during traversal
-6. **Assuming all inputs are lowercase**: Validate or normalize input characters
-7. **Not handling case where prefix equals complete word**: Both `search("app")` and `startsWith("app")` should work correctly
+The Trie (Prefix Tree) is a powerful data structure for string operations, particularly those involving prefixes. The key takeaways are:
 
----
+1. **Node Design**: Each node represents a character and stores references to child nodes.
 
-## References
+2. **Operations**: All operations (insert, search, startsWith) run in O(L) or O(P) time where L/P is the length of the word/prefix.
 
-- [LeetCode 208 - Implement Trie (Prefix Tree)](https://leetcode.com/problems/implement-trie-prefix-tree/)
-- Trie (Prefix Tree) - [Wikipedia](https://en.wikipedia.org/wiki/Trie)
-- [GeeksforGeeks - Trie Data Structure](https://www.geeksforgeeks.org/trie-insert-and-search/)
-- [Introduction to Algorithms (CLRS) - Chapter 5: Hash Tables and Tries
+3. **Space Efficiency**: Shared prefixes reduce memory usage for related words.
+
+4. **Flexibility**: Different implementations (array, HashMap) suit different constraints.
+
+5. **Applications**: From autocomplete to spell checking, tries are essential for string-intensive applications.
+
+The **array-based implementation** is the most common and offers the best average-case performance for fixed alphabets like lowercase English letters. Choose the **HashMap-based approach** for dynamic alphabets or memory constraints. Use the **count-based approach** when you need prefix statistics.
+
+Remember to consider:
+- The fixed alphabet constraint (26 lowercase letters)
+- Memory usage patterns
+- Whether you need additional features like prefix counting
+- The expected size and distribution of input words

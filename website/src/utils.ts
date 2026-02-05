@@ -183,19 +183,24 @@ export const utils = {
 
         let sanitized = url.trim();
 
+        // Reject dangerous URL schemes BEFORE any processing to prevent bypass
+        const lowerSanitized = sanitized.toLowerCase();
+        if (lowerSanitized.includes('javascript:') ||
+            lowerSanitized.includes('data:') ||
+            lowerSanitized.includes('vbscript:')) {
+            console.warn('Dangerous URL scheme detected:', sanitized);
+            return '';
+        }
+
         // Basic URL validation and sanitization
         try {
             // If it doesn't start with http:// or https://, prepend https://
-            if (!sanitized.startsWith('http://') && !sanitized.startsWith('https://')) {
+            if (!lowerSanitized.startsWith('http://') && !lowerSanitized.startsWith('https://')) {
                 sanitized = 'https://' + sanitized;
             }
 
             // Create URL object to validate
             new URL(sanitized);
-
-            // Remove any script-related content from URL
-            sanitized = sanitized.replace(/javascript:/gi, '');
-            sanitized = sanitized.replace(/data:/gi, '');
         } catch (e) {
             // If URL parsing fails, return empty string
             console.warn('Invalid URL:', e);

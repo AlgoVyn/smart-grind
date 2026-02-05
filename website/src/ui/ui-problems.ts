@@ -20,24 +20,7 @@ export const bindProblemEvents = () => {
         const foundProblem = state.problems.get(problemId);
 
         if (foundProblem) {
-            // Create a mock event object with the button that matches Event interface
-            const mockEvent = {
-                target: button,
-                stopPropagation: () => {},
-                preventDefault: () => {},
-                bubbles: true,
-                cancelBubble: false,
-                cancelable: false,
-                composed: false,
-                currentTarget: button,
-                defaultPrevented: false,
-                eventPhase: 2,
-                isTrusted: true,
-                returnValue: true,
-                timeStamp: Date.now(),
-                type: 'click',
-            } as unknown as Event;
-            renderers.handleProblemCardClick(mockEvent, foundProblem);
+            renderers.handleProblemCardClick(button as HTMLElement, foundProblem);
         }
     });
 

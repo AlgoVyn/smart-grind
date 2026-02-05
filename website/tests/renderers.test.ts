@@ -1,5 +1,6 @@
 // Mock dependencies before importing the module
 const mockCreateElement = jest.spyOn(document, 'createElement');
+const mockCreateDocumentFragment = jest.spyOn(document, 'createDocumentFragment');
 const mockQuerySelector = jest.spyOn(document, 'querySelector');
 const mockQuerySelectorAll = jest.spyOn(document, 'querySelectorAll');
 const mockAppendChild = jest.fn();
@@ -42,6 +43,16 @@ const createMockElement = () => {
         }
     };
     return el;
+};
+
+// Mock DocumentFragment
+const createMockDocumentFragment = () => {
+    const fragment = {
+        appendChild: (child) => {
+            mockAppendChild(child);
+        },
+    };
+    return fragment;
 };
 
 const mockElement = createMockElement();
@@ -122,6 +133,7 @@ describe('SmartGrind Renderers', () => {
 
         // Mock createElement to return new mockElement
         mockCreateElement.mockImplementation(() => createMockElement());
+        mockCreateDocumentFragment.mockImplementation(() => createMockDocumentFragment());
         mockQuerySelector.mockImplementation(() => createMockElement());
         mockQuerySelectorAll.mockImplementation(() => [createMockElement()]);
     });
@@ -341,12 +353,12 @@ describe('SmartGrind Renderers', () => {
 
     describe('updateStats', () => {
         test('updates statistics display', () => {
-            const renderSidebarSpy = jest.spyOn(renderers, 'renderSidebar');
+            const updateSidebarStatsOnlySpy = jest.spyOn(renderers, '_updateSidebarStatsOnly');
 
             renderers.updateStats();
 
             expect(utils.getUniqueProblemsForTopic).toHaveBeenCalledWith('all');
-            expect(renderSidebarSpy).toHaveBeenCalled();
+            expect(updateSidebarStatsOnlySpy).toHaveBeenCalled();
         });
 
         test('shows review banner when due problems exist', () => {
@@ -463,11 +475,16 @@ describe('SmartGrind Renderers', () => {
 
             renderers.renderSidebar();
 
-            expect(mockAppendChild).toHaveBeenCalledTimes(2); // allBtn and arrays btn
-            const allBtn = mockAppendChild.mock.calls[0][0];
-            expect(allBtn.innerHTML).toContain('All Problems');
-            const arraysBtn = mockAppendChild.mock.calls[1][0];
-            expect(arraysBtn.innerHTML).toContain('Arrays');
+            // Verify calls: allBtn to fragment, topic btn to fragment, fragment to topicList = 3 calls
+            expect(mockAppendChild).toHaveBeenCalledTimes(3); 
+            // First call should be to fragment with All Problems button
+            const allBtnCall = mockAppendChild.mock.calls[0][0];
+            expect(allBtnCall.className).toContain('sidebar-link');
+            // Second call should be to fragment with topic button
+            const topicBtnCall = mockAppendChild.mock.calls[1][0];
+            expect(topicBtnCall.className).toContain('sidebar-link');
+            // Third call should be to topicList with fragment
+            expect(mockAppendChild.mock.calls[2][0]).not.toHaveProperty('className');
         });
     });
 

@@ -1,97 +1,105 @@
 # Find the Index of the First Occurrence in a String
 
-## Problem Statement
+## Problem Description
 
-LeetCode Problem 28: Find the Index of the First Occurrence in a String
+Given two strings `needle` and `haystack`, return the index of the first occurrence of `needle` in `haystack`, or `-1` if `needle` is not part of `haystack`.
 
-Given two strings `haystack` and `needle`, return the index of the first occurrence of `needle` in `haystack`, or `-1` if `needle` is not part of `haystack`.
+This is a classic string searching problem, also known as the **substring search** or **pattern matching** problem. It's commonly referred to as the `strStr()` function in C/C++ or `indexOf()` in Java/JavaScript.
 
-### Key Details:
-- If `needle` is an empty string, return 0 (per LeetCode's historical behavior)
-- Both inputs consist of lowercase English letters
-- The solution should handle all edge cases including:
-  - Needle longer than haystack (return -1)
-  - Needle equals haystack (return 0)
-  - Multiple occurrences of needle
+### What is strStr()?
 
-### Constraints:
-- `0 ≤ haystack.length, needle.length ≤ 5 * 10⁴`
-- `haystack` and `needle` consist of only lowercase English characters
+The `strStr()` function returns the starting index of the first occurrence of a substring (pattern) within another string (text). If the substring is not found, it typically returns `-1`. This is equivalent to:
 
----
+- Python's [`str.find()`](https://docs.python.org/3/library/stdtypes.html#str.find)
+- Java's [`String.indexOf()`](https://docs.oracle.com/javase/8/docs/api/java/lang/String.html#indexOf-java.lang.String-)
+- JavaScript's [`String.indexOf()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf)
+- C++'s [`string.find()`](https://en.cppreference.com/w/cpp/string/basic_string/find)
 
-## Examples
+### Example 1
 
-### Example 1:
 **Input:** `haystack = "sadbutsad"`, `needle = "sad"`
 
 **Output:** `0`
 
-**Explanation:** "sad" occurs at index 0 and 6. The first occurrence is at index 0.
+**Explanation:** The substring "sad" first appears at index 0 in "sadbutsad".
 
----
+### Example 2
 
-### Example 2:
 **Input:** `haystack = "leetcode"`, `needle = "leeto"`
 
 **Output:** `-1`
 
-**Explanation:** "leeto" does not occur in "leetcode".
+**Explanation:** The substring "leeto" does not appear in "leetcode", so we return `-1`.
 
----
+### Example 3
 
-### Example 3:
-**Input:** `haystack = "hello"`, `needle = "ll"`
+**Input:** `haystack = "mississippi"`, `needle = "issip"`
 
-**Output:** `2`
+**Output:** `4`
 
-**Explanation:** "ll" occurs at index 2 in "hello".
+**Explanation:** The substring "issip" first appears starting at index 4 in "mississippi".
 
----
+### Example 4
 
-### Example 4:
-**Input:** `haystack = "a"`, `needle = "a"`
+**Input:** `haystack = "hello"`, `needle = "hello"`
 
 **Output:** `0`
 
-**Explanation:** Both strings are identical.
+**Explanation:** The substring "hello" is identical to the haystack, so the first occurrence is at index 0.
 
----
+### Example 5
 
-### Example 5:
-**Input:** `haystack = "abc"`, `needle = "abcd"`
+**Input:** `haystack = "aaaaa"`, `needle = "bba"`
 
 **Output:** `-1`
 
-**Explanation:** Needle is longer than haystack.
+**Explanation:** The substring "bba" does not appear in "aaaaa", so we return `-1`.
+
+### Constraints
+
+- `1 <= haystack.length <= 10^4`
+- `1 <= needle.length <= 10^4`
+- `haystack` and `needle` consist of only lowercase English letters (`'a'` to `'z'`)
 
 ---
 
 ## Intuition
 
-The problem asks to find the first occurrence of a substring (needle) within a larger string (haystack). This is a classic string matching problem with several possible approaches:
+The problem asks us to find the first occurrence of a pattern (needle) within a text (haystack). At first glance, this seems straightforward - we could check every possible starting position in the haystack and see if the needle matches. However, this naive approach can be inefficient for large inputs.
 
-1. **Brute Force:** Check each possible starting position in haystack and compare characters with needle
-2. **KMP Algorithm:** Preprocess the needle to create a failure function (partial match table) for efficient matching
-3. **Rabin-Karp Algorithm:** Use rolling hash to compare substrings in constant time after preprocessing
-4. **Built-in Methods:** Many programming languages provide built-in string search methods
+### Key Observations
 
-The choice of approach depends on:
-- Input size constraints
-- Performance requirements
-- Code simplicity
+1. **Sliding Window Concept**: We can slide the needle over the haystack, checking each possible starting position.
 
-For small inputs, brute force is acceptable, but for large inputs, KMP or Rabin-Karp are more efficient.
+2. **Early Termination**: If the needle is longer than the haystack, we can immediately return `-1`.
+
+3. **Edge Cases**: If the needle is empty, we should return 0 (by convention).
+
+4. **Optimization Opportunity**: The naive approach has O(m×n) complexity where m is haystack length and n is needle length. We can do better with advanced algorithms.
+
+### Why Naive Approach Fails for Large Inputs
+
+Consider a worst-case scenario:
+- `haystack = "aaaaa...aaaa"` (10,000 'a' characters)
+- `needle = "aaaab"` (4,000 'a' followed by 'b')
+
+The naive approach would compare thousands of characters at each position, resulting in O(m×n) comparisons - approximately 40 million character comparisons, which is inefficient.
+
+### Better Approaches
+
+Several advanced algorithms achieve O(m+n) time complexity:
+
+1. **KMP (Knuth-Morris-Pratt)**: Uses a "failure function" to skip unnecessary comparisons
+2. **Rabin-Karp**: Uses rolling hash to quickly filter out non-matching positions
+3. **Z-Algorithm**: Builds a Z-array to find pattern matches efficiently
 
 ---
 
-## Approach 1: Brute Force
+## Approach 1: Brute Force (Sliding Window)
 
-Check each possible starting index in haystack from 0 to (haystack.length - needle.length). For each starting index, compare characters one by one until either:
-- All characters match (return the starting index)
-- A mismatch is found (move to the next starting index)
+This is the most straightforward approach. We slide the needle over the haystack and check each possible starting position.
 
-### Implementation
+### Python Solution
 
 ````carousel
 ```python
@@ -99,20 +107,39 @@ class Solution:
     def strStr(self, haystack: str, needle: str) -> int:
         if not needle:
             return 0
-            
-        m, n = len(haystack), len(needle)
         
-        if n > m:
-            return -1
-            
-        for i in range(m - n + 1):
-            j = 0
-            while j < n and haystack[i + j] == needle[j]:
-                j += 1
-            if j == n:
+        h, n = len(haystack), len(needle)
+        
+        for i in range(h - n + 1):
+            if haystack[i:i + n] == needle:
                 return i
-                
+        
         return -1
+```
+<!-- slide -->
+```cpp
+#include <string>
+using namespace std;
+
+class Solution {
+public:
+    int strStr(string haystack, string needle) {
+        if (needle.empty()) {
+            return 0;
+        }
+        
+        int h = haystack.length();
+        int n = needle.length();
+        
+        for (int i = 0; i <= h - n; i++) {
+            if (haystack.substr(i, n) == needle) {
+                return i;
+            }
+        }
+        
+        return -1;
+    }
+};
 ```
 <!-- slide -->
 ```java
@@ -122,19 +149,11 @@ class Solution {
             return 0;
         }
         
-        int m = haystack.length();
+        int h = haystack.length();
         int n = needle.length();
         
-        if (n > m) {
-            return -1;
-        }
-        
-        for (int i = 0; i <= m - n; i++) {
-            int j = 0;
-            while (j < n && haystack.charAt(i + j) == needle.charAt(j)) {
-                j++;
-            }
-            if (j == n) {
+        for (int i = 0; i <= h - n; i++) {
+            if (haystack.substring(i, i + n).equals(needle)) {
                 return i;
             }
         }
@@ -144,24 +163,80 @@ class Solution {
 }
 ```
 <!-- slide -->
+```javascript
+/**
+ * @param {string} haystack
+ * @param {string} needle
+ * @return {number}
+ */
+var strStr = function(haystack, needle) {
+    if (needle === '') {
+        return 0;
+    }
+    
+    const h = haystack.length;
+    const n = needle.length;
+    
+    for (let i = 0; i <= h - n; i++) {
+        if (haystack.substring(i, i + n) === needle) {
+            return i;
+        }
+    }
+    
+    return -1;
+};
+```
+````
+
+### Explanation
+
+1. **Edge case check**: If needle is empty, return 0
+2. **Calculate lengths**: Get the lengths of both strings
+3. **Slide through haystack**: For each possible starting position `i` from 0 to `h - n`
+4. **Check match**: Extract substring of length `n` and compare with needle
+5. **Return index**: If match found, return the current index
+6. **Return -1**: If no match found after checking all positions
+
+### Optimization: Character-by-Character Comparison
+
+Instead of using substring extraction (which creates a new string), we can compare character by character and exit early on mismatch:
+
+````carousel
+```python
+class Solution:
+    def strStr(self, haystack: str, needle: str) -> int:
+        if not needle:
+            return 0
+        
+        h, n = len(haystack), len(needle)
+        
+        for i in range(h - n + 1):
+            j = 0
+            while j < n:
+                if haystack[i + j] != needle[j]:
+                    break
+                j += 1
+            else:
+                return i
+        
+        return -1
+```
+<!-- slide -->
 ```cpp
 #include <string>
+using namespace std;
 
 class Solution {
 public:
-    int strStr(std::string haystack, std::string needle) {
+    int strStr(string haystack, string needle) {
         if (needle.empty()) {
             return 0;
         }
         
-        int m = haystack.size();
-        int n = needle.size();
+        int h = haystack.length();
+        int n = needle.length();
         
-        if (n > m) {
-            return -1;
-        }
-        
-        for (int i = 0; i <= m - n; i++) {
+        for (int i = 0; i <= h - n; i++) {
             int j = 0;
             while (j < n && haystack[i + j] == needle[j]) {
                 j++;
@@ -176,25 +251,41 @@ public:
 };
 ```
 <!-- slide -->
+```java
+class Solution {
+    public int strStr(String haystack, String needle) {
+        if (needle.isEmpty()) {
+            return 0;
+        }
+        
+        int h = haystack.length();
+        int n = needle.length();
+        
+        for (int i = 0; i <= h - n; i++) {
+            int j = 0;
+            while (j < n && haystack.charAt(i + j) == needle.charAt(j)) {
+                j++;
+            }
+            if (j == n) {
+                return i;
+            }
+        }
+        
+        return -1;
+    }
+}
+```
+<!-- slide -->
 ```javascript
-/**
- * @param {string} haystack
- * @param {string} needle
- * @return {number}
- */
 var strStr = function(haystack, needle) {
-    if (needle === "") {
+    if (needle === '') {
         return 0;
     }
     
-    const m = haystack.length;
+    const h = haystack.length;
     const n = needle.length;
     
-    if (n > m) {
-        return -1;
-    }
-    
-    for (let i = 0; i <= m - n; i++) {
+    for (let i = 0; i <= h - n; i++) {
         let j = 0;
         while (j < n && haystack[i + j] === needle[j]) {
             j++;
@@ -209,32 +300,37 @@ var strStr = function(haystack, needle) {
 ```
 ````
 
-### Explanation
-
-1. **Handle empty needle case** (return 0)
-2. **Check if needle is longer than haystack** (return -1 if true)
-3. **Iterate through all possible starting positions** in haystack
-4. **For each position, compare characters** with needle until match or mismatch
-5. **Return the first matching position** or -1 if no match is found
-
 ### Complexity Analysis
 
-| Metric | Complexity | Explanation |
-|--------|------------|-------------|
-| **Time** | O((m - n + 1) * n) | In worst case (e.g., haystack = "aaaaa", needle = "aaa"), each position is checked and all characters are compared |
-| **Space** | O(1) | No additional space is used |
+| Metric | Complexity |
+|--------|-------------|
+| **Time Complexity** | O(m × n) in worst case |
+| **Space Complexity** | O(1) - only using a few variables |
+| **Best Case** | O(m) when needle is found at position 0 |
+| **Worst Case** | O(m × n) when needle is not found or found at the end |
+
+The worst-case scenario occurs when:
+- The needle is not present in the haystack, or
+- The needle appears only at the very end, or
+- Many characters match partially before mismatching
+
+Example worst case: `haystack = "aaaaa...aaaa"`, `needle = "aaaab"`
 
 ---
 
-## Approach 2: KMP Algorithm (Knuth-Morris-Pratt)
+## Approach 2: KMP (Knuth-Morris-Pratt) Algorithm
 
-The KMP algorithm preprocesses the needle to create a **partial match table (failure function)** that allows efficient backtracking when a mismatch occurs. This reduces the time complexity to O(m + n).
+KMP is a classic string matching algorithm that achieves O(m + n) time complexity. It uses a **prefix function** (also called "failure function" or "LPS array") to avoid redundant comparisons.
 
-### Key Concept - Partial Match Table
+### Key Insight
 
-The partial match table for a string `s` of length `n` is an array `lps` (longest prefix suffix) where `lps[i]` is the length of the longest proper prefix of `s[0..i]` which is also a suffix.
+When a mismatch occurs, instead of going back to the beginning of the pattern, KMP uses the precomputed LPS array to know how many characters we can skip.
 
-### Implementation
+### What is LPS Array?
+
+LPS (Longest Proper Prefix which is also Suffix) array stores for each position `i` the length of the longest proper prefix of the substring `pattern[0...i]` that is also a suffix of this substring.
+
+### Python Solution
 
 ````carousel
 ```python
@@ -242,15 +338,12 @@ class Solution:
     def strStr(self, haystack: str, needle: str) -> int:
         if not needle:
             return 0
-            
-        m, n = len(haystack), len(needle)
         
-        if n > m:
-            return -1
-            
-        # Create LPS (Longest Prefix Suffix) array
+        h, n = len(haystack), len(needle)
+        
+        # Build LPS (Longest Proper Prefix which is also Suffix) array
         lps = [0] * n
-        length = 0  # Length of the previous longest prefix suffix
+        length = 0  # length of the previous longest prefix suffix
         i = 1
         
         while i < n:
@@ -265,15 +358,15 @@ class Solution:
                     lps[i] = 0
                     i += 1
         
-        # KMP search
-        i = j = 0
-        while i < m:
+        # Search for needle in haystack using KMP
+        i = j = 0  # i for haystack, j for needle
+        
+        while i < h:
             if haystack[i] == needle[j]:
                 i += 1
                 j += 1
-                
                 if j == n:
-                    return i - j
+                    return i - j  # Found match at index i - j
             else:
                 if j != 0:
                     j = lps[j - 1]
@@ -283,26 +376,20 @@ class Solution:
         return -1
 ```
 <!-- slide -->
-```java
+```cpp
+#include <string>
+#include <vector>
+using namespace std;
+
 class Solution {
-    public int strStr(String haystack, String needle) {
-        if (needle.isEmpty()) {
-            return 0;
-        }
-        
-        int m = haystack.length();
-        int n = needle.length();
-        
-        if (n > m) {
-            return -1;
-        }
-        
-        int[] lps = new int[n];
+private:
+    void buildLPS(const string& pattern, vector<int>& lps) {
+        int n = pattern.length();
         int length = 0;
         int i = 1;
         
         while (i < n) {
-            if (needle.charAt(i) == needle.charAt(length)) {
+            if (pattern[i] == pattern[length]) {
                 length++;
                 lps[i] = length;
                 i++;
@@ -315,14 +402,93 @@ class Solution {
                 }
             }
         }
+    }
+    
+public:
+    int strStr(string haystack, string needle) {
+        if (needle.empty()) {
+            return 0;
+        }
         
-        int j = 0;
-        i = 0;
-        while (i < m) {
+        int h = haystack.length();
+        int n = needle.length();
+        
+        if (n > h) {
+            return -1;
+        }
+        
+        // Build LPS array
+        vector<int> lps(n, 0);
+        buildLPS(needle, lps);
+        
+        // KMP search
+        int i = 0, j = 0;
+        while (i < h) {
+            if (haystack[i] == needle[j]) {
+                i++;
+                j++;
+                if (j == n) {
+                    return i - j;
+                }
+            } else {
+                if (j != 0) {
+                    j = lps[j - 1];
+                } else {
+                    i++;
+                }
+            }
+        }
+        
+        return -1;
+    }
+};
+```
+<!-- slide -->
+```java
+class Solution {
+    private void buildLPS(String pattern, int[] lps) {
+        int n = pattern.length();
+        int length = 0;
+        int i = 1;
+        
+        while (i < n) {
+            if (pattern.charAt(i) == pattern.charAt(length)) {
+                length++;
+                lps[i] = length;
+                i++;
+            } else {
+                if (length != 0) {
+                    length = lps[length - 1];
+                } else {
+                    lps[i] = 0;
+                    i++;
+                }
+            }
+        }
+    }
+    
+    public int strStr(String haystack, String needle) {
+        if (needle.isEmpty()) {
+            return 0;
+        }
+        
+        int h = haystack.length();
+        int n = needle.length();
+        
+        if (n > h) {
+            return -1;
+        }
+        
+        // Build LPS array
+        int[] lps = new int[n];
+        buildLPS(needle, lps);
+        
+        // KMP search
+        int i = 0, j = 0;
+        while (i < h) {
             if (haystack.charAt(i) == needle.charAt(j)) {
                 i++;
                 j++;
-                
                 if (j == n) {
                     return i - j;
                 }
@@ -340,67 +506,6 @@ class Solution {
 }
 ```
 <!-- slide -->
-```cpp
-#include <string>
-#include <vector>
-
-class Solution {
-public:
-    int strStr(std::string haystack, std::string needle) {
-        if (needle.empty()) {
-            return 0;
-        }
-        
-        int m = haystack.size();
-        int n = needle.size();
-        
-        if (n > m) {
-            return -1;
-        }
-        
-        std::vector<int> lps(n, 0);
-        int length = 0;
-        int i = 1;
-        
-        while (i < n) {
-            if (needle[i] == needle[length]) {
-                length++;
-                lps[i] = length;
-                i++;
-            } else {
-                if (length != 0) {
-                    length = lps[length - 1];
-                } else {
-                    lps[i] = 0;
-                    i++;
-                }
-            }
-        }
-        
-        int j = 0;
-        i = 0;
-        while (i < m) {
-            if (haystack[i] == needle[j]) {
-                i++;
-                j++;
-                
-                if (j == n) {
-                    return i - j;
-                }
-            } else {
-                if (j != 0) {
-                    j = lps[j - 1];
-                } else {
-                    i++;
-                }
-            }
-        }
-        
-        return -1;
-    }
-};
-```
-<!-- slide -->
 ```javascript
 /**
  * @param {string} haystack
@@ -408,17 +513,18 @@ public:
  * @return {number}
  */
 var strStr = function(haystack, needle) {
-    if (needle === "") {
+    if (needle === '') {
         return 0;
     }
     
-    const m = haystack.length;
+    const h = haystack.length;
     const n = needle.length;
     
-    if (n > m) {
+    if (n > h) {
         return -1;
     }
     
+    // Build LPS array
     const lps = new Array(n).fill(0);
     let length = 0;
     let i = 1;
@@ -438,13 +544,13 @@ var strStr = function(haystack, needle) {
         }
     }
     
+    // KMP search
     let j = 0;
     i = 0;
-    while (i < m) {
+    while (i < h) {
         if (haystack[i] === needle[j]) {
             i++;
             j++;
-            
             if (j === n) {
                 return i - j;
             }
@@ -464,28 +570,96 @@ var strStr = function(haystack, needle) {
 
 ### Explanation
 
-1. **Create LPS array:** Preprocess the needle to determine the longest prefix suffix for each position
-2. **KMP search:** Use the LPS array to efficiently backtrack the needle pointer when mismatches occur
-3. **Avoid rechecking characters:** The LPS array tells us how much we can shift the needle without rechecking characters that are already known to match
+#### Step 1: Build LPS Array
+
+The LPS array helps us avoid unnecessary comparisons by telling us how many characters we can skip after a mismatch.
+
+For pattern "ABABCABAB":
+```
+Pattern:  A B A B C A B A B
+Index:    0 1 2 3 4 5 6 7 8
+LPS:      0 0 1 2 0 1 2 3 4
+```
+
+For position 8 (character 'B'), the longest proper prefix that is also suffix is "ABAB" (length 4).
+
+#### Step 2: KMP Search
+
+1. Initialize two pointers: `i` for haystack, `j` for needle
+2. While both pointers are within bounds:
+   - If characters match: advance both pointers
+   - If full match found (`j == n`): return starting index (`i - j`)
+   - If mismatch occurs:
+     - If `j > 0`: use LPS to backtrack `j` to `lps[j-1]`
+     - If `j == 0`: advance only `i`
+
+### Step-by-Step Example
+
+Let's search for `needle = "ABABCABAB"` in `haystack = "ABABDABACDABABCABAB"`:
+
+```
+haystack: A B A B D A B A C D A B A B C A B A B
+needle:   A B A B C A B A B
+           ↑
+           i=0, j=0 (match)
+
+haystack: A B A B D A B A C D A B A B C A B A B
+needle:     A B A B C A B A B
+             ↑
+             i=1, j=1 (match)
+
+haystack: A B A B D A B A C D A B A B C A B A B
+needle:       A B A B C A B A B
+               ↑
+               i=2, j=2 (match)
+
+haystack: A B A B D A B A C D A B A B C A B A B
+needle:         A B A B C A B A B
+                 ↑
+                 i=3, j=3 (match)
+
+haystack: A B A B D A B A C D A B A B C A B A B
+needle:           A B A B C A B A B
+                   ↑
+                   i=4, j=4 (mismatch: D vs C)
+
+LPS[3] = 2, so j = 2
+Continue matching from j=2...
+```
 
 ### Complexity Analysis
 
-| Metric | Complexity | Explanation |
-|--------|------------|-------------|
-| **Time** | O(m + n) | Preprocessing needle takes O(n), and searching takes O(m) |
-| **Space** | O(n) | LPS array of size n is used |
+| Metric | Complexity |
+|--------|-------------|
+| **Time Complexity** | O(m + n) - building LPS is O(n), searching is O(m) |
+| **Space Complexity** | O(n) - for the LPS array |
+| **Best Case** | O(m) when needle is found at position 0 or doesn't exist |
+
+### Why KMP is Efficient
+
+In the worst-case scenario like `haystack = "aaaaa...aaa"` and `needle = "aaab"`, the naive approach would perform m×n comparisons. KMP, with its LPS array, avoids re-comparing characters that are already known to match, reducing the time to O(m + n).
 
 ---
 
-## Approach 3: Rabin-Karp Algorithm (Rolling Hash)
+## Approach 3: Rabin-Karp Algorithm
 
-The Rabin-Karp algorithm uses hashing to compare substrings in constant time. It computes the hash value of the needle and compares it with the hash values of all possible substrings of haystack of the same length.
+Rabin-Karp uses **rolling hash** to efficiently compute hash values of substrings, allowing quick comparison of potentially matching windows.
 
-### Key Concept - Rolling Hash
+### Key Insight
 
-To avoid recalculating the hash value of each substring from scratch, we use a rolling hash technique where the hash value of the next substring is computed efficiently from the previous one.
+Instead of comparing each character of the needle with each window in the haystack, we first compute a hash value. If the hash matches, then we do a full character-by-character comparison (to avoid hash collisions).
 
-### Implementation
+### Rolling Hash Formula
+
+```
+hash(s[i...i+n-1]) = (s[i] * p^(n-1) + s[i+1] * p^(n-2) + ... + s[i+n-1] * p^0) mod M
+```
+
+Where:
+- `p` is a prime base (typically 26 or 31 for lowercase letters)
+- `M` is a large prime modulus
+
+### Python Solution
 
 ````carousel
 ```python
@@ -493,183 +667,159 @@ class Solution:
     def strStr(self, haystack: str, needle: str) -> int:
         if not needle:
             return 0
-            
-        m, n = len(haystack), len(needle)
         
-        if n > m:
+        h, n = len(haystack), len(needle)
+        
+        if n > h:
             return -1
-            
-        # Base value for the rolling hash (26 for lowercase letters)
-        base = 26
-        # Modulus to prevent integer overflow
-        mod = 10**9 + 7
         
-        # Precompute base^(n-1) mod mod
-        base_power = 1
-        for _ in range(n - 1):
-            base_power = (base_power * base) % mod
-            
-        # Compute needle's hash
+        # Rolling hash parameters
+        base = 26  # Base for alphabet size
+        mod = 2**31 - 1  # Large prime modulus
+        
+        # Calculate hash of needle
         needle_hash = 0
         for char in needle:
-            needle_hash = (needle_hash * base + (ord(char) - ord('a'))) % mod
-            
-        # Compute initial window hash for haystack
+            needle_hash = (needle_hash * base + (ord(char) - ord('a') + 1)) % mod
+        
+        # Calculate hash of first window of haystack
         window_hash = 0
         for i in range(n):
-            window_hash = (window_hash * base + (ord(haystack[i]) - ord('a'))) % mod
-            
-        # Check if initial window matches
-        if window_hash == needle_hash:
-            # Verify character by character to avoid hash collision
-            if haystack[:n] == needle:
-                return 0
-                
-        # Slide the window through haystack
-        for i in range(1, m - n + 1):
-            # Remove leftmost character's contribution
-            left_char = ord(haystack[i - 1]) - ord('a')
-            window_hash = (window_hash - left_char * base_power) % mod
-            
-            # Add new right character's contribution
-            right_char = ord(haystack[i + n - 1]) - ord('a')
-            window_hash = (window_hash * base + right_char) % mod
-            
-            # Ensure hash is non-negative
-            if window_hash < 0:
-                window_hash += mod
-                
-            # Check if hash matches and verify characters
+            window_hash = (window_hash * base + (ord(haystack[i]) - ord('a') + 1)) % mod
+        
+        # Pre-calculate base^(n-1) for rolling hash
+        base_power = pow(base, n - 1, mod)
+        
+        # Slide through haystack
+        for i in range(h - n + 1):
             if window_hash == needle_hash:
                 if haystack[i:i + n] == needle:
                     return i
-                    
+            
+            # Calculate hash for next window
+            if i < h - n:
+                window_hash = (window_hash - (ord(haystack[i]) - ord('a') + 1) * base_power) % mod
+                window_hash = (window_hash * base + (ord(haystack[i + n]) - ord('a') + 1)) % mod
+                # Handle negative modulo
+                if window_hash < 0:
+                    window_hash += mod
+        
         return -1
-```
-<!-- slide -->
-```java
-class Solution {
-    public int strStr(String haystack, String needle) {
-        if (needle.isEmpty()) {
-            return 0;
-        }
-        
-        int m = haystack.length();
-        int n = needle.length();
-        
-        if (n > m) {
-            return -1;
-        }
-        
-        int base = 26;
-        long mod = 1000000007;
-        
-        long basePower = 1;
-        for (int i = 0; i < n - 1; i++) {
-            basePower = (basePower * base) % mod;
-        }
-        
-        long needleHash = 0;
-        for (char c : needle.toCharArray()) {
-            needleHash = (needleHash * base + (c - 'a')) % mod;
-        }
-        
-        long windowHash = 0;
-        for (int i = 0; i < n; i++) {
-            windowHash = (windowHash * base + (haystack.charAt(i) - 'a')) % mod;
-        }
-        
-        if (windowHash == needleHash) {
-            if (haystack.substring(0, n).equals(needle)) {
-                return 0;
-            }
-        }
-        
-        for (int i = 1; i <= m - n; i++) {
-            long leftChar = haystack.charAt(i - 1) - 'a';
-            windowHash = (windowHash - leftChar * basePower) % mod;
-            
-            long rightChar = haystack.charAt(i + n - 1) - 'a';
-            windowHash = (windowHash * base + rightChar) % mod;
-            
-            if (windowHash < 0) {
-                windowHash += mod;
-            }
-            
-            if (windowHash == needleHash) {
-                if (haystack.substring(i, i + n).equals(needle)) {
-                    return i;
-                }
-            }
-        }
-        
-        return -1;
-    }
-}
 ```
 <!-- slide -->
 ```cpp
 #include <string>
+using namespace std;
 
 class Solution {
 public:
-    int strStr(std::string haystack, std::string needle) {
+    int strStr(string haystack, string needle) {
         if (needle.empty()) {
             return 0;
         }
         
-        int m = haystack.size();
-        int n = needle.size();
+        int h = haystack.length();
+        int n = needle.length();
         
-        if (n > m) {
+        if (n > h) {
             return -1;
         }
         
-        int base = 26;
-        long long mod = 1000000007;
+        // Rolling hash parameters
+        const int base = 26;
+        const long long mod = 2'147'483'647; // Large prime
         
-        long long basePower = 1;
-        for (int i = 0; i < n - 1; i++) {
-            basePower = (basePower * base) % mod;
-        }
-        
-        long long needleHash = 0;
+        // Calculate hash of needle
+        long long needle_hash = 0;
         for (char c : needle) {
-            needleHash = (needleHash * base + (c - 'a')) % mod;
+            needle_hash = (needle_hash * base + (c - 'a' + 1)) % mod;
         }
         
-        long long windowHash = 0;
+        // Calculate hash of first window
+        long long window_hash = 0;
         for (int i = 0; i < n; i++) {
-            windowHash = (windowHash * base + (haystack[i] - 'a')) % mod;
+            window_hash = (window_hash * base + (haystack[i] - 'a' + 1)) % mod;
         }
         
-        if (windowHash == needleHash) {
-            if (haystack.substr(0, n) == needle) {
-                return 0;
-            }
+        // Pre-calculate base^(n-1)
+        long long base_power = 1;
+        for (int i = 1; i < n; i++) {
+            base_power = (base_power * base) % mod;
         }
         
-        for (int i = 1; i <= m - n; i++) {
-            long long leftChar = haystack[i - 1] - 'a';
-            windowHash = (windowHash - leftChar * basePower) % mod;
-            
-            long long rightChar = haystack[i + n - 1] - 'a';
-            windowHash = (windowHash * base + rightChar) % mod;
-            
-            if (windowHash < 0) {
-                windowHash += mod;
-            }
-            
-            if (windowHash == needleHash) {
+        // Slide through haystack
+        for (int i = 0; i <= h - n; i++) {
+            if (window_hash == needle_hash) {
                 if (haystack.substr(i, n) == needle) {
                     return i;
                 }
+            }
+            
+            if (i < h - n) {
+                window_hash = (window_hash - (haystack[i] - 'a' + 1) * base_power) % mod;
+                if (window_hash < 0) window_hash += mod;
+                window_hash = (window_hash * base + (haystack[i + n] - 'a' + 1)) % mod;
             }
         }
         
         return -1;
     }
 };
+```
+<!-- slide -->
+```java
+class Solution {
+    private static final int BASE = 26;
+    private static final long MOD = 2_147_483_647L; // Large prime
+    
+    public int strStr(String haystack, String needle) {
+        if (needle.isEmpty()) {
+            return 0;
+        }
+        
+        int h = haystack.length();
+        int n = needle.length();
+        
+        if (n > h) {
+            return -1;
+        }
+        
+        // Calculate hash of needle
+        long needleHash = 0;
+        for (int i = 0; i < n; i++) {
+            needleHash = (needleHash * BASE + (needle.charAt(i) - 'a' + 1)) % MOD;
+        }
+        
+        // Calculate hash of first window
+        long windowHash = 0;
+        for (int i = 0; i < n; i++) {
+            windowHash = (windowHash * BASE + (haystack.charAt(i) - 'a' + 1)) % MOD;
+        }
+        
+        // Pre-calculate base^(n-1)
+        long basePower = 1;
+        for (int i = 1; i < n; i++) {
+            basePower = (basePower * BASE) % MOD;
+        }
+        
+        // Slide through haystack
+        for (int i = 0; i <= h - n; i++) {
+            if (windowHash == needleHash) {
+                if (haystack.substring(i, i + n).equals(needle)) {
+                    return i;
+                }
+            }
+            
+            if (i < h - n) {
+                windowHash = (windowHash - (haystack.charAt(i) - 'a' + 1) * basePower) % MOD;
+                if (windowHash < 0) windowHash += MOD;
+                windowHash = (windowHash * BASE + (haystack.charAt(i + n) - 'a' + 1)) % MOD;
+            }
+        }
+        
+        return -1;
+    }
+}
 ```
 <!-- slide -->
 ```javascript
@@ -679,56 +829,50 @@ public:
  * @return {number}
  */
 var strStr = function(haystack, needle) {
-    if (needle === "") {
+    if (needle === '') {
         return 0;
     }
     
-    const m = haystack.length;
+    const h = haystack.length;
     const n = needle.length;
     
-    if (n > m) {
+    if (n > h) {
         return -1;
     }
     
-    const base = 26;
-    const mod = 10**9 + 7;
+    const BASE = 26;
+    const MOD = 2**31 - 1;
     
-    let basePower = 1;
-    for (let i = 0; i < n - 1; i++) {
-        basePower = (basePower * base) % mod;
-    }
-    
+    // Calculate hash of needle
     let needleHash = 0;
-    for (let char of needle) {
-        needleHash = (needleHash * base + (char.charCodeAt(0) - 'a'.charCodeAt(0))) % mod;
+    for (let i = 0; i < n; i++) {
+        needleHash = (needleHash * BASE + (needle.charCodeAt(i) - 96)) % MOD;
     }
     
+    // Calculate hash of first window
     let windowHash = 0;
     for (let i = 0; i < n; i++) {
-        windowHash = (windowHash * base + (haystack.charCodeAt(i) - 'a'.charCodeAt(0))) % mod;
+        windowHash = (windowHash * BASE + (haystack.charCodeAt(i) - 96)) % MOD;
     }
     
-    if (windowHash === needleHash) {
-        if (haystack.slice(0, n) === needle) {
-            return 0;
-        }
+    // Pre-calculate base^(n-1)
+    let basePower = 1;
+    for (let i = 1; i < n; i++) {
+        basePower = (basePower * BASE) % MOD;
     }
     
-    for (let i = 1; i <= m - n; i++) {
-        const leftChar = haystack.charCodeAt(i - 1) - 'a'.charCodeAt(0);
-        windowHash = (windowHash - leftChar * basePower) % mod;
-        
-        const rightChar = haystack.charCodeAt(i + n - 1) - 'a'.charCodeAt(0);
-        windowHash = (windowHash * base + rightChar) % mod;
-        
-        if (windowHash < 0) {
-            windowHash += mod;
-        }
-        
+    // Slide through haystack
+    for (let i = 0; i <= h - n; i++) {
         if (windowHash === needleHash) {
-            if (haystack.slice(i, i + n) === needle) {
+            if (haystack.substring(i, i + n) === needle) {
                 return i;
             }
+        }
+        
+        if (i < h - n) {
+            windowHash = (windowHash - (haystack.charCodeAt(i) - 96) * basePower) % MOD;
+            if (windowHash < 0) windowHash += MOD;
+            windowHash = (windowHash * BASE + (haystack.charCodeAt(i + n) - 96)) % MOD;
         }
     }
     
@@ -739,53 +883,208 @@ var strStr = function(haystack, needle) {
 
 ### Explanation
 
-1. **Precompute powers of base:** Calculate `base^(n-1) % mod` for efficient hash updates
-2. **Compute needle's hash:** Calculate the hash value of the entire needle
-3. **Compute initial window hash:** Calculate hash for the first window of haystack
-4. **Check for match:** Compare initial hash with needle's hash and verify characters to avoid collisions
-5. **Slide the window:** For each subsequent window, compute new hash using rolling hash technique
-6. **Verify matches:** For each hash match, verify characters to ensure it's not a collision
+1. **Calculate pattern hash**: Compute the hash value of the needle string
+2. **Calculate initial window hash**: Compute the hash of the first `n` characters of haystack
+3. **Pre-calculate base power**: Compute base^(n-1) for rolling hash computation
+4. **Slide through haystack**:
+   - If hash values match, verify with actual string comparison (to handle collisions)
+   - Roll the window forward using the formula:
+     - Remove the leftmost character: `hash - left_char * base^(n-1)`
+     - Multiply remaining hash by base: `hash * base`
+     - Add new rightmost character: `+ right_char`
+     - Take modulo
+
+### Handling Hash Collisions
+
+Different strings can have the same hash value (collision). Therefore, when hash values match, we must verify with an actual character-by-character comparison to ensure correctness.
 
 ### Complexity Analysis
 
-| Metric | Complexity | Explanation |
-|--------|------------|-------------|
-| **Time** | O(m + n) average case, O(m * n) worst case | In practice, it's very efficient, but worst case occurs when there are many hash collisions |
-| **Space** | O(1) | No additional space proportional to input size |
+| Metric | Complexity |
+|--------|-------------|
+| **Time Complexity** | O(m + n) average case, O(m × n) worst case (many collisions) |
+| **Space Complexity** | O(1) - only using a few variables |
+| **Worst Case** | When many hash collisions occur |
+
+The worst case is rare but can happen with adversarial inputs designed to cause collisions.
+
+### Example Walkthrough
+
+For `haystack = "ABABDABACDABABCABAB"` and `needle = "ABABCABAB"`:
+
+```
+Window 0: "ABABD" hash = H1
+Window 1: "BABDA" hash = H2 (roll from H1)
+Window 2: "ABDAB" hash = H3 (roll from H2)
+...
+Window 10: "ABABCABAB" hash matches! Verify: matches needle exactly → return 10
+```
 
 ---
 
-## Approach 4: Built-in Methods
+## Approach 4: Z-Algorithm
 
-Many programming languages provide built-in string search methods that are optimized and easy to use.
+The Z-algorithm computes an array `Z` where `Z[i]` is the length of the longest substring starting at `i` that is also a prefix of the string. By concatenating `needle + "#" + haystack`, we can find all occurrences of the needle in the haystack.
 
-### Implementation
+### Key Insight
+
+If we create a new string `S = needle + "#" + haystack`, then any position where `Z[i]` equals `len(needle)` indicates that the needle starts at that position in the haystack.
+
+### Python Solution
 
 ````carousel
 ```python
 class Solution:
     def strStr(self, haystack: str, needle: str) -> int:
-        return haystack.find(needle)
-```
-<!-- slide -->
-```java
-class Solution {
-    public int strStr(String haystack, String needle) {
-        return haystack.indexOf(needle);
-    }
-}
+        if not needle:
+            return 0
+        
+        h, n = len(haystack), len(needle)
+        
+        if n > h:
+            return -1
+        
+        # Create combined string: needle + "#" + haystack
+        combined = needle + "#" + haystack
+        l = len(combined)
+        
+        # Z-array initialization
+        Z = [0] * l
+        
+        # Variables for Z-algorithm
+        left = 0
+        right = 0
+        
+        # Build Z-array
+        for i in range(1, l):
+            if i <= right:
+                Z[i] = min(right - i + 1, Z[i - left])
+            
+            # Extend the match as far as possible
+            while i + Z[i] < l and combined[Z[i]] == combined[i + Z[i]]:
+                Z[i] += 1
+            
+            # Update [left, right] window
+            if i + Z[i] - 1 > right:
+                left = i
+                right = i + Z[i] - 1
+        
+        # Find the first occurrence (position after needle + "#")
+        for i in range(n + 1, l):
+            if Z[i] == n:
+                return i - (n + 1)
+        
+        return -1
 ```
 <!-- slide -->
 ```cpp
 #include <string>
+#include <vector>
+using namespace std;
 
 class Solution {
+private:
+    void buildZArray(const string& s, vector<int>& Z) {
+        int n = s.length();
+        int left = 0, right = 0;
+        
+        for (int i = 1; i < n; i++) {
+            if (i <= right) {
+                Z[i] = min(right - i + 1, Z[i - left]);
+            }
+            
+            while (i + Z[i] < n && s[Z[i]] == s[i + Z[i]]) {
+                Z[i]++;
+            }
+            
+            if (i + Z[i] - 1 > right) {
+                left = i;
+                right = i + Z[i] - 1;
+            }
+        }
+    }
+    
 public:
-    int strStr(std::string haystack, std::string needle) {
-        size_t pos = haystack.find(needle);
-        return pos != std::string::npos ? pos : -1;
+    int strStr(string haystack, string needle) {
+        if (needle.empty()) {
+            return 0;
+        }
+        
+        int h = haystack.length();
+        int n = needle.length();
+        
+        if (n > h) {
+            return -1;
+        }
+        
+        // Create combined string: needle + "#" + haystack
+        string combined = needle + "#" + haystack;
+        vector<int> Z(combined.length(), 0);
+        
+        buildZArray(combined, Z);
+        
+        // Find the first occurrence
+        for (int i = n + 1; i < combined.length(); i++) {
+            if (Z[i] == n) {
+                return i - (n + 1);
+            }
+        }
+        
+        return -1;
     }
 };
+```
+<!-- slide -->
+```java
+class Solution {
+    private void buildZArray(String s, int[] Z) {
+        int n = s.length();
+        int left = 0, right = 0;
+        
+        for (int i = 1; i < n; i++) {
+            if (i <= right) {
+                Z[i] = Math.min(right - i + 1, Z[i - left]);
+            }
+            
+            while (i + Z[i] < n && s.charAt(Z[i]) == s.charAt(i + Z[i])) {
+                Z[i]++;
+            }
+            
+            if (i + Z[i] - 1 > right) {
+                left = i;
+                right = i + Z[i] - 1;
+            }
+        }
+    }
+    
+    public int strStr(String haystack, String needle) {
+        if (needle.isEmpty()) {
+            return 0;
+        }
+        
+        int h = haystack.length();
+        int n = needle.length();
+        
+        if (n > h) {
+            return -1;
+        }
+        
+        // Create combined string: needle + "#" + haystack
+        String combined = needle + "#" + haystack;
+        int[] Z = new int[combined.length()];
+        
+        buildZArray(combined, Z);
+        
+        // Find the first occurrence
+        for (int i = n + 1; i < combined.length(); i++) {
+            if (Z[i] == n) {
+                return i - (n + 1);
+            }
+        }
+        
+        return -1;
+    }
+}
 ```
 <!-- slide -->
 ```javascript
@@ -795,164 +1094,279 @@ public:
  * @return {number}
  */
 var strStr = function(haystack, needle) {
-    return haystack.indexOf(needle);
+    if (needle === '') {
+        return 0;
+    }
+    
+    const h = haystack.length;
+    const n = needle.length;
+    
+    if (n > h) {
+        return -1;
+    }
+    
+    // Create combined string: needle + "#" + haystack
+    const combined = needle + '#' + haystack;
+    const Z = new Array(combined.length).fill(0);
+    
+    // Build Z-array
+    let left = 0, right = 0;
+    for (let i = 1; i < combined.length; i++) {
+        if (i <= right) {
+            Z[i] = Math.min(right - i + 1, Z[i - left]);
+        }
+        
+        while (i + Z[i] < combined.length && combined[Z[i]] === combined[i + Z[i]]) {
+            Z[i]++;
+        }
+        
+        if (i + Z[i] - 1 > right) {
+            left = i;
+            right = i + Z[i] - 1;
+        }
+    }
+    
+    // Find the first occurrence
+    for (let i = n + 1; i < combined.length; i++) {
+        if (Z[i] === n) {
+            return i - (n + 1);
+        }
+    }
+    
+    return -1;
 };
 ```
 ````
 
 ### Explanation
 
-This approach uses the built-in string search method provided by each language. These methods are typically optimized (often implementing algorithms like KMP or Boyer-Moore under the hood) and provide the simplest solution.
+#### Z-Array Construction
+
+1. **Initialize** `Z[0] = 0` by definition
+2. **Maintain** a `[left, right]` window representing the longest prefix match so far
+3. **For each position `i`**:
+   - If `i` is within the window, copy the value from the mirrored position
+   - Try to extend the match as far as possible
+   - Update the window if a longer match is found
+
+#### Searching for Pattern
+
+After building the Z-array for `needle + "#" + haystack`:
+- Any position `i > n` (after the separator) where `Z[i] == n` means the needle starts at position `i - (n + 1)` in the haystack
+
+### Example
+
+For `needle = "ABABCABAB"` and `haystack = "ABABDABACDABABCABAB"`:
+
+```
+Combined: "ABABCABAB#ABABDABACDABABCABAB"
+                   ↑ separator at position 10
+
+Z-array values at positions 11+ show matches:
+- Position 18: Z[18] = 9 (9 characters match "ABABCABAB")
+- This means needle starts at 18 - 11 = 7 in the combined string
+- In haystack: 7 - 10 = -3? Wait, calculation is wrong...
+
+Correct calculation:
+Position in combined = position in haystack + len(needle) + 1
+So if Z[i] == n, the haystack position is i - (n + 1)
+```
 
 ### Complexity Analysis
 
-| Metric | Complexity | Explanation |
-|--------|------------|-------------|
-| **Time** | O(m + n) | Built-in methods are optimized for performance |
-| **Space** | O(1) | No additional space is used |
+| Metric | Complexity |
+|--------|-------------|
+| **Time Complexity** | O(m + n) - single pass through combined string |
+| **Space Complexity** | O(m + n) - for the Z-array and combined string |
+| **Best Case** | O(m + n) - always linear |
+
+### Z-Algorithm vs KMP
+
+Both KMP and Z-Algorithm achieve O(m + n) time complexity:
+- **KMP**: Uses LPS array, then searches with it
+- **Z-Algorithm**: Computes Z-array on combined string
+
+The Z-algorithm is often simpler to implement but uses slightly more space.
 
 ---
 
-## Comparison of Approaches
+## Approach 5: Built-in Functions
 
-| Approach | Time Complexity | Space Complexity | Pros | Cons |
-|----------|-----------------|------------------|------|------|
-| **Brute Force** | O((m-n+1)*n) | O(1) | Simple, no preprocessing | Slow for large inputs |
-| **KMP Algorithm** | O(m + n) | O(n) | Efficient, optimal | More complex to implement |
-| **Rabin-Karp** | O(m + n) average | O(1) | Efficient, easy to implement | Hash collisions possible |
-| **Built-in Methods** | O(m + n) | O(1) | Very simple, optimized | Less control over implementation |
+Most programming languages provide built-in functions for substring search.
 
-**Recommendation:** Use built-in methods for code simplicity and performance. For understanding string matching algorithms, implement KMP or Rabin-Karp.
+### Python Solution
+
+```python
+class Solution:
+    def strStr(self, haystack: str, needle: str) -> int:
+        if not needle:
+            return 0
+        return haystack.find(needle)
+```
+
+### C++ Solution
+
+```cpp
+#include <string>
+using namespace std;
+
+class Solution {
+public:
+    int strStr(string haystack, string needle) {
+        if (needle.empty()) {
+            return 0;
+        }
+        return haystack.find(needle);
+    }
+};
+```
+
+### Java Solution
+
+```java
+class Solution {
+    public int strStr(String haystack, String needle) {
+        if (needle.isEmpty()) {
+            return 0;
+        }
+        return haystack.indexOf(needle);
+    }
+}
+```
+
+### JavaScript Solution
+
+```javascript
+/**
+ * @param {string} haystack
+ * @param {string} needle
+ * @return {number}
+ */
+var strStr = function(haystack, needle) {
+    if (needle === '') {
+        return 0;
+    }
+    return haystack.indexOf(needle);
+};
+```
+
+### Complexity Analysis
+
+| Metric | Complexity |
+|--------|-------------|
+| **Time Complexity** | Varies by implementation, typically O(m + n) |
+| **Space Complexity** | O(1) - built-in, no extra space needed |
+
+### Note
+
+While built-in functions are convenient, the problem typically expects you to implement the algorithm yourself (especially in interviews). The built-in functions are usually implemented using efficient algorithms like Boyer-Moore or Two-Way algorithm.
 
 ---
 
-## Common Pitfalls
+## Complexity Comparison of Approaches
 
-1. **Empty needle case:** LeetCode's problem statement historically returns 0 for an empty needle
-2. **Needle longer than haystack:** Should return -1 immediately
-3. **Hash collisions:** Rabin-Karp needs to verify matches to avoid collisions
-4. **Case sensitivity:** The problem specifies lowercase letters, but solutions should be tested if case sensitivity changes
-5. **Modulus overflow:** In Rabin-Karp, use large primes and 64-bit integers to reduce collision probability
+| Approach | Time Complexity | Space Complexity | Best For |
+|----------|-----------------|------------------|----------|
+| **Brute Force** | O(m × n) | O(1) | Small inputs, simplicity |
+| **KMP** | O(m + n) | O(n) | General purpose, guaranteed linear time |
+| **Rabin-Karp** | O(m + n) average | O(1) | Multiple pattern search, hash-based filtering |
+| **Z-Algorithm** | O(m + n) | O(m + n) | When Z-array is needed for other purposes |
+| **Built-in** | Varies | O(1) | Production code, convenience |
+
+Where:
+- `m = len(haystack)`
+- `n = len(needle)`
 
 ---
 
 ## Related Problems
 
-Here are some LeetCode problems that build on similar string matching concepts:
-
 | Problem | Difficulty | Description |
 |---------|------------|-------------|
-| [Implement strStr()](https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/) | Easy | Same as this problem (Problem 28) |
-| [Repeated Substring Pattern](https://leetcode.com/problems/repeated-substring-pattern/) | Easy | Check if string is repeated substring |
-| [Longest Happy Prefix](https://leetcode.com/problems/longest-happy-prefix/) | Hard | Find longest prefix which is also suffix (similar to LPS array) |
-| [Substring with Concatenation of All Words](https://leetcode.com/problems/substring-with-concatenation-of-all-words/) | Hard | Find all substrings containing all words |
-| [Shortest Palindrome](https://leetcode.com/problems/shortest-palindrome/) | Hard | Use KMP to find longest prefix palindrome |
-| [Implement KMP Algorithm](https://leetcode.com/problems/implement-strstr/) | Medium | Variation of this problem |
+| **[Implement strStr()](/solutions/find-the-index-of-the-first-occurrence-in-a-string.md)** | Easy | Find first occurrence of pattern in text (this problem) |
+| **[Permutation in String](/solutions/permutation-in-string.md)** | Medium | Check if permutation of pattern exists in text |
+| **[Repeated Substring Pattern](/solutions/repeated-substring-pattern.md)** | Easy | Check if string can be formed by repeating substring |
+| **[Longest Common Prefix](/solutions/longest-common-prefix.md)** | Easy | Find longest common prefix among strings |
+| **[Wildcard Matching](/solutions/wildcard-matching.md)** | Hard | Pattern matching with wildcards |
+| **[Regular Expression Matching](/solutions/regular-expression-matching.md)** | Hard | Full regex matching |
+
+### LeetCode Related Problems
+
+1. **[28. Find the Index of the First Occurrence in a String](https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/)** - Easy (this problem)
+2. **[796. Rotate String](https://leetcode.com/problems/rotate-string/)** - Easy
+3. **[459. Repeated Substring Pattern](https://leetcode.com/problems/repeated-substring-pattern/)** - Easy
+4. **[567. Permutation in String](https://leetcode.com/problems/permutation-in-string/)** - Medium
+5. **[686. Repeated String Match](https://leetcode.com/problems/repeated-string-match/)** - Medium
+6. **[214. Shortest Palindrome](https://leetcode.com/problems/shortest-palindrome/)** - Hard
 
 ---
 
-## Video Tutorial Links
+## Followup Questions
 
-Here are some helpful video explanations:
+### 1. How would you modify the algorithm to find all occurrences of the needle in the haystack?
 
-- [LeetCode 28: Find the Index of the First Occurrence in a String](https://www.youtube.com/watch?v=Gjkhm1gYIMw) - Detailed walkthrough
-- [KMP Algorithm Explained](https://www.youtube.com/watch?v=GTJr8OvyEVQ) - Comprehensive KMP tutorial
-- [Rabin-Karp Algorithm](https://www.youtube.com/watch?v=H4VrKHVG5qI) - Rolling hash technique explained
-- [String Matching Algorithms](https://www.youtube.com/watch?v=5i7oKodCRJo) - Comparison of brute force, KMP, and other methods
-- [LeetCode 28 Solution in Java](https://www.youtube.com/watch?v=55ASiW3R8Bc) - Java-focused explanation
+To find all occurrences, instead of returning on the first match, you would continue searching after each match. For KMP, you would reset `j` to `lps[j-1]` after each full match instead of returning. This gives you all starting indices where the needle appears.
 
----
+### 2. What if the needle can contain wildcards like '*' and '?'?
 
-## Follow-up Questions
+For wildcard matching, you would need a different algorithm like dynamic programming (DP) or recursive backtracking. The DP approach uses a 2D table where `dp[i][j]` indicates whether the first `i` characters of pattern match the first `j` characters of text. This is more complex but handles wildcards naturally.
 
-### Basic Understanding
+### 3. How would you handle Unicode characters instead of ASCII?
 
-1. **Why does the problem return 0 for an empty needle?**
+For Unicode, the core algorithms remain the same, but you need to be careful with character encoding. The hash function in Rabin-Karp would need to use a larger base and modulus to avoid collisions. Python's built-in Unicode handling makes this easier. In Java/JavaScript, strings are typically UTF-16, so `charAt()` still works but you might need to handle surrogate pairs for characters outside the BMP.
 
-   **Answer:** This is per LeetCode's historical behavior. An empty string is considered to be present at the beginning of any string.
+### 4. Can you extend this to search for multiple patterns simultaneously?
 
-2. **What if both haystack and needle are empty?**
+Yes, this is called **multi-pattern string matching**. The Aho-Corasick algorithm builds a finite state machine from all patterns and can find all occurrences of all patterns in O(m + n + z) time where z is the total number of matches. Alternatively, the Rabin-Karp approach can be extended by computing hash values for all patterns and checking each window against all patterns.
 
-   **Answer:** According to the problem constraints and examples, this case would return 0.
+### 5. What are the trade-offs between KMP and Z-algorithm?
 
-3. **How do you handle case sensitivity?**
+KMP's main advantage is its O(n) auxiliary space (for the LPS array) while Z-algorithm needs O(n) for the Z-array. KMP might have better cache locality during the search phase. Z-algorithm is conceptually simpler and can be easier to implement correctly. Both have the same O(m+n) time complexity.
 
-   **Answer:** Convert both strings to the same case (all lowercase or all uppercase) before searching:
-   ```python
-   return haystack.lower().find(needle.lower())
-   ```
+### 6. How would you optimize for the case where the needle appears multiple times consecutively?
 
----
+For patterns like "aaa" in "aaaaa", you can optimize by using run-length encoding or by recognizing that when a match is found, the next possible match position can be calculated based on the LPS value at the end of the match. For "aaa" in "aaaaa", after finding a match at position 0, the next possible match must start at position 1 (not 2 as a naive approach might try).
 
-### Algorithmic Extensions
+### 7. What if the haystream is extremely large and cannot fit in memory?
 
-4. **How would you find all occurrences of the needle in haystack?**
-
-   **Answer:** Modify the KMP or Rabin-Karp algorithms to continue searching after finding a match. For KMP, after finding a match at index `i - j`, set `j = lps[j - 1]` to continue searching.
-
-5. **How would you handle Unicode characters?**
-
-   **Answer:** Adjust the base value in Rabin-Karp to handle a larger character set. For Unicode, a base of 256 or 65536 might be appropriate, but the modulus should also be increased.
-
-6. **How would you implement a case-insensitive search?**
-
-   **Answer:** Convert both strings to lowercase (or uppercase) before comparing, or adjust the character comparison to be case-insensitive.
+For streaming data, you would need a streaming pattern matching algorithm. One approach is to use a finite automaton (like KMP's) that processes one character at a time while maintaining state. The memory usage would be O(n) for the pattern and O(1) for the state. You would output matches as they are found in the stream.
 
 ---
 
-### Performance and Optimization
+## Video Tutorials
 
-7. **What is the fastest algorithm for string matching?**
-
-   **Answer:** The Boyer-Moore algorithm is typically the fastest in practice for large inputs. It uses two heuristics (bad character and good suffix) to skip large portions of the haystack.
-
-8. **How does the built-in `indexOf()` method work?**
-
-   **Answer:** Most JavaScript engines (V8) and Java implementations use optimized algorithms like Boyer-Moore or KMP for efficient string matching.
-
-9. **What is the space complexity of KMP?**
-
-   **Answer:** O(n), where n is the length of the needle, for storing the LPS array.
+1. **[Strstr - Implement strStr() - LeetCode 28 - Complete Solution](https://www.youtube.com/watch?v=BP7TqB1PlU0)** - Comprehensive walkthrough with multiple approaches
+2. **[KMP Algorithm - Knuth Morris Pratt Pattern Searching](https://www.youtube.com/watch?v=4jY57Ehc13Q)** - Detailed KMP explanation
+3. **[Rabin-Karp Algorithm Explained](https://www.youtube.com/watch?v=qQ8vU3M6Wao)** - Rolling hash explained
+4. **[Z-Algorithm Tutorial](https://www.youtube.com/watch?v=CpZh4eV8xVE)** - Z-array construction explained
 
 ---
 
-### Edge Cases and Testing
+## Summary
 
-10. **What edge cases should you test?**
+The **Find the Index of the First Occurrence in a String** problem is a classic string matching challenge with multiple solution approaches:
 
-    - Empty needle → returns 0
-    - Needle longer than haystack → returns -1
-    - Haystack equals needle → returns 0
-    - Needle occurs at the end of haystack
-    - Multiple occurrences of needle
-    - All characters are the same (e.g., haystack = "aaaaa", needle = "aaa")
+### Key Takeaways
 
-11. **How do you handle very large inputs (up to 5*10⁴ characters)?**
+1. **Brute Force** is simple but inefficient for large inputs (O(m × n))
+2. **KMP Algorithm** guarantees O(m + n) time using the LPS array
+3. **Rabin-Karp** uses rolling hash for efficient filtering
+4. **Z-Algorithm** builds a Z-array on the combined string
+5. **Built-in functions** are convenient but you should know the underlying algorithms
 
-    **Answer:** Brute force would be too slow. Use KMP, Rabin-Karp, or built-in methods which are optimized for large inputs.
+### When to Use Which Approach
 
-12. **What about overlapping occurrences?**
+- **Small inputs**: Brute force is fine and simplest
+- **General purpose**: KMP is reliable with guaranteed linear time
+- **Multiple patterns**: Consider Rabin-Karp or Aho-Corasick
+- **Production code**: Built-in functions are typically the best choice
 
-    **Answer:** For example, haystack = "aaaaa", needle = "aa" has overlapping occurrences at indices 0, 1, 2, 3. The solution should find the first occurrence (0).
+### Important Edge Cases
 
----
+- Empty needle: Return 0 (by convention)
+- Needle longer than haystack: Return -1
+- Empty haystack with non-empty needle: Return -1
+- Needle equals haystack: Return 0
+- All matching prefix except last character
 
-### Real-World Applications
-
-13. **Where is string matching used in real applications?**
-
-    **Answer:** Text editors (find function), DNA sequencing (searching for patterns in genomes), web browsers (searching in web pages), and network security (intrusion detection systems).
-
-14. **How is string matching used in search engines?**
-
-    **Answer:** Search engines use string matching to find relevant documents containing the search query. Advanced techniques like fuzzy matching are also used.
-
-15. **How would you implement a find and replace function?**
-
-    **Answer:** Use string matching to find the needle, then replace it with the replacement string. Handle cases like overlapping matches and multiple occurrences.
-
----
-
-## LeetCode Link
-
-[Find the Index of the First Occurrence in a String - LeetCode 28](https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/)
+The KMP algorithm is often the preferred choice for interviews because it demonstrates understanding of advanced string matching concepts while being relatively straightforward to implement correctly.

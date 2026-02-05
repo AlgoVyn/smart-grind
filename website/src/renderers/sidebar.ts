@@ -12,7 +12,8 @@ export const sidebarRenderers = {
     renderSidebar: () => {
         const topicList = state.elements['topicList'];
         if (topicList) {
-            topicList.innerHTML = '';
+            // Use DocumentFragment for batch DOM insertion (performance optimization)
+            const fragment = document.createDocumentFragment();
 
             // Helper for topic navigation
             const navigateToTopic = (topicId: string) => {
@@ -25,14 +26,18 @@ export const sidebarRenderers = {
             // "All Problems" Link
             const allBtn = sidebarRenderers.createTopicButton('all', 'All Problems');
             allBtn.onclick = () => navigateToTopic('all');
-            topicList.appendChild(allBtn);
+            fragment.appendChild(allBtn);
 
             // Topic buttons
             data.topicsData.forEach((topic: Topic) => {
                 const btn = sidebarRenderers.createTopicButton(topic.id, topic.title);
                 btn.onclick = () => navigateToTopic(topic.id);
-                topicList.appendChild(btn);
+                fragment.appendChild(btn);
             });
+
+            // Batch append all at once (single reflow)
+            topicList.innerHTML = '';
+            topicList.appendChild(fragment);
         }
     },
 
