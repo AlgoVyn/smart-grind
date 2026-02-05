@@ -17,16 +17,16 @@ const _validateResponseOrigin = (response: Response): void => {
         'https://smartgrind.com',
         'https://www.smartgrind.com',
     ];
-    
+
     const responseOrigin = response.headers.get('Origin') || response.url;
-    
+
     // For same-origin requests, no additional validation needed
     if (response.url.startsWith(window.location.origin)) {
         return;
     }
-    
+
     // Validate cross-origin responses
-    if (!allowedOrigins.some(origin => responseOrigin.includes(origin))) {
+    if (!allowedOrigins.some((origin) => responseOrigin.includes(origin))) {
         console.warn('Response from unexpected origin:', responseOrigin);
     }
 };

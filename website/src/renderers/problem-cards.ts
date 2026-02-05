@@ -260,7 +260,10 @@ export const problemCardRenderers = {
     // Handle clicks on problem card buttons
     handleProblemCardClick: async (e: Event | HTMLElement, p: Problem): Promise<void> => {
         // Accept both Event objects and HTMLElement for flexibility
-        const button = e instanceof HTMLElement ? e : (e.target as HTMLElement).closest('button') as HTMLElement;
+        const button =
+            e instanceof HTMLElement
+                ? e
+                : ((e.target as HTMLElement).closest('button') as HTMLElement);
         if (!button) return;
 
         const action = button.dataset['action'];

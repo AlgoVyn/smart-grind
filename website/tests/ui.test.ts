@@ -2198,9 +2198,8 @@ describe('SmartGrind UI', () => {
     });
 
     describe('handleGoogleLogin popup closed', () => {
-        test('shows timeout toast when popup is closed without auth', () => {
+        test('resets buttons immediately when popup is closed without auth', () => {
             jest.useFakeTimers();
-            const { UI_CONSTANTS } = require('../src/ui/ui-constants');
             const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
             const mockPopup = { closed: false, close: jest.fn() };
             mockOpen.mockReturnValue(mockPopup);
@@ -2210,19 +2209,21 @@ describe('SmartGrind UI', () => {
 
             ui.handleGoogleLogin();
 
-            // Simulate popup closing (no longer detected by polling)
+            // Simulate popup closing - this should trigger immediate reset via interval check
             mockPopup.closed = true;
-            // Advance past the timeout period
-            jest.advanceTimersByTime(UI_CONSTANTS.AUTH_TIMEOUT);
+            // Advance timers to trigger the interval check
+            jest.advanceTimersByTime(500);
 
-            expect(showToastSpy).toHaveBeenCalledWith(
-                'Sign-in timed out. Please try again.',
-                'error'
-            );
+            // Buttons should be reset immediately, no timeout toast
             expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginBtn, false);
             expect(setButtonLoadingSpy).toHaveBeenCalledWith(
                 state.elements.modalGoogleLoginBtn,
                 false
+            );
+            // No timeout toast should be shown when popup is closed
+            expect(showToastSpy).not.toHaveBeenCalledWith(
+                'Sign-in timed out. Please try again.',
+                'error'
             );
 
             addEventListenerSpy.mockRestore();

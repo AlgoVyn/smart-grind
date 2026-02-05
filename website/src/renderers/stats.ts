@@ -107,9 +107,10 @@ export const statsRenderers = {
                 const pctSpan = htmlBtn.querySelector('span:last-child');
                 if (pctSpan) {
                     pctSpan.textContent = `${pct}%`;
-                    pctSpan.className = pct === 100 
-                        ? 'text-[10px] text-green-400 font-mono min-w-[24px] text-right transition-colors'
-                        : 'text-[10px] text-theme-muted group-hover:text-theme-base font-mono min-w-[24px] text-right transition-colors';
+                    pctSpan.className =
+                        pct === 100
+                            ? 'text-[10px] text-green-400 font-mono min-w-[24px] text-right transition-colors'
+                            : 'text-[10px] text-theme-muted group-hover:text-theme-base font-mono min-w-[24px] text-right transition-colors';
                 }
             }
         });

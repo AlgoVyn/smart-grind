@@ -87,13 +87,13 @@ const checkAuth = async () => {
             ui.showAlert('Invalid authentication token. Please try signing in again.');
             return;
         }
-        
+
         // Sanitize display name to prevent XSS
         const sanitizedDisplayName = utils.sanitizeInput(urlDisplayName) || 'User';
-        
+
         // Clear URL parameters immediately for security
         window.history.replaceState({}, document.title, window.location.pathname);
-        
+
         localStorage.setItem('token', urlToken);
         await _setupSignedInUser(urlUserId, sanitizedDisplayName, categoryParam);
         return;

@@ -65,6 +65,7 @@ export const handleGoogleLogin = () => {
     }
 
     let authCompleted = false;
+    let popupCheckInterval: ReturnType<typeof setInterval> | null = null;
 
     const handleAuthSuccess = (authData: { userId: string; displayName: string }) => {
         const { userId, displayName } = authData;
@@ -100,10 +101,23 @@ export const handleGoogleLogin = () => {
 
     const cleanupAuth = () => {
         window.removeEventListener('message', messageHandler);
+        if (popupCheckInterval) {
+            clearInterval(popupCheckInterval);
+            popupCheckInterval = null;
+        }
         const btn = state.elements.googleLoginBtn ?? null;
         const modalBtn = state.elements.modalGoogleLoginBtn ?? null;
         ui.setButtonLoading(btn, false);
         ui.setButtonLoading(modalBtn, false);
+    };
+
+    // Listen for popup closure to reset buttons immediately
+    const handlePopupClose = () => {
+        if (!authCompleted) {
+            authCompleted = true;
+            clearTimeout(timeoutId);
+            cleanupAuth();
+        }
     };
 
     // Listen for auth messages
@@ -123,6 +137,13 @@ export const handleGoogleLogin = () => {
         cleanupAuth();
     };
     window.addEventListener('message', messageHandler);
+
+    // Monitor popup closure
+    popupCheckInterval = setInterval(() => {
+        if (popup.closed) {
+            handlePopupClose();
+        }
+    }, 500);
 
     const handleAuthTimeout = () => {
         if (!authCompleted) {

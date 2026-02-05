@@ -476,7 +476,7 @@ describe('SmartGrind Renderers', () => {
             renderers.renderSidebar();
 
             // Verify calls: allBtn to fragment, topic btn to fragment, fragment to topicList = 3 calls
-            expect(mockAppendChild).toHaveBeenCalledTimes(3); 
+            expect(mockAppendChild).toHaveBeenCalledTimes(3);
             // First call should be to fragment with All Problems button
             const allBtnCall = mockAppendChild.mock.calls[0][0];
             expect(allBtnCall.className).toContain('sidebar-link');

@@ -185,9 +185,11 @@ export const utils = {
 
         // Reject dangerous URL schemes BEFORE any processing to prevent bypass
         const lowerSanitized = sanitized.toLowerCase();
-        if (lowerSanitized.includes('javascript:') ||
+        if (
+            lowerSanitized.includes('javascript:') ||
             lowerSanitized.includes('data:') ||
-            lowerSanitized.includes('vbscript:')) {
+            lowerSanitized.includes('vbscript:')
+        ) {
             console.warn('Dangerous URL scheme detected:', sanitized);
             return '';
         }
