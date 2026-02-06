@@ -4,6 +4,8 @@
 
 Given a string `s`, check if it can be constructed by repeating a substring of it. In other words, determine if `s` can be formed by concatenating one or more copies of some substring of `s`.
 
+> **Related Pattern**: See [String - Repeated Substring Pattern Detection](/patterns/string-repeated-substring-pattern-detection.md) for comprehensive pattern documentation with multiple approaches, code templates, and related problems.
+
 Formally, a string `s` has a repeated substring pattern if there exists a non-empty string `sub` such that `s = sub + sub + ... + sub` (k times), where k ≥ 2.
 
 For example:

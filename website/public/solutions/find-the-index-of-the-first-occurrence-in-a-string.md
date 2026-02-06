@@ -659,7 +659,7 @@ Where:
 - `p` is a prime base (typically 26 or 31 for lowercase letters)
 - `M` is a large prime modulus
 
-### Python Solution
+### Solution
 
 ````carousel
 ```python
@@ -930,7 +930,7 @@ The Z-algorithm computes an array `Z` where `Z[i]` is the length of the longest 
 
 If we create a new string `S = needle + "#" + haystack`, then any position where `Z[i]` equals `len(needle)` indicates that the needle starts at that position in the haystack.
 
-### Python Solution
+### Solution
 
 ````carousel
 ```python
@@ -1194,8 +1194,8 @@ The Z-algorithm is often simpler to implement but uses slightly more space.
 
 Most programming languages provide built-in functions for substring search.
 
-### Python Solution
-
+### Solution
+````carousel
 ```python
 class Solution:
     def strStr(self, haystack: str, needle: str) -> int:
@@ -1203,9 +1203,7 @@ class Solution:
             return 0
         return haystack.find(needle)
 ```
-
-### C++ Solution
-
+<!-- slide -->
 ```cpp
 #include <string>
 using namespace std;
@@ -1220,9 +1218,7 @@ public:
     }
 };
 ```
-
-### Java Solution
-
+<!-- slide -->
 ```java
 class Solution {
     public int strStr(String haystack, String needle) {
@@ -1233,9 +1229,7 @@ class Solution {
     }
 }
 ```
-
-### JavaScript Solution
-
+<!-- slide -->
 ```javascript
 /**
  * @param {string} haystack
@@ -1249,6 +1243,7 @@ var strStr = function(haystack, needle) {
     return haystack.indexOf(needle);
 };
 ```
+````
 
 ### Complexity Analysis
 

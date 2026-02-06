@@ -2,25 +2,31 @@
 
 ## Problem Statement
 
-There are `numCourses` courses you have to take, labeled from `0` to `numCourses - 1`. You are given an array `prerequisites` where `prerequisites[i] = [a_i, b_i]` indicates that you **must** take course `b_i` first if you want to take course `a_i`.
+There are a total of `numCourses` courses you have to take, labeled from `0` to `numCourses - 1`. You are given an array `prerequisites` where `prerequisites[i] = [a_i, b_i]` indicates that you must take course `b_i` first if you want to take course `a_i`.
 
-- For example, the pair `[0, 1]` indicates that to take course 0 you have to first take course 1.
+For example, the pair `[0, 1]` indicates that to take course `0`, you have to first take course `1`.
 
-Return `true` if you can finish all courses. Otherwise, return `false` (i.e., if there is a cycle in the prerequisites that prevents completion).
+Return `true` if it is possible to finish all courses, otherwise return `false`.
 
-**Input Format:**
-- `int numCourses`
-- `int[][] prerequisites` (list of pairs)
+---
 
-**Output Format:**
-- `boolean`
+### Input Format
 
-**Constraints:**
+- `int numCourses`: The number of courses.
+- `vector<vector<int>> prerequisites`: A list of prerequisite pairs.
+
+### Output Format
+
+- `bool`: `true` if all courses can be finished, `false` otherwise.
+
+### Constraints
+
 - `1 <= numCourses <= 2000`
-- `0 <= prerequisites.length <= 5000`
+- `0 <= prerequisites.length <= numCourses * (numCourses - 1) / 2`
 - `prerequisites[i].length == 2`
 - `0 <= a_i, b_i < numCourses`
-- All the pairs `prerequisites[i]` are **unique**.
+- `a_i != b_i`
+- All the pairs `[a_i, b_i]` are **distinct**.
 
 ---
 
@@ -31,15 +37,15 @@ Return `true` if you can finish all courses. Otherwise, return `false` (i.e., if
 **Input:**
 ```python
 numCourses = 2
-prerequisites = [[1,0]]
+prerequisites = [[1, 0]]
 ```
 
 **Output:**
-```python
+```
 true
 ```
 
-**Explanation:** There are 2 courses. To take course 1, you must finish course 0 first. So, take course 0 then course 1. This is possible.
+**Explanation:** There are 2 courses. To take course 1, you must finish course 0 first. One valid order is `[0, 1]`.
 
 ---
 
@@ -48,19 +54,36 @@ true
 **Input:**
 ```python
 numCourses = 2
-prerequisites = [[1,0],[0,1]]
+prerequisites = [[1, 0], [0, 1]]
 ```
 
 **Output:**
-```python
+```
 false
 ```
 
-**Explanation:** To take course 1, you need course 0; to take course 0, you need course 1. This forms a cycle, so it's impossible.
+**Explanation:** There is a cycle between course 0 and course 1, making it impossible to complete either.
 
 ---
 
 ### Example 3
+
+**Input:**
+```python
+numCourses = 4
+prerequisites = [[1, 0], [2, 0], [3, 1], [3, 2]]
+```
+
+**Output:**
+```
+true
+```
+
+**Explanation:** Course 0 has no prerequisites. Courses 1 and 2 depend on 0. Course 3 depends on both 1 and 2. The order `[0, 1, 2, 3]` is valid.
+
+---
+
+### Example 4 (Edge Case - Empty Prerequisites)
 
 **Input:**
 ```python
@@ -69,128 +92,59 @@ prerequisites = []
 ```
 
 **Output:**
-```python
+```
 true
 ```
 
-**Explanation:** No prerequisites, so the single course can be taken.
-
----
-
-### Example 4
-
-**Input:**
-```python
-numCourses = 4
-prerequisites = [[1,0],[2,0],[3,1],[3,2]]
-```
-
-**Output:**
-```python
-true
-```
-
-**Explanation:** Course 0 has no prerequisites. Courses 1 and 2 depend on 0. Course 3 depends on both 1 and 2. One valid order is [0, 1, 2, 3] or [0, 2, 1, 3].
-
----
-
-### Example 5 (Cycle Detection)
-
-**Input:**
-```python
-numCourses = 3
-prerequisites = [[1,0],[2,0],[2,1]]
-```
-
-**Output:**
-```python
-false
-```
-
-**Explanation:** Course 2 depends on course 1, which depends on course 0. But course 2 also depends on course 0, and course 1 depends on course 0. There's no cycle here, so it should be true. Wait, let me correct: Actually this example has no cycle. A proper cycle example would be [[1,0],[2,1],[0,2]] which forms a cycle 0→1→2→0.
-
----
-
-### Example 6 (No Prerequisites)
-
-**Input:**
-```python
-numCourses = 5
-prerequisites = []
-```
-
-**Output:**
-```python
-true
-```
-
-**Explanation:** All courses can be taken in any order since there are no dependencies.
-
----
-
-## Constraints Analysis
-
-| Constraint | Range | Implication |
-|------------|-------|-------------|
-| `numCourses` | 1 to 2000 | Small enough for O(V + E) algorithms |
-| `prerequisites.length` | 0 to 5000 | Number of edges in the graph |
-| Unique pairs | Yes | No duplicate edges to handle |
-
-The constraints suggest that graph-based solutions with O(V + E) time complexity are ideal. V = numCourses, E = prerequisites.length.
+**Explanation:** A single course with no prerequisites can always be completed.
 
 ---
 
 ## Intuition
 
-This problem can be modeled as a **directed graph** where:
-- Each course is a **node** (vertex)
-- Each prerequisite pair `[a, b]` represents a **directed edge** from `b` to `a` (b must come before a)
+This problem models course prerequisites as a **directed graph**, where:
 
-The question reduces to: **Does this directed graph contain a cycle?**
+- Each course is a node (`0` to `numCourses - 1`)
+- An edge `b_i → a_i` means "take `b_i` before `a_i`" (`b_i` is a prerequisite for `a_i`)
+
+The key insight is that **if the graph contains a cycle, it's impossible to complete all courses**. This is because in a cycle, each course depends on the next one, creating a circular dependency with no starting point.
 
 ### Key Insights
 
-1. **Cycle Detection**: If there's a cycle in the prerequisite graph, it's impossible to complete all courses because each course in the cycle depends on another in the same cycle (circular dependency).
-
-2. **Acyclic = Possible**: If the graph is acyclic (a Directed Acyclic Graph or DAG), a valid ordering exists. This ordering is called a **topological order**.
-
-3. **Topological Sort**: A topological order is a linear ordering of vertices such that for every directed edge u → v, u comes before v in the ordering.
-
-### Visual Representation
-
-```
-Example: [[1,0],[2,0],[3,1],[3,2]]
-
-    0 ─────→ 1 ─────→ 3
-    │              ↗
-    └──→ 2 ────────┘
-    
-All paths flow from 0 to 1,2 to 3. No cycles. Valid order: [0, 1, 2, 3]
-```
+1. **Cycle Detection**: The problem reduces to detecting if the directed graph is acyclic (DAG - Directed Acyclic Graph)
+2. **Topological Sort**: If the graph is a DAG, a topological ordering exists and all courses can be completed
+3. **Multiple Valid Orders**: There may be many valid ways to order courses; we only need to determine if ANY valid order exists
 
 ---
 
 ## Multiple Approaches with Code
 
 We'll cover three standard approaches:
-1. **DFS (Cycle Detection)**: Detects cycles using visit states
-2. **BFS (Kahn's Algorithm)**: Uses indegrees and topological sorting
-3. **Union-Find (Disjoint Set)**: Detects cycles in undirected graph style
 
-### Approach 1: DFS with Cycle Detection
+1. **DFS with Three States (Color Method)**: Recursive approach tracking node states
+2. **BFS (Kahn's Algorithm)**: Iterative approach using indegrees
+3. **Union-Find**: Efficient for undirected cycle detection (adapted for directed)
 
-**Algorithm:**
-1. Build an adjacency list for the graph
-2. Use DFS to traverse the graph, tracking three states:
-   - `0 = unvisited` (not yet explored)
-   - `1 = visiting` (currently in recursion stack)
-   - `2 = visited` (fully processed)
-3. If we encounter a node in the "visiting" state, a cycle exists
-4. If DFS completes without cycles, the graph is acyclic
+---
 
-**Why it works:** The "visiting" state tracks nodes currently in the recursion stack. If we revisit such a node, we've found a back edge, which indicates a cycle in a directed graph.
+### Approach 1: DFS with Three States (Color Method)
 
-**Implementation:**
+#### Algorithm Steps
+
+1. **Build the adjacency list** from the prerequisite pairs
+2. **Initialize a visit array** with three states:
+   - `0` (WHITE/UNVISITED): Node hasn't been processed yet
+   - `1` (GRAY/VISITING): Node is currently in the recursion stack
+   - `2` (BLACK/VISITED): Node and all its descendants have been fully processed
+3. **For each unvisited node**, perform DFS:
+   - Mark current node as VISITING (GRAY)
+   - For each neighbor:
+     - If VISITING → Cycle detected! Return `false`
+     - If UNVISITED → Recurse
+   - After processing all neighbors, mark as VISITED (BLACK)
+4. **Return** `true` if no cycles were found
+
+#### Code Implementation
 
 ````carousel
 ```python
@@ -199,48 +153,92 @@ from typing import List
 class Solution:
     def canFinish(self, numCourses: int, prerequisites: List[List[int]]) -> bool:
         """
-        DFS-based cycle detection approach.
-        Time: O(V + E), Space: O(V + E)
-        """
-        # Build adjacency list: graph[b] = list of courses that depend on b
-        graph = [[] for _ in range(numCourses)]
-        for a, b in prerequisites:
-            graph[b].append(a)  # Edge from b to a (b before a)
+        Detect if all courses can be finished using DFS with three states.
         
-        # Visit states: 0 = unvisited, 1 = visiting, 2 = visited
+        Args:
+            numCourses: Total number of courses
+            prerequisites: List of [course, prerequisite] pairs
+            
+        Returns:
+            True if all courses can be completed, False otherwise
+        """
+        # Build adjacency list: graph[course] = list of courses that depend on this course
+        graph = [[] for _ in range(numCourses)]
+        for course, prereq in prerequisites:
+            graph[prereq].append(course)
+        
+        # 0 = unvisited (white), 1 = visiting (gray), 2 = visited (black)
         visit = [0] * numCourses
         
         def dfs(node: int) -> bool:
-            # If visiting, we found a cycle
+            # If we're visiting a node that's already in the recursion stack, cycle found!
             if visit[node] == 1:
-                return False
-            # If already visited, no cycle in this path
+                return False  # Cycle detected
+            
+            # If already fully processed, no need to revisit
             if visit[node] == 2:
                 return True
             
-            # Mark as visiting (in current recursion stack)
+            # Mark as visiting (in recursion stack)
             visit[node] = 1
             
             # Recurse on all dependents
-            for neighbor in graph[node]:
-                if not dfs(neighbor):
+            for dependent in graph[node]:
+                if not dfs(dependent):
                     return False
             
-            # Mark as visited (completed processing)
+            # Mark as visited (removed from recursion stack)
             visit[node] = 2
             return True
         
-        # Check all nodes (handles disconnected components)
-        for i in range(numCourses):
-            if not dfs(i):
-                return False
+        # Check all nodes (handles disconnected graphs)
+        for node in range(numCourses):
+            if visit[node] == 0:
+                if not dfs(node):
+                    return False
+        
+        return True
+
+# Alternative implementation with recursion stack tracking
+class SolutionAlt:
+    def canFinish(self, numCourses: int, prerequisites: List[List[int]]) -> bool:
+        graph = [[] for _ in range(numCourses)]
+        for course, prereq in prerequisites:
+            graph[prereq].append(course)
+        
+        visit = [0] * numCourses
+        on_stack = [False] * numCourses
+        
+        def dfs(node: int) -> bool:
+            if on_stack[node]:
+                return False  # Back edge found
+            
+            if visit[node] == 2:
+                return True
+            
+            visit[node] = 1
+            on_stack[node] = True
+            
+            for dependent in graph[node]:
+                if not dfs(dependent):
+                    return False
+            
+            visit[node] = 2
+            on_stack[node] = False
+            return True
+        
+        for node in range(numCourses):
+            if visit[node] == 0:
+                if not dfs(node):
+                    return False
+        
         return True
 ```
+
 <!-- slide -->
 ```cpp
-// Approach 1: DFS with Cycle Detection
 #include <vector>
-#include <unordered_map>
+#include <unordered_set>
 using namespace std;
 
 class Solution {
@@ -249,36 +247,83 @@ public:
         // Build adjacency list
         vector<vector<int>> graph(numCourses);
         for (auto& prereq : prerequisites) {
-            int a = prereq[0];
-            int b = prereq[1];
-            graph[b].push_back(a);  // Edge b -> a
+            int course = prereq[0];
+            int prereqCourse = prereq[1];
+            graph[prereqCourse].push_back(course);
         }
         
-        // 0 = unvisited, 1 = visiting, 2 = visited
+        // 0: unvisited, 1: visiting, 2: visited
         vector<int> visit(numCourses, 0);
         
         function<bool(int)> dfs = [&](int node) -> bool {
-            if (visit[node] == 1) return false;  // Cycle detected
-            if (visit[node] == 2) return true;   // Already processed
+            if (visit[node] == 1) {
+                return false;  // Cycle detected
+            }
+            if (visit[node] == 2) {
+                return true;   // Already processed
+            }
             
             visit[node] = 1;
-            for (int neighbor : graph[node]) {
-                if (!dfs(neighbor)) return false;
+            for (int dependent : graph[node]) {
+                if (!dfs(dependent)) {
+                    return false;
+                }
             }
             visit[node] = 2;
             return true;
         };
         
-        for (int i = 0; i < numCourses; i++) {
-            if (!dfs(i)) return false;
+        for (int node = 0; node < numCourses; node++) {
+            if (visit[node] == 0) {
+                if (!dfs(node)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+};
+
+// Alternative with explicit recursion stack
+class SolutionAlt {
+public:
+    bool canFinish(int numCourses, vector<vector<int>>& prerequisites) {
+        vector<vector<int>> graph(numCourses);
+        for (auto& prereq : prerequisites) {
+            graph[prereq[1]].push_back(prereq[0]);
+        }
+        
+        vector<int> visit(numCourses, 0);
+        vector<bool> onStack(numCourses, false);
+        
+        function<bool(int)> dfs = [&](int node) -> bool {
+            if (onStack[node]) return false;
+            if (visit[node] == 2) return true;
+            
+            visit[node] = 1;
+            onStack[node] = true;
+            
+            for (int dependent : graph[node]) {
+                if (!dfs(dependent)) return false;
+            }
+            
+            visit[node] = 2;
+            onStack[node] = false;
+            return true;
+        };
+        
+        for (int node = 0; node < numCourses; node++) {
+            if (visit[node] == 0) {
+                if (!dfs(node)) return false;
+            }
         }
         return true;
     }
 };
 ```
+
 <!-- slide -->
 ```java
-// Approach 1: DFS with Cycle Detection
 import java.util.*;
 
 class Solution {
@@ -290,38 +335,88 @@ class Solution {
         }
         
         for (int[] prereq : prerequisites) {
-            int a = prereq[0];
-            int b = prereq[1];
-            graph.get(b).add(a);  // Edge b -> a
+            int course = prereq[0];
+            int prereqCourse = prereq[1];
+            graph.get(prereqCourse).add(course);
         }
         
-        // 0 = unvisited, 1 = visiting, 2 = visited
+        // 0: unvisited, 1: visiting, 2: visited
         int[] visit = new int[numCourses];
         
-        for (int i = 0; i < numCourses; i++) {
-            if (!dfs(i, graph, visit)) {
-                return false;
+        for (int node = 0; node < numCourses; node++) {
+            if (visit[node] == 0) {
+                if (!dfs(node, graph, visit)) {
+                    return false;
+                }
             }
         }
         return true;
     }
     
     private boolean dfs(int node, List<List<Integer>> graph, int[] visit) {
-        if (visit[node] == 1) return false;  // Cycle detected
-        if (visit[node] == 2) return true;   // Already processed
+        if (visit[node] == 1) {
+            return false;  // Cycle detected
+        }
+        if (visit[node] == 2) {
+            return true;   // Already processed
+        }
         
         visit[node] = 1;
-        for (int neighbor : graph.get(node)) {
-            if (!dfs(neighbor, graph, visit)) return false;
+        for (int dependent : graph.get(node)) {
+            if (!dfs(dependent, graph, visit)) {
+                return false;
+            }
         }
         visit[node] = 2;
         return true;
     }
 }
+
+// Alternative with recursion stack tracking
+class SolutionAlt {
+    public boolean canFinish(int numCourses, int[][] prerequisites) {
+        List<List<Integer>> graph = new ArrayList<>();
+        for (int i = 0; i < numCourses; i++) {
+            graph.add(new ArrayList<>());
+        }
+        
+        for (int[] prereq : prerequisites) {
+            graph.get(prereq[1]).add(prereq[0]);
+        }
+        
+        int[] visit = new int[numCourses];
+        boolean[] onStack = new boolean[numCourses];
+        
+        for (int node = 0; node < numCourses; node++) {
+            if (visit[node] == 0) {
+                if (!dfs(node, graph, visit, onStack)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    private boolean dfs(int node, List<List<Integer>> graph, int[] visit, boolean[] onStack) {
+        if (onStack[node]) return false;
+        if (visit[node] == 2) return true;
+        
+        visit[node] = 1;
+        onStack[node] = true;
+        
+        for (int dependent : graph.get(node)) {
+            if (!dfs(dependent, graph, visit, onStack)) return false;
+        }
+        
+        visit[node] = 2;
+        onStack[node] = false;
+        return true;
+    }
+}
 ```
+
 <!-- slide -->
 ```javascript
-// Approach 1: DFS with Cycle Detection
 /**
  * @param {number} numCourses
  * @param {number[][]} prerequisites
@@ -330,87 +425,145 @@ class Solution {
 var canFinish = function(numCourses, prerequisites) {
     // Build adjacency list
     const graph = Array.from({ length: numCourses }, () => []);
-    for (const [a, b] of prerequisites) {
-        graph[b].push(a);  // Edge b -> a
+    for (const [course, prereq] of prerequisites) {
+        graph[prereq].push(course);
     }
     
-    // 0 = unvisited, 1 = visiting, 2 = visited
+    // 0: unvisited, 1: visiting, 2: visited
     const visit = new Array(numCourses).fill(0);
     
-    function dfs(node) {
-        if (visit[node] === 1) return false;  // Cycle detected
-        if (visit[node] === 2) return true;   // Already processed
+    const dfs = (node) => {
+        if (visit[node] === 1) {
+            return false;  // Cycle detected
+        }
+        if (visit[node] === 2) {
+            return true;   // Already processed
+        }
         
         visit[node] = 1;
-        for (const neighbor of graph[node]) {
-            if (!dfs(neighbor)) return false;
+        for (const dependent of graph[node]) {
+            if (!dfs(dependent)) {
+                return false;
+            }
         }
         visit[node] = 2;
         return true;
+    };
+    
+    for (let node = 0; node < numCourses; node++) {
+        if (visit[node] === 0) {
+            if (!dfs(node)) {
+                return false;
+            }
+        }
+    }
+    return true;
+};
+
+// Alternative with explicit recursion stack
+var canFinishAlt = function(numCourses, prerequisites) {
+    const graph = Array.from({ length: numCourses }, () => []);
+    for (const [course, prereq] of prerequisites) {
+        graph[prereq].push(course);
     }
     
-    for (let i = 0; i < numCourses; i++) {
-        if (!dfs(i)) return false;
+    const visit = new Array(numCourses).fill(0);
+    const onStack = new Array(numCourses).fill(false);
+    
+    const dfs = (node) => {
+        if (onStack[node]) return false;
+        if (visit[node] === 2) return true;
+        
+        visit[node] = 1;
+        onStack[node] = true;
+        
+        for (const dependent of graph[node]) {
+            if (!dfs(dependent)) return false;
+        }
+        
+        visit[node] = 2;
+        onStack[node] = false;
+        return true;
+    };
+    
+    for (let node = 0; node < numCourses; node++) {
+        if (visit[node] === 0) {
+            if (!dfs(node)) return false;
+        }
     }
     return true;
 };
 ```
 ````
 
+#### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(V + E), where V = numCourses (vertices), E = prerequisites.length (edges). Each node and edge is visited exactly once. |
+| **Space** | O(V + E), for graph adjacency list and recursion stack. The visit array is O(V). |
+
 ---
 
-### Approach 2: BFS (Kahn's Algorithm for Topological Sort)
+### Approach 2: BFS (Kahn's Algorithm)
 
-**Algorithm:**
-1. Build an adjacency list and compute **indegrees** (number of incoming edges) for each node
-2. Initialize a queue with all nodes having indegree 0 (no prerequisites)
-3. Process the queue: for each node, add it to the result and decrease indegrees of its neighbors
-4. If a neighbor's indegree becomes 0, add it to the queue
-5. If we process all nodes (count == numCourses), no cycle exists; otherwise, cycle exists
+#### Algorithm Steps
 
-**Why it works:** Nodes with indegree 0 have no prerequisites and can be taken first. By progressively removing these nodes and their outgoing edges, we either process all nodes (acyclic) or get stuck with nodes that still have indegree > 0 (cycle).
+1. **Build the adjacency list** and compute **indegrees** for each node
+2. **Initialize a queue** with all nodes having indegree 0 (no prerequisites)
+3. **Process nodes**:
+   - Dequeue a node and increment the count of processed courses
+   - For each dependent, decrement its indegree
+   - If dependent's indegree becomes 0, enqueue it
+4. **Cycle Detection**: If the count of processed courses < total courses, a cycle exists
 
-**Implementation:**
+#### Code Implementation
 
 ````carousel
 ```python
-from typing import List
 from collections import deque
+from typing import List
 
 class Solution:
     def canFinish(self, numCourses: int, prerequisites: List[List[int]]) -> bool:
         """
-        BFS-based topological sort (Kahn's Algorithm).
-        Time: O(V + E), Space: O(V + E)
+        Detect if all courses can be finished using Kahn's Algorithm (BFS).
+        
+        Args:
+            numCourses: Total number of courses
+            prerequisites: List of [course, prerequisite] pairs
+            
+        Returns:
+            True if all courses can be completed, False otherwise
         """
-        # Build adjacency list and indegrees
+        # Build adjacency list and indegree array
         graph = [[] for _ in range(numCourses)]
         indegree = [0] * numCourses
         
-        for a, b in prerequisites:
-            graph[b].append(a)  # b -> a
-            indegree[a] += 1   # a has one more prerequisite
+        for course, prereq in prerequisites:
+            graph[prereq].append(course)  # prereq -> course
+            indegree[course] += 1
         
-        # Queue for nodes with no prerequisites
+        # Queue all courses with no prerequisites
         queue = deque([i for i in range(numCourses) if indegree[i] == 0])
         processed = 0
         
         while queue:
-            node = queue.popleft()
+            course = queue.popleft()
             processed += 1
             
-            # Remove this node's edges by decreasing neighbors' indegrees
-            for neighbor in graph[node]:
-                indegree[neighbor] -= 1
-                if indegree[neighbor] == 0:
-                    queue.append(neighbor)
+            # Reduce indegree of all dependents
+            for dependent in graph[course]:
+                indegree[dependent] -= 1
+                if indegree[dependent] == 0:
+                    queue.append(dependent)
         
         # If we processed all courses, no cycle exists
         return processed == numCourses
 ```
+
 <!-- slide -->
 ```cpp
-// Approach 2: BFS (Kahn's Algorithm)
 #include <vector>
 #include <queue>
 using namespace std;
@@ -418,33 +571,33 @@ using namespace std;
 class Solution {
 public:
     bool canFinish(int numCourses, vector<vector<int>>& prerequisites) {
-        // Build adjacency list and indegrees
         vector<vector<int>> graph(numCourses);
         vector<int> indegree(numCourses, 0);
         
         for (auto& prereq : prerequisites) {
-            int a = prereq[0];
-            int b = prereq[1];
-            graph[b].push_back(a);
-            indegree[a]++;
+            int course = prereq[0];
+            int prereqCourse = prereq[1];
+            graph[prereqCourse].push_back(course);
+            indegree[course]++;
         }
         
-        // Queue for nodes with indegree 0
         queue<int> q;
         for (int i = 0; i < numCourses; i++) {
-            if (indegree[i] == 0) q.push(i);
+            if (indegree[i] == 0) {
+                q.push(i);
+            }
         }
         
         int processed = 0;
         while (!q.empty()) {
-            int node = q.front();
+            int course = q.front();
             q.pop();
             processed++;
             
-            for (int neighbor : graph[node]) {
-                indegree[neighbor]--;
-                if (indegree[neighbor] == 0) {
-                    q.push(neighbor);
+            for (int dependent : graph[course]) {
+                indegree[dependent]--;
+                if (indegree[dependent] == 0) {
+                    q.push(dependent);
                 }
             }
         }
@@ -453,14 +606,13 @@ public:
     }
 };
 ```
+
 <!-- slide -->
 ```java
-// Approach 2: BFS (Kahn's Algorithm)
 import java.util.*;
 
 class Solution {
     public boolean canFinish(int numCourses, int[][] prerequisites) {
-        // Build adjacency list and indegrees
         List<List<Integer>> graph = new ArrayList<>();
         int[] indegree = new int[numCourses];
         
@@ -469,27 +621,28 @@ class Solution {
         }
         
         for (int[] prereq : prerequisites) {
-            int a = prereq[0];
-            int b = prereq[1];
-            graph.get(b).add(a);
-            indegree[a]++;
+            int course = prereq[0];
+            int prereqCourse = prereq[1];
+            graph.get(prereqCourse).add(course);
+            indegree[course]++;
         }
         
-        // Queue for nodes with indegree 0
         Queue<Integer> q = new LinkedList<>();
         for (int i = 0; i < numCourses; i++) {
-            if (indegree[i] == 0) q.add(i);
+            if (indegree[i] == 0) {
+                q.offer(i);
+            }
         }
         
         int processed = 0;
         while (!q.isEmpty()) {
-            int node = q.poll();
+            int course = q.poll();
             processed++;
             
-            for (int neighbor : graph.get(node)) {
-                indegree[neighbor]--;
-                if (indegree[neighbor] == 0) {
-                    q.add(neighbor);
+            for (int dependent : graph.get(course)) {
+                indegree[dependent]--;
+                if (indegree[dependent] == 0) {
+                    q.offer(dependent);
                 }
             }
         }
@@ -498,41 +651,39 @@ class Solution {
     }
 }
 ```
+
 <!-- slide -->
 ```javascript
-// Approach 2: BFS (Kahn's Algorithm)
 /**
  * @param {number} numCourses
  * @param {number[][]} prerequisites
  * @return {boolean}
  */
 var canFinish = function(numCourses, prerequisites) {
-    // Build adjacency list and indegrees
     const graph = Array.from({ length: numCourses }, () => []);
     const indegree = new Array(numCourses).fill(0);
     
-    for (const [a, b] of prerequisites) {
-        graph[b].push(a);
-        indegree[a]++;
+    for (const [course, prereq] of prerequisites) {
+        graph[prereq].push(course);
+        indegree[course]++;
     }
     
-    // Queue for nodes with indegree 0
     const queue = [];
     for (let i = 0; i < numCourses; i++) {
-        if (indegree[i] === 0) queue.push(i);
+        if (indegree[i] === 0) {
+            queue.push(i);
+        }
     }
     
     let processed = 0;
-    let front = 0;
-    
-    while (front < queue.length) {
-        const node = queue[front++];
+    while (queue.length > 0) {
+        const course = queue.shift();
         processed++;
         
-        for (const neighbor of graph[node]) {
-            indegree[neighbor]--;
-            if (indegree[neighbor] === 0) {
-                queue.push(neighbor);
+        for (const dependent of graph[course]) {
+            indegree[dependent]--;
+            if (indegree[dependent] === 0) {
+                queue.push(dependent);
             }
         }
     }
@@ -542,100 +693,128 @@ var canFinish = function(numCourses, prerequisites) {
 ```
 ````
 
+#### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(V + E), each node and edge processed once |
+| **Space** | O(V + E), for adjacency list, indegree array, and queue |
+
 ---
 
 ### Approach 3: Union-Find (Disjoint Set Union)
 
-**Algorithm:**
-1. Treat the graph as having bidirectional edges for cycle detection
-2. Use Union-Find to detect cycles in a graph
-3. For each edge [a, b], check if a and b are already connected
-4. If yes, cycle exists; if no, union them
+#### Algorithm Steps
 
-**Note:** This approach works because in an undirected graph, cycle detection is simpler. However, we need to be careful with the direction. For Course Schedule, we can think of it as: if a and b are prerequisites of each other (directly or indirectly), there's a cycle.
+1. **Initialize DSU** with each course as its own parent
+2. **For each prerequisite** (course, prereq):
+   - Find the root of course and prereq
+   - If roots are the same → cycle detected! Return `false`
+   - Otherwise, union them
+3. **Return** `true` if no cycles were found
 
-**Why it works:** Union-Find efficiently tracks connected components. If adding an edge connects two nodes already in the same component, we've found a cycle.
+**Note**: Union-Find is primarily designed for undirected graphs. For directed graphs with the prerequisite structure, it can detect cycles but may have limitations in some edge cases.
 
-**Implementation:**
+#### Code Implementation
 
 ````carousel
 ```python
-from typing import List
+class UnionFind:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.rank = [0] * n
+    
+    def find(self, x):
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])  # Path compression
+        return self.parent[x]
+    
+    def union(self, x, y):
+        rootX = self.find(x)
+        rootY = self.find(y)
+        
+        if rootX == rootY:
+            return False  # Already in same set - potential cycle
+        
+        # Union by rank
+        if self.rank[rootX] < self.rank[rootY]:
+            self.parent[rootX] = rootY
+        elif self.rank[rootX] > self.rank[rootY]:
+            self.parent[rootY] = rootX
+        else:
+            self.parent[rootY] = rootX
+            self.rank[rootX] += 1
+        return True
 
 class Solution:
     def canFinish(self, numCourses: int, prerequisites: List[List[int]]) -> bool:
         """
-        Union-Find approach for cycle detection.
-        Time: O(V + E * α(V)), Space: O(V)
+        Detect cycle using Union-Find.
+        Note: Best suited for undirected graphs; use DFS/BFS for directed.
         """
-        parent = list(range(numCourses))
-        rank = [0] * numCourses
+        uf = UnionFind(numCourses)
         
-        def find(x):
-            if parent[x] != x:
-                parent[x] = find(parent[x])  # Path compression
-            return parent[x]
-        
-        def union(x, y):
-            px, py = find(x), find(y)
-            if px == py:
+        for course, prereq in prerequisites:
+            # Edge: prereq -> course
+            if not uf.union(prereq, course):
                 return False  # Cycle detected
-            # Union by rank
-            if rank[px] < rank[py]:
-                px, py = py, px
-            parent[py] = px
-            if rank[px] == rank[py]:
-                rank[px] += 1
-            return True
-        
-        for a, b in prerequisites:
-            # Union a and b - if they're already connected, cycle exists
-            if not union(a, b):
-                return False
         
         return True
 ```
+
 <!-- slide -->
 ```cpp
-// Approach 3: Union-Find (Disjoint Set Union)
 #include <vector>
 using namespace std;
 
-class Solution {
+class UnionFind {
+private:
+    vector<int> parent;
+    vector<int> rank;
+    
 public:
-    vector<int> parent, rank;
+    UnionFind(int n) : parent(n), rank(n, 0) {
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+        }
+    }
     
     int find(int x) {
         if (parent[x] != x) {
-            parent[x] = find(parent[x]);  // Path compression
+            parent[x] = find(parent[x]);
         }
         return parent[x];
     }
     
     bool unionSets(int x, int y) {
-        int px = find(x), py = find(y);
-        if (px == py) return false;  // Cycle detected
+        int rootX = find(x);
+        int rootY = find(y);
         
-        // Union by rank
-        if (rank[px] < rank[py]) {
-            swap(px, py);
+        if (rootX == rootY) {
+            return false;
         }
-        parent[py] = px;
-        if (rank[px] == rank[py]) {
-            rank[px]++;
+        
+        if (rank[rootX] < rank[rootY]) {
+            parent[rootX] = rootY;
+        } else if (rank[rootX] > rank[rootY]) {
+            parent[rootY] = rootX;
+        } else {
+            parent[rootY] = rootX;
+            rank[rootX]++;
         }
         return true;
     }
-    
+};
+
+class Solution {
+public:
     bool canFinish(int numCourses, vector<vector<int>>& prerequisites) {
-        parent.resize(numCourses);
-        rank.resize(numCourses, 0);
-        iota(parent.begin(), parent.end(), 0);
+        UnionFind uf(numCourses);
         
         for (auto& prereq : prerequisites) {
-            int a = prereq[0];
-            int b = prereq[1];
-            if (!unionSets(a, b)) {
+            int course = prereq[0];
+            int prereqCourse = prereq[1];
+            if (!uf.unionSets(prereqCourse, course)) {
                 return false;
             }
         }
@@ -643,49 +822,57 @@ public:
     }
 };
 ```
+
 <!-- slide -->
 ```java
-// Approach 3: Union-Find (Disjoint Set Union)
-class Solution {
+class UnionFind {
     private int[] parent;
     private int[] rank;
     
-    private int find(int x) {
+    public UnionFind(int n) {
+        parent = new int[n];
+        rank = new int[n];
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+            rank[i] = 0;
+        }
+    }
+    
+    public int find(int x) {
         if (parent[x] != x) {
-            parent[x] = find(parent[x]);  // Path compression
+            parent[x] = find(parent[x]);
         }
         return parent[x];
     }
     
-    private boolean unionSets(int x, int y) {
-        int px = find(x), py = find(y);
-        if (px == py) return false;  // Cycle detected
+    public boolean unionSets(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
         
-        // Union by rank
-        if (rank[px] < rank[py]) {
-            int temp = px;
-            px = py;
-            py = temp;
+        if (rootX == rootY) {
+            return false;
         }
-        parent[py] = px;
-        if (rank[px] == rank[py]) {
-            rank[px]++;
+        
+        if (rank[rootX] < rank[rootY]) {
+            parent[rootX] = rootY;
+        } else if (rank[rootX] > rank[rootY]) {
+            parent[rootY] = rootX;
+        } else {
+            parent[rootY] = rootX;
+            rank[rootX]++;
         }
         return true;
     }
-    
+}
+
+class Solution {
     public boolean canFinish(int numCourses, int[][] prerequisites) {
-        parent = new int[numCourses];
-        rank = new int[numCourses];
-        for (int i = 0; i < numCourses; i++) {
-            parent[i] = i;
-            rank[i] = 0;
-        }
+        UnionFind uf = new UnionFind(numCourses);
         
         for (int[] prereq : prerequisites) {
-            int a = prereq[0];
-            int b = prereq[1];
-            if (!unionSets(a, b)) {
+            int course = prereq[0];
+            int prereqCourse = prereq[1];
+            if (!uf.unionSets(prereqCourse, course)) {
                 return false;
             }
         }
@@ -693,48 +880,52 @@ class Solution {
     }
 }
 ```
+
 <!-- slide -->
 ```javascript
-// Approach 3: Union-Find (Disjoint Set Union)
+class UnionFind {
+    constructor(n) {
+        this.parent = Array.from({ length: n }, (_, i) => i);
+        this.rank = new Array(n).fill(0);
+    }
+    
+    find(x) {
+        if (this.parent[x] !== x) {
+            this.parent[x] = this.find(this.parent[x]);
+        }
+        return this.parent[x];
+    }
+    
+    unionSets(x, y) {
+        const rootX = this.find(x);
+        const rootY = this.find(y);
+        
+        if (rootX === rootY) {
+            return false;
+        }
+        
+        if (this.rank[rootX] < this.rank[rootY]) {
+            this.parent[rootX] = rootY;
+        } else if (this.rank[rootX] > this.rank[rootY]) {
+            this.parent[rootY] = rootX;
+        } else {
+            this.parent[rootY] = rootX;
+            this.rank[rootX]++;
+        }
+        return true;
+    }
+}
+
 /**
  * @param {number} numCourses
  * @param {number[][]} prerequisites
  * @return {boolean}
  */
 var canFinish = function(numCourses, prerequisites) {
-    const parent = new Array(numCourses);
-    const rank = new Array(numCourses).fill(0);
+    const uf = new UnionFind(numCourses);
     
-    for (let i = 0; i < numCourses; i++) {
-        parent[i] = i;
-    }
-    
-    function find(x) {
-        if (parent[x] !== x) {
-            parent[x] = find(parent[x]);  // Path compression
-        }
-        return parent[x];
-    }
-    
-    function union(x, y) {
-        const px = find(x);
-        const py = find(y);
-        if (px === py) return false;  // Cycle detected
-        
-        // Union by rank
-        if (rank[px] < rank[py]) {
-            parent[px] = py;
-        } else if (rank[px] > rank[py]) {
-            parent[py] = px;
-        } else {
-            parent[py] = px;
-            rank[px]++;
-        }
-        return true;
-    }
-    
-    for (const [a, b] of prerequisites) {
-        if (!union(a, b)) {
+    for (const [course, prereq] of prerequisites) {
+        if (!uf.unionSets(prereq, course)) {
             return false;
         }
     }
@@ -743,57 +934,52 @@ var canFinish = function(numCourses, prerequisites) {
 ```
 ````
 
+#### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(E × α(V)), where α is the inverse Ackermann function (practically constant) |
+| **Space** | O(V), for parent and rank arrays |
+
+**Note**: Union-Find is best suited for undirected graphs. For directed graphs like this problem, DFS or BFS is more reliable.
+
 ---
 
-## Time and Space Complexity Analysis
+## Comparison of Approaches
 
-### Approach 1: DFS with Cycle Detection
+| Aspect | DFS (Three States) | BFS (Kahn's) | Union-Find |
+|--------|-------------------|---------------|------------|
+| **Type** | Recursive | Iterative | Iterative |
+| **Cycle Detection** | Explicit (back edge) | Implicit (unprocessed nodes) | Implicit (same set) |
+| **Space** | O(V) recursion stack | O(V) queue | O(V) |
+| **Memory Limit** | Risk of stack overflow | Safer | Safest |
+| **Intuition** | Tracks recursion stack | Topological sort | Disjoint sets |
+| **Best For** | Most directed cycle problems | Topological sort + cycle detection | Undirected graphs |
 
-| Metric | Complexity | Explanation |
-|--------|------------|-------------|
-| **Time** | O(V + E) | Each node and edge is visited exactly once |
-| **Space** | O(V + E) | Graph storage + O(V) for visit array + O(V) recursion stack |
+**Recommendation**: Use **DFS** for most cases (intuitive cycle detection). Use **BFS** when you also need a valid ordering or when recursion depth is a concern.
 
-### Approach 2: BFS (Kahn's Algorithm)
+---
 
-| Metric | Complexity | Explanation |
-|--------|------------|-------------|
-| **Time** | O(V + E) | Each node and edge is processed exactly once |
-| **Space** | O(V + E) | Graph storage + O(V) for indegree array + O(V) for queue |
+## Common Pitfalls
 
-### Approach 3: Union-Find
-
-| Metric | Complexity | Explanation |
-|--------|------------|-------------|
-| **Time** | O(V + E × α(V)) | α(V) is the inverse Ackermann function (practically constant) |
-| **Space** | O(V) | Parent and rank arrays only |
-
-### Comparison Summary
-
-| Approach | Time | Space | Pros | Cons |
-|----------|------|-------|------|------|
-| DFS | O(V + E) | O(V + E) | Detects cycle during traversal | Recursion depth risk |
-| BFS | O(V + E) | O(V + E) | Iterative, no recursion | Slightly more code |
-| Union-Find | O(V + E) | O(V) | Minimal space | Less intuitive for this problem |
-
-**Recommendation:** BFS (Kahn's Algorithm) is often preferred for its iterative nature and direct connection to topological sorting. DFS is equally valid and more concise.
+1. **Wrong Edge Direction**: Remember that `prerequisites[i] = [a, b]` means edge `b → a`, not `a → b`
+2. **Not Handling Disconnected Graphs**: Always iterate through ALL nodes, not just the first one
+3. **Stack Overflow**: For very large graphs (2000+ nodes), recursion may cause stack overflow. Use BFS instead
+4. **Confusing States**: Don't forget the three states: UNVISITED, VISITING, VISITED
+5. **Self-Loops**: A self-loop (course → itself) should be detected as a cycle
 
 ---
 
 ## Related Problems
 
-Based on similar themes (topological sort, cycle detection, graph dependencies):
+Based on similar themes (cycle detection, topological sort, dependency resolution):
 
-1. **[Course Schedule II](https://leetcode.com/problems/course-schedule-ii/)** - Returns the actual order of courses (topological sort)
-2. **[Alien Dictionary](https://leetcode.com/problems/alien-dictionary/)** - Topological sort on characters from word order
-3. **[Parallel Courses III](https://leetcode.com/problems/parallel-courses-iii/)** - Minimum time to complete all courses with dependencies
-4. **[Parallel Courses II](https://leetcode.com/problems/parallel-courses-ii/)** - Minimum semesters with k courses per semester
-5. **[Course Schedule IV](https://leetcode.com/problems/course-schedule-iv/)** - Queries about prerequisite relationships
-6. **[Clone Graph](https://leetcode.com/problems/clone-graph/)** - Graph traversal (DFS/BFS)
-7. **[Number of Islands](https://leetcode.com/problems/number-of-islands/)** - Connected components in grid
-8. **[Graph Valid Tree](https://leetcode.com/problems/graph-valid-tree/)** - Cycle detection + connectivity check
-9. **[Find Eventual Safe States](https://leetcode.com/problems/find-eventual-safe-states/)** - Reverse graph + topological sort
-10. **[Redundant Connection](https://leetcode.com/problems/redundant-connection/)** - Cycle detection in undirected graph
+- **[LeetCode 210: Course Schedule II](https://leetcode.com/problems/course-schedule-ii/)** - Return a valid course order (also uses cycle detection)
+- **[LeetCode 1462: Course Schedule IV](https://leetcode.com/problems/course-schedule-iv/)** - Query if one course is prerequisite of another
+- **[LeetCode 802: Find Eventual Safe States](https://leetcode.com/problems/find-eventual-safe-states/)** - Find nodes not in cycles (reverse graph + DFS)
+- **[LeetCode 1557: Minimum Number of Vertices to Reach All Nodes](https://leetcode.com/problems/minimum-number-of-vertices-to-reach-all-nodes/)** - Find source nodes in DAG
+- **[LeetCode 269: Alien Dictionary](https://leetcode.com/problems/alien-dictionary/)** - Topological sort with character constraints
+- **[LeetCode 444: Sequence Reconstruction](https://leetcode.com/problems/sequence-reconstruction/)** - Verify unique topological order
 
 ---
 
@@ -801,90 +987,79 @@ Based on similar themes (topological sort, cycle detection, graph dependencies):
 
 Here are some helpful YouTube tutorials explaining the problem and solutions:
 
-1. **[NeetCode: Course Schedule - Graph Adjacency List - Leetcode 207](https://www.youtube.com/watch?v=EgI5nU9etnU)** - Visual drawing and coding walkthrough
-2. **[Joma Tech: Course Schedule (Leetcode 207) | LeetCode Tutorial](https://www.youtube.com/watch?v=0STFfIMah0g)** - Clear explanation for beginners
-3. **[Leetcode 207 - Course Schedule (JAVA, Solution Explain!)](https://www.youtube.com/watch?v=mB3PGwnpM1k)** - Java-focused but concepts apply
-4. **[Course Schedule (LeetCode 207) | Interview Essential | BFS, Queue, Cycle in a directed graph](https://www.youtube.com/watch?v=Oa4Srx9mDqs)** - BFS emphasis
-5. **[Course Schedule || Leetcode 207 || 1 Variant that Big Tech Asks](https://www.youtube.com/watch?v=9lJZt_UXyGw)** - Includes variants asked in interviews
-6. **[Topological Sort - Kahn's Algorithm Explained](https://www.youtube.com/watch?v=qb3eQP6Qm9A)** - Detailed Kahn's Algorithm explanation
-7. **[DFS Cycle Detection in Directed Graph](https://www.youtube.com/watch?v=9TwY2MsgxcI)** - DFS approach deep dive
+- **[Detect Cycle in Directed Graph - GeeksforGeeks](https://www.youtube.com/watch?v=uzVUplmrqZU)** - Comprehensive DFS cycle detection explanation
+- **[Course Schedule (LeetCode 207) - DFS and BFS Solutions](https://www.youtube.com/watch?v=rG2mLJ72-9A)** - Two approaches with code walkthrough
+- **[Detect Cycle in Directed Graph - Algorithms Made Easy](https://www.youtube.com/watch?v=nT1IVY1d1-k)** - Visual explanation of the algorithm
+- **[Topological Sort and Cycle Detection - Khan's Algorithm](https://www.youtube.com/watch?v=IBxA5akDCjQ)** - BFS approach explanation
+- **[Course Schedule - LeetCode 207 (NeetCode)](https://www.youtube.com/watch?v=idmgG1zCIaA)** - Problem walkthrough with solutions
 
 ---
 
-## Follow-up Questions
+## Followup Questions
 
-### Algorithm Understanding
+### Q1: How would you return a valid course order along with cycle detection?
 
-1. **Why does DFS detect cycles with three states instead of two?**
-   - Two states (visited/unvisited) work for undirected graphs but not directed. The third state "visiting" tracks nodes currently in the recursion stack. If we encounter such a node, it's a back edge indicating a cycle.
-
-2. **Can we detect cycles with only one DFS pass?**
-   - No, you need to track the recursion stack separately from completed nodes. A node might be visited from different paths, and we need to know if we're currently exploring from it.
-
-3. **Why does Kahn's algorithm process nodes with indegree 0?**
-   - These nodes have no prerequisites and can be taken immediately. By removing them and updating indegrees, we reveal new nodes that have no remaining prerequisites.
-
-### Complexity and Optimization
-
-4. **What's the worst-case recursion depth for DFS?**
-   - O(V) in the worst case (a completely skewed graph like 0→1→2→3→...).
-
-5. **Can we optimize the space complexity?**
-   - DFS uses O(V) space for the recursion stack. BFS uses O(V) for the queue. Union-Find is most space-efficient at O(V) with no recursion stack.
-
-6. **Which approach is best for very large graphs?**
-   - BFS (Kahn's Algorithm) is generally safer for large graphs as it avoids potential stack overflow from recursion.
-
-### Real-world Applications
-
-7. **What are practical applications of cycle detection?**
-   - Build systems (detecting circular dependencies in files)
-   - Package managers (resolving library dependencies)
-   - Deadlock detection in operating systems
-   - Task scheduling with dependencies
-   - Database schema validation
-
-8. **How would you modify the solution to return the course order?**
-   - For DFS, add nodes to an order list in post-order and reverse it at the end. For BFS, the order of processing is already topological.
-
-### Edge Cases and Testing
-
-9. **What edge cases should you test?**
-   - Empty prerequisites (numCourses = 1, no edges)
-   - All courses have prerequisites (linear chain)
-   - Disconnected components
-   - Self-loop (e.g., [0,0])
-   - Multiple valid orderings
-   - Complete graph with cycle
-
-10. **How would you handle a self-loop in the input?**
-    - A self-loop `[a, a]` is an immediate cycle. The DFS approach will detect this because when we visit node a, we'll try to visit a again (still in visiting state). BFS will also detect it because indegree[a] will be at least 1 and never reach 0.
+**Answer**: Use the DFS approach but record nodes in post-order (when backtracking), then reverse the list. This gives a valid topological order. If a cycle is detected during DFS, return an empty array.
 
 ---
 
-## Summary
+### Q2: What if courses can be taken in parallel (multiple at once)?
 
-The **Course Schedule** problem is a classic graph cycle detection problem that can be solved using:
-
-| Approach | Key Idea | When to Use |
-|----------|----------|-------------|
-| **DFS** | Track visit states (unvisited, visiting, visited) | When recursion is acceptable and you want concise code |
-| **BFS** | Kahn's Algorithm with indegrees | When you want iterative solution or need topological order |
-| **Union-Find** | Track connected components | When space is critical and direction doesn't matter |
-
-**Key Takeaways:**
-1. Model the problem as a directed graph where edges represent prerequisites
-2. Detect cycles using either DFS (three states) or BFS (indegrees)
-3. Time complexity is O(V + E) for all approaches
-4. Choose based on preference: DFS is more concise, BFS is more explicit
+**Answer**: Use Kahn's algorithm (BFS). At each step, take ALL courses with indegree 0 in parallel. Count the number of semesters needed to complete all courses.
 
 ---
 
-## References
+### Q3: How do you detect multiple cycles efficiently?
 
-- [LeetCode 207: Course Schedule](https://leetcode.com/problems/course-schedule/)
-- Problem constraints and examples from LeetCode
-- Topological Sort: Kahn's Algorithm (1962)
-- DFS Cycle Detection: Standard graph theory technique
-- Union-Find: Disjoint Set Union data structure
+**Answer**: DFS naturally detects all cycles. Each time you encounter a back edge to a VISITING node, you've found a cycle. The algorithm continues to find all cycles.
 
+---
+
+### Q4: What's the difference between white, gray, and black state tracking?
+
+**Answer**: This is another name for the three-state approach:
+- **White (0)**: Node not yet discovered
+- **Gray (1)**: Node discovered, being processed (in recursion stack)
+- **Black (2)**: Node and all descendants fully processed
+
+A gray-to-gray edge indicates a cycle.
+
+---
+
+### Q5: How would you handle the case where the graph is disconnected?
+
+**Answer**: Both BFS and DFS naturally handle disconnected graphs. In BFS, initialize the queue with ALL nodes having indegree 0. In DFS, iterate through all nodes and start DFS from any unvisited node.
+
+---
+
+### Q6: How do you detect a cycle and also find the nodes involved?
+
+**Answer**: When a back edge is found, backtrack from the current node to the target node using parent pointers to collect all nodes in the cycle.
+
+---
+
+### Q7: What is the difference between detecting a cycle and finding the shortest cycle?
+
+**Answer**: Cycle detection is O(V + E) with DFS/BFS. Finding the shortest cycle requires BFS from each node, making it O(V × (V + E)).
+
+---
+
+### Q8: How would you modify the solution to return the minimum number of semesters needed?
+
+**Answer**: Use Kahn's algorithm. Each "level" of BFS represents one semester. Continue until all courses are processed. The number of levels is the minimum semesters.
+
+---
+
+### Q9: What are the key differences between Kahn's algorithm and DFS-based topological sort?
+
+**Answer**: 
+- Kahn's uses indegrees and a queue; DFS uses visit states and recursion
+- Kahn's naturally produces topological order; DFS requires reversal
+- Kahn's can detect cycles by checking if processed count < total nodes
+- DFS cycle detection is more intuitive for many developers
+
+---
+
+### Q10: How would you verify that a given ordering is valid without recomputing?
+
+**Answer**: For each course (except the first) in the ordering, check that all its prerequisites appear earlier. Build a position map for O(1) lookups, then verify each edge `prereq → course` has `position[prereq] < position[course]`.
