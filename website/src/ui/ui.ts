@@ -47,14 +47,10 @@ export const scrollToReview = () => {
 
 // Expose ui, scrollToReview, and GOOGLE_BUTTON_HTML to window for inline onclick handlers
 if (typeof window !== 'undefined') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).SmartGrind = (window as any).SmartGrind || {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).SmartGrind.ui = ui;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).SmartGrind['GOOGLE_BUTTON_HTML'] = GOOGLE_BUTTON_HTML;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).scrollToReview = scrollToReview;
+    window.SmartGrind = window.SmartGrind || {};
+    window.SmartGrind.ui = ui;
+    window.SmartGrind['GOOGLE_BUTTON_HTML'] = GOOGLE_BUTTON_HTML;
+    window.scrollToReview = scrollToReview;
 }
 
 if (typeof jest === 'undefined') {

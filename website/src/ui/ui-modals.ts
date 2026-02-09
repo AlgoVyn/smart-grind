@@ -7,6 +7,163 @@ import { utils } from '../utils';
 import { api } from '../api';
 import { renderers } from '../renderers';
 
+/**
+ * Modal configuration options
+ */
+interface ModalOptions {
+    /** Callback when modal is opened */
+    onOpen?: () => void;
+    /** Callback when modal is closed */
+    onClose?: () => void;
+    /** Whether to close on backdrop click */
+    closeOnBackdrop?: boolean;
+    /** Whether to close on Escape key */
+    closeOnEscape?: boolean;
+    /** Element to return focus to when modal closes */
+    returnFocusTo?: HTMLElement | null;
+    /** ARIA label for the modal */
+    ariaLabel?: string;
+}
+
+/**
+ * Modal instance interface
+ */
+interface ModalInstance {
+    /** Show the modal */
+    show: () => void;
+    /** Hide the modal */
+    hide: () => void;
+    /** Check if modal is visible */
+    isVisible: () => boolean;
+    /** Destroy the modal and clean up event listeners */
+    destroy: () => void;
+}
+
+/**
+ * Creates a reusable modal with consistent behavior
+ * @param modalEl - The modal container element
+ * @param options - Configuration options
+ * @returns ModalInstance with show/hide/destroy methods
+ */
+export const createModal = (modalEl: HTMLElement, options: ModalOptions = {}): ModalInstance => {
+    const {
+        onOpen,
+        onClose,
+        closeOnBackdrop = true,
+        closeOnEscape = true,
+        returnFocusTo = null,
+        ariaLabel,
+    } = options;
+
+    let isVisible = false;
+    let previouslyFocusedElement: Element | null = null;
+    let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
+    let backdropHandler: ((e: Event) => void) | null = null;
+
+    // Store reference to bound handlers for cleanup
+    const boundKeydownHandler = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && closeOnEscape && isVisible) {
+            e.preventDefault();
+            hide();
+        }
+    };
+
+    const boundBackdropHandler = (e: Event) => {
+        if (e.target === modalEl && closeOnBackdrop) {
+            e.stopPropagation();
+            hide();
+        }
+    };
+
+    const show = () => {
+        if (isVisible) return;
+
+        // Store currently focused element
+        previouslyFocusedElement = document.activeElement;
+
+        // Update ARIA attributes
+        modalEl.setAttribute('aria-hidden', 'false');
+        if (ariaLabel) {
+            modalEl.setAttribute('aria-label', ariaLabel);
+        }
+
+        // Show modal
+        modalEl.classList.remove('hidden');
+        isVisible = true;
+
+        // Add event listeners
+        if (closeOnEscape) {
+            document.addEventListener('keydown', boundKeydownHandler);
+            keydownHandler = boundKeydownHandler;
+        }
+
+        if (closeOnBackdrop) {
+            modalEl.addEventListener('click', boundBackdropHandler);
+            backdropHandler = boundBackdropHandler;
+        }
+
+        // Focus first focusable element or modal itself
+        const focusableElements = modalEl.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstElement = focusableElements[0];
+        if (firstElement) {
+            firstElement.focus();
+        } else {
+            modalEl.focus();
+        }
+
+        onOpen?.();
+    };
+
+    const hide = () => {
+        if (!isVisible) return;
+
+        // Update ARIA attributes
+        modalEl.setAttribute('aria-hidden', 'true');
+
+        // Hide modal
+        modalEl.classList.add('hidden');
+        isVisible = false;
+
+        // Remove event listeners
+        if (keydownHandler) {
+            document.removeEventListener('keydown', keydownHandler);
+            keydownHandler = null;
+        }
+
+        if (backdropHandler) {
+            modalEl.removeEventListener('click', backdropHandler);
+            backdropHandler = null;
+        }
+
+        // Return focus
+        if (returnFocusTo) {
+            returnFocusTo.focus();
+        } else if (previouslyFocusedElement instanceof HTMLElement) {
+            previouslyFocusedElement.focus();
+        }
+
+        onClose?.();
+    };
+
+    const destroy = () => {
+        hide(); // Clean up listeners and state
+        // Remove any additional event listeners or references
+        modalEl.removeAttribute('aria-hidden');
+        if (ariaLabel) {
+            modalEl.removeAttribute('aria-label');
+        }
+    };
+
+    return {
+        show,
+        hide,
+        isVisible: () => isVisible,
+        destroy,
+    };
+};
+
 // Generic modal handler factory
 export const createModalHandler = (
     modalEl: HTMLElement,
@@ -162,20 +319,20 @@ export const showConfirm = (message: string, title = 'Confirm Action') => {
                     // First, escape HTML entities to prevent XSS
                     let sanitized = message
                         .replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        .replace(/"/g, '&quot;')
+                        .replace(/</g, '<')
+                        .replace(/>/g, '>')
+                        .replace(/"/g, '"')
                         .replace(/'/g, '&#039;');
                     // Then restore allowed formatting tags
                     sanitized = sanitized
-                        .replace(/&lt;b&gt;/g, '<b>')
-                        .replace(/&lt;\/b&gt;/g, '</b>')
-                        .replace(/&lt;i&gt;/g, '<i>')
-                        .replace(/&lt;\/i&gt;/g, '</i>')
-                        .replace(/&lt;u&gt;/g, '<u>')
-                        .replace(/&lt;\/u&gt;/g, '</u>')
-                        .replace(/&lt;br\s*\/?&gt;/g, '<br>')
-                        .replace(/&lt;\/br&gt;/g, '<br>');
+                        .replace(/<b>/g, '<b>')
+                        .replace(/<\/b>/g, '</b>')
+                        .replace(/<i>/g, '<i>')
+                        .replace(/<\/i>/g, '</i>')
+                        .replace(/<u>/g, '<u>')
+                        .replace(/<\/u>/g, '</u>')
+                        .replace(/<br\s*\/?>/g, '<br>')
+                        .replace(/<\/br>/g, '<br>');
                     messageEl.innerHTML = sanitized;
                 }
             });

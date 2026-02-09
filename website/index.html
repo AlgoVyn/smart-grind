@@ -84,24 +84,24 @@
     </script>
 </head>
 
-<body class="h-full bg-dark-950 text-theme-base antialiased flex flex-col md:flex-row overflow-hidden">
+<body class="h-full bg-dark-950 text-theme-base antialiased flex flex-col md:flex-row overflow-hidden" role="application" aria-label="SmartGrind Coding Practice Application">
 
-    <!-- TOASTS -->
+    <!-- TOASTS - Live region for announcements -->
     <div id="toast-container" class="fixed bottom-6 right-6 flex flex-col gap-3 pointer-events-none"
-        style="z-index: 80;"></div>
+        style="z-index: 80;" role="status" aria-live="polite" aria-atomic="true"></div>
 
 
     <!-- SETUP MODAL (Auth) -->
-    <div id="setup-modal"
+    <div id="setup-modal" role="dialog" aria-modal="true" aria-labelledby="setup-title" aria-describedby="setup-description"
         class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-dark-950/90 backdrop-blur-sm p-4 transition-opacity duration-300">
         <div class="bg-dark-800 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/50 overflow-hidden">
             <div class="p-8">
                 <div class="flex items-center gap-3 mb-6">
                     <img src="/logo.svg" alt="SmartGrind Logo" class="w-10 h-10 object-contain">
-                    <h2 class="text-2xl font-bold text-theme-bold">SmartGrind</h2>
+                    <h2 id="setup-title" class="text-2xl font-bold text-theme-bold">SmartGrind</h2>
                 </div>
                 <div class="flex flex-col items-center justify-center space-y-6">
-                    <button id="google-login-button"
+                    <button id="google-login-button" type="button" aria-label="Sign in with Google"
                         class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 text-slate-900 font-semibold py-3 px-4 rounded-lg transition-all shadow-lg mt-2">
                         <svg class="w-5 h-5" viewBox="0 0 24 24">
                             <path
@@ -120,12 +120,11 @@
                         Sign in with Google
                     </button>
 
-                    <div id="setup-error"
+                    <div id="setup-error" role="alert" aria-live="assertive"
                         class="hidden w-full p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center">
                     </div>
 
-                    <p class="text-[11px] text-theme-muted text-center">
-
+                    <p id="setup-description" class="text-[11px] text-theme-muted text-center">
                         Your progress will be securely synced to your Google account.
                     </p>
                 </div>
@@ -134,58 +133,58 @@
     </div>
 
     <!-- ADD PROBLEM MODAL -->
-    <div id="add-problem-modal"
+    <div id="add-problem-modal" role="dialog" aria-modal="true" aria-labelledby="add-problem-title"
         class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-dark-950/80 backdrop-blur-sm p-4">
         <div class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-lg border border-theme">
 
             <div class="p-6">
-                <h3 class="text-lg font-bold text-theme-bold mb-4">Add Custom Problem</h3>
+                <h3 id="add-problem-title" class="text-lg font-bold text-theme-bold mb-4">Add Custom Problem</h3>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs text-theme-muted uppercase font-semibold mb-1">
+                        <label for="add-prob-name" class="block text-xs text-theme-muted uppercase font-semibold mb-1">
                             Problem Name</label>
-                        <input id="add-prob-name" type="text"
+                        <input id="add-prob-name" name="problem-name" type="text" required aria-required="true"
                             class="w-full bg-dark-950 border border-theme rounded px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none"
                             placeholder="e.g. Valid Sudoku">
 
                     </div>
                     <div>
-                        <label class="block text-xs text-theme-muted uppercase font-semibold mb-1">
+                        <label for="add-prob-url" class="block text-xs text-theme-muted uppercase font-semibold mb-1">
                             URL</label>
-                        <input id="add-prob-url" type="text"
+                        <input id="add-prob-url" name="problem-url" type="url" aria-describedby="url-help"
                             class="w-full bg-dark-950 border border-theme rounded px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none"
                             placeholder="https://leetcode.com/...">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs text-theme-muted uppercase font-semibold mb-1">
+                            <label for="add-prob-category" class="block text-xs text-theme-muted uppercase font-semibold mb-1">
                                 Category</label>
-                            <select id="add-prob-category"
+                            <select id="add-prob-category" name="category" aria-label="Select category"
                                 class="w-full bg-dark-950 border border-theme rounded px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none">
                                 <!-- Populated by JS -->
                             </select>
-                            <input id="add-prob-category-new" type="text"
+                            <input id="add-prob-category-new" name="new-category" type="text" aria-label="New category name"
                                 class="hidden mt-2 w-full bg-dark-950 border border-theme rounded px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none"
                                 placeholder="New Category Name">
                         </div>
                         <div>
-                            <label class="block text-xs text-theme-muted uppercase font-semibold mb-1">
+                            <label for="add-prob-pattern" class="block text-xs text-theme-muted uppercase font-semibold mb-1">
                                 Pattern</label>
-                            <select id="add-prob-pattern"
+                            <select id="add-prob-pattern" name="pattern" aria-label="Select pattern"
                                 class="w-full bg-dark-950 border border-theme rounded px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none">
                                 <!-- Populated by JS -->
                             </select>
-                            <input id="add-prob-pattern-new" type="text"
+                            <input id="add-prob-pattern-new" name="new-pattern" type="text" aria-label="New pattern name"
                                 class="hidden mt-2 w-full bg-dark-950 border border-theme rounded px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none"
                                 placeholder="New Pattern Name">
                         </div>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 mt-6">
-                    <button id="cancel-add-btn"
+                    <button id="cancel-add-btn" type="button" aria-label="Cancel adding problem"
                         class="px-4 py-2 text-sm text-theme-muted hover:text-theme-bold">Cancel</button>
 
-                    <button id="save-add-btn"
+                    <button id="save-add-btn" type="submit" aria-label="Save new problem"
                         class="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white rounded font-medium">Add
                         Problem</button>
                 </div>
@@ -194,17 +193,17 @@
     </div>
 
     <!-- SIGN IN MODAL -->
-    <div id="signin-modal"
+    <div id="signin-modal" role="dialog" aria-modal="true" aria-labelledby="signin-title" aria-describedby="signin-description"
         class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-dark-950/80 backdrop-blur-sm p-4">
         <div class="bg-dark-800 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/50 overflow-hidden"
             id="signin-modal-content">
             <div class="p-8">
                 <div class="flex items-center gap-3 mb-6">
                     <img src="/logo.svg" alt="SmartGrind Logo" class="w-10 h-10 object-contain">
-                    <h2 class="text-2xl font-bold text-theme-bold">Sign In</h2>
+                    <h2 id="signin-title" class="text-2xl font-bold text-theme-bold">Sign In</h2>
                 </div>
                 <div class="flex flex-col items-center justify-center space-y-6">
-                    <button id="modal-google-login-button"
+                    <button id="modal-google-login-button" type="button" aria-label="Sign in with Google"
                         class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 text-slate-900 font-semibold py-3 px-4 rounded-lg transition-all shadow-lg mt-2">
                         <svg class="w-5 h-5" viewBox="0 0 24 24">
                             <path
@@ -223,11 +222,11 @@
                         Sign in with Google
                     </button>
 
-                    <div id="signin-error"
+                    <div id="signin-error" role="alert" aria-live="assertive"
                         class="hidden w-full p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center">
                     </div>
 
-                    <p class="text-[11px] text-theme-muted text-center">
+                    <p id="signin-description" class="text-[11px] text-theme-muted text-center">
                         Sign in to sync your progress across devices.
                     </p>
                 </div>
@@ -236,12 +235,12 @@
     </div>
 
     <!-- ALERT MODAL -->
-    <div id="alert-modal"
+    <div id="alert-modal" role="alertdialog" aria-modal="true" aria-labelledby="alert-title" aria-describedby="alert-message"
         class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300">
         <div class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-md border border-theme">
             <div class="p-6">
                 <div class="flex items-center gap-3 mb-4">
-                    <div
+                    <div aria-hidden="true"
                         class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -252,7 +251,7 @@
                 </div>
                 <p id="alert-message" class="text-theme-base mb-6 leading-relaxed"></p>
                 <div class="flex justify-end">
-                    <button id="alert-ok-btn"
+                    <button id="alert-ok-btn" type="button" aria-label="OK, dismiss alert"
                         class="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200">OK</button>
                 </div>
             </div>
@@ -260,12 +259,12 @@
     </div>
 
     <!-- CONFIRM MODAL -->
-    <div id="confirm-modal"
+    <div id="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-message"
         class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300">
         <div class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-md border border-theme">
             <div class="p-6">
                 <div class="flex items-center gap-3 mb-4">
-                    <div
+                    <div aria-hidden="true"
                         class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-500 shrink-0">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -276,9 +275,9 @@
                 </div>
                 <p id="confirm-message" class="text-theme-base mb-6 leading-relaxed"></p>
                 <div class="flex justify-end gap-3">
-                    <button id="confirm-cancel-btn"
+                    <button id="confirm-cancel-btn" type="button" aria-label="Cancel action"
                         class="px-6 py-2.5 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600 rounded-lg font-semibold transition-all duration-200">Cancel</button>
-                    <button id="confirm-ok-btn"
+                    <button id="confirm-ok-btn" type="button" aria-label="Confirm action"
                         class="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200">OK</button>
                 </div>
             </div>
@@ -286,13 +285,13 @@
     </div>
 
     <!-- SOLUTION MODAL -->
-    <div id="solution-modal"
+    <div id="solution-modal" role="dialog" aria-modal="true" aria-labelledby="solution-title"
         class="hidden fixed inset-0 z-[70] flex items-start justify-center bg-dark-950/95 backdrop-blur-sm p-4 pt-8">
         <div id="solution-container"
             class="bg-dark-800 rounded-xl shadow-2xl w-full max-w-6xl h-[calc(100vh-4rem)] border border-slate-700/50 flex flex-col transition-all duration-300">
             <div class="p-6 border-b border-slate-700/50 flex justify-between items-center flex-shrink-0">
                 <div class="flex-1">
-                    <h3 class="text-lg font-bold text-theme-bold">Solution</h3>
+                    <h3 id="solution-title" class="text-lg font-bold text-theme-bold">Solution</h3>
                     <div class="mt-2 w-full bg-slate-600 h-1 rounded-full overflow-hidden">
                         <div id="solution-scroll-progress"
                             class="bg-brand-500 h-full rounded-full transition-all duration-150" style="width: 0%">
@@ -300,18 +299,18 @@
                     </div>
                 </div>
                 <!-- TOC Toggle -->
-                <button id="toc-toggle-btn"
+                <button id="toc-toggle-btn" type="button" aria-label="Toggle table of contents" aria-pressed="false"
                     class="p-2 rounded-lg hover:bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors ml-4"
                     title="Toggle Table of Contents">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
+                        stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 6h16M4 12h16m-7 6h7" />
                     </svg>
                 </button>
-                <button id="solution-close-btn"
+                <button id="solution-close-btn" type="button" aria-label="Close solution"
                     class="p-2 rounded-lg hover:bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors ml-2">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -329,10 +328,10 @@
                 </div>
 
                 <!-- Table of Contents Sidebar -->
-                <div id="solution-toc"
+                <div id="solution-toc" role="complementary" aria-label="Table of contents"
                     class="hidden md:block w-64 border-l border-slate-700/50 bg-dark-900/30 p-4 overflow-y-auto shrink-0 text-sm">
                     <p class="text-xs font-bold text-theme-muted uppercase tracking-wider mb-4 pl-2">Contents</p>
-                    <nav id="toc-list" class="flex flex-col space-y-1">
+                    <nav id="toc-list" class="flex flex-col space-y-1" aria-label="Solution sections">
                         <!-- TOC Items injected here -->
                     </nav>
                 </div>
@@ -341,8 +340,8 @@
     </div>
 
     <!-- LOADING SCREEN -->
-    <div id="loading-screen" class="fixed inset-0 z-[60] bg-dark-950 flex flex-col items-center justify-center">
-        <div class="w-12 h-12 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div>
+    <div id="loading-screen" class="fixed inset-0 z-[60] bg-dark-950 flex flex-col items-center justify-center" role="status" aria-live="polite" aria-label="Loading application">
+        <div class="w-12 h-12 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin" aria-hidden="true"></div>
         <p class="mt-4 text-theme-muted font-mono text-sm">Syncing...</p>
 
     </div>
@@ -356,7 +355,7 @@
         </div>
 
         <!-- SIDEBAR (Topics) -->
-        <aside id="main-sidebar"
+        <aside id="main-sidebar" role="navigation" aria-label="Main navigation"
             class="fixed inset-y-0 left-0 md:relative md:translate-x-0 -translate-x-full transition-transform duration-300 bg-dark-900 border-r border-slate-800 flex flex-col shrink-0 h-full z-50 md:z-20"
             style="width: 18rem;">
             <!-- Sidebar Resizer -->
@@ -369,28 +368,29 @@
             <!-- Sidebar Header -->
             <div
                 class="p-5 border-b border-slate-800 flex justify-between items-center bg-dark-900/50 backdrop-blur-md sticky top-0 z-10">
-                <button id="sidebar-logo" type="button" class="flex items-center gap-2.5 cursor-pointer">
-                    <img src="/logo.svg" alt="SmartGrind Logo" class="w-8 h-8 object-contain">
+                <button id="sidebar-logo" type="button" class="flex items-center gap-2.5 cursor-pointer" aria-label="SmartGrind home">
+                    <img src="/logo.svg" alt="" class="w-8 h-8 object-contain" aria-hidden="true">
                     <span class="font-bold text-theme-bold tracking-tight">SmartGrind</span>
                 </button>
                 <div class="flex items-center gap-2">
                     <!-- Theme Toggle -->
-                    <button id="theme-toggle-btn"
+                    <button id="theme-toggle-btn" type="button" aria-label="Toggle dark mode" aria-pressed="false"
                         class="p-1.5 rounded-lg text-theme-muted hover:text-theme-bold transition-colors"
                         title="Toggle Theme">
-                        <svg class="w-5 h-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="w-5 h-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
                         </svg>
-                        <svg class="w-5 h-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="w-5 h-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                         </svg>
                     </button>
 
                     <!-- Mobile Menu Button -->
-                    <button id="mobile-menu-btn" class="md:hidden text-theme-muted hover:text-theme-bold">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <button id="mobile-menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="main-sidebar"
+                        class="md:hidden text-theme-muted hover:text-theme-bold">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 6h16M4 12h16m-7 6h7" />
                         </svg>

@@ -15,6 +15,10 @@ import { renderers } from './renderers';
 import { ui } from './ui/ui';
 import { utils } from './utils';
 import { app } from './app';
+import { withErrorHandling, setupGlobalErrorHandlers } from './error-boundary';
+
+// Initialize global error handlers
+setupGlobalErrorHandlers();
 
 // Helper to apply category from URL
 const _applyCategory = (categoryParam: string | null) => {
@@ -60,8 +64,10 @@ const _setupLocalUser = (categoryParam: string | null) => {
 
 // Check auth state and initialize app
 const checkAuth = async () => {
-    // Load UI modules dynamically for code splitting
-    await Promise.all([import('./renderers'), import('./ui/ui')]);
+    // Load UI modules dynamically for code splitting with error handling
+    await withErrorHandling(async () => {
+        await Promise.all([import('./renderers'), import('./ui/ui')]);
+    }, 'Failed to load application modules');
 
     // Extract category from URL path
     const path = window.location.pathname;
@@ -78,7 +84,7 @@ const checkAuth = async () => {
     const urlUserId = urlParams.get('userId');
     const urlDisplayName = urlParams.get('displayName');
 
-    // Handle PWA auth callback
+    // Handle PWA auth callback with error handling
     if (urlToken && urlUserId && urlDisplayName) {
         // Validate token format before storing (basic validation)
         // Tokens should be non-empty and reasonably sized
@@ -95,15 +101,19 @@ const checkAuth = async () => {
         window.history.replaceState({}, document.title, window.location.pathname);
 
         localStorage.setItem('token', urlToken);
-        await _setupSignedInUser(urlUserId, sanitizedDisplayName, categoryParam);
+        await withErrorHandling(async () => {
+            await _setupSignedInUser(urlUserId, sanitizedDisplayName, categoryParam);
+        }, 'Failed to set up signed-in user');
         return;
     }
 
-    // Check for existing session
+    // Check for existing session with error handling
     const userId = localStorage.getItem('userId');
     if (userId) {
         const displayName = localStorage.getItem('displayName') || 'User';
-        await _setupSignedInUser(userId, displayName, categoryParam);
+        await withErrorHandling(async () => {
+            await _setupSignedInUser(userId, displayName, categoryParam);
+        }, 'Failed to restore user session');
         return;
     }
 
@@ -111,7 +121,9 @@ const checkAuth = async () => {
     const userType = localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE) || 'local';
 
     if (userType === 'local') {
-        _setupLocalUser(categoryParam);
+        await withErrorHandling(async () => {
+            _setupLocalUser(categoryParam);
+        }, 'Failed to initialize local user');
     } else {
         // Show setup modal for orphaned signed-in state
         const setupModal = state.elements['setupModal'];
