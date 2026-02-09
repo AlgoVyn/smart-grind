@@ -351,6 +351,7 @@ describe('SmartGrind API Module', () => {
                 name: 'Test Problem',
                 status: 'unsolved',
                 loading: false,
+                noteVisible: false,
             });
             expect(state.deletedProblemIds.has('2')).toBe(true);
             expect(mockRenderSidebar).toHaveBeenCalled();

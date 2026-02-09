@@ -54,7 +54,11 @@ export const _handleApiError = (response: Response): never => {
  */
 export const _processUserData = (userData: UserData): void => {
     state.problems = new Map(Object.entries(userData.problems || {}));
-    state.problems.forEach((p: Problem) => (p.loading = false));
+    state.problems.forEach((p: Problem) => {
+        p.loading = false;
+        // Reset note visibility to ensure notes are closed by default on page reload
+        p.noteVisible = false;
+    });
     state.deletedProblemIds = new Set(userData.deletedIds || []);
 };
 

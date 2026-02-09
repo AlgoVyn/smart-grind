@@ -456,6 +456,79 @@ describe('SmartGrind Utils', () => {
         });
     });
 
+    describe('sanitizeInput', () => {
+        test('preserves newlines in multiline text', () => {
+            const input = 'Line 1\nLine 2\nLine 3';
+            const result = utils.sanitizeInput(input);
+            expect(result).toBe('Line 1\nLine 2\nLine 3');
+        });
+
+        test('removes control characters except newlines and carriage returns', () => {
+            const input = 'Hello\x00World\x01Test\x02';
+            const result = utils.sanitizeInput(input);
+            expect(result).toBe('HelloWorldTest');
+        });
+
+        test('normalizes Windows line endings to Unix', () => {
+            const input = 'Line 1\r\nLine 2\r\nLine 3';
+            const result = utils.sanitizeInput(input);
+            expect(result).toBe('Line 1\nLine 2\nLine 3');
+        });
+
+        test('handles empty string', () => {
+            const result = utils.sanitizeInput('');
+            expect(result).toBe('');
+        });
+
+        test('handles string with only newlines', () => {
+            const input = '\n\n\n';
+            const result = utils.sanitizeInput(input);
+            expect(result).toBe('\n\n\n');
+        });
+
+        test('trims whitespace while preserving internal newlines', () => {
+            const input = '  Line 1\nLine 2  \n  Line 3  ';
+            const result = utils.sanitizeInput(input);
+            expect(result).toBe('Line 1\nLine 2\nLine 3');
+        });
+    });
+
+    describe('countLines', () => {
+        test('counts lines in multiline text', () => {
+            const input = 'Line 1\nLine 2\nLine 3';
+            const result = utils.countLines(input);
+            expect(result).toBe(3);
+        });
+
+        test('returns 0 for empty string', () => {
+            const result = utils.countLines('');
+            expect(result).toBe(0);
+        });
+
+        test('returns 1 for single line without newlines', () => {
+            const result = utils.countLines('Single line');
+            expect(result).toBe(1);
+        });
+
+        test('counts lines with Windows-style line endings', () => {
+            const input = 'Line 1\r\nLine 2\r\nLine 3';
+            const result = utils.countLines(input);
+            expect(result).toBe(3);
+        });
+
+        test('counts lines with mixed line endings', () => {
+            const input = 'Line 1\nLine 2\r\nLine 3\nLine 4';
+            const result = utils.countLines(input);
+            expect(result).toBe(4);
+        });
+
+        test('handles string with trailing newline', () => {
+            const input = 'Line 1\nLine 2\n';
+            const result = utils.countLines(input);
+            expect(result).toBe(2);
+        });
+    });
+
     describe('askAI', () => {
         test('asks Gemini on desktop', async () => {
             // Ensure desktop user agent

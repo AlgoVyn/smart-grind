@@ -146,15 +146,31 @@ export const utils = {
         }
     },
 
+    // Count lines in a string (for multiline note support)
+    countLines: (input: string | null | undefined): number => {
+        if (!input) return 0;
+        // Trim trailing newlines to avoid counting empty trailing lines
+        const trimmed = input.trimEnd();
+        if (!trimmed) return 0;
+        return trimmed.split('\n').length;
+    },
+
     // Input sanitization utilities
     sanitizeInput: (input: string | null | undefined) => {
         if (!input) return '';
 
-        // Trim whitespace
-        let sanitized = input.trim();
+        // Normalize Windows line endings (\r\n) to Unix (\n) first
+        let sanitized = input.replace(/\r\n/g, '\n');
 
-        // Remove control characters and null bytes
-        sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, '');
+        // Split by newlines, trim each line, then rejoin
+        // This preserves internal newlines while trimming whitespace from each line
+        sanitized = sanitized
+            .split('\n')
+            .map((line) => line.trim())
+            .join('\n');
+
+        // Remove control characters and null bytes, but preserve newlines (\n = 0x0A)
+        sanitized = sanitized.replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
         // Remove HTML tags and special characters that could be harmful
         sanitized = sanitized.replace(/<[^>]*>/g, ''); // Remove HTML tags

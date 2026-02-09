@@ -235,6 +235,8 @@ export const problemCardRenderers = {
         await renderers._performStatusChange(button, p, (problem: Problem) => {
             // Sanitize note input before saving
             problem.note = utils.sanitizeInput(textarea.value.trim());
+            // Close note area after saving
+            problem.noteVisible = false;
         });
     },
 
