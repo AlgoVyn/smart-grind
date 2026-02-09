@@ -13,8 +13,6 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 manualChunks: {
-                    // Core vendor chunks
-                    'vendor-ui': ['marked'],
                     // Feature-based chunks
                     'auth': ['./src/ui/ui-auth.ts', './src/init.ts'],
                     'renderers': ['./src/renderers.ts'],
@@ -48,9 +46,5 @@ export default defineConfig({
     server: {
         port: 3000,
         open: true,
-    },
-    // Optimize dependencies for faster dev server startup
-    optimizeDeps: {
-        include: ['marked'],
     },
 });
