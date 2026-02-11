@@ -135,38 +135,56 @@ async function handleAPIRequest(request: Request): Promise<Response> {
             return networkResponse;
         }
 
-        throw new Error(`API error: ${networkResponse.status}`);
-    } catch (_error) {
-        // Try cache
-        const cachedResponse = await caches.match(request);
-        if (cachedResponse) {
-            // Add header to indicate cached response
-            const headers = new Headers(cachedResponse.headers);
-            headers.set('X-SW-Cache', 'true');
-            headers.set('X-SW-Offline', 'true');
-
-            return new Response(cachedResponse.body, {
-                status: cachedResponse.status,
-                statusText: cachedResponse.statusText,
-                headers,
-            });
+        // For auth errors (401, 403), don't cache - let the client handle them
+        if (networkResponse.status === 401 || networkResponse.status === 403) {
+            return networkResponse;
         }
 
-        // Return offline fallback for API
-        return new Response(
-            JSON.stringify({
-                error: 'Offline',
-                message: 'You are currently offline. Data will sync when connection is restored.',
-                offline: true,
-            }),
-            {
-                status: 503,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-SW-Offline': 'true',
-                },
+        // For other errors, try cache fallback
+        throw new Error(`API error: ${networkResponse.status}`);
+    } catch (error) {
+        // Check if this is actually a network error (TypeError) or just a server error
+        const isNetworkError = error instanceof TypeError;
+
+        // Try cache for GET requests
+        if (request.method === 'GET') {
+            const cachedResponse = await caches.match(request);
+            if (cachedResponse) {
+                // Add header to indicate cached response
+                const headers = new Headers(cachedResponse.headers);
+                headers.set('X-SW-Cache', 'true');
+                if (isNetworkError) {
+                    headers.set('X-SW-Offline', 'true');
+                }
+
+                return new Response(cachedResponse.body, {
+                    status: cachedResponse.status,
+                    statusText: cachedResponse.statusText,
+                    headers,
+                });
             }
-        );
+        }
+
+        // Only return offline fallback for actual network errors
+        if (isNetworkError) {
+            return new Response(
+                JSON.stringify({
+                    error: 'Offline',
+                    message: 'You are currently offline. Data will sync when connection is restored.',
+                    offline: true,
+                }),
+                {
+                    status: 503,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-SW-Offline': 'true',
+                    },
+                }
+            );
+        }
+
+        // Re-throw other errors to let the client handle them
+        throw error;
     }
 }
 
