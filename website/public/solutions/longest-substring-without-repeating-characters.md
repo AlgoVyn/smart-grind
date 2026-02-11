@@ -1,314 +1,851 @@
 # Longest Substring Without Repeating Characters
 
-## Problem Description
+## Problem Statement
 
 Given a string `s`, find the length of the **longest substring** without repeating characters.
 
-A substring is a contiguous sequence of characters within a string. The problem requires finding the maximum length of a substring where all characters are unique (no duplicates).
+**Link to problem:** [Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
+
+**Constraints:**
+- `0 <= s.length <= 5 * 10^4`
+- `s` consists of English letters, digits, symbols, and spaces
+
+**Note:**
+- A substring is a contiguous sequence of characters
+- The substring must not contain any duplicate characters
+- We need to find the maximum length among all such substrings
+- O(n) solution is required for optimal performance with large inputs
 
 ---
 
 ## Examples
 
-**Example 1:**
+### Example 1
 
 **Input:**
-```python
+```
 s = "abcabcbb"
 ```
 
 **Output:**
-```python
+```
 3
 ```
 
-**Explanation:** The answer is "abc", with the length of 3.
+**Explanation:** The longest substring without repeating characters is "abc", which has length 3.
 
-**Example 2:**
+---
+
+### Example 2
 
 **Input:**
-```python
+```
 s = "bbbbb"
 ```
 
 **Output:**
-```python
+```
 1
 ```
 
-**Explanation:** The answer is "b", with the length of 1.
+**Explanation:** The longest substring without repeating characters is "b", which has length 1.
 
-**Example 3:**
+---
+
+### Example 3
 
 **Input:**
-```python
+```
 s = "pwwkew"
 ```
 
 **Output:**
-```python
+```
 3
 ```
 
-**Explanation:** The answer is "wke", with the length of 3. Note that "pwke" is a substring and not a subsequence because the characters must be contiguous.
+**Explanation:** The longest substring without repeating characters is "wke" (or "pwe", "kew"), which has length 3.
 
-**Example 4:**
+---
+
+### Example 4
 
 **Input:**
-```python
+```
 s = ""
 ```
 
 **Output:**
-```python
+```
 0
 ```
 
-**Explanation:** Empty string has length 0.
+**Explanation:** Empty string has no characters, so the length is 0.
 
 ---
 
-## Constraints
+### Example 5
 
-- `0 <= s.length <= 5 * 10^4`
-- `s` consists of English letters, digits, symbols, and spaces
+**Input:**
+```
+s = "dvdf"
+```
+
+**Output:**
+```
+3
+```
+
+**Explanation:** The longest substring without repeating characters is "vdf", which has length 3.
 
 ---
 
-## Solution
+### Example 6
 
-### Approach 1: Brute Force
+**Input:**
+```
+s = "tmmzuxt"
+```
 
-Check all possible substrings and verify if they contain unique characters.
+**Output:**
+```
+5
+```
 
+**Explanation:** The longest substring without repeating characters is "mzuxt", which has length 5.
+
+---
+
+### Example 7
+
+**Input:**
+```
+s = "anviaj"
+```
+
+**Output:**
+```
+5
+```
+
+**Explanation:** The longest substring without repeating characters is "anvij", which has length 5.
+
+---
+
+## Intuition
+
+The Longest Substring Without Repeating Characters problem requires finding the maximum length of a contiguous substring that contains all unique characters. The naive approach would be to examine all possible substrings and check for duplicates, resulting in O(n²) or O(n³) time complexity.
+
+### Core Insight
+
+The key observation is that we can use a **sliding window** technique to efficiently track the current substring without duplicates. We maintain a window [left, right] that represents the current substring, and expand it by moving the right pointer. When we encounter a duplicate character, we move the left pointer to shrink the window until the duplicate is removed.
+
+### Key Observations
+
+1. **Sliding Window**: Maintain a window [left, right] that always contains unique characters.
+
+2. **Hash Map for Tracking**: Use a hash map (or array for ASCII) to store the most recent index of each character.
+
+3. **Dynamic Window Adjustment**: When a duplicate is found at position `right`, move `left` to `max(left, last_seen[char] + 1)`.
+
+4. **Track Maximum**: Update the maximum length at each step: `max_len = max(max_len, right - left + 1)`.
+
+---
+
+## Multiple Approaches with Code
+
+We'll cover three main approaches:
+
+1. **Brute Force** - O(n²) time, check all substrings
+2. **Sliding Window with Hash Map** - O(n) time, optimal solution
+3. **Sliding Window with Array** - O(n) time, optimized for ASCII
+
+---
+
+## Approach 1: Brute Force
+
+This approach checks all possible substrings and verifies if they contain unique characters.
+
+### Algorithm Steps
+
+1. Initialize `max_len` to 0
+2. For each starting index `left` from 0 to n-1:
+   - Create an empty set to track seen characters
+   - For each ending index `right` from `left` to n-1:
+     - If `s[right]` is already in the set, break (no need to check longer substrings)
+     - Add `s[right]` to the set
+     - Update `max_len = max(max_len, right - left + 1)`
+3. Return `max_len`
+
+### Code Implementation
+
+````carousel
 ```python
 class Solution:
     def lengthOfLongestSubstring(self, s: str) -> int:
+        """
+        Find the length of the longest substring without repeating characters using brute force.
+        
+        Args:
+            s: Input string
+            
+        Returns:
+            Length of the longest substring without repeating characters
+        """
         n = len(s)
-        max_length = 0
+        max_len = 0
         
-        for i in range(n):
+        # Iterate over all possible starting positions
+        for left in range(n):
             seen = set()
-            for j in range(i, n):
-                if s[j] in seen:
+            
+            # Expand the window from left to right
+            for right in range(left, n):
+                # If character is already seen, break
+                if s[right] in seen:
                     break
-                seen.add(s[j])
-                max_length = max(max_length, j - i + 1)
+                
+                # Add character to seen set
+                seen.add(s[right])
+                
+                # Update maximum length
+                max_len = max(max_len, right - left + 1)
         
-        return max_length
+        return max_len
 ```
 
-### Approach 2: Sliding Window with Set
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    int lengthOfLongestSubstring(string s) {
+        /**
+         * Find the length of the longest substring without repeating characters using brute force.
+         * 
+         * Args:
+         *     s: Input string
+         * 
+         * Returns:
+         *     Length of the longest substring without repeating characters
+         */
+        int n = s.length();
+        int max_len = 0;
+        
+        // Iterate over all possible starting positions
+        for (int left = 0; left < n; left++) {
+            unordered_set<char> seen;
+            
+            // Expand the window from left to right
+            for (int right = left; right < n; right++) {
+                // If character is already seen, break
+                if (seen.count(s[right])) {
+                    break;
+                }
+                
+                // Add character to seen set
+                seen.insert(s[right]);
+                
+                // Update maximum length
+                max_len = max(max_len, right - left + 1);
+            }
+        }
+        
+        return max_len;
+    }
+};
+```
 
-Use a sliding window approach with a set to track characters in the current window. Expand the window by moving the right pointer, and shrink from the left when a duplicate is found.
+<!-- slide -->
+```java
+class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        /**
+         * Find the length of the longest substring without repeating characters using brute force.
+         * 
+         * Args:
+         *     s: Input string
+         * 
+         * Returns:
+         *     Length of the longest substring without repeating characters
+         */
+        int n = s.length();
+        int max_len = 0;
+        
+        // Iterate over all possible starting positions
+        for (int left = 0; left < n; left++) {
+            Set<Character> seen = new HashSet<>();
+            
+            // Expand the window from left to right
+            for (int right = left; right < n; right++) {
+                // If character is already seen, break
+                if (seen.contains(s.charAt(right))) {
+                    break;
+                }
+                
+                // Add character to seen set
+                seen.add(s.charAt(right));
+                
+                // Update maximum length
+                max_len = Math.max(max_len, right - left + 1);
+            }
+        }
+        
+        return max_len;
+    }
+}
+```
 
+<!-- slide -->
+```javascript
+/**
+ * Find the length of the longest substring without repeating characters using brute force.
+ * 
+ * @param {string} s - Input string
+ * @return {number} - Length of the longest substring without repeating characters
+ */
+var lengthOfLongestSubstring = function(s) {
+    const n = s.length;
+    let max_len = 0;
+    
+    // Iterate over all possible starting positions
+    for (let left = 0; left < n; left++) {
+        const seen = new Set();
+        
+        // Expand the window from left to right
+        for (let right = left; right < n; right++) {
+            // If character is already seen, break
+            if (seen.has(s[right])) {
+                break;
+            }
+            
+            // Add character to seen set
+            seen.add(s[right]);
+            
+            // Update maximum length
+            max_len = Math.max(max_len, right - left + 1);
+        }
+    }
+    
+    return max_len;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(n²) - In worst case, we check all substrings |
+| **Space** | O(min(n, m)) - Set stores at most the size of the character set (m) or string length (n) |
+
+---
+
+## Approach 2: Sliding Window with Hash Map (Optimal)
+
+This approach uses a sliding window with a hash map to track the most recent index of each character. When a duplicate is found, we move the left pointer to shrink the window efficiently.
+
+### Algorithm Steps
+
+1. Create an empty hash map to store character -> last seen index
+2. Initialize `max_len = 0`, `left = 0`
+3. Iterate through each character with index `right`:
+   - If `s[right]` is in the hash map and its index is >= `left`:
+     - Move `left` to `hash_map[s[right]] + 1`
+   - Update `hash_map[s[right]] = right`
+   - Update `max_len = max(max_len, right - left + 1)`
+4. Return `max_len`
+
+### Code Implementation
+
+````carousel
 ```python
 class Solution:
     def lengthOfLongestSubstring(self, s: str) -> int:
-        char_set = set()
-        left = 0
-        max_length = 0
+        """
+        Find the length of the longest substring without repeating characters using sliding window with hash map.
         
-        for right in range(len(s)):
-            # If we encounter a duplicate, shrink the window from the left
-            while s[right] in char_set:
-                char_set.remove(s[left])
-                left += 1
+        Args:
+            s: Input string
             
-            # Add current character to the set
-            char_set.add(s[right])
-            
-            # Update maximum length
-            max_length = max(max_length, right - left + 1)
-        
-        return max_length
-```
-
-### Approach 3: Sliding Window with Hash Map (Optimal)
-
-Use a hash map to store the most recent index of each character. This allows O(1) lookups and O(n) time complexity.
-
-```python
-from typing import Dict
-
-class Solution:
-    def lengthOfLongestSubstring(self, s: str) -> int:
-        char_index_map: Dict[str, int] = {}
+        Returns:
+            Length of the longest substring without repeating characters
+        """
+        char_index = {}  # Hash map to store character -> last seen index
+        max_len = 0
         left = 0
-        max_length = 0
         
         for right, char in enumerate(s):
-            # If character is seen and its index is within current window
-            if char in char_index_map and char_index_map[char] >= left:
-                # Move left pointer to the right of the previous occurrence
-                left = char_index_map[char] + 1
+            # If character was seen and is within current window, move left pointer
+            if char in char_index and char_index[char] >= left:
+                left = char_index[char] + 1
             
-            # Update the character's latest index
-            char_index_map[char] = right
+            # Update the last seen index
+            char_index[char] = right
             
             # Update maximum length
-            max_length = max(max_length, right - left + 1)
+            max_len = max(max_len, right - left + 1)
         
-        return max_length
+        return max_len
 ```
 
-### Approach 4: Optimized Sliding Window (ASCII only)
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    int lengthOfLongestSubstring(string s) {
+        /**
+         * Find the length of the longest substring without repeating characters using sliding window with hash map.
+         * 
+         * Args:
+         *     s: Input string
+         * 
+         * Returns:
+         *     Length of the longest substring without repeating characters
+         */
+        unordered_map<char, int> char_index;
+        int max_len = 0;
+        int left = 0;
+        
+        for (int right = 0; right < s.length(); right++) {
+            char c = s[right];
+            
+            // If character was seen and is within current window, move left pointer
+            if (char_index.find(c) != char_index.end() && char_index[c] >= left) {
+                left = char_index[c] + 1;
+            }
+            
+            // Update the last seen index
+            char_index[c] = right;
+            
+            // Update maximum length
+            max_len = max(max_len, right - left + 1);
+        }
+        
+        return max_len;
+    }
+};
+```
 
-For strings containing only ASCII characters, use a fixed-size array for O(1) space.
+<!-- slide -->
+```java
+class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        /**
+         * Find the length of the longest substring without repeating characters using sliding window with hash map.
+         * 
+         * Args:
+         *     s: Input string
+         * 
+         * Returns:
+         *     Length of the longest substring without repeating characters
+         */
+        Map<Character, Integer> charIndex = new HashMap<>();
+        int max_len = 0;
+        int left = 0;
+        
+        for (int right = 0; right < s.length(); right++) {
+            char c = s.charAt(right);
+            
+            // If character was seen and is within current window, move left pointer
+            if (charIndex.containsKey(c) && charIndex.get(c) >= left) {
+                left = charIndex.get(c) + 1;
+            }
+            
+            // Update the last seen index
+            charIndex.put(c, right);
+            
+            // Update maximum length
+            max_len = Math.max(max_len, right - left + 1);
+        }
+        
+        return max_len;
+    }
+}
+```
 
+<!-- slide -->
+```javascript
+/**
+ * Find the length of the longest substring without repeating characters using sliding window with hash map.
+ * 
+ * @param {string} s - Input string
+ * @return {number} - Length of the longest substring without repeating characters
+ */
+var lengthOfLongestSubstring = function(s) {
+    const charIndex = new Map();
+    let max_len = 0;
+    let left = 0;
+    
+    for (let right = 0; right < s.length; right++) {
+        const c = s[right];
+        
+        // If character was seen and is within current window, move left pointer
+        if (charIndex.has(c) && charIndex.get(c) >= left) {
+            left = charIndex.get(c) + 1;
+        }
+        
+        // Update the last seen index
+        charIndex.set(c, right);
+        
+        // Update maximum length
+        max_len = Math.max(max_len, right - left + 1);
+    }
+    
+    return max_len;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(n) - Each character is processed at most twice (once by right, once by left) |
+| **Space** | O(min(n, m)) - Hash map stores at most the size of the character set (m) or string length (n) |
+
+---
+
+## Approach 3: Sliding Window with Array (Optimized for ASCII)
+
+This approach uses an array of size 128 (for ASCII) to track character indices, which is faster than a hash map for ASCII characters.
+
+### Algorithm Steps
+
+1. Create an array of size 128 (or 256 for extended ASCII) initialized to -1
+2. Initialize `max_len = 0`, `left = 0`
+3. Iterate through each character with index `right`:
+   - Get the ASCII value of `s[right]`
+   - If `last_seen[ascii] >= left`, move `left` to `last_seen[ascii] + 1`
+   - Update `last_seen[ascii] = right`
+   - Update `max_len = max(max_len, right - left + 1)`
+4. Return `max_len`
+
+### Code Implementation
+
+````carousel
 ```python
 class Solution:
     def lengthOfLongestSubstring(self, s: str) -> int:
-        # Assuming ASCII character set (128 characters)
-        ASCII_SIZE = 128
-        last_occurrence = [-1] * ASCII_SIZE
+        """
+        Find the length of the longest substring without repeating characters using sliding window with array.
+        
+        Args:
+            s: Input string
+            
+        Returns:
+            Length of the longest substring without repeating characters
+        """
+        # ASCII character set (128 characters)
+        last_seen = [-1] * 128
+        max_len = 0
         left = 0
-        max_length = 0
         
         for right, char in enumerate(s):
             ascii_val = ord(char)
             
-            # If character was seen within current window
-            if last_occurrence[ascii_val] >= left:
-                # Move left pointer
-                left = last_occurrence[ascii_val] + 1
+            # If character was seen and is within current window, move left pointer
+            if last_seen[ascii_val] >= left:
+                left = last_seen[ascii_val] + 1
             
-            # Update last occurrence
-            last_occurrence[ascii_val] = right
+            # Update the last seen index
+            last_seen[ascii_val] = right
             
             # Update maximum length
-            max_length = max(max_length, right - left + 1)
+            max_len = max(max_len, right - left + 1)
         
-        return max_length
+        return max_len
 ```
 
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    int lengthOfLongestSubstring(string s) {
+        /**
+         * Find the length of the longest substring without repeating characters using sliding window with array.
+         * 
+         * Args:
+         *     s: Input string
+         * 
+         * Returns:
+         *     Length of the longest substring without repeating characters
+         */
+        // ASCII character set (128 characters)
+        vector<int> last_seen(128, -1);
+        int max_len = 0;
+        int left = 0;
+        
+        for (int right = 0; right < s.length(); right++) {
+            int ascii_val = static_cast<int>(s[right]);
+            
+            // If character was seen and is within current window, move left pointer
+            if (last_seen[ascii_val] >= left) {
+                left = last_seen[ascii_val] + 1;
+            }
+            
+            // Update the last seen index
+            last_seen[ascii_val] = right;
+            
+            // Update maximum length
+            max_len = max(max_len, right - left + 1);
+        }
+        
+        return max_len;
+    }
+};
+```
+
+<!-- slide -->
+```java
+class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        /**
+         * Find the length of the longest substring without repeating characters using sliding window with array.
+         * 
+         * Args:
+         *     s: Input string
+         * 
+         * Returns:
+         *     Length of the longest substring without repeating characters
+         */
+        // ASCII character set (128 characters)
+        int[] last_seen = new int[128];
+        Arrays.fill(last_seen, -1);
+        
+        int max_len = 0;
+        int left = 0;
+        
+        for (int right = 0; right < s.length(); right++) {
+            int ascii_val = (int) s.charAt(right);
+            
+            // If character was seen and is within current window, move left pointer
+            if (last_seen[ascii_val] >= left) {
+                left = last_seen[ascii_val] + 1;
+            }
+            
+            // Update the last seen index
+            last_seen[ascii_val] = right;
+            
+            // Update maximum length
+            max_len = Math.max(max_len, right - left + 1);
+        }
+        
+        return max_len;
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+/**
+ * Find the length of the longest substring without repeating characters using sliding window with array.
+ * 
+ * @param {string} s - Input string
+ * @return {number} - Length of the longest substring without repeating characters
+ */
+var lengthOfLongestSubstring = function(s) {
+    // ASCII character set (128 characters)
+    const last_seen = new Array(128).fill(-1);
+    let max_len = 0;
+    let left = 0;
+    
+    for (let right = 0; right < s.length; right++) {
+        const ascii_val = s.charCodeAt(right);
+        
+        // If character was seen and is within current window, move left pointer
+        if (last_seen[ascii_val] >= left) {
+            left = last_seen[ascii_val] + 1;
+        }
+        
+        // Update the last seen index
+        last_seen[ascii_val] = right;
+        
+        // Update maximum length
+        max_len = Math.max(max_len, right - left + 1);
+    }
+    
+    return max_len;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(n) - Each character is processed at most twice |
+| **Space** | O(1) - Fixed-size array of 128 (or 256) integers |
+
 ---
 
-## Explanation
+## Comparison of Approaches
 
-### Intuition
-
-The problem asks for the longest contiguous substring without duplicate characters. We need to efficiently track which characters are in our current substring and adjust our window when duplicates are found.
-
-### Approach 1: Brute Force
-- **Idea**: Try every possible starting point and extend until we hit a duplicate
-- **Time**: O(n³) - checking each substring for uniqueness is O(n²), and there are O(n) starting points
-- **Space**: O(min(n, m)) where m is the character set size
-- **Why it's slow**: We repeatedly check the same characters and rebuild sets unnecessarily
-
-### Approach 2: Sliding Window with Set
-- **Idea**: Maintain a window [left, right] that always contains unique characters
-- **Process**: 
-  - Expand right pointer one step at a time
-  - If s[right] is already in the set, remove characters from the left until the duplicate is gone
-  - Update the maximum window size
-- **Time**: O(n) - each character is added and removed at most once
-- **Space**: O(min(n, m)) - set stores at most all unique characters in the window
-
-### Approach 3: Sliding Window with Hash Map (Recommended)
-- **Idea**: Instead of removing characters one by one, jump directly to the position after the previous occurrence
-- **Process**:
-  - Store the last index where each character was seen
-  - When we encounter a duplicate, jump left pointer to (last_index + 1)
-  - This avoids O(n²) worst case behavior
-- **Time**: O(n) - each character is processed once
-- **Space**: O(min(n, m)) - hash map stores at most all unique characters
-
-### Approach 4: Optimized for ASCII
-- **Idea**: Use a fixed array instead of hash map for constant-time lookups
-- **Time**: O(n)
-- **Space**: O(1) - fixed array of 128 integers (for ASCII)
-- **Note**: Only works for ASCII characters; for Unicode, use approach 3
+| Aspect | Brute Force | Sliding Window (Hash Map) | Sliding Window (Array) |
+|--------|-------------|---------------------------|------------------------|
+| **Time Complexity** | O(n²) | O(n) | O(n) |
+| **Space Complexity** | O(min(n, m)) | O(min(n, m)) | O(1) |
+| **Implementation** | Very Simple | Moderate | Moderate |
+| **Code Readability** | High | Medium | Medium |
+| **Best For** | Learning, small strings | General case, Unicode | ASCII strings, performance |
 
 ---
 
-## Time Complexity Comparison
+## Why Sliding Window Approach is Preferred
 
-| Approach | Time Complexity | Space Complexity | Notes |
-|----------|-----------------|------------------|-------|
-| Brute Force | O(n³) | O(min(n, m)) | Too slow for large inputs |
-| Sliding Window (Set) | O(n) | O(min(n, m)) | Good but can be improved |
-| Sliding Window (Hash Map) | O(n) | O(min(n, m)) | **Recommended** |
-| Optimized ASCII | O(n) | O(1) | Best for ASCII-only strings |
+The sliding window approach is the optimal solution because:
 
-Where:
-- `n` = length of the string
-- `m` = size of the character set
+1. **Linear Time**: Achieves O(n) time complexity, making it suitable for large inputs
+2. **Single Pass**: Each character is processed at most twice (once by right pointer, once by left pointer)
+3. **Memory Efficient**: Uses either a hash map (O(min(n, m))) or fixed-size array (O(1))
+4. **Interview Favorite**: Demonstrates understanding of two-pointer techniques and hash map usage
+5. **Versatile**: Works with any character set (Unicode, ASCII, etc.)
 
 ---
 
 ## Related Problems
 
-1. **[Longest Repeating Character Replacement](/solutions/longest-repeating-character-replacement.md)** - Find the longest substring with at most k distinct characters
-2. **[Subarrays with K Different Integers](/solutions/subarrays-with-k-different-integers.md)** - Count subarrays with exactly K distinct integers
-3. **[Longest Substring with At Least K Repeating Characters](/solutions/longest-substring-with-at-least-k-repeating-characters.md)** - Find longest substring where each character appears at least k times
-4. **[Minimum Window Substring](/solutions/minimum-window-substring.md)** - Find smallest window containing all characters of another string
-5. **[Sliding Window Maximum](/solutions/sliding-window-maximum.md)** - Find maximum in each sliding window
+Based on similar themes (sliding window, substring, character tracking):
+
+- **[Longest Substring with At Most K Distinct Characters](https://leetcode.com/problems/longest-substring-with-at-most-k-distinct-characters/)** - Extension with k distinct characters limit
+- **[Subarrays with K Different Integers](https://leetcode.com/problems/subarrays-with-k-different-integers/)** - Count subarrays with exactly k distinct integers
+- **[Permutation in String](https://leetcode.com/problems/permutation-in-string/)** - Check if one string contains permutation of another
+- **[Minimum Window Substring](https://leetcode.com/problems/minimum-window-substring/)** - Find minimum window containing all characters
+- **[Longest Repeating Character Replacement](https://leetcode.com/problems/longest-repeating-character-replacement/)** - Similar sliding window with character replacement
+- **[Contains Duplicate II](https://leetcode.com/problems/contains-duplicate-ii/)** - Check for duplicates within distance k
+
+---
+
+## Pattern Documentation
+
+For a comprehensive guide on the **Sliding Window** pattern, including detailed explanations, multiple approaches, and templates in Python, C++, Java, and JavaScript, see:
+
+- **[Sliding Window Pattern](../patterns/sliding-window-fixed-size-subarray-calculation.md)** - Complete pattern documentation
 
 ---
 
 ## Video Tutorial Links
 
-1. **[NeetCode - Longest Substring Without Repeating Characters](https://www.youtube.com/watch?v=wiGpQwGNFqw)**
-2. **[BackToBackSWE - Longest Substring Without Repeating Characters](https://www.youtube.com/watch?v=L6cTjhjDqZQ)**
-3. **[WilliamFiset - Sliding Window Technique](https://www.youtube.com/watch?v=L6cTjhjDqZQ)**
-4. **[Kevin Naughton Jr. - Sliding Window Pattern](https://www.youtube.com/watch?v=L6cTjhjDqZQ)**
-5. **[Take U Forward - Longest Substring Without Repeating Characters](https://www.youtube.com/watch?v=L6cTjhjDqZQ)**
+Here are some helpful YouTube tutorials explaining the problem and solutions:
+
+- [Longest Substring Without Repeating Characters - LeetCode 3 - Complete Explanation](https://www.youtube.com/watch?v=wiGpQwGFK-E) - Comprehensive explanation with sliding window
+- [Sliding Window Technique](https://www.youtube.com/watch?v=MK-NZN4d9yI) - Detailed sliding window tutorial
+- [Hash Map Approach](https://www.youtube.com/watch?v=3I3K2aG1j9U) - Hash map implementation
+- [ASCII Array Optimization](https://www.youtube.com/watch?v=3YDbEOv15_8) - Array-based solution for performance
+- [Two Pointer Technique](https://www.youtube.com/watch?v=qlH0OR3T5j4) - Two-pointer approach explanation
 
 ---
 
-## Follow-up Questions
+## Followup Questions
 
-1. **How would you modify the solution to return the actual substring instead of just its length?**
-   - Track the start index of the longest window along with its length
-   - Return `s[start:start + max_length]`
+### Q1: How would you modify the solution to return the actual substring instead of just the length?
 
-2. **What if the string contains Unicode characters beyond the BMP (Basic Multilingual Plane)?**
-   - Python handles Unicode natively, so approach 3 works correctly
-   - For other languages, ensure proper UTF-8/UTF-16 handling
-
-3. **How would you handle this problem with limited memory (constant space)?**
-   - For ASCII, use approach 4 (fixed array of 128)
-   - For Unicode, you might need probabilistic data structures like Bloom filters
-
-4. **What if you need the longest substring with at most K distinct characters?**
-   - Modify the sliding window to track both duplicate and distinct character counts
-   - When distinct count exceeds K, shrink from the left
-
-5. **How would you solve this for a stream of characters (online algorithm)?**
-   - The sliding window approach already works for streaming
-   - You only need to remember the last K positions where each character appeared
-
-6. **What if you need all longest substrings (there might be multiple)?**
-   - Track all starting indices that achieve the maximum length
-   - Return the list of substrings when the algorithm completes
-
-7. **How would you optimize for the case where the string is already known to be sorted?**
-   - For sorted strings, you can use binary search on the answer
-   - Check if any substring of length L has duplicates using a set
+**Answer:** Track the starting index of the longest substring along with its length. When updating the maximum length, also store the starting index. At the end, return `s[start_index:start_index + max_len]`. You'll need to maintain both `max_len` and `max_start` variables.
 
 ---
 
-## LeetCode Link
-[Longest Substring Without Repeating Characters - LeetCode](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
+### Q2: What if the string contains Unicode characters?
+
+**Answer:** For Unicode characters, use a hash map (dictionary) instead of a fixed-size array. The hash map approach naturally supports any character set. In Python, Java, and JavaScript, strings are Unicode by default, so the hash map solution works seamlessly.
 
 ---
 
-## Pattern Recognition
+### Q3: How would you handle the case where you need at most K distinct characters instead of all unique?
 
-This problem is a classic example of the **Sliding Window** pattern. The key insight is:
+**Answer:** Maintain a hash map to count character frequencies within the current window. When the number of distinct characters exceeds K, move the left pointer to shrink the window until we're back to K distinct characters. This requires tracking both the character-to-count map and the current distinct count.
 
-1. **Expand** the window to include new characters
-2. **Contract** the window from the left when constraints are violated
-3. **Track** the best result throughout the process
+---
 
-The Sliding Window pattern is applicable to many problems:
-- Subarray/substring problems with constraints
-- Problems requiring maximum/minimum of subarrays
-- Problems with "at most" or "exactly" constraints on characters
+### Q4: Can this problem be solved using a dynamic programming approach?
 
-**Related patterns:**
-- [Two Pointers](/solutions/binary-search-on-sorted-array-list.md)
-- [Hash Map for Index Tracking](/solutions/two-sum.md)
-- [Kadane's Algorithm](/solutions/dp-1d-array-kadane-s-algorithm-for-max-min-subarray.md)
+**Answer:** Yes, but it's less efficient. You can use DP where `dp[i]` represents the length of the longest valid substring ending at position `i`. The recurrence would be: `dp[i] = min(dp[i-1] + 1, i - last_seen[s[i]])` where `last_seen` tracks the last occurrence. This gives O(n) time but requires additional space.
 
+---
+
+### Q5: How would you test this solution?
+
+**Answer:** Test with various cases:
+1. Empty string: `""` → `0`
+2. Single character: `"a"` → `1`
+3. All unique: `"abcde"` → `5`
+4. All same: `"aaaaa"` → `1`
+5. Standard case: `"abcabcbb"` → `3`
+6. With spaces: `"hello world"` → `9` ("world" or "ello wo")
+7. With numbers and symbols: `"a1b2c3d1e2f3g1"` → Test various patterns
+8. Unicode: `"你好世界你好"` → Test with non-ASCII characters
+
+---
+
+### Q6: What's the difference between using `>` vs `>=` when comparing last seen indices?
+
+**Answer:** The condition `last_seen[char] >= left` ensures we only move the left pointer if the duplicate character is within the current window. If we used `>`, we'd unnecessarily move the left pointer when the duplicate is outside the window. The `>=` is correct because we want to exclude the duplicate from the new window.
+
+---
+
+### Q7: How would you modify the solution to count all valid substrings (not just find the maximum)?
+
+**Answer:** For each ending position `right`, the number of valid substrings ending at `right` equals `right - left + 1`. Sum this value across all positions to get the total count. This gives you O(n) time and O(1) extra space.
+
+---
+
+### Q8: What happens with very long strings (close to the constraint 5*10^4)?
+
+**Answer:** The sliding window solution handles this efficiently with O(n) time complexity. At 50,000 characters, the algorithm will process each character once, making it very fast. The array-based approach with O(1) space is particularly suitable for such cases.
+
+---
+
+### Q9: How would you implement this with a bitset for ASCII characters?
+
+**Answer:** You can use a 128-bit bitset to track seen characters, but this doesn't directly give you the indices needed to move the left pointer. You would need additional logic to track positions. The array approach is simpler and more practical for this problem.
+
+---
+
+### Q10: Can you return all longest substrings if there are multiple with the same length?
+
+**Answer:** Yes, track all starting indices that achieve the maximum length. When a new maximum is found, clear the list and add the current start. When the maximum is matched, add the current start. At the end, extract all substrings using the stored starting indices.
+
+---
+
+### Q11: How does the sliding window ensure we never miss a valid substring?
+
+**Answer:** The window [left, right] always represents a valid substring (no duplicates). When we encounter a duplicate at position `right`, we move `left` to exclude the previous occurrence, ensuring the new window is also valid. Since we check every possible `right` position and always maintain the longest valid window ending at `right`, we never miss any valid substring.
+
+---
+
+### Q12: What are the edge cases to consider?
+
+**Answer:** Edge cases include:
+1. Empty string (`""`) → return 0
+2. String with 1 character → return 1
+3. String with only one repeated character (`"aaaaa"`) → return 1
+4. String with all unique characters → return string length
+5. String with spaces and special characters → handle ASCII correctly
+6. Unicode strings → use hash map approach
+
+---
+
+## Summary
+
+The Longest Substring Without Repeating Characters problem is a classic example of the sliding window technique. Several approaches exist, each with different trade-offs:
+
+**Key Takeaways:**
+- Sliding window with hash map provides optimal O(n) time complexity
+- Brute force is O(n²), suitable only for learning or small inputs
+- Array-based approach gives O(1) space for ASCII strings
+- The window [left, right] always maintains unique characters
+- When a duplicate is found, move left to exclude the previous occurrence
+- Track the maximum length throughout the iteration
+- This problem is frequently asked in technical interviews at major tech companies
+- Understanding this pattern helps solve many related sliding window problems
+
+This problem demonstrates the power of the two-pointer technique and is essential knowledge for coding interviews.
+
+---
+
+## Additional Resources
+
+- [LeetCode Problem Discussion](https://leetcode.com/problems/longest-substring-without-repeating-characters/discuss/) - Community solutions and explanations
+- [Sliding Window Pattern](https://www.geeksforgeeks.org/window-sliding-technique/) - Window sliding technique concepts
+- [Hash Map Basics](https://docs.python.org/3/tutorial/datastructures.html#dictionaries) - Python dictionary documentation
+- [C++ unordered_map](https://en.cppreference.com/w/cpp/container/unordered_map) - C++ unordered_map reference
+- [Java HashMap](https://docs.oracle.com/javase/8/docs/api/java/util/HashMap.html) - Java HashMap API
+- [JavaScript Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) - JavaScript Map documentation

@@ -57,20 +57,20 @@ export const createModal = (modalEl: HTMLElement, options: ModalOptions = {}): M
 
     let isVisible = false;
     let previouslyFocusedElement: Element | null = null;
-    let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
-    let backdropHandler: ((e: Event) => void) | null = null;
+    let keydownHandler: ((_e: KeyboardEvent) => void) | null = null;
+    let backdropHandler: ((_e: Event) => void) | null = null;
 
     // Store reference to bound handlers for cleanup
-    const boundKeydownHandler = (e: KeyboardEvent) => {
-        if (e.key === 'Escape' && closeOnEscape && isVisible) {
-            e.preventDefault();
+    const boundKeydownHandler = (_e: KeyboardEvent) => {
+        if (_e.key === 'Escape' && closeOnEscape && isVisible) {
+            _e.preventDefault();
             hide();
         }
     };
 
-    const boundBackdropHandler = (e: Event) => {
-        if (e.target === modalEl && closeOnBackdrop) {
-            e.stopPropagation();
+    const boundBackdropHandler = (_e: Event) => {
+        if (_e.target === modalEl && closeOnBackdrop) {
+            _e.stopPropagation();
             hide();
         }
     };
@@ -170,9 +170,9 @@ export const createModalHandler = (
     contentEl: HTMLElement | null | undefined,
     closeCallback?: () => void
 ) => {
-    return (e: Event) => {
-        if (e && e.target !== modalEl) {
-            if (contentEl) e?.stopPropagation();
+    return (_e: Event) => {
+        if (_e && _e.target !== modalEl) {
+            if (contentEl) _e?.stopPropagation();
             return;
         }
         modalEl.classList.add('hidden');

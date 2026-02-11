@@ -118,6 +118,25 @@ declare global {
         readonly env: ImportMetaEnv;
     }
 
+    // Cloudflare Workers KV Namespace type
+    interface KVNamespace {
+        get(
+            key: string,
+            options?: { type?: 'text' | 'json' | 'arrayBuffer' | 'stream' }
+        ): Promise<string | null>;
+        put(
+            key: string,
+            value: string | ArrayBuffer | ReadableStream,
+            options?: { expiration?: number; expirationTtl?: number }
+        ): Promise<void>;
+        delete(key: string): Promise<void>;
+        list(options?: { prefix?: string; limit?: number; cursor?: string }): Promise<{
+            keys: { name: string; expiration?: number }[];
+            list_complete: boolean;
+            cursor?: string;
+        }>;
+    }
+
     const marked: MarkedStatic;
     const Prism: PrismStatic;
 }

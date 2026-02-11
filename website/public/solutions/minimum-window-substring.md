@@ -70,6 +70,7 @@ Both 'a's from `t` must be included in the window. Since the largest window of `
 
 ## Solution
 
+````carousel
 ```python
 from collections import Counter
 
@@ -125,6 +126,198 @@ class Solution:
         return "" if ans[0] == float("inf") else s[ans[1] : ans[2] + 1]
 ```
 
+<!-- slide -->
+
+```cpp
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <algorithm>
+#include <climits>
+
+class Solution {
+public:
+    std::string minWindow(std::string s, std::string t) {
+        if (t.empty() || s.empty()) return "";
+        
+        std::unordered_map<char, int> dict_t;
+        for (char c : t) dict_t[c]++;
+        
+        int required = dict_t.size();
+        std::vector<std::pair<int, char>> filtered_s;
+        
+        // Filter s to only include characters in t
+        for (int i = 0; i < s.size(); i++) {
+            if (dict_t.find(s[i]) != dict_t.end()) {
+                filtered_s.push_back({i, s[i]});
+            }
+        }
+        
+        int l = 0, r = 0;
+        int formed = 0;
+        std::unordered_map<char, int> window_counts;
+        std::pair<int, std::pair<int, int>> ans = {INT_MAX, {-1, -1}};
+        
+        while (r < filtered_s.size()) {
+            char c = filtered_s[r].second;
+            window_counts[c]++;
+            
+            if (window_counts[c] == dict_t[c]) {
+                formed++;
+            }
+            
+            while (l <= r && formed == required) {
+                char c = filtered_s[l].second;
+                
+                // Update answer
+                int end = filtered_s[r].first;
+                int start = filtered_s[l].first;
+                if (end - start + 1 < ans.first) {
+                    ans = {end - start + 1, {start, end}};
+                }
+                
+                window_counts[c]--;
+                if (window_counts[c] < dict_t[c]) {
+                    formed--;
+                }
+                l++;
+            }
+            
+            r++;
+        }
+        
+        return ans.first == INT_MAX ? "" : s.substr(ans.second.first, ans.second.second - ans.second.first + 1);
+    }
+};
+```
+
+<!-- slide -->
+
+```java
+import java.util.*;
+
+class Solution {
+    public String minWindow(String s, String t) {
+        if (t.isEmpty() || s.isEmpty()) return "";
+        
+        Map<Character, Integer> dict_t = new HashMap<>();
+        for (char c : t.toCharArray()) {
+            dict_t.put(c, dict_t.getOrDefault(c, 0) + 1);
+        }
+        
+        int required = dict_t.size();
+        List<int[]> filtered_s = new ArrayList<>();
+        
+        // Filter s to only include characters in t
+        for (int i = 0; i < s.length(); i++) {
+            if (dict_t.containsKey(s.charAt(i))) {
+                filtered_s.add(new int[]{i, s.charAt(i)});
+            }
+        }
+        
+        int l = 0, r = 0;
+        int formed = 0;
+        Map<Character, Integer> window_counts = new HashMap<>();
+        int[] ans = {Integer.MAX_VALUE, -1, -1};
+        
+        while (r < filtered_s.size()) {
+            char c = (char) filtered_s.get(r)[1];
+            window_counts.put(c, window_counts.getOrDefault(c, 0) + 1);
+            
+            if (window_counts.get(c).equals(dict_t.get(c))) {
+                formed++;
+            }
+            
+            while (l <= r && formed == required) {
+                char c2 = (char) filtered_s.get(l)[1];
+                
+                int end = filtered_s.get(r)[0];
+                int start = filtered_s.get(l)[0];
+                if (end - start + 1 < ans[0]) {
+                    ans[0] = end - start + 1;
+                    ans[1] = start;
+                    ans[2] = end;
+                }
+                
+                window_counts.put(c2, window_counts.get(c2) - 1);
+                if (window_counts.get(c2) < dict_t.get(c2)) {
+                    formed--;
+                }
+                l++;
+            }
+            
+            r++;
+        }
+        
+        return ans[0] == Integer.MAX_VALUE ? "" : s.substring(ans[1], ans[2] + 1);
+    }
+}
+```
+
+<!-- slide -->
+
+```javascript
+/**
+ * Find the smallest window in s that contains all characters of t
+ * @param {string} s - Source string
+ * @param {string} t - Pattern string
+ * @returns {string}
+ */
+function minWindow(s, t) {
+    if (!t || !s) return "";
+    
+    const dict_t = new Map();
+    for (const c of t) {
+        dict_t.set(c, (dict_t.get(c) || 0) + 1);
+    }
+    
+    const required = dict_t.size;
+    const filtered_s = [];
+    
+    // Filter s to only include characters in t
+    for (let i = 0; i < s.length; i++) {
+        if (dict_t.has(s[i])) {
+            filtered_s.push([i, s[i]]);
+        }
+    }
+    
+    let l = 0, r = 0;
+    let formed = 0;
+    const window_counts = new Map();
+    let ans = [Infinity, -1, -1]; // [length, left, right]
+    
+    while (r < filtered_s.length) {
+        const c = filtered_s[r][1];
+        window_counts.set(c, (window_counts.get(c) || 0) + 1);
+        
+        if (window_counts.get(c) === dict_t.get(c)) {
+            formed++;
+        }
+        
+        while (l <= r && formed === required) {
+            const c2 = filtered_s[l][1];
+            
+            const end = filtered_s[r][0];
+            const start = filtered_s[l][0];
+            if (end - start + 1 < ans[0]) {
+                ans = [end - start + 1, start, end];
+            }
+            
+            window_counts.set(c2, window_counts.get(c2) - 1);
+            if (window_counts.get(c2) < dict_t.get(c2)) {
+                formed--;
+            }
+            l++;
+        }
+        
+        r++;
+    }
+    
+    return ans[0] === Infinity ? "" : s.substring(ans[1], ans[2] + 1);
+}
+```
+````
+
 ---
 
 ## Explanation
@@ -150,3 +343,31 @@ This problem requires finding the smallest substring in `s` that contains all ch
 
 - **Time Complexity:** O(m + n), where m is length of s and n is length of t
 - **Space Complexity:** O(m + n), for the filtered list and counters
+
+---
+
+## Pattern Reference
+
+This solution uses the **Sliding Window - Character Frequency Matching** pattern. For a comprehensive guide on this pattern including:
+- Detailed explanation and intuition
+- Multiple approaches with templates in Python, C++, Java, and JavaScript
+- Related problems with LeetCode links
+- Video tutorial references
+
+See: [Sliding Window - Character Frequency Matching](/patterns/sliding-window-character-frequency-matching)
+
+---
+
+## Related Problems
+
+| Problem | Solution Link | Difficulty |
+|---------|---------------|------------|
+| Permutation in String | [Permutation In String](/solutions/permutation-in-string) | Medium |
+| Find All Anagrams in a String | [Find All Anagrams](/solutions/find-all-anagrams-in-a-string) | Medium |
+
+---
+
+## Video Resources
+
+- [Minimum Window Substring - NeetCode](https://www.youtube.com/watch?v=jSto0O4Zb4M)
+- [Sliding Window Technique - Abdul Bari](https://www.youtube.com/watch?v=9ZHzBbuZ6VU)

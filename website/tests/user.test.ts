@@ -11,40 +11,26 @@ global.crypto = {
     randomUUID: jest.fn(() => 'test-csrf-token-12345'),
 };
 
-// Mock Request and Response
-global.Request = class Request {
-    constructor(url, options = {}) {
-        this.url = url;
-        this.method = options.method || 'GET';
-        this.headers = new Map(Object.entries(options.headers || {}));
-        this.body = options.body;
+// Helper to compress data for testing (matches the mock CompressionStream behavior)
+async function _mockCompress(data: string): Promise<ArrayBuffer> {
+    const encoder = new TextEncoder();
+    const input = encoder.encode(data);
+    return input.buffer; // Return uncompressed for testing
+}
+
+// Helper to decompress data for testing (matches the mock DecompressionStream behavior)
+async function _mockDecompress(
+    data: ArrayBuffer | string,
+    _contentType: string | null
+): Promise<string> {
+    if (typeof data === 'string') {
+        return data;
     }
+    return new TextDecoder().decode(data);
+}
 
-    async json() {
-        return JSON.parse(this.body);
-    }
-};
-
-global.Response = class Response {
-    constructor(body, options = {}) {
-        this.body = body;
-        this.status = options.status || 200;
-        this.headers = new Map(Object.entries(options.headers || {}));
-    }
-
-    async text() {
-        return this.body;
-    }
-
-    async json() {
-        return JSON.parse(this.body);
-    }
-};
-
-Response.redirect = (url, status) => new Response('', { status, headers: { Location: url } });
-
-// Mock atob
-global.atob = jest.fn();
+// Mock atob (CompressionStream/DecompressionStream/Request/Response are in jest.setup.mjs)
+global.atob = jest.fn((str) => Buffer.from(str, 'base64').toString('binary'));
 
 describe('User API', () => {
     let mockEnv;
@@ -53,9 +39,23 @@ describe('User API', () => {
     beforeEach(() => {
         mockKV = {
             get: jest.fn(),
+            getWithMetadata: jest.fn(),
             put: jest.fn(),
             delete: jest.fn(),
         };
+
+        // Make getWithMetadata return value and metadata
+        mockKV.getWithMetadata.mockImplementation((_key, _type, _options) => {
+            return new Promise((resolve) => {
+                mockKV.get.mockImplementationOnce((_k, _t, _o) => {
+                    return Promise.resolve(null);
+                });
+                resolve({
+                    value: null,
+                    metadata: null,
+                });
+            });
+        });
 
         mockEnv = {
             JWT_SECRET: 'test-jwt-secret',
@@ -136,10 +136,39 @@ describe('User API', () => {
             expect(data.error).toBe('Invalid userId');
         });
 
-        test('should return user data from KV', async () => {
-            mockKV.get.mockResolvedValue(
-                JSON.stringify({ problems: { '1': {} }, deletedIds: ['2'] })
-            );
+        test('should return user data from KV (compressed)', async () => {
+            // Create compressed data using mock compression
+            const rawData = JSON.stringify({ problems: { '1': {} }, deletedIds: ['2'] });
+            const encoder = new TextEncoder();
+            const compressedData = encoder.encode(rawData).buffer; // Use uncompressed for testing
+
+            mockKV.getWithMetadata.mockResolvedValue({
+                value: compressedData,
+                metadata: {
+                    'Content-Type': 'application/json',
+                    'Content-Encoding': 'br',
+                },
+            });
+
+            const request = new Request('https://example.com/user', {
+                headers: { Authorization: 'Bearer header.payload.signature' },
+            });
+
+            const response = await onRequestGet({ request, env: mockEnv });
+
+            expect(response.status).toBe(200);
+            expect(response.headers.get('Content-Type')).toBe('application/json');
+            const data = await response.json();
+            expect(data).toEqual({ problems: { '1': {} }, deletedIds: ['2'] });
+        });
+
+        test('should return user data from KV (uncompressed - backward compatibility)', async () => {
+            mockKV.getWithMetadata.mockResolvedValue({
+                value: JSON.stringify({ problems: { '1': {} }, deletedIds: ['2'] }),
+                metadata: {
+                    'Content-Type': 'application/json',
+                },
+            });
 
             const request = new Request('https://example.com/user', {
                 headers: { Authorization: 'Bearer header.payload.signature' },
@@ -154,7 +183,10 @@ describe('User API', () => {
         });
 
         test('should return default data if no KV data', async () => {
-            mockKV.get.mockResolvedValue(null);
+            mockKV.getWithMetadata.mockResolvedValue({
+                value: null,
+                metadata: null,
+            });
 
             const request = new Request('https://example.com/user', {
                 headers: { Authorization: 'Bearer header.payload.signature' },
@@ -168,7 +200,7 @@ describe('User API', () => {
         });
 
         test('should return 500 on KV error', async () => {
-            mockKV.get.mockRejectedValue(new Error('KV error'));
+            mockKV.getWithMetadata.mockRejectedValue(new Error('KV error'));
 
             const request = new Request('https://example.com/user', {
                 headers: { Authorization: 'Bearer header.payload.signature' },
@@ -289,9 +321,15 @@ describe('User API', () => {
 
             expect(response.status).toBe(200);
             expect(await response.text()).toBe('OK');
-            expect(mockKV.put).toHaveBeenCalledWith(
-                'user123',
-                JSON.stringify({ problems: {}, deletedIds: [] })
+            expect(mockKV.put).toHaveBeenCalled();
+
+            // Verify the data was stored with appropriate metadata
+            const putCall = mockKV.put.mock.calls[0];
+            expect(putCall.length).toBeGreaterThanOrEqual(3); // Should have key, value, options
+            expect(putCall[2].metadata).toEqual(
+                expect.objectContaining({
+                    'Content-Type': 'application/json',
+                })
             );
         });
 

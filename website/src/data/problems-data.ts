@@ -968,7 +968,7 @@ export const PROBLEMS_DATA: Topic[] = [
     },
     {
         id: 'trees',
-        title: ' (DFS & BTree Traversal PatternsFS)',
+        title: ' Tree Traversal Patterns',
         patterns: [
             {
                 name: 'Tree BFS - Level Order Traversal',

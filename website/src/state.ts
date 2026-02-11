@@ -93,6 +93,16 @@ export const state = {
         reviewDateFilter: null,
     } as UIState,
 
+    // Sync state for offline/online tracking
+    sync: {
+        isOnline: true,
+        isSyncing: false,
+        pendingCount: 0,
+        lastSyncAt: null as number | null,
+        hasConflicts: false,
+        conflictMessage: null as string | null,
+    },
+
     // DOM elements cache
     elements: {} as Partial<ElementCache>,
 
@@ -259,5 +269,69 @@ export const state = {
     // Update UI state
     setUI(uiData: Partial<UIState>): void {
         Object.assign(this.ui, uiData);
+    },
+
+    // Update sync status
+    setSyncStatus(
+        status: Partial<{
+            pendingCount: number;
+            isSyncing: boolean;
+            lastSyncAt: number | null;
+            hasConflicts: boolean;
+            conflictMessage: string | null;
+        }>
+    ): void {
+        Object.assign(this.sync, status);
+        this.emitSyncStatusChange();
+    },
+
+    // Update online status
+    setOnlineStatus(isOnline: boolean): void {
+        this.sync.isOnline = isOnline;
+        this.emitSyncStatusChange();
+    },
+
+    // Emit sync status change event for UI updates
+    emitSyncStatusChange(): void {
+        // Dispatch custom event for UI components to listen to
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+                new CustomEvent('sync-status-change', {
+                    detail: { ...this.sync },
+                })
+            );
+        }
+    },
+
+    // Check if currently online
+    isOnline(): boolean {
+        return this.sync.isOnline;
+    },
+
+    // Check if sync is in progress
+    isSyncing(): boolean {
+        return this.sync.isSyncing;
+    },
+
+    // Get pending operation count
+    getPendingCount(): number {
+        return this.sync.pendingCount;
+    },
+
+    // Check if there are sync conflicts
+    hasSyncConflicts(): boolean {
+        return this.sync.hasConflicts;
+    },
+
+    // Get sync status summary
+    getSyncStatus(): {
+        isOnline: boolean;
+        isSyncing: boolean;
+        pendingCount: number;
+        lastSyncAt: number | null;
+        hasConflicts: boolean;
+        conflictMessage: string | null;
+    } {
+        return { ...this.sync };
     },
 };

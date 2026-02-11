@@ -11,6 +11,7 @@ import * as uiGlobal from './ui-global';
 import * as uiScroll from './ui-scroll';
 import * as uiMarkdown from './ui-markdown';
 import * as uiBindings from './ui-bindings';
+import { initSyncIndicators } from './ui-sync-indicators';
 import { state } from '../state';
 import { checkAuth } from '../init';
 import { utils } from '../utils';
@@ -56,5 +57,7 @@ if (typeof window !== 'undefined') {
 if (typeof jest === 'undefined') {
     state.init();
     checkAuth();
+    // Initialize sync indicators for offline/online status display
+    initSyncIndicators();
     ui.init().catch(console.error);
 }

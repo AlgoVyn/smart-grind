@@ -1,6 +1,10 @@
 export default {
   preset: 'ts-jest/presets/default-esm',
-  testEnvironment: 'jsdom',
+  testEnvironment: '<rootDir>/jest-environment-custom.mjs',
+  testEnvironmentOptions: {
+    url: 'http://localhost/smartgrind/',
+    customExportConditions: ['node', 'node-addons'],
+  },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.mjs'],
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
@@ -24,4 +28,7 @@ export default {
   moduleFileExtensions: ['js', 'ts', 'mjs'],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
+  // Suppress console output in tests
+  silent: true,
+  verbose: false,
 };

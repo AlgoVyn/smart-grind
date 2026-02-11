@@ -134,11 +134,12 @@ describe('SmartGrind Utils', () => {
 
             expect(mockSet).toHaveBeenCalledWith('filter', 'newfilter');
             expect(mockPushState).toHaveBeenCalledWith(
-                { path: '/?category=strings&filter=all' },
+                { path: '/smartgrind/?category=strings&filter=all' },
                 '',
-                '/?category=strings&filter=all'
+                '/smartgrind/?category=strings&filter=all'
             );
 
+            // Restore original values
             global.URLSearchParams = originalURLSearchParams;
             window.history.pushState = originalPushState;
         });
