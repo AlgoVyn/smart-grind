@@ -370,11 +370,13 @@ export function initOfflineDetection(): void {
             if (event.data && event.data.type) {
                 switch (event.data.type) {
                     case 'SYNC_SYNC_COMPLETED':
+                        // Sync completed - update status and fetch fresh pending count
                         state.setSyncStatus({
-                            pendingCount: event.data.data?.failed || 0,
                             isSyncing: false,
                             lastSyncAt: Date.now(),
                         });
+                        // Fetch fresh sync status to get accurate pending count
+                        updateSyncStatus().catch(console.error);
                         break;
                     case 'SYNC_PROGRESS_SYNCED':
                         updateSyncStatus().catch(console.error);

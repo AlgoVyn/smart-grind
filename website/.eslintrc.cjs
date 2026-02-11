@@ -60,5 +60,11 @@ module.exports = {
         '@typescript-eslint/no-explicit-any': 'off',
       },
     },
+    {
+      files: ['e2e/**/*.js', 'playwright.config.js', 'tailwind.config.js'],
+      parserOptions: {
+        project: null,
+      },
+    },
   ],
 };

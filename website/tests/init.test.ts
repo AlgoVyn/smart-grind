@@ -116,6 +116,7 @@ jest.mock('../src/api', () => ({
         syncPlan: jest.fn().mockResolvedValue(undefined),
         mergeStructure: jest.fn(),
     },
+    initOfflineDetection: jest.fn(),
 }));
 
 jest.mock('../src/renderers', () => ({

@@ -10,7 +10,7 @@
 import { Topic } from './types';
 import { state } from './state';
 import { data } from './data';
-import { api } from './api';
+import { api, initOfflineDetection } from './api';
 import { renderers } from './renderers';
 import { ui } from './ui/ui';
 import { utils } from './utils';
@@ -144,6 +144,9 @@ const checkAuth = async () => {
         }
         ui.updateAuthUI();
     }
+
+    // Initialize offline detection and sync monitoring
+    initOfflineDetection();
 };
 
 export { checkAuth };

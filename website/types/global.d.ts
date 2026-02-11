@@ -13,10 +13,10 @@ interface MarkedOptions {
 }
 
 interface MarkedStatic {
-    parse: (markdown: string, options?: MarkedOptions) => string;
-    parseInline: (markdown: string, options?: MarkedOptions) => string;
-    setOptions: (options: MarkedOptions) => void;
-    use: (...extensions: unknown[]) => void;
+    parse: (_markdown: string, _options?: MarkedOptions) => string;
+    parseInline: (_markdown: string, _options?: MarkedOptions) => string;
+    setOptions: (_options: MarkedOptions) => void;
+    use: (..._extensions: unknown[]) => void;
     Renderer: new () => MarkedRenderer;
     Lexer: new () => MarkedLexer;
     Tokenizer: new () => MarkedTokenizer;
@@ -24,41 +24,41 @@ interface MarkedStatic {
 }
 
 interface MarkedRenderer {
-    code: (code: string, language: string | undefined, escaped: boolean) => string;
-    blockquote: (quote: string) => string;
-    html: (html: string) => string;
-    heading: (text: string, level: number, raw: string, slugger: MarkedSlugger) => string;
+    code: (_code: string, _language: string | undefined, _escaped: boolean) => string;
+    blockquote: (_quote: string) => string;
+    html: (_html: string) => string;
+    heading: (_text: string, _level: number, _raw: string, _slugger: MarkedSlugger) => string;
     hr: () => string;
-    list: (body: string, ordered: boolean, start: number) => string;
-    listitem: (text: string) => string;
-    checkbox: (checked: boolean) => string;
-    paragraph: (text: string) => string;
-    table: (header: string, body: string) => string;
-    tablerow: (content: string) => string;
+    list: (_body: string, _ordered: boolean, _start: number) => string;
+    listitem: (_text: string) => string;
+    checkbox: (_checked: boolean) => string;
+    paragraph: (_text: string) => string;
+    table: (_header: string, _body: string) => string;
+    tablerow: (_content: string) => string;
     tablecell: (
-        content: string,
-        flags: { header: boolean; align: 'center' | 'left' | 'right' | null }
+        _content: string,
+        _flags: { header: boolean; align: 'center' | 'left' | 'right' | null }
     ) => string;
-    strong: (text: string) => string;
-    em: (text: string) => string;
-    codespan: (code: string) => string;
+    strong: (_text: string) => string;
+    em: (_text: string) => string;
+    codespan: (_code: string) => string;
     br: () => string;
-    del: (text: string) => string;
-    link: (href: string, title: string | null, text: string) => string;
-    image: (href: string, title: string | null, text: string) => string;
-    text: (text: string) => string;
+    del: (_text: string) => string;
+    link: (_href: string, _title: string | null, _text: string) => string;
+    image: (_href: string, _title: string | null, _text: string) => string;
+    text: (_text: string) => string;
 }
 
 interface MarkedLexer {
-    lex: (src: string) => MarkedToken[];
+    lex: (_src: string) => MarkedToken[];
 }
 
 interface MarkedTokenizer {
-    [key: string]: (src: string) => MarkedToken | undefined;
+    [_key: string]: (_src: string) => MarkedToken | undefined;
 }
 
 interface MarkedSlugger {
-    slug: (value: string, options?: { dryrun?: boolean }) => string;
+    slug: (_value: string, _options?: { dryrun?: boolean }) => string;
 }
 
 type MarkedToken = {
@@ -72,8 +72,8 @@ interface PrismGrammar {
 }
 
 interface PrismStatic {
-    highlight: (code: string, grammar: PrismGrammar, language: string) => string;
-    highlightAllUnder: (element: Element) => void;
+    highlight: (_code: string, _grammar: PrismGrammar, _language: string) => string;
+    highlightAllUnder: (_element: Element) => void;
     languages: Record<string, PrismGrammar>;
 }
 
@@ -121,16 +121,16 @@ declare global {
     // Cloudflare Workers KV Namespace type
     interface KVNamespace {
         get(
-            key: string,
-            options?: { type?: 'text' | 'json' | 'arrayBuffer' | 'stream' }
+            _key: string,
+            _options?: { type?: 'text' | 'json' | 'arrayBuffer' | 'stream' }
         ): Promise<string | null>;
         put(
-            key: string,
-            value: string | ArrayBuffer | ReadableStream,
-            options?: { expiration?: number; expirationTtl?: number }
+            _key: string,
+            _value: string | ArrayBuffer | ReadableStream,
+            _options?: { expiration?: number; expirationTtl?: number }
         ): Promise<void>;
-        delete(key: string): Promise<void>;
-        list(options?: { prefix?: string; limit?: number; cursor?: string }): Promise<{
+        delete(_key: string): Promise<void>;
+        list(_options?: { prefix?: string; limit?: number; cursor?: string }): Promise<{
             keys: { name: string; expiration?: number }[];
             list_complete: boolean;
             cursor?: string;

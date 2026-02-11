@@ -63,11 +63,14 @@ async function getResponseText(response: Response): Promise<string> {
         const decompressedStream = stream.pipeThrough(ds);
         const reader = decompressedStream.getReader();
         const chunks: Uint8Array[] = [];
+        let done = false;
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            chunks.push(value);
+        while (!done) {
+            const result = await reader.read();
+            done = result.done;
+            if (!done && result.value) {
+                chunks.push(result.value);
+            }
         }
 
         // Combine chunks
