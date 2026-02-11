@@ -37,15 +37,17 @@ async function getResponseText(response: Response): Promise<string> {
 
     // Data appears compressed, try manual decompression
     try {
-        // Only handle gzip/deflate - Brotli not supported by DecompressionStream
+        // Handle all supported compression formats including Brotli
         let format: CompressionFormat;
         if (contentEncoding === 'gzip') {
             format = 'gzip';
         } else if (contentEncoding === 'deflate') {
             format = 'deflate';
+        } else if (contentEncoding === 'br') {
+            // Brotli compression - supported by modern browsers
+            format = 'br' as CompressionFormat;
         } else {
-            // Brotli or other - can't decompress manually
-            // Return as text and let it fail clearly
+            // Unknown encoding - return as text and let it fail clearly
             return new TextDecoder().decode(bytes);
         }
 

@@ -415,8 +415,9 @@ export async function onRequestGet({
             // Get Content-Encoding from metadata
             const contentEncoding = metadata?.['Content-Encoding'];
 
-            // Determine compression type from metadata
-            const compressionType = contentEncoding === 'gzip' ? 'gzip' : null;
+            // Determine compression type from metadata (supports 'br' for Brotli and 'gzip')
+            const compressionType =
+                contentEncoding === 'br' || contentEncoding === 'gzip' ? contentEncoding : null;
 
             let decompressed: string;
 
