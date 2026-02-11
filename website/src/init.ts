@@ -104,6 +104,8 @@ const checkAuth = async () => {
         await withErrorHandling(async () => {
             await _setupSignedInUser(urlUserId, sanitizedDisplayName, categoryParam);
         }, 'Failed to set up signed-in user');
+        // Initialize offline detection for signed-in users
+        initOfflineDetection();
         return;
     }
 
@@ -114,6 +116,8 @@ const checkAuth = async () => {
         await withErrorHandling(async () => {
             await _setupSignedInUser(userId, displayName, categoryParam);
         }, 'Failed to restore user session');
+        // Initialize offline detection for signed-in users
+        initOfflineDetection();
         return;
     }
 
