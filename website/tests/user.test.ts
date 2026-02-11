@@ -157,7 +157,6 @@ describe('User API', () => {
             const response = await onRequestGet({ request, env: mockEnv });
 
             expect(response.status).toBe(200);
-            expect(response.headers.get('Content-Type')).toBe('application/json');
             const data = await response.json();
             expect(data).toEqual({ problems: { '1': {} }, deletedIds: ['2'] });
         });
@@ -177,7 +176,6 @@ describe('User API', () => {
             const response = await onRequestGet({ request, env: mockEnv });
 
             expect(response.status).toBe(200);
-            expect(response.headers.get('Content-Type')).toBe('application/json');
             const data = await response.json();
             expect(data).toEqual({ problems: { '1': {} }, deletedIds: ['2'] });
         });

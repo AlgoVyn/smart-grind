@@ -7,6 +7,44 @@ declare const jest: typeof import('@jest/globals') | undefined;
 type KVNamespace = any;
 
 /**
+ * Creates a Response with CORS headers to allow credentials
+ * @param body - Response body
+ * @param init - Response init options
+ * @param request - The request to get the origin from
+ * @returns Response with CORS headers
+ */
+function createCorsResponse(
+    body: BodyInit | null,
+    init?: ResponseInit,
+    request?: Request
+): Response {
+    // Build headers object from init.headers
+    const headersObj: Record<string, string> = {};
+
+    // Copy existing headers from init if provided
+    if (init?.headers) {
+        const existingHeaders = new Headers(init.headers);
+        existingHeaders.forEach((value, key) => {
+            headersObj[key] = value;
+        });
+    }
+
+    // When using credentials, we must specify the exact origin, not '*'
+    const origin = request?.headers.get('Origin') || '*';
+    headersObj['Access-Control-Allow-Origin'] = origin;
+    headersObj['Access-Control-Allow-Credentials'] = 'true';
+    headersObj['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS';
+    headersObj['Access-Control-Allow-Headers'] = 'Content-Type, X-CSRF-Token, Authorization';
+
+    // Create response without headers in init to avoid conflicts
+    const { headers: _ignored, ...restInit } = init || {};
+    return new Response(body, {
+        ...restInit,
+        headers: headersObj,
+    });
+}
+
+/**
  * Compresses data using gzip compression
  * @param {string} data - The data to compress
  * @returns {Promise<ArrayBuffer>} - The compressed binary data
@@ -239,9 +277,18 @@ export async function onRequestGet({
     request: Request;
     env: { JWT_SECRET: string; KV: KVNamespace };
 }) {
+    // Handle CORS preflight requests
+    if (request.method === 'OPTIONS') {
+        return createCorsResponse(null, { status: 204 }, request);
+    }
+
     // Rate limiting: 30 requests per minute for data access (skip in tests)
     if (typeof jest === 'undefined' && (await checkRateLimit(request, env, 30, 60))) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429 });
+        return createCorsResponse(
+            JSON.stringify({ error: 'Rate limit exceeded' }),
+            { status: 429 },
+            request
+        );
     }
 
     const url = new URL(request.url);
@@ -251,32 +298,52 @@ export async function onRequestGet({
     if (action === 'csrf') {
         const payload = await authenticate(request, env);
         if (!payload) {
-            return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+            return createCorsResponse(
+                JSON.stringify({ error: 'Unauthorized' }),
+                { status: 401 },
+                request
+            );
         }
 
         const userId = payload.userId;
         const userIdRegex = /^[a-zA-Z0-9_-]{1,100}$/;
         if (!userId || typeof userId !== 'string' || !userIdRegex.test(userId)) {
-            return new Response(JSON.stringify({ error: 'Invalid userId' }), { status: 400 });
+            return createCorsResponse(
+                JSON.stringify({ error: 'Invalid userId' }),
+                { status: 400 },
+                request
+            );
         }
 
         const csrfToken = crypto.randomUUID();
         await env.KV.put(`csrf_${userId}`, csrfToken, { expirationTtl: 3600 });
-        return new Response(JSON.stringify({ csrfToken }), {
-            headers: { 'Content-Type': 'application/json' },
-        });
+        return createCorsResponse(
+            JSON.stringify({ csrfToken }),
+            {
+                headers: { 'Content-Type': 'application/json' },
+            },
+            request
+        );
     }
 
     // Handle user data retrieval
     const payload = await authenticate(request, env);
     if (!payload) {
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+        return createCorsResponse(
+            JSON.stringify({ error: 'Unauthorized' }),
+            { status: 401 },
+            request
+        );
     }
 
     const userId = payload.userId;
     const userIdRegex = /^[a-zA-Z0-9_-]{1,100}$/;
     if (!userId || typeof userId !== 'string' || !userIdRegex.test(userId)) {
-        return new Response(JSON.stringify({ error: 'Invalid userId' }), { status: 400 });
+        return createCorsResponse(
+            JSON.stringify({ error: 'Invalid userId' }),
+            { status: 400 },
+            request
+        );
     }
 
     try {
@@ -303,16 +370,28 @@ export async function onRequestGet({
 
             // Ensure decompressed is a valid string (handle null/undefined from failed decompression)
             const responseBody = decompressed || JSON.stringify({ problems: {}, deletedIds: [] });
-            return new Response(responseBody, {
-                headers: { 'Content-Type': 'application/json' },
-            });
+            return createCorsResponse(
+                responseBody,
+                {
+                    headers: { 'Content-Type': 'application/json' },
+                },
+                request
+            );
         }
-        return new Response(JSON.stringify({ problems: {}, deletedIds: [] }), {
-            headers: { 'Content-Type': 'application/json' },
-        });
+        return createCorsResponse(
+            JSON.stringify({ problems: {}, deletedIds: [] }),
+            {
+                headers: { 'Content-Type': 'application/json' },
+            },
+            request
+        );
     } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-        return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
+        return createCorsResponse(
+            JSON.stringify({ error: errorMessage }),
+            { status: 500 },
+            request
+        );
     }
 }
 
@@ -330,38 +409,67 @@ export async function onRequestPost({
     request: Request;
     env: { JWT_SECRET: string; KV: KVNamespace };
 }) {
+    // Handle CORS preflight requests
+    if (request.method === 'OPTIONS') {
+        return createCorsResponse(null, { status: 204 }, request);
+    }
+
     // Rate limiting: 30 requests per minute for data access (skip in tests)
     if (typeof jest === 'undefined' && (await checkRateLimit(request, env, 30, 60))) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429 });
+        return createCorsResponse(
+            JSON.stringify({ error: 'Rate limit exceeded' }),
+            { status: 429 },
+            request
+        );
     }
 
     const payload = await authenticate(request, env);
     if (!payload) {
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+        return createCorsResponse(
+            JSON.stringify({ error: 'Unauthorized' }),
+            { status: 401 },
+            request
+        );
     }
 
     const userId = payload.userId;
     const userIdRegex = /^[a-zA-Z0-9_-]{1,100}$/;
     if (!userId || typeof userId !== 'string' || !userIdRegex.test(userId)) {
-        return new Response(JSON.stringify({ error: 'Invalid userId' }), { status: 400 });
+        return createCorsResponse(
+            JSON.stringify({ error: 'Invalid userId' }),
+            { status: 400 },
+            request
+        );
     }
 
     // Validate CSRF token
     const csrfValid = await validateCsrfToken(request, env, userId);
     if (!csrfValid) {
-        return new Response(JSON.stringify({ error: 'Invalid CSRF token' }), { status: 403 });
+        return createCorsResponse(
+            JSON.stringify({ error: 'Invalid CSRF token' }),
+            { status: 403 },
+            request
+        );
     }
 
     let body;
     try {
         body = await request.json();
     } catch (_e) {
-        return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400 });
+        return createCorsResponse(
+            JSON.stringify({ error: 'Invalid JSON' }),
+            { status: 400 },
+            request
+        );
     }
 
     const { data } = body;
     if (!data || typeof data !== 'object') {
-        return new Response(JSON.stringify({ error: 'Invalid data' }), { status: 400 });
+        return createCorsResponse(
+            JSON.stringify({ error: 'Invalid data' }),
+            { status: 400 },
+            request
+        );
     }
 
     try {
@@ -389,9 +497,13 @@ export async function onRequestPost({
             });
         }
 
-        return new Response('OK');
+        return createCorsResponse('OK', undefined, request);
     } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-        return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
+        return createCorsResponse(
+            JSON.stringify({ error: errorMessage }),
+            { status: 500 },
+            request
+        );
     }
 }
