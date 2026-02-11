@@ -9,68 +9,79 @@ import { ui } from '../ui/ui';
 import { syncPlan, mergeStructure } from './api-sync';
 
 /**
- * Decompresses response data if it's compressed
- * Handles Brotli, gzip, and deflate-raw compression
+ * Gets response text with automatic decompression handling.
+ * Browsers should auto-decompress, but we handle edge cases.
  */
-async function decompressResponse(response: Response): Promise<string> {
+async function getResponseText(response: Response): Promise<string> {
     const contentEncoding = response.headers.get('Content-Encoding');
 
-    // If no compression, return text directly
+    // No compression - just get text
     if (!contentEncoding || contentEncoding === 'identity') {
         return response.text();
     }
 
+    // Read as arrayBuffer first to handle binary data properly
+    const buffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+
+    // Check if data looks like JSON (starts with { or [)
+    // or if it's plain text (printable ASCII)
+    if (bytes.length === 0) {
+        return '';
+    }
+    const firstChar = bytes[0]!;
+    if (firstChar === 0x7b || firstChar === 0x5b || (firstChar >= 32 && firstChar < 127)) {
+        // Looks like uncompressed text/JSON
+        return new TextDecoder().decode(bytes);
+    }
+
+    // Data appears compressed, try manual decompression
     try {
-        // Get the response body as a stream
-        const body = response.body;
-        if (!body) {
-            return response.text();
-        }
-
-        // Create decompression stream based on encoding
-        // Note: Brotli ('br') is not supported by DecompressionStream in browsers
-        // We request gzip/deflate only via Accept-Encoding header, but handle br just in case
-        let decompressionStream: DecompressionStream;
-        if (contentEncoding === 'br') {
-            // Brotli not supported by DecompressionStream, fall back to text
-            return response.text();
-        } else if (contentEncoding === 'gzip') {
-            decompressionStream = new DecompressionStream('gzip');
+        // Only handle gzip/deflate - Brotli not supported by DecompressionStream
+        let format: CompressionFormat;
+        if (contentEncoding === 'gzip') {
+            format = 'gzip';
         } else if (contentEncoding === 'deflate') {
-            decompressionStream = new DecompressionStream('deflate');
+            format = 'deflate';
         } else {
-            // Unknown encoding, try text
-            return response.text();
+            // Brotli or other - can't decompress manually
+            // Return as text and let it fail clearly
+            return new TextDecoder().decode(bytes);
         }
 
-        // Decompress the stream
-        const decompressedStream = body.pipeThrough(decompressionStream);
+        // Create stream from buffer
+        const stream = new ReadableStream({
+            start(controller) {
+                controller.enqueue(bytes);
+                controller.close();
+            },
+        });
+
+        const ds = new DecompressionStream(format);
+        const decompressedStream = stream.pipeThrough(ds);
         const reader = decompressedStream.getReader();
         const chunks: Uint8Array[] = [];
 
-        let done = false;
-        while (!done) {
-            const result = await reader.read();
-            done = result.done;
-            if (result.value) {
-                chunks.push(result.value);
-            }
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
         }
 
-        // Combine chunks and decode
-        const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-        const decompressed = new Uint8Array(totalLength);
+        // Combine chunks
+        const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+        const result = new Uint8Array(totalLength);
         let offset = 0;
         for (const chunk of chunks) {
-            decompressed.set(chunk, offset);
+            result.set(chunk, offset);
             offset += chunk.length;
         }
 
-        return new TextDecoder().decode(decompressed);
-    } catch (error) {
-        console.warn('Decompression failed, falling back to text:', error);
-        // Fallback to text if decompression fails
-        return response.text();
+        return new TextDecoder().decode(result);
+    } catch (err) {
+        console.warn('Manual decompression failed:', err);
+        // Return as text even if it looks wrong
+        return new TextDecoder().decode(bytes);
     }
 }
 
@@ -159,19 +170,15 @@ export const loadData = async (): Promise<void> => {
     }
 
     try {
-        // Request only encodings we can decompress (gzip, deflate)
-        // Brotli ('br') is not supported by DecompressionStream in browsers
+        // Browser automatically handles decompression based on Content-Encoding
         const response = await fetch(`${data.API_BASE}/user`, {
             credentials: 'include',
-            headers: {
-                'Accept-Encoding': 'gzip, deflate',
-            },
         });
         _validateResponseOrigin(response);
         if (!response.ok) _handleApiError(response);
 
-        // Handle potentially compressed response
-        const responseText = await decompressResponse(response);
+        // Handle response - browser automatically decompresses
+        const responseText = await getResponseText(response);
         const userData: UserData = JSON.parse(responseText);
         _processUserData(userData);
 
