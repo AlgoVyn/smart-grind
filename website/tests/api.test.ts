@@ -71,19 +71,27 @@ describe('SmartGrind API Module', () => {
         ok: boolean;
         status?: number;
         json?: () => Promise<any>;
+        text?: () => Promise<string>;
         url?: string;
-    }) => ({
-        ...options,
-        url: options.url || '/smartgrind/api/user',
-        headers: {
-            get: (name: string) => {
-                if (name === 'Origin') {
-                    return window.location.origin;
-                }
-                return null;
+    }) => {
+        const responseData = options.json ? options.json() : Promise.resolve({});
+        return {
+            ...options,
+            url: options.url || '/smartgrind/api/user',
+            headers: {
+                get: (name: string) => {
+                    if (name === 'Origin') {
+                        return window.location.origin;
+                    }
+                    if (name === 'Content-Encoding') {
+                        return null; // No compression by default
+                    }
+                    return null;
+                },
             },
-        },
-    });
+            text: options.text || (() => responseData.then((data) => JSON.stringify(data))),
+        };
+    };
 
     afterEach(() => {
         jest.clearAllMocks();

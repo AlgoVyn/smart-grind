@@ -9,6 +9,69 @@ import { ui } from '../ui/ui';
 import { syncPlan, mergeStructure } from './api-sync';
 
 /**
+ * Decompresses response data if it's compressed
+ * Handles Brotli, gzip, and deflate-raw compression
+ */
+async function decompressResponse(response: Response): Promise<string> {
+    const contentEncoding = response.headers.get('Content-Encoding');
+
+    // If no compression, return text directly
+    if (!contentEncoding || contentEncoding === 'identity') {
+        return response.text();
+    }
+
+    try {
+        // Get the response body as a stream
+        const body = response.body;
+        if (!body) {
+            return response.text();
+        }
+
+        // Create decompression stream based on encoding
+        let decompressionStream: DecompressionStream;
+        if (contentEncoding === 'br') {
+            decompressionStream = new DecompressionStream('br' as CompressionFormat);
+        } else if (contentEncoding === 'gzip') {
+            decompressionStream = new DecompressionStream('gzip');
+        } else if (contentEncoding === 'deflate') {
+            decompressionStream = new DecompressionStream('deflate');
+        } else {
+            // Unknown encoding, try text
+            return response.text();
+        }
+
+        // Decompress the stream
+        const decompressedStream = body.pipeThrough(decompressionStream);
+        const reader = decompressedStream.getReader();
+        const chunks: Uint8Array[] = [];
+
+        let done = false;
+        while (!done) {
+            const result = await reader.read();
+            done = result.done;
+            if (result.value) {
+                chunks.push(result.value);
+            }
+        }
+
+        // Combine chunks and decode
+        const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+        const decompressed = new Uint8Array(totalLength);
+        let offset = 0;
+        for (const chunk of chunks) {
+            decompressed.set(chunk, offset);
+            offset += chunk.length;
+        }
+
+        return new TextDecoder().decode(decompressed);
+    } catch (error) {
+        console.warn('Decompression failed, falling back to text:', error);
+        // Fallback to text if decompression fails
+        return response.text();
+    }
+}
+
+/**
  * Validates that the API response originates from the expected origin
  * @param response - The fetch response to validate
  */
@@ -99,7 +162,9 @@ export const loadData = async (): Promise<void> => {
         _validateResponseOrigin(response);
         if (!response.ok) _handleApiError(response);
 
-        const userData: UserData = await response.json();
+        // Handle potentially compressed response
+        const responseText = await decompressResponse(response);
+        const userData: UserData = JSON.parse(responseText);
         _processUserData(userData);
 
         data.resetTopicsData();
