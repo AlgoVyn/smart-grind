@@ -118,6 +118,7 @@ export class BackgroundSyncManager {
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'include',
                     body: JSON.stringify(op.data),
                 });
 
@@ -165,6 +166,7 @@ export class BackgroundSyncManager {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify(latestOp.data),
             });
 
@@ -221,6 +223,7 @@ export class BackgroundSyncManager {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     operations: batch,
                     clientVersion: 1,
@@ -288,6 +291,7 @@ export class BackgroundSyncManager {
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'include',
                     body: JSON.stringify({
                         problemId: (op.data as { problemId: string }).problemId,
                         operation: op.data,

@@ -176,12 +176,16 @@ describe('SmartGrind API Module', () => {
 
             await apiSave._saveRemotely();
 
+            expect(mockFetch).toHaveBeenCalledWith(`${data.API_BASE}/user?action=csrf`, {
+                credentials: 'include',
+            });
             expect(mockFetch).toHaveBeenCalledWith(`${data.API_BASE}/user`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-Token': 'test-token',
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     data: {
                         problems: { '1': { id: '1', name: 'Test Problem', status: 'unsolved' } },

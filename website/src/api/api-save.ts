@@ -66,7 +66,9 @@ export const apiSave = {
      * @throws {Error} Throws an error if the fetch fails.
      */
     async _fetchCsrfToken(): Promise<string> {
-        const response = await fetch(`${data.API_BASE}/user?action=csrf`);
+        const response = await fetch(`${data.API_BASE}/user?action=csrf`, {
+            credentials: 'include',
+        });
         _validateResponseOrigin(response);
         if (!response.ok) {
             throw new Error('Failed to fetch CSRF token');
@@ -88,6 +90,7 @@ export const apiSave = {
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': csrfToken,
             },
+            credentials: 'include',
             body: JSON.stringify({ data: dataToSave }),
         });
         _validateResponseOrigin(response);

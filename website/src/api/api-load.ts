@@ -93,7 +93,9 @@ export const loadData = async (): Promise<void> => {
     }
 
     try {
-        const response = await fetch(`${data.API_BASE}/user`);
+        const response = await fetch(`${data.API_BASE}/user`, {
+            credentials: 'include',
+        });
         _validateResponseOrigin(response);
         if (!response.ok) _handleApiError(response);
 

@@ -2,27 +2,20 @@
 
 ## Problem Statement
 
-Given the root of a binary tree, return the level order traversal of its nodes' values. (i.e., from left to right, level by level).
+Given the root of a binary tree, return the **level order traversal** of its nodes' values. (i.e., from left to right, level by level).
 
-This is one of the most fundamental tree traversal problems and serves as a building block for many more complex tree problems. Level order traversal is also known as **Breadth-First Search (BFS)** on trees.
+**Link to problem:** [Binary Tree Level Order Traversal](https://leetcode.com/problems/binary-tree-level-order-traversal/)
 
-### What is Level Order Traversal?
+**Constraints:**
+- The number of nodes in the tree is in the range `[0, 2000]`
+- `-1000 <= Node.val <= 1000`
 
-Level order traversal visits all nodes at the present depth level before moving on to nodes at the next depth level. For a binary tree, this means:
-- First, visit all nodes at level 0 (just the root)
-- Then, visit all nodes at level 1 (children of root)
-- Then, visit all nodes at level 2 (grandchildren of root)
-- And so on...
-
-### TreeNode Definition
-
-```python
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-```
+**Note:**
+- Level order traversal visits each level from left to right
+- The result is a list of lists, where each inner list represents a level
+- An empty tree returns an empty list
+- This is one of the most fundamental tree traversal problems
+- Multiple solutions exist with different time/space trade-offs
 
 ---
 
@@ -32,16 +25,11 @@ class TreeNode:
 
 **Input:**
 ```
-root = [3,9,20,null,null,15,7]
-```
-
-**Visual Representation:**
-```
-        3
-       / \
-      9   20
-         /  \
-        15   7
+    3
+   / \
+  9  20
+    /  \
+   15   7
 ```
 
 **Output:**
@@ -49,35 +37,35 @@ root = [3,9,20,null,null,15,7]
 [[3], [9, 20], [15, 7]]
 ```
 
-**Explanation:** 
-- Level 0: [3]
-- Level 1: [9, 20]
-- Level 2: [15, 7]
+**Explanation:** The traversal visits level 0 (root) first, then level 1, and finally level 2.
+
+---
 
 ### Example 2
 
 **Input:**
 ```
-root = [1]
-```
-
-**Visual Representation:**
-```
     1
+   / \
+  2   3
+ / \   \
+4   5   7
 ```
 
 **Output:**
 ```
-[[1]]
+[[1], [2, 3], [4, 5, 7]]
 ```
 
-**Explanation:** Only one node at level 0.
+**Explanation:** Level 0 has the root (1), level 1 has (2, 3), level 2 has (4, 5, 7).
 
-### Example 3
+---
+
+### Example 3 (Empty Tree)
 
 **Input:**
 ```
-root = []
+null
 ```
 
 **Output:**
@@ -85,95 +73,148 @@ root = []
 []
 ```
 
-**Explanation:** Empty tree returns empty list.
+**Explanation:** An empty tree has no nodes to traverse.
 
-### Example 4
+---
+
+### Example 4 (Single Node)
 
 **Input:**
 ```
-root = [1,2,3,4,5,null,7]
+    42
 ```
 
-**Visual Representation:**
+**Output:**
+```
+[[42]]
+```
+
+**Explanation:** A tree with only one node has just one level.
+
+---
+
+### Example 5 (Complete Binary Tree)
+
+**Input:**
 ```
         1
        / \
       2   3
-     /     \
-    4       7
+     / \  /
+    4  5 6
 ```
 
 **Output:**
 ```
-[[1], [2, 3], [4, 7]]
+[[1], [2, 3], [4, 5, 6]]
 ```
 
-**Explanation:**
-- Level 0: [1]
-- Level 1: [2, 3]
-- Level 2: [4, 7]
-
-### Example 5
-
-**Input:**
-```
-root = [3,9,20,1,3,null,15,7]
-```
-
-**Visual Representation:**
-```
-         3
-       /   \
-      9     20
-     / \    /  \
-    1   3  15   7
-```
-
-**Output:**
-```
-[[3], [9, 20], [1, 3, 15, 7]]
-```
+**Explanation:** All levels from left to right, including partial levels.
 
 ---
 
-## Constraints
+### Example 6 (Skewed Tree - Right)
 
-- The number of nodes in the tree is in the range `[0, 2000]`.
-- `-1000 <= Node.val <= 1000`
+**Input:**
+```
+    1
+     \
+      2
+       \
+        3
+         \
+          4
+```
+
+**Output:**
+```
+[[1], [2], [3], [4]]
+```
+
+**Explanation:** A right-skewed tree has one node per level.
+
+---
+
+### Example 7 (Skewed Tree - Left)
+
+**Input:**
+```
+    4
+   /
+  3
+ /
+2
+/
+1
+```
+
+**Output:**
+```
+[[4], [3], [2], [1]]
+```
+
+**Explanation:** A left-skewed tree also has one node per level.
 
 ---
 
 ## Intuition
 
-The key insight for level order traversal is to process nodes **level by level** while maintaining the order within each level. This naturally maps to the **Breadth-First Search (BFS)** algorithm using a queue data structure.
+The Binary Tree Level Order Traversal problem requires visiting all nodes of a binary tree level by level, from left to right. The key insight is understanding the relationship between levels and how to process them efficiently.
 
-### Why Queue for BFS?
+### Core Insight
 
-A queue follows the **First-In-First-Out (FIFO)** principle, which is perfect for level order traversal because:
-1. We want to process nodes in the order they were discovered
-2. Children of a node should be processed after the node itself
-3. All nodes at the same level should be processed together before moving to the next level
+A level order traversal naturally corresponds to a **Breadth-First Search (BFS)** on the tree structure. We process nodes in the order they are discovered, which naturally groups them by depth.
 
 ### Key Observations
 
-1. **Size Tracking**: At each level, we process exactly `len(queue)` nodes (the number of nodes at that level)
-2. **Child Enqueueing**: When we process a node, we add its children to the queue for the next level
-3. **Termination**: The loop naturally terminates when the queue becomes empty (all nodes processed)
+1. **BFS Natural Fit**: Level order traversal is inherently a BFS operation
+2. **Queue Data Structure**: Queues perfectly model the FIFO (First-In-First-Out) nature of level processing
+3. **Level Boundary**: Each level ends when we've processed all nodes that were present at the start of that level
+4. **Recursive Alternative**: DFS with depth tracking can also achieve level order (though less intuitive)
+5. **Multiple Implementations**: Queue-based BFS is most common, but recursive approaches exist
 
 ---
 
 ## Multiple Approaches with Code
 
-### Approach 1: BFS with Queue (Optimal) ⭐
+We'll cover three main approaches:
 
-This is the most intuitive and commonly used approach. We use a queue to track nodes to visit, and for each level, we process all nodes currently in the queue.
+1. **Queue-Based BFS** - O(n) time, O(n) space - Most intuitive and commonly used
+2. **Recursive DFS** - O(n) time, O(h) space - Elegant but uses call stack
+3. **Level-by-Level Processing** - O(n) time, O(n) space - Explicit level tracking
 
+---
+
+## Approach 1: Queue-Based BFS (Iterative)
+
+This is the most straightforward approach using a queue to process nodes level by level.
+
+### Algorithm Steps
+
+1. If root is null, return empty list
+2. Initialize a queue with the root node
+3. While the queue is not empty:
+   - Get the current level size (number of nodes at this level)
+   - Create an empty list for current level values
+   - Iterate that many times:
+     - Dequeue a node
+     - Add its value to the current level list
+     - Enqueue its left child if it exists
+     - Enqueue its right child if it exists
+   - Add the current level list to the result
+4. Return the result
+
+### Code Implementation
+
+````carousel
 ```python
-from typing import List, Optional
 from collections import deque
+from typing import List, Optional
 
+# Definition for a binary tree node.
 class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
+    def __init__(self, val: int = 0, left: Optional['TreeNode'] = None, 
+                 right: Optional['TreeNode'] = None):
         self.val = val
         self.left = left
         self.right = right
@@ -181,13 +222,13 @@ class TreeNode:
 class Solution:
     def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
         """
-        Perform level order traversal using BFS with a queue.
+        Perform level order traversal of a binary tree using BFS.
         
         Args:
-            root: The root node of the binary tree
+            root: Root node of the binary tree
             
         Returns:
-            List of lists, where each inner list contains node values at that level
+            List of lists containing node values by level
         """
         if not root:
             return []
@@ -197,44 +238,224 @@ class Solution:
         
         while queue:
             level_size = len(queue)
-            level = []
+            current_level = []
             
             for _ in range(level_size):
                 node = queue.popleft()
-                level.append(node.val)
+                current_level.append(node.val)
                 
                 if node.left:
                     queue.append(node.left)
                 if node.right:
                     queue.append(node.right)
             
-            result.append(level)
+            result.append(current_level)
         
         return result
 ```
 
-**How to Arrive at the Solution:**
-1. Start by adding the root to the queue
-2. While the queue is not empty:
-   - Get the current level size (number of nodes at this level)
-   - Process exactly that many nodes
-   - For each node: add its value to the level list, enqueue its children
-   - Add the completed level to the result
+<!-- slide -->
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        /**
+         * Perform level order traversal of a binary tree using BFS.
+         * 
+         * Args:
+         *     root: Root node of the binary tree
+         * 
+         * Returns:
+         *     Vector of vectors containing node values by level
+         */
+        if (!root) {
+            return {};
+        }
+        
+        vector<vector<int>> result;
+        queue<TreeNode*> q;
+        q.push(root);
+        
+        while (!q.empty()) {
+            int levelSize = q.size();
+            vector<int> currentLevel;
+            
+            for (int i = 0; i < levelSize; i++) {
+                TreeNode* node = q.front();
+                q.pop();
+                currentLevel.push_back(node->val);
+                
+                if (node->left) {
+                    q.push(node->left);
+                }
+                if (node->right) {
+                    q.push(node->right);
+                }
+            }
+            
+            result.push_back(currentLevel);
+        }
+        
+        return result;
+    }
+};
+```
 
-**Time Complexity:** O(n) - Each node is visited exactly once
-**Space Complexity:** O(w) - Where w is the maximum width of the tree (worst case: O(n) for a complete tree)
+<!-- slide -->
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        /**
+         * Perform level order traversal of a binary tree using BFS.
+         * 
+         * Args:
+         *     root: Root node of the binary tree
+         * 
+         * Returns:
+         *     List of lists containing node values by level
+         */
+        if (root == null) {
+            return new ArrayList<>();
+        }
+        
+        List<List<Integer>> result = new ArrayList<>();
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        
+        while (!queue.isEmpty()) {
+            int levelSize = queue.size();
+            List<Integer> currentLevel = new ArrayList<>();
+            
+            for (int i = 0; i < levelSize; i++) {
+                TreeNode node = queue.poll();
+                currentLevel.add(node.val);
+                
+                if (node.left != null) {
+                    queue.offer(node.left);
+                }
+                if (node.right != null) {
+                    queue.offer(node.right);
+                }
+            }
+            
+            result.add(currentLevel);
+        }
+        
+        return result;
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * Perform level order traversal of a binary tree using BFS.
+ * 
+ * @param {TreeNode} root - Root node of the binary tree
+ * @return {number[][]} - Array of arrays containing node values by level
+ */
+var levelOrder = function(root) {
+    if (!root) {
+        return [];
+    }
+    
+    const result = [];
+    const queue = [root];
+    
+    while (queue.length > 0) {
+        const levelSize = queue.length;
+        const currentLevel = [];
+        
+        for (let i = 0; i < levelSize; i++) {
+            const node = queue.shift();
+            currentLevel.push(node.val);
+            
+            if (node.left) {
+                queue.push(node.left);
+            }
+            if (node.right) {
+                queue.push(node.right);
+            }
+        }
+        
+        result.push(currentLevel);
+    }
+    
+    return result;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(n) - Each node is visited exactly once |
+| **Space** | O(n) - Queue stores up to n/2 nodes at the widest level |
 
 ---
 
-### Approach 2: DFS with Recursive Helper
+## Approach 2: Recursive DFS with Depth Tracking
 
-This approach uses Depth-First Search recursively, tracking the current level as we traverse down the tree. We build the result level by level as we backtrack.
+This approach uses depth-first search while tracking the current depth, allowing us to group nodes by level.
 
+### Algorithm Steps
+
+1. Initialize an empty result list
+2. Define a recursive helper function that takes a node and its depth
+3. In the helper:
+   - If node is null, return
+   - Ensure the result list has a sublist at the current depth
+   - Add the node's value to the appropriate level list
+   - Recursively call helper on left child with depth + 1
+   - Recursively call helper on right child with depth + 1
+4. Call the helper starting with the root at depth 0
+5. Return the result
+
+### Code Implementation
+
+````carousel
 ```python
 from typing import List, Optional
 
+# Definition for a binary tree node.
 class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
+    def __init__(self, val: int = 0, left: Optional['TreeNode'] = None, 
+                 right: Optional['TreeNode'] = None):
         self.val = val
         self.left = left
         self.right = right
@@ -242,121 +463,244 @@ class TreeNode:
 class Solution:
     def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
         """
-        Perform level order traversal using DFS with a recursive helper.
+        Perform level order traversal using DFS with depth tracking.
         
         Args:
-            root: The root node of the binary tree
+            root: Root node of the binary tree
             
         Returns:
-            List of lists, where each inner list contains node values at that level
+            List of lists containing node values by level
         """
-        if not root:
-            return []
-        
         result = []
         
-        def dfs(node: TreeNode, level: int):
-            """Recursive helper function to traverse the tree."""
+        def dfs(node: Optional[TreeNode], depth: int) -> None:
+            """
+            Depth-first search helper to collect nodes by level.
+            
+            Args:
+                node: Current node being visited
+                depth: Current depth/level in the tree
+            """
             if not node:
                 return
             
-            # Expand the result list if needed
-            if level == len(result):
+            # Ensure we have a list for this depth
+            if len(result) == depth:
                 result.append([])
             
             # Add current node's value to its level
-            result[level].append(node.val)
+            result[depth].append(node.val)
             
-            # Recurse on left and right children with incremented level
-            dfs(node.left, level + 1)
-            dfs(node.right, level + 1)
+            # Recurse to left and right children
+            dfs(node.left, depth + 1)
+            dfs(node.right, depth + 1)
         
         dfs(root, 0)
         return result
 ```
 
-**How to Arrive at the Solution:**
-1. Recognize that DFS naturally visits nodes level by level when we track the current depth
-2. Use a helper function that takes the current node and its level
-3. If we haven't created a list for this level yet, create one
-4. Add the node's value to the corresponding level list
-5. Recurse on children with level + 1
-
-**Time Complexity:** O(n) - Each node is visited exactly once
-**Space Complexity:** O(h) - Where h is the height of the tree for recursion stack, plus O(n) for result
-
----
-
-### Approach 3: Iterative DFS with Stack
-
-Similar to Approach 2, but uses an explicit stack instead of recursion. We store tuples of (node, level) in the stack.
-
-```python
-from typing import List, Optional
-
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
-        """
-        Perform level order traversal using iterative DFS with a stack.
+<!-- slide -->
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        /**
+         * Perform level order traversal using DFS with depth tracking.
+         * 
+         * Args:
+         *     root: Root node of the binary tree
+         * 
+         * Returns:
+         *     Vector of vectors containing node values by level
+         */
+        vector<vector<int>> result;
         
-        Args:
-            root: The root node of the binary tree
-            
-        Returns:
-            List of lists, where each inner list contains node values at that level
-        """
-        if not root:
-            return []
+        dfs(root, 0, result);
+        return result;
+    }
+    
+private:
+    void dfs(TreeNode* node, int depth, vector<vector<int>>& result) {
+        /**
+         * Depth-first search helper to collect nodes by level.
+         * 
+         * Args:
+         *     node: Current node being visited
+         *     depth: Current depth/level in the tree
+         *     result: Reference to the result vector
+         */
+        if (!node) {
+            return;
+        }
         
-        result = []
-        stack = [(root, 0)]  # Stack stores tuples of (node, level)
+        // Ensure we have a list for this depth
+        if (result.size() == depth) {
+            result.push_back({});
+        }
         
-        while stack:
-            node, level = stack.pop()
-            
-            # Expand the result list if needed
-            if level == len(result):
-                result.append([])
-            
-            # Add current node's value to its level
-            result[level].append(node.val)
-            
-            # Push right first, then left (so left is processed first)
-            if node.right:
-                stack.append((node.right, level + 1))
-            if node.left:
-                stack.append((node.left, level + 1))
+        // Add current node's value to its level
+        result[depth].push_back(node->val);
         
-        return result
+        // Recurse to left and right children
+        dfs(node->left, depth + 1, result);
+        dfs(node->right, depth + 1, result);
+    }
+};
 ```
 
-**How to Arrive at the Solution:**
-1. Use a stack to simulate the recursion stack
-2. Push (node, level) tuples onto the stack
-3. Pop from stack and process the node
-4. Push children onto stack (right first, then left) to ensure left is processed first
+<!-- slide -->
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        /**
+         * Perform level order traversal using DFS with depth tracking.
+         * 
+         * Args:
+         *     root: Root node of the binary tree
+         * 
+         * Returns:
+         *     List of lists containing node values by level
+         */
+        List<List<Integer>> result = new ArrayList<>();
+        dfs(root, 0, result);
+        return result;
+    }
+    
+    private void dfs(TreeNode node, int depth, List<List<Integer>> result) {
+        /**
+         * Depth-first search helper to collect nodes by level.
+         * 
+         * Args:
+         *     node: Current node being visited
+         *     depth: Current depth/level in the tree
+         *     result: Reference to the result list
+         */
+        if (node == null) {
+            return;
+        }
+        
+        // Ensure we have a list for this depth
+        if (result.size() == depth) {
+            result.add(new ArrayList<>());
+        }
+        
+        // Add current node's value to its level
+        result.get(depth).add(node.val);
+        
+        // Recurse to left and right children
+        dfs(node.left, depth + 1, result);
+        dfs(node.right, depth + 1, result);
+    }
+}
+```
 
-**Time Complexity:** O(n) - Each node is visited exactly once
-**Space Complexity:** O(h) - Stack size is at most the height of the tree
+<!-- slide -->
+```javascript
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * Perform level order traversal using DFS with depth tracking.
+ * 
+ * @param {TreeNode} root - Root node of the binary tree
+ * @return {number[][]} - Array of arrays containing node values by level
+ */
+var levelOrder = function(root) {
+    const result = [];
+    
+    const dfs = (node, depth) => {
+        if (!node) {
+            return;
+        }
+        
+        // Ensure we have a list for this depth
+        if (result.length === depth) {
+            result.push([]);
+        }
+        
+        // Add current node's value to its level
+        result[depth].push(node.val);
+        
+        // Recurse to left and right children
+        dfs(node.left, depth + 1);
+        dfs(node.right, depth + 1);
+    };
+    
+    dfs(root, 0);
+    return result;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(n) - Each node is visited exactly once |
+| **Space** | O(h) - Call stack depth equals tree height (h ≤ n) |
 
 ---
 
-### Approach 4: BFS with Level Size Tracking (More Explicit)
+## Approach 3: Level-by-Level with Size Tracking
 
-A more explicit version of the BFS approach that makes the level separation very clear.
+This is a variation of the BFS approach that explicitly tracks and processes each level using size information.
 
+### Algorithm Steps
+
+1. If root is null, return empty list
+2. Initialize result list and queue with root
+3. While queue is not empty:
+   - Get current level size (number of nodes at this level)
+   - Create empty list for current level
+   - Loop from 0 to level_size - 1:
+     - Dequeue node
+     - Add to current level
+     - Add children to queue
+   - Add current level to result
+4. Return result
+
+### Code Implementation
+
+````carousel
 ```python
-from typing import List, Optional
 from collections import deque
+from typing import List, Optional
 
+# Definition for a binary tree node.
 class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
+    def __init__(self, val: int = 0, left: Optional['TreeNode'] = None, 
+                 right: Optional['TreeNode'] = None):
         self.val = val
         self.left = left
         self.right = right
@@ -364,191 +708,495 @@ class TreeNode:
 class Solution:
     def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
         """
-        Perform level order traversal with explicit level tracking.
+        Perform level order traversal with explicit level size tracking.
         
         Args:
-            root: The root node of the binary tree
+            root: Root node of the binary tree
             
         Returns:
-            List of lists, where each inner list contains node values at that level
+            List of lists containing node values by level
         """
         if not root:
             return []
         
         result = []
-        current_level = [root]  # Start with root at level 0
+        queue = deque([root])
         
-        while current_level:
-            # Extract values from current level
-            level_vals = [node.val for node in current_level]
-            result.append(level_vals)
+        while queue:
+            level_size = len(queue)
+            level_values = []
             
-            # Prepare next level (children of current level nodes)
-            next_level = []
-            for node in current_level:
+            for _ in range(level_size):
+                node = queue.popleft()
+                level_values.append(node.val)
+                
                 if node.left:
-                    next_level.append(node.left)
+                    queue.append(node.left)
                 if node.right:
-                    next_level.append(node.right)
+                    queue.append(node.right)
             
-            current_level = next_level
+            result.append(level_values)
         
         return result
 ```
 
-**How to Arrive at the Solution:**
-1. Start with a list containing only the root
-2. While the current level list is not empty:
-   - Extract all values from the current level
-   - Find all children of nodes in the current level
-   - Set the children as the next level
-3. Continue until no more levels
+<!-- slide -->
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        /**
+         * Perform level order traversal with explicit level size tracking.
+         * 
+         * Args:
+         *     root: Root node of the binary tree
+         * 
+         * Returns:
+         *     Vector of vectors containing node values by level
+         */
+        if (!root) {
+            return {};
+        }
+        
+        vector<vector<int>> result;
+        queue<TreeNode*> queue;
+        queue.push(root);
+        
+        while (!queue.empty()) {
+            int levelSize = queue.size();
+            vector<int> levelValues;
+            
+            for (int i = 0; i < levelSize; i++) {
+                TreeNode* node = queue.front();
+                queue.pop();
+                levelValues.push_back(node->val);
+                
+                if (node->left) {
+                    queue.push(node->left);
+                }
+                if (node->right) {
+                    queue.push(node->right);
+                }
+            }
+            
+            result.push_back(levelValues);
+        }
+        
+        return result;
+    }
+};
+```
 
-**Time Complexity:** O(n) - Each node is visited exactly once
-**Space Complexity:** O(w) - Where w is the maximum width of the tree
+<!-- slide -->
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        /**
+         * Perform level order traversal with explicit level size tracking.
+         * 
+         * Args:
+         *     root: Root node of the binary tree
+         * 
+         * Returns:
+         *     List of lists containing node values by level
+         */
+        if (root == null) {
+            return new ArrayList<>();
+        }
+        
+        List<List<Integer>> result = new ArrayList<>();
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        
+        while (!queue.isEmpty()) {
+            int levelSize = queue.size();
+            List<Integer> levelValues = new ArrayList<>();
+            
+            for (int i = 0; i < levelSize; i++) {
+                TreeNode node = queue.poll();
+                levelValues.add(node.val);
+                
+                if (node.left != null) {
+                    queue.offer(node.left);
+                }
+                if (node.right != null) {
+                    queue.offer(node.right);
+                }
+            }
+            
+            result.add(levelValues);
+        }
+        
+        return result;
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * Perform level order traversal with explicit level size tracking.
+ * 
+ * @param {TreeNode} root - Root node of the binary tree
+ * @return {number[][]} - Array of arrays containing node values by level
+ */
+var levelOrder = function(root) {
+    if (!root) {
+        return [];
+    }
+    
+    const result = [];
+    const queue = [root];
+    
+    while (queue.length > 0) {
+        const levelSize = queue.length;
+        const levelValues = [];
+        
+        for (let i = 0; i < levelSize; i++) {
+            const node = queue.shift();
+            levelValues.push(node.val);
+            
+            if (node.left) {
+                queue.push(node.left);
+            }
+            if (node.right) {
+                queue.push(node.right);
+            }
+        }
+        
+        result.push(levelValues);
+    }
+    
+    return result;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(n) - Each node is processed once |
+| **Space** | O(n) - Queue stores nodes level by level |
 
 ---
 
-## Step-by-Step Example
+## Comparison of Approaches
 
-Let's trace through the BFS approach with this tree:
+| Aspect | Queue-Based BFS | Recursive DFS | Level-by-Level |
+|--------|-----------------|---------------|----------------|
+| **Time Complexity** | O(n) | O(n) | O(n) |
+| **Space Complexity** | O(n) | O(h) | O(n) |
+| **Implementation** | Simple | Moderate | Simple |
+| **Code Readability** | High | Medium | High |
+| **Best For** | General use, interviews | Learning recursion | Level tracking |
+| **Memory Type** | Heap (queue) | Stack (call stack) | Heap (queue) |
 
-```
-        3
-       / \
-      9   20
-         /  \
-        15   7
-```
-
-**Step 1:** Initialize
-- `queue = [3]`
-- `result = []`
-
-**Step 2:** Process Level 0
-- `level_size = len(queue) = 1`
-- Pop node 3, add to level: `level = [3]`
-- Enqueue children: `queue = [9, 20]`
-- `result = [[3]]`
-
-**Step 3:** Process Level 1
-- `level_size = len(queue) = 2`
-- Pop node 9, add to level: `level = [9]`
-- Enqueue children: none
-- Pop node 20, add to level: `level = [9, 20]`
-- Enqueue children: `queue = [15, 7]`
-- `result = [[3], [9, 20]]`
-
-**Step 4:** Process Level 2
-- `level_size = len(queue) = 2`
-- Pop node 15, add to level: `level = [15]`
-- Enqueue children: none
-- Pop node 7, add to level: `level = [15, 7]`
-- Enqueue children: none
-- `queue = []`
-- `result = [[3], [9, 20], [15, 7]]`
-
-**Step 5:** Termination
-- `queue` is empty, loop ends
-- Return `[[3], [9, 20], [15, 7]]`
-
----
-
-## Complexity Analysis Summary
-
-| Approach | Time Complexity | Space Complexity | Notes |
-|----------|-----------------|------------------|-------|
-| BFS with Queue | O(n) | O(w) | **Most intuitive**, best for most cases |
-| DFS Recursive | O(n) | O(h) + O(n) | Uses recursion stack, good for deep trees |
-| DFS Iterative | O(n) | O(h) | Explicit stack, avoids recursion limits |
-| BFS Level Tracking | O(n) | O(w) | More explicit level separation |
-
-Where:
+**Where:**
 - n = number of nodes in the tree
-- w = maximum width of the tree (maximum nodes at any level)
-- h = height of the tree
+- h = height of the tree (h ≤ n)
+
+---
+
+## Why These Approaches Work
+
+### Queue-Based BFS
+The BFS approach naturally processes nodes in the order they are discovered. By using a queue, we ensure that all nodes at the current level are processed before any nodes from the next level. The key is capturing the queue size at each level boundary, which tells us exactly how many nodes belong to the current level before we start processing the next level's nodes.
+
+### Recursive DFS
+The DFS approach works by naturally exploring one path completely before backtracking. By passing the current depth as a parameter, we can organize nodes into their correct levels. The pre-order nature of this traversal (root, left, right) combined with depth tracking ensures nodes are added to the correct level lists. The order within each level depends on the traversal order (left to right for pre-order DFS).
+
+### Level-by-Level Processing
+This is essentially the same as the BFS approach but with explicit documentation of the level tracking mechanism. The key insight is that by capturing `len(queue)` at the start of each iteration, we know exactly how many nodes belong to the current level, preventing us from accidentally processing nodes from the next level.
 
 ---
 
 ## Related Problems
 
-Here are similar LeetCode problems that build on level order traversal concepts:
+Based on similar themes (tree traversal, level processing):
 
-1. **[Binary Tree Zigzag Level Order Traversal](binary-tree-zigzag-level-order-traversal.md)** (103) - Traverse levels in a zigzag pattern (left-to-right, then right-to-left).
+- **[Binary Tree Level Order Traversal II](https://leetcode.com/problems/binary-tree-level-order-traversal-ii/)** - Return bottom-up level order
+- **[Binary Tree Zigzag Level Order Traversal](https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/)** - Zigzag (alternating) order traversal
+- **[Average of Levels in Binary Tree](https://leetcode.com/problems/average-of-levels-in-binary-tree/)** - Calculate average per level
+- **[Maximum Level Sum of a Binary Tree](https://leetcode.com/problems/maximum-level-sum-of-a-binary-tree/)** - Find level with maximum sum
+- **[Populating Next Right Pointers in Each Node](https://leetcode.com/problems/populating-next-right-pointers-in-each-node/)** - Connect next pointers level by level
+- **[Find Largest Value in Each Tree Row](https://leetcode.com/problems/find-largest-value-in-each-tree-row/)** - Find maximum per level
 
-2. **[Binary Tree Right Side View](binary-tree-right-side-view.md)** (199) - Return the rightmost node at each level.
+---
 
-3. **[Binary Tree Level Order Traversal II](https://leetcode.com/problems/binary-tree-level-order-traversal-ii/)** (107) - Same traversal but return results from bottom to top.
+## Pattern Documentation
 
-4. **[Average of Levels in Binary Tree](https://leetcode.com/problems/average-of-levels-in-binary-tree/)** (637) - Compute the average value at each level.
+For a comprehensive guide on related patterns, including detailed explanations and templates in Python, C++, Java, and JavaScript, see:
 
-5. **[Maximum Level Sum of a Binary Tree](https://leetcode.com/problems/maximum-level-sum-of-a-binary-tree/)** (1161) - Find the level with the maximum sum.
-
-6. **[Count Nodes Equal to Average of Subtree](https://leetcode.com/problems/count-nodes-equal-to-average-of-subtree/)** (2265) - Count nodes where node value equals average of its subtree.
-
-7. **[Find Largest Value in Each Tree Row](https://leetcode.com/problems/find-largest-value-in-each-tree-row/)** (515) - Find the maximum value at each level.
+- **[Tree BFS - Level Order Traversal](../patterns/tree-bfs-level-order-traversal.md)** - Breadth-first search on trees
+- **[Tree DFS - Recursive Traversal](../patterns/tree-dfs-recursive-preorder-traversal.md)** - Depth-first search patterns
+- **[Queue-Based Processing](../patterns/graph-bfs-connected-components-island-counting.md)** - General BFS queue patterns
 
 ---
 
 ## Video Tutorial Links
 
-For visual explanations, check these tutorials:
+Here are some helpful YouTube tutorials explaining the problem and solutions:
 
-- **[NeetCode - Binary Tree Level Order Traversal](https://www.youtube.com/watch?v=6ZnyEcbg5Kg)** - Clear explanation with Python implementation.
-
-- **[Binary Tree Level Order Traversal - LeetCode 102](https://www.youtube.com/watch?v=5C0KrtT8G9w)** - Detailed walkthrough of the BFS approach.
-
-- **[BFS vs DFS for Binary Trees](https://www.youtube.com/watch?v=uWLl-FGuEeQ)** - Understanding the difference between BFS and DFS approaches.
-
-- **[Grokking the Coding Interview: Level Order Traversal](https://www.youtube.com/watch?v=86CgTejN9i0)** - Educational explanation of level order traversal patterns.
+- [Binary Tree Level Order Traversal - Complete Explanation](https://www.youtube.com/watch?v=6ZnyEApKMyU) - Comprehensive BFS explanation
+- [LeetCode 102 - Level Order Traversal](https://www.youtube.com/watch?v=5Znl48N339I) - Problem walkthrough
+- [Binary Tree Traversal - BFS vs DFS](https://www.youtube.com/watch?v=9Q6vLGUeDvw) - Traversal comparison
+- [Queue Implementation for Tree Traversal](https://www.youtube.com/watch?v=QS4Zp8Jp1T0) - Queue-based approach
 
 ---
 
-## Follow-up Questions
+## Followup Questions
 
-1. **How would you modify the solution to return values from bottom to top instead of top to bottom?**
-   - Answer: Either reverse the final result list, or use a stack to collect levels and then pop them.
+### Q1: How would you modify the solution to return values in right-to-left order (reverse level order)?
 
-2. **Can you solve this problem using DFS instead of BFS?**
-   - Answer: Yes, use a recursive helper function that tracks the current level and appends values accordingly.
-
-3. **How would you handle a very deep tree that might cause stack overflow with recursion?**
-   - Answer: Use the iterative BFS approach with an explicit queue instead of recursive DFS.
-
-4. **How would you find the average value at each level?**
-   - Answer: Track the sum and count of values at each level, then divide to get the average.
-
-5. **How would you modify the solution to print the tree level by level with level numbers?**
-   - Answer: Include the level index in the output or log statements.
-
-6. **What if you needed to do this with O(1) extra space (excluding the output)?**
-   - Answer: This is challenging; you'd need Morris Traversal variants or parent pointer tracking.
-
-7. **How would you parallelize level order traversal for very large trees?**
-   - Answer: Each level could potentially be processed in parallel, but the sequential dependency between levels limits parallelization.
+**Answer:** The simplest approach is to collect all levels normally and then reverse the result list at the end:
+```python
+result = levelOrder(root)
+return result[::-1]  # Reverse the list of levels
+```
+Alternatively, you can use a deque and append to the front for each level, though this is less efficient.
 
 ---
 
-## Common Mistakes to Avoid
+### Q2: How would you implement a zigzag level order traversal (left-to-right, right-to-left alternating)?
 
-1. **Forgetting to check for empty root**: Always handle the edge case of an empty tree first.
+**Answer:** Track the current direction and alternate it each level:
+- If going left-to-right, append to end of level list
+- If going right-to-left, append to beginning of level list (or use deque and appendleft)
 
-2. **Not tracking level size**: Using `while queue:` without tracking level size will result in a single flat list instead of level-separated lists.
-
-3. **Incorrect child enqueueing order**: Remember to enqueue left child before right child to maintain left-to-right order.
-
-4. **Modifying the queue while iterating**: Always capture the level size before iterating.
-
-5. **Index out of bounds**: Be careful when accessing `node.left` and `node.right` on potentially None nodes.
-
-6. **Using wrong data structure**: Make sure to use a queue (deque) for BFS, not a stack.
-
-7. **Not handling deep recursion**: For very deep trees, the recursive DFS approach may hit recursion limits.
+The direction alternation happens after processing each level. This changes the space complexity slightly due to deque operations but maintains O(n) time.
 
 ---
 
-## References
+### Q3: How would you compute the average value for each level?
 
-- [LeetCode 102 - Binary Tree Level Order Traversal](https://leetcode.com/problems/binary-tree-level-order-traversal/)
-- [BFS Pattern - Educative](https://www.educative.io/page/5682209837483520/39370001)
-- [Tree Traversals - Interview Cake](https://www.interviewcake.com/concept/java/tree-traversal)
+**Answer:** Modify the BFS to track the sum and count for each level:
+```python
+while queue:
+    level_sum = 0
+    level_count = len(queue)
+    for _ in range(level_count):
+        node = queue.popleft()
+        level_sum += node.val
+        # add children to queue
+    averages.append(level_sum / level_count)
+```
+
+---
+
+### Q4: How would you find the level with the maximum sum of node values?
+
+**Answer:** Similar to computing averages, but track the maximum sum found:
+```python
+max_sum = float('-inf')
+max_level = 0
+current_level = 0
+
+while queue:
+    level_sum = sum(node.val for node in current_level_nodes)
+    if level_sum > max_sum:
+        max_sum = level_sum
+        max_level = current_level
+    current_level += 1
+```
+
+---
+
+### Q5: Can you solve this problem using Morris Traversal for O(1) space?
+
+**Answer:** Morris Traversal is designed for in-order traversal and modifies the tree temporarily. For level order, it's not directly applicable because:
+1. Level order requires BFS, which naturally needs a queue
+2. Morris Traversal is designed for sequential (in-order) processing
+3. The O(1) space benefit of Morris doesn't apply to BFS-style traversals
+
+However, if you only need the values without level grouping, you could use a modified traversal, but the level-order grouping would still require additional space.
+
+---
+
+### Q6: How would you handle a very large tree (millions of nodes)?
+
+**Answer:** For very large trees:
+1. **Queue memory**: Use a streaming approach or process levels incrementally
+2. **Avoid recursion**: DFS recursion would cause stack overflow
+3. **Consider iterative DFS with explicit stack**: Still uses O(h) space
+4. **Disk-based storage**: If tree is too large for memory, consider I/O efficient algorithms
+5. **Parallelization**: Levels are independent, but parallelizing level processing is complex
+
+The BFS approach is generally the most memory-efficient for large trees.
+
+---
+
+### Q7: How would you modify the solution to work with an N-ary tree?
+
+**Answer:** For N-ary trees, the modification is simple:
+- Instead of checking for left and right children, iterate through all children
+- The queue still works the same way
+
+```python
+for child in node.children:
+    if child:
+        queue.append(child)
+```
+
+---
+
+### Q8: How would you find all nodes at a specific level without computing all previous levels?
+
+**Answer:** This is fundamentally not possible because:
+- You need to traverse all nodes at level k-1 to reach level k
+- BFS/DFS inherently processes previous levels first
+- Any solution would still require O(n) time to reach level k
+
+However, you can stop once you've processed the target level if you only need one level.
+
+---
+
+### Q9: How would you implement this with a linked list instead of a queue?
+
+**Answer:** Implement a custom queue using a doubly linked list:
+- Maintain head and tail pointers
+- Enqueue: add to tail (O(1))
+- Dequeue: remove from head (O(1))
+- This provides the same time/space complexity as using built-in queue
+
+---
+
+### Q10: What's the difference between level order traversal and breadth-first search?
+
+**Answer:** They are essentially the same concept:
+- **Level order traversal** is the tree-specific term for BFS
+- **BFS** is the general graph algorithm that level order is a special case of
+- On trees, BFS naturally produces level order because trees have a hierarchical structure
+- The key difference is terminology: level order is used for trees, BFS for general graphs
+
+---
+
+### Q11: How would you handle null nodes in the level order output?
+
+**Answer:** The standard solution skips null nodes entirely. If you need to represent missing nodes (like in a complete binary tree representation):
+1. Use a complete binary tree representation with null placeholders
+2. Only add children to the queue if they exist
+3. The output will have fewer elements in some levels if the tree is incomplete
+
+This is different from the standard problem which omits null nodes from the output.
+
+---
+
+### Q12: How would you modify the solution to track the maximum value in each level?
+
+**Answer:** Track the maximum value during level processing:
+```python
+while queue:
+    level_size = len(queue)
+    level_max = float('-inf')
+    for _ in range(level_size):
+        node = queue.popleft()
+        level_max = max(level_max, node.val)
+        # add children
+    result.append(level_max)
+```
+
+---
+
+### Q13: Can you solve this using only O(1) extra space (excluding the output)?
+
+**Answer:** This is not possible with standard tree traversal because:
+- BFS requires a queue to track the next level
+- DFS recursion uses O(h) stack space
+- Iterative DFS still needs a stack
+
+The only O(1) space traversal is Morris traversal, which is for in-order traversal and doesn't work for level-order grouping.
+
+---
+
+### Q14: How would you implement this in a distributed system across multiple machines?
+
+**Answer:** For distributed tree traversal:
+1. **Tree partitioning**: Split the tree by subtrees assigned to different machines
+2. **Level-based partitioning**: Each machine processes specific levels
+3. **Communication**: Machines send their results to a coordinator
+4. **Load balancing**: Balance subtree sizes across machines
+
+This is complex and depends on the tree structure and communication overhead.
+
+---
+
+### Q15: How would you test this solution comprehensively?
+
+**Answer:** Test with various tree structures:
+1. **Empty tree**: null → []
+2. **Single node**: [1] → [[1]]
+3. **Complete tree**: Various shapes
+4. **Skewed left**: All left children
+5. **Skewed right**: All right children
+6. **Full tree**: Every node has 0 or 2 children
+7. **Perfect tree**: All levels completely filled
+8. **Deep tree**: Test recursion depth limits
+9. **Wide tree**: Test queue memory usage
+10. **Tree with negative values**: Ensure values are handled correctly
+
+---
+
+## Summary
+
+The Binary Tree Level Order Traversal problem is a fundamental tree traversal problem with multiple solution approaches:
+
+**Key Takeaways:**
+- **Queue-Based BFS** (O(n), O(n)) - Most intuitive and commonly used
+- **Recursive DFS** (O(n), O(h)) - Elegant but uses call stack
+- **Level-by-Level Processing** (O(n), O(n)) - Explicit level tracking
+
+**Why Each Approach Works:**
+- BFS naturally processes nodes level by level due to FIFO ordering
+- DFS with depth tracking groups nodes by their depth from the root
+- Level size tracking ensures correct boundary detection
+
+**When to Use Each:**
+- **Interviews**: BFS approach - simple, readable, efficient
+- **Recursive solutions**: DFS when recursion depth is manageable
+- **Memory constraints**: Consider iterative DFS with explicit stack
+
+This problem demonstrates fundamental tree traversal techniques essential for coding interviews.
+
+---
+
+## Additional Resources
+
+- [LeetCode Problem Discussion](https://leetcode.com/problems/binary-tree-level-order-traversal/discuss/) - Community solutions and explanations
+- [Tree BFS Fundamentals](https://www.geeksforgeeks.org/level-order-tree-traversal/) - GeeksforGeeks BFS guide
+- [Binary Tree Traversal Techniques](https://www.hackerearth.com/practice/data-structures/trees/binary-and-nary-trees/tutorial/) - Traversal fundamentals
+- [Queue Data Structure](https://www.baeldung.com/java-queue) - Queue implementations and usage
