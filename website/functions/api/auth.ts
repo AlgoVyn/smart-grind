@@ -1,12 +1,20 @@
 import { SignJWT } from 'jose';
 
 /**
- * Rate limiting function using KV store with sliding window algorithm
- * @param {Request} request - The request object
- * @param {Object} env - Environment variables
- * @param {number} maxRequests - Maximum requests allowed
- * @param {number} windowSeconds - Time window in seconds
- * @returns {boolean} - True if rate limited
+ * Implements sliding window rate limiting for OAuth endpoints using Cloudflare KV.
+ * Tracks request timestamps per client IP to prevent brute force attacks on authentication.
+ * Automatically cleans expired entries and maintains atomic updates.
+ * @param {Request} request - The HTTP request to check
+ * @param {Object} env - Environment with KV namespace binding
+ * @param {number} [maxRequests=10] - Maximum allowed requests in the time window
+ * @param {number} [windowSeconds=60] - Time window duration in seconds
+ * @returns {Promise<boolean>} True if request should be rate limited (blocked)
+ * @example
+ * // Check OAuth initiation rate (10 requests per minute)
+ * const isLimited = await checkRateLimit(request, env, 10, 60);
+ * if (isLimited) {
+ *   return new Response('Rate limit exceeded', { status: 429 });
+ * }
  */
 export async function checkRateLimit(request, env, maxRequests = 10, windowSeconds = 60) {
     const clientIP =
@@ -36,10 +44,19 @@ export async function checkRateLimit(request, env, maxRequests = 10, windowSecon
 }
 
 /**
- * Signs a JWT token with the given payload and secret.
- * @param {Object} payload - The payload to encode in the JWT.
- * @param {string} secret - The secret key for signing.
- * @returns {string} The signed JWT token.
+ * Signs a JWT token using HS256 algorithm with the given payload.
+ * Creates a token valid for 24 hours from issuance time.
+ * Used to maintain authenticated sessions after OAuth completion.
+ * @param {Object} payload - The data to encode in the JWT (userId, displayName)
+ * @param {string} secret - The HMAC secret key for signing
+ * @returns {Promise<string>} The signed JWT token string
+ * @throws {Error} If JWT_SECRET is not configured
+ * @example
+ * const token = await signJWT(
+ *   { userId: '123', displayName: 'John' },
+ *   env.JWT_SECRET
+ * );
+ * // Returns: "eyJhbGciOiJIUzI1NiIs..."
  */
 async function signJWT(payload, secret) {
     const secretKey = new TextEncoder().encode(secret);
@@ -50,9 +67,16 @@ async function signJWT(payload, secret) {
 }
 
 /**
- * Validates OAuth callback parameters
- * @param {URLSearchParams} params - URL search parameters
- * @returns {string|null} - Code if valid, null otherwise
+ * Validates the authorization code received from Google OAuth callback.
+ * Ensures code exists, is a string, and is within reasonable length limits.
+ * Prevents injection attacks by validating format before token exchange.
+ * @param {URLSearchParams} params - URL search parameters from callback
+ * @returns {string | null} The authorization code if valid, null otherwise
+ * @example
+ * const code = validateOAuthCode(url.searchParams);
+ * if (!code) {
+ *   return new Response('Invalid authorization code', { status: 400 });
+ * }
  */
 function validateOAuthCode(params) {
     const code = params.get('code');
@@ -63,12 +87,22 @@ function validateOAuthCode(params) {
 }
 
 /**
- * Handles GET requests for authentication endpoints.
- * Supports login initiation and OAuth callback processing.
- * @param {Object} context - The request context.
- * @param {Request} context.request - The HTTP request object.
- * @param {Object} context.env - Environment variables including OAuth credentials.
- * @returns {Response} The HTTP response.
+ * Handles Google OAuth authentication flow including login initiation and callback.
+ * Two modes: 'login' action initiates OAuth, callback mode completes authentication.
+ * Implements CSRF protection via state parameter, rate limiting, and secure token handling.
+ * Returns HTML with postMessage for popup flow or redirects for PWA flow.
+ * @param {Object} context - Cloudflare Pages Function context
+ * @param {Request} context.request - The HTTP request (login initiation or callback)
+ * @param {Object} context.env - Environment with GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET, KV
+ * @returns {Promise<Response>} Redirect to Google (login), HTML response (callback), or error
+ * @example
+ * // Initiate login
+ * GET /api/auth?action=login
+ * // Returns: 302 Redirect to accounts.google.com
+ *
+ * // OAuth callback
+ * GET /api/auth?code=...&state=...
+ * // Returns: HTML with postMessage to opener, sets HttpOnly cookie with JWT
  */
 export async function onRequestGet({ request, env }) {
     // Rate limiting: 10 requests per minute (skip in tests)

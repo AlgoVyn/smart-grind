@@ -183,7 +183,8 @@ async function handleAPIRequest(request: Request): Promise<Response> {
             return new Response(
                 JSON.stringify({
                     error: 'Offline',
-                    message: 'You are currently offline. Data will sync when connection is restored.',
+                    message:
+                        'You are currently offline. Data will sync when connection is restored.',
                     offline: true,
                 }),
                 {

@@ -8,6 +8,13 @@ import { renderers } from '../renderers';
 import { ui } from '../ui/ui';
 
 /**
+ * Check if the browser is online
+ */
+const isOnline = (): boolean => {
+    return typeof navigator !== 'undefined' && navigator.onLine;
+};
+
+/**
  * Validates that the API response originates from the expected origin
  * @param response - The fetch response to validate
  */
@@ -63,9 +70,12 @@ export const apiSave = {
     /**
      * Fetches a CSRF token from the API.
      * @returns {Promise<string>} The CSRF token.
-     * @throws {Error} Throws an error if the fetch fails.
+     * @throws {Error} Throws an error if the fetch fails or if offline.
      */
     async _fetchCsrfToken(): Promise<string> {
+        if (!isOnline()) {
+            throw new Error('OFFLINE: Cannot fetch CSRF token while offline');
+        }
         const response = await fetch(`${data.API_BASE}/user?action=csrf`, {
             credentials: 'include',
         });
@@ -79,9 +89,12 @@ export const apiSave = {
 
     /**
      * Saves the prepared data to the remote API.
-     * @throws {Error} Throws an error if the save request fails.
+     * @throws {Error} Throws an error if the save request fails or if offline.
      */
     async _saveRemotely(): Promise<void> {
+        if (!isOnline()) {
+            throw new Error('OFFLINE: Cannot save remotely while offline');
+        }
         const dataToSave = this._prepareDataForSave();
         const csrfToken = await this._fetchCsrfToken();
         const response = await fetch(`${data.API_BASE}/user`, {
@@ -109,14 +122,20 @@ export const apiSave = {
     /**
      * Handles the save operation with error handling and UI updates.
      * @param {Function} saveFn - The save function to execute (local or remote).
+     * @param {boolean} isOfflineMode - Whether this is an offline save (no error UI).
      * @throws {Error} Throws an error if the save function fails.
      */
-    async _handleSaveOperation(saveFn: () => Promise<void>): Promise<void> {
+    async _handleSaveOperation(saveFn: () => Promise<void>, isOfflineMode = false): Promise<void> {
         try {
             await saveFn();
             renderers.updateStats();
         } catch (e) {
             console.error('Save error:', e);
+
+            // If in offline mode, don't show error UI - just rethrow
+            if (isOfflineMode) {
+                throw e;
+            }
 
             // Handle different error types with specific messages
             let errorMessage: string;
@@ -150,9 +169,21 @@ export const apiSave = {
 
     /**
      * Performs the save operation based on the user type (local or remote).
+     * Automatically falls back to local save when offline.
      * @throws {Error} Throws an error if the save fails.
      */
     async _performSave(): Promise<void> {
+        const isUserOnline = isOnline();
+        const isSignedIn = state.user.type === 'signed-in';
+
+        // If offline and signed in, fall back to local save
+        if (!isUserOnline && isSignedIn) {
+            console.log('Offline mode: Saving locally');
+            await this._handleSaveOperation(this._saveLocally.bind(this), true);
+            return;
+        }
+
+        // Normal flow: local users save locally, signed-in users save remotely
         const saveFn =
             state.user.type === 'local'
                 ? this._saveLocally.bind(this)

@@ -61,7 +61,17 @@ async function sendMessageToSW(message: SWMessage): Promise<unknown> {
 }
 
 /**
- * Queue an operation for background sync
+ * Queues a single API operation for background synchronization.
+ * When service worker is available, sends message to SW for queueing.
+ * Falls back to localStorage if service worker is not supported.
+ * @param {APIOperation} operation - The operation to queue (type, data, timestamp)
+ * @returns {Promise<string | null>} The operation ID if queued successfully, null otherwise
+ * @example
+ * const opId = await queueOperation({
+ *   type: 'MARK_SOLVED',
+ *   data: { problemId: 'two-sum', status: 'solved' },
+ *   timestamp: Date.now()
+ * });
  */
 export async function queueOperation(operation: APIOperation): Promise<string | null> {
     if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
@@ -88,7 +98,15 @@ export async function queueOperation(operation: APIOperation): Promise<string | 
 }
 
 /**
- * Queue multiple operations for background sync
+ * Queues multiple API operations for background synchronization in batch.
+ * More efficient than calling queueOperation multiple times for bulk updates.
+ * @param {APIOperation[]} operations - Array of operations to queue
+ * @returns {Promise<string[]>} Array of operation IDs for each queued operation
+ * @example
+ * const opIds = await queueOperations([
+ *   { type: 'MARK_SOLVED', data: { problemId: 'two-sum' }, timestamp: Date.now() },
+ *   { type: 'ADD_NOTE', data: { problemId: 'two-sum', note: 'Use hash map' }, timestamp: Date.now() }
+ * ]);
  */
 export async function queueOperations(operations: APIOperation[]): Promise<string[]> {
     if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
@@ -115,7 +133,19 @@ export async function queueOperations(operations: APIOperation[]): Promise<strin
 }
 
 /**
- * Get current sync status from service worker
+ * Retrieves the current synchronization status from the service worker.
+ * Returns pending operation count, sync state, and statistics.
+ * Falls back to localStorage-based status if service worker is unavailable.
+ * @returns {Promise<Object | null>} Sync status object containing:
+ *   - pendingCount: Number of operations waiting to sync
+ *   - isSyncing: Whether a sync is currently in progress
+ *   - lastSyncAt: Timestamp of last successful sync (or null)
+ *   - stats: Detailed statistics {pending, completed, failed, manual}
+ * @example
+ * const status = await getSyncStatus();
+ * if (status?.pendingCount > 0) {
+ *   console.log(`${status.pendingCount} operations pending`);
+ * }
  */
 export async function getSyncStatus(): Promise<{
     pendingCount: number;
@@ -173,7 +203,18 @@ export async function updateSyncStatus(): Promise<void> {
 }
 
 /**
- * Force immediate sync of pending operations
+ * Forces an immediate synchronization of all pending operations.
+ * Attempts to sync queued operations to the server right away.
+ * Updates sync state after the attempt completes.
+ * @returns {Promise<Object>} Sync result containing:
+ *   - success: Whether the sync attempt completed without errors
+ *   - synced: Number of operations successfully synced
+ *   - failed: Number of operations that failed to sync
+ * @example
+ * const result = await forceSync();
+ * if (result.success) {
+ *   showToast(`Synced ${result.synced} operations`);
+ * }
  */
 export async function forceSync(): Promise<{ success: boolean; synced: number; failed: number }> {
     if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
@@ -211,7 +252,23 @@ export async function clearPendingOperations(): Promise<void> {
 }
 
 /**
- * Save problem with offline support - queues operation when offline
+ * Saves problem updates with automatic offline support.
+ * First saves locally, then attempts immediate remote save if online.
+ * If remote save fails or offline, queues for background sync.
+ * @param {string} problemId - The unique identifier of the problem to update
+ * @param {Object} updates - Partial problem updates to apply
+ * @param {'solved' | 'unsolved'} [updates.status] - New problem status
+ * @param {string | null} [updates.nextReviewDate] - Next scheduled review date (ISO format)
+ * @param {number} [updates.reviewInterval] - Spaced repetition interval index (0-5)
+ * @param {string} [updates.note] - User's personal notes about the problem
+ * @returns {Promise<void>}
+ * @example
+ * await saveProblemWithSync('two-sum', {
+ *   status: 'solved',
+ *   nextReviewDate: '2024-01-16',
+ *   reviewInterval: 1,
+ *   note: 'Use hash map for O(n) solution'
+ * });
  */
 export async function saveProblemWithSync(
     problemId: string,
@@ -251,7 +308,14 @@ export async function saveProblemWithSync(
 }
 
 /**
- * Delete problem with offline support
+ * Deletes a problem with automatic offline support.
+ * Saves deletion locally first, then queues for background sync if signed in.
+ * Ensures deletion is propagated to server when connectivity is restored.
+ * @param {string} problemId - The unique identifier of the problem to delete
+ * @returns {Promise<void>}
+ * @example
+ * await deleteProblemWithSync('custom-problem-123');
+ * // Problem marked as deleted locally, will sync to server when online
  */
 export async function deleteProblemWithSync(problemId: string): Promise<void> {
     // Always save locally first
@@ -274,7 +338,15 @@ export async function deleteProblemWithSync(problemId: string): Promise<void> {
 }
 
 /**
- * Initialize offline detection and sync status monitoring
+ * Initializes offline/online detection and sync status monitoring.
+ * Sets up event listeners for network state changes and service worker messages.
+ * Automatically triggers sync when connection is restored.
+ * Updates application state to reflect current connectivity.
+ * @returns {void}
+ * @example
+ * // Call once during application initialization
+ * initOfflineDetection();
+ * // Now app will monitor online status and auto-sync when reconnected
  */
 export function initOfflineDetection(): void {
     // Update online status in state

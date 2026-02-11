@@ -13,17 +13,42 @@ import { data } from './data';
 
 export const utils = {
     // Date helpers
+
+    /**
+     * Gets today's date in ISO format (YYYY-MM-DD).
+     * Used for calculating review dates and filtering problems.
+     * @returns {string} Today's date in YYYY-MM-DD format, or fallback date '2024-01-01' if parsing fails
+     * @example
+     * const today = utils.getToday(); // Returns "2024-01-15"
+     */
     getToday: (): string => {
         const today = new Date().toISOString().split('T')[0];
         return today ?? '2024-01-01'; // Default date if parsing fails
     },
 
+    /**
+     * Adds a specified number of days to a given date.
+     * Used for calculating next review dates in the spaced repetition system.
+     * @param {string} date - The base date in ISO format (YYYY-MM-DD)
+     * @param {number} days - Number of days to add (can be negative for subtraction)
+     * @returns {string} The resulting date in YYYY-MM-DD format
+     * @example
+     * const nextReview = utils.addDays('2024-01-15', 7); // Returns "2024-01-22"
+     */
     addDays: (date: string, days: number) => {
         const result = new Date(date);
         result.setDate(result.getDate() + days);
         return result.toISOString().split('T')[0];
     },
 
+    /**
+     * Formats a date string into a human-readable format.
+     * Displays month abbreviation and day number in UTC timezone.
+     * @param {string} date - The date string to format (ISO format recommended)
+     * @returns {string} Formatted date like "Jan 15"
+     * @example
+     * const formatted = utils.formatDate('2024-01-15'); // Returns "Jan 15"
+     */
     formatDate: (date: string) =>
         new Date(date).toLocaleDateString('en-US', {
             month: 'short',
@@ -32,15 +57,40 @@ export const utils = {
         }),
 
     // URL helpers
+
+    /**
+     * Extracts a query parameter value from the current URL.
+     * @param {string} name - The name of the URL parameter to retrieve
+     * @returns {string | null} The parameter value, or null if not found
+     * @example
+     * // URL: ?token=abc123
+     * const token = utils.getUrlParameter('token'); // Returns "abc123"
+     */
     getUrlParameter: (name: string) => {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name);
     },
 
+    /**
+     * Gets the base URL for the application.
+     * Uses the VITE_BASE_URL global variable or falls back to default.
+     * @returns {string} The base URL path (e.g., '/smartgrind/')
+     */
     getBaseUrl: () => {
         return window.VITE_BASE_URL || '/smartgrind/';
     },
 
+    /**
+     * Updates a URL parameter without triggering a page reload.
+     * Uses History API to maintain clean URLs for categories and filters.
+     * @param {string} name - The parameter name to update
+     * @param {string | null} value - The new value, or null to remove the parameter
+     * @returns {void}
+     * @example
+     * // Update category in URL
+     * utils.updateUrlParameter('category', 'arrays');
+     * // Result: URL changes to /smartgrind/c/arrays
+     */
     updateUrlParameter: (name: string, value: string | null) => {
         if (name === 'category') {
             if (value && value !== 'all') {
@@ -66,6 +116,16 @@ export const utils = {
     },
 
     // Clipboard helper
+
+    /**
+     * Copies text to the clipboard with fallback support for older browsers.
+     * Shows a toast notification on success or failure.
+     * @param {string} text - The text content to copy to clipboard
+     * @returns {Promise<void>}
+     * @example
+     * await utils.copyToClipboard('Problem solution code here');
+     * // Shows success toast if copied, error toast if failed
+     */
     copyToClipboard: async (text: string) => {
         try {
             await navigator.clipboard.writeText(text);
@@ -130,6 +190,18 @@ export const utils = {
     },
 
     // AI helper
+
+    /**
+     * Opens an AI assistant with a pre-filled prompt for a coding problem.
+     * Supports ChatGPT, Google AI Studio, and Grok with mobile app deep linking.
+     * Saves the preferred AI provider to localStorage for future use.
+     * @param {string} problemName - The name of the coding problem to ask about
+     * @param {'chatgpt' | 'aistudio' | 'grok'} provider - The AI service provider to use
+     * @returns {Promise<void>}
+     * @example
+     * // Open ChatGPT with pre-filled prompt about Two Sum
+     * await utils.askAI('Two Sum', 'chatgpt');
+     */
     askAI: async (problemName: string, provider: 'chatgpt' | 'aistudio' | 'grok') => {
         const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the detailed problem statement, examples, intuition, multiple approaches with code, and time/space complexity analysis. Include related problems, video tutorial links and followup questions with brief answers without code.`;
         const encodedPrompt = encodeURIComponent(aiPrompt);
@@ -147,6 +219,16 @@ export const utils = {
     },
 
     // Count lines in a string (for multiline note support)
+
+    /**
+     * Counts the number of lines in a string, excluding trailing empty lines.
+     * Used for determining textarea height and validating note content.
+     * @param {string | null | undefined} input - The string to count lines in
+     * @returns {number} The number of non-empty lines (0 if input is null/undefined/empty)
+     * @example
+     * const lines = utils.countLines('Line 1\nLine 2\n'); // Returns 2
+     * const empty = utils.countLines(null); // Returns 0
+     */
     countLines: (input: string | null | undefined): number => {
         if (!input) return 0;
         // Trim trailing newlines to avoid counting empty trailing lines
@@ -156,6 +238,17 @@ export const utils = {
     },
 
     // Input sanitization utilities
+
+    /**
+     * Sanitizes user input to prevent XSS attacks and injection.
+     * Removes HTML tags, control characters, script patterns, and limits length.
+     * Preserves newlines for multiline text support.
+     * @param {string | null | undefined} input - The raw user input to sanitize
+     * @returns {string} Sanitized string safe for display and storage (max 200 chars)
+     * @example
+     * const safe = utils.sanitizeInput('<script>alert("xss")</script>Hello');
+     * // Returns "Hello"
+     */
     sanitizeInput: (input: string | null | undefined) => {
         if (!input) return '';
 
@@ -194,6 +287,16 @@ export const utils = {
         return sanitized;
     },
 
+    /**
+     * Sanitizes and validates a URL string.
+     * Rejects dangerous schemes (javascript:, data:, vbscript:), validates format,
+     * prepends https:// if missing, and limits length.
+     * @param {string | null | undefined} url - The URL string to sanitize
+     * @returns {string} Validated URL or empty string if invalid/dangerous
+     * @example
+     * const safeUrl = utils.sanitizeUrl('leetcode.com/problems/two-sum');
+     * // Returns "https://leetcode.com/problems/two-sum"
+     */
     sanitizeUrl: (url: string | null | undefined) => {
         if (!url) return '';
 
@@ -234,6 +337,18 @@ export const utils = {
     },
 
     // Toast notifications
+
+    /**
+     * Displays a temporary toast notification message.
+     * Automatically removes after 3 seconds with fade-out animation.
+     * Uses textContent to prevent XSS vulnerabilities.
+     * @param {string} msg - The message to display
+     * @param {'success' | 'error'} [type='success'] - The notification type (affects styling)
+     * @returns {void}
+     * @example
+     * utils.showToast('Problem saved successfully!', 'success');
+     * utils.showToast('Failed to save', 'error');
+     */
     showToast: (msg: string, type = 'success') => {
         const el = document.createElement('div');
         el.className = `px-4 py-3 rounded-lg shadow-lg text-sm font-medium text-white flex items-center gap-2 animate-fade-in ${type === 'success' ? 'bg-brand-600' : 'bg-red-500'}`;
@@ -253,6 +368,16 @@ export const utils = {
     },
 
     // Scroll helpers
+
+    /**
+     * Scrolls the main content area to the top.
+     * Falls back to window scroll for mobile compatibility.
+     * @param {boolean} [smooth=false] - Whether to use smooth scrolling animation
+     * @returns {void}
+     * @example
+     * utils.scrollToTop(); // Instant scroll
+     * utils.scrollToTop(true); // Smooth animated scroll
+     */
     scrollToTop: (smooth = false) => {
         const behavior = smooth ? 'smooth' : 'instant';
         const el = state.elements.contentScroll;
@@ -265,12 +390,36 @@ export const utils = {
     },
 
     // Get next review date based on interval
+
+    /**
+     * Calculates the next review date based on the spaced repetition interval.
+     * Uses the Leitner system intervals defined in data.SPACED_REPETITION_INTERVALS.
+     * @param {string} today - The current date in YYYY-MM-DD format
+     * @param {number} intervalIndex - Index into the intervals array (0-5)
+     * @returns {string} The next review date in YYYY-MM-DD format
+     * @example
+     * // First review (1 day later)
+     * const next = utils.getNextReviewDate('2024-01-15', 0); // Returns "2024-01-16"
+     * // Final interval (60 days later)
+     * const final = utils.getNextReviewDate('2024-01-15', 5); // Returns "2024-03-15"
+     */
     getNextReviewDate: (today: string, intervalIndex: number) => {
         const daysToAdd = data.SPACED_REPETITION_INTERVALS[intervalIndex] ?? 1;
         return utils.addDays(today, daysToAdd);
     },
 
     // Helper to get unique problem IDs for a topic
+
+    /**
+     * Retrieves all unique problem IDs associated with a specific topic.
+     * For 'all', returns all problem IDs in state. For specific topics,
+     * filters to only problems defined in that topic's patterns.
+     * @param {string} topicId - The topic identifier, or 'all' for all problems
+     * @returns {Set<string>} Set of unique problem IDs
+     * @example
+     * const allIds = utils.getUniqueProblemIdsForTopic('all');
+     * const arrayIds = utils.getUniqueProblemIdsForTopic('arrays');
+     */
     getUniqueProblemIdsForTopic: (topicId: string) => {
         const ids = new Set<string>();
         if (topicId === 'all') {
@@ -292,6 +441,16 @@ export const utils = {
     },
 
     // Problem filtering and stats
+
+    /**
+     * Calculates statistics for problems in a specific topic.
+     * Returns total count, solved count, and due-for-review count.
+     * @param {string} topicId - The topic identifier to calculate stats for
+     * @returns {{total: number, solved: number, due: number}} Statistics object
+     * @example
+     * const stats = utils.getUniqueProblemsForTopic('arrays');
+     * // Returns { total: 50, solved: 30, due: 5 }
+     */
     getUniqueProblemsForTopic: (topicId: string) => {
         const today = utils.getToday();
         const uniqueIds = utils.getUniqueProblemIdsForTopic(topicId);
@@ -313,6 +472,17 @@ export const utils = {
         };
     },
 
+    /**
+     * Determines whether a problem should be displayed based on current filters.
+     * Applies status filter, date filter (for review/solved modes), and search query.
+     * @param {Problem} problem - The problem object to evaluate
+     * @param {string} filter - The current filter mode ('all', 'unsolved', 'solved', 'review')
+     * @param {string} searchQuery - The user's search query (case-insensitive)
+     * @param {string} today - Today's date in YYYY-MM-DD format
+     * @returns {boolean} True if the problem should be displayed
+     * @example
+     * const shouldShow = utils.shouldShowProblem(problem, 'review', 'two sum', '2024-01-15');
+     */
     shouldShowProblem: (problem: Problem, filter: string, searchQuery: string, today: string) => {
         // Apply filter
         const filterFunctions: { [key: string]: (_p: Problem, _t: string) => boolean } = {
@@ -345,6 +515,18 @@ export const utils = {
     },
 
     // Get available review dates from problems
+
+    /**
+     * Extracts all unique review dates from solved problems for the date filter dropdown.
+     * For 'review' filter: only includes dates that are due (today or earlier).
+     * For 'solved' filter: includes all future review dates.
+     * @param {string} today - Today's date in YYYY-MM-DD format
+     * @param {string} filter - The current filter mode ('review' or 'solved')
+     * @returns {string[]} Sorted array of unique dates (oldest first) in YYYY-MM-DD format
+     * @example
+     * const dates = utils.getAvailableReviewDates('2024-01-15', 'review');
+     * // Returns ['2024-01-10', '2024-01-15'] - only due dates
+     */
     getAvailableReviewDates: (today: string, filter: string): string[] => {
         const dates = new Set<string>();
         state.problems.forEach((problem: Problem) => {

@@ -45,9 +45,16 @@ function createCorsResponse(
 }
 
 /**
- * Compresses data using gzip compression
- * @param {string} data - The data to compress
- * @returns {Promise<ArrayBuffer>} - The compressed binary data
+ * Compresses string data using Brotli or deflate-raw compression.
+ * Attempts Brotli first for best compression ratio, falls back to deflate-raw.
+ * Used to reduce KV storage size and transfer bandwidth for user data.
+ * @param {string} data - The JSON string data to compress
+ * @returns {Promise<ArrayBuffer>} The compressed binary data as ArrayBuffer
+ * @throws {Error} If compression fails, returns uncompressed data as fallback
+ * @example
+ * const jsonData = JSON.stringify({ problems: { ... } });
+ * const compressed = await compressData(jsonData);
+ * // Store compressed in KV with 'Content-Encoding': 'br' metadata
  */
 async function compressData(data: string): Promise<ArrayBuffer> {
     try {
@@ -75,10 +82,18 @@ async function compressData(data: string): Promise<ArrayBuffer> {
 }
 
 /**
- * Decompresses data if it was compressed with gzip
- * @param {ArrayBuffer | string} data - The data to decompress
- * @param {string | null} contentType - The Content-Type header from KV metadata
- * @returns {Promise<string>} - The decompressed data
+ * Decompresses Brotli or deflate-raw compressed data from KV storage.
+ * Handles backward compatibility with legacy gzip format and uncompressed strings.
+ * Detects compression type from Content-Encoding metadata or data format markers.
+ * @param {ArrayBuffer | string} data - The compressed data or raw string
+ * @param {string | null} contentType - The Content-Encoding from KV metadata ('br', 'gzip', or null)
+ * @returns {Promise<string>} The decompressed JSON string, or raw data if not compressed
+ * @throws {Error} Returns raw data as string if decompression fails
+ * @example
+ * // Decompress Brotli data from KV
+ * const { value, metadata } = await env.KV.getWithMetadata(userId, 'arrayBuffer');
+ * const json = await decompressData(value, metadata?.['Content-Encoding']);
+ * const userData = JSON.parse(json);
  */
 async function decompressData(
     data: ArrayBuffer | string,
@@ -151,12 +166,20 @@ async function decompressData(
 }
 
 /**
- * Rate limiting function using KV store with sliding window algorithm
- * @param {Request} request - The request object
- * @param {Object} env - Environment variables
- * @param {number} maxRequests - Maximum requests allowed
- * @param {number} windowSeconds - Time window in seconds
- * @returns {boolean} - True if rate limited
+ * Implements sliding window rate limiting using Cloudflare KV.
+ * Tracks request timestamps per client IP and rejects if limit exceeded.
+ * Automatically cleans expired entries and updates KV atomically.
+ * @param {Request} request - The HTTP request to check
+ * @param {Object} env - Environment with KV namespace binding
+ * @param {number} [maxRequests=30] - Maximum allowed requests in the time window
+ * @param {number} [windowSeconds=60] - Time window duration in seconds
+ * @returns {Promise<boolean>} True if request should be rate limited (blocked)
+ * @example
+ * // Check if request exceeds 10 requests per minute
+ * const isLimited = await checkRateLimit(request, env, 10, 60);
+ * if (isLimited) {
+ *   return new Response('Rate limit exceeded', { status: 429 });
+ * }
  */
 export async function checkRateLimit(
     request: Request,
@@ -191,10 +214,18 @@ export async function checkRateLimit(
 }
 
 /**
- * Verifies a JWT token with the given secret.
- * @param {string} token - The JWT token to verify.
- * @param {string} secret - The secret key used for signing.
- * @returns {Object|null} The decoded payload if valid, null otherwise.
+ * Verifies a JWT token using the HS256 algorithm.
+ * Decodes and validates the token signature against the provided secret.
+ * Used to authenticate API requests from authenticated users.
+ * @param {string} token - The JWT token string to verify
+ * @param {string} secret - The HMAC secret key for signature verification
+ * @returns {Promise<Object | null>} Decoded JWT payload if valid, null if invalid/expired
+ * @example
+ * const payload = await verifyJWT(authToken, env.JWT_SECRET);
+ * if (payload) {
+ *   const userId = payload.userId;
+ *   // Proceed with authenticated request
+ * }
  */
 async function verifyJWT(token: string, secret: string) {
     try {
@@ -207,10 +238,18 @@ async function verifyJWT(token: string, secret: string) {
 }
 
 /**
- * Authenticates a request by verifying the JWT token from cookie or Bearer header.
- * @param {Request} request - The HTTP request object.
- * @param {Object} env - Environment variables.
- * @returns {Object|null} The decoded JWT payload if authenticated, null otherwise.
+ * Authenticates an HTTP request by extracting and verifying JWT token.
+ * Checks for token in HttpOnly cookie first, then falls back to Authorization header.
+ * Returns decoded payload containing userId and displayName if valid.
+ * @param {Request} request - The incoming HTTP request
+ * @param {Object} env - Environment with JWT_SECRET and KV bindings
+ * @returns {Promise<Object | null>} Decoded JWT payload with userId/displayName, or null if unauthenticated
+ * @example
+ * const payload = await authenticate(request, env);
+ * if (!payload) {
+ *   return new Response('Unauthorized', { status: 401 });
+ * }
+ * const { userId, displayName } = payload;
  */
 async function authenticate(request: Request, env: { JWT_SECRET: string; KV: KVNamespace }) {
     let token = null;
@@ -241,11 +280,19 @@ async function authenticate(request: Request, env: { JWT_SECRET: string; KV: KVN
 }
 
 /**
- * Validates CSRF token for POST requests.
- * @param {Request} request - The HTTP request object.
- * @param {Object} env - Environment variables.
- * @param {string} userId - The user ID.
- * @returns {boolean} True if CSRF token is valid, false otherwise.
+ * Validates CSRF token for state-changing POST requests.
+ * Implements single-use token pattern to prevent replay attacks.
+ * Token is deleted from KV immediately after successful validation.
+ * @param {Request} request - The HTTP request with X-CSRF-Token header
+ * @param {Object} env - Environment with KV namespace binding
+ * @param {string} userId - The authenticated user's ID for token lookup
+ * @returns {Promise<boolean>} True if CSRF token is valid and consumed successfully
+ * @example
+ * const isValid = await validateCsrfToken(request, env, userId);
+ * if (!isValid) {
+ *   return new Response('Invalid CSRF token', { status: 403 });
+ * }
+ * // Token is now deleted and cannot be reused
  */
 async function validateCsrfToken(request: Request, env: { KV: KVNamespace }, userId: string) {
     const providedCsrf = request.headers.get('X-CSRF-Token');
@@ -264,11 +311,24 @@ async function validateCsrfToken(request: Request, env: { KV: KVNamespace }, use
 }
 
 /**
- * Handles GET requests to retrieve user data or generate CSRF token.
- * @param {Object} context - The request context.
- * @param {Request} context.request - The HTTP request object.
- * @param {Object} context.env - Environment variables.
- * @returns {Response} The HTTP response with user data or error.
+ * Handles GET requests for user data retrieval or CSRF token generation.
+ * Supports two actions: 'csrf' (generate new token) or default (fetch user data).
+ * User data is automatically decompressed if stored with compression.
+ * Implements rate limiting and CORS for cross-origin requests.
+ * @param {Object} context - Cloudflare Pages Function context
+ * @param {Request} context.request - The incoming HTTP request
+ * @param {Object} context.env - Environment bindings (JWT_SECRET, KV)
+ * @returns {Promise<Response>} JSON response with user data or CSRF token, or error response
+ * @example
+ * // Get user data
+ * GET /api/user
+ * Authorization: Bearer <jwt>
+ * // Returns: { problems: {...}, deletedIds: [...] }
+ *
+ * // Get CSRF token
+ * GET /api/user?action=csrf
+ * Authorization: Bearer <jwt>
+ * // Returns: { csrfToken: 'uuid-token' }
  */
 export async function onRequestGet({
     request,
@@ -396,11 +456,22 @@ export async function onRequestGet({
 }
 
 /**
- * Handles POST requests to save user data.
- * @param {Object} context - The request context.
- * @param {Request} context.request - The HTTP request object.
- * @param {Object} context.env - Environment variables.
- * @returns {Response} The HTTP response indicating success or error.
+ * Handles POST requests to save user data with compression and CSRF protection.
+ * Validates JWT authentication and CSRF token before processing.
+ * Automatically compresses data if it reduces size, stores with appropriate metadata.
+ * Implements rate limiting to prevent abuse.
+ * @param {Object} context - Cloudflare Pages Function context
+ * @param {Request} context.request - The incoming HTTP request with JSON body
+ * @param {Object} context.env - Environment bindings (JWT_SECRET, KV)
+ * @returns {Promise<Response>} Success response or error with appropriate status code
+ * @example
+ * POST /api/user
+ * Authorization: Bearer <jwt>
+ * X-CSRF-Token: <token>
+ * Content-Type: application/json
+ *
+ * Body: { data: { problems: {...}, deletedIds: [...] } }
+ * // Returns: "OK" on success, or { error: "..." } on failure
  */
 export async function onRequestPost({
     request,

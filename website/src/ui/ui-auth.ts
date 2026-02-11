@@ -140,8 +140,12 @@ export const handleGoogleLogin = () => {
 
     // Monitor popup closure
     popupCheckInterval = setInterval(() => {
-        if (popup.closed) {
-            handlePopupClose();
+        try {
+            if (popup.closed) {
+                handlePopupClose();
+            }
+        } catch (_e) {
+            // COOP may block the check, ignore
         }
     }, 500);
 
