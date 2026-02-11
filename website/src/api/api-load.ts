@@ -28,9 +28,12 @@ async function decompressResponse(response: Response): Promise<string> {
         }
 
         // Create decompression stream based on encoding
+        // Note: Brotli ('br') is not supported by DecompressionStream in browsers
+        // We request gzip/deflate only via Accept-Encoding header, but handle br just in case
         let decompressionStream: DecompressionStream;
         if (contentEncoding === 'br') {
-            decompressionStream = new DecompressionStream('br' as CompressionFormat);
+            // Brotli not supported by DecompressionStream, fall back to text
+            return response.text();
         } else if (contentEncoding === 'gzip') {
             decompressionStream = new DecompressionStream('gzip');
         } else if (contentEncoding === 'deflate') {
@@ -156,8 +159,13 @@ export const loadData = async (): Promise<void> => {
     }
 
     try {
+        // Request only encodings we can decompress (gzip, deflate)
+        // Brotli ('br') is not supported by DecompressionStream in browsers
         const response = await fetch(`${data.API_BASE}/user`, {
             credentials: 'include',
+            headers: {
+                'Accept-Encoding': 'gzip, deflate',
+            },
         });
         _validateResponseOrigin(response);
         if (!response.ok) _handleApiError(response);
