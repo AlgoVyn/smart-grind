@@ -35,6 +35,9 @@ const PROBLEM_PATTERNS = [/\/smartgrind\/patterns\/.+\.md$/, /\/smartgrind\/solu
 // API routes that should use network-first strategy
 const API_ROUTES = [/\/smartgrind\/api\//];
 
+// Auth routes that should bypass service worker (OAuth redirects)
+const AUTH_ROUTES = [/\/smartgrind\/api\/auth/];
+
 // Install event - cache static assets
 self.addEventListener('install', (event: ExtendableEvent) => {
     event.waitUntil(
@@ -98,6 +101,11 @@ self.addEventListener('fetch', (event: FetchEvent) => {
     const { request } = event;
     const requestUrl = new URL(request.url);
 
+    // Skip auth routes - let browser handle OAuth redirects naturally
+    if (AUTH_ROUTES.some((pattern) => pattern.test(requestUrl.pathname))) {
+        return;
+    }
+
     // Skip non-GET requests for caching (except for API calls handled separately)
     if (
         request.method !== 'GET' &&
@@ -127,6 +135,11 @@ async function handleAPIRequest(request: Request): Promise<Response> {
     try {
         // Try network first
         const networkResponse = await fetch(request);
+
+        // Handle redirect responses - don't cache, return as-is
+        if (networkResponse.status >= 300 && networkResponse.status < 400) {
+            return networkResponse;
+        }
 
         if (networkResponse.ok) {
             // Cache successful API responses
