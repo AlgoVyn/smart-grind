@@ -2,32 +2,24 @@
 
 ## Problem Description
 
-Given the root of a binary tree, return its **maximum depth** (also known as height).
+Given the root of a binary tree, return its maximum depth (or height). The maximum depth is the number of nodes along the longest path from the root node down to the farthest leaf node.
 
-The maximum depth of a binary tree is the number of nodes along the longest path from the root node down to the farthest leaf node.
-
-A **leaf node** is a node with no children. The depth of an empty tree (null root) is defined as 0.
-
-**LeetCode Problem Number:** 104
+A leaf node is a node with no children. The depth of a node is the number of edges from the node to the tree's root node. Alternatively, some define depth as the number of nodes from root to the node (inclusive). For this problem, we'll use the standard definition where an empty tree has depth 0.
 
 ---
 
-## Examples
+## Constraints
 
-### Example 1
+- The number of nodes in the tree is in the range [0, 10^4].
+- -100 <= Node.val <= 100
+
+---
+
+## Example 1
 
 **Input:**
 ```python
 root = [3,9,20,null,null,15,7]
-```
-
-**Visual Representation:**
-```
-        3
-       / \
-      9   20
-         /  \
-        15   7
 ```
 
 **Output:**
@@ -35,26 +27,30 @@ root = [3,9,20,null,null,15,7]
 3
 ```
 
+**Visual:**
+```
+    3
+   / \
+  9  20
+    /  \
+   15   7
+```
+
 **Explanation:**
-- Level 0: Node 3 (depth = 1)
-- Level 1: Nodes 9, 20 (depth = 2)
-- Level 2: Nodes 15, 7 (depth = 3)
-- The longest path has 3 nodes, so maximum depth = 3
+- Root (3) is at depth 0 (or level 1)
+- Left child (9) is at depth 1
+- Right child (20) is at depth 1
+- Left child of 20 (15) is at depth 2
+- Right child of 20 (7) is at depth 2
+- Maximum depth = 3
 
 ---
 
-### Example 2
+## Example 2
 
 **Input:**
 ```python
 root = [1,null,2]
-```
-
-**Visual Representation:**
-```
-    1
-     \
-      2
 ```
 
 **Output:**
@@ -62,12 +58,20 @@ root = [1,null,2]
 2
 ```
 
+**Visual:**
+```
+  1
+   \
+    2
+```
+
 **Explanation:**
-- Path 1 → 2 has 2 nodes, so maximum depth = 2
+- Only one path from root to leaf: 1 → 2
+- Maximum depth = 2
 
 ---
 
-### Example 3
+## Example 3
 
 **Input:**
 ```python
@@ -79,11 +83,12 @@ root = []
 0
 ```
 
-**Explanation:** An empty tree has depth 0.
+**Explanation:**
+- An empty tree has no nodes, so maximum depth is 0
 
 ---
 
-### Example 4
+## Example 4
 
 **Input:**
 ```python
@@ -95,194 +100,420 @@ root = [1]
 1
 ```
 
-**Explanation:** A single node tree has depth 1.
-
----
-
-### Example 5
-
-**Input:**
-```python
-root = [1,2,3,4,5,null,7,8]
-```
-
-**Visual Representation:**
-```
-            1
-          /   \
-         2     3
-        / \     \
-       4   5     7
-      /
-     8
-```
-
-**Output:**
-```python
-4
-```
-
 **Explanation:**
-- Longest path: 1 → 2 → 4 → 8 (4 nodes)
-- Maximum depth = 4
+- A single node tree has depth 1
 
 ---
 
-## Constraints
+## Solution
 
-- The number of nodes in the tree is in the range `[0, 10^4]`.
-- `-100 <= Node.val <= 100`
+We use three approaches to solve this problem:
 
----
-
-## Intuition
-
-The maximum depth of a binary tree can be understood through the following key insights:
-
-### 1. **Recursive Definition**
-A tree's height can be defined recursively:
-- The height of an empty tree is 0
-- The height of a non-empty tree is: `1 + max(height(left_subtree), height(right_subtree))`
-
-This is because the height of a node is 1 (for itself) plus the maximum of its left and right subtree heights.
-
-### 2. **Tree Structure = Recursion**
-Binary trees have a naturally recursive structure. Each node defines a subtree rooted at that node. This makes recursion the most intuitive approach.
-
-### 3. **Two Fundamental Traversal Patterns**
-- **Depth-First Search (DFS)**: Go deep before wide. Natural fit for recursive solutions.
-- **Breadth-First Search (BFS)**: Go wide before deep. Can track depth by processing level by level.
-
-### 4. **Key Observations**
-- Every node contributes exactly 1 to the depth of paths going through it
-- The maximum depth is the length of the longest root-to-leaf path
-- We only need to find the maximum, not the entire path
+1. **Recursive Depth-First Search (DFS)** - Most intuitive and commonly used
+2. **Iterative BFS (Level Order Traversal)** - Uses queue to traverse level by level
+3. **Iterative DFS using Stack** - Explicit stack for depth tracking
 
 ---
 
-## Multiple Approaches with Code
+## Approach 1: Recursive Depth-First Search
 
-### Approach 1: Recursive DFS (Post-order Traversal) ⭐
+### Algorithm
 
-This is the most straightforward and elegant solution. We process left and right subtrees first, then compute the current node's depth.
+The recursive approach leverages the mathematical definition of tree depth:
 
-#### Algorithm
-1. Base case: If root is null, return 0
-2. Recursively compute the depth of left subtree
-3. Recursively compute the depth of right subtree
-4. Return `1 + max(left_depth, right_depth)`
+1. **Base Case**: If the root is null (empty tree), return 0
+2. **Recursive Case**: For any non-null node, the maximum depth is:
+   - 1 (for the current node) + max(max depth of left subtree, max depth of right subtree)
+3. **Recursion**: This naturally computes depths from leaves upward (post-order traversal)
 
-#### Code Implementation
+The key insight is that the maximum depth of a tree equals:
+- 1 (for the root) + max(left subtree depth, right subtree depth)
+
+### Code Implementation
+
+````carousel
 ```python
 from typing import Optional
 
 # Definition for a binary tree node.
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
 
 class Solution:
     def maxDepth(self, root: Optional[TreeNode]) -> int:
         """
-        Calculate maximum depth using recursive DFS (post-order traversal).
-        
-        Time: O(n) - Each node visited exactly once
-        Space: O(h) - Recursion stack, h = height of tree
+        Calculate the maximum depth of a binary tree using recursion.
         
         Args:
-            root: The root node of the binary tree
+            root: Root node of the binary tree
             
         Returns:
-            The maximum depth of the tree
+            Maximum depth (number of nodes on longest path from root to leaf)
         """
-        # Base case: empty tree
+        # Base case: empty tree has depth 0
         if not root:
             return 0
         
-        # Recursive case: height = 1 + max(left_height, right_height)
+        # Recursive case: depth = 1 + max depth of left and right subtrees
         left_depth = self.maxDepth(root.left)
         right_depth = self.maxDepth(root.right)
         
         return 1 + max(left_depth, right_depth)
 ```
 
-#### How to Arrive at the Solution
-1. Recognize that tree height follows the recursive formula: `height = 1 + max(height(left), height(right))`
-2. This is a post-order traversal (left → right → root)
-3. Handle the empty tree case first (depth = 0)
-4. The recursion naturally handles all nodes
+<!-- slide -->
+```cpp
+#include <algorithm>
+using namespace std;
 
-#### Step-by-Step Execution (Example: [3,9,20,null,null,15,7])
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
 
+class Solution {
+public:
+    int maxDepth(TreeNode* root) {
+        // Base case: empty tree has depth 0
+        if (!root) {
+            return 0;
+        }
+        
+        // Recursive case: depth = 1 + max depth of left and right subtrees
+        int left_depth = maxDepth(root->left);
+        int right_depth = maxDepth(root->right);
+        
+        return 1 + max(left_depth, right_depth);
+    }
+};
 ```
-Tree:
-        3
-       / \
-      9   20
-         /  \
-        15   7
 
-Call stack:
-maxDepth(3)
-├── maxDepth(9)
-│   └── returns 1 (leaf node)
-└── maxDepth(20)
-    ├── maxDepth(15)
-    │   └── returns 1 (leaf node)
-    └── maxDepth(7)
-        └── returns 1 (leaf node)
+<!-- slide -->
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+
+class Solution {
+    public int maxDepth(TreeNode root) {
+        // Base case: empty tree has depth 0
+        if (root == null) {
+            return 0;
+        }
+        
+        // Recursive case: depth = 1 + max depth of left and right subtrees
+        int left_depth = maxDepth(root.left);
+        int right_depth = maxDepth(root.right);
+        
+        return 1 + Math.max(left_depth, right_depth);
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+
+/**
+ * @param {TreeNode} root
+ * @return {number}
+ */
+var maxDepth = function(root) {
+    // Base case: empty tree has depth 0
+    if (!root) {
+        return 0;
+    }
     
-Calculation:
-- Node 9: 1 + max(0, 0) = 1
-- Node 15: 1 + max(0, 0) = 1
-- Node 7: 1 + max(0, 0) = 1
-- Node 20: 1 + max(1, 1) = 2
-- Node 3: 1 + max(1, 2) = 3
-
-Result: 3
+    // Recursive case: depth = 1 + max depth of left and right subtrees
+    const left_depth = maxDepth(root.left);
+    const right_depth = maxDepth(root.right);
+    
+    return 1 + Math.max(left_depth, right_depth);
+};
 ```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(n) - Each node is visited exactly once |
+| **Space** | O(h) - Recursion stack depth equals tree height (h), where h can be O(n) for skewed trees |
 
 ---
 
-### Approach 2: Iterative DFS with Stack
+## Approach 2: Iterative BFS (Level Order Traversal)
 
-This approach simulates the recursion using an explicit stack. We track both the node and its current depth.
+### Algorithm
 
-#### Algorithm
-1. Initialize a stack with (root, depth=1)
-2. Initialize max_depth = 0
-3. While stack is not empty:
-   - Pop a node and its depth
-   - Update max_depth if current depth is greater
-   - Push right child with depth+1 (if exists)
-   - Push left child with depth+1 (if exists)
-4. Return max_depth
+Breadth-First Search (BFS) processes the tree level by level:
 
-#### Code Implementation
+1. If root is null, return 0
+2. Initialize a queue with the root node and depth counter = 0
+3. While the queue is not empty:
+   - Increment depth (we're moving to the next level)
+   - Process all nodes at current level (size of queue)
+   - For each node, add its non-null children to the queue
+4. Return the depth counter
+
+### Code Implementation
+
+````carousel
 ```python
+from collections import deque
 from typing import Optional
 
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
+# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
 
 class Solution:
     def maxDepth(self, root: Optional[TreeNode]) -> int:
         """
-        Calculate maximum depth using iterative DFS with explicit stack.
-        
-        Time: O(n) - Each node visited exactly once
-        Space: O(h) - Stack storage, h = height of tree
+        Calculate the maximum depth using BFS level-order traversal.
         
         Args:
-            root: The root node of the binary tree
+            root: Root node of the binary tree
             
         Returns:
-            The maximum depth of the tree
+            Maximum depth (number of levels)
+        """
+        if not root:
+            return 0
+        
+        depth = 0
+        queue = deque([root])
+        
+        while queue:
+            depth += 1  # We're processing a new level
+            level_size = len(queue)
+            
+            for _ in range(level_size):
+                node = queue.popleft()
+                
+                # Add children to queue for next level
+                if node.left:
+                    queue.append(node.left)
+                if node.right:
+                    queue.append(node.right)
+        
+        return depth
+```
+
+<!-- slide -->
+```cpp
+#include <queue>
+using namespace std;
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+
+class Solution {
+public:
+    int maxDepth(TreeNode* root) {
+        if (!root) {
+            return 0;
+        }
+        
+        int depth = 0;
+        queue<TreeNode*> q;
+        q.push(root);
+        
+        while (!q.empty()) {
+            depth++;
+            int level_size = q.size();
+            
+            for (int i = 0; i < level_size; i++) {
+                TreeNode* node = q.front();
+                q.pop();
+                
+                if (node->left) q.push(node->left);
+                if (node->right) q.push(node->right);
+            }
+        }
+        
+        return depth;
+    }
+};
+```
+
+<!-- slide -->
+```java
+import java.util.LinkedList;
+import java.util.Queue;
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+
+class Solution {
+    public int maxDepth(TreeNode root) {
+        if (root == null) {
+            return 0;
+        }
+        
+        int depth = 0;
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        
+        while (!queue.isEmpty()) {
+            depth++;
+            int level_size = queue.size();
+            
+            for (int i = 0; i < level_size; i++) {
+                TreeNode node = queue.poll();
+                
+                if (node.left != null) queue.offer(node.left);
+                if (node.right != null) queue.offer(node.right);
+            }
+        }
+        
+        return depth;
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+
+/**
+ * @param {TreeNode} root
+ * @return {number}
+ */
+var maxDepth = function(root) {
+    if (!root) {
+        return 0;
+    }
+    
+    let depth = 0;
+    const queue = [root];
+    
+    while (queue.length > 0) {
+        depth++;
+        const level_size = queue.length;
+        
+        for (let i = 0; i < level_size; i++) {
+            const node = queue.shift();
+            
+            if (node.left) queue.push(node.left);
+            if (node.right) queue.push(node.right);
+        }
+    }
+    
+    return depth;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(n) - Each node is visited exactly once |
+| **Space** | O(w) - Queue stores nodes at widest level (w), where w can be O(n) for complete binary trees |
+
+---
+
+## Approach 3: Iterative DFS with Stack
+
+### Algorithm
+
+This approach uses an explicit stack to simulate recursion:
+
+1. If root is null, return 0
+2. Initialize stack with pairs of (node, current depth)
+3. Initialize max_depth = 0
+4. While stack is not empty:
+   - Pop (node, depth) from stack
+   - Update max_depth = max(max_depth, depth)
+   - Push (node.left, depth + 1) if left child exists
+   - Push (node.right, depth + 1) if right child exists
+5. Return max_depth
+
+### Code Implementation
+
+````carousel
+```python
+from typing import Optional
+
+# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+
+class Solution:
+    def maxDepth(self, root: Optional[TreeNode]) -> int:
+        """
+        Calculate the maximum depth using iterative DFS with stack.
+        
+        Args:
+            root: Root node of the binary tree
+            
+        Returns:
+            Maximum depth (number of nodes on longest path)
         """
         if not root:
             return 0
@@ -294,449 +525,254 @@ class Solution:
             node, depth = stack.pop()
             max_depth = max(max_depth, depth)
             
-            # Push right first, then left (so left is processed first)
-            if node.right:
-                stack.append((node.right, depth + 1))
             if node.left:
                 stack.append((node.left, depth + 1))
+            if node.right:
+                stack.append((node.right, depth + 1))
         
         return max_depth
 ```
 
-#### Step-by-Step Execution
+<!-- slide -->
+```cpp
+#include <stack>
+#include <algorithm>
+using namespace std;
 
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+
+class Solution {
+public:
+    int maxDepth(TreeNode* root) {
+        if (!root) {
+            return 0;
+        }
+        
+        int max_depth = 0;
+        stack<pair<TreeNode*, int>> st;
+        st.push({root, 1});
+        
+        while (!st.empty()) {
+            auto [node, depth] = st.top();
+            st.pop();
+            
+            max_depth = max(max_depth, depth);
+            
+            if (node->left) {
+                st.push({node->left, depth + 1});
+            }
+            if (node->right) {
+                st.push({node->right, depth + 1});
+            }
+        }
+        
+        return max_depth;
+    }
+};
 ```
-Tree:
-        3
-       / \
-      9   20
-         /  \
-        15   7
 
-Initial: stack = [(3, 1)], max_depth = 0
+<!-- slide -->
+```java
+import java.util.Stack;
 
-Step 1: Pop (3, 1), max_depth = 1
-        Push (20, 2), (9, 2)
-        Stack: [(20, 2), (9, 2)]
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
 
-Step 2: Pop (9, 2), max_depth = 2
-        No children
-        Stack: [(20, 2)]
-
-Step 3: Pop (20, 2), max_depth = 2
-        Push (7, 3), (15, 3)
-        Stack: [(7, 3), (15, 3)]
-
-Step 4: Pop (15, 3), max_depth = 3
-        No children
-        Stack: [(7, 3)]
-
-Step 5: Pop (7, 3), max_depth = 3
-        No children
-        Stack: []
-
-Result: 3
+class Solution {
+    public int maxDepth(TreeNode root) {
+        if (root == null) {
+            return 0;
+        }
+        
+        int max_depth = 0;
+        Stack<Object[]> stack = new Stack<>();
+        stack.push(new Object[]{root, 1});
+        
+        while (!stack.isEmpty()) {
+            Object[] pair = stack.pop();
+            TreeNode node = (TreeNode) pair[0];
+            int depth = (Integer) pair[1];
+            
+            max_depth = Math.max(max_depth, depth);
+            
+            if (node.left != null) {
+                stack.push(new Object[]{node.left, depth + 1});
+            }
+            if (node.right != null) {
+                stack.push(new Object[]{node.right, depth + 1});
+            }
+        }
+        
+        return max_depth;
+    }
+}
 ```
+
+<!-- slide -->
+```javascript
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+
+/**
+ * @param {TreeNode} root
+ * @return {number}
+ */
+var maxDepth = function(root) {
+    if (!root) {
+        return 0;
+    }
+    
+    let max_depth = 0;
+    const stack = [[root, 1]];
+    
+    while (stack.length > 0) {
+        const [node, depth] = stack.pop();
+        max_depth = Math.max(max_depth, depth);
+        
+        if (node.left) {
+            stack.push([node.left, depth + 1]);
+        }
+        if (node.right) {
+            stack.push([node.right, depth + 1]);
+        }
+    }
+    
+    return max_depth;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(n) - Each node is visited exactly once |
+| **Space** | O(h) - Stack stores nodes along current path (h), where h can be O(n) for skewed trees |
 
 ---
 
-### Approach 3: BFS with Queue (Level Order Traversal)
+## Comparison of Approaches
 
-This approach processes the tree level by level, counting how many levels we traverse.
+| Aspect | Recursive DFS | Iterative BFS | Iterative DFS |
+|--------|---------------|---------------|---------------|
+| **Time Complexity** | O(n) | O(n) | O(n) |
+| **Space Complexity** | O(h) | O(w) | O(h) |
+| **Implementation** | Simple, elegant | Moderate | Moderate |
+| **Code Readability** | High | High | Medium |
+| **Stack Overflow Risk** | Yes | No | Yes |
+| **Order** | Post-order | Level-order | Pre-order |
+| **Best For** | Balanced trees | Wide trees | Deep paths |
 
-#### Algorithm
-1. If root is null, return 0
-2. Initialize queue with root
-3. Initialize depth = 0
-4. While queue is not empty:
-   - Increment depth
-   - Process all nodes at current level
-   - Add their children to queue for next level
-5. Return depth
-
-#### Code Implementation
-```python
-from typing import Optional
-from collections import deque
-
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def maxDepth(self, root: Optional[TreeNode]) -> int:
-        """
-        Calculate maximum depth using BFS with queue (level order).
-        
-        Time: O(n) - Each node visited exactly once
-        Space: O(w) - Queue storage, w = maximum width of tree
-        
-        Args:
-            root: The root node of the binary tree
-            
-        Returns:
-            The maximum depth of the tree
-        """
-        if not root:
-            return 0
-        
-        depth = 0
-        queue = deque([root])
-        
-        while queue:
-            depth += 1
-            level_size = len(queue)
-            
-            for _ in range(level_size):
-                node = queue.popleft()
-                
-                if node.left:
-                    queue.append(node.left)
-                if node.right:
-                    queue.append(node.right)
-        
-        return depth
-```
-
-#### Step-by-Step Execution
-
-```
-Tree:
-        3
-       / \
-      9   20
-         /  \
-        15   7
-
-Initial: queue = [3], depth = 0
-
-Level 0 (depth=1):
-  Process: [3]
-  Add children: [9, 20]
-  queue = [9, 20], depth = 1
-
-Level 1 (depth=2):
-  Process: [9, 20]
-  Add children: [15, 7]
-  queue = [15, 7], depth = 2
-
-Level 2 (depth=3):
-  Process: [15, 7]
-  Add children: []
-  queue = [], depth = 3
-
-Result: 3
-```
+**Where:**
+- n = number of nodes
+- h = height of tree (can be O(n) for skewed tree)
+- w = maximum width of tree (can be O(n) for complete tree)
 
 ---
 
-### Approach 4: DFS with Path Tracking
+## Explanation
 
-This approach keeps track of the current path depth while traversing and updates a global maximum.
+### Recursive DFS Approach
 
-#### Code Implementation
-```python
-from typing import Optional
+The recursive approach is the most elegant solution for this problem. The key insight is mathematical:
 
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
+- The depth of an empty tree is 0
+- The depth of any other tree is 1 + max(depth of left subtree, depth of right subtree)
 
-class Solution:
-    def maxDepth(self, root: Optional[TreeNode]) -> int:
-        """
-        Calculate maximum depth using DFS with global max tracking.
-        
-        Time: O(n) - Each node visited exactly once
-        Space: O(h) - Recursion stack, h = height of tree
-        
-        Args:
-            root: The root node of the binary tree
-            
-        Returns:
-            The maximum depth of the tree
-        """
-        self.max_depth = 0
-        
-        def dfs(node: Optional[TreeNode], current_depth: int):
-            if not node:
-                return
-            
-            # Update max depth at this node
-            self.max_depth = max(self.max_depth, current_depth)
-            
-            # Recurse on children with incremented depth
-            dfs(node.left, current_depth + 1)
-            dfs(node.right, current_depth + 1)
-        
-        dfs(root, 1)
-        return self.max_depth
-```
+This is a classic example of **divide and conquer** where we:
+1. Divide the problem into smaller subproblems (left and right subtrees)
+2. Conquer by solving each subproblem recursively
+3. Combine by taking the maximum depth and adding 1 for the current level
+
+The recursion naturally processes nodes from the bottom up (post-order), which is perfect for this problem.
+
+### BFS Level Order Approach
+
+BFS naturally processes the tree level by level, making it intuitive for this problem:
+
+- We increment our depth counter each time we finish processing a level
+- We use queue size to determine how many nodes are at the current level
+- This approach is also useful if you need to perform operations at each level
+
+### Iterative DFS Approach
+
+This approach simulates recursion using an explicit stack:
+
+- We track both the node and its depth as we traverse
+- This can be more memory-efficient than BFS for deep, narrow trees
+- It also allows for easy modification if you need to track additional state
 
 ---
 
-### Approach 5: One-Liner (Functional Programming)
+## Followup Questions
 
-For those who appreciate Python's elegance, here's a compact one-liner using conditional expressions.
+### Q1: How would you modify the recursive solution to return the minimum depth instead of maximum depth?
 
-#### Code Implementation
-```python
-from typing import Optional
+**Answer:** Change the return statement to use `min()` instead of `max()`, but add a special case for nodes with only one child. For nodes with only one child, you must take the child's depth, not 1 + max(child depths which would be 0 for null). The formula becomes: 1 + max(left_depth, right_depth) for nodes with two children, but 1 + max(left_depth, right_depth) where one is 0 needs special handling to avoid taking the 0 path.
 
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
+### Q2: How would you check if a tree is balanced (difference between left and right subtree depths ≤ 1 for all nodes)?
 
-class Solution:
-    def maxDepth(self, root: Optional[TreeNode]) -> int:
-        """
-        Calculate maximum depth using a compact one-liner approach.
-        
-        Time: O(n) - Each node visited exactly once
-        Space: O(h) - Recursion stack, h = height of tree
-        
-        Args:
-            root: The root node of the binary tree
-            
-        Returns:
-            The maximum depth of the tree
-        """
-        return 0 if not root else 1 + max(self.maxDepth(root.left), self.maxDepth(root.right))
-```
+**Answer:** You can modify the recursive DFS to return both the depth and a boolean indicating balance. For each node, check if left and right subtrees are balanced. If either is not balanced, return false. Otherwise, return true only if the absolute difference between left and right depths is ≤ 1.
 
----
+### Q3: How would you find the deepest node in a binary tree?
 
-## Complexity Analysis Summary
+**Answer:** You can modify any of the approaches to track the deepest node. In BFS, return the last node processed at the deepest level. In DFS, track the node with maximum depth encountered during traversal. The BFS approach naturally gives you the deepest nodes as they are the last ones processed.
 
-| Approach | Time Complexity | Space Complexity | Notes |
-|----------|-----------------|------------------|-------|
-| Recursive DFS | O(n) | O(h) | **Most elegant**, natural fit for tree structure |
-| Iterative DFS (Stack) | O(n) | O(h) | Avoids recursion limits, explicit control |
-| BFS with Queue | O(n) | O(w) | Level-by-level, intuitive depth tracking |
-| DFS with Path Tracking | O(n) | O(h) | Global variable approach |
-| One-Liner | O(n) | O(h) | Elegant but less readable |
+### Q4: How would you count the number of nodes at the maximum depth?
 
-Where:
-- n = number of nodes in the tree
-- h = height of the tree (worst case: O(n) for skewed tree)
-- w = maximum width of the tree (worst case: O(n) for complete tree)
+**Answer:** First find the maximum depth using any approach, then do a BFS or DFS counting nodes that have depth equal to the maximum depth. Alternatively, during a single traversal, track both the maximum depth and count how many nodes achieve it.
 
-**Best Space Complexity for Balanced Tree:** O(log n) for DFS approaches
-**Worst Space Complexity for Skewed Tree:** O(n) for all approaches
+### Q5: What is the difference between tree depth and tree height?
+
+**Answer:** Depth of a node is the number of edges from the root to that node. Height of a node is the number of edges from that node to the deepest leaf. The height of the tree equals the depth of the deepest node. Some definitions use nodes instead of edges, which adds 1 to all values.
 
 ---
 
 ## Related Problems
 
-Here are similar LeetCode problems that build on tree depth concepts:
-
-| # | Problem | Difficulty | Description |
-|---|---------|------------|-------------|
-| 1 | [Balanced Binary Tree](balanced-binary-tree.md) | Easy | Check if tree is height-balanced (left-right height diff ≤ 1) |
-| 2 | [Diameter of Binary Tree](diameter-of-binary-tree.md) | Easy | Find longest path between any two nodes |
-| 3 | [Minimum Depth of Binary Tree](https://leetcode.com/problems/minimum-depth-of-binary-tree/) | Easy | Find shortest root-to-leaf path |
-| 4 | [Binary Tree Level Order Traversal](binary-tree-level-order-traversal.md) | Medium | Traverse level by level (BFS) |
-| 5 | [Binary Tree Right Side View](binary-tree-right-side-view.md) | Medium | See tree from right side |
-| 6 | [Maximum Depth of N-ary Tree](https://leetcode.com/problems/maximum-depth-of-n-ary-tree/) | Easy | Same problem for N-ary trees |
-| 7 | [Count Nodes with Longest Path](https://leetcode.com/problems/count-nodes-with-the-longest-path/) | Hard | Advanced depth-based counting |
-| 8 | [Tree Diameter](https://leetcode.com/problems/tree-diameter/) | Medium | Diameter in weighted trees |
+- [Minimum Depth of Binary Tree](https://leetcode.com/problems/minimum-depth-of-binary-tree/)
+- [Balanced Binary Tree](https://leetcode.com/problems/balanced-binary-tree/)
+- [Diameter of Binary Tree](https://leetcode.com/problems/diameter-of-binary-tree/)
+- [Same Tree](https://leetcode.com/problems/same-tree/)
+- [Symmetric Tree](https://leetcode.com/problems/symmetric-tree/)
+- [Count Complete Tree Nodes](https://leetcode.com/problems/count-complete-tree-nodes/)
+- [Binary Tree Level Order Traversal](https://leetcode.com/problems/binary-tree-level-order-traversal/)
+- [Maximum Depth of N-ary Tree](https://leetcode.com/problems/maximum-depth-of-n-ary-tree/)
 
 ---
 
-## Video Tutorial Links
+## Video Tutorials
 
-For visual explanations, check these tutorials:
-
-1. **[Maximum Depth of Binary Tree - LeetCode 104](https://www.youtube.com/watch?v=_nnxV_dCBQw)** - NeetCode
-2. **[Binary Tree Maximum Depth - Recursive Solution](https://www.youtube.com/watch?v=oDXZ91a5mpU)** - CodePath
-3. **[Tree Traversal - BFS vs DFS](https://www.youtube.com/watch?v=86CgTejN9i0)** - Grokking the Coding Interview
-4. **[Binary Tree Maximum Depth - Iterative Solution](https://www.youtube.com/watch?v=hTMlh7IOVCk)** - Timus Coding
-5. **[Understanding Tree Height and Depth](https://www.youtube.com/watch?v=q70DDbKH3IM)** - Back to Back SWE
-
----
-
-## Follow-up Questions
-
-### 1. What if we wanted the minimum depth of the binary tree?
-```python
-def minDepth(self, root: Optional[TreeNode]) -> int:
-    if not root:
-        return 0
-    if not root.left:
-        return 1 + self.minDepth(root.right)
-    if not root.right:
-        return 1 + self.minDepth(root.left)
-    return 1 + min(self.minDepth(root.left), self.minDepth(root.right))
-```
-**Key difference:** Must ensure we don't count a leaf as depth if only one child exists.
-
----
-
-### 2. How would you check if a tree is balanced?
-Use the post-order traversal approach where each node returns its height, and -1 if unbalanced:
-```python
-def isBalanced(self, root: Optional[TreeNode]) -> bool:
-    def check(node):
-        if not node:
-            return 0
-        left = check(node.left)
-        if left == -1:
-            return -1
-        right = check(node.right)
-        if right == -1:
-            return -1
-        if abs(left - right) > 1:
-            return -1
-        return max(left, right) + 1
-    return check(root) != -1
-```
-
----
-
-### 3. How would you find the diameter of the tree?
-The diameter is the maximum of:
-- Left subtree diameter
-- Right subtree diameter
-- Longest path through current node (left_height + right_height)
-
----
-
-### 4. Can you solve this iteratively without a stack or queue?
-**Morris Traversal** can achieve O(1) space by temporarily modifying tree pointers:
-```python
-# Advanced - uses threaded binary tree concept
-def maxDepth(self, root):
-    depth = 0
-    current = root
-    while current:
-        if not current.left:
-            current = current.right
-            depth += 1
-        else:
-            # Find predecessor and create thread
-            # Similar to Morris inorder traversal
-            ...
-```
-
----
-
-### 5. How would you calculate depth for an N-ary tree?
-```python
-def maxDepth(self, root: 'Node') -> int:
-    if not root:
-        return 0
-    if not root.children:
-        return 1
-    return 1 + max(self.maxDepth(child) for child in root.children)
-```
-
----
-
-### 6. What if nodes have parent pointers?
-We can use BFS level-order traversal, moving level by level until we hit leaf nodes. The parent pointers help in navigating back up the tree when needed.
-
----
-
-### 7. How would you find all root-to-leaf paths and their depths?
-Use DFS with path tracking:
-```python
-def findPaths(self, root: Optional[TreeNode]) -> List[List[int]]:
-    def dfs(node, path):
-        if not node:
-            results.append(path[:])
-            return
-        path.append(node.val)
-        dfs(node.left, path)
-        dfs(node.right, path)
-        path.pop()
-```
-
----
-
-### 8. How to handle very deep trees without recursion limit issues?
-- Use **iterative BFS/DFS** with explicit stack/queue
-- Increase **Python recursion limit** (not recommended for production)
-- Use **Morris Traversal** for O(1) space
-
----
-
-### 9. What's the difference between height and depth?
-- **Height**: Maximum distance from node to a leaf (max edges to descendant)
-- **Depth**: Distance from root to node (number of edges from root)
-
-For a tree:
-- Root has depth 0, height = tree height
-- Leaf has height 0, depth = its distance from root
-
----
-
-### 10. How would you compute average depth of all nodes?
-```python
-def averageDepth(self, root: Optional[TreeNode]) -> float:
-    total_depth = 0
-    count = 0
-    queue = deque([(root, 0)])
-    
-    while queue:
-        node, depth = queue.popleft()
-        total_depth += depth
-        count += 1
-        if node.left:
-            queue.append((node.left, depth + 1))
-        if node.right:
-            queue.append((node.right, depth + 1))
-    
-    return total_depth / count if count > 0 else 0
-```
-
----
-
-## Common Mistakes to Avoid
-
-### 1. **Empty Tree Handling**
-❌ **Wrong:** Returning None or -1 for empty tree
-✅ **Correct:** Return 0 (depth of empty tree is 0)
-
-### 2. **Confusing Nodes vs Edges**
-❌ **Wrong:** Counting edges instead of nodes
-✅ **Correct:** Tree depth is number of nodes, not edges
-
-### 3. **Wrong Base Case for Minimum Depth**
-❌ **Wrong:** Simply using `1 + min(left, right)`
-✅ **Correct:** Must handle cases where one child is null (not a leaf)
-
-### 4. **Stack Overflow on Deep Trees**
-❌ **Wrong:** Using recursion on very deep (10^4+ nodes) skewed trees
-✅ **Correct:** Use iterative approach for deep trees
-
-### 5. **Forgetting to Track Depth in Iterative DFS**
-❌ **Wrong:** Only pushing nodes to stack without depth
-✅ **Correct:** Push (node, depth) tuples to track current depth
-
-### 6. **Incorrect Level Size in BFS**
-❌ **Wrong:** Using `while queue:` without level size tracking
-✅ **Correct:** Track level size with `len(queue)` for correct depth counting
-
-### 7. **Using Wrong Max Function**
-❌ **Wrong:** `max(left, right)` without adding 1
-✅ **Correct:** `1 + max(left, right)` includes current node
-
-### 8. **Not Handling Both Children**
-❌ **Wrong:** Only checking one child direction
-✅ **Correct:** Always check both `node.left` and `node.right`
-
----
-
-## References
-
-- [LeetCode 104 - Maximum Depth of Binary Tree](https://leetcode.com/problems/maximum-depth-of-binary-tree/)
-- [CLRS Introduction to Algorithms - Chapter 10 (Binary Trees)](https://en.wikipedia.org/wiki/Introduction_to_Algorithms)
-- [Tree Traversals - GeeksforGeeks](https://www.geeksforgeeks.org/tree-traversals-inorder-preorder-and-postorder/)
-- [BFS vs DFS - Interview Cake](https://www.interviewcake.com/concept/java/bfs)
-
+- [Maximum Depth of Binary Tree - LeetCode 104](https://www.youtube.com/watch?v=OnSn2XEQ4yY)
+- [Tree Traversals - Inorder, Preorder, Postorder](https://www.youtube.com/watch?v=gm8DUJJhmY4)
+- [BFS vs DFS for Binary Trees](https://www.youtube.com/watch?v=uWLrFijklUw)
+- [Binary Tree Algorithms - Common Patterns](https://www.youtube.com/watch?v=7jcn63Mh9E0)

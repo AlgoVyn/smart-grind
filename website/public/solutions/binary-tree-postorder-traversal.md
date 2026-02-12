@@ -1,5 +1,13 @@
 # Binary Tree Postorder Traversal
 
+---
+
+## Pattern
+
+This problem is solved using the **[Tree DFS - Recursive Postorder Traversal](/patterns/tree-dfs-recursive-postorder-traversal)** pattern.
+
+---
+
 ## Problem Description
 
 Given the root of a binary tree, return the postorder traversal of its nodes' values.

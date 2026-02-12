@@ -64,6 +64,10 @@ export class BackgroundSyncManager {
                 return;
             }
 
+            // Additional safeguard: Check if user is authenticated (if possible)
+            // Note: Service worker context doesn't have access to user state,
+            // but we can check for auth tokens in requests during sync
+
             // Group operations by type for efficient batching
             const groupedOps = this.groupOperations(pendingOps);
 

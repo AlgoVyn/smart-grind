@@ -74,6 +74,11 @@ async function sendMessageToSW(message: SWMessage): Promise<unknown> {
  * });
  */
 export async function queueOperation(operation: APIOperation): Promise<string | null> {
+    // Only queue operations for signed-in users
+    if (state.user.type !== 'signed-in') {
+        return null;
+    }
+
     if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
         // Fallback: store in localStorage for later sync
         const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
@@ -293,18 +298,20 @@ export async function saveProblemWithSync(
         }
     }
 
-    // Queue operation for background sync
-    const operation: APIOperation = {
-        type: 'MARK_SOLVED',
-        data: {
-            problemId,
-            ...updates,
+    // Only queue operation for background sync if user is signed in
+    if (state.user.type === 'signed-in') {
+        const operation: APIOperation = {
+            type: 'MARK_SOLVED',
+            data: {
+                problemId,
+                ...updates,
+                timestamp: Date.now(),
+            },
             timestamp: Date.now(),
-        },
-        timestamp: Date.now(),
-    };
+        };
 
-    await queueOperation(operation);
+        await queueOperation(operation);
+    }
 }
 
 /**
