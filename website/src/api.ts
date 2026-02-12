@@ -345,6 +345,41 @@ export async function deleteProblemWithSync(problemId: string): Promise<void> {
 }
 
 /**
+ * Migrates operations stored in localStorage to the service worker queue.
+ * This handles the case where operations were queued before the service worker was available.
+ * @returns {Promise<void>}
+ */
+async function migrateLocalStorageOperations(): Promise<void> {
+    const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
+    if (pendingOps.length === 0) return;
+
+    // Check if service worker is now available
+    if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
+        return;
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+    if (!registration.active) {
+        return;
+    }
+
+    try {
+        // Send operations to service worker
+        await sendMessageToSW({
+            type: 'SYNC_OPERATIONS',
+            operations: pendingOps,
+        });
+
+        // Clear localStorage after successful migration
+        localStorage.removeItem('pending-operations');
+
+        console.log(`Migrated ${pendingOps.length} operations from localStorage to service worker`);
+    } catch (error) {
+        console.warn('Failed to migrate localStorage operations:', error);
+    }
+}
+
+/**
  * Initializes offline/online detection and sync status monitoring.
  * Sets up event listeners for network state changes and service worker messages.
  * Automatically triggers sync when connection is restored.
@@ -360,8 +395,10 @@ export function initOfflineDetection(): void {
     const updateOnlineStatus = () => {
         state.setOnlineStatus(navigator.onLine);
         if (navigator.onLine) {
-            // When coming back online, try to sync
-            forceSync().catch(console.error);
+            // When coming back online, first migrate any localStorage operations, then sync
+            migrateLocalStorageOperations()
+                .then(() => forceSync())
+                .catch(console.error);
         }
     };
 

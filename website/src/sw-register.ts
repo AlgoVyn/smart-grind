@@ -330,13 +330,58 @@ export function isOffline(): boolean {
 }
 
 /**
+ * Migrates operations stored in localStorage to the service worker queue.
+ * This handles the case where operations were queued before the service worker was available.
+ * @returns {Promise<void>}
+ */
+async function migrateLocalStorageOperations(): Promise<void> {
+    const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
+    if (pendingOps.length === 0) return;
+
+    // Check if service worker is now available
+    if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
+        return;
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+    if (!registration.active) {
+        return;
+    }
+
+    try {
+        // Send operations to service worker
+        await new Promise((resolve) => {
+            const channel = new MessageChannel();
+            channel.port1.onmessage = (event) => {
+                resolve(event.data);
+            };
+            registration.active?.postMessage(
+                {
+                    type: 'SYNC_OPERATIONS',
+                    operations: pendingOps,
+                },
+                [channel.port2]
+            );
+        });
+
+        // Clear localStorage after successful migration
+        localStorage.removeItem('pending-operations');
+
+        console.log(`Migrated ${pendingOps.length} operations from localStorage to service worker`);
+    } catch (error) {
+        console.warn('Failed to migrate localStorage operations:', error);
+    }
+}
+
+/**
  * Listen for online/offline events
  */
 export function listenForConnectivityChanges(callback: (_online: boolean) => void): () => void {
     const onlineCallback = callback;
-    const handleOnline = () => {
+    const handleOnline = async () => {
         onlineCallback(true);
-        // Trigger sync when coming back online
+        // First migrate any localStorage operations, then trigger sync
+        await migrateLocalStorageOperations();
         syncUserProgress();
     };
 
