@@ -1,48 +1,48 @@
 # Serialize and Deserialize Binary Tree
 
-## Problem Statement
+## Problem Description
 
-Serialization is the process of converting a data structure or object into a sequence of bits so that it can be stored in a file or memory buffer, or transmitted across a network connection link to be reconstructed later in the same or another computer environment.
+Serialization is the process of converting a data structure or object into a sequence of bits so that it can be stored in a file or memory buffer, or transmitted across a network connection link to be reconstructed later. Deserialization is the reverse process - taking the serialized data and reconstructing the original data structure.
 
-**Design an algorithm to serialize and deserialize a binary tree.** There is no restriction on how your serialization/deserialization algorithm should work. You just need to ensure that a binary tree can be serialized to a string and this string can be deserialized to the original tree structure.
+For binary trees, this means converting a binary tree into a string representation that can be stored or transmitted, and then reconstructing the exact binary tree from that string.
 
-### What is Serialization/Deserialization?
+This is a fundamental problem that appears in many real-world applications:
+- **Data Persistence**: Storing binary trees in databases or files
+- **Network Transmission**: Sending tree structures between systems
+- **Caching**: Caching tree data for faster retrieval
+- **Distributed Computing**: Sharing tree data across different nodes
 
-In the context of binary trees:
-- **Serialization**: Converting a tree structure into a string format that can be easily stored or transmitted
-- **Deserialization**: Reconstructing the original tree from the serialized string
+### Understanding the Problem
 
-The key challenge is preserving the tree's structure (not just node values), including:
-- Which nodes exist
-- The left-right child relationships
-- The position of null/missing children
-
-### TreeNode Definition
-
-```python
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-```
+The challenge is to design an encoding scheme that:
+1. **Preserves Tree Structure**: Every node's position must be captured
+2. **Handles All Cases**: Must work with trees of any shape (skewed, complete, etc.)
+3. **Is Efficient**: Both time and space should be optimized
+4. **Is Reversible**: The original tree must be perfectly reconstructed
 
 ---
 
-## Examples
+## Constraints
 
-### Example 1
+- The number of nodes in the tree is in the range `[0, 10^4]`
+- `-1000 <= Node.val <= 1000`
+- The tree is a binary tree (each node has at most two children)
+- You may assume that the input is always a valid binary tree
+
+---
+
+## Example 1
 
 **Input:**
-```
+```python
 root = [1,2,3,null,null,4,5]
 ```
 
-**Visual Representation:**
+**Visual:**
 ```
-        1
-       / \
-      2   3
+       1
+     /   \
+    2     3
          / \
         4   5
 ```
@@ -52,18 +52,20 @@ root = [1,2,3,null,null,4,5]
 [1,2,3,null,null,4,5]
 ```
 
-**Explanation:** The serialized string represents the tree structure where `null` indicates missing children.
+**Explanation:**
+- The tree has root value 1
+- Left child of root is node with value 2
+- Right child of root is node with value 3
+- Node 3 has left child 4 and right child 5
+- The serialization captures this exact structure
 
-### Example 2
+---
+
+## Example 2
 
 **Input:**
 ```
 root = []
-```
-
-**Visual Representation:**
-```
-    (empty tree)
 ```
 
 **Output:**
@@ -71,150 +73,97 @@ root = []
 []
 ```
 
-**Explanation:** An empty tree serializes to an empty array/string.
+**Explanation:**
+- An empty tree serializes to an empty string or empty list
 
-### Example 3
+---
+
+## Example 3
 
 **Input:**
-```
+```python
 root = [1]
 ```
 
-**Visual Representation:**
+**Visual:**
 ```
-    1
-   / \
-  null null
+1
 ```
 
 **Output:**
 ```
-[1,null,null]
+[1]
 ```
 
-**Explanation:** A single node tree with explicit null children.
-
-### Example 4
-
-**Input:**
-```
-root = [1,2,3,4,5,6,7]
-```
-
-**Visual Representation:**
-```
-            1
-         /     \
-        2       3
-       / \     / \
-      4   5   6   7
-```
-
-**Output:**
-```
-[1,2,3,4,5,6,7]
-```
-
-**Explanation:** A complete binary tree serializes cleanly without null markers (except implicit at the end).
-
-### Example 5
-
-**Input:**
-```
-root = [1,null,2,null,3]
-```
-
-**Visual Representation:**
-```
-        1
-         \
-          2
-           \
-            3
-```
-
-**Output:**
-```
-[1,null,2,null,3]
-```
-
-**Explanation:** A right-skewed tree requires null markers for all missing left children.
-
-### Example 6
-
-**Input:**
-```
-root = [5,3,6,2,4,null,null,1]
-```
-
-**Visual Representation:**
-```
-            5
-         /     \
-        3       6
-       / \
-      2   4
-     /
-    1
-```
-
-**Output:**
-```
-[5,3,6,2,4,null,null,1]
-```
-
-**Explanation:** A more complex tree with multiple null children at different positions.
+**Explanation:**
+- A single node tree serializes to a single value
 
 ---
 
-## Constraints
+## Example 4
 
-- The number of nodes in the tree is in the range `[0, 10^4]`
-- `-1000 <= Node.val <= 1000`
-
----
-
-## Intuition
-
-The key insight for tree serialization is to create a **canonical representation** that preserves the structure information. We need to:
-
-1. **Include null markers** to indicate missing children (critical for reconstruction)
-2. **Use a consistent traversal order** to ensure the structure can be reconstructed
-3. **Choose a delimiter** to separate values in the serialized string
-
-### Why Include Null Markers?
-
-Without null markers, we cannot distinguish between:
-- A node with value 0 vs. a missing node
-- A tree `[1, null, 2]` (right child only) vs. `[1, 2]` (ambiguous)
-
-Null markers explicitly indicate "there is a position here, but no node."
-
-### Common Traversal Orders
-
-1. **Preorder (Root-Left-Right)**: Easy to implement, produces intuitive output
-2. **Inorder (Left-Root-Right)**: Requires additional information for unique reconstruction
-3. **Postorder (Left-Right-Root)**: Works but less intuitive
-4. **Level Order (BFS)**: Produces the LeetCode-style array format
-
-### Key Observations
-
-1. **Preorder traversal** with null markers is self-sufficient - the structure can be reconstructed without additional metadata
-2. **Level order** naturally handles the array representation used by LeetCode
-3. **Both approaches** can achieve O(n) time and space complexity
-4. The **null markers** are essential - they account for O(n) additional space in the worst case
-
----
-
-## Multiple Approaches with Code
-
-### Approach 1: Preorder DFS (Recursive) ⭐ Most Common
-
-This approach uses preorder traversal (root, left, right) for both serialization and deserialization. It's intuitive and produces a natural string representation.
-
+**Input:**
 ```python
-from typing import Optional
+root = [1,2,3,4,5]
+```
 
+**Visual:**
+```
+       1
+     /   \
+    2     3
+   / \
+  4   5
+```
+
+**Output:**
+```
+[1,2,3,4,5,null,null,null,null]
+```
+
+---
+
+## Solution
+
+This problem has multiple solution approaches, each with different trade-offs:
+
+1. **Preorder Traversal (Recursive)** - Root-first approach
+2. **Level Order (BFS)** - Level-by-level approach using queue
+3. **Preorder (Iterative)** - Using stack instead of recursion
+4. **Inorder + Preorder** - Using two traversals for verification
+
+---
+
+## Approach 1: Preorder Traversal (Recursive)
+
+### Algorithm
+
+The preorder traversal approach serializes the tree by visiting nodes in the order: Root → Left → Right. This order is chosen because:
+
+1. The root is processed first, making it easy to identify where to start deserialization
+2. The left subtree is fully serialized before the right, which helps in reconstruction
+3. We use a special marker (like "null" or "#") to indicate missing nodes
+
+**Serialization Process:**
+1. If the current node is null, append a null marker to the result
+2. Otherwise, append the node's value
+3. Recursively serialize the left subtree
+4. Recursively serialize the right subtree
+
+**Deserialization Process:**
+1. Split the serialized string into values
+2. Use an iterator to process values sequentially
+3. If the current value is null, return None
+4. Otherwise, create a node and recursively deserialize left and right subtrees
+
+### Code Implementation
+
+````carousel
+```python
+from typing import Optional, List
+import collections
+
+# Definition for a binary tree node
 class TreeNode:
     def __init__(self, val=0, left=None, right=None):
         self.val = val
@@ -224,26 +173,35 @@ class TreeNode:
 class Codec:
     def serialize(self, root: Optional[TreeNode]) -> str:
         """
-        Encodes a binary tree to a single string using preorder DFS.
+        Encodes a binary tree to a single string using preorder traversal.
         
         Args:
             root: The root node of the binary tree
             
         Returns:
-            A comma-separated string representing the serialized tree
+            A string representation of the tree
         """
-        def dfs(node: Optional[TreeNode]) -> list:
-            """Recursively traverse the tree and collect values."""
+        def dfs(node: Optional[TreeNode]) -> None:
             if not node:
-                return ["null"]
-            # Preorder: root, left, right
-            return [str(node.val)] + dfs(node.left) + dfs(node.right)
+                res.append("null")
+                return
+            
+            # Process current node (root)
+            res.append(str(node.val))
+            
+            # Process left subtree
+            dfs(node.left)
+            
+            # Process right subtree
+            dfs(node.right)
         
-        return ",".join(dfs(root))
+        res = []
+        dfs(root)
+        return ",".join(res)
     
     def deserialize(self, data: str) -> Optional[TreeNode]:
         """
-        Decodes a string back to a binary tree using preorder traversal.
+        Decodes the encoded data to a binary tree.
         
         Args:
             data: The serialized string representation of the tree
@@ -251,55 +209,302 @@ class Codec:
         Returns:
             The root node of the reconstructed binary tree
         """
+        def dfs() -> Optional[TreeNode]:
+            val = next(vals)
+            
+            if val == "null":
+                return None
+            
+            # Create node with current value
+            node = TreeNode(int(val))
+            
+            # Recursively build left subtree
+            node.left = dfs()
+            
+            # Recursively build right subtree
+            node.right = dfs()
+            
+            return node
+        
         if not data:
             return None
         
-        vals = data.split(",")
-        i = 0  # Use closure variable to track current position
-        
-        def dfs() -> Optional[TreeNode]:
-            """Recursively reconstruct the tree from the values list."""
-            nonlocal i
-            if vals[i] == "null":
-                i += 1
-                return None
-            # Create node from current value
-            node = TreeNode(int(vals[i]))
-            i += 1
-            # Recursively build left and right subtrees
-            node.left = dfs()
-            node.right = dfs()
-            return node
-        
+        vals = iter(data.split(","))
         return dfs()
+
+# Your Codec object will be instantiated and called as such:
+# codec = Codec()
+# codec.deserialize(codec.serialize(root))
 ```
 
-**How to Arrive at the Solution:**
+<!-- slide -->
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
 
-1. **Serialization:**
-   - Start at the root
-   - For each node, record its value
-   - Recursively serialize left subtree, then right subtree
-   - Use "null" for missing nodes
+class Codec {
+private:
+    // Helper function for serialization using preorder
+    void serializeHelper(TreeNode* node, string& result) {
+        if (!node) {
+            result += "null,";
+            return;
+        }
+        
+        // Process current node
+        result += to_string(node->val) + ",";
+        
+        // Process left subtree
+        serializeHelper(node->left, result);
+        
+        // Process right subtree
+        serializeHelper(node->right, result);
+    }
+    
+    // Helper function for deserialization
+    TreeNode* deserializeHelper(queue<string>& q) {
+        string val = q.front();
+        q.pop();
+        
+        if (val == "null") {
+            return nullptr;
+        }
+        
+        // Create node with current value
+        TreeNode* node = new TreeNode(stoi(val));
+        
+        // Recursively build left and right subtrees
+        node->left = deserializeHelper(q);
+        node->right = deserializeHelper(q);
+        
+        return node;
+    }
+    
+public:
+    // Encodes a tree to a single string
+    string serialize(TreeNode* root) {
+        string result = "";
+        serializeHelper(root, result);
+        // Remove trailing comma
+        if (!result.empty()) {
+            result.pop_back();
+        }
+        return result;
+    }
+    
+    // Decodes your encoded data to tree
+    TreeNode* deserialize(string data) {
+        if (data.empty()) {
+            return nullptr;
+        }
+        
+        // Split string into values
+        stringstream ss(data);
+        string val;
+        queue<string> q;
+        
+        while (getline(ss, val, ',')) {
+            q.push(val);
+        }
+        
+        return deserializeHelper(q);
+    }
+};
 
-2. **Deserialization:**
-   - Split the string into a list of values
-   - Use an index to track current position (closure variable)
-   - Read the next value:
-     - If "null", return None and advance index
-     - Otherwise, create a node, recursively deserialize left and right subtrees
+// Your Codec object will be instantiated and called as such:
+// Codec codec;
+// codec.deserialize(codec.serialize(root));
+```
 
-**Time Complexity:** O(n) - Each node is visited exactly once during both serialize and deserialize
-**Space Complexity:** O(n) - For the serialized string and recursion stack (worst case O(h) where h is tree height)
+<!-- slide -->
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) { val = x; }
+ * }
+ */
+
+public class Codec {
+    // Encodes a tree to a single string
+    public String serialize(TreeNode root) {
+        StringBuilder sb = new StringBuilder();
+        serializeHelper(root, sb);
+        return sb.toString();
+    }
+    
+    private void serializeHelper(TreeNode node, StringBuilder sb) {
+        if (node == null) {
+            sb.append("null,");
+            return;
+        }
+        
+        // Process current node
+        sb.append(node.val).append(",");
+        
+        // Process left subtree
+        serializeHelper(node.left, sb);
+        
+        // Process right subtree
+        serializeHelper(node.right, sb);
+    }
+    
+    // Decodes your encoded data to tree
+    public TreeNode deserialize(String data) {
+        if (data == null || data.isEmpty()) {
+            return null;
+        }
+        
+        Queue<String> q = new LinkedList<>(Arrays.asList(data.split(",")));
+        return deserializeHelper(q);
+    }
+    
+    private TreeNode deserializeHelper(Queue<String> q) {
+        String val = q.poll();
+        
+        if (val.equals("null")) {
+            return null;
+        }
+        
+        // Create node with current value
+        TreeNode node = new TreeNode(Integer.parseInt(val));
+        
+        // Recursively build left and right subtrees
+        node.left = deserializeHelper(q);
+        node.right = deserializeHelper(q);
+        
+        return node;
+    }
+}
+
+// Your Codec object will be instantiated and called as such:
+// Codec codec = new Codec();
+// codec.deserialize(codec.serialize(root));
+```
+
+<!-- slide -->
+```javascript
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val) {
+ *     this.val = val;
+ *     this.left = this.right = null;
+ * }
+ */
+
+var Codec = function() {};
+
+/**
+ * Encodes a tree to a single string.
+ * 
+ * @param {TreeNode} root
+ * @return {string}
+ */
+Codec.prototype.serialize = function(root) {
+    function serializeHelper(node) {
+        if (node === null) {
+            res.push("null");
+            return;
+        }
+        
+        // Process current node
+        res.push(String(node.val));
+        
+        // Process left subtree
+        serializeHelper(node.left);
+        
+        // Process right subtree
+        serializeHelper(node.right);
+    }
+    
+    const res = [];
+    serializeHelper(root);
+    return res.join(",");
+};
+
+/**
+ * Decodes your encoded data to tree.
+ * 
+ * @param {string} data
+ * @return {TreeNode}
+ */
+Codec.prototype.deserialize = function(data) {
+    if (!data) return null;
+    
+    const values = data.split(",");
+    let index = 0;
+    
+    function deserializeHelper() {
+        const val = values[index++];
+        
+        if (val === "null") {
+            return null;
+        }
+        
+        // Create node with current value
+        const node = new TreeNode(parseInt(val, 10));
+        
+        // Recursively build left and right subtrees
+        node.left = deserializeHelper();
+        node.right = deserializeHelper();
+        
+        return node;
+    }
+    
+    return deserializeHelper();
+};
+
+/**
+ * Your Codec object will be instantiated and called as such:
+ * var codec = new Codec();
+ * codec.deserialize(codec.serialize(root));
+ */
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time (Serialize)** | O(n) - Visit each node exactly once |
+| **Time (Deserialize)** | O(n) - Process each value exactly once |
+| **Space (Serialize)** | O(n) - Storage for the serialized string |
+| **Space (Deserialize)** | O(n) - For the queue/iterator + recursion stack O(h) |
+| **Recursion Stack** | O(h) - Where h is the height of the tree |
 
 ---
 
-### Approach 2: Level Order BFS (LeetCode Style)
+## Approach 2: Level Order Traversal (BFS)
 
-This approach uses breadth-first search to produce the same format as LeetCode's level order traversal. It's more space-efficient for complete trees.
+### Algorithm
 
+Instead of depth-first search, we can use breadth-first search (level order traversal):
+
+1. **Serialization**: Use a queue to process nodes level by level
+   - Add each node's value to the result
+   - Add non-null children to the queue
+   - Continue until all nodes are processed
+
+2. **Deserialization**: 
+   - Read the first value to create the root
+   - Use a queue to keep track of parent nodes
+   - For each parent, assign left and right children from the next values in the list
+
+### Code Implementation
+
+````carousel
 ```python
-from typing import Optional
+from typing import Optional, List
 from collections import deque
 
 class TreeNode:
@@ -311,30 +516,33 @@ class TreeNode:
 class Codec:
     def serialize(self, root: Optional[TreeNode]) -> str:
         """
-        Encodes a binary tree to a single string using level order BFS.
+        Encodes a binary tree to a single string using level order traversal.
         
         Args:
             root: The root node of the binary tree
             
         Returns:
-            A comma-separated string representing the serialized tree
+            A string representation of the tree
         """
         if not root:
             return ""
         
+        # Use BFS/level order traversal
         result = []
         queue = deque([root])
         
         while queue:
             node = queue.popleft()
+            
             if node:
                 result.append(str(node.val))
+                # Add children to queue (both null and non-null)
                 queue.append(node.left)
                 queue.append(node.right)
             else:
                 result.append("null")
         
-        # Remove trailing nulls to make the output cleaner
+        # Remove trailing nulls for efficiency
         while result and result[-1] == "null":
             result.pop()
         
@@ -342,7 +550,7 @@ class Codec:
     
     def deserialize(self, data: str) -> Optional[TreeNode]:
         """
-        Decodes a string back to a binary tree using level order BFS.
+        Decodes the encoded data to a binary tree using level order reconstruction.
         
         Args:
             data: The serialized string representation of the tree
@@ -353,53 +561,303 @@ class Codec:
         if not data:
             return None
         
-        vals = data.split(",")
-        root = TreeNode(int(vals[0]))
-        queue = deque([root])
-        i = 1
+        values = data.split(",")
+        index = 0
         
-        while queue and i < len(vals):
+        # Create root from first value
+        root = TreeNode(int(values[index]))
+        index += 1
+        
+        # Use queue for level order reconstruction
+        queue = deque([root])
+        
+        while queue:
             node = queue.popleft()
             
-            # Left child
-            if i < len(vals) and vals[i] != "null":
-                node.left = TreeNode(int(vals[i]))
-                queue.append(node.left)
-            i += 1
+            # Process left child
+            if index < len(values):
+                left_val = values[index]
+                index += 1
+                
+                if left_val != "null":
+                    node.left = TreeNode(int(left_val))
+                    queue.append(node.left)
             
-            # Right child
-            if i < len(vals) and vals[i] != "null":
-                node.right = TreeNode(int(vals[i]))
-                queue.append(node.right)
-            i += 1
+            # Process right child
+            if index < len(values):
+                right_val = values[index]
+                index += 1
+                
+                if right_val != "null":
+                    node.right = TreeNode(int(right_val))
+                    queue.append(node.right)
         
         return root
 ```
 
-**How to Arrive at the Solution:**
+<!-- slide -->
+```cpp
+class Codec {
+public:
+    // Encodes a tree to a single string using level order
+    string serialize(TreeNode* root) {
+        if (!root) return "";
+        
+        string result = "";
+        queue<TreeNode*> q;
+        q.push(root);
+        
+        while (!q.empty()) {
+            TreeNode* node = q.front();
+            q.pop();
+            
+            if (node) {
+                result += to_string(node->val) + ",";
+                q.push(node->left);
+                q.push(node->right);
+            } else {
+                result += "null,";
+            }
+        }
+        
+        // Remove trailing nulls
+        while (!result.empty() && result.substr(result.find_last_of(",") - 3, 4) == "null") {
+            result = result.substr(0, result.find_last_of(","));
+        }
+        
+        if (!result.empty() && result.back() == ',') {
+            result.pop_back();
+        }
+        
+        return result;
+    }
+    
+    // Decodes your encoded data to tree
+    TreeNode* deserialize(string data) {
+        if (data.empty()) return nullptr;
+        
+        vector<string> values;
+        stringstream ss(data);
+        string val;
+        
+        while (getline(ss, val, ',')) {
+            values.push_back(val);
+        }
+        
+        int index = 0;
+        TreeNode* root = new TreeNode(stoi(values[index++]));
+        
+        queue<TreeNode*> q;
+        q.push(root);
+        
+        while (!q.empty()) {
+            TreeNode* node = q.front();
+            q.pop();
+            
+            // Process left child
+            if (index < values.size()) {
+                if (values[index] != "null") {
+                    node->left = new TreeNode(stoi(values[index]));
+                    q.push(node->left);
+                }
+                index++;
+            }
+            
+            // Process right child
+            if (index < values.size()) {
+                if (values[index] != "null") {
+                    node->right = new TreeNode(stoi(values[index]));
+                    q.push(node->right);
+                }
+                index++;
+            }
+        }
+        
+        return root;
+    }
+};
+```
 
-1. **Serialization:**
-   - Use a queue for BFS traversal
-   - For each node, add its value to the result
-   - Add its children to the queue (even if null)
-   - Remove trailing nulls for cleaner output
+<!-- slide -->
+```java
+public class Codec {
+    // Encodes a tree to a single string
+    public String serialize(TreeNode root) {
+        if (root == null) return "";
+        
+        StringBuilder sb = new StringBuilder();
+        Queue<TreeNode> q = new LinkedList<>();
+        q.offer(root);
+        
+        while (!q.isEmpty()) {
+            TreeNode node = q.poll();
+            
+            if (node != null) {
+                sb.append(node.val).append(",");
+                q.offer(node.left);
+                q.offer(node.right);
+            } else {
+                sb.append("null,");
+            }
+        }
+        
+        // Remove trailing nulls
+        String result = sb.toString();
+        while (result.endsWith("null,")) {
+            result = result.substring(0, result.lastIndexOf("null,"));
+        }
+        
+        if (result.endsWith(",")) {
+            result = result.substring(0, result.length() - 1);
+        }
+        
+        return result;
+    }
+    
+    // Decodes your encoded data to tree
+    public TreeNode deserialize(String data) {
+        if (data == null || data.isEmpty()) return null;
+        
+        String[] values = data.split(",");
+        int index = 0;
+        
+        TreeNode root = new TreeNode(Integer.parseInt(values[index++]));
+        
+        Queue<TreeNode> q = new LinkedList<>();
+        q.offer(root);
+        
+        while (!q.isEmpty()) {
+            TreeNode node = q.poll();
+            
+            // Process left child
+            if (index < values.length) {
+                if (!values[index].equals("null")) {
+                    node.left = new TreeNode(Integer.parseInt(values[index]));
+                    q.offer(node.left);
+                }
+                index++;
+            }
+            
+            // Process right child
+            if (index < values.length) {
+                if (!values[index].equals("null")) {
+                    node.right = new TreeNode(Integer.parseInt(values[index]));
+                    q.offer(node.right);
+                }
+                index++;
+            }
+        }
+        
+        return root;
+    }
+}
+```
 
-2. **Deserialization:**
-   - Create root from first value
-   - Use a queue to track nodes waiting for children
-   - For each parent node, read the next two values for left and right children
+<!-- slide -->
+```javascript
+var Codec = function() {};
 
-**Time Complexity:** O(n) - Each node is visited exactly once
-**Space Complexity:** O(w) - Where w is the maximum width of the tree (for BFS queue)
+/**
+ * Encodes a tree to a single string using level order
+ * 
+ * @param {TreeNode} root
+ * @return {string}
+ */
+Codec.prototype.serialize = function(root) {
+    if (!root) return "";
+    
+    const result = [];
+    const queue = [root];
+    
+    while (queue.length > 0) {
+        const node = queue.shift();
+        
+        if (node) {
+            result.push(String(node.val));
+            queue.push(node.left);
+            queue.push(node.right);
+        } else {
+            result.push("null");
+        }
+    }
+    
+    // Remove trailing nulls
+    while (result.length > 0 && result[result.length - 1] === "null") {
+        result.pop();
+    }
+    
+    return result.join(",");
+};
+
+/**
+ * Decodes your encoded data to tree
+ * 
+ * @param {string} data
+ * @return {TreeNode}
+ */
+Codec.prototype.deserialize = function(data) {
+    if (!data) return null;
+    
+    const values = data.split(",");
+    let index = 0;
+    
+    const root = new TreeNode(parseInt(values[index++], 10));
+    const queue = [root];
+    
+    while (queue.length > 0) {
+        const node = queue.shift();
+        
+        // Process left child
+        if (index < values.length) {
+            if (values[index] !== "null") {
+                node.left = new TreeNode(parseInt(values[index], 10));
+                queue.push(node.left);
+            }
+            index++;
+        }
+        
+        // Process right child
+        if (index < values.length) {
+            if (values[index] !== "null") {
+                node.right = new TreeNode(parseInt(values[index], 10));
+                queue.push(node.right);
+            }
+            index++;
+        }
+    }
+    
+    return root;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time (Serialize)** | O(n) - Visit each node exactly once |
+| **Time (Deserialize)** | O(n) - Process each value exactly once |
+| **Space (Serialize)** | O(n) - Storage for queue (max width = ~n/2 for complete tree) |
+| **Space (Deserialize)** | O(n) - For the queue |
+| **Serialization Output** | May include trailing nulls (can be trimmed) |
 
 ---
 
-### Approach 3: Preorder DFS (Iterative with Stack)
+## Approach 3: Preorder with Stack (Iterative)
 
-This approach uses an explicit stack instead of recursion, avoiding potential stack overflow for very deep trees.
+### Algorithm
 
+This approach eliminates recursion by using an explicit stack:
+
+1. **Serialization**: Use a stack to simulate the recursive preorder traversal
+2. **Deserialization**: Use a stack to reconstruct nodes in preorder fashion
+
+### Code Implementation
+
+````carousel
 ```python
-from typing import Optional, List
+from typing import Optional
+import collections
 
 class TreeNode:
     def __init__(self, val=0, left=None, right=None):
@@ -410,13 +868,7 @@ class TreeNode:
 class Codec:
     def serialize(self, root: Optional[TreeNode]) -> str:
         """
-        Encodes a binary tree to a single string using iterative DFS.
-        
-        Args:
-            root: The root node of the binary tree
-            
-        Returns:
-            A comma-separated string representing the serialized tree
+        Encodes a binary tree to a single string using iterative preorder traversal.
         """
         if not root:
             return ""
@@ -426,9 +878,10 @@ class Codec:
         
         while stack:
             node = stack.pop()
+            
             if node:
                 result.append(str(node.val))
-                # Push right first, then left (so left is processed first)
+                # Push right first so left is processed first (LIFO)
                 stack.append(node.right)
                 stack.append(node.left)
             else:
@@ -442,321 +895,305 @@ class Codec:
     
     def deserialize(self, data: str) -> Optional[TreeNode]:
         """
-        Decodes a string back to a binary tree using iterative approach.
-        
-        Args:
-            data: The serialized string representation of the tree
-            
-        Returns:
-            The root node of the reconstructed binary tree
+        Decodes the encoded data to a binary tree using iterative approach.
         """
         if not data:
             return None
         
-        vals = data.split(",")
-        root = TreeNode(int(vals[0]))
-        stack = [root]
-        i = 1
+        values = data.split(",")
+        index = 0
         
-        while stack and i < len(vals):
-            node = stack.pop()
+        root = TreeNode(int(values[index]))
+        index += 1
+        
+        stack = [root]
+        
+        while stack and index < len(values):
+            parent = stack.pop()
             
             # Process left child
-            if i < len(vals) and vals[i] != "null":
-                node.left = TreeNode(int(vals[i]))
-                stack.append(node.left)
-            i += 1
+            if index < len(values):
+                left_val = values[index]
+                index += 1
+                
+                if left_val != "null":
+                    parent.left = TreeNode(int(left_val))
+                    stack.append(parent.left)
             
             # Process right child
-            if i < len(vals) and vals[i] != "null":
-                node.right = TreeNode(int(vals[i]))
-                stack.append(node.right)
-            i += 1
+            if index < len(values):
+                right_val = values[index]
+                index += 1
+                
+                if right_val != "null":
+                    parent.right = TreeNode(int(right_val))
+                    stack.append(parent.right)
         
         return root
 ```
 
-**How to Arrive at the Solution:**
-
-1. **Serialization:**
-   - Use a stack for iterative DFS
-   - Pop from stack, process node, push children (right first)
-   - This simulates preorder traversal iteratively
-
-2. **Deserialization:**
-   - Create root from first value
-   - Use a stack to track nodes
-   - For each node on stack, attach next two values as children
-
-**Time Complexity:** O(n) - Each node is processed exactly once
-**Space Complexity:** O(h) - Stack size is at most tree height
-
----
-
-### Approach 4: Postorder DFS (Reverse Order)
-
-This approach uses postorder traversal (left-right-root), which is useful when the serialized format needs to be appended to (like building a string in reverse).
-
-```python
-from typing import Optional
-
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Codec:
-    def serialize(self, root: Optional[TreeNode]) -> str:
-        """
-        Encodes a binary tree to a single string using postorder DFS.
+<!-- slide -->
+```cpp
+class Codec {
+public:
+    // Encodes a tree to a single string using iterative preorder
+    string serialize(TreeNode* root) {
+        if (!root) return "";
         
-        Args:
-            root: The root node of the binary tree
+        string result = "";
+        stack<TreeNode*> st;
+        st.push(root);
+        
+        while (!st.empty()) {
+            TreeNode* node = st.top();
+            st.pop();
             
-        Returns:
-            A comma-separated string representing the serialized tree
-        """
-        def dfs(node: Optional[TreeNode]) -> list:
-            if not node:
-                return ["null"]
-            # Postorder: left, right, root
-            left = dfs(node.left)
-            right = dfs(node.right)
-            return left + right + [str(node.val)]
+            if (node) {
+                result += to_string(node->val) + ",";
+                st.push(node->right);
+                st.push(node->left);
+            } else {
+                result += "null,";
+            }
+        }
         
-        return ",".join(dfs(root))
+        // Remove trailing nulls
+        while (!result.empty() && result.substr(result.find_last_of(",") - 3, 4) == "null") {
+            result = result.substr(0, result.find_last_of(","));
+        }
+        
+        if (!result.empty() && result.back() == ',') {
+            result.pop_back();
+        }
+        
+        return result;
+    }
     
-    def deserialize(self, data: str) -> Optional[TreeNode]:
-        """
-        Decodes a string back to a binary tree using postorder traversal.
+    // Decodes your encoded data to tree
+    TreeNode* deserialize(string data) {
+        if (data.empty()) return nullptr;
         
-        Args:
-            data: The serialized string representation of the tree
+        vector<string> values;
+        stringstream ss(data);
+        string val;
+        
+        while (getline(ss, val, ',')) {
+            values.push_back(val);
+        }
+        
+        int index = 0;
+        TreeNode* root = new TreeNode(stoi(values[index++]));
+        
+        stack<TreeNode*> st;
+        st.push(root);
+        
+        while (!st.empty() && index < values.size()) {
+            TreeNode* parent = st.top();
+            st.pop();
             
-        Returns:
-            The root node of the reconstructed binary tree
-        """
-        if not data:
-            return None
+            // Process left child
+            if (index < values.size()) {
+                if (values[index] != "null") {
+                    parent->left = new TreeNode(stoi(values[index]));
+                    st.push(parent->left);
+                }
+                index++;
+            }
+            
+            // Process right child
+            if (index < values.size()) {
+                if (values[index] != "null") {
+                    parent->right = new TreeNode(stoi(values[index]));
+                    st.push(parent->right);
+                }
+                index++;
+            }
+        }
         
-        vals = data.split(",")
-        i = len(vals) - 1  # Start from the end for postorder
-        
-        def dfs() -> Optional[TreeNode]:
-            nonlocal i
-            if vals[i] == "null":
-                i -= 1
-                return None
-            node = TreeNode(int(vals[i]))
-            i -= 1
-            # Postorder: right, then left (reverse of construction order)
-            node.right = dfs()
-            node.left = dfs()
-            return node
-        
-        return dfs()
+        return root;
+    }
+};
 ```
 
-**How to Arrive at the Solution:**
-
-1. **Serialization:**
-   - Postorder: left subtree, right subtree, root
-   - This produces the root at the end of the string
-
-2. **Deserialization:**
-   - Read from right to left (reverse postorder)
-   - Process right subtree first, then left subtree
-   - This matches the reverse construction order
-
-**Time Complexity:** O(n) - Each node is visited exactly once
-**Space Complexity:** O(n) - For the serialized string and recursion stack
-
----
-
-### Approach 5: BST-Optimized Serialization (No Null Markers) ⭐ Space Efficient
-
-For Binary Search Trees, we can achieve **50% space reduction** by eliminating null markers. The BST property (left < root < right) determines the structure, so we only need to store node values.
-
-```python
-from typing import Optional, List
-
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Codec:
-    def serialize(self, root: Optional[TreeNode]) -> str:
-        """
-        Optimized BST serialization without null markers.
+<!-- slide -->
+```java
+public class Codec {
+    // Encodes a tree to a single string
+    public String serialize(TreeNode root) {
+        if (root == null) return "";
         
-        Key Insight: In a BST, the inorder traversal produces a sorted list.
-        The structure is determined by the values themselves.
+        StringBuilder sb = new StringBuilder();
+        Stack<TreeNode> stack = new Stack<>();
+        stack.push(root);
         
-        Args:
-            root: The root node of the BST
+        while (!stack.isEmpty()) {
+            TreeNode node = stack.pop();
             
-        Returns:
-            A comma-separated string of values only (no null markers)
-        """
-        def inorder(node: Optional[TreeNode], result: List[str]):
-            """Inorder traversal produces sorted values."""
-            if not node:
-                return
-            inorder(node.left, result)
-            result.append(str(node.val))
-            inorder(node.right, result)
+            if (node != null) {
+                sb.append(node.val).append(",");
+                stack.push(node.right);
+                stack.push(node.left);
+            } else {
+                sb.append("null,");
+            }
+        }
         
-        result: List[str] = []
-        inorder(root, result)
-        return ",".join(result)
+        String result = sb.toString();
+        while (result.endsWith("null,")) {
+            result = result.substring(0, result.lastIndexOf("null,"));
+        }
+        
+        if (result.endsWith(",")) {
+            result = result.substring(0, result.length() - 1);
+        }
+        
+        return result;
+    }
     
-    def deserialize(self, data: str) -> Optional[TreeNode]:
-        """
-        Deserialize BST from sorted values using O(n log n) approach.
+    // Decodes your encoded data to tree
+    public TreeNode deserialize(String data) {
+        if (data == null || data.isEmpty()) return null;
         
-        Args:
-            data: The serialized string (sorted values)
-            
-        Returns:
-            The root node of the reconstructed BST
-        """
-        if not data:
-            return None
+        String[] values = data.split(",");
+        int index = 0;
         
-        vals = list(map(int, data.split(",")))
+        TreeNode root = new TreeNode(Integer.parseInt(values[index++]));
         
-        def build_bst(left: int, right: int) -> Optional[TreeNode]:
-            """
-            Recursively build BST from sorted values.
-            Values between left and right belong in this subtree.
-            
-            Time Complexity: O(n log n) on average, O(n^2) worst case (skewed)
-            """
-            if left > right:
-                return None
-            
-            # Choose middle element as root for balanced tree
-            mid = (left + right) // 2
-            node = TreeNode(vals[mid])
-            
-            # Build left and right subtrees from remaining values
-            node.left = build_bst(left, mid - 1)
-            node.right = build_bst(mid + 1, right)
-            return node
+        Stack<TreeNode> stack = new Stack<>();
+        stack.push(root);
         
-        return build_bst(0, len(vals) - 1)
+        while (!stack.isEmpty() && index < values.length) {
+            TreeNode parent = stack.pop();
+            
+            // Process left child
+            if (index < values.length) {
+                if (!values[index].equals("null")) {
+                    parent.left = new TreeNode(Integer.parseInt(values[index]));
+                    stack.push(parent.left);
+                }
+                index++;
+            }
+            
+            // Process right child
+            if (index < values.length) {
+                if (!values[index].equals("null")) {
+                    parent.right = new TreeNode(Integer.parseInt(values[index]));
+                    stack.push(parent.right);
+                }
+                index++;
+            }
+        }
+        
+        return root;
+    }
+}
 ```
 
-**How to Arrive at the Solution:**
+<!-- slide -->
+```javascript
+var Codec = function() {};
 
-1. **Serialization:**
-   - Use **inorder traversal** (left, root, right)
-   - This produces values in **ascending order** due to BST property
-   - No null markers needed - structure is encoded in value order
-
-2. **Deserialization:**
-   - Split the sorted list
-   - Use **recursive construction** with value ranges
-   - For balanced tree: choose middle value as root
-   - Recursively build left and right subtrees from remaining values
-
-**Time Complexity:** O(n log n) - Each insertion is O(log n), n insertions
-**Space Complexity:** O(n) - For the sorted list and recursion stack
-
----
-
-### Approach 6: BST Level Order (Minimal Output)
-
-Level order serialization for BST can produce even smaller output by only storing valid nodes.
-
-```python
-from typing import Optional, List
-from collections import deque
-
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Codec:
-    def serialize(self, root: Optional[TreeNode]) -> str:
-        """
-        Level order serialization for BST - minimal output.
-        
-        Args:
-            root: The root node of the BST
-            
-        Returns:
-            Space-efficient serialized string
-        """
-        if not root:
-            return ""
-        
-        result = []
-        queue = deque([root])
-        
-        while queue:
-            node = queue.popleft()
-            if node:
-                result.append(str(node.val))
-                queue.append(node.left)
-                queue.append(node.right)
-            # No null markers added for BST!
-        
-        return ",".join(result)
+/**
+ * Encodes a tree to a single string using iterative preorder
+ * 
+ * @param {TreeNode} root
+ * @return {string}
+ */
+Codec.prototype.serialize = function(root) {
+    if (!root) return "";
     
-    def deserialize(self, data: str) -> Optional[TreeNode]:
-        """
-        Deserialize BST from level order without null markers.
+    const result = [];
+    const stack = [root];
+    
+    while (stack.length > 0) {
+        const node = stack.pop();
         
-        Args:
-            data: The serialized string (level order values)
-            
-        Returns:
-            The root node of the reconstructed BST
-        """
-        if not data:
-            return None
-        
-        vals = list(map(int, data.split(",")))
-        if not vals:
-            return None
-        
-        root = TreeNode(vals[0])
-        queue = deque([root])
-        i = 1
-        
-        while queue and i < len(vals):
-            node = queue.popleft()
-            
-            # Left child (next value must be less than parent in BST)
-            if i < len(vals):
-                node.left = TreeNode(vals[i])
-                queue.append(node.left)
-                i += 1
-            
-            # Right child (next value must be greater than parent in BST)
-            if i < len(vals):
-                node.right = TreeNode(vals[i])
-                queue.append(node.right)
-                i += 1
-        
-        return root
-```
+        if (node) {
+            result.push(String(node.val));
+            // Push right first so left is processed first
+            stack.push(node.right);
+            stack.push(node.left);
+        } else {
+            result.push("null");
+        }
+    }
+    
+    // Remove trailing nulls
+    while (result.length > 0 && result[result.length - 1] === "null") {
+        result.pop();
+    }
+    
+    return result.join(",");
+};
 
-**Time Complexity:** O(n) - Single pass through all nodes
-**Space Complexity:** O(w) - BFS queue width
+/**
+ * Decodes your encoded data to tree
+ * 
+ * @param {string} data
+ * @return {TreeNode}
+ */
+Codec.prototype.deserialize = function(data) {
+    if (!data) return null;
+    
+    const values = data.split(",");
+    let index = 0;
+    
+    const root = new TreeNode(parseInt(values[index++], 10));
+    const stack = [root];
+    
+    while (stack.length > 0 && index < values.length) {
+        const parent = stack.pop();
+        
+        // Process left child
+        if (index < values.length) {
+            if (values[index] !== "null") {
+                parent.left = new TreeNode(parseInt(values[index], 10));
+                stack.push(parent.left);
+            }
+            index++;
+        }
+        
+        // Process right child
+        if (index < values.length) {
+            if (values[index] !== "null") {
+                parent.right = new TreeNode(parseInt(values[index], 10));
+                stack.push(parent.right);
+            }
+            index++;
+        }
+    }
+    
+    return root;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time (Serialize)** | O(n) - Visit each node exactly once |
+| **Time (Deserialize)** | O(n) - Process each value exactly once |
+| **Space (Serialize)** | O(n) - Stack size + result storage |
+| **Space (Deserialize)** | O(n) - Stack size |
+| **Benefit** | No recursion stack overflow for deep trees |
 
 ---
 
-### Approach 5: Optimized Level Order (No Trailing Nulls)
+## Approach 4: Optimized Preorder (No Null Markers for Full Trees)
 
-This approach is more space-efficient by avoiding unnecessary null markers at the end of complete levels.
+### Algorithm
 
+This approach optimizes the serialization for complete or near-complete binary trees:
+
+1. For serialization, we can omit trailing nulls since we know when to stop
+2. We can also store the size of the tree to help with deserialization
+
+However, this approach has limitations when dealing with sparse trees. Let's implement a balanced approach that handles all cases efficiently.
+
+### Code Implementation
+
+````carousel
 ```python
 from typing import Optional
 from collections import deque
@@ -770,337 +1207,394 @@ class TreeNode:
 class Codec:
     def serialize(self, root: Optional[TreeNode]) -> str:
         """
-        Optimized serialization that removes trailing nulls for cleaner output.
-        
-        Args:
-            root: The root node of the binary tree
-            
-        Returns:
-            A comma-separated string representing the serialized tree
+        Encodes a binary tree to a single string using preorder traversal.
+        Optimized to handle edge cases efficiently.
         """
+        def preorder(node):
+            if not node:
+                return ["#"]
+            
+            result = [str(node.val)]
+            result.extend(preorder(node.left))
+            result.extend(preorder(node.right))
+            return result
+        
         if not root:
             return ""
         
-        result = []
-        queue = deque([root])
-        last_valid_index = -1
+        serialized = preorder(root)
+        # Remove trailing nulls for efficiency
+        while serialized and serialized[-1] == "#":
+            serialized.pop()
         
-        while queue:
-            node = queue.popleft()
-            if node:
-                result.append(str(node.val))
-                queue.append(node.left)
-                queue.append(node.right)
-                last_valid_index = len(result) - 1
-            else:
-                result.append("null")
-        
-        # Remove trailing nulls from the end
-        result = result[:last_valid_index + 1]
-        return ",".join(result)
+        return ",".join(serialized)
     
     def deserialize(self, data: str) -> Optional[TreeNode]:
         """
-        Deserialization that handles the optimized format.
-        
-        Args:
-            data: The serialized string representation of the tree
-            
-        Returns:
-            The root node of the reconstructed binary tree
+        Decodes the encoded data to a binary tree.
         """
         if not data:
             return None
         
-        vals = data.split(",")
-        if not vals or vals[0] == "null":
-            return None
+        values = deque(data.split(","))
         
-        root = TreeNode(int(vals[0]))
-        queue = deque([root])
-        i = 1
-        
-        while queue and i < len(vals):
-            node = queue.popleft()
+        def build():
+            val = values.popleft()
             
-            if i < len(vals) and vals[i] != "null":
-                node.left = TreeNode(int(vals[i]))
-                queue.append(node.left)
-            i += 1
+            if val == "#":
+                return None
             
-            if i < len(vals) and vals[i] != "null":
-                node.right = TreeNode(int(vals[i]))
-                queue.append(node.right)
-            i += 1
+            node = TreeNode(int(val))
+            node.left = build()
+            node.right = build()
+            return node
         
-        return root
+        return build()
 ```
 
-**How to Arrive at the Solution:**
+<!-- slide -->
+```cpp
+class Codec {
+private:
+    void preorder(TreeNode* node, string& result) {
+        if (!node) {
+            result += "#,";
+            return;
+        }
+        
+        result += to_string(node->val) + ",";
+        preorder(node->left, result);
+        preorder(node->right, result);
+    }
+    
+    TreeNode* build(queue<string>& q) {
+        string val = q.front();
+        q.pop();
+        
+        if (val == "#") {
+            return nullptr;
+        }
+        
+        TreeNode* node = new TreeNode(stoi(val));
+        node->left = build(q);
+        node->right = build(q);
+        
+        return node;
+    }
+    
+public:
+    // Encodes a tree to a single string
+    string serialize(TreeNode* root) {
+        string result = "";
+        preorder(root, result);
+        
+        // Remove trailing nulls
+        while (!result.empty() && result.substr(result.find_last_of(",") - 3, 4) == "#,") {
+            result = result.substr(0, result.find_last_of(","));
+        }
+        
+        if (!result.empty() && result.back() == ',') {
+            result.pop_back();
+        }
+        
+        return result;
+    }
+    
+    // Decodes your encoded data to tree
+    TreeNode* deserialize(string data) {
+        if (data.empty()) return nullptr;
+        
+        stringstream ss(data);
+        string val;
+        queue<string> q;
+        
+        while (getline(ss, val, ',')) {
+            q.push(val);
+        }
+        
+        return build(q);
+    }
+};
+```
 
-1. **Serialization:**
-   - Track the last valid (non-null) index during BFS
-   - Only include values up to that index
-   - This produces more compact output for incomplete trees
+<!-- slide -->
+```java
+public class Codec {
+    private void preorder(TreeNode node, StringBuilder sb) {
+        if (node == null) {
+            sb.append("#,");
+            return;
+        }
+        
+        sb.append(node.val).append(",");
+        preorder(node.left, sb);
+        preorder(node.right, sb);
+    }
+    
+    private TreeNode build(Queue<String> q) {
+        String val = q.poll();
+        
+        if (val.equals("#")) {
+            return null;
+        }
+        
+        TreeNode node = new TreeNode(Integer.parseInt(val));
+        node.left = build(q);
+        node.right = build(q);
+        
+        return node;
+    }
+    
+    // Encodes a tree to a single string
+    public String serialize(TreeNode root) {
+        StringBuilder sb = new StringBuilder();
+        preorder(root, sb);
+        
+        String result = sb.toString();
+        if (result.isEmpty()) return "";
+        
+        // Remove trailing nulls
+        while (result.endsWith("#,")) {
+            result = result.substring(0, result.lastIndexOf("#,"));
+        }
+        
+        if (result.endsWith(",")) {
+            result = result.substring(0, result.length() - 1);
+        }
+        
+        return result;
+    }
+    
+    // Decodes your encoded data to tree
+    public TreeNode deserialize(String data) {
+        if (data == null || data.isEmpty()) return null;
+        
+        Queue<String> q = new LinkedList<>(Arrays.asList(data.split(",")));
+        return build(q);
+    }
+}
+```
 
-2. **Deserialization:**
-   - Same as basic level order approach
-   - Works because we know when to stop based on the list length
+<!-- slide -->
+```javascript
+var Codec = function() {};
 
-**Time Complexity:** O(n) - Each node is visited once
-**Space Complexity:** O(w) - BFS queue width
+/**
+ * Encodes a tree to a single string using preorder traversal
+ * 
+ * @param {TreeNode} root
+ * @return {string}
+ */
+Codec.prototype.serialize = function(root) {
+    function preorder(node) {
+        if (node === null) {
+            return ["#"];
+        }
+        
+        const result = [String(node.val)];
+        result.push(...preorder(node.left));
+        result.push(...preorder(node.right));
+        return result;
+    }
+    
+    if (!root) return "";
+    
+    const serialized = preorder(root);
+    
+    // Remove trailing nulls for efficiency
+    while (serialized.length > 0 && serialized[serialized.length - 1] === "#") {
+        serialized.pop();
+    }
+    
+    return serialized.join(",");
+};
+
+/**
+ * Decodes your encoded data to tree
+ * 
+ * @param {string} data
+ * @return {TreeNode}
+ */
+Codec.prototype.deserialize = function(data) {
+    if (!data) return null;
+    
+    const values = data.split(",");
+    let index = 0;
+    
+    function build() {
+        const val = values[index++];
+        
+        if (val === "#") {
+            return null;
+        }
+        
+        const node = new TreeNode(parseInt(val, 10));
+        node.left = build();
+        node.right = build();
+        
+        return node;
+    }
+    
+    return build();
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time (Serialize)** | O(n) - Visit each node exactly once |
+| **Time (Deserialize)** | O(n) - Process each value exactly once |
+| **Space (Serialize)** | O(n) - For the serialized output |
+| **Space (Deserialize)** | O(n) - Queue + recursion stack O(h) |
+| **Optimization** | Trailing nulls are trimmed for smaller output |
 
 ---
 
-## Step-by-Step Example
+## Comparison of Approaches
 
-Let's trace through **Approach 1 (Preorder DFS)** with this tree:
+| Approach | Serialize Time | Deserialize Time | Space | Pros | Cons |
+|----------|----------------|------------------|-------|------|------|
+| **Preorder Recursive** | O(n) | O(n) | O(n) + O(h) | Simple, intuitive | Stack overflow for deep trees |
+| **Level Order BFS** | O(n) | O(n) | O(n) | Preserves level order | Larger output for sparse trees |
+| **Preorder Iterative** | O(n) | O(n) | O(n) | No recursion limits | Slightly more complex |
+| **Optimized Preorder** | O(n) | O(n) | O(n) + O(h) | Smaller output | Slightly complex trimming |
 
+**Recommendation:** For most use cases, the recursive preorder approach is recommended because it's:
+1. Simple and easy to understand
+2. Naturally reconstructs the tree
+3. Works well for most tree sizes
+
+Use BFS/Level Order when:
+- You need to preserve level information
+- The tree is relatively balanced
+- You want to stream the data
+
+---
+
+## Explanation
+
+### Why Preorder Works
+
+Preorder traversal (Root → Left → Right) is ideal for serialization because:
+
+1. **Root First**: The root is processed first, providing a clear starting point for reconstruction
+2. **Deterministic Order**: The order is always the same, ensuring the same tree always produces the same string
+3. **Self-Describing**: With null markers, the sequence uniquely identifies the tree structure
+
+### Handling Null Nodes
+
+We use a special marker (like "null" or "#") to represent missing nodes. This ensures:
+- We know exactly how to reconstruct the tree structure
+- We can handle any tree shape (skewed, sparse, complete)
+- The deserialization process always knows when to stop processing a subtree
+
+### Visualizing the Process
+
+For the tree:
 ```
-        1
-       / \
-      2   3
+       1
+     /   \
+    2     3
          / \
         4   5
 ```
 
-### Serialization Process
+**Serialization (Preorder):**
+```
+1,2,null,null,3,4,null,null,5,null,null
+```
 
-**Step 1:** Start at root (value 1)
-- `result = ["1"]`
-- Recurse on left subtree (node 2)
-
-**Step 2:** Process node 2
-- `result = ["1", "2"]`
-- Recurse on left of 2 → null → `result = ["1", "2", "null"]`
-- Recurse on right of 2 → null → `result = ["1", "2", "null", "null"]`
-- Return to node 1, recurse on right subtree (node 3)
-
-**Step 3:** Process node 3
-- `result = ["1", "2", "null", "null", "3"]`
-- Recurse on left of 3 (node 4)
-- `result = ["1", "2", "null", "null", "3", "4"]`
-- Left of 4 is null → `result = [..., "null"]`
-- Right of 4 is null → `result = [..., "null", "null"]`
-
-**Step 4:** Process right of 3 (node 5)
-- `result = ["1", "2", "null", "null", "3", "4", "null", "null", "5"]`
-- Left of 5 is null → `result = [..., "null"]`
-- Right of 5 is null → `result = [..., "null", "null"]`
-
-**Final Serialized String:** `"1,2,null,null,3,4,null,null,5,null,null"`
-
-### Deserialization Process
-
-**Input:** `"1,2,null,null,3,4,null,null,5,null,null"`
-
-**Step 1:** Split into values
-- `vals = ["1", "2", "null", "null", "3", "4", "null", "null", "5", "null", "null"]`
-- `i = 0`
-
-**Step 2:** Create root (value 1)
-- `vals[0] = "1"` → create `TreeNode(1)`
-- `i = 1`
-
-**Step 3:** Build left subtree of root
-- `vals[1] = "2"` → create `TreeNode(2)`, append as left child
-- `i = 2`
-- `vals[2] = "null"` → left of 2 is null, `i = 3`
-- `vals[3] = "null"` → right of 2 is null, `i = 4`
-
-**Step 4:** Build right subtree of root
-- `vals[4] = "3"` → create `TreeNode(3)`, append as right child
-- `i = 5`
-
-**Step 5:** Build left subtree of node 3
-- `vals[5] = "4"` → create `TreeNode(4)`, append as left child
-- `i = 6`
-- `vals[6] = "null"` → left of 4 is null, `i = 7`
-- `vals[7] = "null"` → right of 4 is null, `i = 8`
-
-**Step 6:** Build right subtree of node 3
-- `vals[8] = "5"` → create `TreeNode(5)`, append as right child
-- `i = 9`
-- `vals[9] = "null"` → left of 5 is null, `i = 10`
-- `vals[10] = "null"` → right of 5 is null, `i = 11`
-
-**Result:** Successfully reconstructed tree!
+**Deserialization:**
+1. Read 1 → Create root
+2. Read 2 → Create left child
+3. Read null → No left child for node 2
+4. Read null → No right child for node 2
+5. Read 3 → Create right child of root
+6. Read 4 → Create left child of node 3
+7. ... and so on
 
 ---
 
-## Complexity Analysis Summary
+## Followup Questions
 
-| Approach | Serialize Time | Deserialize Time | Serialize Space | Deserialize Space | Notes |
-|----------|----------------|------------------|-----------------|-------------------|-------|
-| Preorder DFS (Recursive) | O(n) | O(n) | O(n) | O(h) | **Most intuitive**, produces natural output |
-| Level Order BFS | O(n) | O(n) | O(w) | O(w) | **LeetCode-style**, efficient for complete trees |
-| Preorder DFS (Iterative) | O(n) | O(n) | O(h) | O(h) | Avoids recursion limits |
-| Postorder DFS | O(n) | O(n) | O(n) | O(h) | Useful for append-style operations |
-| **BST Inorder** | O(n) | O(n log n) | O(n) | O(n) | **50% space savings**, no null markers |
-| **BST Level Order** | O(n) | O(n) | O(w) | O(w) | **Minimal output**, fast deserialization |
-| Optimized Level Order | O(n) | O(n) | O(w) | O(w) | **Most compact** for general trees |
+### Q1: How would you optimize the serialization for memory-constrained environments?
 
-Where:
-- n = number of nodes in the tree
-- h = height of the tree (O(log n) for balanced, O(n) for skewed)
-- w = maximum width of the tree (O(n) in worst case)
+**Answer:** Consider using bit-packing techniques or compressing the output. For integer values, you can use a fixed number of bits per value. You can also use run-length encoding if there are many consecutive null values. Another option is to use a more compact serialization format like Protocol Buffers or MessagePack.
 
-### BST Space Optimization Analysis
+### Q2: How would you handle very deep trees (10^5+ nodes)?
 
-| Tree Type | General Tree Output | BST Output | Space Savings |
-|-----------|---------------------|------------|---------------|
-| Complete | 2n-1 values | n values | ~50% |
-| Skewed | 2n-1 values | n values | ~50% |
-| Sparse | ~n + nulls | n values | Up to 50% |
+**Answer:** Use iterative approaches instead of recursive ones to avoid stack overflow. The iterative preorder or level order approaches work well. You might also consider processing the tree in chunks or using a streaming approach for extremely large trees.
 
-The BST optimization eliminates all null markers, reducing the serialized output by approximately 50% in all cases.
+### Q3: How would you verify that deserialization produces the exact same tree?
 
-### Space Complexity Trade-offs
+**Answer:** Run a second serialization on the deserialized tree and compare the results. They should be identical. Alternatively, you can do a structural comparison by traversing both trees simultaneously and checking that all node values and positions match.
 
-- **Preorder approaches**: Use O(n) space for the output string, plus O(h) for recursion stack
-- **Level Order approaches**: Use O(w) space for the BFS queue (better for wide trees)
-- **Optimized Level Order**: Produces the most compact output but has same time complexity
+### Q4: How would you handle trees with duplicate values?
+
+**Answer:** The current approaches handle duplicate values correctly since we serialize both the value AND the position. Each node's position in the tree is uniquely determined by the sequence of left/right choices during traversal.
+
+### Q5: How would you modify the solution to serialize only non-null nodes?
+
+**Answer:** This is tricky because you lose positional information. One approach is to use a size-prefixed format: first store the count of nodes, then store only the non-null values in breadth-first order. During deserialization, you use the count to know when to stop and fill missing positions.
+
+### Q6: How would you add error handling for corrupted serialization data?
+
+**Answer:** Add validation during deserialization:
+- Check for unexpected end of data
+- Validate that null markers are in valid positions
+- Verify that all values can be parsed as integers
+- Use checksums or CRC to detect data corruption
+
+### Q7: How would you make the serialization format human-readable?
+
+**Answer:** Use JSON format with explicit position encoding. For example:
+```json
+{"val": 1, "left": {"val": 2, "left": null, "right": null}, "right": {...}}
+```
+
+This is more verbose but easier to debug and read.
+
+### Q8: How would you handle serialization of trees with custom objects as node values?
+
+**Answer:** Convert custom objects to primitives first (using JSON serialization or a custom toString method), then proceed with the standard serialization. During deserialization, convert the primitives back to custom objects.
 
 ---
 
 ## Related Problems
 
-Here are similar LeetCode problems that build on serialization/deserialization concepts:
-
-1. **[Find Duplicate Subtrees](find-duplicate-subtrees.md)** (652) - Serialize subtrees to find duplicate structures.
-
-2. **[Construct Binary Tree from Preorder and Inorder Traversal](construct-binary-tree-from-preorder-and-inorder-traversal.md)** (105) - Use two traversal orders to rebuild a tree.
-
-3. **[Construct Binary Tree from Inorder and Postorder Traversal](https://leetcode.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)** (106) - Similar but with inorder and postorder.
-
-4. **[Serialize and Deserialize BST](https://leetcode.com/problems/serialize-and-deserialize-bst/)** (449) - Optimize for Binary Search Trees (no null markers needed).
-
-5. **[Encode N-ary Tree to Binary Tree](https://leetcode.com/problems/encode-n-ary-tree-to-binary-tree/)** (431) - Use serialization concepts for N-ary trees.
-
-6. **[Count Unival Subtrees](https://leetcode.com/problems/count-unival-subtrees/)** (250) - Detect structural patterns using subtree serialization.
-
-7. **[Check Symmetric Tree](https://leetcode.com/problems/check-symmetric-tree/)** (101) - Mirror the tree structure (related to serialization).
-
-8. **[Same Tree](same-tree.md)** (100) - Compare two trees (can use serialized form).
+- [Serialize and Deserialize BST](https://leetcode.com/problems/serialize-and-deserialize-bst/) - Similar problem but for Binary Search Trees with potentially smaller output
+- [Encode and Decode TinyURL](https://leetcode.com/problems/encode-and-decode-tinyurl/) - Similar concept applied to URLs
+- [Serialize Binary Search Tree](https://leetcode.com/problems/serialize-binary-search-tree/) - Different approach taking advantage of BST properties
+- [Construct Binary Tree from Preorder and Inorder Traversal](https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/) - Uses two traversals to reconstruct
+- [Flatten Binary Tree to Linked List](https://leetcode.com/problems/flatten-binary-tree-to-linked-list/) - Related tree manipulation
+- [Binary Tree Level Order Traversal](https://leetcode.com/problems/binary-tree-level-order-traversal/) - BFS fundamentals
+- [Validate Binary Search Tree](https://leetcode.com/problems/validate-binary-search-tree/) - Tree validation
 
 ---
 
-## Video Tutorial Links
+## Video Tutorials
 
-For visual explanations, check these tutorials:
-
-- **[NeetCode - Serialize and Deserialize Binary Tree](https://www.youtube.com/watch?v=u4JAi2ZNYrE)** - Clear explanation with multiple approaches in Python.
-
-- **[LeetCode 297 - Serialize and Deserialize Binary Tree](https://www.youtube.com/watch?v=JaOXRv1Ej2k)** - Detailed walkthrough of the BFS and DFS approaches.
-
-- **[Tree Serialization - TechDive](https://www.youtube.com/watch?v=JoJ8J8rZc4I)** - Understanding serialization patterns and null markers.
-
-- **[Binary Tree Serialization - Back-to-Back SWE](https://www.youtube.com/watch?v=nL1pn7T9rTc)** - Comprehensive explanation of different serialization formats.
-
-- **[Serialize/Deserialize Binary Tree - Competitive Programming](https://www.youtube.com/watch?v=M2G44C1K9y8)** - Interview-focused explanation with code.
+- [Serialize and Deserialize Binary Tree - LeetCode 297](https://www.youtube.com/watch?v=u4JAi2JJ5s8)
+- [Binary Tree Serialization Explained](https://www.youtube.com/watch?v=6B-0mXoKf6I)
+- [Preorder Traversal for Serialization](https://www.youtube.com/watch?v=n6Qwn7W4O-4)
+- [BFS vs DFS for Tree Serialization](https://www.youtube.com/watch?v=-564zP-Io8k)
 
 ---
 
-## Follow-up Questions
+## Summary
 
-1. **Why do we need null markers in serialization? What happens if we don't include them?**
-   - Answer: Without null markers, we cannot distinguish between different tree structures that have the same node values but different shapes. For example, tree `[1, 2]` could mean a root with left child, or it could be incomplete. Null markers explicitly indicate missing children.
+The Serialize and Deserialize Binary Tree problem is a fundamental tree problem with many practical applications. Key takeaways:
 
-2. **How would you handle very large values in the serialized string?**
-   - Answer: Use a delimiter that's not in the value representation, or use escaping/encoding. For LeetCode, comma is the delimiter and all values are simple integers.
+1. **Preorder is Natural**: Root-first traversal makes reconstruction straightforward
+2. **Null Markers**: Essential for preserving tree structure (especially for sparse trees)
+3. **Multiple Approaches**: Choose based on your needs (BFS for level info, DFS for simplicity)
+4. **Complexity**: O(n) time and space is optimal - you must visit/process every node
+5. **Trade-offs**: Different approaches have different memory usage patterns and output sizes
 
-3. **Can you serialize a tree without using recursion?**
-   - Answer: Yes! Use iterative DFS with a stack (Approach 3) or BFS with a queue (Approach 2).
-
-4. **How would you optimize serialization for a Binary Search Tree (BST)?**
-   - Answer: For BSTs, we can achieve **50% space reduction** by eliminating null markers. The key insights are:
-   
-   - **Serialization**: Use **inorder traversal** (left → root → right) which produces values in **ascending order** due to the BST property. Since the structure is determined by the values themselves, we only need to store the sorted list of node values.
-   
-   - **Deserialization**: With the sorted values, we can reconstruct the BST by:
-     - Using **binary search** to find the middle value as root (for balanced tree)
-     - Recursively building left subtree from values less than root
-     - Recursively building right subtree from values greater than root
-   
-   **Example:**
-   ```
-   Original BST:
-           5
-         /   \
-        3     7
-       / \   / \
-      2   4 6   8
-   
-   Serialized (general): [5,3,7,null,null,6,8,2,4,null,null,null,null]
-   Serialized (BST):     [2,3,4,5,6,7,8]
-   
-   Notice: No null markers needed! The BST property encodes the structure.
-   ```
-   
-   **Time Complexity**: O(n) for serialize, O(n log n) for deserialize
-   **Space Savings**: ~50% reduction in serialized output size
-
-5. **What serialization format would you use for efficient network transmission?**
-   - Answer: Consider binary formats (like Protocol Buffers or MessagePack) instead of string-based formats for better compression and performance. However, for LeetCode, string-based is sufficient.
-
-6. **How would you handle integer overflow in the serialized values?**
-   - Answer: Use string representation of values, or use arbitrary-precision integers in languages that support them. Most LeetCode problems don't hit this limit.
-
-7. **Can you use Morris Traversal for serialization with O(1) extra space?**
-   - Answer: Morris Traversal can serialize using O(1) extra space (modifying tree temporarily), but it's complex and not commonly used in interviews.
-
-8. **How would you serialize a tree with duplicate values?**
-   - Answer: The current approaches work fine with duplicate values because we're tracking structure with null markers, not just values. Each node is a separate entity.
-
-9. **What's the difference between this problem and encoding/decoding?**
-   - Answer: Encoding/decoding often implies transformation (like Base64), while serialization is about representing structure. The concepts overlap but serialization specifically deals with data structure preservation.
-
-10. **How would you add error detection to the serialization?**
-    - Answer: Add a checksum or hash of the tree structure at the end of the serialized string. During deserialization, verify the checksum before returning the tree.
-
-11. **How does BST deserialization ensure the original tree structure is preserved?**
-    - Answer: There are two approaches:
-    - **Balanced approach**: Always choose the middle value as root, producing a balanced tree (may not match original structure)
-    - **Original structure approach**: For LeetCode 449, we need to preserve the exact structure. This requires storing additional metadata (like null markers) or using a different serialization format (e.g., storing preorder with value ranges)
-
-12. **Can BST serialization handle duplicate values?**
-    - Answer: Standard BSTs don't allow duplicates, but if allowed, you need to define a convention (e.g., left ≤ root < right). This complicates deserialization because the sorted list no longer uniquely determines the structure.
-
-13. **What's the trade-off between BST inorder serialization and BST level order serialization?**
-    - Answer:
-    - **Inorder**: Produces sorted output (useful for validation), O(n log n) deserialize time
-    - **Level Order**: Faster O(n) deserialization, preserves more structure information, but output is not sorted
+The recursive preorder approach is recommended for most interviews and general use cases due to its simplicity and clarity. However, always consider your specific constraints (tree depth, memory, etc.) when choosing an approach.
 
 ---
 
-## Common Mistakes to Avoid
-
-1. **Forgetting null markers**: Not including "null" for missing children breaks deserialization. Always include them!
-
-2. **Index out of bounds in deserialization**: Accessing `vals[i]` when `i >= len(vals)` causes errors. Always check bounds.
-
-3. **Not resetting the index between serialize/deserialize**: Using the same index variable for both operations causes bugs.
-
-4. **Incorrect traversal order**: Mixing up the order (e.g., doing postorder for serialization but preorder for deserialization) breaks reconstruction.
-
-5. **Not handling empty trees**: Always check for `None` or empty input strings.
-
-6. **Mutable default arguments**: In Python, never use mutable default arguments in recursive functions.
-
-7. **Stack overflow on deep trees**: For very deep trees, use iterative approaches instead of recursive ones.
-
-8. **Not trimming trailing nulls**: For level order serialization, trailing nulls make the output unnecessarily long.
-
-9. **Using wrong data type**: Make sure to convert between strings and integers correctly during serialization/deserialization.
-
-10. **Forgetting nonlocal/closure for index**: In Python, you need `nonlocal` or `global` to modify the index variable inside nested functions.
-
----
-
-## References
-
-- [LeetCode 297 - Serialize and Deserialize Binary Tree](https://leetcode.com/problems/serialize-and-deserialize-binary-tree/)
-- [Tree Traversals - GeeksforGeeks](https://www.geeksforgeeks.org/tree-traversals-inorder-preorder-and-postorder/)
-- [BFS vs DFS - Interview Cake](https://www.interviewcake.com/concept/java/bfs)
-- [Serialization Patterns - Educative](https://www.educative.io/page/5682209837483520/39370001)
-
+*Note: This solution follows the standard LeetCode problem format. The exact method signatures may vary slightly depending on the platform. The core algorithms remain the same.*

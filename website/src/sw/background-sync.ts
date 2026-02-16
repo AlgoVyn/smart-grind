@@ -3,6 +3,7 @@
 
 import { OperationQueue, QueuedOperation } from './operation-queue';
 import { SyncConflictResolver } from './sync-conflict-resolver';
+import { AuthManager, getAuthManager } from './auth-manager';
 
 // Sync configuration
 const SYNC_TAGS = {
@@ -12,15 +13,20 @@ const SYNC_TAGS = {
 } as const;
 
 const MAX_RETRY_ATTEMPTS = 5;
+const SYNC_TIMEOUT_MS = 30000; // 30 seconds timeout for sync batch
+const REQUEST_TIMEOUT_MS = 10000; // 10 seconds timeout for individual requests
 
 export class BackgroundSyncManager {
     private operationQueue: OperationQueue;
     private conflictResolver: SyncConflictResolver;
+    private authManager: AuthManager;
     private isSyncing: boolean = false;
+    private syncAbortController: AbortController | null = null;
 
     constructor() {
         this.operationQueue = new OperationQueue();
         this.conflictResolver = new SyncConflictResolver();
+        this.authManager = getAuthManager();
     }
 
     /**
@@ -52,60 +58,139 @@ export class BackgroundSyncManager {
      */
     async syncUserProgress(): Promise<void> {
         if (this.isSyncing) {
+            console.log('[BackgroundSync] Sync already in progress, skipping');
             return;
         }
 
         this.isSyncing = true;
+        this.syncAbortController = new AbortController();
+
+        // Set up timeout to prevent stuck sync
+        const timeoutId = setTimeout(() => {
+            console.warn('[BackgroundSync] Sync timeout reached, aborting');
+            this.syncAbortController?.abort();
+            this.isSyncing = false;
+        }, SYNC_TIMEOUT_MS);
 
         try {
             // Get pending operations
             const pendingOps = await this.operationQueue.getPendingOperations();
             if (pendingOps.length === 0) {
+                console.log('[BackgroundSync] No pending operations');
                 return;
             }
 
-            // Additional safeguard: Check if user is authenticated (if possible)
-            // Note: Service worker context doesn't have access to user state,
-            // but we can check for auth tokens in requests during sync
+            console.log(`[BackgroundSync] Starting sync of ${pendingOps.length} operations`);
+
+            // Check authentication before syncing
+            if (!this.authManager.isAuthenticated()) {
+                console.log('[BackgroundSync] Not authenticated, attempting token refresh');
+                const token = await this.authManager.refreshToken();
+                if (!token) {
+                    console.warn('[BackgroundSync] Authentication failed, cannot sync');
+                    // Don't mark operations as failed, they will retry when auth is restored
+                    return;
+                }
+            }
 
             // Group operations by type for efficient batching
             const groupedOps = this.groupOperations(pendingOps);
 
-            // Sync each group
-            const results = await Promise.allSettled([
-                this.syncProblemProgress(groupedOps['problemProgress'] || []),
-                this.syncCustomProblems(),
-                this.syncUserSettings(),
-            ]);
-
-            // Handle results
+            // Sync each group with individual error handling
             const failedOps: QueuedOperation[] = [];
-            results.forEach((result, index) => {
-                if (result.status === 'rejected') {
-                    // Add operations back to queue with increased retry count
-                    const ops = Object.values(groupedOps)[index] || [];
-                    failedOps.push(...ops);
-                }
-            });
 
-            // Re-queue failed operations
-            for (const op of failedOps) {
-                await this.operationQueue.updateRetryCount(op.id);
-                if (op.retryCount < MAX_RETRY_ATTEMPTS) {
-                    await this.operationQueue.requeueOperation(op);
-                } else {
-                    await this.operationQueue.markFailed(op.id, 'Max retries exceeded');
-                }
+            try {
+                await this.syncProblemProgressWithTimeout(groupedOps['problemProgress'] || []);
+            } catch (error) {
+                console.error('[BackgroundSync] Problem progress sync failed:', error);
+                failedOps.push(...(groupedOps['problemProgress'] || []));
             }
+
+            try {
+                await this.syncCustomProblemsWithTimeout();
+            } catch (error) {
+                console.error('[BackgroundSync] Custom problems sync failed:', error);
+                // Get operations that failed
+                const customOps =
+                    await this.operationQueue.getOperationsByType('ADD_CUSTOM_PROBLEM');
+                failedOps.push(...customOps);
+            }
+
+            try {
+                await this.syncUserSettingsWithTimeout();
+            } catch (error) {
+                console.error('[BackgroundSync] User settings sync failed:', error);
+                const settingsOps =
+                    await this.operationQueue.getOperationsByType('UPDATE_SETTINGS');
+                failedOps.push(...settingsOps);
+            }
+
+            // Handle failed operations with exponential backoff
+            for (const op of failedOps) {
+                await this.handleFailedOperation(op);
+            }
+
+            // Update last sync time
+            await this.operationQueue.updateLastSyncTime();
 
             // Notify clients of sync completion
             await this.notifyClients('SYNC_COMPLETED', {
                 synced: pendingOps.length - failedOps.length,
                 failed: failedOps.length,
+                timestamp: Date.now(),
+            });
+
+            console.log(
+                `[BackgroundSync] Sync completed: ${pendingOps.length - failedOps.length} synced, ${failedOps.length} failed`
+            );
+        } catch (error) {
+            console.error('[BackgroundSync] Sync failed with error:', error);
+            // Notify clients of sync failure
+            await this.notifyClients('SYNC_FAILED', {
+                error: error instanceof Error ? error.message : String(error),
+                timestamp: Date.now(),
             });
         } finally {
+            clearTimeout(timeoutId);
             this.isSyncing = false;
+            this.syncAbortController = null;
         }
+    }
+
+    /**
+     * Handle a failed operation with retry logic
+     */
+    private async handleFailedOperation(op: QueuedOperation): Promise<void> {
+        await this.operationQueue.updateRetryCount(op.id);
+
+        if (op.retryCount < MAX_RETRY_ATTEMPTS) {
+            // Calculate exponential backoff delay
+            const baseDelay = 1000; // 1 second
+            const delay = baseDelay * Math.pow(2, op.retryCount);
+            const maxDelay = 60000; // 1 minute max
+            const actualDelay = Math.min(delay, maxDelay);
+
+            console.log(
+                `[BackgroundSync] Re-queueing operation ${op.id} with ${actualDelay}ms delay (attempt ${op.retryCount + 1}/${MAX_RETRY_ATTEMPTS})`
+            );
+
+            // Re-queue with delay
+            setTimeout(async () => {
+                await this.operationQueue.requeueOperation(op);
+            }, actualDelay);
+        } else {
+            console.error(
+                `[BackgroundSync] Operation ${op.id} exceeded max retries, marking as failed`
+            );
+            await this.operationQueue.markFailed(op.id, 'Max retries exceeded');
+        }
+    }
+
+    /**
+     * Sync custom problems with timeout
+     */
+    private async syncCustomProblemsWithTimeout(): Promise<void> {
+        return this.executeWithTimeout(() => this.syncCustomProblems(), REQUEST_TIMEOUT_MS);
     }
 
     /**
@@ -116,20 +201,52 @@ export class BackgroundSyncManager {
         if (pendingOps.length === 0) return;
 
         for (const op of pendingOps) {
+            // Check if sync was aborted
+            if (this.syncAbortController?.signal.aborted) {
+                throw new Error('Sync aborted');
+            }
+
             try {
+                const authHeaders = await this.authManager.getAuthHeaders();
+
                 const response = await fetch('/smartgrind/api/user/custom-problems', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        ...authHeaders,
                     },
                     credentials: 'include',
                     body: JSON.stringify(op.data),
+                    signal: this.syncAbortController?.signal || null,
                 });
 
                 if (response.ok) {
                     await this.operationQueue.markCompleted(op.id);
+                } else if (response.status === 401 || response.status === 403) {
+                    // Auth error - try to refresh and retry once
+                    const refreshed = await this.authManager.handleAuthError(response);
+                    if (refreshed) {
+                        // Retry this operation
+                        const retryResponse = await this.authManager.retryWithFreshToken(
+                            new Request('/smartgrind/api/user/custom-problems', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: JSON.stringify(op.data),
+                            }),
+                            (req) => fetch(req)
+                        );
+
+                        if (retryResponse.ok) {
+                            await this.operationQueue.markCompleted(op.id);
+                        } else {
+                            throw new Error(`Retry failed: ${retryResponse.status}`);
+                        }
+                    } else {
+                        throw new Error('Authentication failed');
+                    }
                 } else if (response.status === 409) {
-                    // Conflict - resolve
+                    // Conflict - resolve using improved resolver
                     const serverData = await response.json();
                     const resolution = await this.conflictResolver.resolveCustomProblemConflict(
                         op.data as {
@@ -143,14 +260,30 @@ export class BackgroundSyncManager {
                         },
                         serverData
                     );
-                    await this.applyConflictResolution(op.id, resolution);
+                    // Only apply if resolution is not an error
+                    if (resolution.status !== 'error') {
+                        await this.applyConflictResolution(op.id, resolution);
+                    } else {
+                        throw new Error(resolution.message || 'Conflict resolution failed');
+                    }
                 } else {
                     throw new Error(`HTTP ${response.status}`);
                 }
-            } catch (_error) {
-                await this.operationQueue.updateRetryCount(op.id);
+            } catch (error) {
+                if (error instanceof Error && error.name === 'AbortError') {
+                    throw error; // Re-throw abort errors
+                }
+                console.error(`[BackgroundSync] Failed to sync custom problem ${op.id}:`, error);
+                throw error; // Re-throw to trigger retry logic
             }
         }
+    }
+
+    /**
+     * Sync user settings with timeout
+     */
+    private async syncUserSettingsWithTimeout(): Promise<void> {
+        return this.executeWithTimeout(() => this.syncUserSettings(), REQUEST_TIMEOUT_MS);
     }
 
     /**
@@ -165,13 +298,17 @@ export class BackgroundSyncManager {
         if (!latestOp) return;
 
         try {
+            const authHeaders = await this.authManager.getAuthHeaders();
+
             const response = await fetch('/smartgrind/api/user/settings', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...authHeaders,
                 },
                 credentials: 'include',
                 body: JSON.stringify(latestOp.data),
+                signal: this.syncAbortController?.signal || null,
             });
 
             if (response.ok) {
@@ -179,11 +316,40 @@ export class BackgroundSyncManager {
                 for (const op of pendingOps) {
                     await this.operationQueue.markCompleted(op.id);
                 }
+            } else if (response.status === 401 || response.status === 403) {
+                // Auth error - try to refresh
+                const refreshed = await this.authManager.handleAuthError(response);
+                if (refreshed) {
+                    // Retry with fresh token
+                    const retryResponse = await this.authManager.retryWithFreshToken(
+                        new Request('/smartgrind/api/user/settings', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify(latestOp.data),
+                        }),
+                        (req) => fetch(req)
+                    );
+
+                    if (retryResponse.ok) {
+                        for (const op of pendingOps) {
+                            await this.operationQueue.markCompleted(op.id);
+                        }
+                    } else {
+                        throw new Error(`Retry failed: ${retryResponse.status}`);
+                    }
+                } else {
+                    throw new Error('Authentication failed');
+                }
             } else {
                 throw new Error(`HTTP ${response.status}`);
             }
-        } catch (_error) {
-            await this.operationQueue.updateRetryCount(latestOp.id);
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                throw error;
+            }
+            console.error('[BackgroundSync] Failed to sync user settings:', error);
+            throw error;
         }
     }
 
@@ -193,15 +359,65 @@ export class BackgroundSyncManager {
     private groupOperations(operations: QueuedOperation[]): Record<string, QueuedOperation[]> {
         return operations.reduce(
             (groups, op) => {
-                const type = op.type;
-                if (!groups[type]) {
-                    groups[type] = [];
+                // Map operation types to sync categories
+                let category: string;
+                switch (op.type) {
+                    case 'MARK_SOLVED':
+                    case 'UPDATE_DIFFICULTY':
+                    case 'ADD_NOTE':
+                    case 'UPDATE_REVIEW_DATE':
+                        category = 'problemProgress';
+                        break;
+                    case 'ADD_CUSTOM_PROBLEM':
+                    case 'DELETE_PROBLEM':
+                        category = 'customProblems';
+                        break;
+                    case 'UPDATE_SETTINGS':
+                        category = 'settings';
+                        break;
+                    default:
+                        category = 'other';
                 }
-                groups[type].push(op);
+
+                if (!groups[category]) {
+                    groups[category] = [];
+                }
+                groups[category]!.push(op);
                 return groups;
             },
             {} as Record<string, QueuedOperation[]>
         );
+    }
+
+    /**
+     * Sync problem progress with timeout
+     */
+    private async syncProblemProgressWithTimeout(operations: QueuedOperation[]): Promise<void> {
+        return this.executeWithTimeout(
+            () => this.syncProblemProgress(operations),
+            REQUEST_TIMEOUT_MS
+        );
+    }
+
+    /**
+     * Execute a function with timeout
+     */
+    private async executeWithTimeout<T>(fn: () => Promise<T>, timeoutMs: number): Promise<T> {
+        return new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                reject(new Error(`Operation timed out after ${timeoutMs}ms`));
+            }, timeoutMs);
+
+            fn()
+                .then((result) => {
+                    clearTimeout(timeoutId);
+                    resolve(result);
+                })
+                .catch((error) => {
+                    clearTimeout(timeoutId);
+                    reject(error);
+                });
+        });
     }
 
     /**
@@ -222,16 +438,20 @@ export class BackgroundSyncManager {
         }));
 
         try {
+            const authHeaders = await this.authManager.getAuthHeaders();
+
             const response = await fetch('/smartgrind/api/user/progress/batch', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...authHeaders,
                 },
                 credentials: 'include',
                 body: JSON.stringify({
                     operations: batch,
                     clientVersion: 1,
                 }),
+                signal: this.syncAbortController?.signal || null,
             });
 
             if (response.ok) {
@@ -242,10 +462,10 @@ export class BackgroundSyncManager {
                     await this.operationQueue.markCompleted(op.id);
                 }
 
-                // Handle any conflicts returned by server
+                // Handle any conflicts returned by server using improved resolver
                 if (result.conflicts && result.conflicts.length > 0) {
                     for (const conflict of result.conflicts) {
-                        await this.handleServerConflict(conflict);
+                        await this.handleServerConflictWithAutoResolve(conflict);
                     }
                 }
 
@@ -254,14 +474,49 @@ export class BackgroundSyncManager {
                     count: deduplicated.length,
                     timestamp: Date.now(),
                 });
+            } else if (response.status === 401 || response.status === 403) {
+                // Auth error - try to refresh and retry
+                const refreshed = await this.authManager.handleAuthError(response);
+                if (refreshed) {
+                    // Retry the batch with fresh token
+                    const retryResponse = await this.authManager.retryWithFreshToken(
+                        new Request('/smartgrind/api/user/progress/batch', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({
+                                operations: batch,
+                                clientVersion: 1,
+                            }),
+                        }),
+                        (req) => fetch(req)
+                    );
+
+                    if (retryResponse.ok) {
+                        for (const op of deduplicated) {
+                            await this.operationQueue.markCompleted(op.id);
+                        }
+                    } else {
+                        throw new Error(`Retry failed: ${retryResponse.status}`);
+                    }
+                } else {
+                    throw new Error('Authentication failed');
+                }
             } else if (response.status === 409) {
                 // Batch conflict - handle individually
                 await this.syncIndividualOperations(deduplicated);
             } else {
                 throw new Error(`HTTP ${response.status}`);
             }
-        } catch (_error) {
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                throw error;
+            }
             // Fall back to individual sync
+            console.warn(
+                '[BackgroundSync] Batch sync failed, falling back to individual sync:',
+                error
+            );
             await this.syncIndividualOperations(deduplicated);
         }
     }
@@ -289,11 +544,19 @@ export class BackgroundSyncManager {
      */
     private async syncIndividualOperations(operations: QueuedOperation[]): Promise<void> {
         for (const op of operations) {
+            // Check if sync was aborted
+            if (this.syncAbortController?.signal.aborted) {
+                throw new Error('Sync aborted');
+            }
+
             try {
+                const authHeaders = await this.authManager.getAuthHeaders();
+
                 const response = await fetch('/smartgrind/api/user/progress', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        ...authHeaders,
                     },
                     credentials: 'include',
                     body: JSON.stringify({
@@ -302,13 +565,41 @@ export class BackgroundSyncManager {
                         timestamp: op.timestamp,
                         deviceId: op.deviceId,
                     }),
+                    signal: this.syncAbortController?.signal || null,
                 });
 
                 if (response.ok) {
                     await this.operationQueue.markCompleted(op.id);
+                } else if (response.status === 401 || response.status === 403) {
+                    // Auth error - try to refresh and retry once
+                    const refreshed = await this.authManager.handleAuthError(response);
+                    if (refreshed) {
+                        const retryResponse = await this.authManager.retryWithFreshToken(
+                            new Request('/smartgrind/api/user/progress', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: JSON.stringify({
+                                    problemId: (op.data as { problemId: string }).problemId,
+                                    operation: op.data,
+                                    timestamp: op.timestamp,
+                                    deviceId: op.deviceId,
+                                }),
+                            }),
+                            (req) => fetch(req)
+                        );
+
+                        if (retryResponse.ok) {
+                            await this.operationQueue.markCompleted(op.id);
+                        } else {
+                            throw new Error(`Retry failed: ${retryResponse.status}`);
+                        }
+                    } else {
+                        throw new Error('Authentication failed');
+                    }
                 } else if (response.status === 409) {
                     const serverData = await response.json();
-                    await this.handleServerConflict({
+                    await this.handleServerConflictWithAutoResolve({
                         operationId: op.id,
                         problemId: (op.data as { problemId: string }).problemId,
                         clientData: op.data,
@@ -317,22 +608,28 @@ export class BackgroundSyncManager {
                 } else {
                     throw new Error(`HTTP ${response.status}`);
                 }
-            } catch (_error) {
-                await this.operationQueue.updateRetryCount(op.id);
+            } catch (error) {
+                if (error instanceof Error && error.name === 'AbortError') {
+                    throw error;
+                }
+                console.error(`[BackgroundSync] Failed to sync operation ${op.id}:`, error);
+                // Don't mark as failed here, let the caller handle retry logic
+                throw error;
             }
         }
     }
 
     /**
-     * Handle conflict returned by server
+     * Handle conflict returned by server with auto-resolution
      */
-    private async handleServerConflict(conflict: {
+    private async handleServerConflictWithAutoResolve(conflict: {
         operationId: string;
         problemId: string;
         clientData: unknown;
         serverData: unknown;
     }): Promise<void> {
-        const resolution = await this.conflictResolver.resolveProgressConflict(
+        // Use the improved conflict resolver with auto-resolution
+        const resolution = await this.conflictResolver.autoResolve(
             conflict.clientData as {
                 problemId: string;
                 timestamp: number;
@@ -352,10 +649,24 @@ export class BackgroundSyncManager {
                 nextReview?: number;
                 difficulty?: number;
                 notes?: string;
-            }
+            },
+            'progress' // Default operation type for progress conflicts
         );
 
-        await this.applyConflictResolution(conflict.operationId, resolution);
+        // Only apply if resolution is not an error
+        if (resolution.status !== 'error') {
+            await this.applyConflictResolution(conflict.operationId, resolution);
+        } else {
+            console.error(
+                `[BackgroundSync] Conflict resolution failed for ${conflict.operationId}:`,
+                resolution.message
+            );
+            // Mark as failed so it can be retried or handled manually
+            await this.operationQueue.markFailed(
+                conflict.operationId,
+                resolution.message || 'Conflict resolution error'
+            );
+        }
     }
 
     /**
@@ -363,7 +674,7 @@ export class BackgroundSyncManager {
      */
     private async applyConflictResolution(
         operationId: string,
-        resolution: { status: 'resolved' | 'manual'; data?: unknown; message?: string }
+        resolution: { status: 'resolved' | 'manual' | 'error'; data?: unknown; message?: string }
     ): Promise<void> {
         if (resolution.status === 'resolved') {
             // Auto-resolved, mark as completed

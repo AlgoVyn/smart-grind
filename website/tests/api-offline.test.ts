@@ -26,6 +26,18 @@ jest.mock('../src/api/api-save', () => ({
 // Store mock localStorage data at module level so mocks can access it
 let mockStorageData: Record<string, string> = {};
 
+// Mock the connectivity checker
+jest.mock('../src/sw/connectivity-checker', () => ({
+    getConnectivityChecker: jest.fn().mockReturnValue({
+        isOnline: jest.fn().mockImplementation(() => Promise.resolve(navigator.onLine)),
+        onConnectivityChange: jest.fn().mockReturnValue(() => {}),
+        startMonitoring: jest.fn(),
+        stopMonitoring: jest.fn(),
+        setOnlineStatus: jest.fn(),
+        forceCheck: jest.fn().mockResolvedValue(true),
+    }),
+}));
+
 // Mock updateSyncStatus and other async functions to prevent timeout issues in tests
 jest.mock('../src/api', () => {
     const actual = jest.requireActual('../src/api');
@@ -183,14 +195,16 @@ describe('API Offline & Sync Module', () => {
     });
 
     describe('isOnline', () => {
-        test('should return true when navigator.onLine is true', () => {
+        test('should return true when navigator.onLine is true', async () => {
             Object.defineProperty(navigator, 'onLine', { value: true });
-            expect(isOnline()).toBe(true);
+            const result = await isOnline();
+            expect(result).toBe(true);
         });
 
-        test('should return false when navigator.onLine is false', () => {
+        test('should return false when navigator.onLine is false', async () => {
             Object.defineProperty(navigator, 'onLine', { value: false });
-            expect(isOnline()).toBe(false);
+            const result = await isOnline();
+            expect(result).toBe(false);
         });
     });
 
@@ -444,7 +458,20 @@ describe('API Offline & Sync Module', () => {
                     addEventListener: mockAddEventListener,
                 },
                 writable: true,
+                configurable: true,
             });
+
+            // Mock getConnectivityChecker to avoid side effects
+            jest.mock('../src/sw/connectivity-checker', () => ({
+                getConnectivityChecker: jest.fn().mockReturnValue({
+                    isOnline: jest.fn().mockResolvedValue(true),
+                    onConnectivityChange: jest.fn().mockReturnValue(() => {}),
+                    startMonitoring: jest.fn(),
+                    stopMonitoring: jest.fn(),
+                    setOnlineStatus: jest.fn(),
+                    forceCheck: jest.fn().mockResolvedValue(true),
+                }),
+            }));
 
             initOfflineDetection();
 

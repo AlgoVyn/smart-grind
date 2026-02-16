@@ -1,10 +1,19 @@
 // Service Worker Registration Module for SmartGrind
 // Handles SW registration, updates, and communication
 
+import { getConnectivityChecker } from './sw/connectivity-checker';
+
 // Service Worker configuration
 const SW_CONFIG = {
     path: '/smartgrind/sw.js',
     scope: '/smartgrind/',
+};
+
+// Registration retry configuration
+const REGISTRATION_RETRY = {
+    maxAttempts: 3,
+    baseDelay: 1000, // 1 second
+    backoffMultiplier: 2,
 };
 
 // Sync tags
@@ -41,20 +50,36 @@ const state: SWState = {
 const listeners: Map<string, Set<(_: unknown) => void>> = new Map();
 
 /**
- * Register the service worker
+ * Register the service worker with retry logic
  */
-export async function registerServiceWorker(): Promise<boolean> {
+export async function registerServiceWorker(attempt: number = 1): Promise<boolean> {
     if (!('serviceWorker' in navigator)) {
+        console.log('[SW] Service Worker not supported');
         return false;
     }
 
     try {
+        // Verify scope is correct
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith(SW_CONFIG.scope)) {
+            console.warn(`[SW] Current path ${currentPath} is outside SW scope ${SW_CONFIG.scope}`);
+        }
+
         // Add cache-busting to force fresh download
         const swUrl = `${SW_CONFIG.path}?v=${Date.now()}`;
+        console.log(`[SW] Registering from ${swUrl} (attempt ${attempt})`);
+
         const registration = await navigator.serviceWorker.register(swUrl, {
             scope: SW_CONFIG.scope,
             updateViaCache: 'none',
         });
+
+        // Verify registration was successful
+        if (!registration) {
+            throw new Error('Registration returned null');
+        }
+
+        console.log('[SW] Registration successful, scope:', registration.scope);
 
         // Handle registration state
         handleRegistration(registration);
@@ -81,12 +106,44 @@ export async function registerServiceWorker(): Promise<boolean> {
             emit('activated', null);
         });
 
+        // Set up periodic update checks (every 60 minutes)
+        setupPeriodicUpdateChecks(registration);
+
         state.registered = true;
         return true;
     } catch (error) {
-        console.error('[SW] Registration failed:', error);
+        console.error(`[SW] Registration failed (attempt ${attempt}):`, error);
+
+        // Retry with exponential backoff
+        if (attempt < REGISTRATION_RETRY.maxAttempts) {
+            const delay =
+                REGISTRATION_RETRY.baseDelay *
+                Math.pow(REGISTRATION_RETRY.backoffMultiplier, attempt - 1);
+            console.log(`[SW] Retrying registration in ${delay}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return registerServiceWorker(attempt + 1);
+        }
+
+        console.error('[SW] Max registration attempts reached');
         return false;
     }
+}
+
+/**
+ * Set up periodic checks for SW updates
+ */
+function setupPeriodicUpdateChecks(registration: ServiceWorkerRegistration): void {
+    // Check for updates every 60 minutes
+    const CHECK_INTERVAL = 60 * 60 * 1000; // 60 minutes
+
+    setInterval(async () => {
+        try {
+            console.log('[SW] Checking for updates...');
+            await registration.update();
+        } catch (error) {
+            console.error('[SW] Update check failed:', error);
+        }
+    }, CHECK_INTERVAL);
 }
 
 /**
@@ -374,28 +431,50 @@ async function migrateLocalStorageOperations(): Promise<void> {
 }
 
 /**
- * Listen for online/offline events
+ * Listen for online/offline events with improved connectivity checking
  */
 export function listenForConnectivityChanges(callback: (_online: boolean) => void): () => void {
     const onlineCallback = callback;
+    const connectivityChecker = getConnectivityChecker();
+
     const handleOnline = async () => {
-        onlineCallback(true);
-        // First migrate any localStorage operations, then trigger sync
-        await migrateLocalStorageOperations();
-        syncUserProgress();
+        // Use connectivity checker to verify actual server reachability
+        const isActuallyOnline = await connectivityChecker.forceCheck();
+        onlineCallback(isActuallyOnline);
+
+        if (isActuallyOnline) {
+            console.log('[SW] Connection restored, migrating operations and triggering sync');
+            // First migrate any localStorage operations, then trigger sync
+            await migrateLocalStorageOperations();
+            syncUserProgress();
+        }
     };
 
     const handleOffline = () => {
         onlineCallback(false);
+        connectivityChecker.setOnlineStatus(false);
     };
+
+    // Use connectivity checker for more reliable detection
+    const unsubscribe = connectivityChecker.onConnectivityChange((online) => {
+        onlineCallback(online);
+        if (online) {
+            migrateLocalStorageOperations().then(() => syncUserProgress());
+        }
+    });
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+
+    // Start monitoring
+    connectivityChecker.startMonitoring();
 
     // Return cleanup function
     return () => {
         window.removeEventListener('online', handleOnline);
         window.removeEventListener('offline', handleOffline);
+        unsubscribe();
+        connectivityChecker.stopMonitoring();
     };
 }
 

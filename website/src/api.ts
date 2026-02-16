@@ -7,6 +7,7 @@ import { syncPlan, mergeStructure } from './api/api-sync';
 import { resetAll, resetCategory } from './api/api-reset';
 import { deleteCategory } from './api/api-delete';
 import { state } from './state';
+import { getConnectivityChecker } from './sw/connectivity-checker';
 
 // Operation types for background sync
 export type APIOperationType =
@@ -32,9 +33,17 @@ interface SWMessage {
 }
 
 /**
- * Check if the browser is online
+ * Check if the browser is online with actual connectivity verification
  */
-export function isOnline(): boolean {
+export async function isOnline(): Promise<boolean> {
+    const checker = getConnectivityChecker();
+    return checker.isOnline();
+}
+
+/**
+ * Check if the browser reports online status (fast check without verification)
+ */
+export function isBrowserOnline(): boolean {
     return navigator.onLine;
 }
 
@@ -288,7 +297,8 @@ export async function saveProblemWithSync(
     await saveProblem();
 
     // If online and signed in, try immediate remote save
-    if (isOnline() && state.user.type === 'signed-in') {
+    const online = await isOnline();
+    if (online && state.user.type === 'signed-in') {
         try {
             await saveProblem();
             return;
@@ -383,18 +393,23 @@ async function migrateLocalStorageOperations(): Promise<void> {
  * Initializes offline/online detection and sync status monitoring.
  * Sets up event listeners for network state changes and service worker messages.
  * Automatically triggers sync when connection is restored.
- * Updates application state to reflect current connectivity.
- * @returns {void}
+ * Uses ConnectivityChecker for reliable network detection.
+ * @returns {() => void} Cleanup function to stop monitoring
  * @example
  * // Call once during application initialization
- * initOfflineDetection();
+ * const cleanup = initOfflineDetection();
  * // Now app will monitor online status and auto-sync when reconnected
+ * // Later: cleanup() to stop monitoring
  */
-export function initOfflineDetection(): void {
-    // Update online status in state
-    const updateOnlineStatus = () => {
-        state.setOnlineStatus(navigator.onLine);
-        if (navigator.onLine) {
+export function initOfflineDetection(): () => void {
+    const connectivityChecker = getConnectivityChecker();
+
+    // Update online status in state with connectivity verification
+    const updateOnlineStatus = async () => {
+        const isActuallyOnline = await connectivityChecker.isOnline();
+        state.setOnlineStatus(isActuallyOnline);
+
+        if (isActuallyOnline) {
             // When coming back online, first migrate any localStorage operations, then sync
             migrateLocalStorageOperations()
                 .then(() => forceSync())
@@ -402,10 +417,27 @@ export function initOfflineDetection(): void {
         }
     };
 
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
+    // Use connectivity checker for more reliable detection
+    const unsubscribe = connectivityChecker.onConnectivityChange((online) => {
+        state.setOnlineStatus(online);
+        if (online) {
+            migrateLocalStorageOperations()
+                .then(() => forceSync())
+                .catch(console.error);
+        }
+    });
 
-    // Initial status
+    // Also listen to browser events as backup
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', () => {
+        state.setOnlineStatus(false);
+        connectivityChecker.setOnlineStatus(false);
+    });
+
+    // Start connectivity monitoring
+    connectivityChecker.startMonitoring();
+
+    // Initial status check
     updateOnlineStatus();
 
     // Listen for service worker messages about sync status
@@ -445,6 +477,12 @@ export function initOfflineDetection(): void {
     setInterval(() => {
         updateSyncStatus().catch(console.error);
     }, 30000); // Every 30 seconds
+
+    // Return cleanup function for unsubscribe (used in tests or if re-initializing)
+    return () => {
+        unsubscribe();
+        connectivityChecker.stopMonitoring();
+    };
 }
 
 // Export all API functions

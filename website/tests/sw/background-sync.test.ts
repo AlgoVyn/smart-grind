@@ -3,48 +3,67 @@
  * Tests for sync registration, user progress sync, custom problems sync, and conflict resolution
  */
 
+// Create mock instances
+const createMockAuthManager = () => ({
+    isAuthenticated: jest.fn().mockReturnValue(true),
+    refreshToken: jest.fn().mockResolvedValue('mock-token'),
+    getAuthHeaders: jest.fn().mockResolvedValue({ Authorization: 'Bearer mock-token' }),
+    handleAuthError: jest.fn().mockResolvedValue(false),
+    retryWithFreshToken: jest.fn().mockResolvedValue({ ok: true }),
+});
+
+const createMockOperationQueue = () => ({
+    getPendingOperations: jest.fn().mockResolvedValue([]),
+    getOperationsByType: jest.fn().mockResolvedValue([]),
+    getFailedOperations: jest.fn().mockResolvedValue([]),
+    markCompleted: jest.fn().mockResolvedValue(undefined),
+    markFailed: jest.fn().mockResolvedValue(undefined),
+    markPendingManualResolution: jest.fn().mockResolvedValue(undefined),
+    updateRetryCount: jest.fn().mockResolvedValue(1),
+    requeueOperation: jest.fn().mockResolvedValue(undefined),
+    getStatus: jest.fn().mockResolvedValue({
+        pendingCount: 0,
+        isSyncing: false,
+        lastSyncAt: null,
+        stats: { pending: 0, completed: 0, failed: 0, manual: 0 },
+    }),
+    clearAll: jest.fn().mockResolvedValue(undefined),
+    getLastSyncTime: jest.fn().mockResolvedValue(1234567890),
+});
+
+const createMockConflictResolver = () => ({
+    resolveProgressConflict: jest.fn().mockResolvedValue({
+        status: 'resolved',
+        data: { problemId: 'two-sum', solved: true },
+    }),
+    resolveCustomProblemConflict: jest.fn().mockResolvedValue({
+        status: 'resolved',
+        data: { id: 'custom1', name: 'Custom Problem' },
+    }),
+    autoResolve: jest.fn().mockResolvedValue({
+        status: 'resolved',
+        data: { problemId: 'two-sum', solved: true },
+    }),
+});
+
+// Set up module mocks
+jest.mock('../../src/sw/auth-manager', () => ({
+    getAuthManager: jest.fn().mockImplementation(() => createMockAuthManager()),
+    AuthManager: jest.fn().mockImplementation(() => createMockAuthManager()),
+}));
+
+jest.mock('../../src/sw/operation-queue', () => ({
+    OperationQueue: jest.fn().mockImplementation(() => createMockOperationQueue()),
+}));
+
+jest.mock('../../src/sw/sync-conflict-resolver', () => ({
+    SyncConflictResolver: jest.fn().mockImplementation(() => createMockConflictResolver()),
+}));
+
+// Import after mocks are set up
 import { BackgroundSyncManager } from '../../src/sw/background-sync';
 import { OperationQueue, QueuedOperation, OperationType } from '../../src/sw/operation-queue';
 import { SyncConflictResolver } from '../../src/sw/sync-conflict-resolver';
-
-// Mock the dependencies with all required methods
-jest.mock('../../src/sw/operation-queue', () => {
-    return {
-        OperationQueue: jest.fn().mockImplementation(() => ({
-            getPendingOperations: jest.fn().mockResolvedValue([]),
-            getOperationsByType: jest.fn().mockResolvedValue([]),
-            getFailedOperations: jest.fn().mockResolvedValue([]),
-            markCompleted: jest.fn().mockResolvedValue(undefined),
-            markFailed: jest.fn().mockResolvedValue(undefined),
-            markPendingManualResolution: jest.fn().mockResolvedValue(undefined),
-            updateRetryCount: jest.fn().mockResolvedValue(1),
-            requeueOperation: jest.fn().mockResolvedValue(undefined),
-            getStatus: jest.fn().mockResolvedValue({
-                pendingCount: 0,
-                isSyncing: false,
-                lastSyncAt: null,
-                stats: { pending: 0, completed: 0, failed: 0, manual: 0 },
-            }),
-            clearAll: jest.fn().mockResolvedValue(undefined),
-            getLastSyncTime: jest.fn().mockResolvedValue(1234567890),
-        })),
-    };
-});
-
-jest.mock('../../src/sw/sync-conflict-resolver', () => {
-    return {
-        SyncConflictResolver: jest.fn().mockImplementation(() => ({
-            resolveProgressConflict: jest.fn().mockResolvedValue({
-                status: 'resolved',
-                data: { problemId: 'two-sum', solved: true },
-            }),
-            resolveCustomProblemConflict: jest.fn().mockResolvedValue({
-                status: 'resolved',
-                data: { id: 'custom1', name: 'Custom Problem' },
-            }),
-        })),
-    };
-});
 
 // Mock self (ServiceWorkerGlobalScope) for notifyClients
 const mockClients = {
@@ -75,11 +94,26 @@ describe('BackgroundSyncManager', () => {
     let mockOperationQueue: jest.Mocked<OperationQueue>;
     let mockConflictResolver: jest.Mocked<SyncConflictResolver>;
 
+    // Create mock auth manager to inject into the manager
+    const createMockAuthManagerInstance = () => ({
+        isAuthenticated: jest.fn().mockReturnValue(true),
+        refreshToken: jest.fn().mockResolvedValue('mock-token'),
+        getAuthHeaders: jest.fn().mockResolvedValue({ Authorization: 'Bearer mock-token' }),
+        handleAuthError: jest.fn().mockResolvedValue(false),
+        retryWithFreshToken: jest.fn().mockResolvedValue({ ok: true }),
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         mockClients.matchAll.mockResolvedValue([]);
         // Create new manager instance after mocks are cleared
         manager = new BackgroundSyncManager();
+
+        // Inject mock auth manager directly into the instance
+        (
+            manager as unknown as { authManager: ReturnType<typeof createMockAuthManagerInstance> }
+        ).authManager = createMockAuthManagerInstance();
+
         // Access the mocked instances from the manager
         mockOperationQueue = (manager as unknown as { operationQueue: jest.Mocked<OperationQueue> })
             .operationQueue;
@@ -105,6 +139,10 @@ describe('BackgroundSyncManager', () => {
         mockConflictResolver.resolveCustomProblemConflict = jest.fn().mockResolvedValue({
             status: 'resolved',
             data: { id: 'custom1', name: 'Custom Problem' },
+        });
+        mockConflictResolver.autoResolve = jest.fn().mockResolvedValue({
+            status: 'resolved',
+            data: { problemId: 'two-sum', solved: true },
         });
     });
 
@@ -191,12 +229,12 @@ describe('BackgroundSyncManager', () => {
         });
 
         it('should sync problem progress operations', async () => {
-            // Use 'problemProgress' as the type to match the internal grouping
+            // Use 'MARK_SOLVED' as the type - the actual type used in the code
             const mockOps: QueuedOperation[] = [
                 {
                     id: 'op1',
-                    type: 'problemProgress' as OperationType,
-                    data: { problemId: 'two-sum' },
+                    type: 'MARK_SOLVED' as OperationType,
+                    data: { problemId: 'two-sum', solved: true },
                     timestamp: Date.now(),
                     deviceId: 'device1',
                     retryCount: 0,
@@ -205,7 +243,7 @@ describe('BackgroundSyncManager', () => {
                 },
             ];
             mockOperationQueue.getPendingOperations.mockResolvedValue(mockOps);
-            mockOperationQueue.markCompleted.mockResolvedValue();
+            mockOperationQueue.markCompleted.mockResolvedValue(undefined);
 
             // Mock successful batch sync
             global.fetch = jest.fn().mockResolvedValue({
@@ -223,8 +261,11 @@ describe('BackgroundSyncManager', () => {
             const mockOps: QueuedOperation[] = [
                 {
                     id: 'op1',
-                    type: 'problemProgress' as OperationType,
-                    data: { problemId: 'two-sum' } as unknown as Record<string, unknown>,
+                    type: 'MARK_SOLVED' as OperationType,
+                    data: { problemId: 'two-sum', solved: true } as unknown as Record<
+                        string,
+                        unknown
+                    >,
                     timestamp: Date.now(),
                     deviceId: 'device1',
                     retryCount: 0,
@@ -234,7 +275,7 @@ describe('BackgroundSyncManager', () => {
             ];
             mockOperationQueue.getPendingOperations.mockResolvedValue(mockOps);
             mockOperationQueue.updateRetryCount.mockResolvedValue(1);
-            mockOperationQueue.requeueOperation.mockResolvedValue();
+            mockOperationQueue.requeueOperation.mockResolvedValue(undefined);
 
             // Mock failed batch sync - individual sync will also fail
             global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
@@ -249,8 +290,11 @@ describe('BackgroundSyncManager', () => {
             const mockOps: QueuedOperation[] = [
                 {
                     id: 'op1',
-                    type: 'problemProgress' as OperationType,
-                    data: { problemId: 'two-sum' } as unknown as Record<string, unknown>,
+                    type: 'MARK_SOLVED' as OperationType,
+                    data: { problemId: 'two-sum', solved: true } as unknown as Record<
+                        string,
+                        unknown
+                    >,
                     timestamp: Date.now(),
                     deviceId: 'device1',
                     retryCount: 5,
@@ -260,7 +304,7 @@ describe('BackgroundSyncManager', () => {
             ];
             mockOperationQueue.getPendingOperations.mockResolvedValue(mockOps);
             mockOperationQueue.updateRetryCount.mockResolvedValue(6);
-            mockOperationQueue.markFailed.mockResolvedValue();
+            mockOperationQueue.markFailed.mockResolvedValue(undefined);
 
             // Mock failed batch sync
             global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
@@ -337,7 +381,7 @@ describe('BackgroundSyncManager', () => {
             expect(mockConflictResolver.resolveCustomProblemConflict).toHaveBeenCalled();
         });
 
-        it('should update retry count on sync failure', async () => {
+        it('should throw error on sync failure without updating retry count', async () => {
             const mockOps: QueuedOperation[] = [
                 {
                     id: 'op1',
@@ -351,13 +395,18 @@ describe('BackgroundSyncManager', () => {
                 },
             ];
             mockOperationQueue.getOperationsByType.mockResolvedValue(mockOps);
-            mockOperationQueue.updateRetryCount.mockResolvedValue(1);
 
-            global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+            // Mock fetch to reject with network error
+            const fetchMock = jest.fn().mockRejectedValue(new Error('Network error'));
+            global.fetch = fetchMock;
 
-            await manager.syncCustomProblems();
+            // The method throws errors without calling updateRetryCount
+            // Retry logic is handled at a higher level in syncUserProgress()
+            await expect(manager.syncCustomProblems()).rejects.toThrow('Network error');
 
-            expect(mockOperationQueue.updateRetryCount).toHaveBeenCalledWith('op1');
+            // updateRetryCount is not called at this level - it's handled by handleFailedOperation()
+            // in the parent syncUserProgress() method
+            expect(mockOperationQueue.updateRetryCount).not.toHaveBeenCalled();
         });
     });
 
@@ -442,7 +491,7 @@ describe('BackgroundSyncManager', () => {
             expect(mockOperationQueue.markCompleted).toHaveBeenCalledTimes(2);
         });
 
-        it('should update retry count on failure', async () => {
+        it('should throw error on failure without updating retry count', async () => {
             const mockOps: QueuedOperation[] = [
                 {
                     id: 'op2',
@@ -456,13 +505,18 @@ describe('BackgroundSyncManager', () => {
                 },
             ];
             mockOperationQueue.getOperationsByType.mockResolvedValue(mockOps);
-            mockOperationQueue.updateRetryCount.mockResolvedValue(1);
 
-            global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+            // Mock fetch to reject with network error
+            const fetchMock = jest.fn().mockRejectedValue(new Error('Network error'));
+            global.fetch = fetchMock;
 
-            await manager.syncUserSettings();
+            // The method throws errors without calling updateRetryCount
+            // Retry logic is handled at a higher level in syncUserProgress()
+            await expect(manager.syncUserSettings()).rejects.toThrow('Network error');
 
-            expect(mockOperationQueue.updateRetryCount).toHaveBeenCalledWith('op2');
+            // updateRetryCount is not called at this level - it's handled by handleFailedOperation()
+            // in the parent syncUserProgress() method
+            expect(mockOperationQueue.updateRetryCount).not.toHaveBeenCalled();
         });
     });
 
@@ -471,7 +525,7 @@ describe('BackgroundSyncManager', () => {
             const mockOps: QueuedOperation[] = [
                 {
                     id: 'op1',
-                    type: 'problemProgress' as OperationType,
+                    type: 'MARK_SOLVED' as OperationType,
                     data: { problemId: 'two-sum', solved: true },
                     timestamp: Date.now(),
                     deviceId: 'device1',
@@ -481,9 +535,10 @@ describe('BackgroundSyncManager', () => {
                 },
             ];
             mockOperationQueue.getPendingOperations.mockResolvedValue(mockOps);
-            mockOperationQueue.markCompleted.mockResolvedValue();
+            mockOperationQueue.markCompleted.mockResolvedValue(undefined);
 
-            mockConflictResolver.resolveProgressConflict.mockResolvedValue({
+            // The implementation calls autoResolve(), not resolveProgressConflict()
+            mockConflictResolver.autoResolve.mockResolvedValue({
                 status: 'resolved',
                 data: { problemId: 'two-sum', solved: true, solveCount: 1 },
             });
@@ -504,7 +559,8 @@ describe('BackgroundSyncManager', () => {
 
             await manager.syncUserProgress();
 
-            expect(mockConflictResolver.resolveProgressConflict).toHaveBeenCalled();
+            // The implementation uses autoResolve() for conflict resolution
+            expect(mockConflictResolver.autoResolve).toHaveBeenCalled();
             expect(mockOperationQueue.markCompleted).toHaveBeenCalled();
         });
 
@@ -512,7 +568,7 @@ describe('BackgroundSyncManager', () => {
             const mockOps: QueuedOperation[] = [
                 {
                     id: 'op1',
-                    type: 'problemProgress' as OperationType,
+                    type: 'MARK_SOLVED' as OperationType,
                     data: { problemId: 'two-sum', solved: true },
                     timestamp: Date.now(),
                     deviceId: 'device1',
@@ -522,9 +578,10 @@ describe('BackgroundSyncManager', () => {
                 },
             ];
             mockOperationQueue.getPendingOperations.mockResolvedValue(mockOps);
-            mockOperationQueue.markPendingManualResolution.mockResolvedValue();
+            mockOperationQueue.markPendingManualResolution.mockResolvedValue(undefined);
 
-            mockConflictResolver.resolveProgressConflict.mockResolvedValue({
+            // The implementation calls autoResolve(), not resolveProgressConflict()
+            mockConflictResolver.autoResolve.mockResolvedValue({
                 status: 'manual',
                 message: 'Manual resolution required',
             });
@@ -545,6 +602,8 @@ describe('BackgroundSyncManager', () => {
 
             await manager.syncUserProgress();
 
+            // The implementation uses autoResolve() for conflict resolution
+            expect(mockConflictResolver.autoResolve).toHaveBeenCalled();
             expect(mockOperationQueue.markPendingManualResolution).toHaveBeenCalledWith(
                 'op1',
                 'Manual resolution required'
