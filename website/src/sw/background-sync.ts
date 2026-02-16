@@ -392,7 +392,7 @@ export class BackgroundSyncManager {
     /**
      * Perform immediate sync (fallback when Background Sync API is not available)
      */
-    private async performSync(tag: string): Promise<void> {
+    async performSync(tag: string): Promise<void> {
         switch (tag) {
             case SYNC_TAGS.USER_PROGRESS:
                 await this.syncUserProgress();

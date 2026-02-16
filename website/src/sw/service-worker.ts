@@ -352,6 +352,18 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
             );
             break;
 
+        case 'REQUEST_SYNC':
+            // Fallback sync request when Background Sync API is not available
+            event.waitUntil(
+                (async () => {
+                    const tag = messageData.tag;
+                    if (tag) {
+                        await backgroundSync.performSync(tag);
+                    }
+                })()
+            );
+            break;
+
         case 'CLEAR_ALL_CACHES':
             // Clear all caches (for debugging/logout)
             event.waitUntil(

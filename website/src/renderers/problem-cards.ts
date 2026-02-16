@@ -55,7 +55,28 @@ export const problemCardRenderers = {
         await new Promise<void>((resolve) => setTimeout(resolve, 400));
 
         try {
-            await api.saveProblem(_p);
+            // Prepare updates for sync-aware save
+            const updates: Partial<{
+                status: 'solved' | 'unsolved';
+                nextReviewDate: string | null;
+                reviewInterval: number;
+                note: string;
+            }> = {};
+
+            if (_p.status !== originalState.status) {
+                updates.status = _p.status;
+            }
+            if (_p.nextReviewDate !== originalState.nextReviewDate) {
+                updates.nextReviewDate = _p.nextReviewDate;
+            }
+            if (_p.reviewInterval !== originalState.reviewInterval) {
+                updates.reviewInterval = _p.reviewInterval;
+            }
+            if (_p.note !== originalState.note) {
+                updates.note = _p.note;
+            }
+
+            await api.saveProblemWithSync(_p.id, updates);
             if (successMessage) {
                 utils.showToast(successMessage, 'success');
             }
@@ -232,9 +253,11 @@ export const problemCardRenderers = {
             ?.querySelector('textarea') as HTMLTextAreaElement;
         if (!textarea) return;
 
+        const newNote = utils.sanitizeInput(textarea.value.trim());
+
         await renderers._performStatusChange(button, p, (problem: Problem) => {
             // Sanitize note input before saving
-            problem.note = utils.sanitizeInput(textarea.value.trim());
+            problem.note = newNote;
             // Close note area after saving
             problem.noteVisible = false;
         });
