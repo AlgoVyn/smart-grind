@@ -339,7 +339,18 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
         case 'SYNC_OPERATIONS':
             // Queue operations for background sync
             if (messageData.operations) {
-                event.waitUntil(operationQueue.addOperations(messageData.operations));
+                event.waitUntil(
+                    (async () => {
+                        const ids = await operationQueue.addOperations(messageData.operations);
+                        // Send reply to unblock the main thread's await
+                        if (event.ports && event.ports[0]) {
+                            event.ports[0].postMessage({
+                                type: 'SYNC_QUEUED',
+                                operationId: ids[0],
+                            });
+                        }
+                    })()
+                );
             }
             break;
 
@@ -363,7 +374,9 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
             event.waitUntil(
                 (async () => {
                     const result = await backgroundSync.forceSync();
-                    if (event.source) {
+                    if (event.ports && event.ports[0]) {
+                        event.ports[0].postMessage(result);
+                    } else if (event.source) {
                         event.source.postMessage({
                             type: 'FORCE_SYNC_RESULT',
                             result,

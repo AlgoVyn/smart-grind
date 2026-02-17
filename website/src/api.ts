@@ -243,6 +243,18 @@ export async function forceSync(): Promise<{ success: boolean; synced: number; f
         return { success: false, synced: 0, failed: pendingOps.length };
     }
 
+    const registration = await navigator.serviceWorker.ready;
+
+    // Utilize Background Sync API if available for robust retry support
+    if ('sync' in registration) {
+        try {
+            await (registration as any).sync.register('sync-user-progress');
+        } catch (e) {
+            console.warn('Background Sync registration failed:', e);
+        }
+    }
+
+    // Trigger immediate sync via message channel for UI feedback
     const response = await sendMessageToSW({ type: 'FORCE_SYNC' });
     const result = response as { success: boolean; synced: number; failed: number } | null;
 

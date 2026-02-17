@@ -96,6 +96,7 @@ jest.mock('../../src/sw/background-sync', () => ({
     BackgroundSyncManager: jest.fn().mockImplementation(() => ({
         syncUserProgress: jest.fn().mockResolvedValue(undefined),
         syncCustomProblems: jest.fn().mockResolvedValue(undefined),
+        forceSync: jest.fn().mockResolvedValue({ success: true, synced: 1, failed: 0 }),
     })),
 }));
 
@@ -438,6 +439,28 @@ describe('Service Worker', () => {
 
                 await messageHandler(_event);
                 expect(_event.waitUntil).toHaveBeenCalled();
+            }
+        });
+
+        it('should handle FORCE_SYNC message and reply via port', async () => {
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const messageHandler = eventHandlers.get('message');
+            const mockPort = { postMessage: jest.fn() };
+
+            if (messageHandler) {
+                const _event = {
+                    data: { type: 'FORCE_SYNC' },
+                    waitUntil: jest.fn((promise: Promise<void>) => promise),
+                    source: null,
+                    ports: [mockPort],
+                };
+
+                await messageHandler(_event);
+                expect(_event.waitUntil).toHaveBeenCalled();
+                expect(mockPort.postMessage).toHaveBeenCalled();
             }
         });
 
