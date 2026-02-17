@@ -193,25 +193,38 @@ export const apiSave = {
     /**
      * Triggers background sync for signed-in users.
      * This is non-blocking - the frontend returns immediately.
-     * All operations are queued and processed asynchronously.
+     * If online, attempts direct remote save first. Falls back to SW queue if that fails.
      */
     _triggerBackgroundSync(): void {
         // Don't await - fire and forget
         (async () => {
             try {
-                // Import dynamically to avoid circular dependencies
+                // If online, try direct remote save first (faster than SW queue)
+                if (isOnline()) {
+                    console.log('[APISave] Online - attempting direct remote save');
+                    try {
+                        await this._saveRemotely();
+                        console.log('[APISave] Direct remote save successful');
+                        return; // Success - no need to queue
+                    } catch (error) {
+                        console.warn(
+                            '[APISave] Direct remote save failed, falling back to SW queue:',
+                            error
+                        );
+                    }
+                }
+
+                // Offline or direct save failed - queue for background sync
                 const { queueOperation, forceSync } = await import('../api');
 
                 // Queue a full sync operation
-                // This will be processed by the service worker in the background
                 await queueOperation({
-                    type: 'UPDATE_SETTINGS', // Use as a trigger for full data sync
+                    type: 'UPDATE_SETTINGS',
                     data: this._prepareDataForSave(),
                     timestamp: Date.now(),
                 });
 
-                // If online, also trigger immediate sync attempt
-                // This is still non-blocking as it uses the service worker
+                // If we're online (but direct save failed), trigger SW sync
                 if (isOnline()) {
                     await forceSync();
                 }
