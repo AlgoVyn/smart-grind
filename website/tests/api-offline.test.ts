@@ -433,13 +433,13 @@ describe('API Offline & Sync Module', () => {
     });
 
     describe('initOfflineDetection', () => {
-        test('should set up online/offline event listeners', () => {
-            const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
+        test('should start connectivity monitoring', () => {
+            const { getConnectivityChecker } = jest.requireMock('../src/sw/connectivity-checker');
+            const checker = getConnectivityChecker();
 
             initOfflineDetection();
 
-            expect(addEventListenerSpy).toHaveBeenCalledWith('online', expect.any(Function));
-            expect(addEventListenerSpy).toHaveBeenCalledWith('offline', expect.any(Function));
+            expect(checker.startMonitoring).toHaveBeenCalled();
         });
 
         test('should set initial online status', () => {

@@ -447,17 +447,6 @@ export function initOfflineDetection(): () => void {
     const connectivityChecker = getConnectivityChecker();
 
     // Update online status in state with connectivity verification
-    const updateOnlineStatus = async () => {
-        const isActuallyOnline = await connectivityChecker.isOnline();
-        state.setOnlineStatus(isActuallyOnline);
-
-        if (isActuallyOnline) {
-            // When coming back online, first migrate any localStorage operations, then sync
-            migrateLocalStorageOperations()
-                .then(() => forceSync())
-                .catch(console.error);
-        }
-    };
 
     // Use connectivity checker for more reliable detection
     const unsubscribe = connectivityChecker.onConnectivityChange((online) => {
@@ -469,18 +458,15 @@ export function initOfflineDetection(): () => void {
         }
     });
 
-    // Also listen to browser events as backup
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', () => {
-        state.setOnlineStatus(false);
-        connectivityChecker.setOnlineStatus(false);
-    });
-
     // Start connectivity monitoring
     connectivityChecker.startMonitoring();
 
     // Initial status check
-    updateOnlineStatus();
+    const initialCheck = async () => {
+        const isActuallyOnline = await connectivityChecker.isOnline();
+        state.setOnlineStatus(isActuallyOnline);
+    };
+    initialCheck();
 
     // Listen for service worker messages about sync status
     if ('serviceWorker' in navigator && navigator.serviceWorker) {

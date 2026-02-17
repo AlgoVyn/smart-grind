@@ -130,16 +130,6 @@ const handleSyncStatusChange = (): void => {
     };
 };
 
-// Handle online/offline events
-const handleOnline = (): void => {
-    state.setOnlineStatus(true);
-    utils.showToast('Back online! Syncing your changes...', 'success');
-};
-
-const handleOffline = (): void => {
-    state.setOnlineStatus(false);
-};
-
 // Initialize sync indicators
 export const initSyncIndicators = (): void => {
     // Set initial state based on navigator.onLine
@@ -149,10 +139,6 @@ export const initSyncIndicators = (): void => {
     // Listen for sync status changes
     if (typeof window !== 'undefined') {
         window.addEventListener('sync-status-change', handleSyncStatusChange);
-
-        // Listen for browser online/offline events
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
     }
 
     // Initial UI update

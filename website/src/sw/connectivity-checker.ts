@@ -16,8 +16,8 @@ interface ConnectivityOptions {
 }
 
 const DEFAULT_OPTIONS: ConnectivityOptions = {
-    checkInterval: 30000, // 30 seconds
-    timeout: 5000, // 5 seconds
+    checkInterval: 10000, // 10 seconds
+    timeout: 3000, // 3 seconds
     maxRetries: 3,
     backoffMultiplier: 2,
 };
@@ -90,8 +90,8 @@ export class ConnectivityChecker {
                 this.abortController?.abort();
             }, this.options.timeout);
 
-            // Try to fetch a small endpoint or use a HEAD request
-            const response = await fetch('/smartgrind/api/health', {
+            // Try to fetch the root or a static asset
+            const response = await fetch('/smartgrind/', {
                 method: 'HEAD',
                 signal: this.abortController.signal,
                 cache: 'no-store',
@@ -241,7 +241,7 @@ export class ConnectivityChecker {
 
         this.debouncedCheckTimeout = window.setTimeout(() => {
             this.checkConnectivity();
-        }, 1000); // Wait 1 second after event before checking
+        }, 200); // Wait 200ms after event before checking
     }
 
     /**
