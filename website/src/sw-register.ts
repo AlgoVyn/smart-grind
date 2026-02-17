@@ -307,9 +307,17 @@ export async function requestSync(tag: string): Promise<boolean> {
 
 /**
  * Request immediate sync of user progress
+ * Returns true if sync was successfully triggered
  */
 export async function syncUserProgress(): Promise<boolean> {
-    return requestSync(SYNC_TAGS.USER_PROGRESS);
+    console.log('[SW] Requesting user progress sync');
+    const result = await requestSync(SYNC_TAGS.USER_PROGRESS);
+    if (result) {
+        console.log('[SW] User progress sync requested successfully');
+    } else {
+        console.warn('[SW] Failed to request user progress sync');
+    }
+    return result;
 }
 
 /**
@@ -389,29 +397,43 @@ export function isOffline(): boolean {
 /**
  * Migrates operations stored in localStorage to the service worker queue.
  * This handles the case where operations were queued before the service worker was available.
- * @returns {Promise<void>}
+ * @returns {Promise<number>} Number of operations migrated
  */
-async function migrateLocalStorageOperations(): Promise<void> {
+async function migrateLocalStorageOperations(): Promise<number> {
     const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
-    if (pendingOps.length === 0) return;
+    if (pendingOps.length === 0) return 0;
 
     // Check if service worker is now available
     if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
-        return;
+        console.log('[SW] Service Worker not available, keeping operations in localStorage');
+        return 0;
     }
 
     const registration = await navigator.serviceWorker.ready;
     if (!registration.active) {
-        return;
+        console.log('[SW] Service Worker not active, keeping operations in localStorage');
+        return 0;
     }
 
     try {
         // Send operations to service worker
-        await new Promise((resolve) => {
+        await new Promise((resolve, reject) => {
             const channel = new MessageChannel();
+
+            // Add timeout to prevent hanging
+            const timeoutId = setTimeout(() => {
+                reject(new Error('Migration timeout - no response from Service Worker'));
+            }, 10000);
+
             channel.port1.onmessage = (event) => {
-                resolve(event.data);
+                clearTimeout(timeoutId);
+                if (event.data && event.data.error) {
+                    reject(new Error(event.data.error));
+                } else {
+                    resolve(event.data);
+                }
             };
+
             registration.active?.postMessage(
                 {
                     type: 'SYNC_OPERATIONS',
@@ -424,9 +446,14 @@ async function migrateLocalStorageOperations(): Promise<void> {
         // Clear localStorage after successful migration
         localStorage.removeItem('pending-operations');
 
-        console.log(`Migrated ${pendingOps.length} operations from localStorage to service worker`);
+        console.log(
+            `[SW] Migrated ${pendingOps.length} operations from localStorage to service worker`
+        );
+        return pendingOps.length;
     } catch (error) {
-        console.warn('Failed to migrate localStorage operations:', error);
+        console.error('[SW] Failed to migrate localStorage operations:', error);
+        // Don't clear localStorage on failure - keep them for next attempt
+        return 0;
     }
 }
 
@@ -436,17 +463,34 @@ async function migrateLocalStorageOperations(): Promise<void> {
 export function listenForConnectivityChanges(callback: (_online: boolean) => void): () => void {
     const onlineCallback = callback;
     const connectivityChecker = getConnectivityChecker();
+    let isProcessingSync = false;
 
     const handleOnline = async () => {
+        // Prevent concurrent sync processing
+        if (isProcessingSync) {
+            console.log('[SW] Sync already in progress, skipping duplicate trigger');
+            return;
+        }
+
         // Use connectivity checker to verify actual server reachability
         const isActuallyOnline = await connectivityChecker.forceCheck();
         onlineCallback(isActuallyOnline);
 
         if (isActuallyOnline) {
+            isProcessingSync = true;
             console.log('[SW] Connection restored, migrating operations and triggering sync');
-            // First migrate any localStorage operations, then trigger sync
-            await migrateLocalStorageOperations();
-            syncUserProgress();
+
+            try {
+                // First migrate any localStorage operations, then trigger sync
+                await migrateLocalStorageOperations();
+                // Wait for migration to complete before triggering sync
+                const syncResult = await syncUserProgress();
+                console.log('[SW] Sync triggered successfully:', syncResult);
+            } catch (error) {
+                console.error('[SW] Error during sync after coming online:', error);
+            } finally {
+                isProcessingSync = false;
+            }
         }
     };
 
@@ -458,8 +502,21 @@ export function listenForConnectivityChanges(callback: (_online: boolean) => voi
     // Use connectivity checker for more reliable detection
     const unsubscribe = connectivityChecker.onConnectivityChange((online) => {
         onlineCallback(online);
-        if (online) {
-            migrateLocalStorageOperations().then(() => syncUserProgress());
+        if (online && !isProcessingSync) {
+            isProcessingSync = true;
+            console.log('[SW] Connectivity change detected - online, starting sync process');
+
+            migrateLocalStorageOperations()
+                .then(() => syncUserProgress())
+                .then((result) => {
+                    console.log('[SW] Sync completed after connectivity change:', result);
+                })
+                .catch((error) => {
+                    console.error('[SW] Sync failed after connectivity change:', error);
+                })
+                .finally(() => {
+                    isProcessingSync = false;
+                });
         }
     });
 

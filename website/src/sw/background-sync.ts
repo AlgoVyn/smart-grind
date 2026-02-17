@@ -89,6 +89,11 @@ export class BackgroundSyncManager {
                 if (!token) {
                     console.warn('[BackgroundSync] Authentication failed, cannot sync');
                     // Don't mark operations as failed, they will retry when auth is restored
+                    // Notify clients that sync is waiting for auth
+                    await this.notifyClients('SYNC_WAITING_AUTH', {
+                        pendingCount: pendingOps.length,
+                        timestamp: Date.now(),
+                    });
                     return;
                 }
             }
@@ -133,16 +138,33 @@ export class BackgroundSyncManager {
             // Update last sync time
             await this.operationQueue.updateLastSyncTime();
 
+            // Get final stats after handling failures
+            const finalStats = await this.operationQueue.getStats();
+
             // Notify clients of sync completion
             await this.notifyClients('SYNC_COMPLETED', {
                 synced: pendingOps.length - failedOps.length,
                 failed: failedOps.length,
+                pending: finalStats.pending,
                 timestamp: Date.now(),
             });
 
             console.log(
-                `[BackgroundSync] Sync completed: ${pendingOps.length - failedOps.length} synced, ${failedOps.length} failed`
+                `[BackgroundSync] Sync completed: ${pendingOps.length - failedOps.length} synced, ${failedOps.length} failed, ${finalStats.pending} still pending`
             );
+
+            // If there are still pending operations, schedule another sync
+            if (finalStats.pending > 0) {
+                console.log(
+                    `[BackgroundSync] ${finalStats.pending} operations still pending, scheduling retry`
+                );
+                // Use setTimeout to allow other operations to complete
+                setTimeout(() => {
+                    this.syncUserProgress().catch((err) => {
+                        console.error('[BackgroundSync] Retry sync failed:', err);
+                    });
+                }, 5000); // Retry after 5 seconds
+            }
         } catch (error) {
             console.error('[BackgroundSync] Sync failed with error:', error);
             // Notify clients of sync failure
@@ -161,22 +183,30 @@ export class BackgroundSyncManager {
      * Handle a failed operation with retry logic
      */
     private async handleFailedOperation(op: QueuedOperation): Promise<void> {
-        await this.operationQueue.updateRetryCount(op.id);
+        const retryCount = await this.operationQueue.updateRetryCount(op.id);
 
-        if (op.retryCount < MAX_RETRY_ATTEMPTS) {
+        if (retryCount < MAX_RETRY_ATTEMPTS) {
             // Calculate exponential backoff delay
             const baseDelay = 1000; // 1 second
-            const delay = baseDelay * Math.pow(2, op.retryCount);
+            const delay = baseDelay * Math.pow(2, retryCount - 1); // retryCount is already incremented
             const maxDelay = 60000; // 1 minute max
             const actualDelay = Math.min(delay, maxDelay);
 
             console.log(
-                `[BackgroundSync] Re-queueing operation ${op.id} with ${actualDelay}ms delay (attempt ${op.retryCount + 1}/${MAX_RETRY_ATTEMPTS})`
+                `[BackgroundSync] Re-queueing operation ${op.id} with ${actualDelay}ms delay (attempt ${retryCount}/${MAX_RETRY_ATTEMPTS})`
             );
 
             // Re-queue with delay
             setTimeout(async () => {
-                await this.operationQueue.requeueOperation(op);
+                try {
+                    await this.operationQueue.requeueOperation(op);
+                    // Trigger a new sync to process the requeued operation
+                    this.syncUserProgress().catch((err) => {
+                        console.error('[BackgroundSync] Post-retry sync failed:', err);
+                    });
+                } catch (error) {
+                    console.error(`[BackgroundSync] Failed to requeue operation ${op.id}:`, error);
+                }
             }, actualDelay);
         } else {
             console.error(
@@ -704,6 +734,7 @@ export class BackgroundSyncManager {
      * Perform immediate sync (fallback when Background Sync API is not available)
      */
     async performSync(tag: string): Promise<void> {
+        console.log(`[BackgroundSync] Performing immediate sync for tag: ${tag}`);
         switch (tag) {
             case SYNC_TAGS.USER_PROGRESS:
                 await this.syncUserProgress();
@@ -715,7 +746,23 @@ export class BackgroundSyncManager {
                 await this.syncUserSettings();
                 break;
             default:
-            // Unknown sync tag
+                console.warn(`[BackgroundSync] Unknown sync tag: ${tag}`);
+        }
+    }
+
+    /**
+     * Check if there are pending operations and trigger sync if needed
+     * Call this when coming back online to ensure sync happens
+     */
+    async checkAndSync(): Promise<void> {
+        const pendingOps = await this.operationQueue.getPendingOperations();
+        if (pendingOps.length > 0) {
+            console.log(
+                `[BackgroundSync] Found ${pendingOps.length} pending operations, triggering sync`
+            );
+            await this.syncUserProgress();
+        } else {
+            console.log('[BackgroundSync] No pending operations to sync');
         }
     }
 

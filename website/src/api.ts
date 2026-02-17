@@ -296,22 +296,18 @@ export async function saveProblemWithSync(
     // Always save locally first
     await saveProblem();
 
-    // If online and signed in, try immediate remote save
-    const online = await isOnline();
-    if (online && state.user.type === 'signed-in') {
-        try {
-            await saveProblem();
-            return;
-        } catch (error) {
-            // If remote save fails, queue for background sync
-            console.warn('Immediate save failed, queuing for background sync:', error);
-        }
-    }
-
     // Only queue operation for background sync if user is signed in
     if (state.user.type === 'signed-in') {
+        // Determine operation type based on updates
+        let operationType: APIOperationType = 'MARK_SOLVED';
+        if (updates.note !== undefined) {
+            operationType = 'ADD_NOTE';
+        } else if (updates.nextReviewDate !== undefined) {
+            operationType = 'UPDATE_REVIEW_DATE';
+        }
+
         const operation: APIOperation = {
-            type: 'MARK_SOLVED',
+            type: operationType,
             data: {
                 problemId,
                 ...updates,
@@ -320,7 +316,19 @@ export async function saveProblemWithSync(
             timestamp: Date.now(),
         };
 
+        // Queue operation for background sync
         await queueOperation(operation);
+
+        // If online, also try immediate remote save for faster sync
+        const online = await isOnline();
+        if (online) {
+            try {
+                await saveProblem();
+            } catch (error) {
+                // Immediate save failed, but operation is already queued for retry
+                console.warn('Immediate save failed, will retry via background sync:', error);
+            }
+        }
     }
 }
 

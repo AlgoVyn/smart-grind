@@ -20,11 +20,109 @@ const DEFAULT_OPTIONS: AuthManagerOptions = {
     maxRefreshRetries: 3,
 };
 
+// IndexedDB configuration for auth storage (Service Workers don't have localStorage)
+const DB_NAME = 'smartgrind-auth';
+const DB_VERSION = 1;
+const STORE_NAME = 'auth-tokens';
+
+/**
+ * IndexedDB-based storage for auth tokens
+ * Used instead of localStorage because Service Workers don't have access to localStorage
+ */
+class AuthStorage {
+    private db: IDBDatabase | null = null;
+
+    /**
+     * Initialize IndexedDB connection
+     */
+    private async initDB(): Promise<IDBDatabase> {
+        if (this.db) return this.db;
+
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => {
+                this.db = request.result;
+                resolve(this.db);
+            };
+
+            request.onupgradeneeded = (event) => {
+                const db = (event.target as IDBOpenDBRequest).result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+                }
+            };
+        });
+    }
+
+    /**
+     * Get a value from storage
+     */
+    async getItem(key: string): Promise<string | null> {
+        try {
+            const db = await this.initDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(STORE_NAME, 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(key);
+
+                request.onsuccess = () => {
+                    resolve(request.result?.value || null);
+                };
+                request.onerror = () => reject(request.error);
+            });
+        } catch (error) {
+            console.error('[AuthStorage] Failed to get item:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Set a value in storage
+     */
+    async setItem(key: string, value: string): Promise<void> {
+        try {
+            const db = await this.initDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(STORE_NAME, 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.put({ key, value });
+
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        } catch (error) {
+            console.error('[AuthStorage] Failed to set item:', error);
+        }
+    }
+
+    /**
+     * Remove a value from storage
+     */
+    async removeItem(key: string): Promise<void> {
+        try {
+            const db = await this.initDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(STORE_NAME, 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.delete(key);
+
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        } catch (error) {
+            console.error('[AuthStorage] Failed to remove item:', error);
+        }
+    }
+}
+
 export class AuthManager {
     private state: AuthState;
     private options: AuthManagerOptions;
     private refreshPromise: Promise<string | null> | null = null;
     private refreshRetries: number = 0;
+    private storage: AuthStorage;
 
     constructor(options: Partial<AuthManagerOptions> = {}) {
         this.options = { ...DEFAULT_OPTIONS, ...options };
@@ -34,18 +132,24 @@ export class AuthManager {
             expiresAt: null,
             isRefreshing: false,
         };
+        this.storage = new AuthStorage();
 
-        this.loadFromStorage();
+        // Load from storage asynchronously
+        this.loadFromStorage().catch((error) => {
+            console.error('[AuthManager] Failed to load from storage:', error);
+        });
     }
 
     /**
      * Load auth state from storage
      */
-    private loadFromStorage(): void {
+    private async loadFromStorage(): Promise<void> {
         try {
-            const token = localStorage.getItem('token');
-            const refreshToken = localStorage.getItem('refreshToken');
-            const expiresAt = localStorage.getItem('tokenExpiresAt');
+            const [token, refreshToken, expiresAt] = await Promise.all([
+                this.storage.getItem('token'),
+                this.storage.getItem('refreshToken'),
+                this.storage.getItem('tokenExpiresAt'),
+            ]);
 
             this.state.token = token;
             this.state.refreshToken = refreshToken;
@@ -58,24 +162,24 @@ export class AuthManager {
     /**
      * Save auth state to storage
      */
-    private saveToStorage(): void {
+    private async saveToStorage(): Promise<void> {
         try {
             if (this.state.token) {
-                localStorage.setItem('token', this.state.token);
+                await this.storage.setItem('token', this.state.token);
             } else {
-                localStorage.removeItem('token');
+                await this.storage.removeItem('token');
             }
 
             if (this.state.refreshToken) {
-                localStorage.setItem('refreshToken', this.state.refreshToken);
+                await this.storage.setItem('refreshToken', this.state.refreshToken);
             } else {
-                localStorage.removeItem('refreshToken');
+                await this.storage.removeItem('refreshToken');
             }
 
             if (this.state.expiresAt) {
-                localStorage.setItem('tokenExpiresAt', this.state.expiresAt.toString());
+                await this.storage.setItem('tokenExpiresAt', this.state.expiresAt.toString());
             } else {
-                localStorage.removeItem('tokenExpiresAt');
+                await this.storage.removeItem('tokenExpiresAt');
             }
         } catch (error) {
             console.error('[AuthManager] Failed to save to storage:', error);
@@ -85,26 +189,26 @@ export class AuthManager {
     /**
      * Set authentication tokens
      */
-    setTokens(token: string, refreshToken: string, expiresIn: number): void {
+    async setTokens(token: string, refreshToken: string, expiresIn: number): Promise<void> {
         this.state.token = token;
         this.state.refreshToken = refreshToken;
         this.state.expiresAt = Date.now() + expiresIn * 1000;
         this.refreshRetries = 0;
 
-        this.saveToStorage();
+        await this.saveToStorage();
     }
 
     /**
      * Clear authentication tokens
      */
-    clearTokens(): void {
+    async clearTokens(): Promise<void> {
         this.state.token = null;
         this.state.refreshToken = null;
         this.state.expiresAt = null;
         this.refreshRetries = 0;
         this.refreshPromise = null;
 
-        this.saveToStorage();
+        await this.saveToStorage();
     }
 
     /**
@@ -207,7 +311,7 @@ export class AuthManager {
             const data = await response.json();
 
             if (data.token && data.refreshToken && data.expiresIn) {
-                this.setTokens(data.token, data.refreshToken, data.expiresIn);
+                await this.setTokens(data.token, data.refreshToken, data.expiresIn);
                 this.refreshRetries = 0;
                 return data.token;
             } else {
@@ -225,7 +329,7 @@ export class AuthManager {
                 return this.performRefresh();
             } else {
                 console.error('[AuthManager] Token refresh failed after max retries:', error);
-                this.clearTokens();
+                await this.clearTokens();
                 return null;
             }
         } finally {
@@ -245,6 +349,13 @@ export class AuthManager {
         }
 
         return false;
+    }
+
+    /**
+     * Wait for storage to be loaded (useful for ensuring auth state is ready)
+     */
+    async waitForLoad(): Promise<void> {
+        await this.loadFromStorage();
     }
 
     /**
