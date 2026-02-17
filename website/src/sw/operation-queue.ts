@@ -37,13 +37,33 @@ interface OperationQueueStats {
 
 export class OperationQueue {
     private db: IDBDatabase | null = null;
+    private dbInitPromise: Promise<IDBDatabase> | null = null;
 
     /**
-     * Initialize IndexedDB connection
+     * Initialize IndexedDB connection with proper locking to prevent race conditions
      */
     private async initDB(): Promise<IDBDatabase> {
+        // If already initialized, return the DB
         if (this.db) return this.db;
 
+        // If initialization is in progress, wait for it
+        if (this.dbInitPromise) return this.dbInitPromise;
+
+        // Start initialization
+        this.dbInitPromise = this.performDBInit();
+
+        try {
+            return await this.dbInitPromise;
+        } finally {
+            // Clear the promise after completion so future calls can reinitialize if needed
+            this.dbInitPromise = null;
+        }
+    }
+
+    /**
+     * Perform the actual DB initialization
+     */
+    private async performDBInit(): Promise<IDBDatabase> {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
 

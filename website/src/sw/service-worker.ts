@@ -422,6 +422,17 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
             );
             break;
 
+        case 'NETWORK_RESTORED':
+            // Network restored notification from main thread
+            // This provides a fallback if the SW online event doesn't fire reliably
+            console.log('[SW] Received network restored notification from main thread');
+            event.waitUntil(
+                backgroundSync.checkAndSync().catch((error) => {
+                    console.error('[SW] Failed to sync after network restored message:', error);
+                })
+            );
+            break;
+
         default:
         // Unknown message type
     }
@@ -474,4 +485,14 @@ self.addEventListener('periodicsync', (event: Event) => {
             })
         );
     }
+});
+
+// Online event - trigger sync when connection is restored
+// This is critical for ensuring offline changes get synced
+self.addEventListener('online', () => {
+    console.log('[SW] Browser reports online, checking for pending operations');
+    // Use waitUntil pattern to ensure sync completes
+    backgroundSync.checkAndSync().catch((error) => {
+        console.error('[SW] Failed to sync after coming online:', error);
+    });
 });

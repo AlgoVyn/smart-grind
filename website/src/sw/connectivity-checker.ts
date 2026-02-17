@@ -147,10 +147,21 @@ export class ConnectivityChecker {
      */
     async isOnline(): Promise<boolean> {
         // If last check was recent (within 5 seconds), return cached state
-        if (Date.now() - this.state.lastChecked < 5000) {
+        // BUT: if we're currently offline, always do a fresh check
+        const cacheTime = 5000;
+        if (Date.now() - this.state.lastChecked < cacheTime && this.state.isOnline) {
             return this.state.isOnline;
         }
 
+        return this.checkConnectivity();
+    }
+
+    /**
+     * Force a fresh connectivity check, bypassing cache
+     * Use this when coming online to ensure accurate state
+     */
+    async forceFreshCheck(): Promise<boolean> {
+        this.state.lastChecked = 0;
         return this.checkConnectivity();
     }
 
@@ -211,8 +222,12 @@ export class ConnectivityChecker {
     private setupEventListeners(): void {
         // Browser online event
         window.addEventListener('online', () => {
-            // Don't immediately trust navigator.onLine, verify with actual check
-            this.debouncedCheck();
+            // Force immediate check without cache - critical for reliable sync
+            console.log('[ConnectivityChecker] Browser online event, forcing immediate check');
+            this.state.lastChecked = 0; // Reset cache to force fresh check
+            this.checkConnectivity().catch((error) => {
+                console.error('[ConnectivityChecker] Online event check failed:', error);
+            });
         });
 
         // Browser offline event
@@ -224,6 +239,8 @@ export class ConnectivityChecker {
         // Page visibility change - check connectivity when page becomes visible
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
+                // Force check when page becomes visible to catch network state changes
+                this.state.lastChecked = 0;
                 this.debouncedCheck();
             }
         });

@@ -13,8 +13,22 @@ const SYNC_TAGS = {
 } as const;
 
 const MAX_RETRY_ATTEMPTS = 5;
-const SYNC_TIMEOUT_MS = 30000; // 30 seconds timeout for sync batch
-const REQUEST_TIMEOUT_MS = 10000; // 10 seconds timeout for individual requests
+const SYNC_TIMEOUT_MS = 60000; // 60 seconds timeout for sync batch (increased from 30)
+const REQUEST_TIMEOUT_MS = 15000; // 15 seconds timeout for individual requests (increased from 10)
+const AUTH_RETRY_DELAY_MS = 5000; // 5 seconds delay before retrying after auth failure
+const PENDING_RETRY_CHECK_INTERVAL_MS = 30000; // Check for pending retries every 30 seconds
+
+// IndexedDB configuration for persisting retry state
+const RETRY_DB_NAME = 'smartgrind-sync-retry';
+const RETRY_DB_VERSION = 1;
+const RETRY_STORE_NAME = 'pending-retries';
+
+interface PersistedRetry {
+    id: string;
+    operationId: string;
+    scheduledFor: number;
+    createdAt: number;
+}
 
 export class BackgroundSyncManager {
     private operationQueue: OperationQueue;
@@ -22,11 +36,154 @@ export class BackgroundSyncManager {
     private authManager: AuthManager;
     private isSyncing: boolean = false;
     private syncAbortController: AbortController | null = null;
+    private retryCheckInterval: number | null = null;
+    private retryDB: IDBDatabase | null = null;
 
     constructor() {
         this.operationQueue = new OperationQueue();
         this.conflictResolver = new SyncConflictResolver();
         this.authManager = getAuthManager();
+        this.initRetryDB().catch((error) => {
+            console.error('[BackgroundSync] Failed to initialize retry DB:', error);
+        });
+        this.startRetryCheckInterval();
+    }
+
+    /**
+     * Initialize IndexedDB for persisting retry state
+     */
+    private async initRetryDB(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(RETRY_DB_NAME, RETRY_DB_VERSION);
+
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => {
+                this.retryDB = request.result;
+                resolve();
+            };
+
+            request.onupgradeneeded = (event) => {
+                const db = (event.target as IDBOpenDBRequest).result;
+                if (!db.objectStoreNames.contains(RETRY_STORE_NAME)) {
+                    const store = db.createObjectStore(RETRY_STORE_NAME, { keyPath: 'id' });
+                    store.createIndex('scheduledFor', 'scheduledFor', { unique: false });
+                }
+            };
+        });
+    }
+
+    /**
+     * Start periodic check for pending retries
+     * This ensures retries happen even if setTimeout fails due to SW termination
+     */
+    private startRetryCheckInterval(): void {
+        if (this.retryCheckInterval !== null) return;
+
+        // Check if we're in a ServiceWorker context with setInterval available
+        const swSelf = self as unknown as ServiceWorkerGlobalScope;
+        if (typeof swSelf.setInterval === 'function') {
+            this.retryCheckInterval = swSelf.setInterval(() => {
+                this.processPersistedRetries().catch((error) => {
+                    console.error('[BackgroundSync] Failed to process persisted retries:', error);
+                });
+            }, PENDING_RETRY_CHECK_INTERVAL_MS);
+        }
+
+        // Also process any persisted retries on startup
+        this.processPersistedRetries().catch((error) => {
+            console.error(
+                '[BackgroundSync] Failed to process persisted retries on startup:',
+                error
+            );
+        });
+    }
+
+    /**
+     * Persist a retry to IndexedDB so it survives SW termination
+     */
+    private async persistRetry(operationId: string, delayMs: number): Promise<void> {
+        if (!this.retryDB) {
+            await this.initRetryDB();
+        }
+
+        if (!this.retryDB) return;
+
+        const retry: PersistedRetry = {
+            id: `${operationId}-${Date.now()}`,
+            operationId,
+            scheduledFor: Date.now() + delayMs,
+            createdAt: Date.now(),
+        };
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.retryDB!.transaction(RETRY_STORE_NAME, 'readwrite');
+            const store = transaction.objectStore(RETRY_STORE_NAME);
+            const request = store.put(retry);
+
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    /**
+     * Remove a persisted retry after it's been processed
+     */
+    private async removePersistedRetry(id: string): Promise<void> {
+        if (!this.retryDB) return;
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.retryDB!.transaction(RETRY_STORE_NAME, 'readwrite');
+            const store = transaction.objectStore(RETRY_STORE_NAME);
+            const request = store.delete(id);
+
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    /**
+     * Process any persisted retries that are due
+     */
+    private async processPersistedRetries(): Promise<void> {
+        if (!this.retryDB) {
+            await this.initRetryDB();
+        }
+
+        if (!this.retryDB) return;
+
+        const now = Date.now();
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.retryDB!.transaction(RETRY_STORE_NAME, 'readwrite');
+            const store = transaction.objectStore(RETRY_STORE_NAME);
+            const index = store.index('scheduledFor');
+            const range = IDBKeyRange.upperBound(now);
+            const request = index.getAll(range);
+
+            request.onsuccess = async () => {
+                const retries: PersistedRetry[] = request.result;
+                if (retries.length > 0) {
+                    console.log(`[BackgroundSync] Processing ${retries.length} persisted retries`);
+                }
+
+                for (const retry of retries) {
+                    try {
+                        // Trigger sync for this operation
+                        await this.syncUserProgress();
+                        // Remove the persisted retry after processing
+                        await this.removePersistedRetry(retry.id);
+                    } catch (error) {
+                        console.error(
+                            `[BackgroundSync] Failed to process persisted retry ${retry.id}:`,
+                            error
+                        );
+                    }
+                }
+                resolve();
+            };
+
+            request.onerror = () => reject(request.error);
+        });
     }
 
     /**
@@ -89,6 +246,8 @@ export class BackgroundSyncManager {
                 if (!token) {
                     console.warn('[BackgroundSync] Authentication failed, cannot sync');
                     // Don't mark operations as failed, they will retry when auth is restored
+                    // Schedule a retry after delay for auth recovery
+                    await this.persistRetry('auth-retry', AUTH_RETRY_DELAY_MS);
                     // Notify clients that sync is waiting for auth
                     await this.notifyClients('SYNC_WAITING_AUTH', {
                         pendingCount: pendingOps.length,
@@ -181,6 +340,7 @@ export class BackgroundSyncManager {
 
     /**
      * Handle a failed operation with retry logic
+     * Uses both setTimeout for immediate retry and IndexedDB persistence for SW termination recovery
      */
     private async handleFailedOperation(op: QueuedOperation): Promise<void> {
         const retryCount = await this.operationQueue.updateRetryCount(op.id);
@@ -196,7 +356,10 @@ export class BackgroundSyncManager {
                 `[BackgroundSync] Re-queueing operation ${op.id} with ${actualDelay}ms delay (attempt ${retryCount}/${MAX_RETRY_ATTEMPTS})`
             );
 
-            // Re-queue with delay
+            // Persist the retry to IndexedDB so it survives SW termination
+            await this.persistRetry(op.id, actualDelay);
+
+            // Also use setTimeout for immediate retry if SW is still running
             setTimeout(async () => {
                 try {
                     await this.operationQueue.requeueOperation(op);

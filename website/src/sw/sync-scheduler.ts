@@ -348,6 +348,29 @@ export class SyncScheduler {
     }
 
     /**
+     * Reset all circuit breakers - call this when connectivity is restored
+     */
+    resetAllCircuitBreakers(): void {
+        const count = this.circuitBreakers.size;
+        this.circuitBreakers.clear();
+        if (count > 0) {
+            console.log(
+                `[SyncScheduler] Reset ${count} circuit breaker(s) after connectivity restore`
+            );
+        }
+    }
+
+    /**
+     * Handle connectivity restore - reset circuit breakers and process queue
+     */
+    async onConnectivityRestored(): Promise<void> {
+        console.log('[SyncScheduler] Connectivity restored, resetting circuit breakers');
+        this.resetAllCircuitBreakers();
+        // Trigger immediate queue processing
+        await this.processQueue();
+    }
+
+    /**
      * Get current queue statistics
      */
     getStats(): {

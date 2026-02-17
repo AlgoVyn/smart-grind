@@ -475,33 +475,53 @@ export function listenForConnectivityChanges(callback: (_online: boolean) => voi
     const onlineCallback = callback;
     const connectivityChecker = getConnectivityChecker();
     let isProcessingSync = false;
+    let syncTimeoutId: number | null = null;
 
-    const handleOnline = async () => {
+    /**
+     * Safely trigger sync with proper error handling and state management
+     */
+    const triggerSync = async (source: string): Promise<void> => {
         // Prevent concurrent sync processing
         if (isProcessingSync) {
-            console.log('[SW] Sync already in progress, skipping duplicate trigger');
+            console.log(`[SW] Sync already in progress from ${source}, skipping duplicate trigger`);
             return;
         }
 
+        isProcessingSync = true;
+        console.log(
+            `[SW] Connection restored (${source}), migrating operations and triggering sync`
+        );
+
+        try {
+            // First migrate any localStorage operations, then trigger sync
+            await migrateLocalStorageOperations();
+            // Wait for migration to complete before triggering sync
+            const syncResult = await syncUserProgress();
+            console.log('[SW] Sync triggered successfully:', syncResult);
+        } catch (error) {
+            console.error('[SW] Error during sync after coming online:', error);
+            // Schedule a retry after delay on error
+            if (syncTimeoutId !== null) {
+                clearTimeout(syncTimeoutId);
+            }
+            syncTimeoutId = window.setTimeout(() => {
+                isProcessingSync = false;
+                triggerSync('retry-after-error').catch(console.error);
+            }, 5000);
+            return; // Keep isProcessingSync true until retry completes
+        } finally {
+            isProcessingSync = false;
+            syncTimeoutId = null;
+        }
+    };
+
+    const handleOnline = async () => {
         // Use connectivity checker to verify actual server reachability
-        const isActuallyOnline = await connectivityChecker.forceCheck();
+        const isActuallyOnline = await connectivityChecker.forceFreshCheck();
         onlineCallback(isActuallyOnline);
 
         if (isActuallyOnline) {
-            isProcessingSync = true;
-            console.log('[SW] Connection restored, migrating operations and triggering sync');
-
-            try {
-                // First migrate any localStorage operations, then trigger sync
-                await migrateLocalStorageOperations();
-                // Wait for migration to complete before triggering sync
-                const syncResult = await syncUserProgress();
-                console.log('[SW] Sync triggered successfully:', syncResult);
-            } catch (error) {
-                console.error('[SW] Error during sync after coming online:', error);
-            } finally {
-                isProcessingSync = false;
-            }
+            await triggerSync('online-event');
         }
     };
 
@@ -513,21 +533,10 @@ export function listenForConnectivityChanges(callback: (_online: boolean) => voi
     // Use connectivity checker for more reliable detection
     const unsubscribe = connectivityChecker.onConnectivityChange((online) => {
         onlineCallback(online);
-        if (online && !isProcessingSync) {
-            isProcessingSync = true;
-            console.log('[SW] Connectivity change detected - online, starting sync process');
-
-            migrateLocalStorageOperations()
-                .then(() => syncUserProgress())
-                .then((result) => {
-                    console.log('[SW] Sync completed after connectivity change:', result);
-                })
-                .catch((error) => {
-                    console.error('[SW] Sync failed after connectivity change:', error);
-                })
-                .finally(() => {
-                    isProcessingSync = false;
-                });
+        if (online) {
+            triggerSync('connectivity-change').catch((error) => {
+                console.error('[SW] Sync failed after connectivity change:', error);
+            });
         }
     });
 
@@ -539,6 +548,9 @@ export function listenForConnectivityChanges(callback: (_online: boolean) => voi
 
     // Return cleanup function
     return () => {
+        if (syncTimeoutId !== null) {
+            clearTimeout(syncTimeoutId);
+        }
         window.removeEventListener('online', handleOnline);
         window.removeEventListener('offline', handleOffline);
         unsubscribe();
