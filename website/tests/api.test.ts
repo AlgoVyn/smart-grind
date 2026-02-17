@@ -244,58 +244,35 @@ describe('SmartGrind API Module', () => {
             expect(mockUpdateStats).toHaveBeenCalled();
         });
 
-        test('should call _saveRemotely for signed-in user', async () => {
+        test('should save locally and trigger background sync for signed-in user', async () => {
             state.user.type = 'signed-in';
-            mockFetch
-                .mockResolvedValueOnce(
-                    createMockResponse({
-                        ok: true,
-                        json: () => Promise.resolve({ csrfToken: 'test-token' }),
-                    })
-                )
-                .mockResolvedValueOnce(createMockResponse({ ok: true }));
+
+            // Mock the dynamic import of api module
+            jest.mock('../src/api', () => ({
+                queueOperation: jest.fn().mockResolvedValue('op-id'),
+                forceSync: jest.fn().mockResolvedValue({ success: true, synced: 1, failed: 0 }),
+            }));
 
             await apiSave._performSave();
 
-            expect(mockFetch).toHaveBeenCalled();
+            // Should save locally first
+            expect(mockSaveToStorage).toHaveBeenCalled();
             expect(mockUpdateStats).toHaveBeenCalled();
         });
 
-        test('should show alert on auth save error', async () => {
+        test('should handle background sync trigger failure gracefully', async () => {
             state.user.type = 'signed-in';
-            mockFetch
-                .mockResolvedValueOnce(
-                    createMockResponse({
-                        ok: true,
-                        json: () => Promise.resolve({ csrfToken: 'test-token' }),
-                    })
-                )
-                .mockResolvedValueOnce(createMockResponse({ ok: false, status: 401 }));
 
-            // Should NOT throw, but should alert because it's an Auth error
+            // Mock the dynamic import to fail
+            jest.mock('../src/api', () => {
+                throw new Error('Import failed');
+            });
+
+            // Should not throw - background sync is non-blocking
             await expect(apiSave._performSave()).resolves.not.toThrow();
 
-            // The error message from _saveRemotely for 401 is "Authentication failed. Please sign in again."
-            expect(mockShowAlert).toHaveBeenCalledWith(
-                expect.stringContaining('Saved locally, but sync failed: Authentication failed')
-            );
-        });
-
-        test('should silently fail on server save error', async () => {
-            state.user.type = 'signed-in';
-            mockFetch
-                .mockResolvedValueOnce(
-                    createMockResponse({
-                        ok: true,
-                        json: () => Promise.resolve({ csrfToken: 'test-token' }),
-                    })
-                )
-                .mockResolvedValueOnce(createMockResponse({ ok: false, status: 500 }));
-
-            // Should NOT throw, and should NOT alert (silent retry logic/warning)
-            await expect(apiSave._performSave()).resolves.not.toThrow();
-
-            expect(mockShowAlert).not.toHaveBeenCalled();
+            // Should still save locally
+            expect(mockSaveToStorage).toHaveBeenCalled();
         });
     });
 

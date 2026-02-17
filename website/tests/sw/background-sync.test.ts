@@ -445,15 +445,34 @@ describe('BackgroundSyncManager', () => {
             mockOperationQueue.getOperationsByType.mockResolvedValue(mockOps);
             mockOperationQueue.markCompleted.mockResolvedValue();
 
-            global.fetch = jest.fn().mockResolvedValue({ ok: true });
+            // Mock CSRF fetch followed by actual sync fetch
+            global.fetch = jest
+                .fn()
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ csrfToken: 'test-csrf-token' }),
+                })
+                .mockResolvedValueOnce({ ok: true });
 
             await manager.syncUserSettings();
 
-            expect(global.fetch).toHaveBeenCalledWith(
-                '/smartgrind/api/user/settings',
+            // First call is CSRF token fetch
+            expect(global.fetch).toHaveBeenNthCalledWith(
+                1,
+                '/smartgrind/api/user?action=csrf',
                 expect.objectContaining({
-                    method: 'PUT',
-                    body: JSON.stringify({ theme: 'light' }),
+                    credentials: 'include',
+                })
+            );
+            // Second call is the actual sync
+            expect(global.fetch).toHaveBeenNthCalledWith(
+                2,
+                '/smartgrind/api/user',
+                expect.objectContaining({
+                    method: 'POST',
+                    headers: expect.objectContaining({
+                        'X-CSRF-Token': 'test-csrf-token',
+                    }),
                 })
             );
         });
@@ -484,7 +503,14 @@ describe('BackgroundSyncManager', () => {
             mockOperationQueue.getOperationsByType.mockResolvedValue(mockOps);
             mockOperationQueue.markCompleted.mockResolvedValue();
 
-            global.fetch = jest.fn().mockResolvedValue({ ok: true });
+            // Mock CSRF fetch followed by actual sync fetch
+            global.fetch = jest
+                .fn()
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ csrfToken: 'test-csrf-token' }),
+                })
+                .mockResolvedValueOnce({ ok: true });
 
             await manager.syncUserSettings();
 

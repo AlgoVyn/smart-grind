@@ -6,15 +6,14 @@ import { state } from '../state';
 import { data } from '../data';
 import { renderers } from '../renderers';
 import { ui } from '../ui/ui';
-import { getConnectivityChecker } from '../sw/connectivity-checker';
 
 /**
- * Check if the browser is online using the connectivity checker
- * This is more reliable than navigator.onLine as it verifies actual connectivity
+ * Check if the browser reports being online
+ * This is a fast synchronous check - we rely on the save failing
+ * naturally if the network is actually unavailable
  */
-const isOnline = async (): Promise<boolean> => {
-    const checker = getConnectivityChecker();
-    return checker.isOnline();
+const isOnline = (): boolean => {
+    return typeof navigator !== 'undefined' && navigator.onLine;
 };
 
 /**
@@ -76,8 +75,7 @@ export const apiSave = {
      * @throws {Error} Throws an error if the fetch fails or if offline.
      */
     async _fetchCsrfToken(): Promise<string> {
-        const online = await isOnline();
-        if (!online) {
+        if (!isOnline()) {
             throw new Error('OFFLINE: Cannot fetch CSRF token while offline');
         }
         const response = await fetch(`${data.API_BASE}/user?action=csrf`, {
@@ -96,8 +94,7 @@ export const apiSave = {
      * @throws {Error} Throws an error if the save request fails or if offline.
      */
     async _saveRemotely(): Promise<void> {
-        const online = await isOnline();
-        if (!online) {
+        if (!isOnline()) {
             throw new Error('OFFLINE: Cannot save remotely while offline');
         }
         const dataToSave = this._prepareDataForSave();
@@ -174,55 +171,47 @@ export const apiSave = {
 
     /**
      * Performs the save operation based on the user type (local or remote).
-     * Automatically falls back to local save when offline.
-     * @throws {Error} Throws an error if the save fails.
+     * Always saves locally first, then triggers background sync for signed-in users.
+     * The frontend is never blocked by remote saves - they happen in the background.
+     * @throws {Error} Throws an error if the local save fails.
      */
     async _performSave(): Promise<void> {
         // ALWAYS save locally first to ensure offline availability
         // This acts as a reliable backup even for signed-in users
         await this._handleSaveOperation(this._saveLocally.bind(this), true);
 
-        const isUserOnline = await isOnline();
         const isSignedIn = state.user.type === 'signed-in';
 
-        // If offline, we are done (local save already happened)
-        if (!isUserOnline) {
-            if (isSignedIn) {
-                console.log('Offline mode: Saved locally (queued for sync if operations pending)');
-            }
-            return;
-        }
-
-        // If signed in and online, ALSO save remotely
+        // For signed-in users, trigger background sync without blocking
+        // The actual remote save happens in the service worker
         if (isSignedIn) {
-            try {
-                // Try remote save directly (bypass _handleSaveOperation to control error handling)
-                await this._saveRemotely();
-                // Update stats only on success (local save already happened, but remote might trigger other updates?
-                // Actually renderers.updateStats() is usually enough from local save, but let's keep it consistent)
-                renderers.updateStats();
-                console.log('[APISave] Remote save completed successfully');
-            } catch (error) {
-                console.warn(
-                    'Remote save failed (likely offline/network), keeping local change:',
-                    error
-                );
+            // Don't await - let sync happen in background
+            this._triggerBackgroundSync().catch((error) => {
+                console.warn('[APISave] Background sync trigger failed:', error);
+            });
+        }
+    },
 
-                // If it's an authentication error, we might want to let the user know,
-                // but we should still NOT throw so that saveProblemWithSync proceeds to queue the operation.
-                const isAuthError =
-                    error instanceof Error &&
-                    (error.message.includes('Authentication') || error.message.includes('CSRF'));
+    /**
+     * Triggers background sync for signed-in users.
+     * This is non-blocking - the frontend returns immediately.
+     */
+    async _triggerBackgroundSync(): Promise<void> {
+        // Import dynamically to avoid circular dependencies
+        const { queueOperation, forceSync } = await import('../api');
 
-                if (isAuthError) {
-                    ui.showAlert(
-                        `Saved locally, but sync failed: ${error instanceof Error ? error.message : String(error)}`
-                    );
-                }
+        // Queue a full sync operation
+        // This will be processed by the service worker in the background
+        await queueOperation({
+            type: 'UPDATE_SETTINGS', // Use as a trigger for full data sync
+            data: this._prepareDataForSave(),
+            timestamp: Date.now(),
+        });
 
-                // For network errors (TypeError: Failed to fetch), we swallow the error.
-                // This allows saveProblemWithSync (in api.ts) to continue and queue the operation for background sync.
-            }
+        // If online, also trigger immediate sync attempt
+        // This is still non-blocking as it uses the service worker
+        if (isOnline()) {
+            await forceSync();
         }
     },
 

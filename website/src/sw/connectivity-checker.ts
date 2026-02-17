@@ -144,15 +144,17 @@ export class ConnectivityChecker {
 
     /**
      * Check if currently online with actual verification
+     * Optimized for fast return when online to avoid blocking saves
      */
     async isOnline(): Promise<boolean> {
-        // If last check was recent (within 5 seconds), return cached state
-        // BUT: if we're currently offline, always do a fresh check
-        const cacheTime = 5000;
-        if (Date.now() - this.state.lastChecked < cacheTime && this.state.isOnline) {
+        // Fast path: if we're online and checked recently, return cached state
+        // Use a longer cache time when online (10s) vs offline (5s)
+        const cacheTime = this.state.isOnline ? 10000 : 5000;
+        if (Date.now() - this.state.lastChecked < cacheTime) {
             return this.state.isOnline;
         }
 
+        // Only do network check if we might be offline or cache is stale
         return this.checkConnectivity();
     }
 

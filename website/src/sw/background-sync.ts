@@ -480,27 +480,39 @@ export class BackgroundSyncManager {
     }
 
     /**
-     * Sync user settings
+     * Sync user settings - this now performs a full data sync to /api/user
+     * The UPDATE_SETTINGS operation contains the full user data
      */
     async syncUserSettings(): Promise<void> {
         const pendingOps = await this.operationQueue.getOperationsByType('UPDATE_SETTINGS');
         if (pendingOps.length === 0) return;
 
-        // Get the most recent settings operation
+        // Get the most recent settings operation - it contains the full data
         const latestOp = pendingOps[pendingOps.length - 1];
         if (!latestOp) return;
 
         try {
-            const authHeaders = await this.authManager.getAuthHeaders();
+            // Get CSRF token first
+            const csrfResponse = await fetch('/smartgrind/api/user?action=csrf', {
+                credentials: 'include',
+            });
 
-            const response = await fetch('/smartgrind/api/user/settings', {
-                method: 'PUT',
+            if (!csrfResponse.ok) {
+                throw new Error('Failed to fetch CSRF token');
+            }
+
+            const csrfData = await csrfResponse.json();
+            const csrfToken = csrfData.csrfToken;
+
+            // Sync full user data to /api/user endpoint
+            const response = await fetch('/smartgrind/api/user', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...authHeaders,
+                    'X-CSRF-Token': csrfToken,
                 },
                 credentials: 'include',
-                body: JSON.stringify(latestOp.data),
+                body: JSON.stringify({ data: latestOp.data }),
                 signal: this.syncAbortController?.signal || null,
             });
 
@@ -509,27 +521,42 @@ export class BackgroundSyncManager {
                 for (const op of pendingOps) {
                     await this.operationQueue.markCompleted(op.id);
                 }
+                console.log('[BackgroundSync] Full data sync completed successfully');
             } else if (response.status === 401 || response.status === 403) {
                 // Auth error - try to refresh
                 const refreshed = await this.authManager.handleAuthError(response);
                 if (refreshed) {
-                    // Retry with fresh token
-                    const retryResponse = await this.authManager.retryWithFreshToken(
-                        new Request('/smartgrind/api/user/settings', {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            credentials: 'include',
-                            body: JSON.stringify(latestOp.data),
-                        }),
-                        (req) => fetch(req)
-                    );
+                    // Get fresh CSRF token and retry
+                    const retryCsrfResponse = await fetch('/smartgrind/api/user?action=csrf', {
+                        credentials: 'include',
+                    });
 
-                    if (retryResponse.ok) {
-                        for (const op of pendingOps) {
-                            await this.operationQueue.markCompleted(op.id);
+                    if (retryCsrfResponse.ok) {
+                        const retryCsrfData = await retryCsrfResponse.json();
+                        const retryCsrfToken = retryCsrfData.csrfToken;
+
+                        const retryResponse = await fetch('/smartgrind/api/user', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': retryCsrfToken,
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({ data: latestOp.data }),
+                        });
+
+                        if (retryResponse.ok) {
+                            for (const op of pendingOps) {
+                                await this.operationQueue.markCompleted(op.id);
+                            }
+                            console.log(
+                                '[BackgroundSync] Full data sync completed after auth refresh'
+                            );
+                        } else {
+                            throw new Error(`Retry failed: ${retryResponse.status}`);
                         }
                     } else {
-                        throw new Error(`Retry failed: ${retryResponse.status}`);
+                        throw new Error('Failed to fetch CSRF token after auth refresh');
                     }
                 } else {
                     throw new Error('Authentication failed');
@@ -541,7 +568,7 @@ export class BackgroundSyncManager {
             if (error instanceof Error && error.name === 'AbortError') {
                 throw error;
             }
-            console.error('[BackgroundSync] Failed to sync user settings:', error);
+            console.error('[BackgroundSync] Failed to sync user data:', error);
             throw error;
         }
     }
