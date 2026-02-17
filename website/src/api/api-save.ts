@@ -185,34 +185,40 @@ export const apiSave = {
         // For signed-in users, trigger background sync without blocking
         // The actual remote save happens in the service worker
         if (isSignedIn) {
-            // Don't await - let sync happen in background
-            this._triggerBackgroundSync().catch((error) => {
-                console.warn('[APISave] Background sync trigger failed:', error);
-            });
+            // Fire and forget - sync happens in background
+            this._triggerBackgroundSync();
         }
     },
 
     /**
      * Triggers background sync for signed-in users.
      * This is non-blocking - the frontend returns immediately.
+     * All operations are queued and processed asynchronously.
      */
-    async _triggerBackgroundSync(): Promise<void> {
-        // Import dynamically to avoid circular dependencies
-        const { queueOperation, forceSync } = await import('../api');
+    _triggerBackgroundSync(): void {
+        // Don't await - fire and forget
+        (async () => {
+            try {
+                // Import dynamically to avoid circular dependencies
+                const { queueOperation, forceSync } = await import('../api');
 
-        // Queue a full sync operation
-        // This will be processed by the service worker in the background
-        await queueOperation({
-            type: 'UPDATE_SETTINGS', // Use as a trigger for full data sync
-            data: this._prepareDataForSave(),
-            timestamp: Date.now(),
-        });
+                // Queue a full sync operation
+                // This will be processed by the service worker in the background
+                await queueOperation({
+                    type: 'UPDATE_SETTINGS', // Use as a trigger for full data sync
+                    data: this._prepareDataForSave(),
+                    timestamp: Date.now(),
+                });
 
-        // If online, also trigger immediate sync attempt
-        // This is still non-blocking as it uses the service worker
-        if (isOnline()) {
-            await forceSync();
-        }
+                // If online, also trigger immediate sync attempt
+                // This is still non-blocking as it uses the service worker
+                if (isOnline()) {
+                    await forceSync();
+                }
+            } catch (error) {
+                console.warn('[APISave] Background sync trigger failed:', error);
+            }
+        })();
     },
 
     /**

@@ -51,10 +51,11 @@ export const problemCardRenderers = {
         // Show loading state immediately
         renderers._reRenderCard(button, _p);
 
-        // Add delay for spinner visibility
-        await new Promise<void>((resolve) => setTimeout(resolve, 400));
+        // Add short delay for spinner visibility (reduced from 400ms to 150ms)
+        await new Promise<void>((resolve) => setTimeout(resolve, 150));
 
         // Safety timeout: ensure spinner is cleared even if the async operation hangs
+        // Reduced from 10s to 3s since save is now non-blocking
         const safetyTimeoutId = setTimeout(() => {
             if (_p.loading) {
                 console.warn(
@@ -63,7 +64,7 @@ export const problemCardRenderers = {
                 _p.loading = false;
                 renderers._reRenderAllCards(_p);
             }
-        }, 10000);
+        }, 3000);
 
         try {
             // Prepare updates for sync-aware save

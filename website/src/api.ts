@@ -335,9 +335,11 @@ export async function saveProblemWithSync(
     }>
 ): Promise<void> {
     // Always save locally first (saves all current state)
+    // This is the only blocking operation - it's fast (localStorage)
     await saveProblem();
 
-    // Only queue operation for background sync if user is signed in
+    // Queue operation for background sync NON-BLOCKING
+    // This ensures the UI is never blocked by SW communication
     if (state.user.type === 'signed-in') {
         // Determine operation type based on updates
         let operationType: APIOperationType = 'MARK_SOLVED';
@@ -357,12 +359,11 @@ export async function saveProblemWithSync(
             timestamp: Date.now(),
         };
 
-        // Queue operation for background sync
-        await queueOperation(operation);
-
-        // Use background sync to handle the actual sync.
-        // The initial saveProblem() call already attempted an immediate remote save.
-        // If that failed, the queued operation will be picked up by the Background Sync API or the next online event.
+        // Queue operation in background - DO NOT await
+        // This prevents UI blocking from SW message timeouts
+        queueOperation(operation).catch((error) => {
+            console.warn('[API] Failed to queue operation for background sync:', error);
+        });
     }
 }
 
