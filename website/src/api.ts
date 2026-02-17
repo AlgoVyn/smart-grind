@@ -293,7 +293,7 @@ export async function saveProblemWithSync(
         note: string;
     }>
 ): Promise<void> {
-    // Always save locally first
+    // Always save locally first (saves all current state)
     await saveProblem();
 
     // Only queue operation for background sync if user is signed in

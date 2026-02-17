@@ -1,5 +1,6 @@
 // Auth Manager Module for SmartGrind Service Worker
 // Handles authentication token management and refresh
+// Uses IndexedDB for storage (localStorage is not available in Service Workers)
 
 interface AuthState {
     token: string | null;
@@ -20,14 +21,13 @@ const DEFAULT_OPTIONS: AuthManagerOptions = {
     maxRefreshRetries: 3,
 };
 
-// IndexedDB configuration for auth storage (Service Workers don't have localStorage)
-const DB_NAME = 'smartgrind-auth';
-const DB_VERSION = 1;
-const STORE_NAME = 'auth-tokens';
+// IndexedDB configuration for auth storage
+const AUTH_DB_NAME = 'smartgrind-auth';
+const AUTH_DB_VERSION = 1;
+const AUTH_STORE_NAME = 'auth-tokens';
 
 /**
- * IndexedDB-based storage for auth tokens
- * Used instead of localStorage because Service Workers don't have access to localStorage
+ * AuthStorage class using IndexedDB (compatible with Service Workers)
  */
 class AuthStorage {
     private db: IDBDatabase | null = null;
@@ -39,7 +39,7 @@ class AuthStorage {
         if (this.db) return this.db;
 
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            const request = indexedDB.open(AUTH_DB_NAME, AUTH_DB_VERSION);
 
             request.onerror = () => reject(request.error);
             request.onsuccess = () => {
@@ -49,8 +49,8 @@ class AuthStorage {
 
             request.onupgradeneeded = (event) => {
                 const db = (event.target as IDBOpenDBRequest).result;
-                if (!db.objectStoreNames.contains(STORE_NAME)) {
-                    db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+                if (!db.objectStoreNames.contains(AUTH_STORE_NAME)) {
+                    db.createObjectStore(AUTH_STORE_NAME, { keyPath: 'key' });
                 }
             };
         });
@@ -63,8 +63,8 @@ class AuthStorage {
         try {
             const db = await this.initDB();
             return new Promise((resolve, reject) => {
-                const transaction = db.transaction(STORE_NAME, 'readonly');
-                const store = transaction.objectStore(STORE_NAME);
+                const transaction = db.transaction(AUTH_STORE_NAME, 'readonly');
+                const store = transaction.objectStore(AUTH_STORE_NAME);
                 const request = store.get(key);
 
                 request.onsuccess = () => {
@@ -85,8 +85,8 @@ class AuthStorage {
         try {
             const db = await this.initDB();
             return new Promise((resolve, reject) => {
-                const transaction = db.transaction(STORE_NAME, 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
+                const transaction = db.transaction(AUTH_STORE_NAME, 'readwrite');
+                const store = transaction.objectStore(AUTH_STORE_NAME);
                 const request = store.put({ key, value });
 
                 request.onsuccess = () => resolve();
@@ -104,8 +104,8 @@ class AuthStorage {
         try {
             const db = await this.initDB();
             return new Promise((resolve, reject) => {
-                const transaction = db.transaction(STORE_NAME, 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
+                const transaction = db.transaction(AUTH_STORE_NAME, 'readwrite');
+                const store = transaction.objectStore(AUTH_STORE_NAME);
                 const request = store.delete(key);
 
                 request.onsuccess = () => resolve();
@@ -113,6 +113,25 @@ class AuthStorage {
             });
         } catch (error) {
             console.error('[AuthStorage] Failed to remove item:', error);
+        }
+    }
+
+    /**
+     * Clear all auth data
+     */
+    async clear(): Promise<void> {
+        try {
+            const db = await this.initDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(AUTH_STORE_NAME, 'readwrite');
+                const store = transaction.objectStore(AUTH_STORE_NAME);
+                const request = store.clear();
+
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        } catch (error) {
+            console.error('[AuthStorage] Failed to clear:', error);
         }
     }
 }
@@ -133,7 +152,6 @@ export class AuthManager {
             isRefreshing: false,
         };
         this.storage = new AuthStorage();
-
         // Load from storage asynchronously
         this.loadFromStorage().catch((error) => {
             console.error('[AuthManager] Failed to load from storage:', error);
@@ -164,23 +182,29 @@ export class AuthManager {
      */
     private async saveToStorage(): Promise<void> {
         try {
+            const promises: Promise<void>[] = [];
+
             if (this.state.token) {
-                await this.storage.setItem('token', this.state.token);
+                promises.push(this.storage.setItem('token', this.state.token));
             } else {
-                await this.storage.removeItem('token');
+                promises.push(this.storage.removeItem('token'));
             }
 
             if (this.state.refreshToken) {
-                await this.storage.setItem('refreshToken', this.state.refreshToken);
+                promises.push(this.storage.setItem('refreshToken', this.state.refreshToken));
             } else {
-                await this.storage.removeItem('refreshToken');
+                promises.push(this.storage.removeItem('refreshToken'));
             }
 
             if (this.state.expiresAt) {
-                await this.storage.setItem('tokenExpiresAt', this.state.expiresAt.toString());
+                promises.push(
+                    this.storage.setItem('tokenExpiresAt', this.state.expiresAt.toString())
+                );
             } else {
-                await this.storage.removeItem('tokenExpiresAt');
+                promises.push(this.storage.removeItem('tokenExpiresAt'));
             }
+
+            await Promise.all(promises);
         } catch (error) {
             console.error('[AuthManager] Failed to save to storage:', error);
         }
@@ -207,6 +231,24 @@ export class AuthManager {
         this.state.expiresAt = null;
         this.refreshRetries = 0;
         this.refreshPromise = null;
+
+        await this.saveToStorage();
+    }
+
+    /**
+     * Update tokens after refresh
+     */
+    private async updateTokens(
+        newToken: string,
+        newRefreshToken?: string,
+        expiresIn?: number
+    ): Promise<void> {
+        this.state.token = newToken;
+        if (newRefreshToken) {
+            this.state.refreshToken = newRefreshToken;
+        }
+        this.state.expiresAt = Date.now() + (expiresIn || 3600) * 1000;
+        this.refreshRetries = 0;
 
         await this.saveToStorage();
     }
@@ -298,34 +340,24 @@ export class AuthManager {
             });
 
             if (!response.ok) {
-                if (response.status === 401) {
-                    // Refresh token is invalid, clear auth state
-                    console.error('[AuthManager] Refresh token invalid');
-                    this.clearTokens();
-                    return null;
-                }
-
                 throw new Error(`Token refresh failed: ${response.status}`);
             }
 
-            const data = await response.json();
+            const data = (await response.json()) as {
+                token: string;
+                refreshToken?: string;
+                expiresIn?: number;
+            };
 
-            if (data.token && data.refreshToken && data.expiresIn) {
-                await this.setTokens(data.token, data.refreshToken, data.expiresIn);
-                this.refreshRetries = 0;
-                return data.token;
-            } else {
-                throw new Error('Invalid token refresh response');
-            }
+            await this.updateTokens(data.token, data.refreshToken, data.expiresIn);
+            return data.token;
         } catch (error) {
             this.refreshRetries++;
-
             if (this.refreshRetries < this.options.maxRefreshRetries) {
-                // Retry after delay
-                console.log(
-                    `[AuthManager] Token refresh failed, retrying in ${this.options.refreshRetryDelay}ms...`
+                // Exponential backoff
+                await this.delay(
+                    this.options.refreshRetryDelay * Math.pow(2, this.refreshRetries - 1)
                 );
-                await this.delay(this.options.refreshRetryDelay);
                 return this.performRefresh();
             } else {
                 console.error('[AuthManager] Token refresh failed after max retries:', error);

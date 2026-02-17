@@ -59,9 +59,17 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
     }
 
     try {
-        // Verify scope is correct
+        // Verify scope is correct (normalize paths by ensuring trailing slash)
         const currentPath = window.location.pathname;
-        if (!currentPath.startsWith(SW_CONFIG.scope)) {
+        const normalizedScope = SW_CONFIG.scope.endsWith('/')
+            ? SW_CONFIG.scope
+            : `${SW_CONFIG.scope}/`;
+        const normalizedPath = currentPath.endsWith('/') ? currentPath : `${currentPath}/`;
+
+        if (
+            !normalizedPath.startsWith(normalizedScope) &&
+            normalizedPath !== normalizedScope.slice(0, -1)
+        ) {
             console.warn(`[SW] Current path ${currentPath} is outside SW scope ${SW_CONFIG.scope}`);
         }
 

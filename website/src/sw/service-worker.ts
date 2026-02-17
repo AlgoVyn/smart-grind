@@ -101,6 +101,12 @@ self.addEventListener('fetch', (event: FetchEvent) => {
     const { request } = event;
     const requestUrl = new URL(request.url);
 
+    // Skip non-http/https schemes (e.g., chrome-extension, data, blob)
+    // These cannot be cached by the Cache API
+    if (requestUrl.protocol !== 'http:' && requestUrl.protocol !== 'https:') {
+        return;
+    }
+
     // Skip auth routes - let browser handle OAuth redirects naturally
     if (AUTH_ROUTES.some((pattern) => pattern.test(requestUrl.pathname))) {
         return;

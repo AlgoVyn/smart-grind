@@ -103,10 +103,10 @@ export const problemCardRenderers = {
         newCards.forEach((newCard: Element) => {
             const btn = newCard.querySelector('.action-btn[data-action]');
             if (btn) {
+                // Always re-render first to update loading state, then hide if needed
+                renderers._reRenderCard(btn as HTMLElement, p);
                 if (hideIfDueFilter && state.ui.currentFilter === 'review') {
                     renderers._hideCardIfDueFilter(btn as HTMLElement);
-                } else {
-                    renderers._reRenderCard(btn as HTMLElement, p);
                 }
             }
         });
