@@ -117,6 +117,9 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
         // Set up periodic update checks (every 60 minutes)
         setupPeriodicUpdateChecks(registration);
 
+        // Cache dynamic assets (scripts and styles)
+        cacheDynamicAssets(registration);
+
         state.registered = true;
         return true;
     } catch (error) {
@@ -608,5 +611,41 @@ export async function unregister(): Promise<boolean> {
     }
 }
 
-// Export sync tags for use in other modules
 export { SYNC_TAGS };
+
+/**
+ * Scan for dynamic assets (scripts, styles) and send to SW for caching
+ */
+function cacheDynamicAssets(registration: ServiceWorkerRegistration): void {
+    if (!registration.active) return;
+
+    try {
+        const assetsToCache: string[] = [];
+
+        // Scan for scripts
+        document.querySelectorAll('script[src]').forEach((script) => {
+            const src = (script as HTMLScriptElement).src;
+            if (src && !src.startsWith('chrome-extension:') && !src.startsWith('data:')) {
+                assetsToCache.push(src);
+            }
+        });
+
+        // Scan for stylesheets
+        document.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
+            const href = (link as HTMLLinkElement).href;
+            if (href && !href.startsWith('chrome-extension:') && !href.startsWith('data:')) {
+                assetsToCache.push(href);
+            }
+        });
+
+        if (assetsToCache.length > 0) {
+            console.log(`[SW] Sending ${assetsToCache.length} assets to cache`);
+            registration.active.postMessage({
+                type: 'CACHE_ASSETS',
+                assets: assetsToCache,
+            });
+        }
+    } catch (error) {
+        console.error('[SW] Failed to cache dynamic assets:', error);
+    }
+}

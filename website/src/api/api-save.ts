@@ -173,22 +173,25 @@ export const apiSave = {
      * @throws {Error} Throws an error if the save fails.
      */
     async _performSave(): Promise<void> {
+        // ALWAYS save locally first to ensure offline availability
+        // This acts as a reliable backup even for signed-in users
+        await this._handleSaveOperation(this._saveLocally.bind(this), true);
+
         const isUserOnline = isOnline();
         const isSignedIn = state.user.type === 'signed-in';
 
-        // If offline and signed in, fall back to local save
-        if (!isUserOnline && isSignedIn) {
-            console.log('Offline mode: Saving locally');
-            await this._handleSaveOperation(this._saveLocally.bind(this), true);
+        // If offline, we are done (local save already happened)
+        if (!isUserOnline) {
+            if (isSignedIn) {
+                console.log('Offline mode: Saved locally (queued for sync if operations pending)');
+            }
             return;
         }
 
-        // Normal flow: local users save locally, signed-in users save remotely
-        const saveFn =
-            state.user.type === 'local'
-                ? this._saveLocally.bind(this)
-                : this._saveRemotely.bind(this);
-        await this._handleSaveOperation(saveFn);
+        // If signed in and online, ALSO save remotely
+        if (isSignedIn) {
+            await this._handleSaveOperation(this._saveRemotely.bind(this));
+        }
     },
 
     /**

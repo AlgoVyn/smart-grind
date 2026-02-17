@@ -11,8 +11,8 @@ import { OperationQueue } from './operation-queue';
 declare const self: ServiceWorkerGlobalScope;
 
 // Version for cache busting - update this when deploying new versions
-const SW_VERSION = '1.0.0';
-const CACHE_VERSION = `${SW_VERSION}-${new Date().toISOString().split('T')[0]}`;
+const SW_VERSION = '1.0.1';
+const CACHE_VERSION = `v${SW_VERSION}`;
 
 // Initialize managers
 const offlineManager = new OfflineManager();
@@ -303,6 +303,8 @@ async function handleStaticRequest(request: Request): Promise<Response> {
     });
 }
 
+// ... (rest of imports and setup)
+
 // Message event - handle communication from main app
 self.addEventListener('message', (event: ExtendableMessageEvent) => {
     const { data: messageData } = event;
@@ -312,6 +314,19 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
     switch (messageData.type) {
         case 'SKIP_WAITING':
             self.skipWaiting();
+            break;
+
+        case 'CACHE_ASSETS':
+            // Cache specific assets (sent from main thread)
+            if (messageData.assets && Array.isArray(messageData.assets)) {
+                event.waitUntil(
+                    (async () => {
+                        const cache = await caches.open(CACHE_NAMES.STATIC);
+                        await cache.addAll(messageData.assets);
+                        console.log(`[SW] Cached ${messageData.assets.length} dynamic assets`);
+                    })()
+                );
+            }
             break;
 
         case 'CACHE_PROBLEMS':
