@@ -121,8 +121,12 @@ export async function queueOperation(operation: APIOperation): Promise<string | 
         operations: [operation],
     });
 
-    // Update state with pending operation count
-    await updateSyncStatus();
+    // Update state with pending operation count (non-blocking - don't fail the operation if this fails)
+    try {
+        await updateSyncStatus();
+    } catch (e) {
+        console.warn('Failed to update sync status after queueing operation:', e);
+    }
 
     return response ? (response as { operationId?: string }).operationId || null : null;
 }
@@ -156,8 +160,12 @@ export async function queueOperations(operations: APIOperation[]): Promise<strin
         operations,
     });
 
-    // Update state with pending operation count
-    await updateSyncStatus();
+    // Update state with pending operation count (non-blocking - don't fail the operation if this fails)
+    try {
+        await updateSyncStatus();
+    } catch (e) {
+        console.warn('Failed to update sync status after queueing operations:', e);
+    }
 
     return operations.map(() => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
 }
@@ -205,17 +213,22 @@ export async function getSyncStatus(): Promise<{
     }
 
     const response = await sendMessageToSW({ type: 'GET_SYNC_STATUS' });
-    return response as {
-        pendingCount: number;
-        isSyncing: boolean;
-        lastSyncAt: number | null;
-        stats: {
-            pending: number;
-            completed: number;
-            failed: number;
-            manual: number;
+    // SW responds with { type: 'SYNC_STATUS', status: {...} } - extract the nested status
+    const data = response as {
+        type?: string;
+        status?: {
+            pendingCount: number;
+            isSyncing: boolean;
+            lastSyncAt: number | null;
+            stats: {
+                pending: number;
+                completed: number;
+                failed: number;
+                manual: number;
+            };
         };
     } | null;
+    return data?.status ?? null;
 }
 
 /**
@@ -474,7 +487,7 @@ export function initOfflineDetection(): () => void {
         navigator.serviceWorker.addEventListener('message', (event) => {
             if (event.data && event.data.type) {
                 switch (event.data.type) {
-                    case 'SYNC_SYNC_COMPLETED':
+                    case 'SYNC_COMPLETED':
                         // Sync completed - update status and fetch fresh pending count
                         state.setSyncStatus({
                             isSyncing: false,

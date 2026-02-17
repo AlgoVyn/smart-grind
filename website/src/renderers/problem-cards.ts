@@ -54,6 +54,17 @@ export const problemCardRenderers = {
         // Add delay for spinner visibility
         await new Promise<void>((resolve) => setTimeout(resolve, 400));
 
+        // Safety timeout: ensure spinner is cleared even if the async operation hangs
+        const safetyTimeoutId = setTimeout(() => {
+            if (_p.loading) {
+                console.warn(
+                    `[ProblemCards] Safety timeout: clearing stuck loading state for ${_p.id}`
+                );
+                _p.loading = false;
+                renderers._reRenderAllCards(_p);
+            }
+        }, 10000);
+
         try {
             // Prepare updates for sync-aware save
             const updates: Partial<{
@@ -87,6 +98,7 @@ export const problemCardRenderers = {
             const message = errorMessage || `Failed to update problem: ${errorMsg}`;
             utils.showToast(message, 'error');
         } finally {
+            clearTimeout(safetyTimeoutId);
             _p.loading = false;
             // Custom finally behavior or default re-render
             if (onFinally) {
