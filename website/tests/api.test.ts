@@ -261,7 +261,27 @@ describe('SmartGrind API Module', () => {
             expect(mockUpdateStats).toHaveBeenCalled();
         });
 
-        test('should show alert on save error', async () => {
+        test('should show alert on auth save error', async () => {
+            state.user.type = 'signed-in';
+            mockFetch
+                .mockResolvedValueOnce(
+                    createMockResponse({
+                        ok: true,
+                        json: () => Promise.resolve({ csrfToken: 'test-token' }),
+                    })
+                )
+                .mockResolvedValueOnce(createMockResponse({ ok: false, status: 401 }));
+
+            // Should NOT throw, but should alert because it's an Auth error
+            await expect(apiSave._performSave()).resolves.not.toThrow();
+
+            // The error message from _saveRemotely for 401 is "Authentication failed. Please sign in again."
+            expect(mockShowAlert).toHaveBeenCalledWith(
+                expect.stringContaining('Saved locally, but sync failed: Authentication failed')
+            );
+        });
+
+        test('should silently fail on server save error', async () => {
             state.user.type = 'signed-in';
             mockFetch
                 .mockResolvedValueOnce(
@@ -272,13 +292,10 @@ describe('SmartGrind API Module', () => {
                 )
                 .mockResolvedValueOnce(createMockResponse({ ok: false, status: 500 }));
 
-            await expect(apiSave._performSave()).rejects.toThrow(
-                'Server error. Please try again later.'
-            );
+            // Should NOT throw, and should NOT alert (silent retry logic/warning)
+            await expect(apiSave._performSave()).resolves.not.toThrow();
 
-            expect(mockShowAlert).toHaveBeenCalledWith(
-                'Failed to save data: Server error. Please try again later.'
-            );
+            expect(mockShowAlert).not.toHaveBeenCalled();
         });
     });
 

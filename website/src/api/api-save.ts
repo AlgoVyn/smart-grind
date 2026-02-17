@@ -190,7 +190,33 @@ export const apiSave = {
 
         // If signed in and online, ALSO save remotely
         if (isSignedIn) {
-            await this._handleSaveOperation(this._saveRemotely.bind(this));
+            try {
+                // Try remote save directly (bypass _handleSaveOperation to control error handling)
+                await this._saveRemotely();
+                // Update stats only on success (local save already happened, but remote might trigger other updates?
+                // Actually renderers.updateStats() is usually enough from local save, but let's keep it consistent)
+                renderers.updateStats();
+            } catch (error) {
+                console.warn(
+                    'Remote save failed (likely offline/network), keeping local change:',
+                    error
+                );
+
+                // If it's an authentication error, we might want to let the user know,
+                // but we should still NOT throw so that saveProblemWithSync proceeds to queue the operation.
+                const isAuthError =
+                    error instanceof Error &&
+                    (error.message.includes('Authentication') || error.message.includes('CSRF'));
+
+                if (isAuthError) {
+                    ui.showAlert(
+                        `Saved locally, but sync failed: ${error instanceof Error ? error.message : String(error)}`
+                    );
+                }
+
+                // For network errors (TypeError: Failed to fetch), we swallow the error.
+                // This allows saveProblemWithSync (in api.ts) to continue and queue the operation for background sync.
+            }
         }
     },
 
