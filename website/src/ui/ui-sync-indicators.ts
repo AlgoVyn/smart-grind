@@ -77,10 +77,19 @@ const updateSyncingIndicator = (isSyncing: boolean, previousState?: boolean): vo
 };
 
 // Update pending indicator visibility and count
-const updatePendingIndicator = (pendingCount: number, isOnline: boolean): void => {
+// Hide when syncing is in progress to avoid UI clutter
+const updatePendingIndicator = (
+    pendingCount: number,
+    isOnline: boolean,
+    isSyncing: boolean
+): void => {
     const elements = getElements();
     if (elements.pendingIndicator && elements.pendingCount) {
-        if (pendingCount > 0 && isOnline) {
+        // Only show pending indicator when:
+        // 1. There are pending operations
+        // 2. We're online
+        // 3. We're NOT currently syncing (to avoid showing both indicators)
+        if (pendingCount > 0 && isOnline && !isSyncing) {
             elements.pendingIndicator.classList.remove('hidden');
             elements.pendingCount.textContent = `${pendingCount} pending`;
         } else {
@@ -119,7 +128,7 @@ const handleSyncStatusChange = (): void => {
     updateOnlineIndicator(status.isOnline);
     updateOfflineIndicator(status.isOnline, previousSyncStatus.isOnline);
     updateSyncingIndicator(status.isSyncing, previousSyncStatus.isSyncing);
-    updatePendingIndicator(status.pendingCount, status.isOnline);
+    updatePendingIndicator(status.pendingCount, status.isOnline, status.isSyncing);
     updateConflictIndicator(status.hasConflicts, previousSyncStatus.hasConflicts);
 
     // Update previous state

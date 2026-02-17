@@ -449,12 +449,28 @@ export function initOfflineDetection(): () => void {
     // Update online status in state with connectivity verification
 
     // Use connectivity checker for more reliable detection
-    const unsubscribe = connectivityChecker.onConnectivityChange((online) => {
+    const unsubscribe = connectivityChecker.onConnectivityChange(async (online) => {
         state.setOnlineStatus(online);
         if (online) {
-            migrateLocalStorageOperations()
-                .then(() => forceSync())
-                .catch(console.error);
+            console.log('[API] Connectivity restored, triggering sync...');
+            try {
+                // First migrate any localStorage operations
+                await migrateLocalStorageOperations();
+
+                // For signed-in users, trigger a full remote save
+                // This is more reliable than the SW's operation-based sync
+                // because it uses the actual /api/user endpoint
+                if (state.user.type === 'signed-in') {
+                    const { _performSave } = await import('./api/api-save');
+                    console.log('[API] Performing remote save after connectivity restore');
+                    await _performSave();
+                }
+
+                // Also trigger SW-based sync for any queued operations
+                await forceSync();
+            } catch (error) {
+                console.error('[API] Failed to sync after connectivity restore:', error);
+            }
         }
     });
 

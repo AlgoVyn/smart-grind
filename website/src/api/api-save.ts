@@ -6,12 +6,15 @@ import { state } from '../state';
 import { data } from '../data';
 import { renderers } from '../renderers';
 import { ui } from '../ui/ui';
+import { getConnectivityChecker } from '../sw/connectivity-checker';
 
 /**
- * Check if the browser is online
+ * Check if the browser is online using the connectivity checker
+ * This is more reliable than navigator.onLine as it verifies actual connectivity
  */
-const isOnline = (): boolean => {
-    return typeof navigator !== 'undefined' && navigator.onLine;
+const isOnline = async (): Promise<boolean> => {
+    const checker = getConnectivityChecker();
+    return checker.isOnline();
 };
 
 /**
@@ -73,7 +76,8 @@ export const apiSave = {
      * @throws {Error} Throws an error if the fetch fails or if offline.
      */
     async _fetchCsrfToken(): Promise<string> {
-        if (!isOnline()) {
+        const online = await isOnline();
+        if (!online) {
             throw new Error('OFFLINE: Cannot fetch CSRF token while offline');
         }
         const response = await fetch(`${data.API_BASE}/user?action=csrf`, {
@@ -92,7 +96,8 @@ export const apiSave = {
      * @throws {Error} Throws an error if the save request fails or if offline.
      */
     async _saveRemotely(): Promise<void> {
-        if (!isOnline()) {
+        const online = await isOnline();
+        if (!online) {
             throw new Error('OFFLINE: Cannot save remotely while offline');
         }
         const dataToSave = this._prepareDataForSave();
@@ -177,7 +182,7 @@ export const apiSave = {
         // This acts as a reliable backup even for signed-in users
         await this._handleSaveOperation(this._saveLocally.bind(this), true);
 
-        const isUserOnline = isOnline();
+        const isUserOnline = await isOnline();
         const isSignedIn = state.user.type === 'signed-in';
 
         // If offline, we are done (local save already happened)
@@ -196,6 +201,7 @@ export const apiSave = {
                 // Update stats only on success (local save already happened, but remote might trigger other updates?
                 // Actually renderers.updateStats() is usually enough from local save, but let's keep it consistent)
                 renderers.updateStats();
+                console.log('[APISave] Remote save completed successfully');
             } catch (error) {
                 console.warn(
                     'Remote save failed (likely offline/network), keeping local change:',
