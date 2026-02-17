@@ -359,7 +359,12 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
             event.waitUntil(
                 (async () => {
                     const status = await operationQueue.getStatus();
-                    if (event.source) {
+                    if (event.ports && event.ports[0]) {
+                        event.ports[0].postMessage({
+                            type: 'SYNC_STATUS',
+                            status,
+                        });
+                    } else if (event.source) {
                         event.source.postMessage({
                             type: 'SYNC_STATUS',
                             status,
@@ -404,7 +409,11 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
                 (async () => {
                     const allCaches = await caches.keys();
                     await Promise.all(allCaches.map((name) => caches.delete(name)));
-                    if (event.source) {
+                    if (event.ports && event.ports[0]) {
+                        event.ports[0].postMessage({
+                            type: 'CACHES_CLEARED',
+                        });
+                    } else if (event.source) {
                         event.source.postMessage({
                             type: 'CACHES_CLEARED',
                         });

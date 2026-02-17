@@ -442,6 +442,33 @@ describe('Service Worker', () => {
             }
         });
 
+        it('should handle GET_SYNC_STATUS message and reply via port', async () => {
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const messageHandler = eventHandlers.get('message');
+            const mockPort = { postMessage: jest.fn() };
+
+            if (messageHandler) {
+                const _event = {
+                    data: { type: 'GET_SYNC_STATUS' },
+                    waitUntil: jest.fn((promise: Promise<void>) => promise),
+                    source: null,
+                    ports: [mockPort],
+                };
+
+                await messageHandler(_event);
+                expect(_event.waitUntil).toHaveBeenCalled();
+
+                // Await the promise passed to waitUntil
+                const promise = (_event.waitUntil as jest.Mock).mock.calls[0][0];
+                await promise;
+
+                expect(mockPort.postMessage).toHaveBeenCalled();
+            }
+        });
+
         it('should handle FORCE_SYNC message and reply via port', async () => {
             await jest.isolateModules(async () => {
                 await import('../../src/sw/service-worker');
@@ -460,6 +487,11 @@ describe('Service Worker', () => {
 
                 await messageHandler(_event);
                 expect(_event.waitUntil).toHaveBeenCalled();
+
+                // Await the promise passed to waitUntil
+                const promise = (_event.waitUntil as jest.Mock).mock.calls[0][0];
+                await promise;
+
                 expect(mockPort.postMessage).toHaveBeenCalled();
             }
         });
@@ -491,6 +523,38 @@ describe('Service Worker', () => {
 
                 await messageHandler(_event);
                 expect(_event.waitUntil).toHaveBeenCalled();
+            }
+        });
+
+        it('should handle CLEAR_ALL_CACHES message and reply via port', async () => {
+            const mockPort = { postMessage: jest.fn() };
+
+            (global.caches as unknown as { keys: jest.Mock; delete: jest.Mock }).keys = jest
+                .fn()
+                .mockResolvedValue([]);
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const messageHandler = eventHandlers.get('message');
+
+            if (messageHandler) {
+                const _event = {
+                    data: { type: 'CLEAR_ALL_CACHES' },
+                    waitUntil: jest.fn((promise: Promise<void>) => promise),
+                    source: null,
+                    ports: [mockPort],
+                };
+
+                await messageHandler(_event);
+                expect(_event.waitUntil).toHaveBeenCalled();
+
+                // Await the promise passed to waitUntil
+                const promise = (_event.waitUntil as jest.Mock).mock.calls[0][0];
+                await promise;
+
+                expect(mockPort.postMessage).toHaveBeenCalled();
             }
         });
 

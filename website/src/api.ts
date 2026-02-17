@@ -60,13 +60,29 @@ async function sendMessageToSW(message: SWMessage): Promise<unknown> {
         return null;
     }
 
-    return new Promise((resolve) => {
+    const messagePromise = new Promise((resolve, reject) => {
         const channel = new MessageChannel();
+
+        // Add timeout to prevent infinite hanging
         channel.port1.onmessage = (event) => {
             resolve(event.data);
         };
-        registration.active?.postMessage(message, [channel.port2]);
+
+        // Handle potential errors posting the message
+        try {
+            registration.active?.postMessage(message, [channel.port2]);
+        } catch (error) {
+            reject(error);
+        }
     });
+
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+            reject(new Error(`Service Worker message timed out type=${message.type}`));
+        }, 5000);
+    });
+
+    return Promise.race([messagePromise, timeoutPromise]);
 }
 
 /**
@@ -331,16 +347,9 @@ export async function saveProblemWithSync(
         // Queue operation for background sync
         await queueOperation(operation);
 
-        // If online, also try immediate remote save for faster sync
-        const online = await isOnline();
-        if (online) {
-            try {
-                await saveProblem();
-            } catch (error) {
-                // Immediate save failed, but operation is already queued for retry
-                console.warn('Immediate save failed, will retry via background sync:', error);
-            }
-        }
+        // Use background sync to handle the actual sync.
+        // The initial saveProblem() call already attempted an immediate remote save.
+        // If that failed, the queued operation will be picked up by the Background Sync API or the next online event.
     }
 }
 
