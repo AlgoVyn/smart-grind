@@ -1,7 +1,7 @@
 {
   "version": "2026-02-18",
   "createdAt": 1771408516180,
-  "bundleUrl": "/offline-bundle.tar.br",
+  "bundleUrl": "/offline-bundle.tar.gz",
   "bundleSize": 638222,
   "uncompressedSize": 4247952,
   "patterns": [
