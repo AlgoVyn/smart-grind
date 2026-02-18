@@ -731,7 +731,7 @@ async function downloadAndExtractBundle(): Promise<void> {
                 continue;
             }
 
-            // Store in cache
+            // Store in cache - file.name already includes patterns/ or solutions/ prefix
             const url = `/smartgrind/${file.name}`;
             const fileResponse = new Response(file.content.buffer as BodyInit, {
                 headers: {

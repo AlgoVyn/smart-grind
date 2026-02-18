@@ -238,11 +238,12 @@ async function main() {
     
     // Write manifest for quick access (without downloading bundle)
     const manifest = {
-        version,
+        version: new Date().toISOString().split('T')[0],
         createdAt: Date.now(),
         bundleUrl: '/offline-bundle.tar.gz',
         bundleSize: compressedBuffer.length,
         uncompressedSize: totalSize,
+
         patterns: patternFiles.map(f => `patterns/${f.relativePath}`),
         solutions: solutionFiles.map(f => `solutions/${f.relativePath}`),
         totalFiles,
