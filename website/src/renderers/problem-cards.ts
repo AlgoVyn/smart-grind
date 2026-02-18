@@ -111,15 +111,15 @@ export const problemCardRenderers = {
     },
 
     // Helper to re-render all instances of a problem card
-    _reRenderAllCards: (p: Problem, hideIfDueFilter = false): void => {
+    _reRenderAllCards: (p: Problem, hideIfFilteredOut = false): void => {
         const newCards = document.querySelectorAll(`[data-problem-id="${p.id}"]`);
         newCards.forEach((newCard: Element) => {
             const btn = newCard.querySelector('.action-btn[data-action]');
             if (btn) {
                 // Always re-render first to update loading state, then hide if needed
                 renderers._reRenderCard(btn as HTMLElement, p);
-                if (hideIfDueFilter && state.ui.currentFilter === 'review') {
-                    renderers._hideCardIfDueFilter(btn as HTMLElement);
+                if (hideIfFilteredOut) {
+                    renderers._hideCardIfFilteredOut(btn as HTMLElement);
                 }
             }
         });
@@ -162,12 +162,15 @@ export const problemCardRenderers = {
             },
             {
                 onFinally: (problem: Problem) => {
-                    // Special handling for review filter: hide cards when reviewed
-                    if (state.ui.currentFilter === 'review') {
-                        renderers._reRenderAllCards(problem, true);
-                    } else {
-                        renderers._reRenderAllCards(problem);
-                    }
+                    // Check if problem still matches current filters after review
+                    // The shouldShowProblem function reads state.ui.reviewDateFilter directly
+                    const shouldHide = !utils.shouldShowProblem(
+                        problem,
+                        state.ui.currentFilter,
+                        state.ui.searchQuery || '',
+                        today
+                    );
+                    renderers._reRenderAllCards(problem, shouldHide);
                 },
             }
         );
@@ -178,8 +181,8 @@ export const problemCardRenderers = {
         await renderers._handleStatusChange(button, p, 'unsolved', 0, null);
     },
 
-    // Helper to hide card when due filter is active
-    _hideCardIfDueFilter: (button: HTMLElement): void => {
+    // Helper to hide card when it no longer matches current filters
+    _hideCardIfFilteredOut: (button: HTMLElement): void => {
         const card = button.closest('.group') as HTMLElement;
         if (!card) return;
 
@@ -200,22 +203,15 @@ export const problemCardRenderers = {
                         .length === 0
                 ) {
                     topicSection.style.display = 'none';
-                    const currentFilter = state.ui.currentFilter;
                     const allProblemsContainer = document.getElementById('problems-container');
                     if (allProblemsContainer) {
                         const visibleProblems = allProblemsContainer.querySelectorAll(
                             '.group:not([style*="display: none"])'
                         );
-                        if (currentFilter === 'review' && visibleProblems.length === 0) {
-                            const emptyState = state.elements['emptyState'];
-                            if (emptyState) {
-                                emptyState.classList.remove('hidden');
-                            }
-                        } else {
-                            const emptyState = state.elements['emptyState'];
-                            if (emptyState) {
-                                emptyState.classList.add('hidden');
-                            }
+                        // Show empty state if no problems are visible
+                        const emptyState = state.elements['emptyState'];
+                        if (emptyState) {
+                            emptyState.classList.toggle('hidden', visibleProblems.length > 0);
                         }
                     }
                 }

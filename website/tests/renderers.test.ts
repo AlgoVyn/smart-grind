@@ -727,16 +727,55 @@ describe('SmartGrind Renderers', () => {
 
         test('hides card when in review filter', async () => {
             const mockButton = { closest: jest.fn(() => mockElement) };
-            const problem = { id: '1', status: 'solved', reviewInterval: 1 };
+            const problem = { id: '1', status: 'solved', reviewInterval: 1, nextReviewDate: '2023-01-01' };
             state.ui.currentFilter = 'review';
+            state.ui.reviewDateFilter = null; // No date filter selected
             utils.getToday = jest.fn(() => '2023-01-01');
             utils.getNextReviewDate = jest.fn(() => '2023-01-03');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
-            renderers._hideCardIfDueFilter = jest.fn();
+            renderers._hideCardIfFilteredOut = jest.fn();
+            // Use actual shouldShowProblem - after review, nextReviewDate is in future so it won't match review filter
+            utils.shouldShowProblem.mockImplementation((p, filter, searchQuery, today) => {
+                // After review, nextReviewDate is '2023-01-03' which is > '2023-01-01' (today)
+                // So it should NOT pass the review filter
+                if (filter === 'review') {
+                    return p.status === 'solved' && p.nextReviewDate !== null && p.nextReviewDate <= today;
+                }
+                return true;
+            });
 
             await renderers._handleReview(mockButton, problem);
 
-            expect(renderers._hideCardIfDueFilter).toHaveBeenCalledWith(expect.any(Object));
+            expect(renderers._hideCardIfFilteredOut).toHaveBeenCalledWith(expect.any(Object));
+        });
+
+        test('hides card when date filter is selected and nextReviewDate changes', async () => {
+            const mockButton = { closest: jest.fn(() => mockElement) };
+            const problem = { id: '1', status: 'solved', reviewInterval: 1, nextReviewDate: '2023-01-01' };
+            state.ui.currentFilter = 'review';
+            state.ui.reviewDateFilter = '2023-01-01'; // Date filter selected
+            utils.getToday = jest.fn(() => '2023-01-01');
+            utils.getNextReviewDate = jest.fn(() => '2023-01-03');
+            api.saveProblemWithSync = jest.fn().mockResolvedValue();
+            renderers._hideCardIfFilteredOut = jest.fn();
+            // Use actual shouldShowProblem logic
+            utils.shouldShowProblem.mockImplementation((p, filter, searchQuery, today) => {
+                // After review, nextReviewDate is '2023-01-03'
+                // It doesn't match the date filter '2023-01-01'
+                if (filter === 'review') {
+                    const passesReviewFilter = p.status === 'solved' && p.nextReviewDate !== null && p.nextReviewDate <= today;
+                    if (!passesReviewFilter) return false;
+                }
+                // Check date filter
+                if ((filter === 'review' || filter === 'solved') && state.ui.reviewDateFilter) {
+                    if (p.nextReviewDate !== state.ui.reviewDateFilter) return false;
+                }
+                return true;
+            });
+
+            await renderers._handleReview(mockButton, problem);
+
+            expect(renderers._hideCardIfFilteredOut).toHaveBeenCalledWith(expect.any(Object));
         });
 
         test('updates all instances of problem card when problem appears in multiple patterns', async () => {
@@ -817,7 +856,9 @@ describe('SmartGrind Renderers', () => {
             utils.getToday = jest.fn(() => '2023-01-01');
             utils.getNextReviewDate = jest.fn(() => '2023-01-03');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
-            renderers._hideCardIfDueFilter = jest.fn();
+            renderers._hideCardIfFilteredOut = jest.fn();
+            // Mock shouldShowProblem to return false since problem no longer matches review filter
+            utils.shouldShowProblem = jest.fn().mockReturnValue(false);
 
             await renderers._handleReview(mockButton, problem);
 
@@ -830,8 +871,8 @@ describe('SmartGrind Renderers', () => {
                 })
             );
 
-            // Verify that _hideCardIfDueFilter was called for all 2 card instances
-            expect(renderers._hideCardIfDueFilter).toHaveBeenCalledTimes(2);
+            // Verify that _hideCardIfFilteredOut was called for all 2 card instances
+            expect(renderers._hideCardIfFilteredOut).toHaveBeenCalledTimes(2);
         });
     });
 
