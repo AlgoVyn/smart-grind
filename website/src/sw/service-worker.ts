@@ -216,11 +216,16 @@ async function handleAPIRequest(request: Request): Promise<Response> {
 
 // Handle problem markdown requests with cache-first strategy
 async function handleProblemRequest(request: Request): Promise<Response> {
-    const cache = await caches.open(`${CACHE_NAMES.PROBLEMS}-${CACHE_VERSION}`);
+    const cacheName = `${CACHE_NAMES.PROBLEMS}-${CACHE_VERSION}`;
+    const cache = await caches.open(cacheName);
+
+    console.log(`[SW] handleProblemRequest: ${request.url}`);
+    console.log(`[SW] Using cache: ${cacheName}`);
 
     // Try cache first
     const cachedResponse = await cache.match(request);
     if (cachedResponse) {
+        console.log(`[SW] Cache HIT for: ${request.url}`);
         // Revalidate in background (will fail silently if offline)
         fetch(request)
             .then((networkResponse) => {
@@ -235,6 +240,8 @@ async function handleProblemRequest(request: Request): Promise<Response> {
         return cachedResponse;
     }
 
+    console.log(`[SW] Cache MISS for: ${request.url}`);
+
     // Not in cache, try network
     try {
         const networkResponse = await fetch(request);
@@ -243,6 +250,7 @@ async function handleProblemRequest(request: Request): Promise<Response> {
         }
         return networkResponse;
     } catch (_error) {
+        console.error(`[SW] Network failed and no cache for: ${request.url}`);
         // Return offline fallback
         return new Response(
             '# Offline\n\nThis problem is not available offline. Please connect to the internet to access this content.',
