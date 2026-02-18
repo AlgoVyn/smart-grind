@@ -273,6 +273,15 @@ function handleSWMessage(event: MessageEvent): void {
             emit('offlineStatus', data);
             break;
 
+        case 'BUNDLE_PROGRESS':
+            emit('bundleProgress', data);
+            break;
+
+        case 'BUNDLE_READY':
+            console.log('[SW] Offline bundle ready:', data);
+            emit('bundleReady', data);
+            break;
+
         default:
         // Unknown message type
     }
@@ -624,6 +633,70 @@ export async function unregister(): Promise<boolean> {
 }
 
 export { SYNC_TAGS };
+
+/**
+ * Get the current bundle download status
+ */
+export async function getBundleStatus(): Promise<{
+    status: 'idle' | 'downloading' | 'extracting' | 'complete' | 'error';
+    progress: number;
+    totalFiles: number;
+    extractedFiles: number;
+    error?: string;
+    bundleVersion?: string;
+    downloadedAt?: number;
+}> {
+    const controller = navigator.serviceWorker.controller;
+    if (!controller) {
+        return { status: 'idle', progress: 0, totalFiles: 0, extractedFiles: 0 };
+    }
+
+    return new Promise((resolve) => {
+        const channel = new MessageChannel();
+
+        channel.port1.onmessage = (event) => {
+            if (event.data.type === 'BUNDLE_STATUS') {
+                resolve(event.data.status);
+            }
+        };
+
+        controller.postMessage({ type: 'GET_BUNDLE_STATUS' }, [channel.port2]);
+
+        // Timeout after 5 seconds
+        setTimeout(() => {
+            resolve({ status: 'idle', progress: 0, totalFiles: 0, extractedFiles: 0 });
+        }, 5000);
+    });
+}
+
+/**
+ * Manually trigger bundle download
+ */
+export async function downloadBundle(): Promise<boolean> {
+    const controller = navigator.serviceWorker.controller;
+    if (!controller) {
+        return false;
+    }
+
+    return new Promise((resolve) => {
+        const channel = new MessageChannel();
+
+        channel.port1.onmessage = (event) => {
+            if (event.data.type === 'BUNDLE_COMPLETE') {
+                resolve(true);
+            } else if (event.data.type === 'BUNDLE_ERROR') {
+                resolve(false);
+            }
+        };
+
+        controller.postMessage({ type: 'DOWNLOAD_BUNDLE' }, [channel.port2]);
+
+        // Timeout after 60 seconds (bundle download can take time)
+        setTimeout(() => {
+            resolve(false);
+        }, 60000);
+    });
+}
 
 /**
  * Scan for dynamic assets (scripts, styles) and send to SW for caching

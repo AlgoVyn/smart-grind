@@ -124,16 +124,15 @@ export const _toggleSidebarClasses = (
     addClasses: string[],
     removeClasses: string[]
 ) => {
-    addClasses.forEach((cls: string) => sidebar.classList.add(cls));
-    removeClasses.forEach((cls: string) => sidebar.classList.remove(cls));
+    sidebar.classList.add(...addClasses);
+    sidebar.classList.remove(...removeClasses);
 };
 
 export const _toggleBackdrop = (backdrop: HTMLElement, show: boolean) => {
+    backdrop.classList.toggle('hidden', !show);
     if (show) {
-        backdrop.classList.remove('hidden');
         setTimeout(() => backdrop.classList.add('opacity-100'), 10);
     } else {
-        backdrop.classList.add('hidden');
         backdrop.classList.remove('opacity-100');
     }
 };
@@ -142,23 +141,19 @@ export const _toggleBackdrop = (backdrop: HTMLElement, show: boolean) => {
 export const toggleMobileMenu = () => {
     const sidebar = state.elements['mainSidebar'];
     const backdrop = state.elements['sidebarBackdrop'];
-    if (sidebar) {
-        const isOpen = sidebar.classList.contains('translate-x-0');
+    if (!sidebar) return;
 
-        if (isOpen) {
-            _toggleSidebarClasses(sidebar, ['-translate-x-full'], ['translate-x-0']);
-            if (backdrop) {
-                _toggleBackdrop(backdrop, false);
-            }
-            document.body.style.overflow = '';
-        } else {
-            _toggleSidebarClasses(sidebar, ['translate-x-0'], ['-translate-x-full']);
-            if (backdrop) {
-                _toggleBackdrop(backdrop, true);
-            }
-            document.body.style.overflow = 'hidden';
-        }
+    const isOpen = sidebar.classList.contains('translate-x-0');
+    _toggleSidebarClasses(
+        sidebar,
+        isOpen ? ['-translate-x-full'] : ['translate-x-0'],
+        isOpen ? ['translate-x-0'] : ['-translate-x-full']
+    );
+
+    if (backdrop) {
+        _toggleBackdrop(backdrop, !isOpen);
     }
+    document.body.style.overflow = isOpen ? '' : 'hidden';
 };
 
 // Load default view (all problems)

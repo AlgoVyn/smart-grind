@@ -41,102 +41,86 @@ export const _resetProblems = (problemIds: Set<string>): void => {
 };
 
 /**
+ * Finds problem definition info across all topics.
+ * @param {string} id - The problem ID to find.
+ * @returns {{ probDef: string | ProblemDef | null, topicTitle: string, patternName: string }}
+ */
+const findProblemDefInfo = (
+    id: string
+): { probDef: string | ProblemDef | null; topicTitle: string; patternName: string } => {
+    for (const topic of data.topicsData) {
+        for (const pattern of topic.patterns) {
+            const found = pattern.problems.find(
+                (prob: string | ProblemDef) => (typeof prob === 'string' ? prob : prob.id) === id
+            );
+            if (found) {
+                return {
+                    probDef: found,
+                    topicTitle: topic.title,
+                    patternName: pattern.name,
+                };
+            }
+        }
+    }
+    return { probDef: null, topicTitle: '', patternName: '' };
+};
+
+/**
+ * Creates a problem object from definition info.
+ */
+const createProblemFromDef = (
+    id: string,
+    probDef: string | ProblemDef | null,
+    topicTitle: string,
+    patternName: string
+): Problem => ({
+    id,
+    name: probDef ? (typeof probDef === 'string' ? probDef : probDef.name) : id,
+    url: probDef
+        ? typeof probDef === 'string'
+            ? `https://leetcode.com/problems/${id}/`
+            : probDef.url
+        : `https://leetcode.com/problems/${id}/`,
+    status: 'unsolved' as const,
+    topic: topicTitle || 'Unknown',
+    pattern: patternName || 'Unknown',
+    reviewInterval: 0,
+    nextReviewDate: null,
+    note: '',
+    loading: false,
+});
+
+/**
+ * Restores a single deleted problem if it's not custom.
+ * @param {string} id - The problem ID to restore.
+ * @returns {boolean} True if the problem was restored.
+ */
+const restoreDeletedProblem = (id: string): boolean => {
+    if (!state.deletedProblemIds.has(id) || id.startsWith('custom-')) {
+        return false;
+    }
+    state.deletedProblemIds.delete(id);
+    const { probDef, topicTitle, patternName } = findProblemDefInfo(id);
+    if (probDef) {
+        state.problems.set(id, createProblemFromDef(id, probDef, topicTitle, patternName));
+    }
+    return true;
+};
+
+/**
  * Restores deleted problems for the given problem IDs if they are not custom.
  * @param {Set<string>} problemIds - Set of problem IDs to restore.
  */
 export const _restoreDeletedProblems = (problemIds: Set<string>): void => {
-    problemIds.forEach((id: string) => {
-        if (state.deletedProblemIds.has(id) && !id.startsWith('custom-')) {
-            state.deletedProblemIds.delete(id);
-            // Find probDef across all topics
-            let probDef: string | ProblemDef | null = null;
-            let topicTitle = '';
-            let patternName = '';
-            for (const topic of data.topicsData) {
-                for (const pattern of topic.patterns) {
-                    const found = pattern.problems.find(
-                        (prob: string | ProblemDef) =>
-                            (typeof prob === 'string' ? prob : prob.id) === id
-                    );
-                    if (found) {
-                        probDef = found;
-                        topicTitle = topic.title;
-                        patternName = pattern.name;
-                        break;
-                    }
-                }
-                if (probDef) break;
-            }
-            if (probDef) {
-                const newProb: Problem = {
-                    id: id,
-                    name: typeof probDef === 'string' ? probDef : probDef.name,
-                    url:
-                        typeof probDef === 'string'
-                            ? `https://leetcode.com/problems/${id}/`
-                            : probDef.url,
-                    status: 'unsolved',
-                    topic: topicTitle,
-                    pattern: patternName,
-                    reviewInterval: 0,
-                    nextReviewDate: null,
-                    note: '',
-                    loading: false,
-                };
-                state.problems.set(id, newProb);
-            }
-        }
-    });
+    problemIds.forEach(restoreDeletedProblem);
 };
 
 /**
  * Restores all deleted problems except custom ones.
  */
 export const _restoreAllDeletedProblems = (): void => {
-    const deletedIds = Array.from(state.deletedProblemIds) as string[];
-    deletedIds.forEach((id: string) => {
-        if (id.startsWith('custom-')) return; // Skip restoring custom problems
-        state.deletedProblemIds.delete(id);
-        // Try to find probDef across all topics first
-        let probDef: string | ProblemDef | null = null;
-        let topicTitle = '';
-        let patternName = '';
-        for (const topic of data.topicsData) {
-            for (const pattern of topic.patterns) {
-                const found = pattern.problems.find(
-                    (prob: string | ProblemDef) =>
-                        (typeof prob === 'string' ? prob : prob.id) === id
-                );
-                if (found) {
-                    probDef = found;
-                    topicTitle = topic.title;
-                    patternName = pattern.name;
-                    break;
-                }
-            }
-            if (probDef) break;
-        }
-
-        // If not found in topicsData, create a basic problem object
-        // This handles cases where custom problems were deleted
-        const newProb: Problem = {
-            id: id,
-            name: probDef ? (typeof probDef === 'string' ? probDef : probDef.name) : id,
-            url: probDef
-                ? typeof probDef === 'string'
-                    ? `https://leetcode.com/problems/${id}/`
-                    : probDef.url
-                : `https://leetcode.com/problems/${id}/`,
-            status: 'unsolved',
-            topic: topicTitle || 'Unknown',
-            pattern: patternName || 'Unknown',
-            reviewInterval: 0,
-            nextReviewDate: null,
-            note: '',
-            loading: false,
-        };
-        state.problems.set(id, newProb);
-    });
+    const deletedIds = Array.from(state.deletedProblemIds);
+    deletedIds.forEach(restoreDeletedProblem);
 };
 
 /**
