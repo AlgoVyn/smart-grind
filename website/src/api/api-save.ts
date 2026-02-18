@@ -17,6 +17,14 @@ const isOnline = (): boolean => {
 };
 
 /**
+ * Debounce configuration for remote sync
+ * This batches multiple rapid changes into a single sync request
+ */
+const SYNC_DEBOUNCE_MS = 1000; // Wait 500ms after last change before syncing
+let syncDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+let pendingSyncData: UserData | null = null;
+
+/**
  * Validates that the API response originates from the expected origin
  * @param response - The fetch response to validate
  */
@@ -191,11 +199,38 @@ export const apiSave = {
     },
 
     /**
-     * Triggers background sync for signed-in users.
+     * Triggers background sync for signed-in users with debouncing.
+     * Multiple rapid changes are batched into a single sync request.
      * This is non-blocking - the frontend returns immediately.
      * If online, attempts direct remote save first. Falls back to SW queue if that fails.
      */
     _triggerBackgroundSync(): void {
+        // Store the current data to sync
+        pendingSyncData = this._prepareDataForSave();
+
+        // Clear any existing timer
+        if (syncDebounceTimer !== null) {
+            clearTimeout(syncDebounceTimer);
+        }
+
+        // Set a new timer to execute the sync after debounce period
+        syncDebounceTimer = setTimeout(() => {
+            this._executeBackgroundSync();
+        }, SYNC_DEBOUNCE_MS);
+    },
+
+    /**
+     * Executes the actual background sync after debounce period.
+     * This is called internally after the debounce timer fires.
+     */
+    _executeBackgroundSync(): void {
+        // Clear the timer reference
+        syncDebounceTimer = null;
+
+        // Get the pending data and clear it
+        const dataToSync = pendingSyncData;
+        pendingSyncData = null;
+
         // Don't await - fire and forget
         (async () => {
             try {
@@ -203,7 +238,7 @@ export const apiSave = {
                 if (isOnline()) {
                     console.log('[APISave] Online - attempting direct remote save');
                     try {
-                        await this._saveRemotely();
+                        await this._saveRemotelyWithData(dataToSync);
                         console.log('[APISave] Direct remote save successful');
                         return; // Success - no need to queue
                     } catch (error) {
@@ -217,10 +252,10 @@ export const apiSave = {
                 // Offline or direct save failed - queue for background sync
                 const { queueOperation, forceSync } = await import('../api');
 
-                // Queue a full sync operation
+                // Queue a full sync operation with the captured data
                 await queueOperation({
                     type: 'UPDATE_SETTINGS',
-                    data: this._prepareDataForSave(),
+                    data: dataToSync || this._prepareDataForSave(),
                     timestamp: Date.now(),
                 });
 
@@ -232,6 +267,78 @@ export const apiSave = {
                 console.warn('[APISave] Background sync trigger failed:', error);
             }
         })();
+    },
+
+    /**
+     * Saves the provided data to the remote API.
+     * Used by the debounced sync to ensure we sync the correct snapshot of data.
+     * @param dataToSave - The data to save, or null to prepare fresh data.
+     * @throws {Error} Throws an error if the save request fails or if offline.
+     */
+    async _saveRemotelyWithData(dataToSave: UserData | null): Promise<void> {
+        if (!isOnline()) {
+            throw new Error('OFFLINE: Cannot save remotely while offline');
+        }
+        const dataToUse = dataToSave || this._prepareDataForSave();
+        const csrfToken = await this._fetchCsrfToken();
+        const response = await fetch(`${data.API_BASE}/user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken,
+            },
+            credentials: 'include',
+            body: JSON.stringify({ data: dataToUse }),
+        });
+        _validateResponseOrigin(response);
+        if (!response.ok) {
+            const errorMessages: Record<number, string> = {
+                401: 'Authentication failed. Please sign in again.',
+                403: 'CSRF token validation failed. Please refresh the page and try again.',
+                500: 'Server error. Please try again later.',
+            };
+            throw new Error(
+                errorMessages[response.status] || `Save failed: ${response.statusText}`
+            );
+        }
+    },
+
+    /**
+     * Forces an immediate sync, bypassing the debounce timer.
+     * Call this when you need to ensure data is synced immediately,
+     * e.g., before page unload or when user explicitly requests sync.
+     */
+    async flushPendingSync(): Promise<void> {
+        // Clear the debounce timer if set
+        if (syncDebounceTimer !== null) {
+            clearTimeout(syncDebounceTimer);
+            syncDebounceTimer = null;
+        }
+
+        // If there's pending data, execute sync immediately
+        if (pendingSyncData) {
+            const dataToSync = pendingSyncData;
+            pendingSyncData = null;
+
+            try {
+                if (isOnline()) {
+                    await this._saveRemotelyWithData(dataToSync);
+                    console.log('[APISave] Flushed pending sync successfully');
+                }
+            } catch (error) {
+                console.warn('[APISave] Failed to flush pending sync:', error);
+                // Queue for background sync as fallback
+                const { queueOperation, forceSync } = await import('../api');
+                await queueOperation({
+                    type: 'UPDATE_SETTINGS',
+                    data: dataToSync,
+                    timestamp: Date.now(),
+                });
+                if (isOnline()) {
+                    await forceSync();
+                }
+            }
+        }
     },
 
     /**
@@ -276,6 +383,18 @@ export const apiSave = {
     async saveData(): Promise<void> {
         await this._performSave();
     },
+
+    /**
+     * Resets the debounce state. Used for testing.
+     * Clears any pending timer and pending sync data.
+     */
+    _resetDebounceState(): void {
+        if (syncDebounceTimer !== null) {
+            clearTimeout(syncDebounceTimer);
+            syncDebounceTimer = null;
+        }
+        pendingSyncData = null;
+    },
 };
 
 // Export all functions as individual exports for backward compatibility
@@ -287,3 +406,21 @@ export const _performSave = apiSave._performSave.bind(apiSave);
 export const saveProblem = apiSave.saveProblem.bind(apiSave);
 export const saveDeletedId = apiSave.saveDeletedId.bind(apiSave);
 export const saveData = apiSave.saveData.bind(apiSave);
+export const flushPendingSync = apiSave.flushPendingSync.bind(apiSave);
+
+// Set up page unload handler to flush pending syncs
+if (typeof window !== 'undefined') {
+    window.addEventListener('beforeunload', () => {
+        if (syncDebounceTimer !== null && pendingSyncData) {
+            // Use navigator.sendBeacon for reliable delivery during page unload
+            // This is a best-effort attempt - we can't guarantee delivery
+            const csrfToken = localStorage.getItem('smartgrind-csrf-token');
+            if (csrfToken && isOnline()) {
+                const blob = new Blob([JSON.stringify({ data: pendingSyncData })], {
+                    type: 'application/json',
+                });
+                navigator.sendBeacon(`${data.API_BASE}/user?_csrf=${csrfToken}`, blob);
+            }
+        }
+    });
+}
