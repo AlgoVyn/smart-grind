@@ -491,7 +491,7 @@ interface BundleDownloadState {
     downloadedAt?: number;
 }
 
-const BUNDLE_URL = '/smartgrind/offline-bundle.tar.br';
+const BUNDLE_URL = '/smartgrind/offline-bundle.tar.gz';
 const BUNDLE_MANIFEST_URL = '/smartgrind/offline-manifest.json';
 const BUNDLE_STATE_KEY = 'smartgrind-bundle-state';
 
@@ -695,11 +695,10 @@ async function downloadAndExtractBundle(): Promise<void> {
             offset += chunk.length;
         }
 
-        // Decompress using DecompressionStream (Brotli)
+        // Decompress using DecompressionStream (gzip)
         console.log('[SW] Decompressing bundle...');
-        // Using type assertion to work around TypeScript limitation
         const decompressedStream = new Response(compressedData).body?.pipeThrough(
-            new DecompressionStream('brotli' as CompressionFormat)
+            new DecompressionStream('gzip')
         );
 
         if (!decompressedStream) {

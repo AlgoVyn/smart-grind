@@ -6,12 +6,12 @@
  * This script:
  * 1. Collects all pattern and solution MD files
  * 2. Creates a tar archive with a manifest
- * 3. Compresses with Brotli for maximum compression
+ * 3. Compresses with Gzip for broad browser compatibility
  * 
- * Output: public/offline-bundle.tar.br (~1 MB for ~500+ MD files)
+ * Output: public/offline-bundle.tar.gz (~1 MB for ~500+ MD files)
  */
 
-import { createBrotliCompress, constants, brotliCompress as brotliCompressAsync } from 'zlib';
+import { createGzip, gzip as gzipAsync, constants } from 'zlib';
 import { createReadStream, createWriteStream, readdirSync, statSync, readFileSync, mkdirSync, existsSync, writeFileSync } from 'fs';
 import { join, relative, basename } from 'path';
 import { pipeline } from 'stream/promises';
@@ -23,7 +23,7 @@ const DIST_DIR = join(process.cwd(), 'dist');
 const PATTERNS_DIR = join(PUBLIC_DIR, 'patterns');
 const SOLUTIONS_DIR = join(PUBLIC_DIR, 'solutions');
 // Output to dist directory for deployment
-const OUTPUT_FILE = join(DIST_DIR, 'offline-bundle.tar.br');
+const OUTPUT_FILE = join(DIST_DIR, 'offline-bundle.tar.gz');
 const MANIFEST_FILE = join(DIST_DIR, 'offline-manifest.json');
 
 // Tar header size is 512 bytes
@@ -169,17 +169,13 @@ async function createTarArchive(patternFiles, solutionFiles) {
 }
 
 /**
- * Compress buffer with Brotli
+ * Compress buffer with Gzip
  */
-async function brotliCompress(buffer) {
+async function gzipCompress(buffer) {
     return new Promise((resolve, reject) => {
         const chunks = [];
-        const stream = createBrotliCompress({
-            params: {
-                [constants.BROTLI_PARAM_QUALITY]: 11,  // Maximum compression
-                [constants.BROTLI_PARAM_MODE]: 1,      // Text mode
-                [constants.BROTLI_PARAM_SIZE_HINT]: buffer.length,
-            },
+        const stream = createGzip({
+            level: constants.Z_BEST_COMPRESSION,  // Maximum compression (level 9)
         });
         
         stream.on('data', chunk => chunks.push(chunk));
@@ -224,9 +220,9 @@ async function main() {
     const tarBuffer = await createTarArchive(patternFiles, solutionFiles);
     console.log(`   Tar size: ${formatBytes(tarBuffer.length)}`);
     
-    // Compress with Brotli
-    console.log('🗜️  Compressing with Brotli (level 11)...');
-    const compressedBuffer = await brotliCompress(tarBuffer);
+    // Compress with Gzip
+    console.log('🗜️  Compressing with Gzip (level 9)...');
+    const compressedBuffer = await gzipCompress(tarBuffer);
     console.log(`   Compressed size: ${formatBytes(compressedBuffer.length)}`);
     
     // Calculate compression ratio
@@ -244,7 +240,7 @@ async function main() {
     const manifest = {
         version,
         createdAt: Date.now(),
-        bundleUrl: '/offline-bundle.tar.br',
+        bundleUrl: '/offline-bundle.tar.gz',
         bundleSize: compressedBuffer.length,
         uncompressedSize: totalSize,
         patterns: patternFiles.map(f => `patterns/${f.relativePath}`),
