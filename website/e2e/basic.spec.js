@@ -11,6 +11,9 @@ test.describe('SmartGrind Basic Functionality', () => {
   test('should load the homepage', async ({ page }) => {
     await page.goto('/');
 
+    // baseURL is /smartgrind/, so we should land on the app path
+    await expect(page).toHaveURL(/\/smartgrind\/?$/);
+
     // Check if the page title is correct
     await expect(page).toHaveTitle(/SmartGrind/);
 

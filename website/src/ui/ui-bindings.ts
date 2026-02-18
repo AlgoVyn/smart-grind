@@ -20,9 +20,8 @@ import { bindProblemEvents } from './ui-problems';
 import { bindGlobalEvents } from './ui-global';
 import { closeSolutionModal, toggleTOC } from './ui-markdown';
 
-// Initialize UI components
+// Initialize UI components (state is already initialized in ui.ts before this runs)
 export const init = async () => {
-    state.init();
     bindEvents();
     initScrollButton();
     pullToRefresh.init();

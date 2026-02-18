@@ -148,11 +148,11 @@ export const state = {
     // Save state to localStorage
     saveToStorage(): void {
         try {
-            // Exclude loading state's temporary
+            // Exclude loading (temporary) and noteVisible (UI-only, not persisted)
             const problemsWithoutLoading = Object.fromEntries(
                 Array.from(this.problems.entries() as IterableIterator<[string, Problem]>).map(
                     ([id, p]) => {
-                        const { loading: _loading, ...rest } = p;
+                        const { loading: _loading, noteVisible: _noteVisible, ...rest } = p;
                         return [id, rest];
                     }
                 )

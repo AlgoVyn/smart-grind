@@ -80,6 +80,12 @@ export class ErrorBoundary {
     }
 }
 
+/** Get UI for alerts when available (avoids depending on ui before it's loaded) */
+function getUI(): { showAlert: (_msg: string) => void } | undefined {
+    return (window as unknown as { SmartGrind?: { ui?: { showAlert: (_msg: string) => void } } })
+        .SmartGrind?.ui;
+}
+
 /**
  * Global error handler for uncaught errors
  */
@@ -87,7 +93,7 @@ export const setupGlobalErrorHandlers = (): void => {
     // Handle uncaught errors
     window.addEventListener('error', (event) => {
         console.error('Global error handler:', event.error);
-        ui.showAlert(`An unexpected error occurred: ${event.message}`);
+        getUI()?.showAlert(`An unexpected error occurred: ${event.message}`);
 
         // Prevent default browser error handling
         event.preventDefault();
@@ -97,7 +103,7 @@ export const setupGlobalErrorHandlers = (): void => {
     window.addEventListener('unhandledrejection', (event) => {
         console.error('Unhandled promise rejection:', event.reason);
         const message = event.reason instanceof Error ? event.reason.message : String(event.reason);
-        ui.showAlert(`An unexpected error occurred: ${message}`);
+        getUI()?.showAlert(`An unexpected error occurred: ${message}`);
 
         // Prevent default browser error handling
         event.preventDefault();
@@ -142,5 +148,4 @@ export const withSyncErrorHandling = <T>(
     }
 };
 
-// Initialize global error handlers on module load
-setupGlobalErrorHandlers();
+// Global error handlers are set up explicitly from init.ts after app is ready

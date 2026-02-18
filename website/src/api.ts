@@ -109,7 +109,7 @@ export async function queueOperation(operation: APIOperation): Promise<string | 
         const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
         const opWithId = {
             ...operation,
-            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
         };
         pendingOps.push(opWithId);
         localStorage.setItem('pending-operations', JSON.stringify(pendingOps));
@@ -148,7 +148,7 @@ export async function queueOperations(operations: APIOperation[]): Promise<strin
         const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
         const opsWithIds = operations.map((op) => ({
             ...op,
-            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
         }));
         pendingOps.push(...opsWithIds);
         localStorage.setItem('pending-operations', JSON.stringify(pendingOps));
@@ -167,7 +167,7 @@ export async function queueOperations(operations: APIOperation[]): Promise<strin
         console.warn('Failed to update sync status after queueing operations:', e);
     }
 
-    return operations.map(() => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+    return operations.map(() => `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`);
 }
 
 /**
@@ -275,7 +275,9 @@ export async function forceSync(): Promise<{ success: boolean; synced: number; f
     const registration = await navigator.serviceWorker.ready;
 
     // Utilize Background Sync API if available for robust retry support
-    const swRegistration = registration as ServiceWorkerRegistration & { sync?: { register: (_tag: string) => Promise<void> } };
+    const swRegistration = registration as ServiceWorkerRegistration & {
+        sync?: { register: (_tag: string) => Promise<void> };
+    };
     if (swRegistration.sync) {
         try {
             await swRegistration.sync.register('sync-user-progress');

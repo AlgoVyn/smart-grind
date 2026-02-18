@@ -182,6 +182,11 @@ describe('Error Boundary Module', () => {
         test('should handle global errors', () => {
             setupGlobalErrorHandlers();
 
+            // Handlers use getUI() which reads window.SmartGrind?.ui
+            (window as unknown as { SmartGrind?: { ui?: { showAlert: jest.Mock } } }).SmartGrind = {
+                ui: { showAlert: mockShowAlert },
+            };
+
             // Get the error handler
             const errorHandler = (window.addEventListener as jest.Mock).mock.calls.find(
                 (call: any[]) => call[0] === 'error'
@@ -209,6 +214,11 @@ describe('Error Boundary Module', () => {
 
         test('should handle unhandled promise rejections', () => {
             setupGlobalErrorHandlers();
+
+            // Handlers use getUI() which reads window.SmartGrind?.ui
+            (window as unknown as { SmartGrind?: { ui?: { showAlert: jest.Mock } } }).SmartGrind = {
+                ui: { showAlert: mockShowAlert },
+            };
 
             // Get the rejection handler
             const rejectionHandler = (window.addEventListener as jest.Mock).mock.calls.find(
@@ -239,6 +249,11 @@ describe('Error Boundary Module', () => {
 
         test('should handle non-Error rejection reasons', () => {
             setupGlobalErrorHandlers();
+
+            // Handlers use getUI() which reads window.SmartGrind?.ui
+            (window as unknown as { SmartGrind?: { ui?: { showAlert: jest.Mock } } }).SmartGrind = {
+                ui: { showAlert: mockShowAlert },
+            };
 
             const rejectionHandler = (window.addEventListener as jest.Mock).mock.calls.find(
                 (call: any[]) => call[0] === 'unhandledrejection'

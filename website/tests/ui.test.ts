@@ -364,12 +364,11 @@ describe('SmartGrind UI', () => {
 
     describe('init', () => {
         test('initializes UI components', async () => {
-            state.init = jest.fn();
             renderers.updateFilterBtns = jest.fn();
 
             await ui.init();
 
-            expect(state.init).toHaveBeenCalled();
+            // state.init() is called once from ui.ts before init(); not from ui.init()
             expect(renderers.updateFilterBtns).toHaveBeenCalled();
         });
     });
