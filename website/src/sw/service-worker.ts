@@ -60,7 +60,7 @@ self.addEventListener('install', (event: ExtendableEvent) => {
     );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and download bundle
 self.addEventListener('activate', (event: ExtendableEvent) => {
     event.waitUntil(
         (async () => {
@@ -87,6 +87,11 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                         type: 'SW_ACTIVATED',
                         version: SW_VERSION,
                     });
+                });
+
+                // Check and download bundle in background if needed
+                checkAndDownloadBundle().catch((error) => {
+                    console.error('[SW] Background bundle download failed:', error);
                 });
             } catch (error) {
                 console.error('[SW] Activation failed:', error);
@@ -305,6 +310,15 @@ async function handleStaticRequest(request: Request): Promise<Response> {
 
 // ... (rest of imports and setup)
 
+// Helper to send reply via message channel or source
+const sendReply = (event: ExtendableMessageEvent, message: unknown) => {
+    if (event.ports?.[0]) {
+        event.ports[0].postMessage(message);
+    } else if (event.source) {
+        event.source.postMessage(message);
+    }
+};
+
 // Message event - handle communication from main app
 self.addEventListener('message', (event: ExtendableMessageEvent) => {
     const { data: messageData } = event;
@@ -317,7 +331,6 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
             break;
 
         case 'CACHE_ASSETS':
-            // Cache specific assets (sent from main thread)
             if (messageData.assets && Array.isArray(messageData.assets)) {
                 event.waitUntil(
                     (async () => {
@@ -330,101 +343,57 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
             break;
 
         case 'CACHE_PROBLEMS':
-            // Pre-cache specific problems
             if (messageData.problemUrls) {
                 event.waitUntil(offlineManager.cacheProblems(messageData.problemUrls));
             }
             break;
 
         case 'SYNC_OPERATIONS':
-            // Queue operations for background sync
             if (messageData.operations) {
                 event.waitUntil(
                     (async () => {
                         const ids = await operationQueue.addOperations(messageData.operations);
-                        // Send reply to unblock the main thread's await
-                        if (event.ports && event.ports[0]) {
-                            event.ports[0].postMessage({
-                                type: 'SYNC_QUEUED',
-                                operationId: ids[0],
-                            });
-                        }
+                        sendReply(event, { type: 'SYNC_QUEUED', operationId: ids?.[0] ?? null });
                     })()
                 );
             }
             break;
 
         case 'GET_SYNC_STATUS':
-            // Return current sync status
             event.waitUntil(
                 (async () => {
                     const status = await operationQueue.getStatus();
-                    if (event.ports && event.ports[0]) {
-                        event.ports[0].postMessage({
-                            type: 'SYNC_STATUS',
-                            status,
-                        });
-                    } else if (event.source) {
-                        event.source.postMessage({
-                            type: 'SYNC_STATUS',
-                            status,
-                        });
-                    }
+                    sendReply(event, { type: 'SYNC_STATUS', status });
                 })()
             );
             break;
 
         case 'FORCE_SYNC':
-            // Force immediate sync of pending operations
             event.waitUntil(
                 (async () => {
                     const result = await backgroundSync.forceSync();
-                    if (event.ports && event.ports[0]) {
-                        event.ports[0].postMessage(result);
-                    } else if (event.source) {
-                        event.source.postMessage({
-                            type: 'FORCE_SYNC_RESULT',
-                            result,
-                        });
-                    }
+                    sendReply(event, result);
                 })()
             );
             break;
 
         case 'REQUEST_SYNC':
-            // Fallback sync request when Background Sync API is not available
-            event.waitUntil(
-                (async () => {
-                    const tag = messageData.tag;
-                    if (tag) {
-                        await backgroundSync.performSync(tag);
-                    }
-                })()
-            );
+            if (messageData.tag) {
+                event.waitUntil(backgroundSync.performSync(messageData.tag));
+            }
             break;
 
         case 'CLEAR_ALL_CACHES':
-            // Clear all caches (for debugging/logout)
             event.waitUntil(
                 (async () => {
                     const allCaches = await caches.keys();
                     await Promise.all(allCaches.map((name) => caches.delete(name)));
-                    if (event.ports && event.ports[0]) {
-                        event.ports[0].postMessage({
-                            type: 'CACHES_CLEARED',
-                        });
-                    } else if (event.source) {
-                        event.source.postMessage({
-                            type: 'CACHES_CLEARED',
-                        });
-                    }
+                    sendReply(event, { type: 'CACHES_CLEARED' });
                 })()
             );
             break;
 
         case 'NETWORK_RESTORED':
-            // Network restored notification from main thread
-            // This provides a fallback if the SW online event doesn't fire reliably
             console.log('[SW] Received network restored notification from main thread');
             event.waitUntil(
                 backgroundSync.checkAndSync().catch((error) => {
@@ -433,8 +402,18 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
             );
             break;
 
-        default:
-        // Unknown message type
+        case 'DOWNLOAD_BUNDLE':
+            event.waitUntil(handleDownloadBundle(event));
+            break;
+
+        case 'GET_BUNDLE_STATUS':
+            event.waitUntil(
+                (async () => {
+                    const status = await getBundleStatus();
+                    sendReply(event, { type: 'BUNDLE_STATUS', status });
+                })()
+            );
+            break;
     }
 });
 
@@ -496,3 +475,383 @@ self.addEventListener('online', () => {
         console.error('[SW] Failed to sync after coming online:', error);
     });
 });
+
+// ============================================================================
+// Offline Bundle Download and Extraction
+// ============================================================================
+
+// Bundle download state
+interface BundleDownloadState {
+    status: 'idle' | 'downloading' | 'extracting' | 'complete' | 'error';
+    progress: number;
+    totalFiles: number;
+    extractedFiles: number;
+    error?: string;
+    bundleVersion?: string;
+    downloadedAt?: number;
+}
+
+const BUNDLE_URL = '/smartgrind/offline-bundle.tar.br';
+const BUNDLE_MANIFEST_URL = '/smartgrind/offline-manifest.json';
+const BUNDLE_STATE_KEY = 'smartgrind-bundle-state';
+
+// Check if we're in development mode (localhost)
+const isDev = typeof location !== 'undefined' && location.hostname === 'localhost';
+
+/**
+ * Get the current bundle download status
+ */
+async function getBundleStatus(): Promise<BundleDownloadState> {
+    try {
+        const state = await getStateFromIDB<BundleDownloadState>(BUNDLE_STATE_KEY);
+        return state || { status: 'idle', progress: 0, totalFiles: 0, extractedFiles: 0 };
+    } catch {
+        return { status: 'idle', progress: 0, totalFiles: 0, extractedFiles: 0 };
+    }
+}
+
+/**
+ * Store state in IndexedDB
+ */
+async function getStateFromIDB<T>(key: string): Promise<T | null> {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('smartgrind-offline', 1);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains('bundle-state')) {
+                resolve(null);
+                return;
+            }
+            const transaction = db.transaction('bundle-state', 'readonly');
+            const store = transaction.objectStore('bundle-state');
+            const getRequest = store.get(key);
+
+            getRequest.onsuccess = () => resolve(getRequest.result?.value || null);
+            getRequest.onerror = () => reject(getRequest.error);
+        };
+
+        request.onupgradeneeded = (event) => {
+            const db = (event.target as IDBOpenDBRequest).result;
+            if (!db.objectStoreNames.contains('bundle-state')) {
+                db.createObjectStore('bundle-state', { keyPath: 'key' });
+            }
+        };
+    });
+}
+
+/**
+ * Save state to IndexedDB
+ */
+async function saveStateToIDB<T>(key: string, value: T): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('smartgrind-offline', 1);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+            const db = request.result;
+            const transaction = db.transaction('bundle-state', 'readwrite');
+            const store = transaction.objectStore('bundle-state');
+            store.put({ key, value });
+
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => reject(transaction.error);
+        };
+
+        request.onupgradeneeded = (event) => {
+            const db = (event.target as IDBOpenDBRequest).result;
+            if (!db.objectStoreNames.contains('bundle-state')) {
+                db.createObjectStore('bundle-state', { keyPath: 'key' });
+            }
+        };
+    });
+}
+
+/**
+ * Send progress update to all clients
+ */
+async function sendProgressUpdate(state: BundleDownloadState): Promise<void> {
+    const clients = await self.clients.matchAll({ type: 'window' });
+    clients.forEach((client) => {
+        client.postMessage({
+            type: 'BUNDLE_PROGRESS',
+            state,
+        });
+    });
+}
+
+/**
+ * Check if bundle needs to be downloaded and download it in background
+ * This is called automatically when SW activates
+ */
+async function checkAndDownloadBundle(): Promise<void> {
+    // Skip in development mode
+    if (isDev) {
+        console.log('[SW] Skipping bundle download in development mode');
+        return;
+    }
+
+    try {
+        // Check if we already have a cached bundle
+        const currentState = await getBundleStatus();
+
+        // Fetch the manifest to check version
+        const manifestResponse = await fetch(BUNDLE_MANIFEST_URL);
+        if (!manifestResponse.ok) {
+            console.log('[SW] No bundle manifest found, skipping auto-download');
+            return;
+        }
+
+        const manifest = await manifestResponse.json();
+        const remoteVersion = manifest.version;
+
+        // Check if we need to download (no cache or new version)
+        if (currentState.status === 'complete' && currentState.bundleVersion === remoteVersion) {
+            console.log('[SW] Bundle already cached with latest version:', remoteVersion);
+            return;
+        }
+
+        console.log(
+            '[SW] New bundle version available:',
+            remoteVersion,
+            '(current:',
+            currentState.bundleVersion || 'none)'
+        );
+
+        // Download the bundle
+        await downloadAndExtractBundle();
+    } catch (error) {
+        console.error('[SW] Failed to check/download bundle:', error);
+        throw error;
+    }
+}
+
+/**
+ * Download and extract bundle (internal function)
+ */
+async function downloadAndExtractBundle(): Promise<void> {
+    try {
+        // Update state: downloading
+        const state: BundleDownloadState = {
+            status: 'downloading',
+            progress: 0,
+            totalFiles: 0,
+            extractedFiles: 0,
+        };
+        await saveStateToIDB(BUNDLE_STATE_KEY, state);
+        await sendProgressUpdate(state);
+
+        // Fetch the bundle
+        console.log('[SW] Downloading offline bundle...');
+        const response = await fetch(BUNDLE_URL);
+
+        if (!response.ok) {
+            throw new Error(`Failed to download bundle: ${response.status}`);
+        }
+
+        // Get total size for progress tracking
+        const contentLength = response.headers.get('content-length');
+        const totalSize = contentLength ? parseInt(contentLength, 10) : 0;
+
+        // Download with progress tracking
+        const reader = response.body?.getReader();
+        if (!reader) {
+            throw new Error('No response body');
+        }
+
+        const chunks: Uint8Array[] = [];
+        let downloadedSize = 0;
+
+        let readResult = await reader.read();
+        while (!readResult.done) {
+            const { value } = readResult;
+            if (value) {
+                chunks.push(value);
+                downloadedSize += value.length;
+
+                // Update progress (0-50% for download)
+                if (totalSize > 0) {
+                    state.progress = Math.round((downloadedSize / totalSize) * 50);
+                    await sendProgressUpdate(state);
+                }
+            }
+            readResult = await reader.read();
+        }
+
+        console.log(`[SW] Downloaded ${downloadedSize} bytes`);
+
+        // Decompress the bundle
+        state.status = 'extracting';
+        state.progress = 50;
+        await saveStateToIDB(BUNDLE_STATE_KEY, state);
+        await sendProgressUpdate(state);
+
+        // Combine chunks and decompress
+        const compressedData = new Uint8Array(downloadedSize);
+        let offset = 0;
+        for (const chunk of chunks) {
+            compressedData.set(chunk, offset);
+            offset += chunk.length;
+        }
+
+        // Decompress using DecompressionStream (Brotli)
+        console.log('[SW] Decompressing bundle...');
+        // Using type assertion to work around TypeScript limitation
+        const decompressedStream = new Response(compressedData).body?.pipeThrough(
+            new DecompressionStream('brotli' as CompressionFormat)
+        );
+
+        if (!decompressedStream) {
+            throw new Error('Failed to create decompression stream');
+        }
+
+        const decompressedBuffer = await new Response(decompressedStream).arrayBuffer();
+        const tarData = new Uint8Array(decompressedBuffer);
+
+        console.log(`[SW] Decompressed to ${tarData.length} bytes`);
+
+        // Parse tar and extract files
+        const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+        const files = parseTar(tarData);
+        state.totalFiles = files.length;
+
+        console.log(`[SW] Found ${files.length} files in bundle`);
+
+        // Extract each file
+        let manifest: { version?: string; totalFiles?: number } | null = null;
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (!file) continue;
+
+            // Check if this is the manifest
+            if (file.name === 'manifest.json') {
+                const manifestText = new TextDecoder().decode(file.content);
+                manifest = JSON.parse(manifestText);
+                continue;
+            }
+
+            // Store in cache
+            const url = `/smartgrind/${file.name}`;
+            const fileResponse = new Response(file.content.buffer as BodyInit, {
+                headers: {
+                    'Content-Type': 'text/markdown',
+                    'X-SW-Cached-At': Date.now().toString(),
+                },
+            });
+            await cache.put(url, fileResponse);
+
+            // Update progress (50-100% for extraction)
+            state.extractedFiles = i + 1;
+            state.progress = 50 + Math.round((i / files.length) * 50);
+
+            // Send progress every 10 files or at the end
+            if (i % 10 === 0 || i === files.length - 1) {
+                await sendProgressUpdate(state);
+            }
+        }
+
+        // Complete
+        state.status = 'complete';
+        state.progress = 100;
+        if (manifest?.version) {
+            state.bundleVersion = manifest.version;
+        }
+        state.downloadedAt = Date.now();
+        await saveStateToIDB(BUNDLE_STATE_KEY, state);
+        await sendProgressUpdate(state);
+
+        console.log('[SW] Bundle extraction complete!');
+
+        // Notify clients that bundle is ready
+        const clients = await self.clients.matchAll({ type: 'window' });
+        clients.forEach((client) => {
+            client.postMessage({
+                type: 'BUNDLE_READY',
+                state,
+            });
+        });
+    } catch (error) {
+        console.error('[SW] Bundle download failed:', error);
+
+        const errorState: BundleDownloadState = {
+            status: 'error',
+            progress: 0,
+            totalFiles: 0,
+            extractedFiles: 0,
+            error: error instanceof Error ? error.message : 'Unknown error',
+        };
+        await saveStateToIDB(BUNDLE_STATE_KEY, errorState);
+        await sendProgressUpdate(errorState);
+
+        throw error;
+    }
+}
+
+/**
+ * Handle bundle download and extraction (message handler wrapper)
+ */
+async function handleDownloadBundle(event: ExtendableMessageEvent): Promise<void> {
+    try {
+        await downloadAndExtractBundle();
+        const state = await getBundleStatus();
+        sendReply(event, { type: 'BUNDLE_COMPLETE', state });
+    } catch (error) {
+        sendReply(event, {
+            type: 'BUNDLE_ERROR',
+            error: error instanceof Error ? error.message : 'Unknown error',
+        });
+    }
+}
+
+/**
+ * Tar file entry
+ */
+interface TarFile {
+    name: string;
+    content: Uint8Array;
+}
+
+/**
+ * Parse a tar archive
+ */
+function parseTar(buffer: Uint8Array): TarFile[] {
+    const files: TarFile[] = [];
+    let offset = 0;
+
+    while (offset < buffer.length - 512) {
+        // Check for end of archive (two empty blocks)
+        if (buffer.slice(offset, offset + 512).every((b) => b === 0)) {
+            break;
+        }
+
+        // Parse header
+        const header = buffer.slice(offset, offset + 512);
+
+        // Extract filename (first 100 bytes, null-terminated)
+        let nameEnd = 0;
+        while (nameEnd < 100 && header[nameEnd] !== 0) {
+            nameEnd++;
+        }
+        const name = new TextDecoder().decode(header.slice(0, nameEnd));
+
+        // Extract file size (bytes 124-136, octal string)
+        const sizeStr = new TextDecoder().decode(header.slice(124, 136)).trim();
+        const size = parseInt(sizeStr, 8) || 0;
+
+        // Skip to content
+        offset += 512;
+
+        // Extract content
+        if (size > 0 && name) {
+            const content = buffer.slice(offset, offset + size);
+            files.push({ name, content });
+        }
+
+        // Move to next header (aligned to 512 bytes)
+        offset += Math.ceil(size / 512) * 512;
+    }
+
+    return files;
+}

@@ -380,11 +380,34 @@ export class BackgroundSyncManager {
     }
 
     /**
+     * Execute a function with timeout
+     */
+    private async executeWithTimeout<T>(
+        fn: () => Promise<T>,
+        timeoutMs: number = REQUEST_TIMEOUT_MS
+    ): Promise<T> {
+        return new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                reject(new Error(`Operation timed out after ${timeoutMs}ms`));
+            }, timeoutMs);
+
+            fn()
+                .then((result) => {
+                    clearTimeout(timeoutId);
+                    resolve(result);
+                })
+                .catch((error) => {
+                    clearTimeout(timeoutId);
+                    reject(error);
+                });
+        });
+    }
+
+    /**
      * Sync custom problems with timeout
      */
-    private async syncCustomProblemsWithTimeout(): Promise<void> {
-        return this.executeWithTimeout(() => this.syncCustomProblems(), REQUEST_TIMEOUT_MS);
-    }
+    private syncCustomProblemsWithTimeout = () =>
+        this.executeWithTimeout(() => this.syncCustomProblems());
 
     /**
      * Sync custom problems
@@ -475,9 +498,8 @@ export class BackgroundSyncManager {
     /**
      * Sync user settings with timeout
      */
-    private async syncUserSettingsWithTimeout(): Promise<void> {
-        return this.executeWithTimeout(() => this.syncUserSettings(), REQUEST_TIMEOUT_MS);
-    }
+    private syncUserSettingsWithTimeout = () =>
+        this.executeWithTimeout(() => this.syncUserSettings());
 
     /**
      * Sync user settings - this now performs a full data sync to /api/user
@@ -612,33 +634,8 @@ export class BackgroundSyncManager {
     /**
      * Sync problem progress with timeout
      */
-    private async syncProblemProgressWithTimeout(operations: QueuedOperation[]): Promise<void> {
-        return this.executeWithTimeout(
-            () => this.syncProblemProgress(operations),
-            REQUEST_TIMEOUT_MS
-        );
-    }
-
-    /**
-     * Execute a function with timeout
-     */
-    private async executeWithTimeout<T>(fn: () => Promise<T>, timeoutMs: number): Promise<T> {
-        return new Promise((resolve, reject) => {
-            const timeoutId = setTimeout(() => {
-                reject(new Error(`Operation timed out after ${timeoutMs}ms`));
-            }, timeoutMs);
-
-            fn()
-                .then((result) => {
-                    clearTimeout(timeoutId);
-                    resolve(result);
-                })
-                .catch((error) => {
-                    clearTimeout(timeoutId);
-                    reject(error);
-                });
-        });
-    }
+    private syncProblemProgressWithTimeout = (operations: QueuedOperation[]) =>
+        this.executeWithTimeout(() => this.syncProblemProgress(operations));
 
     /**
      * Sync problem progress operations

@@ -171,22 +171,21 @@ export const utils = {
         },
     },
 
+    // Helper to check if running on mobile
+    _isMobile: () =>
+        /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+
     // Helper to build AI URL
     _buildAIUrl: (provider: 'chatgpt' | 'aistudio' | 'grok', encodedPrompt: string) => {
         const config = utils._aiProviders[provider];
-        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            navigator.userAgent
-        );
-
-        if (isMobile) {
+        if (utils._isMobile()) {
             const fallbackParam = encodeURIComponent(`${config.desktopUrl}${encodedPrompt}`);
             return config.mobileIntent.replace(
                 /S\.browser_fallback_url=[^;]+/,
                 `S.browser_fallback_url=${fallbackParam}`
             );
-        } else {
-            return config.desktopUrl + encodedPrompt;
         }
+        return config.desktopUrl + encodedPrompt;
     },
 
     // AI helper
@@ -210,8 +209,7 @@ export const utils = {
         state.ui.preferredAI = provider;
 
         const url = utils._buildAIUrl(provider, encodedPrompt);
-
-        if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        if (utils._isMobile()) {
             window.location.href = url;
         } else {
             window.open(url, '_blank');
@@ -252,39 +250,33 @@ export const utils = {
     sanitizeInput: (input: string | null | undefined) => {
         if (!input) return '';
 
-        // Normalize Windows line endings (\r\n) to Unix (\n) first
-        let sanitized = input.replace(/\r\n/g, '\n');
-
-        // Split by newlines, trim each line, then rejoin
-        // This preserves internal newlines while trimming whitespace from each line
-        sanitized = sanitized
+        // Normalize line endings and trim each line
+        let sanitized = input
+            .replace(/\r\n/g, '\n')
             .split('\n')
             .map((line) => line.trim())
             .join('\n');
 
-        // Remove control characters and null bytes, but preserve newlines (\n = 0x0A)
-        sanitized = sanitized.replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, '');
+        // Remove control characters (except newlines), HTML tags, and quotes
+        sanitized = sanitized
+            .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, '')
+            .replace(/<[^>]*>/g, '')
+            .replace(/["'\\]/g, '');
 
-        // Remove HTML tags and special characters that could be harmful
-        sanitized = sanitized.replace(/<[^>]*>/g, ''); // Remove HTML tags
-        sanitized = sanitized.replace(/["'\\]/g, ''); // Remove quotes and backslashes
+        // Remove dangerous URL schemes and event handlers
+        const dangerousPatterns = [
+            /javascript:/gi,
+            /data:/gi,
+            /vbscript:/gi,
+            /on\w+\s*=/gi,
+            /<script[^>]*>.*?<\/script>/gi,
+            /<iframe[^>]*>.*?<\/iframe>/gi,
+        ];
+        dangerousPatterns.forEach((pattern) => {
+            sanitized = sanitized.replace(pattern, '');
+        });
 
-        // Prevent script injection by removing script-related content
-        sanitized = sanitized.replace(/javascript:/gi, '');
-        sanitized = sanitized.replace(/data:/gi, '');
-        sanitized = sanitized.replace(/vbscript:/gi, '');
-        sanitized = sanitized.replace(/on\w+\s*=/gi, '');
-
-        // Remove potential XSS vectors
-        sanitized = sanitized.replace(/<script[^>]*>.*?<\/script>/gi, '');
-        sanitized = sanitized.replace(/<iframe[^>]*>.*?<\/iframe>/gi, '');
-
-        // Limit length to prevent excessively long inputs
-        if (sanitized.length > 200) {
-            sanitized = sanitized.substring(0, 200);
-        }
-
-        return sanitized;
+        return sanitized.substring(0, 200);
     },
 
     /**
@@ -480,35 +472,31 @@ export const utils = {
      * @param {string} searchQuery - The user's search query (case-insensitive)
      * @param {string} today - Today's date in YYYY-MM-DD format
      * @returns {boolean} True if the problem should be displayed
-     * @example
-     * const shouldShow = utils.shouldShowProblem(problem, 'review', 'two sum', '2024-01-15');
      */
     shouldShowProblem: (problem: Problem, filter: string, searchQuery: string, today: string) => {
-        // Apply filter
-        const filterFunctions: { [key: string]: (_p: Problem, _t: string) => boolean } = {
-            all: (_p: Problem, _t: string) => true,
-            unsolved: (_p: Problem, _t: string) => _p.status === 'unsolved',
-            solved: (_p: Problem, _t: string) => _p.status === 'solved',
-            review: (_p: Problem, _t: string) =>
-                _p.status === 'solved' && _p.nextReviewDate !== null && _p.nextReviewDate <= _t,
+        // Status filter predicates
+        const statusFilters: Record<string, (_p: Problem) => boolean> = {
+            all: () => true,
+            unsolved: (p) => p.status === 'unsolved',
+            solved: (p) => p.status === 'solved',
+            review: (p) =>
+                p.status === 'solved' && p.nextReviewDate !== null && p.nextReviewDate <= today,
         };
-        const passesFilter = filterFunctions[filter]
-            ? filterFunctions[filter](problem, today)
-            : false;
 
-        if (!passesFilter) return false;
+        // Apply status filter
+        if (!statusFilters[filter]?.(problem)) return false;
 
-        // Apply date filter for review and solved modes
+        // Apply date filter for review/solved modes
         if ((filter === 'review' || filter === 'solved') && state.ui.reviewDateFilter) {
             if (problem.nextReviewDate !== state.ui.reviewDateFilter) return false;
         }
 
-        // Apply search
+        // Apply search query
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             const nameMatch = problem.name.toLowerCase().includes(query);
-            const noteMatch = problem.note && problem.note.toLowerCase().includes(query);
-            return nameMatch || noteMatch;
+            const noteMatch = problem.note?.toLowerCase().includes(query);
+            return nameMatch || !!noteMatch;
         }
 
         return true;

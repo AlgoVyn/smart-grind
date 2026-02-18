@@ -37,26 +37,29 @@ export const setButtonLoading = (
 };
 
 /**
+ * Helper to reset all login buttons to default state
+ */
+const resetLoginButtons = () => {
+    ui.setButtonLoading(state.elements.googleLoginBtn ?? null, false);
+    ui.setButtonLoading(state.elements.modalGoogleLoginBtn ?? null, false);
+};
+
+/**
  * Initiates Google OAuth login using a popup window.
  * Opens an authentication popup, listens for success/failure messages from the popup,
  * updates user session and UI on success, and handles errors or cancellations.
  */
 export const handleGoogleLogin = () => {
     showError(null);
-    const btn = state.elements.googleLoginBtn ?? null;
-    const modalBtn = state.elements.modalGoogleLoginBtn ?? null;
-    ui.setButtonLoading(btn, true);
-    ui.setButtonLoading(modalBtn, true);
+    ui.setButtonLoading(state.elements.googleLoginBtn ?? null, true);
+    ui.setButtonLoading(state.elements.modalGoogleLoginBtn ?? null, true);
 
     // Open popup for auth
     const popup = window.open('/smartgrind/api/auth?action=login', 'auth', 'width=500,height=600');
 
     if (!popup) {
         // Popup blocked
-        const btn = state.elements.googleLoginBtn ?? null;
-        const modalBtn = state.elements.modalGoogleLoginBtn ?? null;
-        ui.setButtonLoading(btn, false);
-        ui.setButtonLoading(modalBtn, false);
+        resetLoginButtons();
         utils.showToast(
             'Sign-in popup was blocked. Please allow popups for this site and try again.',
             'error'
@@ -84,18 +87,13 @@ export const handleGoogleLogin = () => {
         updateAuthUI();
 
         // Close any open sign-in modals
-        if (state.elements.setupModal) {
-            state.elements.setupModal.classList.add('hidden');
-        }
-        if (state.elements.signinModal) {
-            state.elements.signinModal.classList.add('hidden');
-        }
+        state.elements.setupModal?.classList.add('hidden');
+        state.elements.signinModal?.classList.add('hidden');
     };
 
     const handleAuthFailure = (data: { message: string }) => {
-        const { message } = data;
         setTimeout(() => {
-            utils.showToast(`Sign-in failed: ${message}`, 'error');
+            utils.showToast(`Sign-in failed: ${data.message}`, 'error');
         }, 100);
     };
 
@@ -105,10 +103,7 @@ export const handleGoogleLogin = () => {
             clearInterval(popupCheckInterval);
             popupCheckInterval = null;
         }
-        const btn = state.elements.googleLoginBtn ?? null;
-        const modalBtn = state.elements.modalGoogleLoginBtn ?? null;
-        ui.setButtonLoading(btn, false);
-        ui.setButtonLoading(modalBtn, false);
+        resetLoginButtons();
     };
 
     // Listen for popup closure to reset buttons immediately
@@ -123,8 +118,7 @@ export const handleGoogleLogin = () => {
     // Listen for auth messages
     const messageHandler = (event: MessageEvent) => {
         // Strict origin check for security
-        const expectedOrigin = window.location.origin;
-        if (event.origin !== expectedOrigin) {
+        if (event.origin !== window.location.origin) {
             console.warn('Received message from unexpected origin:', event.origin);
             return;
         }
@@ -141,11 +135,9 @@ export const handleGoogleLogin = () => {
     // Monitor popup closure
     popupCheckInterval = setInterval(() => {
         try {
-            if (popup.closed) {
-                handlePopupClose();
-            }
-        } catch (_e) {
-            // COOP may block the check, ignore
+            if (popup.closed) handlePopupClose();
+        } catch {
+            /* COOP may block the check, ignore */
         }
     }, 500);
 
@@ -154,8 +146,8 @@ export const handleGoogleLogin = () => {
             authCompleted = true;
             try {
                 if (!popup.closed) popup.close();
-            } catch (_e) {
-                // COOP may block the check, ignore
+            } catch {
+                /* ignore */
             }
             utils.showToast('Sign-in timed out. Please try again.', 'error');
             cleanupAuth();
@@ -163,19 +155,7 @@ export const handleGoogleLogin = () => {
     };
 
     // Timeout to reset buttons if no auth response received
-    const timeoutId = setTimeout(() => {
-        handleAuthTimeout();
-    }, UI_CONSTANTS.AUTH_TIMEOUT);
-
-    // Ensure cleanup happens in all scenarios
-    try {
-        // The auth flow continues via messageHandler or timeout
-    } finally {
-        // This ensures cleanup even if an unexpected error occurs
-        if (authCompleted) {
-            clearTimeout(timeoutId);
-        }
-    }
+    const timeoutId = setTimeout(handleAuthTimeout, UI_CONSTANTS.AUTH_TIMEOUT);
 };
 
 /**
