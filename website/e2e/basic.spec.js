@@ -1,25 +1,50 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('SmartGrind Basic Functionality', () => {
+  // Helper: wait for app to finish loading
+  async function waitForAppReady(page) {
+    // The loading screen should disappear and app wrapper should become visible
+    await page.waitForSelector('#loading-screen', { state: 'hidden', timeout: 15000 });
+    await page.waitForSelector('#app-wrapper', { state: 'visible', timeout: 5000 });
+  }
+
   test('should load the homepage', async ({ page }) => {
     await page.goto('/');
 
     // Check if the page title is correct
     await expect(page).toHaveTitle(/SmartGrind/);
 
-    // Check if the main logo is visible
-    await expect(page.locator('img[alt="SmartGrind Logo"]').first()).toBeVisible();
+    // Wait for app to be ready
+    await waitForAppReady(page);
+
+    // Check if the sidebar logo is visible (it has empty alt, so we select by id)
+    // The sidebar logo is visible on desktop, the mobile logo is hidden on desktop (md:hidden)
+    await expect(page.locator('#sidebar-logo')).toBeVisible();
   });
 
-  test('should show sign in modal when clicking Google login', async ({ page }) => {
+  test('should show setup modal when user type is signed-in but no userId', async ({ page }) => {
+    // Set up localStorage to trigger the setup modal
     await page.goto('/');
-
-    // Click the Google login button
-    await page.locator('#google-login-button').click();
-
-    // The setup modal should be hidden and signin modal should be shown
-    // Note: This might require mocking the Google auth flow
-    await expect(page.locator('#setup-modal')).toHaveClass(/hidden/);
+    
+    // Set userType to 'signed-in' without a userId to trigger the setup modal
+    // Note: The actual localStorage key is 'smartgrind-user-type' (see data.ts LOCAL_STORAGE_KEYS)
+    await page.evaluate(() => {
+      localStorage.setItem('smartgrind-user-type', 'signed-in');
+      // Clear any existing userId
+      localStorage.removeItem('userId');
+    });
+    
+    // Reload to apply the new state
+    await page.reload();
+    
+    // Wait for loading screen to disappear
+    await page.waitForSelector('#loading-screen', { state: 'hidden', timeout: 15000 });
+    
+    // The setup modal should be visible
+    await expect(page.locator('#setup-modal')).toBeVisible({ timeout: 10000 });
+    
+    // The Google login button should be visible inside the modal
+    await expect(page.locator('#google-login-button')).toBeVisible();
   });
 
   test('should allow theme switching', async ({ page }) => {

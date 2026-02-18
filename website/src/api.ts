@@ -275,9 +275,10 @@ export async function forceSync(): Promise<{ success: boolean; synced: number; f
     const registration = await navigator.serviceWorker.ready;
 
     // Utilize Background Sync API if available for robust retry support
-    if ('sync' in registration) {
+    const swRegistration = registration as ServiceWorkerRegistration & { sync?: { register: (_tag: string) => Promise<void> } };
+    if (swRegistration.sync) {
         try {
-            await (registration as any).sync.register('sync-user-progress');
+            await swRegistration.sync.register('sync-user-progress');
         } catch (e) {
             console.warn('Background Sync registration failed:', e);
         }

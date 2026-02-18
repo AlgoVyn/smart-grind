@@ -2,370 +2,947 @@
 
 ## Problem Description
 
-You are given an integer array `height` of length `n`. There are `n` vertical lines drawn such that the two endpoints of the `i-th` line are `(i, 0)` and `(i, height[i])`.
+You are given an integer array `height` of length `n`. There are `n` vertical lines drawn such that the two endpoints of the ith line are `(i, 0)` and `(i, height[i])`.
 
 Find two lines that together with the x-axis form a container, such that the container contains the most water.
 
 Return the maximum amount of water a container can store.
 
-Notice that you may not slant the container.
+**Notice** that you may not slant the container.
 
-### Problem Visualization
+This is **LeetCode Problem #11** and is classified as a Medium difficulty problem. It is a classic two-pointer problem that appears frequently in technical interviews and demonstrates understanding of the two-pointer technique, greedy algorithms, and optimization strategies.
 
-Imagine you have vertical lines of different heights placed on a coordinate system, where each line starts at the x-axis (y=0) and extends up to its height. The container is formed by choosing two lines and the x-axis, and water can be poured into this container. The amount of water it can hold is determined by the shorter of the two lines and the distance between them.
+### Understanding the Problem
 
-For example, if you have lines with heights [1,8,6,2,5,4,8,3,7], the container formed by the 8 at index 1 and 7 at index 8 will hold 49 units of water:
-- Height is min(8,7) = 7
-- Width is 8 - 1 = 7
-- Area = 7 * 7 = 49
+The problem can be visualized as finding two vertical lines in a histogram that can hold the most water. The amount of water between two lines at positions `i` and `j` is calculated as:
 
----
-
-## Examples
-
-### Example 1
-
-**Input:**
-```python
-height = [1,8,6,2,5,4,8,3,7]
+```
+water = min(height[i], height[j]) * (j - i)
 ```
 
-**Output:**
-```python
-49
-```
+This formula represents:
+- The height of water is limited by the shorter line (since water would spill over)
+- The width is the distance between the two lines
 
-**Explanation:** 
-The vertical lines are represented by array [1,8,6,2,5,4,8,3,7]. The optimal container is formed by:
-- Left line at index 1 (height = 8)
-- Right line at index 8 (height = 7)
-- Height of container: min(8,7) = 7
-- Width of container: 8 - 1 = 7
-- Area: 7 * 7 = 49
+### Why This Problem Matters
 
-This is the maximum possible area in this configuration.
+This problem demonstrates several important algorithmic concepts:
+- **Two-pointer technique** - Efficient O(n) solution
+- **Greedy approach** - Making locally optimal decisions
+- **Optimal substructure** - Global optimum from local optima
+- **Time-space tradeoffs** - Comparing brute force vs optimized approaches
 
-### Example 2
-
-**Input:**
-```python
-height = [1,1]
-```
-
-**Output:**
-```python
-1
-```
-
-**Explanation:** 
-Only two lines are available, forming a container with:
-- Height: min(1,1) = 1
-- Width: 1 - 0 = 1
-- Area: 1 * 1 = 1
-
-### Example 3
-
-**Input:**
-```python
-height = [4,3,2,1,4]
-```
-
-**Output:**
-```python
-16
-```
-
-**Explanation:** 
-The optimal container is formed by the first and last lines:
-- Left line at index 0 (height = 4)
-- Right line at index 4 (height = 4)
-- Height: min(4,4) = 4
-- Width: 4 - 0 = 4
-- Area: 4 * 4 = 16
+It's frequently asked by top tech companies including Google, Amazon, Meta, Microsoft, Apple, and Goldman Sachs.
 
 ---
 
 ## Constraints
 
-- `n == height.length`
-- `2 <= n <= 10^5`
-- `0 <= height[i] <= 10^4`
+| Constraint | Description | Importance |
+|------------|-------------|------------|
+| `n == height.length` | Array length | Valid input |
+| `2 <= n <= 10^5` | Minimum 2 lines | Ensures valid container |
+| `0 <= height[i] <= 10^4` | Height values | Non-negative |
+| Need O(n) solution | Time complexity expectation | Tests optimization skills |
+
+---
+
+## Examples
+
+### Example 1:
+
+**Input:** `height = [1,8,6,2,5,4,8,3,7]`  
+**Output:** `49`
+
+**Explanation:** 
+- The maximum water is held between lines at index 1 (height 8) and index 8 (height 7)
+- Water = min(8, 7) × (8 - 1) = 7 × 7 = 49
+
+---
+
+### Example 2:
+
+**Input:** `height = [1,1]`  
+**Output:** `1`
+
+**Explanation:**
+- Only two lines, water = min(1, 1) × (1 - 0) = 1
+
+---
+
+### Example 3:
+
+**Input:** `height = [4,3,2,1,4]`  
+**Output:** `16`
+
+**Explanation:**
+- Maximum water between index 0 and index 4
+- Water = min(4, 4) × (4 - 0) = 4 × 4 = 16
+
+---
+
+## Follow up
+
+Can you solve it in O(n) time complexity? Can you solve it with O(1) space complexity?
 
 ---
 
 ## Intuition
 
-The problem is about finding two vertical lines that, along with the x-axis, form a rectangle that can hold the maximum water. The area is determined by the **shorter line's height** and the **distance between them** (width). The formula for the area is:
+### Key Observations
 
-```
-Area = min(height[i], height[j]) * (j - i)
-```
+1. **Water Formula**: The water between two lines at positions `i` and `j` is `min(height[i], height[j]) * (j - i)`. The limiting factor is always the shorter line.
 
-### Key Observations:
+2. **Brute Force**: Try all pairs - O(n²) time, O(1) space. Works but not optimal.
 
-1. **Width Effect**: For a given height, the wider the container, the more water it can hold.
-2. **Height Effect**: For a given width, the taller the container (specifically, the taller of the two lines), the more water it can hold.
-3. **Limiting Factor**: The height of the container is always determined by the shorter of the two lines. If one line is much shorter than the other, it will be the bottleneck.
+3. **Two Pointer Insight**: Start with the widest container (first and last lines). The width is maximum, but the height is limited by the shorter line. Moving the pointer at the shorter line might find a taller line that could increase water volume.
 
-### Why Two-Pointer Approach Works:
+4. **Greedy Strategy**: At each step, move the pointer pointing to the shorter line inward. This is because:
+   - The current width is the maximum possible for this pair
+   - To find potentially larger containers, we need to try other combinations
+   - Moving the taller line can only decrease or keep the height (since we're limited by the shorter one)
+   - Moving the shorter line gives us a chance to find a taller line
 
-The key insight is that to maximize area, we start with the **widest possible container** (leftmost and rightmost lines) and move the pointer pointing to the **shorter line inward**. This is because:
+### Why Two Pointer Works
 
-- Moving the pointer pointing to the taller line inward can't increase the height of the container
-- It will only decrease the width, resulting in a smaller area
-- Moving the shorter line inward has the potential to find a taller line, which could increase the container's height
-
-This approach efficiently narrows down the possible containers while maintaining the maximum area found so far.
+The two-pointer approach is optimal because:
+1. We start with maximum width (widest possible container)
+2. At each step, we intelligently choose which pointer to move
+3. We never miss a potential maximum because:
+   - For any pair (i, j), if height[i] <= height[j], moving i can only decrease or maintain the water level
+   - By moving the pointer with smaller height, we explore configurations that could have higher water
 
 ---
 
-## Approach 1: Brute Force
+## Multiple Approaches
 
-### Algorithm
+### Approach 1: Two Pointer (Optimal) ⭐⭐
 
-The brute force approach is straightforward but inefficient. It checks every possible pair of lines to find the container with maximum area.
+The optimal approach uses two pointers starting from both ends, moving inward strategically.
 
-1. **Iterate through all possible pairs of lines:** Use nested loops to generate all possible pairs (i, j) where i < j.
-2. **Calculate area for each pair:** For each pair, compute the area using `min(height[i], height[j]) * (j - i)`.
-3. **Track maximum area:** Keep updating the maximum area whenever a larger area is found.
+#### Algorithm
 
-### Code
+1. Initialize two pointers: `left` at start (index 0), `right` at end (index n-1)
+2. Calculate water for current pair
+3. Move the pointer with smaller height inward
+4. Repeat until pointers meet
+5. Track maximum water found
 
+#### Implementation
+
+````carousel
 ```python
 from typing import List
 
 class Solution:
     def maxArea(self, height: List[int]) -> int:
-        n = len(height)
-        max_area = 0
-        for i in range(n):
-            for j in range(i + 1, n):
-                # Calculate area for current pair
-                current_height = min(height[i], height[j])
-                current_width = j - i
-                area = current_height * current_width
-                # Update max area if current is larger
-                if area > max_area:
-                    max_area = area
-        return max_area
-```
-
-### Complexity Analysis
-
-- **Time Complexity:** O(n^2), where n is the number of lines. This is because we have to check all possible pairs, resulting in n*(n-1)/2 operations.
-- **Space Complexity:** O(1), as we only use constant extra space for variables to track the maximum area and loop indices.
-
-### Limitations
-
-The brute force approach is not feasible for large input sizes. For n = 10^5, this approach would require around 5 billion operations, which would take an extremely long time.
-
----
-
-## Approach 3: O(n log n) Optimization with Preprocessing
-
-### Algorithm
-
-The O(n log n) approach leverages sorting and preprocessing to efficiently find the maximum area. This approach is based on the observation that for each line at index `i` with height `h`, the optimal container involving this line will be with the farthest line to the left or right that has height ≥ `h`. Here's the detailed algorithm:
-
-1. **Create position-height pairs**: First, we create a list of tuples where each tuple contains the height of a line and its original index. This preserves the positional information when we sort the array.
-2. **Sort by height in descending order**: We sort these pairs from tallest to shortest. This allows us to consider lines in order of decreasing height.
-3. **Track min and max indices**: As we iterate through the sorted list, we keep track of the minimum and maximum indices encountered so far. This helps us determine the farthest left and right lines that could form a container with the current line.
-4. **Calculate maximum area**: For each line in the sorted list, we calculate the maximum possible width by finding the distance to the farthest line (either leftmost or rightmost) encountered so far. The area is then height × width.
-5. **Update maximum area**: We keep track of the maximum area found during this process.
-
-This approach ensures that each line is processed once, and the sorting step gives us the O(n log n) time complexity.
-
-### Code
-
-```python
-from typing import List
-
-class Solution:
-    def maxArea(self, height: List[int]) -> int:
-        # Create list of (height, index) pairs
-        height_with_index = [(h, i) for i, h in enumerate(height)]
+        """
+        Find maximum water container using two pointer technique.
         
-        # Sort pairs in descending order of height
-        height_with_index.sort(reverse=True, key=lambda x: x[0])
-        
-        max_area = 0
-        min_index = float('inf')
-        max_index = -float('inf')
-        
-        for h, i in height_with_index:
-            # Update the min and max indices encountered so far
-            min_index = min(min_index, i)
-            max_index = max(max_index, i)
+        Args:
+            height: List of line heights
             
-            # Calculate possible areas with farthest left and farthest right lines
-            area_left = h * (i - min_index)
-            area_right = h * (max_index - i)
-            
-            # Update max area if current areas are larger
-            max_area = max(max_area, area_left, area_right)
+        Returns:
+            Maximum water that can be stored
+        """
+        left = 0
+        right = len(height) - 1
+        max_water = 0
         
-        return max_area
-```
-
-### Complexity Analysis
-
-- **Time Complexity**: O(n log n), where n is the number of lines. The dominant time complexity comes from sorting the list of height-index pairs, which takes O(n log n) time. The subsequent iteration through the sorted list is O(n).
-- **Space Complexity**: O(n), as we need to store the height-index pairs in a new list. This is required to preserve the positional information when sorting.
-
-### Why This Approach Works
-
-By sorting the lines in descending order of height, we ensure that when we process each line, all lines that could potentially form a taller container have already been considered. Tracking the minimum and maximum indices allows us to quickly find the farthest lines that can form a container with the current line, maximizing the width for each possible height.
-
----
-
-## Approach 2: Two-Pointer Technique (Optimal)
-
-### Algorithm
-
-The two-pointer approach efficiently finds the maximum area in a single pass through the array. Here's how it works:
-
-1. **Initialize pointers:** Start with two pointers at the ends of the array (left at 0, right at n-1), representing the widest possible container.
-2. **Calculate area:** Compute the area for the current container.
-3. **Update maximum area:** Keep track of the maximum area found.
-4. **Move the shorter line inward:** This is the key optimization. By moving the pointer pointing to the shorter line, we have the potential to find a taller line, which could increase the container's height.
-5. **Repeat:** Continue until the pointers meet.
-
-### Code
-
-```python
-from typing import List
-
-class Solution:
-    def maxArea(self, height: List[int]) -> int:
-        left, right = 0, len(height) - 1
-        max_area = 0
         while left < right:
-            # Calculate current container dimensions and area
-            current_height = min(height[left], height[right])
-            current_width = right - left
-            current_area = current_height * current_width
+            # Calculate current water
+            width = right - left
+            h = min(height[left], height[right])
+            water = width * h
             
-            # Update max area if current is larger
-            if current_area > max_area:
-                max_area = current_area
+            # Update maximum
+            max_water = max(max_water, water)
             
-            # Move the pointer pointing to the shorter line inward
+            # Move pointer with smaller height
             if height[left] < height[right]:
                 left += 1
             else:
                 right -= 1
-        return max_area
+        
+        return max_water
 ```
+<!-- slide -->
+```cpp
+#include <vector>
+using namespace std;
 
-### Complexity Analysis
+class Solution {
+public:
+    int maxArea(vector<int>& height) {
+        int left = 0;
+        int right = height.size() - 1;
+        int maxWater = 0;
+        
+        while (left < right) {
+            int width = right - left;
+            int h = min(height[left], height[right]);
+            int water = width * h;
+            
+            maxWater = max(maxWater, water);
+            
+            if (height[left] < height[right]) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+        
+        return maxWater;
+    }
+};
+```
+<!-- slide -->
+```java
+class Solution {
+    public int maxArea(int[] height) {
+        int left = 0;
+        int right = height.length - 1;
+        int maxWater = 0;
+        
+        while (left < right) {
+            int width = right - left;
+            int h = Math.min(height[left], height[right]);
+            int water = width * h;
+            
+            maxWater = Math.max(maxWater, water);
+            
+            if (height[left] < height[right]) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+        
+        return maxWater;
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} height
+ * @return {number}
+ */
+var maxArea = function(height) {
+    let left = 0;
+    let right = height.length - 1;
+    let maxWater = 0;
+    
+    while (left < right) {
+        const width = right - left;
+        const h = Math.min(height[left], height[right]);
+        const water = width * h;
+        
+        maxWater = Math.max(maxWater, water);
+        
+        if (height[left] < height[right]) {
+            left++;
+        } else {
+            right--;
+        }
+    }
+    
+    return maxWater;
+};
+```
+````
 
-- **Time Complexity:** O(n), where n is the number of lines. We process each line at most once, resulting in a single pass through the array.
-- **Space Complexity:** O(1), as we use constant extra space for the two pointers and max area variable.
-
-### Why This Approach Is Optimal
-
-This approach ensures that we always move in the direction that has the potential to increase the container's height. By starting with the widest possible container and systematically narrowing it while keeping track of the maximum area, we efficiently find the optimal solution.
+**Time Complexity:** O(n) - Single pass through array  
+**Space Complexity:** O(1) - Only constant extra space
 
 ---
 
-## Approach Comparison
+### Approach 2: Brute Force ⭐
 
-Let's compare the three approaches to solve the Container With Most Water problem:
+Check all possible pairs to find maximum water.
 
-### Brute Force (O(n²))
-- **Strategy**: Check every possible pair of lines
-- **Strengths**: Simple to implement, no complex logic
-- **Weaknesses**: Extremely inefficient for large n, O(n²) time complexity
-- **Best For**: Small input sizes (<= 1000 elements)
+#### Algorithm
 
-### O(n log n) Optimization
-- **Strategy**: Sort lines by height and track min/max indices
-- **Strengths**: More efficient than brute force, works well for medium to large inputs
-- **Weaknesses**: Requires O(n) additional space, sorting adds overhead
-- **Best For**: Situations where two-pointer approach may be hard to understand or implement
+1. For each pair of lines (i, j) where i < j
+2. Calculate water = min(height[i], height[j]) * (j - i)
+3. Track maximum water found
 
-### Two-Pointer Technique (O(n))
-- **Strategy**: Start with widest container, move shorter line inward
-- **Strengths**: Optimal time complexity, constant space, very efficient
-- **Weaknesses**: Requires understanding of the key insight about moving pointers
-- **Best For**: All input sizes, especially large n (up to 10⁵ elements)
+#### Implementation
 
-### Performance Comparison
+````carousel
+```python
+from typing import List
 
-For n = 1000:
-- Brute Force: ~500,000 operations
-- O(n log n): ~10,000 operations
-- Two-Pointer: 1000 operations
+class Solution:
+    def maxArea(self, height: List[int]) -> int:
+        """
+        Find maximum water using brute force approach.
+        
+        Args:
+            height: List of line heights
+            
+        Returns:
+            Maximum water that can be stored
+        """
+        n = len(height)
+        max_water = 0
+        
+        for i in range(n):
+            for j in range(i + 1, n):
+                width = j - i
+                h = min(height[i], height[j])
+                water = width * h
+                max_water = max(max_water, water)
+        
+        return max_water
+```
+<!-- slide -->
+```cpp
+#include <vector>
+#include <algorithm>
+using namespace std;
 
-For n = 10⁵:
-- Brute Force: ~5 billion operations (impractical)
-- O(n log n): ~1.7 million operations (fast)
-- Two-Pointer: 100,000 operations (very fast)
+class Solution {
+public:
+    int maxArea(vector<int>& height) {
+        int n = height.size();
+        int maxWater = 0;
+        
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                int width = j - i;
+                int h = min(height[i], height[j]);
+                int water = width * h;
+                maxWater = max(maxWater, water);
+            }
+        }
+        
+        return maxWater;
+    }
+};
+```
+<!-- slide -->
+```java
+class Solution {
+    public int maxArea(int[] height) {
+        int n = height.length;
+        int maxWater = 0;
+        
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                int width = j - i;
+                int h = Math.min(height[i], height[j]);
+                int water = width * h;
+                maxWater = Math.max(maxWater, water);
+            }
+        }
+        
+        return maxWater;
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} height
+ * @return {number}
+ */
+var maxArea = function(height) {
+    const n = height.length;
+    let maxWater = 0;
+    
+    for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+            const width = j - i;
+            const h = Math.min(height[i], height[j]);
+            const water = width * h;
+            maxWater = Math.max(maxWater, water);
+        }
+    }
+    
+    return maxWater;
+};
+```
+````
 
-### When to Choose Each Approach
+**Time Complexity:** O(n²) - Check all pairs  
+**Space Complexity:** O(1) - No extra space needed
 
-| Approach | Time Complexity | Space Complexity | Use Case |
-|----------|----------------|-----------------|----------|
-| Brute Force | O(n²) | O(1) | Small inputs, quick prototyping |
-| O(n log n) | O(n log n) | O(n) | Educational purposes, understanding alternative methods |
-| Two-Pointer | O(n) | O(1) | Production code, large inputs, optimal performance |
+---
+
+### Approach 3: Optimized Brute Force with Early Termination
+
+Optimize brute force by skipping pairs that can't beat current maximum.
+
+#### Algorithm
+
+1. Sort pairs by height (descending) - not feasible for unsorted input
+2. Actually, use smarter pruning: if min(height[i], height[j]) * (n-1) <= maxWater, skip
+
+#### Implementation
+
+````carousel
+```python
+from typing import List
+
+class Solution:
+    def maxArea(self, height: List[int]) -> int:
+        """
+        Find maximum water with optimized brute force.
+        
+        Args:
+            height: List of line heights
+            
+        Returns:
+            Maximum water that can be stored
+        """
+        n = len(height)
+        max_water = 0
+        
+        for i in range(n):
+            for j in range(i + 1, n):
+                width = j - i
+                h = min(height[i], height[j])
+                water = width * h
+                max_water = max(max_water, water)
+                
+                # Early termination optimization (optional)
+                # If both heights are small, remaining pairs won't help
+                if height[i] <= height[j]:
+                    # height[i] is limiting, skip ahead
+                    break
+                    
+        return max_water
+```
+<!-- slide -->
+```cpp
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class Solution {
+public:
+    int maxArea(vector<int>& height) {
+        int n = height.size();
+        int maxWater = 0;
+        
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                int width = j - i;
+                int h = min(height[i], height[j]);
+                int water = width * h;
+                maxWater = max(maxWater, water);
+                
+                if (height[i] <= height[j]) {
+                    break;
+                }
+            }
+        }
+        
+        return maxWater;
+    }
+};
+```
+<!-- slide -->
+```java
+class Solution {
+    public int maxArea(int[] height) {
+        int n = height.length;
+        int maxWater = 0;
+        
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                int width = j - i;
+                int h = Math.min(height[i], height[j]);
+                int water = width * h;
+                maxWater = Math.max(maxWater, water);
+                
+                if (height[i] <= height[j]) {
+                    break;
+                }
+            }
+        }
+        
+        return maxWater;
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} height
+ * @return {number}
+ */
+var maxArea = function(height) {
+    const n = height.length;
+    let maxWater = 0;
+    
+    for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+            const width = j - i;
+            const h = Math.min(height[i], height[j]);
+            const water = width * h;
+            maxWater = Math.max(maxWater, water);
+            
+            if (height[i] <= height[j]) {
+                break;
+            }
+        }
+    }
+    
+    return maxWater;
+};
+```
+````
+
+**Time Complexity:** O(n²) worst case, better average case  
+**Space Complexity:** O(1) - No extra space
+
+---
+
+### Approach 4: Binary Search Variant (Alternative Perspective)
+
+A variant using binary search-like approach.
+
+#### Algorithm
+
+1. Consider the array as having a maximum possible width
+2. Use binary search to find optimal heights
+3. This doesn't work directly but shows alternative thinking
+
+Note: This approach doesn't provide O(n) improvement but shows different thinking patterns.
+
+#### Implementation
+
+````carousel
+```python
+from typing import List
+
+class Solution:
+    def maxArea(self, height: List[int]) -> int:
+        """
+        Binary search inspired approach - maintains max width exploration.
+        
+        Args:
+            height: List of line heights
+            
+        Returns:
+            Maximum water that can be stored
+        """
+        # This is essentially the two-pointer approach
+        # as binary search doesn't work directly here
+        return self.two_pointer(height)
+    
+    def two_pointer(self, height: List[int]) -> int:
+        left = 0
+        right = len(height) - 1
+        max_water = 0
+        
+        while left < right:
+            width = right - left
+            h = min(height[left], height[right])
+            max_water = max(max_water, width * h)
+            
+            if height[left] < height[right]:
+                left += 1
+            else:
+                right -= 1
+        
+        return max_water
+```
+<!-- slide -->
+```cpp
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class Solution {
+public:
+    int maxArea(vector<int>& height) {
+        // Binary search doesn't directly apply, using two-pointer
+        int left = 0;
+        int right = height.size() - 1;
+        int maxWater = 0;
+        
+        while (left < right) {
+            int width = right - left;
+            int h = min(height[left], height[right]);
+            maxWater = max(maxWater, width * h);
+            
+            if (height[left] < height[right]) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+        
+        return maxWater;
+    }
+};
+```
+<!-- slide -->
+```java
+class Solution {
+    public int maxArea(int[] height) {
+        // Two-pointer approach
+        int left = 0;
+        int right = height.length - 1;
+        int maxWater = 0;
+        
+        while (left < right) {
+            int width = right - left;
+            int h = Math.min(height[left], height[right]);
+            maxWater = Math.max(maxWater, width * h);
+            
+            if (height[left] < height[right]) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+        
+        return maxWater;
+    }
+}
+```
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} height
+ * @return {number}
+ */
+var maxArea = function(height) {
+    // Two-pointer - optimal solution
+    let left = 0;
+    let right = height.length - 1;
+    let maxWater = 0;
+    
+    while (left < right) {
+        const width = right - left;
+        const h = Math.min(height[left], height[right]);
+        maxWater = Math.max(maxWater, width * h);
+        
+        if (height[left] < height[right]) {
+            left++;
+        } else {
+            right--;
+        }
+    }
+    
+    return maxWater;
+};
+```
+````
+
+**Time Complexity:** O(n)  
+**Space Complexity:** O(1)
+
+---
+
+## Comparison of Approaches
+
+| Approach | Time Complexity | Space Complexity | Pros | Cons |
+|----------|-----------------|------------------|------|------|
+| **Two Pointer** | O(n) | O(1) | Optimal, elegant | None |
+| **Brute Force** | O(n²) | O(1) | Simple to understand | Too slow for large n |
+| **Optimized BF** | O(n²) avg | O(1) | Better constant | Still not optimal |
+| **Binary Search** | O(n) | O(1) | Alternative thinking | Essentially two-pointer |
+
+**Recommendation:** 
+- Two Pointer is the optimal solution
+- Great for demonstrating algorithmic optimization
+- Shows understanding of greedy approaches
+
+---
+
+## Explanation of Two Pointer Algorithm
+
+### Why Moving the Shorter Line Works
+
+The key insight is:
+
+1. **Maximum Width**: We start with maximum possible width (first and last lines)
+2. **Height Limitation**: Water height is limited by the shorter line
+3. **Strategic Movement**: 
+   - If height[left] < height[right], moving left can potentially find a taller line
+   - If we moved right instead, the width decreases AND height stays the same (or decreases)
+   - Moving the shorter line gives us a chance to increase height while potentially decreasing width
+
+### Visual Example
+
+For height = [1,8,6,2,5,4,8,3,7]:
+
+```
+Initial: left=0 (h=1), right=8 (h=7), water=1*7=7
+Move left (1 < 7): left=1 (h=8), right=8 (h=7), water=7*7=49
+Move right (8 > 7): left=1 (h=8), right=7 (h=3), water=6*3=18
+Move right (8 > 3): left=1 (h=8), right=6 (h=8), water=5*8=40
+... continue
+
+Maximum = 49
+```
+
+---
+
+## Complexity Analysis
+
+### Time Complexity Breakdown
+
+| Approach | Best | Average | Worst | Notes |
+|----------|------|---------|-------|-------|
+| **Two Pointer** | O(n) | O(n) | O(n) | Single pass |
+| **Brute Force** | O(n²) | O(n²) | O(n²) | All pairs |
+| **Optimized BF** | O(n) | O(n²) | O(n on input²) | Depends |
+
+### Space Complexity Breakdown
+
+| Approach | Space | Notes |
+|----------|-------|-------|
+| **Two Pointer** | O(1) | Only pointers |
+| **Brute Force** | O(1) | No extra space |
+| **Optimized BF** | O(1) | No extra space |
+
+---
+
+## Edge Cases and Common Pitfalls
+
+### Edge Cases to Consider
+
+1. **Two Elements Only:**
+   ```
+   height = [1,1] → Output: 1
+   ```
+
+2. **Decreasing Heights:**
+   ```
+   height = [4,3,2,1] → Output: 3 (between 4 and 3)
+   ```
+
+3. **Increasing Heights:**
+   ```
+   height = [1,2,3,4] → Output: 4 (between 1 and 4)
+   ```
+
+4. **All Same Heights:**
+   ```
+   height = [5,5,5,5,5] → Output: 20 (between first and last)
+   ```
+
+5. **Zero Height Lines:**
+   ```
+   height = [0,1,0,2,0] → Output: 2 (between indices 1 and 3)
+   ```
+
+6. **Single Zero Height:**
+   ```
+   height = [0,1] → Output: 0
+   ```
+
+### Common Mistakes to Avoid
+
+1. **Wrong Formula**: 
+   - Correct: min(height[i], height[j]) * (j - i)
+   - Wrong: height[i] * height[j] (doesn't account for shorter line)
+
+2. **Wrong Pointer Movement**:
+   - Always move the pointer with smaller height
+   - Not: move either pointer arbitrarily
+
+3. **Off-by-One Errors**:
+   - Remember: width = right - left (not right - left + 1)
+   - Container needs at least 2 lines
+
+4. **Integer Overflow**:
+   - Use appropriate data types
+   - height[i] ≤ 10^4, n ≤ 10^5, so max water = 10^4 × 10^5 = 10^9 (fits in 32-bit)
+
+---
+
+## Why This Problem is Important
+
+### Interview Relevance
+
+- **Frequency:** Extremely common in technical interviews
+- **Companies:** Google, Amazon, Meta, Apple, Microsoft, Goldman Sachs, Bloomberg
+- **Difficulty:** Medium, but tests fundamental algorithm knowledge
+- **Variations:** Leads to many related problems
+
+### Learning Outcomes
+
+1. **Two-Pointer Technique**: Master this essential pattern
+2. **Greedy Algorithms**: Understanding optimal substructure
+3. **Proof of Correctness**: Why moving shorter line works
+4. **Optimization**: From O(n²) to O(n)
 
 ---
 
 ## Related Problems
 
-The Container With Most Water problem introduces concepts that are useful in solving other related problems:
+### Same Problem Category
 
-- **[Trapping Rain Water](https://leetcode.com/problems/trapping-rain-water/)**: Similar to finding container areas but with the added complexity of accounting for multiple "containers" stacked together. This problem uses a similar two-pointer approach or dynamic programming.
-  
-- **[Max Area of Island](https://leetcode.com/problems/max-area-of-island/)**: A grid-based area maximization problem that uses depth-first search (DFS) or breadth-first search (BFS) to find the largest connected component of land.
+| Problem | LeetCode # | Difficulty | Description |
+|---------|------------|------------|-------------|
+| [Trapping Rain Water](https://leetcode.com/problems/trapping-rain-water/) | 42 | Hard | Related water problems |
+| [Container With Most Water II](https://leetcode.com/problems/container-with-most-water-ii/) | 1771 | Medium | 2D variation |
+| [Maximum Area of a Piece of Cake](https://leetcode.com/problems/maximum-area-of-a-piece-of-cake-after-horizontal-and-vertical-cuts/) | 1775 | Medium | Similar concept |
 
-- **[Largest Rectangle in Histogram](https://leetcode.com/problems/largest-rectangle-in-histogram/)**: Another classic area maximization problem that uses a stack-based approach to efficiently find the largest rectangle in a histogram.
+### Similar Concepts
 
-- **[Watering Plants](https://leetcode.com/problems/watering-plants/)**: A problem that shares the "two-pointer" approach intuition for optimal water distribution.
-
-- **[Minimum Number of Refueling Stops](https://leetcode.com/problems/minimum-number-of-refueling-stops/)**: Uses a greedy approach with a priority queue, which shares some optimization intuition with this problem.
+| Problem | LeetCode # | Difficulty | Description |
+|---------|------------|------------|-------------|
+| [Valid Palindrome](https://leetcode.com/problems/valid-palindrome/) | 125 | Easy | Two-pointer basic |
+| [3Sum](https://leetcode.com/problems/3sum/) | 15 | Medium | Two-pointer + sorting |
+| [Longest Mountain in Array](https://leetcode.com/problems/longest-mountain-in-array/) | 845 | Medium | Two-pointer advanced |
+| [Shortest Distance to a Character](https://leetcode.com/problems/shortest-distance-to-a-character/) | 821 | Easy | Two-pointer |
 
 ---
 
 ## Video Tutorial Links
 
-These video tutorials provide detailed explanations and visual walkthroughs of the Container With Most Water problem:
+### Recommended Tutorials
 
-- **[LeetCode Solution - Container With Most Water](https://www.youtube.com/watch?v=UuiTKBwPgUo)** (NeetCode) - Clear explanation of the two-pointer technique with visual examples.
-  
-- **[Two Pointer Approach Explained](https://www.youtube.com/watch?v=4ZlRH0eK-qQ)** (Kevin Naughton Jr.) - Step-by-step breakdown of both brute force and optimal approaches.
+1. **[Container With Most Water - NeetCode**
+   - Clear explanation with multiple approaches
+   - Visual demonstrations
+   - Part of popular NeetCode playlist
 
-- **[Container With Most Water | LeetCode 11 | Python](https://www.youtube.com/watch?v=ZHQg07n_tbg)** (Tech With Tim) - Visual demonstration of how the two-pointer approach works with animated examples.
+2. **[Two Pointer Technique Explained](https://www.youtube.com/watch?v=0CPTt15F9j8)**
+   - In-depth two-pointer tutorial
+   - Step-by-step visualization
 
-- **[LeetCode 11 Container With Most Water (Optimization Approach)](https://www.youtube.com/watch?v=jWOYlC9AZ4w)** (Coding Decoded) - Focus on understanding why the two-pointer approach works through mathematical reasoning.
+3. **[LeetCode 11 Solution - Tech Lead](https://www.youtube.com/watch?v=ZHQgplDCD1Q)**
+   - Detailed walkthrough of the solution
+   - Interview-focused approach
+
+### Additional Resources
+
+- **[LeetCode Official Solution](https://leetcode.com/problems/container-with-most-water/solutions/)** - Official solutions and community discussions
+- **[GeeksforGeeks - Container With Most Water](https://www.geeksforgeeks.org/container-with-most-water/)** - Detailed explanations
+- **[Two Pointer - Wikipedia](https://en.wikipedia.org/wiki/Two-pointers_technique)** - Theoretical background
 
 ---
 
 ## Follow-up Questions
 
-These questions test your understanding of the problem and the two-pointer approach:
+### Basic Level
 
-1. **What if the lines can be slanted? How would the approach change?**  
-   If lines can be slanted, the container would be a trapezoid, not a rectangle. The area calculation would involve the average of the two heights times the width, and the approach might need to consider all possible pairs with more complex geometry, potentially increasing complexity.
+1. **What is the time complexity of the brute force approach?**
+   - Time: O(n²) - checking all n*(n-1)/2 pairs
+   - Space: O(1) - no extra space needed
 
-2. **How to handle negative heights? (Though constraints say non-negative)**  
-   Negative heights don't make sense for water containers, as heights are non-negative. If allowed, treat them as zero or adjust the min function to handle negative values, but the problem assumes non-negative.
+2. **Why do we move the pointer with the smaller height?**
+   - Moving the taller pointer would only decrease width while maintaining or decreasing height
+   - Moving the shorter pointer gives chance to find a taller line that could increase water
+   - This greedy choice never misses the optimal solution
 
-3. **What if we need to find the second maximum area?**  
-   Track the top two areas during the two-pointer or brute force iteration, updating both max1 and max2 accordingly.
+3. **Can this problem be solved using binary search?**
+   - Not directly - binary search requires sorted data or monotonic properties
+   - The two-pointer approach is the optimal O(n) solution
+   - Some try binary search but it doesn't provide better complexity
 
-4. **Why does moving the shorter line inward always lead to the optimal solution?**  
-   Explain the mathematical reasoning behind why moving the pointer pointing to the shorter line is the right approach.
+### Intermediate Level
 
-5. **What if all lines have the same height? How will the two-pointer approach work?**  
-   Describe how the algorithm would behave and what the maximum area would be.
+4. **How would you prove the two-pointer algorithm is correct?**
 
-6. **What's the worst-case scenario for the two-pointer approach?**  
-   Identify the input configuration that would require the most steps and why.
+   **Answer:** 
+   - Start with maximum width (left=0, right=n-1)
+   - For any pair (i, j), suppose height[i] < height[j]
+   - All pairs (k, j) where k < i have width < (j - i) but height ≤ height[i]
+   - Therefore, these cannot have more water than (i, j)
+   - We can safely skip exploring pairs with index < i when j is fixed
+   - By moving i forward, we explore potentially better combinations
 
-7. **How would you implement this problem in a language with array limitations (like JavaScript vs Python)?**  
-   Discuss any language-specific considerations.
+5. **What if heights are in a circular array (Container With Most Water II)?**
 
-8. **What if you can use more than two lines to form the container?**  
-   How would the problem and approach change if we allowed containers with multiple vertical lines?
+   **Answer:**
+   - Similar two-pointer approach works
+   - Start with first and last elements
+   - Move the pointer with smaller height
+   - Track maximum across all iterations
+   - O(n) time and O(1) space
+
+6. **What's the relationship between this problem and Trapping Rain Water?**
+
+   **Answer:**
+   - Both involve calculating water between bars
+   - Container: max area between any two bars
+   - Trapping Rain Water: sum of water at all positions
+   - Different formulas and approaches needed
+
+### Advanced Level
+
+7. **How would you find the pair of lines that actually forms the maximum container?**
+
+   **Answer:**
+   - Modify the two-pointer algorithm to track indices
+   - Store (left, right, max_water) tuple
+   - Update indices when max_water is updated
+   - Same O(n) time complexity
+
+8. **What if you need to find the top K containers with most water?**
+
+   **Answer:**
+   - Use priority queue approach
+   - Insert all pairs, extract top K
+   - Or: use modified two-pointer with heap exploration
+   - More complex than single maximum
+
+9. **How would you handle the case where heights can be negative?**
+
+   **Answer:**
+   - Problem states heights are non-negative (0 to 10^4)
+   - If negative allowed, formula still works: min could be negative
+   - Would need to handle edge cases differently
+
+10. **What is the maximum possible answer for given constraints?**
+
+    **Answer:**
+    - Maximum height = 10^4
+    - Maximum width = 10^5 - 1 = 99,999
+    - Maximum area = 10^4 × 99,999 = 999,990,000 < 2^31
+    - Fits in 32-bit signed integer
+
+11. **How would you solve this in a distributed computing environment?**
+
+    **Answer:**
+    - Divide array into chunks across machines
+    - Find maximum in each chunk
+    - Need to consider cross-chunk pairs
+    - More complex - essentially becomes finding max of min(height[i], height[j]) × distance
+    - May need approximation algorithms for very large data
+
+12. **What's the real-world application of this algorithm?**
+
+    **Answer:**
+    - Building design and architecture
+    - Water resource management
+    - Container/shipping optimization
+    - Any scenario requiring maximizing capacity between two points
+    - Resource allocation problems
+
+---
+
+## Summary
+
+The **Container With Most Water** problem is a classic algorithmic challenge that demonstrates the power of the two-pointer technique. Key takeaways:
+
+1. **Two Pointer is Optimal**: O(n) time, O(1) space - the best possible
+2. **Greedy Choice**: Moving the shorter line is always safe
+3. **Proof of Correctness**: Never miss optimal by moving shorter pointer
+4. **Visual Understanding**: Think of it as finding maximum area under curve
+
+### Recommended Approach for Interviews
+
+**Two Pointer** is the definitive answer because:
+- Shows understanding of algorithmic optimization
+- Demonstrates greedy algorithm knowledge
+- Can explain proof of correctness
+- Follows up well with related questions
+
+The problem is elegant in its simplicity and the insight that a greedy approach yields the optimal solution.
+
+---
+
+## LeetCode Link
+
+[Container With Most Water - LeetCode](https://leetcode.com/problems/container-with-most-water/)

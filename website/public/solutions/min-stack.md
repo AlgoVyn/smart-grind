@@ -90,11 +90,11 @@ The insight is to store additional information with each element that helps us t
 
 ## Approaches
 
-### Approach 1: Pair Storage (Tuple/Object Approach)
+### Approach 1: Pair Storage (Tuple/Object Approach) ⭐
 
 Store each element as a pair `(value, current_minimum)`. When pushing a new element, the `current_minimum` is the minimum of the new value and the previous minimum (if any).
 
-**Python:**
+````carousel
 ```python
 class MinStack:
 
@@ -115,13 +115,96 @@ class MinStack:
         return self.stack[-1][1]
 ```
 
+<!-- slide -->
+```cpp
+class MinStack {
+private:
+    vector<pair<int, int>> stack;
+    
+public:
+    MinStack() {}
+    
+    void push(int val) {
+        int current_min = stack.empty() ? val : min(val, stack.back().second);
+        stack.emplace_back(val, current_min);
+    }
+    
+    void pop() {
+        stack.pop_back();
+    }
+    
+    int top() {
+        return stack.back().first;
+    }
+    
+    int getMin() {
+        return stack.back().second;
+    }
+};
+```
+
+<!-- slide -->
+```java
+class MinStack {
+    private Stack<int[]> stack;
+    
+    public MinStack() {
+        stack = new Stack<>();
+    }
+    
+    public void push(int val) {
+        int currentMin = stack.isEmpty() ? val : Math.min(val, stack.peek()[1]);
+        stack.push(new int[]{val, currentMin});
+    }
+    
+    public void pop() {
+        stack.pop();
+    }
+    
+    public int top() {
+        return stack.peek()[0];
+    }
+    
+    public int getMin() {
+        return stack.peek()[1];
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+var MinStack = function() {
+    this.stack = [];
+};
+
+MinStack.prototype.push = function(val) {
+    const currentMin = this.stack.length === 0 
+        ? val 
+        : Math.min(val, this.stack[this.stack.length - 1][1]);
+    this.stack.push([val, currentMin]);
+};
+
+MinStack.prototype.pop = function() {
+    this.stack.pop();
+};
+
+MinStack.prototype.top = function() {
+    return this.stack[this.stack.length - 1][0];
+};
+
+MinStack.prototype.getMin = function() {
+    return this.stack[this.stack.length - 1][1];
+};
+```
+````
+
 ---
 
-### Approach 2: Two-Stack Approach
+### Approach 2: Two-Stack Approach ⭐
 
 Use two stacks: a main stack for all values and a separate min stack to track minimum values. The min stack's top always represents the current minimum.
 
-**Python:**
+````carousel
 ```python
 class MinStack:
 
@@ -131,7 +214,6 @@ class MinStack:
 
     def push(self, val: int) -> None:
         self.stack.append(val)
-        # Push to min_stack: either the new value or current minimum
         if not self.min_stack or val <= self.min_stack[-1]:
             self.min_stack.append(val)
 
@@ -147,13 +229,114 @@ class MinStack:
         return self.min_stack[-1]
 ```
 
+<!-- slide -->
+```cpp
+class MinStack {
+private:
+    vector<int> stack;
+    vector<int> minStack;
+    
+public:
+    MinStack() {}
+    
+    void push(int val) {
+        stack.push_back(val);
+        if (minStack.empty() || val <= minStack.back()) {
+            minStack.push_back(val);
+        }
+    }
+    
+    void pop() {
+        int val = stack.back();
+        stack.pop_back();
+        if (val == minStack.back()) {
+            minStack.pop_back();
+        }
+    }
+    
+    int top() {
+        return stack.back();
+    }
+    
+    int getMin() {
+        return minStack.back();
+    }
+};
+```
+
+<!-- slide -->
+```java
+class MinStack {
+    private Stack<Integer> stack;
+    private Stack<Integer> minStack;
+    
+    public MinStack() {
+        stack = new Stack<>();
+        minStack = new Stack<>();
+    }
+    
+    public void push(int val) {
+        stack.push(val);
+        if (minStack.isEmpty() || val <= minStack.peek()) {
+            minStack.push(val);
+        }
+    }
+    
+    public void pop() {
+        int val = stack.pop();
+        if (val == minStack.peek()) {
+            minStack.pop();
+        }
+    }
+    
+    public int top() {
+        return stack.peek();
+    }
+    
+    public int getMin() {
+        return minStack.peek();
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+var MinStack = function() {
+    this.stack = [];
+    this.minStack = [];
+};
+
+MinStack.prototype.push = function(val) {
+    this.stack.push(val);
+    if (this.minStack.length === 0 || val <= this.minStack[this.minStack.length - 1]) {
+        this.minStack.push(val);
+    }
+};
+
+MinStack.prototype.pop = function() {
+    const val = this.stack.pop();
+    if (val === this.minStack[this.minStack.length - 1]) {
+        this.minStack.pop();
+    }
+};
+
+MinStack.prototype.top = function() {
+    return this.stack[this.stack.length - 1];
+};
+
+MinStack.prototype.getMin = function() {
+    return this.minStack[this.minStack.length - 1];
+};
+```
+````
+
 ---
 
 ### Approach 3: Lazy Propagation with Offset
 
-Use a single stack storing actual values minus a running minimum offset. This is a space-optimized approach.
+Use a single stack storing actual values minus a running minimum offset. This is a space-optimized approach but more complex to understand.
 
-**Python:**
+````carousel
 ```python
 class MinStack:
 
@@ -162,7 +345,6 @@ class MinStack:
         self.min_val = float('inf')
 
     def push(self, val: int) -> None:
-        # Store value relative to current minimum
         if val < self.min_val:
             self.stack.append(val - self.min_val)
             self.min_val = val
@@ -171,8 +353,7 @@ class MinStack:
 
     def pop(self) -> None:
         val = self.stack.pop()
-        if val < 0:  # This was the minimum
-            # Recover the previous minimum
+        if val < 0:
             self.min_val = self.min_val - val
 
     def top(self) -> int:
@@ -183,6 +364,118 @@ class MinStack:
         return self.min_val
 ```
 
+<!-- slide -->
+```cpp
+class MinStack {
+private:
+    vector<long long> stack;
+    long long minVal;
+    
+public:
+    MinStack() {
+        minVal = LLONG_MAX;
+    }
+    
+    void push(int val) {
+        if (val < minVal) {
+            stack.push_back((long long)val - minVal);
+            minVal = val;
+        } else {
+            stack.push_back(val);
+        }
+    }
+    
+    void pop() {
+        long long val = stack.back();
+        stack.pop_back();
+        if (val < 0) {
+            minVal = minVal - val;
+        }
+    }
+    
+    int top() {
+        long long val = stack.back();
+        return (val < 0) ? (int)minVal : (int)val;
+    }
+    
+    int getMin() {
+        return (int)minVal;
+    }
+};
+```
+
+<!-- slide -->
+```java
+class MinStack {
+    private Stack<Long> stack;
+    private long minVal;
+    
+    public MinStack() {
+        stack = new Stack<>();
+        minVal = Long.MAX_VALUE;
+    }
+    
+    public void push(int val) {
+        if (val < minVal) {
+            stack.push((long)val - minVal);
+            minVal = val;
+        } else {
+            stack.push((long)val);
+        }
+    }
+    
+    public void pop() {
+        long val = stack.pop();
+        if (val < 0) {
+            minVal = minVal - val;
+        }
+    }
+    
+    public int top() {
+        long val = stack.peek();
+        return (val < 0) ? (int)minVal : (int)val;
+    }
+    
+    public int getMin() {
+        return (int)minVal;
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+var MinStack = function() {
+    this.stack = [];
+    this.minVal = Infinity;
+};
+
+MinStack.prototype.push = function(val) {
+    if (val < this.minVal) {
+        this.stack.push(val - this.minVal);
+        this.minVal = val;
+    } else {
+        this.stack.push(val);
+    }
+};
+
+MinStack.prototype.pop = function() {
+    const val = this.stack.pop();
+    if (val < 0) {
+        this.minVal = this.minVal - val;
+    }
+};
+
+MinStack.prototype.top = function() {
+    const val = this.stack[this.stack.length - 1];
+    return val < 0 ? this.minVal : val;
+};
+
+MinStack.prototype.getMin = function() {
+    return this.minVal;
+};
+```
+````
+
 ---
 
 ## Complexity Analysis
@@ -190,7 +483,7 @@ class MinStack:
 | Approach | push() | pop() | top() | getMin() | Space |
 |----------|--------|-------|-------|----------|-------|
 | Pair Storage | O(1) | O(1) | O(1) | O(1) | O(n) |
-| Two-Stack | O(1) | O(1) | O(1) | O(1) | O(n) (worst case) |
+| Two-Stack | O(1) | O(1) | O(1) | O(1) | O(n) worst case |
 | Lazy Offset | O(1) | O(1) | O(1) | O(1) | O(n) |
 
 **Space Complexity:** O(n) for all approaches, where n is the number of elements in the stack.
@@ -236,7 +529,7 @@ class MinStack:
 ## Video Tutorial Links
 
 1. [Min Stack - LeetCode 155 - Full Explanation](https://www.youtube.com/watch?v=qkLl7nOwW3c)
-2. [Design Min Stack - Interview Question](https://www.youtube.com/watch?v=ZkWClLalNHw)
+2. [Design Min Stack - Interview Question](https://www.youtube.com/watch?v=ZkWClD5LalNHw)
 3. [Min Stack Problem - Multiple Approaches](https://www.youtube.com/watch?v=8GpY2D5LNDw)
 
 ---
@@ -249,3 +542,8 @@ The pair storage approach is often the most intuitive and straightforward, while
 
 Choose the approach that best fits your needs based on code clarity, memory efficiency, and ease of maintenance.
 
+---
+
+## LeetCode Link
+
+[Min Stack - LeetCode](https://leetcode.com/problems/min-stack/)
