@@ -154,7 +154,7 @@ async function handleAPIRequest(request: Request): Promise<Response> {
 
         if (networkResponse.ok) {
             // Cache successful API responses
-            const cache = await caches.open(CACHE_NAMES.API);
+            const cache = await caches.open(`${CACHE_NAMES.API}-${CACHE_VERSION}`);
             cache.put(request, networkResponse.clone());
             return networkResponse;
         }
@@ -172,7 +172,8 @@ async function handleAPIRequest(request: Request): Promise<Response> {
 
         // Try cache for GET requests
         if (request.method === 'GET') {
-            const cachedResponse = await caches.match(request);
+            const cache = await caches.open(`${CACHE_NAMES.API}-${CACHE_VERSION}`);
+            const cachedResponse = await cache.match(request);
             if (cachedResponse) {
                 // Add header to indicate cached response
                 const headers = new Headers(cachedResponse.headers);
@@ -215,7 +216,7 @@ async function handleAPIRequest(request: Request): Promise<Response> {
 
 // Handle problem markdown requests with cache-first strategy
 async function handleProblemRequest(request: Request): Promise<Response> {
-    const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+    const cache = await caches.open(`${CACHE_NAMES.PROBLEMS}-${CACHE_VERSION}`);
 
     // Try cache first
     const cachedResponse = await cache.match(request);
@@ -258,7 +259,7 @@ async function handleProblemRequest(request: Request): Promise<Response> {
 
 // Handle static assets with stale-while-revalidate strategy
 async function handleStaticRequest(request: Request): Promise<Response> {
-    const cache = await caches.open(CACHE_NAMES.STATIC);
+    const cache = await caches.open(`${CACHE_NAMES.STATIC}-${CACHE_VERSION}`);
 
     // Try cache first
     const cachedResponse = await cache.match(request);
@@ -267,7 +268,9 @@ async function handleStaticRequest(request: Request): Promise<Response> {
     const networkFetch = fetch(request)
         .then((networkResponse) => {
             if (networkResponse.ok) {
+                // Cache successful responses
                 cache.put(request, networkResponse.clone());
+                return networkResponse;
             }
             return networkResponse;
         })
@@ -711,7 +714,7 @@ async function downloadAndExtractBundle(): Promise<void> {
         console.log(`[SW] Decompressed to ${tarData.length} bytes`);
 
         // Parse tar and extract files
-        const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+        const cache = await caches.open(`${CACHE_NAMES.PROBLEMS}-${CACHE_VERSION}`);
         const files = parseTar(tarData);
         state.totalFiles = files.length;
 
