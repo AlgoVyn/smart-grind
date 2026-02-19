@@ -82,10 +82,6 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
 
                 // Claim clients immediately - this is critical for the SW to control the page
                 console.log('[SW] Claiming clients...');
-
-                // Add a small delay to ensure clients are ready to be claimed
-                await new Promise((resolve) => setTimeout(resolve, 100));
-
                 await self.clients.claim();
                 console.log('[SW] Clients claimed successfully');
 
@@ -103,48 +99,39 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                     console.log(`[SW] Client ${i}: ${client.url} (frameType: ${client.frameType})`);
                 });
 
-                // Wait a bit longer after claim() for the browser to update client control status
-                // The claim() promise resolves when the claim is initiated, not when it's fully processed
-                await new Promise((resolve) => setTimeout(resolve, 200));
-
-                // Now get only controlled clients (without includeUncontrolled)
+                // Get controlled clients - after claim(), this should return the same as allClients
+                // unless there's a timing issue with the browser
                 const controlledClients = await self.clients.matchAll({ type: 'window' });
                 console.log(
                     `[SW] Found ${controlledClients.length} controlled clients after claim`
                 );
 
-                // Notify all clients that SW is active and controlling
+                // Notify all clients that SW is active
+                // We notify all clients (not just controlled) because claim() may have just happened
+                // and the browser hasn't updated the controlled status yet
+                const clientsToNotify =
+                    controlledClients.length > 0 ? controlledClients : allClients;
+
                 if (controlledClients.length > 0) {
                     console.log(`[SW] SUCCESS: Controlling ${controlledClients.length} client(s)`);
-                    controlledClients.forEach((client) => {
-                        console.log(`[SW] Notifying controlled client: ${client.url}`);
-                        client.postMessage({
-                            type: 'SW_ACTIVATED',
-                            version: SW_VERSION,
-                            controlling: true,
-                        });
-                        // Also tell client to clear the reload flag since we're now controlling
-                        client.postMessage({
-                            type: 'CLEAR_RELOAD_FLAG',
-                        });
-                    });
                 } else {
-                    console.warn(
-                        '[SW] No controlled clients found after claim - this is unexpected'
-                    );
                     console.log(
-                        '[SW] Clients exist but not yet controlled. They will be controlled on next navigation.'
+                        '[SW] Claim completed - clients will be controlled on next navigation or refresh'
                     );
-                    // Still notify all clients that SW is ready (even if not controlling yet)
-                    allClients.forEach((client) => {
-                        console.log(`[SW] Notifying client (pending control): ${client.url}`);
-                        client.postMessage({
-                            type: 'SW_ACTIVATED',
-                            version: SW_VERSION,
-                            controlling: false,
-                        });
-                    });
                 }
+
+                clientsToNotify.forEach((client) => {
+                    console.log(`[SW] Notifying client: ${client.url}`);
+                    client.postMessage({
+                        type: 'SW_ACTIVATED',
+                        version: SW_VERSION,
+                        controlling: controlledClients.length > 0,
+                    });
+                    // Tell client to clear the reload flag since SW is ready
+                    client.postMessage({
+                        type: 'CLEAR_RELOAD_FLAG',
+                    });
+                });
 
                 // Check and download bundle in background if needed
                 checkAndDownloadBundle().catch((error) => {
