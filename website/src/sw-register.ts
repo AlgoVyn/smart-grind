@@ -110,9 +110,33 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
 
         // Listen for controller changes (SW activated)
         navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('[SW] Controller changed - new SW is now controlling the page');
             state.active = true;
             emit('activated', null);
         });
+
+        // Check if we have an active controller (SW controlling this page)
+        if (!navigator.serviceWorker.controller) {
+            console.log('[SW] No active controller - waiting for SW to take control...');
+            // Wait for the SW to activate and take control
+            const checkController = setInterval(() => {
+                if (navigator.serviceWorker.controller) {
+                    console.log('[SW] Service Worker is now controlling the page');
+                    clearInterval(checkController);
+                }
+            }, 500);
+
+            // Timeout after 10 seconds and reload if still no controller
+            setTimeout(() => {
+                if (!navigator.serviceWorker.controller) {
+                    console.warn('[SW] SW not controlling after timeout - reloading to activate');
+                    clearInterval(checkController);
+                    window.location.reload();
+                }
+            }, 10000);
+        } else {
+            console.log('[SW] Service Worker is already controlling the page');
+        }
 
         // Set up periodic update checks (every 60 minutes)
         setupPeriodicUpdateChecks(registration);
@@ -186,9 +210,12 @@ function handleInstallingWorker(worker: ServiceWorker): void {
                     state.waiting = true;
                     emit('updateAvailable', { worker });
                 } else {
-                    // First install
+                    // First install - SW is installed but not controlling yet
                     state.offlineReady = true;
                     emit('offlineReady', null);
+                    console.log('[SW] First install complete, reloading to activate...');
+                    // Force reload to let SW take control immediately
+                    window.location.reload();
                 }
                 break;
 
