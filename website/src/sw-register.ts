@@ -6,7 +6,7 @@ import { getConnectivityChecker } from './sw/connectivity-checker';
 // Service Worker configuration
 const SW_CONFIG = {
     path: '/smartgrind/sw.js',
-    scope: '/smartgrind/',
+    scope: '/',
 };
 
 // Registration retry configuration
@@ -298,6 +298,12 @@ function handleSWMessage(event: MessageEvent): void {
         case 'SW_ACTIVATED':
             state.active = true;
             emit('swActivated', data);
+            break;
+
+        case 'CLEAR_RELOAD_FLAG':
+            // SW has successfully claimed control, clear the reload flag
+            sessionStorage.removeItem('sw-first-install-reloaded');
+            console.log('[SW] Reload flag cleared - SW is now controlling');
             break;
 
         case 'SYNC_COMPLETED':
