@@ -279,7 +279,7 @@ describe('SmartGrind API Module', () => {
     describe('saveProblem', () => {
         test('should call _performSave', async () => {
             const _performSaveSpy = jest
-                .spyOn(apiSave.apiSave, '_performSave')
+                .spyOn(apiSave, '_performSave')
                 .mockResolvedValue(undefined);
 
             await api.saveProblem({
@@ -302,7 +302,7 @@ describe('SmartGrind API Module', () => {
         test('should delete problem and call _performSave', async () => {
             state.problems.set('1', { id: '1' });
             const _performSaveSpy = jest
-                .spyOn(apiSave.apiSave, '_performSave')
+                .spyOn(apiSave, '_performSave')
                 .mockResolvedValue(undefined);
 
             await api.saveDeletedId('1');
@@ -316,7 +316,7 @@ describe('SmartGrind API Module', () => {
         test('should restore problem on save failure', async () => {
             state.problems.set('1', { id: '1', name: 'Test' });
             const _performSaveSpy = jest
-                .spyOn(apiSave.apiSave, '_performSave')
+                .spyOn(apiSave, '_performSave')
                 .mockRejectedValue(new Error('Save failed'));
 
             await expect(api.saveDeletedId('1')).rejects.toThrow('Save failed');
@@ -330,7 +330,7 @@ describe('SmartGrind API Module', () => {
     describe('saveData', () => {
         test('should call _performSave', async () => {
             const _performSaveSpy = jest
-                .spyOn(apiSave.apiSave, '_performSave')
+                .spyOn(apiSave, '_performSave')
                 .mockResolvedValue(undefined);
 
             await api.saveData();
@@ -497,7 +497,7 @@ describe('SmartGrind API Module', () => {
             const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
             const _performSaveSpy = jest
-                .spyOn(apiSave.apiSave, '_performSave')
+                .spyOn(apiSave, '_performSave')
                 .mockRejectedValue(new Error('Save failed'));
 
             await expect(api.deleteCategory('test-topic')).rejects.toThrow('Save failed');
@@ -589,7 +589,7 @@ describe('SmartGrind API Module', () => {
             const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
             const performSaveSpy = jest
-                .spyOn(apiSave.apiSave, '_performSave')
+                .spyOn(apiSave, '_performSave')
                 .mockResolvedValue(undefined);
 
             await api.resetAll();
@@ -654,7 +654,7 @@ describe('SmartGrind API Module', () => {
             const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
             const _performSaveSpy = jest
-                .spyOn(apiSave.apiSave, '_performSave')
+                .spyOn(apiSave, '_performSave')
                 .mockRejectedValue(new Error('Save failed'));
 
             await expect(api.resetAll()).rejects.toThrow('Save failed');
@@ -718,7 +718,7 @@ describe('SmartGrind API Module', () => {
             const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
             const performSaveSpy = jest
-                .spyOn(apiSave.apiSave, '_performSave')
+                .spyOn(apiSave, '_performSave')
                 .mockResolvedValue(undefined);
 
             await api.resetCategory('arrays');
@@ -777,7 +777,7 @@ describe('SmartGrind API Module', () => {
             const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
             const _performSaveSpy = jest
-                .spyOn(apiSave.apiSave, '_performSave')
+                .spyOn(apiSave, '_performSave')
                 .mockRejectedValue(new Error('Save failed'));
 
             await expect(api.resetCategory('arrays')).rejects.toThrow('Save failed');
@@ -801,7 +801,7 @@ describe('SmartGrind API Module', () => {
             const confirmSpy = jest.spyOn(ui, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
             const _performSaveSpy = jest
-                .spyOn(apiSave.apiSave, '_performSave')
+                .spyOn(apiSave, '_performSave')
                 .mockResolvedValue(undefined);
 
             await api.resetCategory('arrays');
@@ -821,10 +821,10 @@ describe('SmartGrind API Module', () => {
     describe('Sync Debounce', () => {
         test('_resetDebounceState should clear pending timer and data', () => {
             // Set up some state
-            apiSave.apiSave._triggerBackgroundSync();
+            apiSave._triggerBackgroundSync();
 
             // Reset should clear it
-            apiSave.apiSave._resetDebounceState();
+            apiSave._resetDebounceState();
 
             // Verify state is cleared (indirectly via flushPendingSync not making calls)
             // This test just verifies the reset function doesn't throw
@@ -833,7 +833,7 @@ describe('SmartGrind API Module', () => {
 
         test('flushPendingSync should handle no pending data gracefully', async () => {
             // Ensure clean state
-            apiSave.apiSave._resetDebounceState();
+            apiSave._resetDebounceState();
 
             // No pending sync - should not throw
             await expect(apiSave.flushPendingSync()).resolves.not.toThrow();
@@ -841,18 +841,18 @@ describe('SmartGrind API Module', () => {
         });
 
         test('_triggerBackgroundSync should set pending data', async () => {
-            apiSave.apiSave._resetDebounceState();
+            apiSave._resetDebounceState();
             state.user.type = 'signed-in';
 
             // Trigger background sync
-            apiSave.apiSave._triggerBackgroundSync();
+            apiSave._triggerBackgroundSync();
 
             // Immediately flush and verify it would have synced
             // (We're testing that the debounce mechanism captures data)
             expect(true).toBe(true);
 
             // Clean up
-            apiSave.apiSave._resetDebounceState();
+            apiSave._resetDebounceState();
         });
     });
 });

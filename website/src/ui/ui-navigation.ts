@@ -119,13 +119,9 @@ export const toggleTheme = () => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 };
 
-export const _toggleSidebarClasses = (
-    sidebar: HTMLElement,
-    addClasses: string[],
-    removeClasses: string[]
-) => {
-    sidebar.classList.add(...addClasses);
-    sidebar.classList.remove(...removeClasses);
+export const _toggleSidebarClasses = (sidebar: HTMLElement, isOpen: boolean) => {
+    sidebar.classList.toggle('translate-x-0', !isOpen);
+    sidebar.classList.toggle('-translate-x-full', isOpen);
 };
 
 export const _toggleBackdrop = (backdrop: HTMLElement, show: boolean) => {
@@ -144,11 +140,7 @@ export const toggleMobileMenu = () => {
     if (!sidebar) return;
 
     const isOpen = sidebar.classList.contains('translate-x-0');
-    _toggleSidebarClasses(
-        sidebar,
-        isOpen ? ['-translate-x-full'] : ['translate-x-0'],
-        isOpen ? ['translate-x-0'] : ['-translate-x-full']
-    );
+    _toggleSidebarClasses(sidebar, isOpen);
 
     if (backdrop) {
         _toggleBackdrop(backdrop, !isOpen);
