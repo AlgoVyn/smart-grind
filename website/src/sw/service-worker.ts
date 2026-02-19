@@ -65,6 +65,8 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
     event.waitUntil(
         (async () => {
             try {
+                console.log('[SW] Activating...');
+
                 // Clean up old caches
                 const cacheWhitelist = Object.values(CACHE_NAMES).map(
                     (name) => `${name}-${CACHE_VERSION}`
@@ -76,16 +78,21 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                     .map((oldCache) => caches.delete(oldCache));
 
                 await Promise.all(deletionPromises);
+                console.log('[SW] Old caches cleaned up');
 
-                // Claim clients immediately
+                // Claim clients immediately - this is critical for the SW to control the page
+                console.log('[SW] Claiming clients...');
                 await self.clients.claim();
+                console.log('[SW] Clients claimed successfully');
 
-                // Notify all clients that SW is active
+                // Notify all clients that SW is active and controlling
                 const clients = await self.clients.matchAll({ type: 'window' });
+                console.log(`[SW] Notifying ${clients.length} clients that SW is active`);
                 clients.forEach((client) => {
                     client.postMessage({
                         type: 'SW_ACTIVATED',
                         version: SW_VERSION,
+                        controlling: true,
                     });
                 });
 
