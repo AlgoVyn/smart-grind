@@ -368,23 +368,32 @@ const _loadSolution = (
     const content = document.getElementById('solution-content');
     if (!modal || !content) return;
 
+    console.log(`[UI] Attempting to load ${errorPrefix}: ${solutionFile}`);
+
     // Show loading
     content.innerHTML = `<div class="loading flex items-center justify-center min-h-[200px]"><div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div><span class="ml-3 text-theme-muted">${loadingText}</span></div>`;
     modal.classList.remove('hidden');
 
     fetch(solutionFile)
         .then((response) => {
+            console.log(
+                `[UI] ${errorPrefix} fetch response: ${response.status} ${response.ok ? 'OK' : 'Error'}`
+            );
             if (!response.ok) {
                 throw new Error(`Failed to load ${errorPrefix} file (status: ${response.status})`);
             }
             return response.text();
         })
-        .then((markdown) => _renderMarkdown(markdown, content))
+        .then((markdown) => {
+            console.log(`[UI] Successfully loaded ${markdown.length} bytes of markdown`);
+            _renderMarkdown(markdown, content);
+        })
         .then(() => {
             content.addEventListener('scroll', updateSolutionScrollProgress);
             updateSolutionScrollProgress();
         })
         .catch((error) => {
+            console.error(`[UI] Error loading ${errorPrefix}:`, error);
             content.innerHTML =
                 `<p>Error loading ${errorPrefix}: ${error.message}</p>` +
                 `<p>File: ${solutionFile}</p>${extraErrorText}`;
