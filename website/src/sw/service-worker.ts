@@ -88,42 +88,65 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                 await Promise.all(deletionPromises);
                 console.log('[SW] Old caches cleaned up');
 
+                // Small delay to ensure browser has processed the activation
+                // This helps prevent race conditions with client-side detection
+                await new Promise((resolve) => setTimeout(resolve, 100));
+
                 // Claim clients immediately - this is critical for the SW to control the page
                 console.log('[SW] Claiming clients...');
                 await self.clients.claim();
                 console.log('[SW] Clients claimed successfully');
 
-                // Get all clients (including uncontrolled) to notify them
+                // Wait a bit more for claim() to take effect in the browser
+                await new Promise((resolve) => setTimeout(resolve, 100));
+
+                // Get controlled clients to verify which clients are actually controlled
+                const controlledClients = await self.clients.matchAll({
+                    type: 'window',
+                    includeUncontrolled: false,
+                });
+                console.log(`[SW] Found ${controlledClients.length} controlled client(s)`);
+
+                // Also get uncontrolled clients for debugging
                 const allClients = await self.clients.matchAll({
                     type: 'window',
                     includeUncontrolled: true,
                 });
-                console.log(`[SW] Found ${allClients.length} client(s) to notify`);
+                const uncontrolledCount = allClients.length - controlledClients.length;
+                if (uncontrolledCount > 0) {
+                    console.log(`[SW] ${uncontrolledCount} client(s) not yet controlled`);
+                }
 
                 // Log all client URLs for debugging
                 allClients.forEach((client, i) => {
-                    console.log(`[SW] Client ${i}: ${client.url} (frameType: ${client.frameType})`);
+                    const isControlled = controlledClients.some((c) => c.id === client.id);
+                    console.log(`[SW] Client ${i}: ${client.url} (controlled: ${isControlled})`);
                 });
 
-                // After claim() completes, we assume the SW is controlling the clients
-                // The browser may not immediately report controlled clients due to timing,
-                // but claim() guarantees control on next navigation/fetch
-                console.log(
-                    '[SW] Claim successful - SW is now the controller for all clients in scope'
-                );
-
-                // Notify all clients that SW is active and controlling
-                // We report controlling: true because claim() has completed successfully
-                allClients.forEach((client) => {
-                    console.log(`[SW] Notifying client: ${client.url}`);
+                // Notify controlled clients that SW is active
+                controlledClients.forEach((client) => {
+                    console.log(`[SW] Notifying controlled client: ${client.url}`);
                     client.postMessage({
                         type: 'SW_ACTIVATED',
                         version: SW_VERSION,
-                        controlling: true, // claim() completed, so we're controlling
+                        controlling: true,
                     });
                     // Tell client to clear the reload flag since SW is ready
                     client.postMessage({
                         type: 'CLEAR_RELOAD_FLAG',
+                    });
+                });
+
+                // For uncontrolled clients, send a message indicating they need to check controller
+                const uncontrolledClients = allClients.filter(
+                    (client) => !controlledClients.some((c) => c.id === client.id)
+                );
+                uncontrolledClients.forEach((client) => {
+                    console.log(`[SW] Notifying uncontrolled client: ${client.url}`);
+                    client.postMessage({
+                        type: 'SW_ACTIVATED',
+                        version: SW_VERSION,
+                        controlling: false,
                     });
                 });
 
@@ -456,6 +479,32 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
                     const allCaches = await caches.keys();
                     await Promise.all(allCaches.map((name) => caches.delete(name)));
                     sendReply(event, { type: 'CACHES_CLEARED' });
+                })()
+            );
+            break;
+
+        case 'CLIENT_READY':
+            // Client is reporting it's ready and wants to know if it's controlled
+            event.waitUntil(
+                (async () => {
+                    const allClients = await self.clients.matchAll({
+                        type: 'window',
+                        includeUncontrolled: true,
+                    });
+                    const sourceClient = event.source as Client | undefined;
+                    if (sourceClient) {
+                        const isControlled = allClients.some(
+                            (client) => client.id === sourceClient.id && 'frameType' in client
+                        );
+                        console.log(
+                            `[SW] CLIENT_READY from ${sourceClient.url}, controlled: ${isControlled}`
+                        );
+                        sourceClient.postMessage({
+                            type: 'CLIENT_CONTROL_STATUS',
+                            controlled: isControlled,
+                            version: SW_VERSION,
+                        });
+                    }
                 })()
             );
             break;
