@@ -111,12 +111,17 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
 
                 // Notify all clients that SW is active and controlling
                 if (controlledClients.length > 0) {
+                    console.log(`[SW] SUCCESS: Controlling ${controlledClients.length} client(s)`);
                     controlledClients.forEach((client) => {
                         console.log(`[SW] Notifying controlled client: ${client.url}`);
                         client.postMessage({
                             type: 'SW_ACTIVATED',
                             version: SW_VERSION,
                             controlling: true,
+                        });
+                        // Also tell client to clear the reload flag since we're now controlling
+                        client.postMessage({
+                            type: 'CLEAR_RELOAD_FLAG',
                         });
                     });
                 } else {
