@@ -2,15 +2,18 @@
 /smartgrind/assets/* /assets/:splat 200
 /smartgrind/logo.svg /logo.svg 200
 /smartgrind/manifest.json /manifest.json 200
-# Note: sw.js is now built to /smartgrind/sw.js, no redirect needed
 /smartgrind/solutions/* /solutions/:splat 200
 /smartgrind/patterns/* /patterns/:splat 200
+
+# Service Worker - serve directly, no redirect (file exists at /smartgrind/sw.js)
+# Note: This must come BEFORE the SPA fallback
 
 # Directory-level fallbacks
 /smartgrind/solutions /solutions/ 200
 /smartgrind/patterns /patterns/ 200
 
 # SPA fallback: redirect all other /smartgrind/ paths to index.html
+# Note: sw.js is excluded because it exists as a static file
 /smartgrind/* /index.html 200
 
 # Global SPA fallback

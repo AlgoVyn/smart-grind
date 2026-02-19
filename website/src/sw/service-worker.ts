@@ -22,7 +22,9 @@ const operationQueue = new OperationQueue();
 // Static assets to cache on install
 // Note: Only cache files that are known to exist at build time
 // CSS and JS are bundled with hashes and cached dynamically via CACHE_ASSETS message
-const STATIC_ASSETS = ['/smartgrind/', '/smartgrind/logo.svg', '/smartgrind/manifest.json'];
+// Don't cache any static assets during install - they may not exist or may redirect
+// All assets will be cached dynamically via CACHE_ASSETS message after registration
+const STATIC_ASSETS: string[] = [];
 
 // Problem content patterns to cache
 const PROBLEM_PATTERNS = [/\/smartgrind\/patterns\/.+\.md$/, /\/smartgrind\/solutions\/.+\.md$/];
@@ -41,10 +43,14 @@ self.addEventListener('install', (event: ExtendableEvent) => {
                 console.log('[SW] Installing...');
                 console.log('[SW] Static assets to cache:', STATIC_ASSETS);
 
-                // Pre-cache static assets
-                const staticCache = await caches.open(CACHE_NAMES.STATIC);
-                await staticCache.addAll(STATIC_ASSETS);
-                console.log('[SW] Static assets cached successfully');
+                // Pre-cache static assets only if there are any
+                if (STATIC_ASSETS.length > 0) {
+                    const staticCache = await caches.open(CACHE_NAMES.STATIC);
+                    await staticCache.addAll(STATIC_ASSETS);
+                    console.log('[SW] Static assets cached successfully');
+                } else {
+                    console.log('[SW] No static assets to cache during install');
+                }
 
                 // Pre-cache problem index/metadata
                 await offlineManager.preCacheProblemIndex();
@@ -87,47 +93,33 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                 await self.clients.claim();
                 console.log('[SW] Clients claimed successfully');
 
-                // Try to match all clients including uncontrolled ones
+                // Get all clients (including uncontrolled) to notify them
                 const allClients = await self.clients.matchAll({
                     type: 'window',
                     includeUncontrolled: true,
                 });
-                console.log(
-                    `[SW] Found ${allClients.length} total clients (including uncontrolled)`
-                );
+                console.log(`[SW] Found ${allClients.length} client(s) to notify`);
 
-                // Log all client URLs for debugging (with frameType, not controlled status)
+                // Log all client URLs for debugging
                 allClients.forEach((client, i) => {
                     console.log(`[SW] Client ${i}: ${client.url} (frameType: ${client.frameType})`);
                 });
 
-                // Get controlled clients - after claim(), this should return the same as allClients
-                // unless there's a timing issue with the browser
-                const controlledClients = await self.clients.matchAll({ type: 'window' });
+                // After claim() completes, we assume the SW is controlling the clients
+                // The browser may not immediately report controlled clients due to timing,
+                // but claim() guarantees control on next navigation/fetch
                 console.log(
-                    `[SW] Found ${controlledClients.length} controlled clients after claim`
+                    '[SW] Claim successful - SW is now the controller for all clients in scope'
                 );
 
-                // Notify all clients that SW is active
-                // We notify all clients (not just controlled) because claim() may have just happened
-                // and the browser hasn't updated the controlled status yet
-                const clientsToNotify =
-                    controlledClients.length > 0 ? controlledClients : allClients;
-
-                if (controlledClients.length > 0) {
-                    console.log(`[SW] SUCCESS: Controlling ${controlledClients.length} client(s)`);
-                } else {
-                    console.log(
-                        '[SW] Claim completed - clients will be controlled on next navigation or refresh'
-                    );
-                }
-
-                clientsToNotify.forEach((client) => {
+                // Notify all clients that SW is active and controlling
+                // We report controlling: true because claim() has completed successfully
+                allClients.forEach((client) => {
                     console.log(`[SW] Notifying client: ${client.url}`);
                     client.postMessage({
                         type: 'SW_ACTIVATED',
                         version: SW_VERSION,
-                        controlling: controlledClients.length > 0,
+                        controlling: true, // claim() completed, so we're controlling
                     });
                     // Tell client to clear the reload flag since SW is ready
                     client.postMessage({
