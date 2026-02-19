@@ -82,19 +82,30 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
 
                 // Claim clients immediately - this is critical for the SW to control the page
                 console.log('[SW] Claiming clients...');
+
+                // Add a small delay to ensure clients are ready to be claimed
+                await new Promise((resolve) => setTimeout(resolve, 100));
+
                 await self.clients.claim();
                 console.log('[SW] Clients claimed successfully');
 
-                // Notify all clients that SW is active and controlling
+                // Verify clients were claimed
                 const clients = await self.clients.matchAll({ type: 'window' });
-                console.log(`[SW] Notifying ${clients.length} clients that SW is active`);
-                clients.forEach((client) => {
-                    client.postMessage({
-                        type: 'SW_ACTIVATED',
-                        version: SW_VERSION,
-                        controlling: true,
+                console.log(`[SW] Found ${clients.length} clients after claim`);
+
+                // Notify all clients that SW is active and controlling
+                if (clients.length > 0) {
+                    clients.forEach((client) => {
+                        console.log(`[SW] Notifying client: ${client.url}`);
+                        client.postMessage({
+                            type: 'SW_ACTIVATED',
+                            version: SW_VERSION,
+                            controlling: true,
+                        });
                     });
-                });
+                } else {
+                    console.warn('[SW] No clients found after claim - page may need reload');
+                }
 
                 // Check and download bundle in background if needed
                 checkAndDownloadBundle().catch((error) => {
