@@ -106,67 +106,16 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
             emit('activated', null);
         });
 
-        // Check if we have an active controller (SW controlling this page)
-        if (!navigator.serviceWorker.controller) {
-            console.log('[SW] No active controller - waiting for SW to take control...');
+        // Wait for the service worker to be ready and controlling
+        const isControlling = await waitForController();
 
-            // Wait for the SW to activate and take control via controllerchange event
-            const controllerChangePromise = new Promise<void>((resolve) => {
-                const onControllerChange = () => {
-                    console.log('[SW] Controller changed - SW is now controlling');
-                    navigator.serviceWorker.removeEventListener(
-                        'controllerchange',
-                        onControllerChange
-                    );
-                    resolve();
-                };
-                navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
-            });
-
-            // Also poll as a fallback (some browsers don't fire controllerchange reliably)
-            const pollPromise = new Promise<void>((resolve) => {
-                const checkController = setInterval(() => {
-                    if (navigator.serviceWorker.controller) {
-                        console.log('[SW] Service Worker is now controlling the page (poll)');
-                        clearInterval(checkController);
-                        resolve();
-                    }
-                }, 500);
-            });
-
-            // Wait for either controllerchange or poll to detect control
-            // Add a timeout to avoid waiting forever
-            const timeoutPromise = new Promise<void>((resolve) => {
-                setTimeout(() => {
-                    console.log('[SW] Timeout waiting for controller - proceeding anyway');
-                    resolve();
-                }, 10000);
-            });
-
-            await Promise.race([controllerChangePromise, pollPromise, timeoutPromise]);
-
-            if (navigator.serviceWorker.controller) {
-                console.log('[SW] Service Worker is controlling the page');
-                sessionStorage.removeItem('sw-first-install-reloaded');
-            } else {
-                // Check if we've already reloaded once
-                const hasReloaded = sessionStorage.getItem('sw-first-install-reloaded');
-                if (!hasReloaded) {
-                    console.log(
-                        '[SW] SW not controlling after waiting - reloading once to activate'
-                    );
-                    sessionStorage.setItem('sw-first-install-reloaded', 'true');
-                    window.location.reload();
-                } else {
-                    console.log(
-                        '[SW] SW still not controlling after reload. The app will work but may need another refresh for full offline support.'
-                    );
-                }
-            }
-        } else {
-            console.log('[SW] Service Worker is already controlling the page');
-            // Clear any stale reload flag
+        if (isControlling) {
+            console.log('[SW] Service Worker is controlling the page');
             sessionStorage.removeItem('sw-first-install-reloaded');
+        } else {
+            console.log(
+                '[SW] Service Worker not controlling after registration. The app will work but may need another refresh for full offline support.'
+            );
         }
 
         // Set up periodic update checks (every 60 minutes)
@@ -193,6 +142,122 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
         console.error('[SW] Max registration attempts reached');
         return false;
     }
+}
+
+/**
+ * Wait for the service worker to take control with improved detection
+ */
+async function waitForController(): Promise<boolean> {
+    // If we already have a controller, we're good
+    if (navigator.serviceWorker.controller) {
+        console.log('[SW] Controller already exists');
+        return true;
+    }
+
+    console.log('[SW] No active controller - waiting for SW to take control...');
+
+    // Create a promise that resolves when we get SW_ACTIVATED message
+    const swActivatedPromise = new Promise<boolean>((resolve) => {
+        const checkMessage = (event: MessageEvent) => {
+            if (event.data?.type === 'SW_ACTIVATED') {
+                console.log(
+                    '[SW] Received SW_ACTIVATED message, controlling:',
+                    event.data.controlling
+                );
+                navigator.serviceWorker.removeEventListener('message', checkMessage);
+                // If SW says it's controlling, trust it
+                resolve(event.data.controlling === true);
+            }
+        };
+        navigator.serviceWorker.addEventListener('message', checkMessage);
+
+        // Timeout after 15 seconds
+        setTimeout(() => {
+            navigator.serviceWorker.removeEventListener('message', checkMessage);
+            resolve(false);
+        }, 15000);
+    });
+
+    // Also listen for controllerchange event
+    const controllerChangePromise = new Promise<boolean>((resolve) => {
+        const onControllerChange = () => {
+            console.log('[SW] Controller changed event fired');
+            navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+            resolve(true);
+        };
+        navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+
+        // Timeout after 15 seconds
+        setTimeout(() => {
+            navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+            resolve(false);
+        }, 15000);
+    });
+
+    // Poll for controller as fallback
+    const pollPromise = new Promise<boolean>((resolve) => {
+        let attempts = 0;
+        const maxAttempts = 30; // 30 * 500ms = 15 seconds
+        const checkController = setInterval(() => {
+            attempts++;
+            if (navigator.serviceWorker.controller) {
+                console.log('[SW] Service Worker is now controlling the page (poll)');
+                clearInterval(checkController);
+                resolve(true);
+            } else if (attempts >= maxAttempts) {
+                clearInterval(checkController);
+                resolve(false);
+            }
+        }, 500);
+    });
+
+    // Wait for any of the signals
+    const result = await Promise.race([swActivatedPromise, controllerChangePromise, pollPromise]);
+
+    // If we got a positive signal, verify with handshake
+    if (result) {
+        // Give the browser a moment to update navigator.serviceWorker.controller
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Send CLIENT_READY message to confirm control
+        const handshakeResult = await performHandshake();
+        return handshakeResult;
+    }
+
+    return false;
+}
+
+/**
+ * Perform handshake with service worker to confirm control status
+ */
+async function performHandshake(): Promise<boolean> {
+    return new Promise((resolve) => {
+        const controller = navigator.serviceWorker.controller;
+        if (!controller) {
+            console.log('[SW] No controller for handshake');
+            resolve(false);
+            return;
+        }
+
+        const channel = new MessageChannel();
+
+        // Listen for response
+        channel.port1.onmessage = (event) => {
+            if (event.data?.type === 'CLIENT_CONTROL_STATUS') {
+                console.log('[SW] Handshake response, controlled:', event.data.controlled);
+                resolve(event.data.controlled === true);
+            }
+        };
+
+        // Send CLIENT_READY message
+        console.log('[SW] Sending CLIENT_READY message');
+        controller.postMessage({ type: 'CLIENT_READY' }, [channel.port2]);
+
+        // Timeout after 5 seconds
+        setTimeout(() => {
+            resolve(false);
+        }, 5000);
+    });
 }
 
 /**
