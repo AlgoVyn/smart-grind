@@ -118,24 +118,46 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
         // Check if we have an active controller (SW controlling this page)
         if (!navigator.serviceWorker.controller) {
             console.log('[SW] No active controller - waiting for SW to take control...');
+
+            // Check if we've already reloaded to prevent loops
+            const hasReloaded = sessionStorage.getItem('sw-first-install-reloaded');
+
             // Wait for the SW to activate and take control
             const checkController = setInterval(() => {
                 if (navigator.serviceWorker.controller) {
                     console.log('[SW] Service Worker is now controlling the page');
                     clearInterval(checkController);
+                    // Clear the reload flag since SW is now controlling
+                    sessionStorage.removeItem('sw-first-install-reloaded');
                 }
             }, 500);
 
-            // Timeout after 10 seconds and reload if still no controller
+            // Timeout after 10 seconds and reload if still no controller (only once)
             setTimeout(() => {
                 if (!navigator.serviceWorker.controller) {
-                    console.warn('[SW] SW not controlling after timeout - reloading to activate');
-                    clearInterval(checkController);
-                    window.location.reload();
+                    if (!hasReloaded) {
+                        console.warn(
+                            '[SW] SW not controlling after timeout - reloading to activate'
+                        );
+                        sessionStorage.setItem('sw-first-install-reloaded', 'true');
+                        clearInterval(checkController);
+                        window.location.reload();
+                    } else {
+                        console.error(
+                            '[SW] SW still not controlling after reload. Manual intervention needed.'
+                        );
+                        clearInterval(checkController);
+                        // Show user a message or try alternative approach
+                        alert(
+                            'Service Worker failed to activate. Please clear browser cache and reload.'
+                        );
+                    }
                 }
             }, 10000);
         } else {
             console.log('[SW] Service Worker is already controlling the page');
+            // Clear any stale reload flag
+            sessionStorage.removeItem('sw-first-install-reloaded');
         }
 
         // Set up periodic update checks (every 60 minutes)
@@ -213,9 +235,19 @@ function handleInstallingWorker(worker: ServiceWorker): void {
                     // First install - SW is installed but not controlling yet
                     state.offlineReady = true;
                     emit('offlineReady', null);
-                    console.log('[SW] First install complete, reloading to activate...');
-                    // Force reload to let SW take control immediately
-                    window.location.reload();
+
+                    // Check if we've already reloaded once to prevent loops
+                    const hasReloaded = sessionStorage.getItem('sw-first-install-reloaded');
+                    if (!hasReloaded) {
+                        console.log('[SW] First install complete, reloading to activate...');
+                        sessionStorage.setItem('sw-first-install-reloaded', 'true');
+                        // Force reload to let SW take control immediately
+                        window.location.reload();
+                    } else {
+                        console.log(
+                            '[SW] First install complete, already reloaded once. SW should control now.'
+                        );
+                    }
                 }
                 break;
 
