@@ -185,9 +185,12 @@ self.addEventListener('fetch', (event: FetchEvent) => {
         return;
     }
 
-    // Skip non-GET requests for caching (except for API calls handled separately)
+    // Skip non-GET requests for caching (except for API calls and HEAD requests for problems)
+    const isHeadForProblem =
+        request.method === 'HEAD' && PROBLEM_PATTERNS.some((p) => p.test(requestUrl.pathname));
     if (
         request.method !== 'GET' &&
+        !isHeadForProblem &&
         !API_ROUTES.some((pattern) => pattern.test(requestUrl.pathname))
     ) {
         console.log(`[SW] Skipping non-GET: ${request.method}`);
@@ -302,19 +305,31 @@ async function handleProblemRequest(request: Request): Promise<Response> {
     console.log(`[SW] Using cache: ${cacheName}`);
 
     // Try cache first
-    const cachedResponse = await cache.match(request);
+    const cachedResponse = await cache.match(request, { ignoreSearch: true });
     if (cachedResponse) {
         console.log(`[SW] Cache HIT for: ${request.url}`);
+
         // Revalidate in background (will fail silently if offline)
-        fetch(request)
-            .then((networkResponse) => {
-                if (networkResponse.ok) {
-                    cache.put(request, networkResponse);
-                }
-            })
-            .catch(() => {
-                // Ignore background revalidation errors (offline or network issues)
+        if (request.method === 'GET') {
+            fetch(request)
+                .then((networkResponse) => {
+                    if (networkResponse.ok) {
+                        cache.put(request, networkResponse);
+                    }
+                })
+                .catch(() => {
+                    // Ignore background revalidation errors
+                });
+        }
+
+        // If it's a HEAD request, return response with no body
+        if (request.method === 'HEAD') {
+            return new Response(null, {
+                status: cachedResponse.status,
+                statusText: cachedResponse.statusText,
+                headers: cachedResponse.headers,
             });
+        }
 
         return cachedResponse;
     }
@@ -848,7 +863,7 @@ async function downloadAndExtractBundle(): Promise<void> {
             }
 
             // Store in cache - file.name already includes patterns/ or solutions/ prefix
-            const url = `/smartgrind/${file.name}`;
+            const url = `${self.registration.scope}${file.name}`;
             const fileResponse = new Response(file.content.buffer as BodyInit, {
                 headers: {
                     'Content-Type': 'text/markdown',
