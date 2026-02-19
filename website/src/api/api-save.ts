@@ -101,7 +101,6 @@ const executeBackgroundSync = async (): Promise<void> => {
         if (isBrowserOnline()) {
             try {
                 await saveRemotelyWithData(dataToSync);
-                console.log('[APISave] Direct remote save successful');
                 return;
             } catch (error) {
                 console.warn(
@@ -193,7 +192,6 @@ export const flushPendingSync = async (): Promise<void> => {
         try {
             if (isBrowserOnline()) {
                 await saveRemotelyWithData(dataToSync);
-                console.log('[APISave] Flushed pending sync successfully');
             }
         } catch (error) {
             console.warn('[APISave] Failed to flush pending sync:', error);

@@ -97,8 +97,8 @@ function storeOperationsLocally(operations: APIOperation[]): string[] {
 /**
  * Queues API operations for background synchronization.
  */
-export async function queueOperation(operation: APIOperation): Promise<string | null>;
-export async function queueOperation(operations: APIOperation[]): Promise<string[]>;
+export async function queueOperation(_operation: APIOperation): Promise<string | null>;
+export async function queueOperation(_operations: APIOperation[]): Promise<string[]>;
 export async function queueOperation(
     operationOrOperations: APIOperation | APIOperation[]
 ): Promise<string | string[] | null> {
@@ -271,7 +271,6 @@ async function migrateLocalStorageOperations(): Promise<void> {
     try {
         await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations: pendingOps });
         localStorage.removeItem('pending-operations');
-        console.log(`Migrated ${pendingOps.length} operations from localStorage to service worker`);
     } catch (error) {
         console.warn('Failed to migrate localStorage operations:', error);
     }
@@ -286,12 +285,10 @@ export function initOfflineDetection(): () => void {
     const unsubscribe = connectivityChecker.onConnectivityChange(async (online) => {
         state.setOnlineStatus(online);
         if (online) {
-            console.log('[API] Connectivity restored, triggering sync...');
             try {
                 await migrateLocalStorageOperations();
                 if (state.user.type === 'signed-in') {
                     const { _performSave } = await import('./api/api-save');
-                    console.log('[API] Performing remote save after connectivity restore');
                     await _performSave();
                 }
                 await forceSync();
@@ -322,7 +319,6 @@ export function initOfflineDetection(): () => void {
                     updateSyncStatus().catch(console.error);
                     break;
                 case 'SYNC_CONFLICT_RESOLVED':
-                    console.log('Conflict resolved:', event.data.data);
                     break;
                 case 'SYNC_CONFLICT_REQUIRES_MANUAL':
                     state.setSyncStatus({

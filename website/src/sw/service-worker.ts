@@ -40,26 +40,17 @@ self.addEventListener('install', (event: ExtendableEvent) => {
     event.waitUntil(
         (async () => {
             try {
-                console.log('[SW] Installing...');
-                console.log('[SW] Static assets to cache:', STATIC_ASSETS);
-
                 // Pre-cache static assets only if there are any
                 if (STATIC_ASSETS.length > 0) {
                     const staticCache = await caches.open(CACHE_NAMES.STATIC);
                     await staticCache.addAll(STATIC_ASSETS);
-                    console.log('[SW] Static assets cached successfully');
-                } else {
-                    console.log('[SW] No static assets to cache during install');
                 }
 
                 // Pre-cache problem index/metadata
                 await offlineManager.preCacheProblemIndex();
-                console.log('[SW] Problem index pre-cached');
 
                 // Skip waiting to activate immediately
-                console.log('[SW] Calling skipWaiting()...');
                 await self.skipWaiting();
-                console.log('[SW] skipWaiting() completed');
             } catch (error) {
                 console.error('[SW] Install failed:', error);
                 throw error;
@@ -73,8 +64,6 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
     event.waitUntil(
         (async () => {
             try {
-                console.log('[SW] Activating...');
-
                 // Clean up old caches
                 const cacheWhitelist = Object.values(CACHE_NAMES).map(
                     (name) => `${name}-${CACHE_VERSION}`
@@ -86,16 +75,13 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                     .map((oldCache) => caches.delete(oldCache));
 
                 await Promise.all(deletionPromises);
-                console.log('[SW] Old caches cleaned up');
 
                 // Small delay to ensure browser has processed the activation
                 // This helps prevent race conditions with client-side detection
                 await new Promise((resolve) => setTimeout(resolve, 100));
 
                 // Claim clients immediately - this is critical for the SW to control the page
-                console.log('[SW] Claiming clients...');
                 await self.clients.claim();
-                console.log('[SW] Clients claimed successfully');
 
                 // Wait a bit more for claim() to take effect in the browser
                 await new Promise((resolve) => setTimeout(resolve, 100));
@@ -105,27 +91,15 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                     type: 'window',
                     includeUncontrolled: false,
                 });
-                console.log(`[SW] Found ${controlledClients.length} controlled client(s)`);
 
                 // Also get uncontrolled clients for debugging
                 const allClients = await self.clients.matchAll({
                     type: 'window',
                     includeUncontrolled: true,
                 });
-                const uncontrolledCount = allClients.length - controlledClients.length;
-                if (uncontrolledCount > 0) {
-                    console.log(`[SW] ${uncontrolledCount} client(s) not yet controlled`);
-                }
-
-                // Log all client URLs for debugging
-                allClients.forEach((client, i) => {
-                    const isControlled = controlledClients.some((c) => c.id === client.id);
-                    console.log(`[SW] Client ${i}: ${client.url} (controlled: ${isControlled})`);
-                });
 
                 // Notify controlled clients that SW is active
                 controlledClients.forEach((client) => {
-                    console.log(`[SW] Notifying controlled client: ${client.url}`);
                     client.postMessage({
                         type: 'SW_ACTIVATED',
                         version: SW_VERSION,
@@ -142,7 +116,6 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                     (client) => !controlledClients.some((c) => c.id === client.id)
                 );
                 uncontrolledClients.forEach((client) => {
-                    console.log(`[SW] Notifying uncontrolled client: ${client.url}`);
                     client.postMessage({
                         type: 'SW_ACTIVATED',
                         version: SW_VERSION,
@@ -167,21 +140,14 @@ self.addEventListener('fetch', (event: FetchEvent) => {
     const { request } = event;
     const requestUrl = new URL(request.url);
 
-    // Log all requests for debugging
-    console.log(
-        `[SW] Fetch: ${request.method} ${requestUrl.pathname} (protocol: ${requestUrl.protocol})`
-    );
-
     // Skip non-http/https schemes (e.g., chrome-extension, data, blob)
     // These cannot be cached by the Cache API
     if (requestUrl.protocol !== 'http:' && requestUrl.protocol !== 'https:') {
-        console.log(`[SW] Skipping non-HTTP protocol: ${requestUrl.protocol}`);
         return;
     }
 
     // Skip auth routes - let browser handle OAuth redirects naturally
     if (AUTH_ROUTES.some((pattern) => pattern.test(requestUrl.pathname))) {
-        console.log(`[SW] Skipping auth route: ${requestUrl.pathname}`);
         return;
     }
 
@@ -193,33 +159,27 @@ self.addEventListener('fetch', (event: FetchEvent) => {
         !isHeadForProblem &&
         !API_ROUTES.some((pattern) => pattern.test(requestUrl.pathname))
     ) {
-        console.log(`[SW] Skipping non-GET: ${request.method}`);
         return;
     }
 
     // Check if this is a problem file request
     const isProblemFile = PROBLEM_PATTERNS.some((pattern) => {
-        const matches = pattern.test(requestUrl.pathname);
-        console.log(`[SW] Testing pattern ${pattern} against ${requestUrl.pathname}: ${matches}`);
-        return matches;
+        return pattern.test(requestUrl.pathname);
     });
 
     // Handle API requests
     if (API_ROUTES.some((pattern) => pattern.test(requestUrl.pathname))) {
-        console.log(`[SW] Handling as API request`);
         event.respondWith(handleAPIRequest(request));
         return;
     }
 
     // Handle problem markdown files
     if (isProblemFile) {
-        console.log(`[SW] Handling as problem file`);
         event.respondWith(handleProblemRequest(request));
         return;
     }
 
     // Handle static assets (JS, CSS, images, fonts)
-    console.log(`[SW] Handling as static request`);
     event.respondWith(handleStaticRequest(request));
 });
 
@@ -301,14 +261,9 @@ async function handleProblemRequest(request: Request): Promise<Response> {
     const cacheName = `${CACHE_NAMES.PROBLEMS}-${CACHE_VERSION}`;
     const cache = await caches.open(cacheName);
 
-    console.log(`[SW] handleProblemRequest: ${request.url}`);
-    console.log(`[SW] Using cache: ${cacheName}`);
-
     // Try cache first
     const cachedResponse = await cache.match(request, { ignoreSearch: true });
     if (cachedResponse) {
-        console.log(`[SW] Cache HIT for: ${request.url}`);
-
         // Revalidate in background (will fail silently if offline)
         if (request.method === 'GET') {
             fetch(request)
@@ -333,8 +288,6 @@ async function handleProblemRequest(request: Request): Promise<Response> {
 
         return cachedResponse;
     }
-
-    console.log(`[SW] Cache MISS for: ${request.url}`);
 
     // Not in cache, try network
     try {
@@ -441,7 +394,6 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
                     (async () => {
                         const cache = await caches.open(CACHE_NAMES.STATIC);
                         await cache.addAll(messageData.assets);
-                        console.log(`[SW] Cached ${messageData.assets.length} dynamic assets`);
                     })()
                 );
             }
@@ -511,9 +463,6 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
                         const isControlled = allClients.some(
                             (client) => client.id === sourceClient.id && 'frameType' in client
                         );
-                        console.log(
-                            `[SW] CLIENT_READY from ${sourceClient.url}, controlled: ${isControlled}`
-                        );
                         sourceClient.postMessage({
                             type: 'CLIENT_CONTROL_STATUS',
                             controlled: isControlled,
@@ -525,7 +474,6 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
             break;
 
         case 'NETWORK_RESTORED':
-            console.log('[SW] Received network restored notification from main thread');
             event.waitUntil(
                 backgroundSync.checkAndSync().catch((error) => {
                     console.error('[SW] Failed to sync after network restored message:', error);
@@ -600,7 +548,6 @@ self.addEventListener('periodicsync', (event: Event) => {
 // Online event - trigger sync when connection is restored
 // This is critical for ensuring offline changes get synced
 self.addEventListener('online', () => {
-    console.log('[SW] Browser reports online, checking for pending operations');
     // Use waitUntil pattern to ensure sync completes
     backgroundSync.checkAndSync().catch((error) => {
         console.error('[SW] Failed to sync after coming online:', error);
@@ -719,7 +666,6 @@ async function sendProgressUpdate(state: BundleDownloadState): Promise<void> {
 async function checkAndDownloadBundle(): Promise<void> {
     // Skip in development mode
     if (isDev) {
-        console.log('[SW] Skipping bundle download in development mode');
         return;
     }
 
@@ -728,15 +674,11 @@ async function checkAndDownloadBundle(): Promise<void> {
         const currentState = await getBundleStatus();
 
         // Fetch the manifest to check version
-        const manifestResponse = await fetch(BUNDLE_MANIFEST_URL).catch((err) => {
-            console.warn('[SW] Failed to fetch bundle manifest (likely offline):', err);
+        const manifestResponse = await fetch(BUNDLE_MANIFEST_URL).catch(() => {
             return null;
         });
 
         if (!manifestResponse || !manifestResponse.ok) {
-            console.log(
-                `[SW] No bundle manifest available (status: ${manifestResponse?.status || 'network error'}), skipping auto-download`
-            );
             return;
         }
 
@@ -745,16 +687,8 @@ async function checkAndDownloadBundle(): Promise<void> {
 
         // Check if we need to download (no cache or new version)
         if (currentState.status === 'complete' && currentState.bundleVersion === remoteVersion) {
-            console.log('[SW] Bundle already cached with latest version:', remoteVersion);
             return;
         }
-
-        console.log(
-            '[SW] New bundle version available:',
-            remoteVersion,
-            '(current:',
-            currentState.bundleVersion || 'none)'
-        );
 
         // Download the bundle
         await downloadAndExtractBundle();
@@ -780,7 +714,6 @@ async function downloadAndExtractBundle(): Promise<void> {
         await sendProgressUpdate(state);
 
         // Fetch the bundle
-        console.log('[SW] Downloading offline bundle...');
         const response = await fetch(BUNDLE_URL);
 
         if (!response.ok) {
@@ -816,8 +749,6 @@ async function downloadAndExtractBundle(): Promise<void> {
             readResult = await reader.read();
         }
 
-        console.log(`[SW] Downloaded ${downloadedSize} bytes`);
-
         // Decompress the bundle
         state.status = 'extracting';
         state.progress = 50;
@@ -833,7 +764,6 @@ async function downloadAndExtractBundle(): Promise<void> {
         }
 
         // Decompress using DecompressionStream (gzip)
-        console.log('[SW] Decompressing bundle...');
         const decompressedStream = new Response(compressedData).body?.pipeThrough(
             new DecompressionStream('gzip')
         );
@@ -845,14 +775,10 @@ async function downloadAndExtractBundle(): Promise<void> {
         const decompressedBuffer = await new Response(decompressedStream).arrayBuffer();
         const tarData = new Uint8Array(decompressedBuffer);
 
-        console.log(`[SW] Decompressed to ${tarData.length} bytes`);
-
         // Parse tar and extract files
         const cache = await caches.open(`${CACHE_NAMES.PROBLEMS}-${CACHE_VERSION}`);
         const files = parseTar(tarData);
         state.totalFiles = files.length;
-
-        console.log(`[SW] Found ${files.length} files in bundle`);
 
         // Extract each file
         let manifest: { version?: string; totalFiles?: number } | null = null;
@@ -897,8 +823,6 @@ async function downloadAndExtractBundle(): Promise<void> {
         state.downloadedAt = Date.now();
         await saveStateToIDB(BUNDLE_STATE_KEY, state);
         await sendProgressUpdate(state);
-
-        console.log('[SW] Bundle extraction complete!');
 
         // Notify clients that bundle is ready
         const clients = await self.clients.matchAll({ type: 'window' });

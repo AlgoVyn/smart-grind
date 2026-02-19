@@ -162,9 +162,6 @@ export class BackgroundSyncManager {
 
             request.onsuccess = async () => {
                 const retries: PersistedRetry[] = request.result;
-                if (retries.length > 0) {
-                    console.log(`[BackgroundSync] Processing ${retries.length} persisted retries`);
-                }
 
                 for (const retry of retries) {
                     try {
@@ -215,7 +212,6 @@ export class BackgroundSyncManager {
      */
     async syncUserProgress(): Promise<void> {
         if (this.isSyncing) {
-            console.log('[BackgroundSync] Sync already in progress, skipping');
             return;
         }
 
@@ -233,15 +229,11 @@ export class BackgroundSyncManager {
             // Get pending operations
             const pendingOps = await this.operationQueue.getPendingOperations();
             if (pendingOps.length === 0) {
-                console.log('[BackgroundSync] No pending operations');
                 return;
             }
 
-            console.log(`[BackgroundSync] Starting sync of ${pendingOps.length} operations`);
-
             // Check authentication before syncing
             if (!this.authManager.isAuthenticated()) {
-                console.log('[BackgroundSync] Not authenticated, attempting token refresh');
                 const token = await this.authManager.refreshToken();
                 if (!token) {
                     console.warn('[BackgroundSync] Authentication failed, cannot sync');
@@ -308,15 +300,8 @@ export class BackgroundSyncManager {
                 timestamp: Date.now(),
             });
 
-            console.log(
-                `[BackgroundSync] Sync completed: ${pendingOps.length - failedOps.length} synced, ${failedOps.length} failed, ${finalStats.pending} still pending`
-            );
-
             // If there are still pending operations, schedule another sync
             if (finalStats.pending > 0) {
-                console.log(
-                    `[BackgroundSync] ${finalStats.pending} operations still pending, scheduling retry`
-                );
                 // Use setTimeout to allow other operations to complete
                 setTimeout(() => {
                     this.syncUserProgress().catch((err) => {
@@ -351,10 +336,6 @@ export class BackgroundSyncManager {
             const delay = baseDelay * Math.pow(2, retryCount - 1); // retryCount is already incremented
             const maxDelay = 60000; // 1 minute max
             const actualDelay = Math.min(delay, maxDelay);
-
-            console.log(
-                `[BackgroundSync] Re-queueing operation ${op.id} with ${actualDelay}ms delay (attempt ${retryCount}/${MAX_RETRY_ATTEMPTS})`
-            );
 
             // Persist the retry to IndexedDB so it survives SW termination
             await this.persistRetry(op.id, actualDelay);
@@ -543,7 +524,6 @@ export class BackgroundSyncManager {
                 for (const op of pendingOps) {
                     await this.operationQueue.markCompleted(op.id);
                 }
-                console.log('[BackgroundSync] Full data sync completed successfully');
             } else if (response.status === 401 || response.status === 403) {
                 // Auth error - try to refresh
                 const refreshed = await this.authManager.handleAuthError(response);
@@ -571,9 +551,6 @@ export class BackgroundSyncManager {
                             for (const op of pendingOps) {
                                 await this.operationQueue.markCompleted(op.id);
                             }
-                            console.log(
-                                '[BackgroundSync] Full data sync completed after auth refresh'
-                            );
                         } else {
                             throw new Error(`Retry failed: ${retryResponse.status}`);
                         }
@@ -921,7 +898,6 @@ export class BackgroundSyncManager {
      * Perform immediate sync (fallback when Background Sync API is not available)
      */
     async performSync(tag: string): Promise<void> {
-        console.log(`[BackgroundSync] Performing immediate sync for tag: ${tag}`);
         switch (tag) {
             case SYNC_TAGS.USER_PROGRESS:
                 await this.syncUserProgress();
@@ -944,12 +920,7 @@ export class BackgroundSyncManager {
     async checkAndSync(): Promise<void> {
         const pendingOps = await this.operationQueue.getPendingOperations();
         if (pendingOps.length > 0) {
-            console.log(
-                `[BackgroundSync] Found ${pendingOps.length} pending operations, triggering sync`
-            );
             await this.syncUserProgress();
-        } else {
-            console.log('[BackgroundSync] No pending operations to sync');
         }
     }
 
