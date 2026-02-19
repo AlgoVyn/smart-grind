@@ -13,6 +13,7 @@ interface AuthManagerOptions {
     tokenRefreshThreshold: number; // Refresh token if expires within this time (ms)
     refreshRetryDelay: number;
     maxRefreshRetries: number;
+    onAuthFailure?: () => void; // Callback when authentication fails completely
 }
 
 const DEFAULT_OPTIONS: AuthManagerOptions = {
@@ -72,8 +73,7 @@ class AuthStorage {
                 };
                 request.onerror = () => reject(request.error);
             });
-        } catch (error) {
-            console.error('[AuthStorage] Failed to get item:', error);
+        } catch {
             return null;
         }
     }
@@ -92,8 +92,8 @@ class AuthStorage {
                 request.onsuccess = () => resolve();
                 request.onerror = () => reject(request.error);
             });
-        } catch (error) {
-            console.error('[AuthStorage] Failed to set item:', error);
+        } catch {
+            // Storage operation failed
         }
     }
 
@@ -111,8 +111,8 @@ class AuthStorage {
                 request.onsuccess = () => resolve();
                 request.onerror = () => reject(request.error);
             });
-        } catch (error) {
-            console.error('[AuthStorage] Failed to remove item:', error);
+        } catch {
+            // Storage operation failed
         }
     }
 
@@ -130,8 +130,8 @@ class AuthStorage {
                 request.onsuccess = () => resolve();
                 request.onerror = () => reject(request.error);
             });
-        } catch (error) {
-            console.error('[AuthStorage] Failed to clear:', error);
+        } catch {
+            // Storage operation failed
         }
     }
 }
@@ -153,8 +153,8 @@ export class AuthManager {
         };
         this.storage = new AuthStorage();
         // Load from storage asynchronously
-        this.loadFromStorage().catch((error) => {
-            console.error('[AuthManager] Failed to load from storage:', error);
+        this.loadFromStorage().catch(() => {
+            // Load failed, will retry on next access
         });
     }
 
@@ -172,8 +172,8 @@ export class AuthManager {
             this.state.token = token;
             this.state.refreshToken = refreshToken;
             this.state.expiresAt = expiresAt ? parseInt(expiresAt, 10) : null;
-        } catch (error) {
-            console.error('[AuthManager] Failed to load from storage:', error);
+        } catch {
+            // Storage load failed
         }
     }
 
@@ -205,8 +205,8 @@ export class AuthManager {
             }
 
             await Promise.all(promises);
-        } catch (error) {
-            console.error('[AuthManager] Failed to save to storage:', error);
+        } catch {
+            // Storage save failed
         }
     }
 
@@ -233,6 +233,9 @@ export class AuthManager {
         this.refreshPromise = null;
 
         await this.saveToStorage();
+
+        // Notify that auth has failed
+        this.options.onAuthFailure?.();
     }
 
     /**
@@ -312,7 +315,6 @@ export class AuthManager {
 
         // If exceeded max retries, give up
         if (this.refreshRetries >= this.options.maxRefreshRetries) {
-            console.error('[AuthManager] Max refresh retries exceeded');
             this.clearTokens();
             return null;
         }
@@ -351,7 +353,7 @@ export class AuthManager {
 
             await this.updateTokens(data.token, data.refreshToken, data.expiresIn);
             return data.token;
-        } catch (error) {
+        } catch (_error) {
             this.refreshRetries++;
             if (this.refreshRetries < this.options.maxRefreshRetries) {
                 // Exponential backoff
@@ -360,7 +362,6 @@ export class AuthManager {
                 );
                 return this.performRefresh();
             } else {
-                console.error('[AuthManager] Token refresh failed after max retries:', error);
                 await this.clearTokens();
                 return null;
             }
@@ -455,9 +456,9 @@ export class AuthManager {
 // Singleton instance
 let authManager: AuthManager | null = null;
 
-export function getAuthManager(): AuthManager {
+export function getAuthManager(options?: Partial<AuthManagerOptions>): AuthManager {
     if (!authManager) {
-        authManager = new AuthManager();
+        authManager = new AuthManager(options);
     }
     return authManager;
 }

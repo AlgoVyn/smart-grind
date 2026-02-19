@@ -230,9 +230,7 @@ export class SyncScheduler {
     /**
      * Handle task failure with retry logic
      */
-    private async handleTaskFailure(task: SyncTask, error: Error): Promise<void> {
-        console.error(`[SyncScheduler] Task ${task.id} failed:`, error);
-
+    private async handleTaskFailure(task: SyncTask, _error: Error): Promise<void> {
         // Record circuit breaker failure
         this.recordCircuitBreakerFailure(task.tag);
 
@@ -252,7 +250,6 @@ export class SyncScheduler {
                 this.sortQueue();
             }, actualDelay);
         } else {
-            console.error(`[SyncScheduler] Task ${task.id} exceeded max retries, giving up`);
             // Task failed permanently - could emit event for UI notification
         }
     }
@@ -329,7 +326,6 @@ export class SyncScheduler {
 
         if (cb.failures >= this.options.circuitBreakerThreshold) {
             cb.isOpen = true;
-            console.warn(`[SyncScheduler] Circuit breaker opened for ${tag}`);
         }
 
         this.circuitBreakers.set(tag, cb);

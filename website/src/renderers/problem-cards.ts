@@ -58,9 +58,6 @@ export const problemCardRenderers = {
         // Reduced from 10s to 3s since save is now non-blocking
         const safetyTimeoutId = setTimeout(() => {
             if (_p.loading) {
-                console.warn(
-                    `[ProblemCards] Safety timeout: clearing stuck loading state for ${_p.id}`
-                );
                 _p.loading = false;
                 renderers._reRenderAllCards(_p);
             }

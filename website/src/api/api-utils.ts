@@ -24,7 +24,7 @@ export const validateResponseOrigin = (response: Response): void => {
 
     // Validate cross-origin responses
     if (!ALLOWED_ORIGINS.some((origin) => responseOrigin.includes(origin))) {
-        console.warn('Response from unexpected origin:', responseOrigin);
+        // Unexpected origin - response will be handled by error handling
     }
 };
 

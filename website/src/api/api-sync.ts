@@ -82,7 +82,6 @@ export const syncPlan = async (): Promise<void> => {
             await _performSave();
         }
     } catch (e) {
-        console.error('Sync plan error:', e);
         const message = e instanceof Error ? e.message : String(e);
         ui.showAlert(`Failed to sync problem data: ${message}`);
         throw e;

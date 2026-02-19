@@ -122,8 +122,6 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
         state.registered = true;
         return true;
     } catch (error) {
-        console.error(`[SW] Registration failed (attempt ${attempt}):`, error);
-
         // Retry with exponential backoff
         if (attempt < REGISTRATION_RETRY.maxAttempts) {
             const delay =
@@ -133,7 +131,7 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
             return registerServiceWorker(attempt + 1);
         }
 
-        console.error('[SW] Max registration attempts reached');
+        console.error(`[SW] Registration failed (attempt ${attempt}):`, error);
         return false;
     }
 }
@@ -252,8 +250,8 @@ function setupPeriodicUpdateChecks(registration: ServiceWorkerRegistration): voi
     setInterval(async () => {
         try {
             await registration.update();
-        } catch (error) {
-            console.error('[SW] Update check failed:', error);
+        } catch {
+            // Update check failed, will retry next interval
         }
     }, CHECK_INTERVAL);
 }
@@ -271,8 +269,7 @@ export async function checkForUpdates(): Promise<boolean> {
         const registration = await navigator.serviceWorker.ready;
         await registration.update();
         return true;
-    } catch (error) {
-        console.error('[SW] Update check failed:', error);
+    } catch {
         return false;
     }
 }
@@ -409,6 +406,11 @@ function handleSWMessage(event: MessageEvent): void {
 
         case 'BUNDLE_READY':
             emit('bundleReady', data);
+            break;
+
+        case 'SYNC_AUTH_REQUIRED':
+            // Authentication failed in background sync - notify clients
+            emit('authRequired', data);
             break;
 
         default:
@@ -588,8 +590,7 @@ async function migrateLocalStorageOperations(): Promise<number> {
         localStorage.removeItem('pending-operations');
 
         return pendingOps.length;
-    } catch (error) {
-        console.error('[SW] Failed to migrate localStorage operations:', error);
+    } catch {
         // Don't clear localStorage on failure - keep them for next attempt
         return 0;
     }
@@ -620,15 +621,14 @@ export function listenForConnectivityChanges(callback: (_online: boolean) => voi
             await migrateLocalStorageOperations();
             // Wait for migration to complete before triggering sync
             await syncUserProgress();
-        } catch (error) {
-            console.error('[SW] Error during sync after coming online:', error);
+        } catch {
             // Schedule a retry after delay on error
             if (syncTimeoutId !== null) {
                 clearTimeout(syncTimeoutId);
             }
             syncTimeoutId = window.setTimeout(() => {
                 isProcessingSync = false;
-                triggerSync('retry-after-error').catch(console.error);
+                triggerSync('retry-after-error').catch(() => {});
             }, 5000);
             return; // Keep isProcessingSync true until retry completes
         } finally {
@@ -656,8 +656,8 @@ export function listenForConnectivityChanges(callback: (_online: boolean) => voi
     const unsubscribe = connectivityChecker.onConnectivityChange((online) => {
         onlineCallback(online);
         if (online) {
-            triggerSync('connectivity-change').catch((error) => {
-                console.error('[SW] Sync failed after connectivity change:', error);
+            triggerSync('connectivity-change').catch(() => {
+                // Sync trigger failed, will retry
             });
         }
     });
@@ -702,8 +702,8 @@ function emit(event: string, data: unknown): void {
     listeners.get(event)?.forEach((callback) => {
         try {
             callback(data);
-        } catch (error) {
-            console.error(`[SW] Error in event listener for ${event}:`, error);
+        } catch {
+            // Callback error ignored
         }
     });
 }
@@ -842,7 +842,7 @@ function cacheDynamicAssets(registration: ServiceWorkerRegistration): void {
                 assets: assetsToCache,
             });
         }
-    } catch (error) {
-        console.error('[SW] Failed to cache dynamic assets:', error);
+    } catch {
+        // Cache dynamic assets failed, continue
     }
 }

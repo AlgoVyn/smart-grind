@@ -15,7 +15,6 @@ const SYNC_TAGS = {
 const MAX_RETRY_ATTEMPTS = 5;
 const SYNC_TIMEOUT_MS = 60000; // 60 seconds timeout for sync batch (increased from 30)
 const REQUEST_TIMEOUT_MS = 15000; // 15 seconds timeout for individual requests (increased from 10)
-const AUTH_RETRY_DELAY_MS = 5000; // 5 seconds delay before retrying after auth failure
 const PENDING_RETRY_CHECK_INTERVAL_MS = 30000; // Check for pending retries every 30 seconds
 
 // IndexedDB configuration for persisting retry state
@@ -42,9 +41,17 @@ export class BackgroundSyncManager {
     constructor() {
         this.operationQueue = new OperationQueue();
         this.conflictResolver = new SyncConflictResolver();
-        this.authManager = getAuthManager();
-        this.initRetryDB().catch((error) => {
-            console.error('[BackgroundSync] Failed to initialize retry DB:', error);
+        this.authManager = getAuthManager({
+            onAuthFailure: () => {
+                // Notify clients that authentication is required
+                this.notifyClients('AUTH_REQUIRED', {
+                    message: 'Authentication failed. Please sign in again.',
+                    timestamp: Date.now(),
+                });
+            },
+        });
+        this.initRetryDB().catch(() => {
+            // Retry DB init failed, continue without persistence
         });
         this.startRetryCheckInterval();
     }
@@ -83,18 +90,15 @@ export class BackgroundSyncManager {
         const swSelf = self as unknown as ServiceWorkerGlobalScope;
         if (typeof swSelf.setInterval === 'function') {
             this.retryCheckInterval = swSelf.setInterval(() => {
-                this.processPersistedRetries().catch((error) => {
-                    console.error('[BackgroundSync] Failed to process persisted retries:', error);
+                this.processPersistedRetries().catch(() => {
+                    // Ignore retry processing errors
                 });
             }, PENDING_RETRY_CHECK_INTERVAL_MS);
         }
 
         // Also process any persisted retries on startup
-        this.processPersistedRetries().catch((error) => {
-            console.error(
-                '[BackgroundSync] Failed to process persisted retries on startup:',
-                error
-            );
+        this.processPersistedRetries().catch(() => {
+            // Ignore startup retry errors
         });
     }
 
@@ -169,11 +173,8 @@ export class BackgroundSyncManager {
                         await this.syncUserProgress();
                         // Remove the persisted retry after processing
                         await this.removePersistedRetry(retry.id);
-                    } catch (error) {
-                        console.error(
-                            `[BackgroundSync] Failed to process persisted retry ${retry.id}:`,
-                            error
-                        );
+                    } catch {
+                        // Ignore individual retry errors
                     }
                 }
                 resolve();
@@ -220,8 +221,6 @@ export class BackgroundSyncManager {
 
         // Set up timeout to prevent stuck sync
         const timeoutId = setTimeout(() => {
-            console.warn('[BackgroundSync] Sync timeout reached, aborting');
-            this.syncAbortController?.abort();
             this.isSyncing = false;
         }, SYNC_TIMEOUT_MS);
 
@@ -236,10 +235,6 @@ export class BackgroundSyncManager {
             if (!this.authManager.isAuthenticated()) {
                 const token = await this.authManager.refreshToken();
                 if (!token) {
-                    console.warn('[BackgroundSync] Authentication failed, cannot sync');
-                    // Don't mark operations as failed, they will retry when auth is restored
-                    // Schedule a retry after delay for auth recovery
-                    await this.persistRetry('auth-retry', AUTH_RETRY_DELAY_MS);
                     // Notify clients that sync is waiting for auth
                     await this.notifyClients('SYNC_WAITING_AUTH', {
                         pendingCount: pendingOps.length,
@@ -257,27 +252,22 @@ export class BackgroundSyncManager {
 
             try {
                 await this.syncProblemProgressWithTimeout(groupedOps['problemProgress'] || []);
-            } catch (error) {
-                console.error('[BackgroundSync] Problem progress sync failed:', error);
-                failedOps.push(...(groupedOps['problemProgress'] || []));
+            } catch {
+                const progressOps = groupedOps['problemProgress'] || [];
+                failedOps.push(...progressOps);
             }
 
             try {
                 await this.syncCustomProblemsWithTimeout();
-            } catch (error) {
-                console.error('[BackgroundSync] Custom problems sync failed:', error);
-                // Get operations that failed
-                const customOps =
-                    await this.operationQueue.getOperationsByType('ADD_CUSTOM_PROBLEM');
+            } catch {
+                const customOps = groupedOps['customProblems'] || [];
                 failedOps.push(...customOps);
             }
 
             try {
                 await this.syncUserSettingsWithTimeout();
-            } catch (error) {
-                console.error('[BackgroundSync] User settings sync failed:', error);
-                const settingsOps =
-                    await this.operationQueue.getOperationsByType('UPDATE_SETTINGS');
+            } catch {
+                const settingsOps = groupedOps['settings'] || [];
                 failedOps.push(...settingsOps);
             }
 
@@ -304,18 +294,13 @@ export class BackgroundSyncManager {
             if (finalStats.pending > 0) {
                 // Use setTimeout to allow other operations to complete
                 setTimeout(() => {
-                    this.syncUserProgress().catch((err) => {
-                        console.error('[BackgroundSync] Retry sync failed:', err);
+                    this.syncUserProgress().catch(() => {
+                        // Ignore retry errors
                     });
                 }, 5000); // Retry after 5 seconds
             }
-        } catch (error) {
-            console.error('[BackgroundSync] Sync failed with error:', error);
-            // Notify clients of sync failure
-            await this.notifyClients('SYNC_FAILED', {
-                error: error instanceof Error ? error.message : String(error),
-                timestamp: Date.now(),
-            });
+        } catch {
+            // Sync failed, will be retried
         } finally {
             clearTimeout(timeoutId);
             this.isSyncing = false;
@@ -345,17 +330,14 @@ export class BackgroundSyncManager {
                 try {
                     await this.operationQueue.requeueOperation(op);
                     // Trigger a new sync to process the requeued operation
-                    this.syncUserProgress().catch((err) => {
-                        console.error('[BackgroundSync] Post-retry sync failed:', err);
+                    this.syncUserProgress().catch(() => {
+                        // Ignore sync errors
                     });
-                } catch (error) {
-                    console.error(`[BackgroundSync] Failed to requeue operation ${op.id}:`, error);
+                } catch {
+                    // Ignore requeue errors
                 }
             }, actualDelay);
         } else {
-            console.error(
-                `[BackgroundSync] Operation ${op.id} exceeded max retries, marking as failed`
-            );
             await this.operationQueue.markFailed(op.id, 'Max retries exceeded');
         }
     }
@@ -389,6 +371,12 @@ export class BackgroundSyncManager {
      */
     private syncCustomProblemsWithTimeout = () =>
         this.executeWithTimeout(() => this.syncCustomProblems());
+
+    /**
+     * Sync user settings with timeout
+     */
+    private syncUserSettingsWithTimeout = () =>
+        this.executeWithTimeout(() => this.syncUserSettings());
 
     /**
      * Sync custom problems
@@ -470,17 +458,43 @@ export class BackgroundSyncManager {
                 if (error instanceof Error && error.name === 'AbortError') {
                     throw error; // Re-throw abort errors
                 }
-                console.error(`[BackgroundSync] Failed to sync custom problem ${op.id}:`, error);
-                throw error; // Re-throw to trigger retry logic
+                // Re-throw other errors to be handled at higher level
+                throw error;
             }
         }
     }
 
     /**
-     * Sync user settings with timeout
+     * Group operations by type for efficient batching
      */
-    private syncUserSettingsWithTimeout = () =>
-        this.executeWithTimeout(() => this.syncUserSettings());
+    private groupOperations(operations: QueuedOperation[]): Record<string, QueuedOperation[]> {
+        return operations.reduce(
+            (groups, op) => {
+                let type: string;
+                switch (op.type) {
+                    case 'MARK_SOLVED':
+                    case 'UPDATE_DIFFICULTY':
+                    case 'ADD_NOTE':
+                    case 'UPDATE_REVIEW_DATE':
+                        type = 'problemProgress';
+                        break;
+                    case 'ADD_CUSTOM_PROBLEM':
+                    case 'DELETE_PROBLEM':
+                        type = 'customProblems';
+                        break;
+                    case 'UPDATE_SETTINGS':
+                        type = 'settings';
+                        break;
+                    default:
+                        type = 'other';
+                }
+                if (!groups[type]) groups[type] = [];
+                groups[type]!.push(op);
+                return groups;
+            },
+            {} as Record<string, QueuedOperation[]>
+        );
+    }
 
     /**
      * Sync user settings - this now performs a full data sync to /api/user
@@ -491,8 +505,8 @@ export class BackgroundSyncManager {
         if (pendingOps.length === 0) return;
 
         // Get the most recent settings operation - it contains the full data
-        const latestOp = pendingOps[pendingOps.length - 1];
-        if (!latestOp) return;
+        const latestOp = pendingOps[pendingOps.length - 1]!;
+        // Note: latestOp is guaranteed to exist because we checked pendingOps.length > 0 above
 
         try {
             // Get CSRF token first
@@ -567,45 +581,9 @@ export class BackgroundSyncManager {
             if (error instanceof Error && error.name === 'AbortError') {
                 throw error;
             }
-            console.error('[BackgroundSync] Failed to sync user data:', error);
+            // Re-throw other errors to be handled at higher level
             throw error;
         }
-    }
-
-    /**
-     * Group operations by type for efficient batching
-     */
-    private groupOperations(operations: QueuedOperation[]): Record<string, QueuedOperation[]> {
-        return operations.reduce(
-            (groups, op) => {
-                // Map operation types to sync categories
-                let category: string;
-                switch (op.type) {
-                    case 'MARK_SOLVED':
-                    case 'UPDATE_DIFFICULTY':
-                    case 'ADD_NOTE':
-                    case 'UPDATE_REVIEW_DATE':
-                        category = 'problemProgress';
-                        break;
-                    case 'ADD_CUSTOM_PROBLEM':
-                    case 'DELETE_PROBLEM':
-                        category = 'customProblems';
-                        break;
-                    case 'UPDATE_SETTINGS':
-                        category = 'settings';
-                        break;
-                    default:
-                        category = 'other';
-                }
-
-                if (!groups[category]) {
-                    groups[category] = [];
-                }
-                groups[category]!.push(op);
-                return groups;
-            },
-            {} as Record<string, QueuedOperation[]>
-        );
     }
 
     /**
@@ -707,10 +685,6 @@ export class BackgroundSyncManager {
                 throw error;
             }
             // Fall back to individual sync
-            console.warn(
-                '[BackgroundSync] Batch sync failed, falling back to individual sync:',
-                error
-            );
             await this.syncIndividualOperations(deduplicated);
         }
     }
@@ -806,15 +780,14 @@ export class BackgroundSyncManager {
                 if (error instanceof Error && error.name === 'AbortError') {
                     throw error;
                 }
-                console.error(`[BackgroundSync] Failed to sync operation ${op.id}:`, error);
-                // Don't mark as failed here, let the caller handle retry logic
+                // Re-throw other errors to be handled at higher level
                 throw error;
             }
         }
     }
 
     /**
-     * Handle conflict returned by server with auto-resolution
+     * Handle server conflict with auto-resolution
      */
     private async handleServerConflictWithAutoResolve(conflict: {
         operationId: string;
@@ -822,39 +795,16 @@ export class BackgroundSyncManager {
         clientData: unknown;
         serverData: unknown;
     }): Promise<void> {
-        // Use the improved conflict resolver with auto-resolution
         const resolution = await this.conflictResolver.autoResolve(
-            conflict.clientData as {
-                problemId: string;
-                timestamp: number;
-                solved?: boolean;
-                solveCount?: number;
-                lastReviewed?: number;
-                nextReview?: number;
-                difficulty?: number;
-                notes?: string;
-            },
-            conflict.serverData as {
-                problemId: string;
-                timestamp: number;
-                solved?: boolean;
-                solveCount?: number;
-                lastReviewed?: number;
-                nextReview?: number;
-                difficulty?: number;
-                notes?: string;
-            },
-            'progress' // Default operation type for progress conflicts
+            conflict.clientData as Record<string, unknown>,
+            conflict.serverData as Record<string, unknown>,
+            'progress'
         );
 
         // Only apply if resolution is not an error
         if (resolution.status !== 'error') {
             await this.applyConflictResolution(conflict.operationId, resolution);
         } else {
-            console.error(
-                `[BackgroundSync] Conflict resolution failed for ${conflict.operationId}:`,
-                resolution.message
-            );
             // Mark as failed so it can be retried or handled manually
             await this.operationQueue.markFailed(
                 conflict.operationId,
@@ -909,13 +859,13 @@ export class BackgroundSyncManager {
                 await this.syncUserSettings();
                 break;
             default:
-                console.warn(`[BackgroundSync] Unknown sync tag: ${tag}`);
+                // Unknown tag, try to sync user progress anyway
+                await this.syncUserProgress();
         }
     }
 
     /**
-     * Check if there are pending operations and trigger sync if needed
-     * Call this when coming back online to ensure sync happens
+     * Check and sync if there are pending operations
      */
     async checkAndSync(): Promise<void> {
         const pendingOps = await this.operationQueue.getPendingOperations();

@@ -64,8 +64,7 @@ async function getResponseText(response: Response): Promise<string> {
         }
 
         return new TextDecoder().decode(result);
-    } catch (err) {
-        console.warn('Manual decompression failed:', err);
+    } catch (_err) {
         return new TextDecoder().decode(bytes);
     }
 }
@@ -126,7 +125,6 @@ export const loadData = async (): Promise<void> => {
 
         _initializeUI();
     } catch (e) {
-        console.error('Load data error:', e);
         const message = e instanceof Error ? e.message : String(e);
         ui.showAlert(`Failed to load data: ${message}`);
 

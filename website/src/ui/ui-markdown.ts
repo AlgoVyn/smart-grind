@@ -81,9 +81,9 @@ export const _configureMarkdownRenderer = () => {
     const escapeHtml = (unsafe: string) => {
         return unsafe
             .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
+            .replace(/</g, '<')
+            .replace(/>/g, '>')
+            .replace(/"/g, '"')
             .replace(/'/g, '&#039;');
     };
 
@@ -291,8 +291,7 @@ export const copyCode = (btn: HTMLElement) => {
                 btn.innerHTML = originalHTML;
             }, 2000);
         })
-        .catch((err) => {
-            console.error('Failed to copy code: ', err);
+        .catch(() => {
             utils.showToast('Failed to copy code');
         });
 };
@@ -387,7 +386,6 @@ const _loadSolution = (
             updateSolutionScrollProgress();
         })
         .catch((error) => {
-            console.error(`[UI] Error loading ${errorPrefix}:`, error);
             content.innerHTML =
                 `<p>Error loading ${errorPrefix}: ${error.message}</p>` +
                 `<p>File: ${solutionFile}</p>${extraErrorText}`;
