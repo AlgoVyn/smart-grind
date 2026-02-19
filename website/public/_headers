@@ -21,3 +21,6 @@
 
 /*.md
   Content-Type: text/markdown
+
+/smartgrind/sw.js
+  Service-Worker-Allowed: /
