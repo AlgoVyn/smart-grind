@@ -159,6 +159,13 @@ export class AuthManager {
     }
 
     /**
+     * Set the auth failure callback (can be called after construction)
+     */
+    setOnAuthFailure(callback: () => void): void {
+        this.options.onAuthFailure = callback;
+    }
+
+    /**
      * Load auth state from storage
      */
     private async loadFromStorage(): Promise<void> {
@@ -459,6 +466,9 @@ let authManager: AuthManager | null = null;
 export function getAuthManager(options?: Partial<AuthManagerOptions>): AuthManager {
     if (!authManager) {
         authManager = new AuthManager(options);
+    } else if (options?.onAuthFailure) {
+        // Update the callback if provided
+        authManager.setOnAuthFailure(options.onAuthFailure);
     }
     return authManager;
 }
