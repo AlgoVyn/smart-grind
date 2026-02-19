@@ -4,11 +4,10 @@
 import { getConnectivityChecker } from './sw/connectivity-checker';
 
 // Service Worker configuration
-// Note: Scope must match the actual page URL exactly
-// The page URL is https://algovyn.com/smartgrind (no trailing slash)
+// Using default scope (script location /smartgrind/)
 const SW_CONFIG = {
     path: '/smartgrind/sw.js',
-    scope: '/smartgrind', // Match page URL exactly (no trailing slash)
+    // scope defaults to /smartgrind/ (the script's directory)
 };
 
 // Registration retry configuration
@@ -61,26 +60,14 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
     }
 
     try {
-        // Verify scope is correct (normalize paths by ensuring trailing slash)
-        const currentPath = window.location.pathname;
-        const normalizedScope = SW_CONFIG.scope.endsWith('/')
-            ? SW_CONFIG.scope
-            : `${SW_CONFIG.scope}/`;
-        const normalizedPath = currentPath.endsWith('/') ? currentPath : `${currentPath}/`;
-
-        if (
-            !normalizedPath.startsWith(normalizedScope) &&
-            normalizedPath !== normalizedScope.slice(0, -1)
-        ) {
-            console.warn(`[SW] Current path ${currentPath} is outside SW scope ${SW_CONFIG.scope}`);
-        }
+        // Log current path for debugging
+        console.log(`[SW] Current path: ${window.location.pathname}`);
 
         // Add cache-busting to force fresh download
         const swUrl = `${SW_CONFIG.path}?v=${Date.now()}`;
         console.log(`[SW] Registering from ${swUrl} (attempt ${attempt})`);
 
         const registration = await navigator.serviceWorker.register(swUrl, {
-            scope: SW_CONFIG.scope,
             updateViaCache: 'none',
         });
 
