@@ -26,9 +26,9 @@ export default defineConfig({
                 // Ensure consistent chunk naming
                 chunkFileNames: 'assets/js/[name]-[hash].js',
                 entryFileNames: (chunkInfo) => {
-                    // Output service worker to root as sw.js
+                    // Output service worker to smartgrind folder for correct scope
                     if (chunkInfo.name === 'sw') {
-                        return 'sw.js';
+                        return 'smartgrind/sw.js';
                     }
                     return 'assets/js/[name]-[hash].js';
                 },
@@ -54,13 +54,34 @@ export default defineConfig({
     plugins: [
         // basicSsl() // Enable if HTTPS is needed for Google Auth testing locally
         {
-            name: 'copy-sw-to-root',
+            name: 'ensure-sw-directory',
             closeBundle() {
-                // Ensure sw.js is at the root of dist
+                // Ensure sw.js is in the smartgrind directory for correct scope
                 const distPath = path.resolve(__dirname, 'dist');
                 const swPath = path.join(distPath, 'sw.js');
-                if (fs.existsSync(swPath)) {
-                    console.log('[vite] Service worker built successfully at dist/sw.js');
+                const smartgrindPath = path.join(distPath, 'smartgrind');
+                const targetPath = path.join(smartgrindPath, 'sw.js');
+                
+                // Create smartgrind directory if it doesn't exist
+                if (!fs.existsSync(smartgrindPath)) {
+                    fs.mkdirSync(smartgrindPath, { recursive: true });
+                }
+                
+                // Move sw.js to smartgrind folder if it's at root
+                if (fs.existsSync(swPath) && !fs.existsSync(targetPath)) {
+                    fs.renameSync(swPath, targetPath);
+                    console.log('[vite] Service worker moved to dist/smartgrind/sw.js');
+                }
+                
+                // Also move the source map if it exists
+                const swMapPath = path.join(distPath, 'sw.js.map');
+                const targetMapPath = path.join(smartgrindPath, 'sw.js.map');
+                if (fs.existsSync(swMapPath) && !fs.existsSync(targetMapPath)) {
+                    fs.renameSync(swMapPath, targetMapPath);
+                }
+                
+                if (fs.existsSync(targetPath)) {
+                    console.log('[vite] Service worker built successfully at dist/smartgrind/sw.js');
                 }
             },
         },
