@@ -225,7 +225,6 @@ export class ConnectivityChecker {
         // Browser online event
         window.addEventListener('online', () => {
             // Force immediate check without cache - critical for reliable sync
-            console.log('[ConnectivityChecker] Browser online event, forcing immediate check');
             this.state.lastChecked = 0; // Reset cache to force fresh check
             this.checkConnectivity().catch((error) => {
                 console.error('[ConnectivityChecker] Online event check failed:', error);

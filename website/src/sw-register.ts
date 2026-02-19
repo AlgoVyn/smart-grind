@@ -55,19 +55,14 @@ const listeners: Map<string, Set<(_: unknown) => void>> = new Map();
  */
 export async function registerServiceWorker(attempt: number = 1): Promise<boolean> {
     if (!('serviceWorker' in navigator)) {
-        console.log('[SW] Service Worker not supported');
         return false;
     }
 
     try {
-        // Log current path for debugging
-        console.log(`[SW] Current path: ${window.location.pathname}`);
-
         // Don't use cache-busting on every load - it causes the SW to be re-downloaded
         // every time, which prevents it from ever controlling the page.
         // Use updateViaCache: 'none' to still check for updates from the network.
         const swUrl = SW_CONFIG.path;
-        console.log(`[SW] Registering from ${swUrl} (attempt ${attempt})`);
 
         const registration = await navigator.serviceWorker.register(swUrl, {
             updateViaCache: 'none',
@@ -78,8 +73,6 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
         if (!registration) {
             throw new Error('Registration returned null');
         }
-
-        console.log('[SW] Registration successful, scope:', registration.scope);
 
         // Handle registration state
         handleRegistration(registration);
@@ -102,7 +95,6 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
 
         // Listen for controller changes (SW activated)
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('[SW] Controller changed - new SW is now controlling the page');
             state.active = true;
             emit('activated', null);
 
@@ -110,7 +102,6 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
             // a reload might be necessary to start intercepting requests immediately.
             if (!sessionStorage.getItem('sw-first-install-reloaded')) {
                 sessionStorage.setItem('sw-first-install-reloaded', 'true');
-                console.log('[SW] First install detected, reloading to ensure SW control...');
                 window.location.reload();
             }
         });
@@ -119,12 +110,7 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
         const isControlling = await waitForController();
 
         if (isControlling) {
-            console.log('[SW] Service Worker is controlling the page');
             sessionStorage.removeItem('sw-first-install-reloaded');
-        } else {
-            console.log(
-                '[SW] Service Worker not controlling after registration. The app will work but may need another refresh for full offline support.'
-            );
         }
 
         // Set up periodic update checks (every 60 minutes)
@@ -143,7 +129,6 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
             const delay =
                 REGISTRATION_RETRY.baseDelay *
                 Math.pow(REGISTRATION_RETRY.backoffMultiplier, attempt - 1);
-            console.log(`[SW] Retrying registration in ${delay}ms...`);
             await new Promise((resolve) => setTimeout(resolve, delay));
             return registerServiceWorker(attempt + 1);
         }
@@ -159,20 +144,13 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
 async function waitForController(): Promise<boolean> {
     // If we already have a controller, we're good
     if (navigator.serviceWorker.controller) {
-        console.log('[SW] Controller already exists');
         return true;
     }
-
-    console.log('[SW] No active controller - waiting for SW to take control...');
 
     // Create a promise that resolves when we get SW_ACTIVATED message
     const swActivatedPromise = new Promise<boolean>((resolve) => {
         const checkMessage = (event: MessageEvent) => {
             if (event.data?.type === 'SW_ACTIVATED') {
-                console.log(
-                    '[SW] Received SW_ACTIVATED message, controlling:',
-                    event.data.controlling
-                );
                 navigator.serviceWorker.removeEventListener('message', checkMessage);
                 // If SW says it's controlling, trust it
                 resolve(event.data.controlling === true);
@@ -190,7 +168,6 @@ async function waitForController(): Promise<boolean> {
     // Also listen for controllerchange event
     const controllerChangePromise = new Promise<boolean>((resolve) => {
         const onControllerChange = () => {
-            console.log('[SW] Controller changed event fired');
             navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
             resolve(true);
         };
@@ -210,7 +187,6 @@ async function waitForController(): Promise<boolean> {
         const checkController = setInterval(() => {
             attempts++;
             if (navigator.serviceWorker.controller) {
-                console.log('[SW] Service Worker is now controlling the page (poll)');
                 clearInterval(checkController);
                 resolve(true);
             } else if (attempts >= maxAttempts) {
@@ -243,7 +219,6 @@ async function performHandshake(): Promise<boolean> {
     return new Promise((resolve) => {
         const controller = navigator.serviceWorker.controller;
         if (!controller) {
-            console.log('[SW] No controller for handshake');
             resolve(false);
             return;
         }
@@ -253,13 +228,11 @@ async function performHandshake(): Promise<boolean> {
         // Listen for response
         channel.port1.onmessage = (event) => {
             if (event.data?.type === 'CLIENT_CONTROL_STATUS') {
-                console.log('[SW] Handshake response, controlled:', event.data.controlled);
                 resolve(event.data.controlled === true);
             }
         };
 
         // Send CLIENT_READY message
-        console.log('[SW] Sending CLIENT_READY message');
         controller.postMessage({ type: 'CLIENT_READY' }, [channel.port2]);
 
         // Timeout after 5 seconds
@@ -278,7 +251,6 @@ function setupPeriodicUpdateChecks(registration: ServiceWorkerRegistration): voi
 
     setInterval(async () => {
         try {
-            console.log('[SW] Checking for updates...');
             await registration.update();
         } catch (error) {
             console.error('[SW] Update check failed:', error);
@@ -338,7 +310,6 @@ function handleInstallingWorker(worker: ServiceWorker): void {
                     // The main registration flow will handle waiting for control
                     state.offlineReady = true;
                     emit('offlineReady', null);
-                    console.log('[SW] First install complete - waiting for activation...');
                 }
                 break;
 
@@ -391,11 +362,6 @@ function handleSWMessage(event: MessageEvent): void {
             // If SW reports it's controlling, clear the reload flag
             if (event.data.controlling === true) {
                 sessionStorage.removeItem('sw-first-install-reloaded');
-                console.log('[SW] SW reports it is controlling - reload flag cleared');
-            } else if (event.data.controlling === false) {
-                console.log(
-                    '[SW] SW activated but not yet controlling - waiting for controllerchange'
-                );
             }
             emit('swActivated', data);
             break;
@@ -403,7 +369,6 @@ function handleSWMessage(event: MessageEvent): void {
         case 'CLEAR_RELOAD_FLAG':
             // SW has successfully claimed control, clear the reload flag
             sessionStorage.removeItem('sw-first-install-reloaded');
-            console.log('[SW] Reload flag cleared - SW is now controlling');
             break;
 
         case 'SYNC_COMPLETED':
@@ -443,7 +408,6 @@ function handleSWMessage(event: MessageEvent): void {
             break;
 
         case 'BUNDLE_READY':
-            console.log('[SW] Offline bundle ready:', data);
             emit('bundleReady', data);
             break;
 
@@ -495,13 +459,7 @@ export async function requestSync(tag: string): Promise<boolean> {
  * Returns true if sync was successfully triggered
  */
 export async function syncUserProgress(): Promise<boolean> {
-    console.log('[SW] Requesting user progress sync');
     const result = await requestSync(SYNC_TAGS.USER_PROGRESS);
-    if (result) {
-        console.log('[SW] User progress sync requested successfully');
-    } else {
-        console.warn('[SW] Failed to request user progress sync');
-    }
     return result;
 }
 
@@ -590,13 +548,11 @@ async function migrateLocalStorageOperations(): Promise<number> {
 
     // Check if service worker is now available
     if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
-        console.log('[SW] Service Worker not available, keeping operations in localStorage');
         return 0;
     }
 
     const registration = await navigator.serviceWorker.ready;
     if (!registration.active) {
-        console.log('[SW] Service Worker not active, keeping operations in localStorage');
         return 0;
     }
 
@@ -631,9 +587,6 @@ async function migrateLocalStorageOperations(): Promise<number> {
         // Clear localStorage after successful migration
         localStorage.removeItem('pending-operations');
 
-        console.log(
-            `[SW] Migrated ${pendingOps.length} operations from localStorage to service worker`
-        );
         return pendingOps.length;
     } catch (error) {
         console.error('[SW] Failed to migrate localStorage operations:', error);
@@ -654,24 +607,19 @@ export function listenForConnectivityChanges(callback: (_online: boolean) => voi
     /**
      * Safely trigger sync with proper error handling and state management
      */
-    const triggerSync = async (source: string): Promise<void> => {
+    const triggerSync = async (_source: string): Promise<void> => {
         // Prevent concurrent sync processing
         if (isProcessingSync) {
-            console.log(`[SW] Sync already in progress from ${source}, skipping duplicate trigger`);
             return;
         }
 
         isProcessingSync = true;
-        console.log(
-            `[SW] Connection restored (${source}), migrating operations and triggering sync`
-        );
 
         try {
             // First migrate any localStorage operations, then trigger sync
             await migrateLocalStorageOperations();
             // Wait for migration to complete before triggering sync
-            const syncResult = await syncUserProgress();
-            console.log('[SW] Sync triggered successfully:', syncResult);
+            await syncUserProgress();
         } catch (error) {
             console.error('[SW] Error during sync after coming online:', error);
             // Schedule a retry after delay on error
@@ -889,7 +837,6 @@ function cacheDynamicAssets(registration: ServiceWorkerRegistration): void {
         });
 
         if (assetsToCache.length > 0) {
-            console.log(`[SW] Sending ${assetsToCache.length} assets to cache`);
             registration.active.postMessage({
                 type: 'CACHE_ASSETS',
                 assets: assetsToCache,

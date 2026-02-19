@@ -156,7 +156,6 @@ export class SyncScheduler {
 
             // Check circuit breaker
             if (this.isCircuitBreakerOpen(task.tag)) {
-                console.log(`[SyncScheduler] Circuit breaker open for ${task.tag}, skipping`);
                 return;
             }
 
@@ -246,10 +245,6 @@ export class SyncScheduler {
             const delay = baseDelay * Math.pow(2, task.retryCount - 1);
             const maxDelay = 60000; // 1 minute max
             const actualDelay = Math.min(delay, maxDelay);
-
-            console.log(
-                `[SyncScheduler] Retrying task ${task.id} in ${actualDelay}ms (attempt ${task.retryCount}/${task.maxRetries})`
-            );
 
             // Re-queue with delay
             setTimeout(() => {
@@ -351,20 +346,13 @@ export class SyncScheduler {
      * Reset all circuit breakers - call this when connectivity is restored
      */
     resetAllCircuitBreakers(): void {
-        const count = this.circuitBreakers.size;
         this.circuitBreakers.clear();
-        if (count > 0) {
-            console.log(
-                `[SyncScheduler] Reset ${count} circuit breaker(s) after connectivity restore`
-            );
-        }
     }
 
     /**
      * Handle connectivity restore - reset circuit breakers and process queue
      */
     async onConnectivityRestored(): Promise<void> {
-        console.log('[SyncScheduler] Connectivity restored, resetting circuit breakers');
         this.resetAllCircuitBreakers();
         // Trigger immediate queue processing
         await this.processQueue();
