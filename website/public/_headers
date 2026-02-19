@@ -22,5 +22,8 @@
 /*.md
   Content-Type: text/markdown
 
+# Service Worker headers - critical for SW to work properly
+# The SW is now at /smartgrind/sw.js with correct scope
 /smartgrind/sw.js
-  Service-Worker-Allowed: /
+  Content-Type: application/javascript
+  Cache-Control: no-cache, no-store, must-revalidate
