@@ -63,8 +63,10 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
         // Log current path for debugging
         console.log(`[SW] Current path: ${window.location.pathname}`);
 
-        // Add cache-busting to force fresh download
-        const swUrl = `${SW_CONFIG.path}?v=${Date.now()}`;
+        // Don't use cache-busting on every load - it causes the SW to be re-downloaded
+        // every time, which prevents it from ever controlling the page.
+        // Use updateViaCache: 'none' to still check for updates from the network.
+        const swUrl = SW_CONFIG.path;
         console.log(`[SW] Registering from ${swUrl} (attempt ${attempt})`);
 
         const registration = await navigator.serviceWorker.register(swUrl, {
@@ -108,39 +110,59 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
         if (!navigator.serviceWorker.controller) {
             console.log('[SW] No active controller - waiting for SW to take control...');
 
-            // Check if we've already reloaded to prevent loops
-            const hasReloaded = sessionStorage.getItem('sw-first-install-reloaded');
+            // Wait for the SW to activate and take control via controllerchange event
+            const controllerChangePromise = new Promise<void>((resolve) => {
+                const onControllerChange = () => {
+                    console.log('[SW] Controller changed - SW is now controlling');
+                    navigator.serviceWorker.removeEventListener(
+                        'controllerchange',
+                        onControllerChange
+                    );
+                    resolve();
+                };
+                navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+            });
 
-            // Wait for the SW to activate and take control
-            const checkController = setInterval(() => {
-                if (navigator.serviceWorker.controller) {
-                    console.log('[SW] Service Worker is now controlling the page');
-                    clearInterval(checkController);
-                    // Clear the reload flag since SW is now controlling
-                    sessionStorage.removeItem('sw-first-install-reloaded');
-                }
-            }, 500);
-
-            // Timeout after 15 seconds and reload if still no controller (only once)
-            // Increased from 10s to give more time for claim() to propagate
-            setTimeout(() => {
-                if (!navigator.serviceWorker.controller) {
-                    clearInterval(checkController);
-                    if (!hasReloaded) {
-                        console.warn(
-                            '[SW] SW not controlling after timeout - reloading to activate'
-                        );
-                        sessionStorage.setItem('sw-first-install-reloaded', 'true');
-                        window.location.reload();
-                    } else {
-                        console.error(
-                            '[SW] SW still not controlling after reload. The page will work but offline features may be limited.'
-                        );
-                        // Don't show alert - just log the warning. The app can still work.
-                        // The SW will control on the next page load.
+            // Also poll as a fallback (some browsers don't fire controllerchange reliably)
+            const pollPromise = new Promise<void>((resolve) => {
+                const checkController = setInterval(() => {
+                    if (navigator.serviceWorker.controller) {
+                        console.log('[SW] Service Worker is now controlling the page (poll)');
+                        clearInterval(checkController);
+                        resolve();
                     }
+                }, 500);
+            });
+
+            // Wait for either controllerchange or poll to detect control
+            // Add a timeout to avoid waiting forever
+            const timeoutPromise = new Promise<void>((resolve) => {
+                setTimeout(() => {
+                    console.log('[SW] Timeout waiting for controller - proceeding anyway');
+                    resolve();
+                }, 10000);
+            });
+
+            await Promise.race([controllerChangePromise, pollPromise, timeoutPromise]);
+
+            if (navigator.serviceWorker.controller) {
+                console.log('[SW] Service Worker is controlling the page');
+                sessionStorage.removeItem('sw-first-install-reloaded');
+            } else {
+                // Check if we've already reloaded once
+                const hasReloaded = sessionStorage.getItem('sw-first-install-reloaded');
+                if (!hasReloaded) {
+                    console.log(
+                        '[SW] SW not controlling after waiting - reloading once to activate'
+                    );
+                    sessionStorage.setItem('sw-first-install-reloaded', 'true');
+                    window.location.reload();
+                } else {
+                    console.log(
+                        '[SW] SW still not controlling after reload. The app will work but may need another refresh for full offline support.'
+                    );
                 }
-            }, 15000);
+            }
         } else {
             console.log('[SW] Service Worker is already controlling the page');
             // Clear any stale reload flag
@@ -191,6 +213,25 @@ function setupPeriodicUpdateChecks(registration: ServiceWorkerRegistration): voi
 }
 
 /**
+ * Force the service worker to check for updates and install if available
+ * This should be called when the user wants to update the app
+ */
+export async function checkForUpdates(): Promise<boolean> {
+    if (!('serviceWorker' in navigator)) {
+        return false;
+    }
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.update();
+        return true;
+    } catch (error) {
+        console.error('[SW] Update check failed:', error);
+        return false;
+    }
+}
+
+/**
  * Handle service worker registration state
  */
 function handleRegistration(registration: ServiceWorkerRegistration): void {
@@ -220,21 +261,10 @@ function handleInstallingWorker(worker: ServiceWorker): void {
                     emit('updateAvailable', { worker });
                 } else {
                     // First install - SW is installed but not controlling yet
+                    // The main registration flow will handle waiting for control
                     state.offlineReady = true;
                     emit('offlineReady', null);
-
-                    // Check if we've already reloaded once to prevent loops
-                    const hasReloaded = sessionStorage.getItem('sw-first-install-reloaded');
-                    if (!hasReloaded) {
-                        console.log('[SW] First install complete, reloading to activate...');
-                        sessionStorage.setItem('sw-first-install-reloaded', 'true');
-                        // Force reload to let SW take control immediately
-                        window.location.reload();
-                    } else {
-                        console.log(
-                            '[SW] First install complete, already reloaded once. SW should control now.'
-                        );
-                    }
+                    console.log('[SW] First install complete - waiting for activation...');
                 }
                 break;
 
