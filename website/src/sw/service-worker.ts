@@ -106,14 +106,21 @@ self.addEventListener('fetch', (event: FetchEvent) => {
     const { request } = event;
     const requestUrl = new URL(request.url);
 
+    // Log all requests for debugging
+    console.log(
+        `[SW] Fetch: ${request.method} ${requestUrl.pathname} (protocol: ${requestUrl.protocol})`
+    );
+
     // Skip non-http/https schemes (e.g., chrome-extension, data, blob)
     // These cannot be cached by the Cache API
     if (requestUrl.protocol !== 'http:' && requestUrl.protocol !== 'https:') {
+        console.log(`[SW] Skipping non-HTTP protocol: ${requestUrl.protocol}`);
         return;
     }
 
     // Skip auth routes - let browser handle OAuth redirects naturally
     if (AUTH_ROUTES.some((pattern) => pattern.test(requestUrl.pathname))) {
+        console.log(`[SW] Skipping auth route: ${requestUrl.pathname}`);
         return;
     }
 
@@ -122,22 +129,33 @@ self.addEventListener('fetch', (event: FetchEvent) => {
         request.method !== 'GET' &&
         !API_ROUTES.some((pattern) => pattern.test(requestUrl.pathname))
     ) {
+        console.log(`[SW] Skipping non-GET: ${request.method}`);
         return;
     }
 
+    // Check if this is a problem file request
+    const isProblemFile = PROBLEM_PATTERNS.some((pattern) => {
+        const matches = pattern.test(requestUrl.pathname);
+        console.log(`[SW] Testing pattern ${pattern} against ${requestUrl.pathname}: ${matches}`);
+        return matches;
+    });
+
     // Handle API requests
     if (API_ROUTES.some((pattern) => pattern.test(requestUrl.pathname))) {
+        console.log(`[SW] Handling as API request`);
         event.respondWith(handleAPIRequest(request));
         return;
     }
 
     // Handle problem markdown files
-    if (PROBLEM_PATTERNS.some((pattern) => pattern.test(requestUrl.pathname))) {
+    if (isProblemFile) {
+        console.log(`[SW] Handling as problem file`);
         event.respondWith(handleProblemRequest(request));
         return;
     }
 
     // Handle static assets (JS, CSS, images, fonts)
+    console.log(`[SW] Handling as static request`);
     event.respondWith(handleStaticRequest(request));
 });
 
