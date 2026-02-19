@@ -121,28 +121,26 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
                 }
             }, 500);
 
-            // Timeout after 10 seconds and reload if still no controller (only once)
+            // Timeout after 15 seconds and reload if still no controller (only once)
+            // Increased from 10s to give more time for claim() to propagate
             setTimeout(() => {
                 if (!navigator.serviceWorker.controller) {
+                    clearInterval(checkController);
                     if (!hasReloaded) {
                         console.warn(
                             '[SW] SW not controlling after timeout - reloading to activate'
                         );
                         sessionStorage.setItem('sw-first-install-reloaded', 'true');
-                        clearInterval(checkController);
                         window.location.reload();
                     } else {
                         console.error(
-                            '[SW] SW still not controlling after reload. Manual intervention needed.'
+                            '[SW] SW still not controlling after reload. The page will work but offline features may be limited.'
                         );
-                        clearInterval(checkController);
-                        // Show user a message or try alternative approach
-                        alert(
-                            'Service Worker failed to activate. Please clear browser cache and reload.'
-                        );
+                        // Don't show alert - just log the warning. The app can still work.
+                        // The SW will control on the next page load.
                     }
                 }
-            }, 10000);
+            }, 15000);
         } else {
             console.log('[SW] Service Worker is already controlling the page');
             // Clear any stale reload flag
@@ -286,6 +284,15 @@ function handleSWMessage(event: MessageEvent): void {
     switch (type) {
         case 'SW_ACTIVATED':
             state.active = true;
+            // If SW reports it's controlling, clear the reload flag
+            if (event.data.controlling === true) {
+                sessionStorage.removeItem('sw-first-install-reloaded');
+                console.log('[SW] SW reports it is controlling - reload flag cleared');
+            } else if (event.data.controlling === false) {
+                console.log(
+                    '[SW] SW activated but not yet controlling - waiting for controllerchange'
+                );
+            }
             emit('swActivated', data);
             break;
 
