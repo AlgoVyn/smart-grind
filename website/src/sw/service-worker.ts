@@ -98,16 +98,20 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                     `[SW] Found ${allClients.length} total clients (including uncontrolled)`
                 );
 
-                // Also get only controlled clients
-                const controlledClients = await self.clients.matchAll({ type: 'window' });
-                console.log(`[SW] Found ${controlledClients.length} controlled clients`);
-
-                // Log all client URLs for debugging
+                // Log all client URLs for debugging (with frameType, not controlled status)
                 allClients.forEach((client, i) => {
-                    console.log(
-                        `[SW] Client ${i}: ${client.url} (controlled: ${client.frameType})`
-                    );
+                    console.log(`[SW] Client ${i}: ${client.url} (frameType: ${client.frameType})`);
                 });
+
+                // Wait a bit longer after claim() for the browser to update client control status
+                // The claim() promise resolves when the claim is initiated, not when it's fully processed
+                await new Promise((resolve) => setTimeout(resolve, 200));
+
+                // Now get only controlled clients (without includeUncontrolled)
+                const controlledClients = await self.clients.matchAll({ type: 'window' });
+                console.log(
+                    `[SW] Found ${controlledClients.length} controlled clients after claim`
+                );
 
                 // Notify all clients that SW is active and controlling
                 if (controlledClients.length > 0) {
@@ -125,10 +129,20 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                         });
                     });
                 } else {
-                    console.warn('[SW] No controlled clients found - page may need reload');
-                    // Try to claim uncontrolled clients by navigating them
+                    console.warn(
+                        '[SW] No controlled clients found after claim - this is unexpected'
+                    );
+                    console.log(
+                        '[SW] Clients exist but not yet controlled. They will be controlled on next navigation.'
+                    );
+                    // Still notify all clients that SW is ready (even if not controlling yet)
                     allClients.forEach((client) => {
-                        console.log(`[SW] Attempting to claim uncontrolled client: ${client.url}`);
+                        console.log(`[SW] Notifying client (pending control): ${client.url}`);
+                        client.postMessage({
+                            type: 'SW_ACTIVATED',
+                            version: SW_VERSION,
+                            controlling: false,
+                        });
                     });
                 }
 
