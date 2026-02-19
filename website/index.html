@@ -38,9 +38,17 @@
     <link rel="manifest" href="/manifest.json">
     <link href="/src/styles.css" rel="stylesheet">
 
-    <!-- Theme Initialization (Prevent Flash) -->
+    <!-- Theme Initialization and Trailing Slash Redirect -->
     <script>
         (function () {
+            // Ensure trailing slash for Service Worker scope
+            // Page: /smartgrind -> Scope: /smartgrind/ (Mismatch)
+            // Page: /smartgrind/ -> Scope: /smartgrind/ (Match)
+            if (window.location.pathname === '/smartgrind') {
+                window.location.pathname = '/smartgrind/';
+                return;
+            }
+
             const savedTheme = localStorage.getItem('theme') || 'light';
             if (savedTheme === 'dark') {
                 document.documentElement.classList.add('dark');
