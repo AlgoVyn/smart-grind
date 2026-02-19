@@ -183,80 +183,82 @@ export const state = {
 
     // Cache DOM elements
     cacheElements(): void {
-        const $ = (id: string) => document.getElementById(id);
-        const $input = (id: string) => document.getElementById(id) as HTMLInputElement | null;
-        const $select = (id: string) => document.getElementById(id) as HTMLSelectElement | null;
-
-        // Element ID mappings: [property name, element ID, type]
-        const elementIds: [string, string, 'el' | 'input' | 'select'][] = [
-            ['setupModal', 'setup-modal', 'el'],
-            ['addProblemModal', 'add-problem-modal', 'el'],
-            ['signinModal', 'signin-modal', 'el'],
-            ['signinModalContent', 'signin-modal-content', 'el'],
-            ['alertModal', 'alert-modal', 'el'],
-            ['confirmModal', 'confirm-modal', 'el'],
-            ['alertMessage', 'alert-message', 'el'],
-            ['confirmMessage', 'confirm-message', 'el'],
-            ['alertTitle', 'alert-title', 'el'],
-            ['confirmTitle', 'confirm-title', 'el'],
-            ['alertOkBtn', 'alert-ok-btn', 'el'],
-            ['confirmOkBtn', 'confirm-ok-btn', 'el'],
-            ['confirmCancelBtn', 'confirm-cancel-btn', 'el'],
-            ['appWrapper', 'app-wrapper', 'el'],
-            ['loadingScreen', 'loading-screen', 'el'],
-            ['googleLoginBtn', 'google-login-button', 'el'],
-            ['modalGoogleLoginBtn', 'modal-google-login-button', 'el'],
-            ['setupError', 'setup-error', 'el'],
-            ['signinError', 'signin-error', 'el'],
-            ['topicList', 'topic-list', 'el'],
-            ['problemsContainer', 'problems-container', 'el'],
-            ['mobileMenuBtn', 'mobile-menu-btn', 'el'],
-            ['openAddModalBtn', 'open-add-modal-btn', 'el'],
-            ['cancelAddBtn', 'cancel-add-btn', 'el'],
-            ['saveAddBtn', 'save-add-btn', 'el'],
-            ['sidebarSolvedText', 'sidebar-total-stat', 'el'],
-            ['sidebarSolvedBar', 'sidebar-total-bar', 'el'],
-            ['mainTotalText', 'stat-total', 'el'],
-            ['mainSolvedText', 'stat-solved', 'el'],
-            ['mainSolvedBar', 'progress-bar-solved', 'el'],
-            ['mainDueText', 'stat-due', 'el'],
-            ['mainDueBadge', 'stat-due-badge', 'el'],
-            ['currentFilterDisplay', 'current-filter-display', 'el'],
-            ['contentScroll', 'content-scroll', 'el'],
-            ['emptyState', 'empty-state', 'el'],
-            ['currentViewTitle', 'current-view-title', 'el'],
-            ['reviewBanner', 'review-banner', 'el'],
-            ['reviewCountBanner', 'review-count-banner', 'el'],
-            ['toastContainer', 'toast-container', 'el'],
-            ['userDisplay', 'user-display', 'el'],
-            ['disconnectBtn', 'disconnect-btn', 'el'],
-            ['themeToggleBtn', 'theme-toggle-btn', 'el'],
-            ['mainSidebar', 'main-sidebar', 'el'],
-            ['sidebarResizer', 'sidebar-resizer', 'el'],
-            ['sidebarBackdrop', 'sidebar-backdrop', 'el'],
-            ['mobileMenuBtnMain', 'mobile-menu-btn-main', 'el'],
-            ['scrollToTopBtn', 'scroll-to-top-btn', 'el'],
-            ['sidebarLogo', 'sidebar-logo', 'el'],
-            ['mobileLogo', 'mobile-logo', 'el'],
-            ['solutionModal', 'solution-modal', 'el'],
-            ['solutionCloseBtn', 'solution-close-btn', 'el'],
-            ['headerDisconnectBtn', 'header-disconnect-btn', 'el'],
-            ['dateFilterContainer', 'date-filter-container', 'el'],
-            ['addProbName', 'add-prob-name', 'input'],
-            ['addProbUrl', 'add-prob-url', 'input'],
-            ['addProbCategoryNew', 'add-prob-category-new', 'input'],
-            ['addProbPatternNew', 'add-prob-pattern-new', 'input'],
-            ['problemSearch', 'problem-search', 'input'],
-            ['addProbCategory', 'add-prob-category', 'select'],
-            ['addProbPattern', 'add-prob-pattern', 'select'],
-            ['reviewDateFilter', 'review-date-filter', 'select'],
-        ];
+        // Element ID mappings: property name -> [DOM ID, input type or null for regular elements]
+        const elementMappings: Record<string, [string, 'input' | 'select' | null]> = {
+            setupModal: ['setup-modal', null],
+            addProblemModal: ['add-problem-modal', null],
+            signinModal: ['signin-modal', null],
+            signinModalContent: ['signin-modal-content', null],
+            alertModal: ['alert-modal', null],
+            confirmModal: ['confirm-modal', null],
+            alertMessage: ['alert-message', null],
+            confirmMessage: ['confirm-message', null],
+            alertTitle: ['alert-title', null],
+            confirmTitle: ['confirm-title', null],
+            alertOkBtn: ['alert-ok-btn', null],
+            confirmOkBtn: ['confirm-ok-btn', null],
+            confirmCancelBtn: ['confirm-cancel-btn', null],
+            appWrapper: ['app-wrapper', null],
+            loadingScreen: ['loading-screen', null],
+            googleLoginBtn: ['google-login-button', null],
+            modalGoogleLoginBtn: ['modal-google-login-button', null],
+            setupError: ['setup-error', null],
+            signinError: ['signin-error', null],
+            topicList: ['topic-list', null],
+            problemsContainer: ['problems-container', null],
+            mobileMenuBtn: ['mobile-menu-btn', null],
+            openAddModalBtn: ['open-add-modal-btn', null],
+            cancelAddBtn: ['cancel-add-btn', null],
+            saveAddBtn: ['save-add-btn', null],
+            sidebarSolvedText: ['sidebar-total-stat', null],
+            sidebarSolvedBar: ['sidebar-total-bar', null],
+            mainTotalText: ['stat-total', null],
+            mainSolvedText: ['stat-solved', null],
+            mainSolvedBar: ['progress-bar-solved', null],
+            mainDueText: ['stat-due', null],
+            mainDueBadge: ['stat-due-badge', null],
+            currentFilterDisplay: ['current-filter-display', null],
+            contentScroll: ['content-scroll', null],
+            emptyState: ['empty-state', null],
+            currentViewTitle: ['current-view-title', null],
+            reviewBanner: ['review-banner', null],
+            reviewCountBanner: ['review-count-banner', null],
+            toastContainer: ['toast-container', null],
+            userDisplay: ['user-display', null],
+            disconnectBtn: ['disconnect-btn', null],
+            themeToggleBtn: ['theme-toggle-btn', null],
+            mainSidebar: ['main-sidebar', null],
+            sidebarResizer: ['sidebar-resizer', null],
+            sidebarBackdrop: ['sidebar-backdrop', null],
+            mobileMenuBtnMain: ['mobile-menu-btn-main', null],
+            scrollToTopBtn: ['scroll-to-top-btn', null],
+            sidebarLogo: ['sidebar-logo', null],
+            mobileLogo: ['mobile-logo', null],
+            solutionModal: ['solution-modal', null],
+            solutionCloseBtn: ['solution-close-btn', null],
+            headerDisconnectBtn: ['header-disconnect-btn', null],
+            dateFilterContainer: ['date-filter-container', null],
+            addProbName: ['add-prob-name', 'input'],
+            addProbUrl: ['add-prob-url', 'input'],
+            addProbCategoryNew: ['add-prob-category-new', 'input'],
+            addProbPatternNew: ['add-prob-pattern-new', 'input'],
+            problemSearch: ['problem-search', 'input'],
+            addProbCategory: ['add-prob-category', 'select'],
+            addProbPattern: ['add-prob-pattern', 'select'],
+            reviewDateFilter: ['review-date-filter', 'select'],
+        };
 
         const elements: Partial<ElementCache> = {};
-        for (const [key, id, type] of elementIds) {
+        for (const [key, [id, type]] of Object.entries(elementMappings)) {
+            const el = document.getElementById(id);
             (elements as Record<string, HTMLElement | HTMLInputElement | HTMLSelectElement | null>)[
                 key
-            ] = type === 'input' ? $input(id) : type === 'select' ? $select(id) : $(id);
+            ] =
+                type === 'input'
+                    ? (el as HTMLInputElement | null)
+                    : type === 'select'
+                      ? (el as HTMLSelectElement | null)
+                      : el;
         }
         elements['filterBtns'] = document.querySelectorAll('.filter-btn');
         this.elements = elements;

@@ -26,6 +26,12 @@ export const _getProblemIdsForTopic = (topic: Topic): Set<string> => {
 };
 
 /**
+ * Creates a deep copy of the current problems map for rollback purposes.
+ */
+const createProblemsBackup = () =>
+    new Map(Array.from(state.problems.entries()).map(([id, p]) => [id, { ...p }]));
+
+/**
  * Resets the specified problems to unsolved state.
  * @param {Set<string>} problemIds - Set of problem IDs to reset.
  */
@@ -152,12 +158,8 @@ export const resetAll = async (): Promise<void> => {
     );
     if (!confirmed) return;
 
-    // Store original state for rollback (deep copy)
-    const originalProblems = new Map(
-        Array.from(state.problems.entries() as IterableIterator<[string, Problem]>).map(
-            ([id, p]) => [id, { ...p }]
-        )
-    );
+    // Store original state for rollback
+    const originalProblems = createProblemsBackup();
     const originalDeletedIds = new Set(state.deletedProblemIds);
 
     try {
@@ -199,12 +201,8 @@ export const resetCategory = async (topicId: string): Promise<void> => {
     );
     if (!confirmed) return;
 
-    // Store original state for rollback (deep copy)
-    const originalProblems = new Map(
-        Array.from(state.problems.entries() as IterableIterator<[string, Problem]>).map(
-            ([id, p]) => [id, { ...p }]
-        )
-    );
+    // Store original state for rollback
+    const originalProblems = createProblemsBackup();
     const originalDeletedIds = new Set(state.deletedProblemIds);
 
     try {

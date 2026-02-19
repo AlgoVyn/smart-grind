@@ -107,23 +107,22 @@ export const createModalHandler =
         closeCallback?.();
     };
 
-// Generic modal manager
-const modalManager = {
-    show: (modalEl: HTMLElement | null | undefined, setupCallback?: () => void) => {
-        if (!modalEl) return;
-        setupCallback?.();
-        modalEl.classList.remove('hidden');
-    },
-    hide: (modalEl: HTMLElement | null | undefined, cleanupCallback?: () => void) => {
-        if (!modalEl) return;
-        modalEl.classList.add('hidden');
-        cleanupCallback?.();
-    },
+// Modal helper functions
+const showModal = (modalEl: HTMLElement | null | undefined, setupCallback?: () => void) => {
+    if (!modalEl) return;
+    setupCallback?.();
+    modalEl.classList.remove('hidden');
+};
+
+const hideModal = (modalEl: HTMLElement | null | undefined, cleanupCallback?: () => void) => {
+    if (!modalEl) return;
+    modalEl.classList.add('hidden');
+    cleanupCallback?.();
 };
 
 // Modal functions
-export const openSigninModal = () => modalManager.show(state.elements['signinModal']);
-export const closeSigninModal = () => modalManager.hide(state.elements['signinModal']);
+export const openSigninModal = () => showModal(state.elements['signinModal']);
+export const closeSigninModal = () => hideModal(state.elements['signinModal']);
 
 let _confirmResolve: ((_value: boolean) => void) | null = null;
 
@@ -155,9 +154,8 @@ export const _setupAddModal = () => {
     patternNewEl?.classList.remove('hidden');
 };
 
-export const openAddModal = () =>
-    modalManager.show(state.elements['addProblemModal'], _setupAddModal);
-export const closeAddModal = () => modalManager.hide(state.elements['addProblemModal']);
+export const openAddModal = () => showModal(state.elements['addProblemModal'], _setupAddModal);
+export const closeAddModal = () => hideModal(state.elements['addProblemModal']);
 
 // Alert modal functions
 let showAlertCalled = false;
@@ -169,7 +167,7 @@ export const showAlert = (message: string, title = 'Alert') => {
     lastShowAlertMessage = message;
     lastShowAlertTitle = title;
 
-    modalManager.show(state.elements['alertModal'], () => {
+    showModal(state.elements['alertModal'], () => {
         if (state.elements['alertTitle']) state.elements['alertTitle'].textContent = title;
         if (state.elements['alertMessage']) state.elements['alertMessage'].textContent = message;
     });
@@ -185,12 +183,12 @@ export const clearShowAlertHistory = () => {
     lastShowAlertMessage = '';
     lastShowAlertTitle = '';
 };
-export const closeAlertModal = () => modalManager.hide(state.elements['alertModal']);
+export const closeAlertModal = () => hideModal(state.elements['alertModal']);
 
 // Confirm modal functions
 export const showConfirm = (message: string, title = 'Confirm Action') =>
     new Promise((resolve: (_value: boolean) => void) => {
-        modalManager.show(state.elements['confirmModal'], () => {
+        showModal(state.elements['confirmModal'], () => {
             if (state.elements['confirmTitle']) state.elements['confirmTitle'].textContent = title;
             if (state.elements['confirmMessage']) {
                 // Sanitize but allow basic formatting
@@ -207,18 +205,14 @@ export const showConfirm = (message: string, title = 'Confirm Action') =>
     });
 
 export const closeConfirmModal = (result: boolean) => {
-    modalManager.hide(state.elements['confirmModal'], () => {
+    hideModal(state.elements['confirmModal'], () => {
         _confirmResolve?.(result);
         _confirmResolve = null;
     });
 };
 
 export const _toggleElementVisibility = (element: HTMLElement, hide: boolean) => {
-    if (hide) {
-        element.classList.add('hidden');
-    } else {
-        element.classList.remove('hidden');
-    }
+    element.classList.toggle('hidden', hide);
 };
 
 export const handleCategoryChange = (e: Event) => {

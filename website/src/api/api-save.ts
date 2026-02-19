@@ -144,7 +144,7 @@ export const _performSave = async (): Promise<void> => {
  * Saves a problem to storage or API.
  */
 export const saveProblem = async (_problem?: Problem): Promise<void> => {
-    await apiSave._performSave();
+    await _performSave();
 };
 
 /**
@@ -155,7 +155,7 @@ export const saveDeletedId = async (id: string): Promise<void> => {
     try {
         state.problems.delete(id);
         state.deletedProblemIds.add(id);
-        await apiSave._performSave();
+        await _performSave();
         renderers.renderMainView(state.ui.activeTopicId);
     } catch (e) {
         console.error('Delete save error:', e);
@@ -173,7 +173,7 @@ export const saveDeletedId = async (id: string): Promise<void> => {
  * Saves all current data to storage or API.
  */
 export const saveData = async (): Promise<void> => {
-    await apiSave._performSave();
+    await _performSave();
 };
 
 /**
@@ -246,15 +246,5 @@ if (typeof window !== 'undefined') {
     });
 }
 
-// Export apiSave object for backward compatibility with tests
-export const apiSave = {
-    _performSave,
-    _saveLocally,
-    _saveRemotely,
-    _resetDebounceState,
-    _triggerBackgroundSync: triggerBackgroundSync,
-    saveData,
-    saveProblem,
-    saveDeletedId,
-    flushPendingSync,
-};
+// Export internal functions for testing
+export const _triggerBackgroundSync = triggerBackgroundSync;

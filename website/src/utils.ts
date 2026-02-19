@@ -474,17 +474,17 @@ export const utils = {
      * @returns {boolean} True if the problem should be displayed
      */
     shouldShowProblem: (problem: Problem, filter: string, searchQuery: string, today: string) => {
-        // Status filter predicates
-        const statusFilters: Record<string, (_p: Problem) => boolean> = {
-            all: () => true,
-            unsolved: (p) => p.status === 'unsolved',
-            solved: (p) => p.status === 'solved',
-            review: (p) =>
-                p.status === 'solved' && p.nextReviewDate !== null && p.nextReviewDate <= today,
-        };
+        // Status filter check
+        const passesFilter =
+            filter === 'all' ||
+            (filter === 'unsolved' && problem.status === 'unsolved') ||
+            (filter === 'solved' && problem.status === 'solved') ||
+            (filter === 'review' &&
+                problem.status === 'solved' &&
+                problem.nextReviewDate !== null &&
+                problem.nextReviewDate <= today);
 
-        // Apply status filter
-        if (!statusFilters[filter]?.(problem)) return false;
+        if (!passesFilter) return false;
 
         // Apply date filter for review/solved modes
         if ((filter === 'review' || filter === 'solved') && state.ui.reviewDateFilter) {
@@ -494,9 +494,11 @@ export const utils = {
         // Apply search query
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
-            const nameMatch = problem.name.toLowerCase().includes(query);
-            const noteMatch = problem.note?.toLowerCase().includes(query);
-            return nameMatch || !!noteMatch;
+            return (
+                problem.name.toLowerCase().includes(query) ||
+                problem.note?.toLowerCase().includes(query) ||
+                false
+            );
         }
 
         return true;

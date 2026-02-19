@@ -177,8 +177,7 @@ export const htmlGenerators = {
         const badgeClass = isDue
             ? 'bg-amber-500/20 text-amber-500'
             : 'bg-brand-500/20 text-brand-400';
-        const badgeText = isDue ? 'Review' : 'Solved';
-        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass} uppercase tracking-wide">${badgeText}</span>`;
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass} uppercase tracking-wide">${isDue ? 'Review' : 'Solved'}</span>`;
     },
 
     // Helper to generate action button HTML

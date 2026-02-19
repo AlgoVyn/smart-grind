@@ -942,8 +942,11 @@ describe('SmartGrind UI', () => {
 
             ui.toggleMobileMenu();
 
-            expect(mockClassListAdd).toHaveBeenCalledWith('translate-x-0');
-            expect(mockClassListRemove).toHaveBeenCalledWith('-translate-x-full');
+            // isOpen=false means menu is closed, so we open it
+            // toggle('translate-x-0', !isOpen=true) adds the class
+            // toggle('-translate-x-full', isOpen=false) removes the class
+            expect(mockClassListToggle).toHaveBeenCalledWith('translate-x-0', true);
+            expect(mockClassListToggle).toHaveBeenCalledWith('-translate-x-full', false);
             expect(document.body.style.overflow).toBe('hidden');
         });
 
@@ -952,8 +955,11 @@ describe('SmartGrind UI', () => {
 
             ui.toggleMobileMenu();
 
-            expect(mockClassListRemove).toHaveBeenCalledWith('translate-x-0');
-            expect(mockClassListAdd).toHaveBeenCalledWith('-translate-x-full');
+            // isOpen=true means menu is open, so we close it
+            // toggle('translate-x-0', !isOpen=false) removes the class
+            // toggle('-translate-x-full', isOpen=true) adds the class
+            expect(mockClassListToggle).toHaveBeenCalledWith('translate-x-0', false);
+            expect(mockClassListToggle).toHaveBeenCalledWith('-translate-x-full', true);
             expect(document.body.style.overflow).toBe('');
         });
     });
@@ -1169,7 +1175,9 @@ describe('SmartGrind UI', () => {
 
             ui.handleCategoryChange(event);
 
-            expect(mockClassListAdd).toHaveBeenCalledWith('hidden');
+            // _toggleElementVisibility uses toggle('hidden', hide)
+            // When category is selected (val='Arrays'), categoryNewEl is hidden (hide=true)
+            expect(mockClassListToggle).toHaveBeenCalledWith('hidden', true);
             expect(mockElement.innerHTML).toContain('Two Sum');
         });
 
@@ -1178,7 +1186,8 @@ describe('SmartGrind UI', () => {
 
             ui.handleCategoryChange(event);
 
-            expect(mockClassListRemove).toHaveBeenCalledWith('hidden');
+            // When category is empty (val=''), categoryNewEl is shown (hide=false)
+            expect(mockClassListToggle).toHaveBeenCalledWith('hidden', false);
         });
     });
 
@@ -1188,7 +1197,8 @@ describe('SmartGrind UI', () => {
 
             ui.handlePatternChange(event);
 
-            expect(mockClassListAdd).toHaveBeenCalledWith('hidden');
+            // When pattern is selected, patternNewEl is hidden (hide=true)
+            expect(mockClassListToggle).toHaveBeenCalledWith('hidden', true);
         });
 
         test('shows new pattern input when custom selected', () => {
@@ -1196,7 +1206,8 @@ describe('SmartGrind UI', () => {
 
             ui.handlePatternChange(event);
 
-            expect(mockClassListRemove).toHaveBeenCalledWith('hidden');
+            // When pattern is empty, patternNewEl is shown (hide=false)
+            expect(mockClassListToggle).toHaveBeenCalledWith('hidden', false);
         });
     });
 
@@ -1213,7 +1224,8 @@ describe('SmartGrind UI', () => {
             expect(utils.updateUrlParameter).toHaveBeenCalledWith('category', null);
             expect(renderers.renderMainView).toHaveBeenCalledWith('all');
             expect(utils.scrollToTop).toHaveBeenCalled();
-            expect(mockClassListRemove).toHaveBeenCalledWith('translate-x-0');
+            // toggleMobileMenu is called which uses toggle, not remove
+            expect(mockClassListToggle).toHaveBeenCalledWith('translate-x-0', false);
 
             // Reset innerWidth
             window.innerWidth = originalInnerWidth;
@@ -1230,7 +1242,8 @@ describe('SmartGrind UI', () => {
             expect(utils.updateUrlParameter).toHaveBeenCalledWith('category', null);
             expect(renderers.renderMainView).toHaveBeenCalledWith('all');
             expect(utils.scrollToTop).toHaveBeenCalled();
-            expect(mockClassListRemove).not.toHaveBeenCalledWith('translate-x-0');
+            // On desktop, toggleMobileMenu is not called
+            expect(mockClassListToggle).not.toHaveBeenCalledWith('translate-x-0', false);
 
             // Reset innerWidth
             window.innerWidth = originalInnerWidth;
@@ -1675,7 +1688,8 @@ describe('SmartGrind UI', () => {
 
             state.elements.topicList.dispatchEvent(event);
 
-            expect(mockClassListAdd).toHaveBeenCalledWith('translate-x-0');
+            // toggleMobileMenu is called which uses toggle
+            expect(mockClassListToggle).toHaveBeenCalledWith('translate-x-0', true);
         });
 
         test('handles problem card button click', () => {
