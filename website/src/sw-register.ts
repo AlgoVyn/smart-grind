@@ -4,9 +4,11 @@
 import { getConnectivityChecker } from './sw/connectivity-checker';
 
 // Service Worker configuration
+// Note: Scope must match the actual page URL exactly
+// The page URL is https://algovyn.com/smartgrind (no trailing slash)
 const SW_CONFIG = {
     path: '/smartgrind/sw.js',
-    scope: '/',
+    scope: '/smartgrind', // Match page URL exactly (no trailing slash)
 };
 
 // Registration retry configuration
