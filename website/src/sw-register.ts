@@ -71,6 +71,7 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
 
         const registration = await navigator.serviceWorker.register(swUrl, {
             updateViaCache: 'none',
+            scope: '/smartgrind/',
         });
 
         // Verify registration was successful
@@ -104,6 +105,14 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
             console.log('[SW] Controller changed - new SW is now controlling the page');
             state.active = true;
             emit('activated', null);
+
+            // If this is the first install and we're not controlled yet,
+            // a reload might be necessary to start intercepting requests immediately.
+            if (!sessionStorage.getItem('sw-first-install-reloaded')) {
+                sessionStorage.setItem('sw-first-install-reloaded', 'true');
+                console.log('[SW] First install detected, reloading to ensure SW control...');
+                window.location.reload();
+            }
         });
 
         // Wait for the service worker to be ready and controlling

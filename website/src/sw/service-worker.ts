@@ -728,9 +728,15 @@ async function checkAndDownloadBundle(): Promise<void> {
         const currentState = await getBundleStatus();
 
         // Fetch the manifest to check version
-        const manifestResponse = await fetch(BUNDLE_MANIFEST_URL);
-        if (!manifestResponse.ok) {
-            console.log('[SW] No bundle manifest found, skipping auto-download');
+        const manifestResponse = await fetch(BUNDLE_MANIFEST_URL).catch((err) => {
+            console.warn('[SW] Failed to fetch bundle manifest (likely offline):', err);
+            return null;
+        });
+
+        if (!manifestResponse || !manifestResponse.ok) {
+            console.log(
+                `[SW] No bundle manifest available (status: ${manifestResponse?.status || 'network error'}), skipping auto-download`
+            );
             return;
         }
 
