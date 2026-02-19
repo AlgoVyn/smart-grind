@@ -33,9 +33,10 @@ export class ErrorBoundary {
      * @param fallbackContent Optional fallback HTML content
      */
     private handleError(error: unknown, fallbackContent?: string): void {
-        console.error('ErrorBoundary caught an error:', error);
-
         const message = error instanceof Error ? error.message : String(error);
+
+        // Log error for debugging
+        console.error('ErrorBoundary caught an error:', error);
 
         // Show user-friendly alert
         ui.showAlert(`An error occurred: ${message}`);
@@ -64,9 +65,9 @@ export class ErrorBoundary {
         // Properly escape HTML entities to prevent XSS attacks
         return message
             .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
+            .replace(/</g, '<')
+            .replace(/>/g, '>')
+            .replace(/"/g, '"')
             .replace(/'/g, '&#x27;');
     }
 
@@ -101,8 +102,8 @@ export const setupGlobalErrorHandlers = (): void => {
 
     // Handle unhandled promise rejections
     window.addEventListener('unhandledrejection', (event) => {
-        console.error('Unhandled promise rejection:', event.reason);
         const message = event.reason instanceof Error ? event.reason.message : String(event.reason);
+        console.error('Unhandled promise rejection:', event.reason);
         getUI()?.showAlert(`An unexpected error occurred: ${message}`);
 
         // Prevent default browser error handling

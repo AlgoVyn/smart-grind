@@ -130,8 +130,7 @@ export const utils = {
         try {
             await navigator.clipboard.writeText(text);
             utils.showToast('Prompt copied to clipboard', 'success');
-        } catch (err) {
-            console.error('Clipboard API failed, trying fallback: ', err);
+        } catch (_err) {
             // Fallback for older browsers or when clipboard API fails
             try {
                 const textArea = document.createElement('textarea');
@@ -145,8 +144,7 @@ export const utils = {
                 } else {
                     throw new Error('execCommand returned false');
                 }
-            } catch (fallbackErr) {
-                console.error('Fallback copy failed: ', fallbackErr);
+            } catch (_fallbackErr) {
                 utils.showToast('Failed to copy prompt', 'error');
             }
         }
@@ -301,7 +299,6 @@ export const utils = {
             lowerSanitized.includes('data:') ||
             lowerSanitized.includes('vbscript:')
         ) {
-            console.warn('Dangerous URL scheme detected:', sanitized);
             return '';
         }
 
@@ -314,9 +311,9 @@ export const utils = {
 
             // Create URL object to validate
             new URL(sanitized);
-        } catch (e) {
+        } catch (_e) {
             // If URL parsing fails, return empty string
-            console.warn('Invalid URL:', e);
+
             return '';
         }
 

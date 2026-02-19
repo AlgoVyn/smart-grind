@@ -119,7 +119,6 @@ export const handleGoogleLogin = () => {
     const messageHandler = (event: MessageEvent) => {
         // Strict origin check for security
         if (event.origin !== window.location.origin) {
-            console.warn('Received message from unexpected origin:', event.origin);
             return;
         }
         authCompleted = true;

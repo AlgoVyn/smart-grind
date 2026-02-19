@@ -175,7 +175,6 @@ export const resetAll = async (): Promise<void> => {
         _restoreAllDeletedProblems();
         await _performResetAndRender('All problems reset and restored');
     } catch (e) {
-        console.error('Reset all error:', e);
         // Restore original state on failure
         state.problems = originalProblems;
         state.deletedProblemIds = originalDeletedIds;
@@ -211,7 +210,6 @@ export const resetCategory = async (topicId: string): Promise<void> => {
         _restoreDeletedProblems(categoryProblemIds);
         await _performResetAndRender('Category problems reset and restored');
     } catch (e) {
-        console.error('Reset category error:', e);
         // Restore original state on failure
         state.problems = originalProblems;
         state.deletedProblemIds = originalDeletedIds;

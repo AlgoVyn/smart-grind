@@ -59,5 +59,5 @@ if (typeof jest === 'undefined') {
     checkAuth();
     // Initialize sync indicators for offline/online status display
     initSyncIndicators();
-    ui.init().catch(console.error);
+    ui.init().catch(() => {});
 }

@@ -88,7 +88,6 @@ const safeJsonParse = <T>(data: string | null, defaultValue: T): T => {
     try {
         return data ? JSON.parse(data) : defaultValue;
     } catch {
-        console.error('JSON parse error');
         return defaultValue;
     }
 };
@@ -152,8 +151,8 @@ export const state = {
                 localStorage.getItem(data.LOCAL_STORAGE_KEYS.DISPLAY_NAME) || 'Local User';
             this.user.type = (localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE) ||
                 'local') as 'local' | 'signed-in';
-        } catch (e) {
-            console.error('Error loading state from storage:', e);
+        } catch (_e) {
+            // ignore
         }
     },
 
@@ -176,8 +175,8 @@ export const state = {
             );
             localStorage.setItem(data.LOCAL_STORAGE_KEYS.DISPLAY_NAME, this.user.displayName);
             localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
-        } catch (e) {
-            console.error('Error saving state to storage:', e);
+        } catch (_e) {
+            // ignore
         }
     },
 

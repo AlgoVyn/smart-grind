@@ -16,6 +16,8 @@ import { ui } from './ui/ui';
 import { utils } from './utils';
 import { app } from './app';
 import { withErrorHandling, setupGlobalErrorHandlers } from './error-boundary';
+import * as swRegister from './sw-register';
+import { openSigninModal } from './ui/ui-modals';
 
 // Initialize global error handlers
 setupGlobalErrorHandlers();
@@ -87,7 +89,6 @@ const checkAuth = async () => {
         // Validate token format before storing (basic validation)
         // Tokens should be non-empty and reasonably sized
         if (urlToken.length < 10 || urlToken.length > 1000) {
-            console.error('Invalid token format received');
             ui.showAlert('Invalid authentication token. Please try signing in again.');
             return;
         }
@@ -147,6 +148,18 @@ const checkAuth = async () => {
 
     // Initialize offline detection and sync monitoring
     initOfflineDetection();
+
+    // Listen for auth required events from Service Worker (background sync auth failures)
+    swRegister.on('authRequired', (eventData: unknown) => {
+        const data = eventData as { message?: string; timestamp?: number };
+        console.warn('[Auth] Background sync authentication failed:', data.message);
+
+        // Show sign-in modal to ask user to sign in again
+        openSigninModal();
+
+        // Show toast notification
+        utils.showToast('Session expired. Please sign in again.', 'error');
+    });
 };
 
 export { checkAuth };

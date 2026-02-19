@@ -123,7 +123,6 @@ export const deleteCategory = async (topicId: string): Promise<void> => {
         renderers.renderMainView(state.ui.activeTopicId);
         utils.showToast('Category and associated problems removed');
     } catch (e) {
-        console.error('Delete category error:', e);
         // Restore original state on failure
         _restoreOriginalState(originalState);
         const message = e instanceof Error ? e.message : String(e);

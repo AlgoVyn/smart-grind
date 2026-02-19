@@ -74,7 +74,6 @@ const handleSaveOperation = async (
         await saveFn();
         renderers.updateStats();
     } catch (e) {
-        console.error('Save error:', e);
         if (isOfflineMode) throw e;
 
         const errorMessage =
@@ -102,11 +101,8 @@ const executeBackgroundSync = async (): Promise<void> => {
             try {
                 await saveRemotelyWithData(dataToSync);
                 return;
-            } catch (error) {
-                console.warn(
-                    '[APISave] Direct remote save failed, falling back to SW queue:',
-                    error
-                );
+            } catch (_error) {
+                // Direct remote save failed, falling back to SW queue
             }
         }
 
@@ -118,8 +114,8 @@ const executeBackgroundSync = async (): Promise<void> => {
         });
 
         if (isBrowserOnline()) await forceSync();
-    } catch (error) {
-        console.warn('[APISave] Background sync trigger failed:', error);
+    } catch (_error) {
+        // Background sync trigger failed
     }
 };
 
@@ -158,7 +154,6 @@ export const saveDeletedId = async (id: string): Promise<void> => {
         await _performSave();
         renderers.renderMainView(state.ui.activeTopicId);
     } catch (e) {
-        console.error('Delete save error:', e);
         const message = e instanceof Error ? e.message : String(e);
         ui.showAlert(`Failed to delete problem: ${message}`);
         if (problem) {
@@ -193,8 +188,7 @@ export const flushPendingSync = async (): Promise<void> => {
             if (isBrowserOnline()) {
                 await saveRemotelyWithData(dataToSync);
             }
-        } catch (error) {
-            console.warn('[APISave] Failed to flush pending sync:', error);
+        } catch (_error) {
             const { queueOperation, forceSync } = await import('../api');
             await queueOperation({
                 type: 'UPDATE_SETTINGS',

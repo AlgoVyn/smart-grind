@@ -212,8 +212,8 @@ export class ConnectivityChecker {
         this.listeners.forEach((callback) => {
             try {
                 callback(_online);
-            } catch (error) {
-                console.error('[ConnectivityChecker] Error in listener:', error);
+            } catch {
+                // Listener error ignored
             }
         });
     }
@@ -226,8 +226,8 @@ export class ConnectivityChecker {
         window.addEventListener('online', () => {
             // Force immediate check without cache - critical for reliable sync
             this.state.lastChecked = 0; // Reset cache to force fresh check
-            this.checkConnectivity().catch((error) => {
-                console.error('[ConnectivityChecker] Online event check failed:', error);
+            this.checkConnectivity().catch(() => {
+                // Check failed, will retry on next interval
             });
         });
 

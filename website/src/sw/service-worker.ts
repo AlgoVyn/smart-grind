@@ -51,9 +51,8 @@ self.addEventListener('install', (event: ExtendableEvent) => {
 
                 // Skip waiting to activate immediately
                 await self.skipWaiting();
-            } catch (error) {
-                console.error('[SW] Install failed:', error);
-                throw error;
+            } catch {
+                throw new Error('Service worker install failed');
             }
         })()
     );
@@ -124,12 +123,11 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                 });
 
                 // Check and download bundle in background if needed
-                checkAndDownloadBundle().catch((error) => {
-                    console.error('[SW] Background bundle download failed:', error);
+                checkAndDownloadBundle().catch(() => {
+                    // Bundle download failed, will retry later
                 });
-            } catch (error) {
-                console.error('[SW] Activation failed:', error);
-                throw error;
+            } catch {
+                throw new Error('Service worker activation failed');
             }
         })()
     );
@@ -296,8 +294,7 @@ async function handleProblemRequest(request: Request): Promise<Response> {
             cache.put(request, networkResponse.clone());
         }
         return networkResponse;
-    } catch (_error) {
-        console.error(`[SW] Network failed and no cache for: ${request.url}`);
+    } catch {
         // Return offline fallback
         return new Response(
             '# Offline\n\nThis problem is not available offline. Please connect to the internet to access this content.',
@@ -475,8 +472,8 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
 
         case 'NETWORK_RESTORED':
             event.waitUntil(
-                backgroundSync.checkAndSync().catch((error) => {
-                    console.error('[SW] Failed to sync after network restored message:', error);
+                backgroundSync.checkAndSync().catch(() => {
+                    // Sync failed, will retry
                 })
             );
             break;
@@ -549,8 +546,8 @@ self.addEventListener('periodicsync', (event: Event) => {
 // This is critical for ensuring offline changes get synced
 self.addEventListener('online', () => {
     // Use waitUntil pattern to ensure sync completes
-    backgroundSync.checkAndSync().catch((error) => {
-        console.error('[SW] Failed to sync after coming online:', error);
+    backgroundSync.checkAndSync().catch(() => {
+        // Sync failed, will retry
     });
 });
 
@@ -692,9 +689,8 @@ async function checkAndDownloadBundle(): Promise<void> {
 
         // Download the bundle
         await downloadAndExtractBundle();
-    } catch (error) {
-        console.error('[SW] Failed to check/download bundle:', error);
-        throw error;
+    } catch {
+        throw new Error('Bundle download failed');
     }
 }
 
@@ -833,8 +829,6 @@ async function downloadAndExtractBundle(): Promise<void> {
             });
         });
     } catch (error) {
-        console.error('[SW] Bundle download failed:', error);
-
         const errorState: BundleDownloadState = {
             status: 'error',
             progress: 0,

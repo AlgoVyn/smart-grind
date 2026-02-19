@@ -115,7 +115,7 @@ export async function queueOperation(
     }
 
     await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations });
-    updateSyncStatus().catch((e) => console.warn('Failed to update sync status:', e));
+    updateSyncStatus().catch(() => {});
 
     const ids = operations.map(() => generateOperationId());
     return isSingle ? (ids[0] ?? null) : ids;
@@ -191,8 +191,8 @@ export async function forceSync(): Promise<{ success: boolean; synced: number; f
     if (swRegistration.sync) {
         try {
             await swRegistration.sync.register('sync-user-progress');
-        } catch (e) {
-            console.warn('Background Sync registration failed:', e);
+        } catch (_e) {
+            // Background Sync registration failed
         }
     }
 
@@ -237,7 +237,7 @@ export async function saveProblemWithSync(
             type: operationType,
             data: { problemId, ...updates, timestamp: Date.now() },
             timestamp: Date.now(),
-        }).catch((error) => console.warn('[API] Failed to queue operation:', error));
+        }).catch(() => {});
     }
 }
 
@@ -271,8 +271,8 @@ async function migrateLocalStorageOperations(): Promise<void> {
     try {
         await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations: pendingOps });
         localStorage.removeItem('pending-operations');
-    } catch (error) {
-        console.warn('Failed to migrate localStorage operations:', error);
+    } catch (_error) {
+        // Failed to migrate localStorage operations
     }
 }
 
@@ -292,8 +292,8 @@ export function initOfflineDetection(): () => void {
                     await _performSave();
                 }
                 await forceSync();
-            } catch (error) {
-                console.error('[API] Failed to sync after connectivity restore:', error);
+            } catch (_error) {
+                // Failed to sync after connectivity restore
             }
         }
     });
@@ -313,10 +313,10 @@ export function initOfflineDetection(): () => void {
             switch (event.data.type) {
                 case 'SYNC_COMPLETED':
                     state.setSyncStatus({ isSyncing: false, lastSyncAt: Date.now() });
-                    updateSyncStatus().catch(console.error);
+                    updateSyncStatus().catch(() => {});
                     break;
                 case 'SYNC_PROGRESS_SYNCED':
-                    updateSyncStatus().catch(console.error);
+                    updateSyncStatus().catch(() => {});
                     break;
                 case 'SYNC_CONFLICT_RESOLVED':
                     break;
@@ -330,7 +330,7 @@ export function initOfflineDetection(): () => void {
         });
     }
 
-    const intervalId = setInterval(() => updateSyncStatus().catch(console.error), 30000);
+    const intervalId = setInterval(() => updateSyncStatus().catch(() => {}), 30000);
 
     return () => {
         unsubscribe();
