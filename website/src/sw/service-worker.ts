@@ -20,14 +20,9 @@ const backgroundSync = new BackgroundSyncManager();
 const operationQueue = new OperationQueue();
 
 // Static assets to cache on install
-const STATIC_ASSETS = [
-    '/smartgrind/',
-    '/smartgrind/index.html',
-    '/smartgrind/src/styles.css',
-    '/smartgrind/logo.svg',
-    '/smartgrind/manifest.json',
-    // Core JS modules will be cached dynamically based on import map
-];
+// Note: Only cache files that are known to exist at build time
+// CSS and JS are bundled with hashes and cached dynamically via CACHE_ASSETS message
+const STATIC_ASSETS = ['/smartgrind/', '/smartgrind/logo.svg', '/smartgrind/manifest.json'];
 
 // Problem content patterns to cache
 const PROBLEM_PATTERNS = [/\/smartgrind\/patterns\/.+\.md$/, /\/smartgrind\/solutions\/.+\.md$/];
@@ -43,15 +38,22 @@ self.addEventListener('install', (event: ExtendableEvent) => {
     event.waitUntil(
         (async () => {
             try {
+                console.log('[SW] Installing...');
+                console.log('[SW] Static assets to cache:', STATIC_ASSETS);
+
                 // Pre-cache static assets
                 const staticCache = await caches.open(CACHE_NAMES.STATIC);
                 await staticCache.addAll(STATIC_ASSETS);
+                console.log('[SW] Static assets cached successfully');
 
                 // Pre-cache problem index/metadata
                 await offlineManager.preCacheProblemIndex();
+                console.log('[SW] Problem index pre-cached');
 
                 // Skip waiting to activate immediately
+                console.log('[SW] Calling skipWaiting()...');
                 await self.skipWaiting();
+                console.log('[SW] skipWaiting() completed');
             } catch (error) {
                 console.error('[SW] Install failed:', error);
                 throw error;
