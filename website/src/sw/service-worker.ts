@@ -89,14 +89,30 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                 await self.clients.claim();
                 console.log('[SW] Clients claimed successfully');
 
-                // Verify clients were claimed
-                const clients = await self.clients.matchAll({ type: 'window' });
-                console.log(`[SW] Found ${clients.length} clients after claim`);
+                // Try to match all clients including uncontrolled ones
+                const allClients = await self.clients.matchAll({
+                    type: 'window',
+                    includeUncontrolled: true,
+                });
+                console.log(
+                    `[SW] Found ${allClients.length} total clients (including uncontrolled)`
+                );
+
+                // Also get only controlled clients
+                const controlledClients = await self.clients.matchAll({ type: 'window' });
+                console.log(`[SW] Found ${controlledClients.length} controlled clients`);
+
+                // Log all client URLs for debugging
+                allClients.forEach((client, i) => {
+                    console.log(
+                        `[SW] Client ${i}: ${client.url} (controlled: ${client.frameType})`
+                    );
+                });
 
                 // Notify all clients that SW is active and controlling
-                if (clients.length > 0) {
-                    clients.forEach((client) => {
-                        console.log(`[SW] Notifying client: ${client.url}`);
+                if (controlledClients.length > 0) {
+                    controlledClients.forEach((client) => {
+                        console.log(`[SW] Notifying controlled client: ${client.url}`);
                         client.postMessage({
                             type: 'SW_ACTIVATED',
                             version: SW_VERSION,
@@ -104,7 +120,11 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                         });
                     });
                 } else {
-                    console.warn('[SW] No clients found after claim - page may need reload');
+                    console.warn('[SW] No controlled clients found - page may need reload');
+                    // Try to claim uncontrolled clients by navigating them
+                    allClients.forEach((client) => {
+                        console.log(`[SW] Attempting to claim uncontrolled client: ${client.url}`);
+                    });
                 }
 
                 // Check and download bundle in background if needed
