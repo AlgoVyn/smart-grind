@@ -340,7 +340,7 @@ export const utils = {
      */
     showToast: (msg: string, type = 'success') => {
         const el = document.createElement('div');
-        el.className = `px-4 py-3 rounded-lg shadow-lg text-sm font-medium text-white flex items-center gap-2 animate-fade-in ${type === 'success' ? 'bg-brand-600' : 'bg-red-500'}`;
+        el.className = `toast ${type} px-4 py-3 rounded-lg shadow-lg text-sm font-medium text-white flex items-center gap-2 animate-fade-in ${type === 'success' ? 'bg-brand-600' : 'bg-red-500'}`;
         // Use textContent instead of innerHTML to prevent XSS
         const span = document.createElement('span');
         span.textContent = msg;

@@ -5,7 +5,6 @@ import { Topic } from '../types';
 import { state } from '../state';
 import { data } from '../data';
 import { utils } from '../utils';
-import { renderers } from '../renderers';
 
 export const sidebarRenderers = {
     // Render sidebar navigation (consolidated click handlers)
@@ -16,10 +15,11 @@ export const sidebarRenderers = {
             const fragment = document.createDocumentFragment();
 
             // Helper for topic navigation
-            const navigateToTopic = (topicId: string) => {
+            const navigateToTopic = async (topicId: string) => {
                 sidebarRenderers.setActiveTopic(topicId);
                 utils.updateUrlParameter('category', topicId === 'all' ? null : topicId);
-                renderers.renderMainView(topicId);
+                const { renderers } = await import('../renderers');
+                await renderers.renderMainView(topicId);
                 utils.scrollToTop();
             };
 

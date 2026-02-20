@@ -10,11 +10,9 @@
 import { Topic } from './types';
 import { state } from './state';
 import { data } from './data';
-import { api, initOfflineDetection } from './api';
-import { renderers } from './renderers';
-import { ui } from './ui/ui';
+import { initOfflineDetection } from './api';
+import { loadData } from './api/api-load';
 import { utils } from './utils';
-import { app } from './app';
 import { withErrorHandling, setupGlobalErrorHandlers } from './error-boundary';
 import * as swRegister from './sw-register';
 import { openSigninModal } from './ui/ui-modals';
@@ -23,7 +21,8 @@ import { openSigninModal } from './ui/ui-modals';
 setupGlobalErrorHandlers();
 
 // Helper to apply category from URL
-const _applyCategory = (categoryParam: string | null) => {
+const _applyCategory = async (categoryParam: string | null) => {
+    const { renderers } = await import('./renderers');
     if (categoryParam && categoryParam !== 'all') {
         const validCategory = data.topicsData.some((t: Topic) => t.id === categoryParam);
         if (validCategory) {
@@ -31,7 +30,7 @@ const _applyCategory = (categoryParam: string | null) => {
         }
     }
     renderers.renderSidebar();
-    renderers.renderMainView(state.ui.activeTopicId);
+    await renderers.renderMainView(state.ui.activeTopicId);
     utils.scrollToTop();
 };
 
@@ -51,23 +50,34 @@ const _setupSignedInUser = async (
     state.user.type = 'signed-in';
     localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
 
-    await api.loadData();
+    await loadData();
+    const { ui } = await import('./ui/ui');
     ui.updateAuthUI();
-    _applyCategory(categoryParam);
+    await _applyCategory(categoryParam);
 };
 
 // Helper to setup local user
-const _setupLocalUser = (categoryParam: string | null) => {
+const _setupLocalUser = async (categoryParam: string | null) => {
+    const { app } = await import('./app');
     app.initializeLocalUser();
-    _applyCategory(categoryParam);
+    await _applyCategory(categoryParam);
 };
 
 // Check auth state and initialize app
 const checkAuth = async () => {
-    // Load UI modules dynamically for code splitting with error handling
-    await withErrorHandling(async () => {
-        await Promise.all([import('./renderers'), import('./ui/ui')]);
-    }, 'Failed to load application modules');
+    // Listen for auth required events from Service Worker (background sync auth failures)
+    // Register this EARLY so we don't miss events if initialization is slow
+    swRegister.on('authRequired', (eventData: unknown) => {
+        const data = eventData as { message?: string; timestamp?: number };
+        console.warn('[Init] Received authRequired event:', data.message);
+
+        // Show sign-in modal to ask user to sign in again
+        openSigninModal();
+        console.warn('[Init] Called openSigninModal()');
+
+        // Show toast notification
+        utils.showToast('Session expired. Please sign in again.', 'error');
+    });
 
     // Extract category from URL path
     const path = window.location.pathname;
@@ -89,6 +99,7 @@ const checkAuth = async () => {
         // Validate token format before storing (basic validation)
         // Tokens should be non-empty and reasonably sized
         if (urlToken.length < 10 || urlToken.length > 1000) {
+            const { ui } = await import('./ui/ui');
             ui.showAlert('Invalid authentication token. Please try signing in again.');
             return;
         }
@@ -125,7 +136,7 @@ const checkAuth = async () => {
 
     if (userType === 'local') {
         await withErrorHandling(async () => {
-            _setupLocalUser(categoryParam);
+            await _setupLocalUser(categoryParam);
         }, 'Failed to initialize local user');
     } else {
         // Show setup modal for orphaned signed-in state
@@ -143,23 +154,12 @@ const checkAuth = async () => {
                     'GOOGLE_BUTTON_HTML'
                 ] || '';
         }
+        const { ui } = await import('./ui/ui');
         ui.updateAuthUI();
     }
 
     // Initialize offline detection and sync monitoring
     initOfflineDetection();
-
-    // Listen for auth required events from Service Worker (background sync auth failures)
-    swRegister.on('authRequired', (eventData: unknown) => {
-        const data = eventData as { message?: string; timestamp?: number };
-        console.warn('[Auth] Background sync authentication failed:', data.message);
-
-        // Show sign-in modal to ask user to sign in again
-        openSigninModal();
-
-        // Show toast notification
-        utils.showToast('Session expired. Please sign in again.', 'error');
-    });
 };
 
 export { checkAuth };

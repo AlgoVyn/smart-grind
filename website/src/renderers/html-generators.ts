@@ -5,7 +5,7 @@ import { Problem, Topic, Pattern, ProblemDef } from '../types';
 import { data } from '../data';
 import { state } from '../state';
 import { utils } from '../utils';
-import { renderers } from '../renderers';
+import { problemCardRenderers } from './problem-cards';
 import { ICONS } from './icons';
 
 /**
@@ -83,7 +83,7 @@ export const htmlGenerators = {
 
         // Sort review problems by next review date (ascending: oldest/overdue first)
         if (state.ui.currentFilter === 'review') {
-            return renderers._sortReviewProblems(problems);
+            return htmlGenerators._sortReviewProblems(problems);
         }
 
         return problems;
@@ -102,7 +102,7 @@ export const htmlGenerators = {
         patternHeader.appendChild(patternTitle);
 
         // Only show pattern solution button for non-custom patterns
-        if (!renderers._isCustomPattern(pattern.name)) {
+        if (!htmlGenerators._isCustomPattern(pattern.name)) {
             const patternSolutionButton = document.createElement('button');
             patternSolutionButton.className =
                 'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
@@ -142,7 +142,7 @@ export const htmlGenerators = {
         let hasVisiblePattern = false;
 
         topic.patterns.forEach((pattern: Pattern) => {
-            const patternProblems = renderers._getVisibleProblemsForPattern(pattern, today);
+            const patternProblems = htmlGenerators._getVisibleProblemsForPattern(pattern, today);
 
             if (patternProblems.length > 0) {
                 hasVisiblePattern = true;
@@ -150,7 +150,7 @@ export const htmlGenerators = {
                 const patternEl = document.createElement('div');
 
                 // Create pattern header with solution button
-                const patternHeader = renderers._createPatternHeader(pattern);
+                const patternHeader = htmlGenerators._createPatternHeader(pattern);
                 patternEl.appendChild(patternHeader);
 
                 // Create grid for problem cards
@@ -158,7 +158,7 @@ export const htmlGenerators = {
                 grid.className = 'grid grid-cols-1 gap-3';
 
                 patternProblems.forEach((p: Problem) => {
-                    grid.appendChild(renderers.createProblemCard(p));
+                    grid.appendChild(problemCardRenderers.createProblemCard(p));
                 });
 
                 patternEl.appendChild(grid);
@@ -210,13 +210,13 @@ export const htmlGenerators = {
                 : actionConfig.reset
             : actionConfig.solve;
 
-        const buttonText = p.loading ? renderers._getSpinner() : config.text;
+        const buttonText = p.loading ? htmlGenerators._getSpinner() : config.text;
         return `<button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors min-w-[70px] ${config.class}" ${p.loading ? 'disabled' : ''} data-action="${config.action}">${buttonText}</button>`;
     },
 
     // Helper to generate problem link HTML
     _generateProblemLink: (p: Problem) => {
-        const badge = renderers._generateBadge(p, utils.getToday());
+        const badge = htmlGenerators._generateBadge(p, utils.getToday());
         return `
             <div class="flex items-center gap-2 mb-1">
                 <a href="${p.url}" target="_blank" class="text-base font-medium text-theme-bold group-hover:text-brand-400 transition-colors truncate cursor-pointer">
@@ -254,8 +254,8 @@ export const htmlGenerators = {
 
     // Helper to generate action buttons HTML
     _generateActionButtons: (p: Problem) => {
-        const actionButton = renderers._generateActionButton(p);
-        const isCustomProblem = renderers._isCustomProblem(p.id);
+        const actionButton = htmlGenerators._generateActionButton(p);
+        const isCustomProblem = htmlGenerators._isCustomProblem(p.id);
 
         return `
             <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes">
@@ -289,7 +289,7 @@ export const htmlGenerators = {
             <textarea class="w-full bg-dark-950 border border-theme rounded-lg p-3 text-sm text-theme-base focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none resize-y" rows="6" placeholder="Notes..." ${p.loading ? 'disabled' : ''}>${escapeHtml(p.note || '')}</textarea>
             <div class="flex justify-end mt-2">
                 <button class="px-4 py-1.5 rounded-lg text-xs font-bold transition-colors min-w-[60px] bg-slate-700 hover:bg-slate-600 text-white" ${p.loading ? 'disabled' : ''} data-action="save-note">
-                    ${p.loading ? renderers._getSpinner('h-3 w-3') : 'Save'}
+                    ${p.loading ? htmlGenerators._getSpinner('h-3 w-3') : 'Save'}
                 </button>
             </div>
         </div>
@@ -310,11 +310,11 @@ export const htmlGenerators = {
         const styleKey = isDue ? 'due' : isSolved ? 'solved' : 'unsolved';
         const className = `group p-4 rounded-xl border transition-all duration-200 overflow-hidden ${cardStyles[styleKey]}`;
 
-        const problemLink = renderers._generateProblemLink(p);
-        const problemMeta = renderers._generateProblemMeta(p);
-        const aiButtons = renderers._generateAIButtons();
-        const actionButtons = renderers._generateActionButtons(p);
-        const noteArea = renderers._generateNoteArea(p);
+        const problemLink = htmlGenerators._generateProblemLink(p);
+        const problemMeta = htmlGenerators._generateProblemMeta(p);
+        const aiButtons = htmlGenerators._generateAIButtons();
+        const actionButtons = htmlGenerators._generateActionButtons(p);
+        const noteArea = htmlGenerators._generateNoteArea(p);
 
         return {
             className,

@@ -5,7 +5,7 @@ import { state } from '../state';
 import { data } from '../data';
 import { utils } from '../utils';
 import { api } from '../api';
-import { renderers } from '../renderers';
+// renderers import removed to break cycle
 
 /**
  * Modal configuration options
@@ -331,8 +331,9 @@ export const _createNewProblem = (
     loading: false,
 });
 
-export const _updateUIAfterAddingProblem = () => {
+export const _updateUIAfterAddingProblem = async () => {
     state.elements['addProblemModal']?.classList.add('hidden');
+    const { renderers } = await import('../renderers');
     renderers.renderSidebar();
     renderers.renderMainView(state.ui.activeTopicId);
     utils.showToast('Problem added!');
@@ -346,5 +347,5 @@ export const saveNewProblem = async () => {
     state.problems.set(newProb.id, newProb);
     api.mergeStructure();
     await api.saveProblem(newProb);
-    _updateUIAfterAddingProblem();
+    await _updateUIAfterAddingProblem();
 };

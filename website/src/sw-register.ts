@@ -369,24 +369,29 @@ function handleSWMessage(event: MessageEvent): void {
             break;
 
         case 'SYNC_COMPLETED':
+        case 'COMPLETED':
             state.syncPending = false;
             state.lastSyncAt = Date.now();
             emit('syncCompleted', data);
             break;
 
         case 'SYNC_FAILED':
+        case 'FAILED':
             state.syncPending = false;
             emit('syncFailed', data);
             break;
 
+        case 'SYNC_PROGRESS_SYNCED':
         case 'PROGRESS_SYNCED':
             emit('progressSynced', data);
             break;
 
+        case 'SYNC_CONFLICT_RESOLVED':
         case 'CONFLICT_RESOLVED':
             emit('conflictResolved', data);
             break;
 
+        case 'SYNC_CONFLICT_REQUIRES_MANUAL':
         case 'CONFLICT_REQUIRES_MANUAL':
             emit('conflictRequiresManual', data);
             break;
@@ -409,6 +414,7 @@ function handleSWMessage(event: MessageEvent): void {
             break;
 
         case 'SYNC_AUTH_REQUIRED':
+        case 'AUTH_REQUIRED':
             // Authentication failed in background sync - notify clients
             emit('authRequired', data);
             break;
@@ -699,13 +705,17 @@ export function on(event: string, callback: (_data: unknown) => void): () => voi
  * Emit event to listeners
  */
 function emit(event: string, data: unknown): void {
-    listeners.get(event)?.forEach((callback) => {
-        try {
-            callback(data);
-        } catch {
-            // Callback error ignored
-        }
-    });
+    const eventListeners = listeners.get(event);
+    if (eventListeners) {
+        eventListeners.forEach((callback) => {
+            try {
+                callback(data);
+            } catch (e) {
+                console.error(`[SW-Register] Error in listener for event ${event}:`, e);
+                // Callback error ignored
+            }
+        });
+    }
 }
 
 /**

@@ -5,10 +5,10 @@ import { Topic } from '../types';
 import { state } from '../state';
 import { data } from '../data';
 import { utils } from '../utils';
-import { renderers } from '../renderers';
+// renderers import removed to break cycle
 import { api } from '../api';
 import { ICONS } from './icons';
-import { ui } from '../ui/ui';
+import { htmlGenerators } from './html-generators';
 
 export const mainViewRenderers = {
     // Helper to create an action button
@@ -44,7 +44,7 @@ export const mainViewRenderers = {
             currentViewTitle.innerText = title;
         }
 
-        renderers._removeExistingActionContainer();
+        mainViewRenderers._removeExistingActionContainer();
 
         // Add action buttons
         const buttonContainer = document.createElement('div');
@@ -52,7 +52,7 @@ export const mainViewRenderers = {
 
         if (filterTopicId === 'all') {
             // Reset All button for "All Problems" view
-            const resetAllBtn = renderers._createActionButton(
+            const resetAllBtn = mainViewRenderers._createActionButton(
                 ICONS.reset,
                 'Reset All Problems',
                 'bg-blue-500/10',
@@ -61,7 +61,7 @@ export const mainViewRenderers = {
             buttonContainer.appendChild(resetAllBtn);
         } else {
             // Reset and Delete buttons for specific topics
-            const resetBtn = renderers._createActionButton(
+            const resetBtn = mainViewRenderers._createActionButton(
                 ICONS.reset,
                 'Reset Category Problems',
                 'bg-blue-500/10',
@@ -69,7 +69,7 @@ export const mainViewRenderers = {
             );
             buttonContainer.appendChild(resetBtn);
 
-            const deleteBtn = renderers._createActionButton(
+            const deleteBtn = mainViewRenderers._createActionButton(
                 ICONS.delete,
                 'Delete Category',
                 'bg-red-500/10',
@@ -84,18 +84,19 @@ export const mainViewRenderers = {
     },
 
     // Render main problem view
-    renderMainView: (filterTopicId: string) => {
+    renderMainView: async (filterTopicId: string) => {
         state.ui.activeTopicId = filterTopicId || state.ui.activeTopicId;
         const container = state.elements['problemsContainer'];
         if (container) {
             container.innerHTML = '';
         }
 
-        renderers._setViewTitle(state.ui.activeTopicId);
+        mainViewRenderers._setViewTitle(state.ui.activeTopicId);
 
         // Update date filter visibility and populate dates when in review or solved mode
         const showDateFilter =
             state.ui.currentFilter === 'review' || state.ui.currentFilter === 'solved';
+        const { ui } = await import('../ui/ui');
         ui.toggleDateFilterVisibility(showDateFilter);
         if (showDateFilter) {
             ui.populateDateFilter();
@@ -110,7 +111,7 @@ export const mainViewRenderers = {
                 : data.topicsData.filter((t: Topic) => t.id === state.ui.activeTopicId);
 
         relevantTopics.forEach((topic: Topic) => {
-            const topicSection = renderers._renderTopicSection(
+            const topicSection = htmlGenerators._renderTopicSection(
                 topic,
                 state.ui.activeTopicId,
                 today,
@@ -128,6 +129,6 @@ export const mainViewRenderers = {
         if (emptyState) {
             emptyState.classList.toggle('hidden', !shouldShowEmptyState);
         }
-        renderers.updateStats();
+        import('../renderers').then(({ renderers }) => renderers.updateStats());
     },
 };
