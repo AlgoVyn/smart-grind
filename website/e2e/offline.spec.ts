@@ -17,7 +17,7 @@ test.describe('Offline Functionality', () => {
     }
 
     test.beforeEach(async ({ page }) => {
-        await page.goto('/');
+        await page.goto('./');
         await waitForAppReady(page);
     });
 
@@ -200,5 +200,152 @@ test.describe('Offline Functionality', () => {
         } else {
             expect(reloadedClasses).toContain('dark');
         }
+    });
+
+    test('should show sign-in modal when background sync fails due to auth error', async ({
+        page,
+        context,
+    }) => {
+        page.on('console', msg => console.log(`PAGE: ${msg.text()}`));
+        page.on('pageerror', err => console.log(`PAGE ERROR: ${err.message}`));
+
+        // 1. Setup signed-in state with valid-looking token initially
+        await page.evaluate(async () => {
+            // LocalStorage keys (mixed in the app, setting both)
+            localStorage.setItem('userId', 'test-user');
+            localStorage.setItem('displayName', 'Test User');
+            localStorage.setItem('smartgrind-local-display-name', 'Test User');
+            localStorage.setItem('smartgrind-user-type', 'signed-in');
+
+            // IndexedDB for Service Worker / AuthManager
+            const AUTH_DB_NAME = 'smartgrind-auth';
+            const AUTH_DB_VERSION = 1;
+            const AUTH_STORE_NAME = 'auth-tokens';
+
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(AUTH_DB_NAME, AUTH_DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const db = (e.target as IDBOpenDBRequest).result;
+                    if (!db.objectStoreNames.contains(AUTH_STORE_NAME)) {
+                        db.createObjectStore(AUTH_STORE_NAME, { keyPath: 'key' });
+                    }
+                };
+                request.onsuccess = () => {
+                    const db = request.result;
+                    const transaction = db.transaction(AUTH_STORE_NAME, 'readwrite');
+                    const store = transaction.objectStore(AUTH_STORE_NAME);
+                    store.put({ key: 'token', value: 'valid-token' });
+                    store.put({ key: 'refreshToken', value: 'valid-refresh-token' });
+                    store.put({ key: 'userId', value: 'test-user' });
+                    transaction.oncomplete = () => {
+                        db.close();
+                        resolve(true);
+                    };
+                };
+                request.onerror = () => reject(request.error);
+            });
+        });
+
+        // 1b. Mock localStorage for initial checkAuth
+        await page.addInitScript(() => {
+            localStorage.setItem('userId', 'test-user');
+            localStorage.setItem('displayName', 'Test User');
+            localStorage.setItem('smartgrind-user-type', 'signed-in');
+            localStorage.setItem('token', 'valid-token');
+        });
+
+        // 2. Mock initial data load to succeed
+        await page.route('**/smartgrind/api/user?action=csrf', (route) => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ csrfToken: 'fake-csrf-token' }),
+            });
+        });
+
+        await page.route('**/smartgrind/api/user', (route) => {
+            if (route.request().method() === 'POST') {
+                route.fulfill({ status: 200, body: JSON.stringify({ success: true }) });
+                return;
+            }
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    problems: {},
+                    deletedIds: [],
+                    settings: {},
+                    displayName: 'Test User'
+                }),
+            });
+        });
+
+        // Catch-all to see what we're missing
+        await page.route('**/smartgrind/api/**', async (route) => {
+            if (route.request().url().includes('topics')) {
+                route.fulfill({ status: 200, body: JSON.stringify([]) });
+                return;
+            }
+            console.log('UNHANDLED ROUTE:', route.request().url());
+            await route.continue();
+        });
+
+        // 3. Reload to apply state
+        await page.reload();
+
+        // Auto-dismiss any initial alert that might appear
+        const alertModal = page.locator('#alert-modal');
+        const alertOkBtn = page.locator('#alert-ok-btn');
+        try {
+            await alertModal.waitFor({ state: 'visible', timeout: 3000 });
+            console.log('Dismissing unexpected alert');
+            await alertOkBtn.click();
+        } catch (e) {
+            // No alert, proceed
+        }
+
+        await waitForAppReady(page);
+
+        // 4. Break auth for FUTURE requests (refresh and sync)
+        await page.route('**/api/auth/refresh', (route) => {
+            route.fulfill({
+                status: 401,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: 'Session expired' }),
+            });
+        });
+
+        await page.route('**/api/user/progress/batch', (route) => {
+            route.fulfill({
+                status: 401,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: 'Unauthorized' }),
+            });
+        });
+
+        // 5. Go offline
+        await context.setOffline(true);
+        await page.evaluate(() => window.dispatchEvent(new Event('offline')));
+
+        // 6. Queue an operation
+        const solveButton = page.locator('.action-btn[data-action="solve"]').first();
+        const hasSolveButton = await solveButton.isVisible().catch(() => false);
+        if (!hasSolveButton) {
+            test.skip();
+            return;
+        }
+        await solveButton.click();
+
+        // 7. Go back online to trigger sync
+        await context.setOffline(false);
+        await page.evaluate(() => window.dispatchEvent(new Event('online')));
+
+        // 8. Verify sign-in modal appears
+        const signinModal = page.locator('#signin-modal');
+        await expect(signinModal).toBeVisible({ timeout: 15000 });
+
+        // 9. Verify toast message
+        const toast = page.locator('.toast.error');
+        await expect(toast).toBeVisible();
     });
 });

@@ -235,8 +235,9 @@ export class BackgroundSyncManager {
             if (!this.authManager.isAuthenticated()) {
                 const token = await this.authManager.refreshToken();
                 if (!token) {
-                    // Notify clients that sync is waiting for auth
-                    await this.notifyClients('SYNC_WAITING_AUTH', {
+                    // Notify clients that authentication is required
+                    await this.notifyClients('AUTH_REQUIRED', {
+                        message: 'Authentication required for sync.',
                         pendingCount: pendingOps.length,
                         timestamp: Date.now(),
                     });
@@ -283,7 +284,7 @@ export class BackgroundSyncManager {
             const finalStats = await this.operationQueue.getStats();
 
             // Notify clients of sync completion
-            await this.notifyClients('SYNC_COMPLETED', {
+            await this.notifyClients('COMPLETED', {
                 synced: pendingOps.length - failedOps.length,
                 failed: failedOps.length,
                 pending: finalStats.pending,
@@ -880,6 +881,7 @@ export class BackgroundSyncManager {
     private async notifyClients(type: string, data: unknown): Promise<void> {
         const clients = await (self as unknown as ServiceWorkerGlobalScope).clients.matchAll({
             type: 'window',
+            includeUncontrolled: true,
         });
         clients.forEach((client: Client) => {
             client.postMessage({

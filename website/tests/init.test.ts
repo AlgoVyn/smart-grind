@@ -72,6 +72,25 @@ const sharedMockData = {
     },
 };
 
+const sharedMockUI = {
+    showAlert: jest.fn(),
+    showConfirm: jest.fn().mockResolvedValue(true),
+    updateAuthUI: jest.fn(),
+    initScrollButton: jest.fn(),
+};
+
+const sharedMockRenderers = {
+    renderSidebar: jest.fn(),
+    renderMainView: jest.fn(),
+    updateStats: jest.fn(),
+    updateFilterBtns: jest.fn(),
+};
+
+const sharedMockApp = {
+    initializeLocalUser: jest.fn(),
+    exportProgress: jest.fn(),
+};
+
 // Import modules after mocks - use dynamic imports to allow mock reset
 let checkAuth: typeof import('../src/init').checkAuth;
 let data: typeof import('../src/data').data;
@@ -83,9 +102,11 @@ beforeAll(async () => {
     data = dataModule.data;
 });
 import { api } from '../src/api';
+import { loadData } from '../src/api/api-load';
 import { renderers as _renderers } from '../src/renderers';
 import { ui } from '../src/ui/ui';
 import { utils } from '../src/utils';
+import * as swRegister from '../src/sw-register';
 import {
     withErrorHandling,
     setupGlobalErrorHandlers as _setupGlobalErrorHandlers,
@@ -112,29 +133,32 @@ jest.mock('../src/data', () => ({
 
 jest.mock('../src/api', () => ({
     api: {
-        loadData: jest.fn().mockResolvedValue(undefined),
         syncPlan: jest.fn().mockResolvedValue(undefined),
         mergeStructure: jest.fn(),
     },
     initOfflineDetection: jest.fn(),
 }));
 
+jest.mock('../src/api/api-load', () => ({
+    loadData: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../src/sw-register', () => ({
+    on: jest.fn(),
+    emit: jest.fn(),
+    handleSWMessage: jest.fn(),
+}));
+
 jest.mock('../src/renderers', () => ({
-    renderers: {
-        renderSidebar: jest.fn(),
-        renderMainView: jest.fn(),
-        updateStats: jest.fn(),
-        updateFilterBtns: jest.fn(),
-    },
+    renderers: sharedMockRenderers,
 }));
 
 jest.mock('../src/ui/ui', () => ({
-    ui: {
-        showAlert: jest.fn(),
-        showConfirm: jest.fn().mockResolvedValue(true),
-        updateAuthUI: jest.fn(),
-        initScrollButton: jest.fn(),
-    },
+    ui: sharedMockUI,
+}));
+
+jest.mock('../src/ui/ui-modals', () => ({
+    openSigninModal: jest.fn(),
 }));
 
 jest.mock('../src/utils', () => ({
@@ -147,10 +171,7 @@ jest.mock('../src/utils', () => ({
 }));
 
 jest.mock('../src/app', () => ({
-    app: {
-        initializeLocalUser: jest.fn(),
-        exportProgress: jest.fn(),
-    },
+    app: sharedMockApp,
 }));
 
 describe('Initialization Module', () => {
@@ -177,6 +198,12 @@ describe('Initialization Module', () => {
         // Reset shared mock data
         sharedMockData.topicsData = [];
 
+        // Reset all mocks on shared objects
+        Object.values(sharedMockUI).forEach((mock) => (mock as jest.Mock).mockReset());
+        sharedMockUI.showConfirm.mockResolvedValue(true);
+        Object.values(sharedMockRenderers).forEach((mock) => (mock as jest.Mock).mockReset());
+        Object.values(sharedMockApp).forEach((mock) => (mock as jest.Mock).mockReset());
+
         // Reset location properties (location is reset in jest.setup.mjs beforeEach)
         // Reset URLSearchParams mock
         mockURLSearchParams.mockImplementation(() => ({
@@ -189,12 +216,12 @@ describe('Initialization Module', () => {
     });
 
     describe('checkAuth', () => {
-        test('should load UI modules dynamically', async () => {
+        test('should register authRequired listener early', async () => {
             await checkAuth();
 
-            expect(withErrorHandling).toHaveBeenCalledWith(
-                expect.any(Function),
-                'Failed to load application modules'
+            expect(swRegister.on).toHaveBeenCalledWith(
+                'authRequired',
+                expect.any(Function)
             );
         });
 
@@ -254,8 +281,8 @@ describe('Initialization Module', () => {
             global.window.location.search = `?token=${mockToken}&userId=${mockUserId}&displayName=${mockDisplayName}`;
             global.window.location.href = `http://localhost/smartgrind/?token=${mockToken}&userId=${mockUserId}&displayName=${mockDisplayName}`;
 
-            // Mock api.loadData to resolve
-            (api.loadData as jest.Mock).mockResolvedValue(undefined);
+            // Mock loadData to resolve
+            (loadData as jest.Mock).mockResolvedValue(undefined);
 
             await checkAuth();
 
@@ -277,8 +304,8 @@ describe('Initialization Module', () => {
             expect(sharedMockState.user.type).toBe('signed-in');
 
             // Should load data and update UI
-            expect(api.loadData).toHaveBeenCalled();
-            expect(ui.updateAuthUI).toHaveBeenCalled();
+            expect(loadData).toHaveBeenCalled();
+            expect(sharedMockUI.updateAuthUI).toHaveBeenCalled();
         });
 
         test('should reject invalid token format', async () => {
@@ -302,7 +329,7 @@ describe('Initialization Module', () => {
             await checkAuth();
 
             // Should show error alert
-            expect(ui.showAlert).toHaveBeenCalledWith(
+            expect(sharedMockUI.showAlert).toHaveBeenCalledWith(
                 'Invalid authentication token. Please try signing in again.'
             );
 
@@ -331,8 +358,8 @@ describe('Initialization Module', () => {
             // Mock utils.sanitizeInput to return sanitized name
             (utils.sanitizeInput as jest.Mock).mockReturnValue('User');
 
-            // Mock api.loadData to resolve
-            (api.loadData as jest.Mock).mockResolvedValue(undefined);
+            // Mock loadData to resolve
+            (loadData as jest.Mock).mockResolvedValue(undefined);
 
             await checkAuth();
 
@@ -351,8 +378,8 @@ describe('Initialization Module', () => {
                 return null;
             });
 
-            // Mock api.loadData to resolve
-            (api.loadData as jest.Mock).mockResolvedValue(undefined);
+            // Mock loadData to resolve
+            (loadData as jest.Mock).mockResolvedValue(undefined);
 
             await checkAuth();
 
@@ -362,8 +389,8 @@ describe('Initialization Module', () => {
             expect(sharedMockState.user.type).toBe('signed-in');
 
             // Should load data and update UI
-            expect(api.loadData).toHaveBeenCalled();
-            expect(ui.updateAuthUI).toHaveBeenCalled();
+            expect(loadData).toHaveBeenCalled();
+            expect(sharedMockUI.updateAuthUI).toHaveBeenCalled();
         });
 
         test('should setup local user when no session exists', async () => {
@@ -422,16 +449,24 @@ describe('Initialization Module', () => {
 
             // Should enable Google login button
             expect(mockGoogleLoginBtn.disabled).toBe(false);
-            expect(ui.updateAuthUI).toHaveBeenCalled();
+            expect(sharedMockUI.updateAuthUI).toHaveBeenCalled();
         });
 
-        test('should handle errors during module loading', async () => {
-            // Mock withErrorHandling to simulate an error
-            (withErrorHandling as jest.Mock).mockImplementation(async (_fn, _message) => {
-                throw new Error('Module load failed');
+        test('should handle errors during checkAuth execution', async () => {
+            // Mock withErrorHandling to simulate an error during session restoration
+            mockGetItem.mockImplementation((key) => {
+                if (key === 'userId') return 'user-123';
+                return null;
             });
 
-            await expect(checkAuth()).rejects.toThrow('Module load failed');
+            (withErrorHandling as jest.Mock).mockImplementation(async (fn, message) => {
+                if (message === 'Failed to restore user session') {
+                    throw new Error('Restore failed');
+                }
+                return fn();
+            });
+
+            await expect(checkAuth()).rejects.toThrow('Restore failed');
         });
 
         test('should handle errors during signed-in user setup', async () => {

@@ -4,8 +4,7 @@
 import { UserData, Problem } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-import { renderers } from '../renderers';
-import { ui } from '../ui/ui';
+// renderers import removed to break cycle
 import { syncPlan, mergeStructure } from './api-sync';
 import { validateResponseOrigin, getErrorMessage } from './api-utils';
 
@@ -93,7 +92,9 @@ export const _processUserData = (userData: UserData): void => {
 /**
  * Initializes the UI components after data has been loaded.
  */
-export const _initializeUI = (): void => {
+export const _initializeUI = async (): Promise<void> => {
+    const { ui } = await import('../ui/ui');
+    const { renderers } = await import('../renderers');
     renderers.renderSidebar();
     renderers.renderMainView('all');
     renderers.updateStats();
@@ -123,8 +124,9 @@ export const loadData = async (): Promise<void> => {
         await syncPlan();
         mergeStructure();
 
-        _initializeUI();
+        await _initializeUI();
     } catch (e) {
+        const { ui } = await import('../ui/ui');
         const message = e instanceof Error ? e.message : String(e);
         ui.showAlert(`Failed to load data: ${message}`);
 
@@ -135,6 +137,6 @@ export const loadData = async (): Promise<void> => {
         modalEl?.classList.remove('hidden');
         appWrapper?.classList.add('hidden');
     } finally {
-        loadingScreen?.classList.add('hidden');
+        state.elements.loadingScreen?.classList.add('hidden');
     }
 };
