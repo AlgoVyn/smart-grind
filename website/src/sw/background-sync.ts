@@ -3,7 +3,6 @@
 
 import { OperationQueue, QueuedOperation } from './operation-queue';
 import { SyncConflictResolver } from './sync-conflict-resolver';
-import { AuthManager, getAuthManager } from './auth-manager';
 
 // Sync configuration
 const SYNC_TAGS = {
@@ -32,7 +31,6 @@ interface PersistedRetry {
 export class BackgroundSyncManager {
     private operationQueue: OperationQueue;
     private conflictResolver: SyncConflictResolver;
-    private authManager: AuthManager;
     private isSyncing: boolean = false;
     private syncAbortController: AbortController | null = null;
     private retryCheckInterval: number | null = null;
@@ -41,15 +39,6 @@ export class BackgroundSyncManager {
     constructor() {
         this.operationQueue = new OperationQueue();
         this.conflictResolver = new SyncConflictResolver();
-        this.authManager = getAuthManager({
-            onAuthFailure: () => {
-                // Notify clients that authentication is required
-                this.notifyClients('AUTH_REQUIRED', {
-                    message: 'Authentication failed. Please sign in again.',
-                    timestamp: Date.now(),
-                });
-            },
-        });
         this.initRetryDB().catch(() => {
             // Retry DB init failed, continue without persistence
         });
@@ -185,6 +174,39 @@ export class BackgroundSyncManager {
     }
 
     /**
+     * Verify authentication by making a lightweight request to check session validity
+     * The app uses cookie-based auth, so we verify the session is still valid via cookies
+     */
+    private async verifyAuthentication(): Promise<boolean> {
+        try {
+            // Make a lightweight request to check if the user session is valid
+            // Using credentials: 'include' to send cookies
+            const response = await fetch('/smartgrind/api/user?action=csrf', {
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            // If we get a successful response, the session is valid
+            if (response.ok) {
+                return true;
+            }
+
+            // If we get 401/403, the session is not valid
+            if (response.status === 401 || response.status === 403) {
+                return false;
+            }
+
+            // For other errors, assume we're offline and allow sync to proceed
+            // The actual sync requests will handle auth errors appropriately
+            return true;
+        } catch {
+            // Network error - assume offline, allow sync to proceed
+            // The sync will be retried when connection is restored
+            return true;
+        }
+    }
+
+    /**
      * Register sync tags for background sync
      */
     async registerSync(tag: string): Promise<void> {
@@ -231,18 +253,17 @@ export class BackgroundSyncManager {
                 return;
             }
 
-            // Check authentication before syncing
-            if (!this.authManager.isAuthenticated()) {
-                const token = await this.authManager.refreshToken();
-                if (!token) {
-                    // Notify clients that authentication is required
-                    await this.notifyClients('AUTH_REQUIRED', {
-                        message: 'Authentication required for sync.',
-                        pendingCount: pendingOps.length,
-                        timestamp: Date.now(),
-                    });
-                    return;
-                }
+            // Check authentication by making a lightweight request to verify session
+            // The app uses cookie-based auth, so we verify the session is still valid
+            const isAuthenticated = await this.verifyAuthentication();
+            if (!isAuthenticated) {
+                // Notify clients that authentication is required
+                await this.notifyClients('AUTH_REQUIRED', {
+                    message: 'Authentication required for sync.',
+                    pendingCount: pendingOps.length,
+                    timestamp: Date.now(),
+                });
+                return;
             }
 
             // Group operations by type for efficient batching
@@ -393,13 +414,10 @@ export class BackgroundSyncManager {
             }
 
             try {
-                const authHeaders = await this.authManager.getAuthHeaders();
-
                 const response = await fetch('/smartgrind/api/user/custom-problems', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        ...authHeaders,
                     },
                     credentials: 'include',
                     body: JSON.stringify(op.data),
@@ -409,28 +427,12 @@ export class BackgroundSyncManager {
                 if (response.ok) {
                     await this.operationQueue.markCompleted(op.id);
                 } else if (response.status === 401 || response.status === 403) {
-                    // Auth error - try to refresh and retry once
-                    const refreshed = await this.authManager.handleAuthError(response);
-                    if (refreshed) {
-                        // Retry this operation
-                        const retryResponse = await this.authManager.retryWithFreshToken(
-                            new Request('/smartgrind/api/user/custom-problems', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                credentials: 'include',
-                                body: JSON.stringify(op.data),
-                            }),
-                            (req) => fetch(req)
-                        );
-
-                        if (retryResponse.ok) {
-                            await this.operationQueue.markCompleted(op.id);
-                        } else {
-                            throw new Error(`Retry failed: ${retryResponse.status}`);
-                        }
-                    } else {
-                        throw new Error('Authentication failed');
-                    }
+                    // Auth error - session is invalid, notify clients
+                    await this.notifyClients('AUTH_REQUIRED', {
+                        message: 'Authentication required for sync.',
+                        timestamp: Date.now(),
+                    });
+                    throw new Error('Authentication failed');
                 } else if (response.status === 409) {
                     // Conflict - resolve using improved resolver
                     const serverData = await response.json();
@@ -516,6 +518,14 @@ export class BackgroundSyncManager {
             });
 
             if (!csrfResponse.ok) {
+                if (csrfResponse.status === 401 || csrfResponse.status === 403) {
+                    // Auth error - session is invalid
+                    await this.notifyClients('AUTH_REQUIRED', {
+                        message: 'Authentication required for sync.',
+                        timestamp: Date.now(),
+                    });
+                    throw new Error('Authentication failed');
+                }
                 throw new Error('Failed to fetch CSRF token');
             }
 
@@ -540,41 +550,12 @@ export class BackgroundSyncManager {
                     await this.operationQueue.markCompleted(op.id);
                 }
             } else if (response.status === 401 || response.status === 403) {
-                // Auth error - try to refresh
-                const refreshed = await this.authManager.handleAuthError(response);
-                if (refreshed) {
-                    // Get fresh CSRF token and retry
-                    const retryCsrfResponse = await fetch('/smartgrind/api/user?action=csrf', {
-                        credentials: 'include',
-                    });
-
-                    if (retryCsrfResponse.ok) {
-                        const retryCsrfData = await retryCsrfResponse.json();
-                        const retryCsrfToken = retryCsrfData.csrfToken;
-
-                        const retryResponse = await fetch('/smartgrind/api/user', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-Token': retryCsrfToken,
-                            },
-                            credentials: 'include',
-                            body: JSON.stringify({ data: latestOp.data }),
-                        });
-
-                        if (retryResponse.ok) {
-                            for (const op of pendingOps) {
-                                await this.operationQueue.markCompleted(op.id);
-                            }
-                        } else {
-                            throw new Error(`Retry failed: ${retryResponse.status}`);
-                        }
-                    } else {
-                        throw new Error('Failed to fetch CSRF token after auth refresh');
-                    }
-                } else {
-                    throw new Error('Authentication failed');
-                }
+                // Auth error - session is invalid, notify clients
+                await this.notifyClients('AUTH_REQUIRED', {
+                    message: 'Authentication required for sync.',
+                    timestamp: Date.now(),
+                });
+                throw new Error('Authentication failed');
             } else {
                 throw new Error(`HTTP ${response.status}`);
             }
@@ -611,13 +592,10 @@ export class BackgroundSyncManager {
         }));
 
         try {
-            const authHeaders = await this.authManager.getAuthHeaders();
-
             const response = await fetch('/smartgrind/api/user/progress/batch', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...authHeaders,
                 },
                 credentials: 'include',
                 body: JSON.stringify({
@@ -648,33 +626,12 @@ export class BackgroundSyncManager {
                     timestamp: Date.now(),
                 });
             } else if (response.status === 401 || response.status === 403) {
-                // Auth error - try to refresh and retry
-                const refreshed = await this.authManager.handleAuthError(response);
-                if (refreshed) {
-                    // Retry the batch with fresh token
-                    const retryResponse = await this.authManager.retryWithFreshToken(
-                        new Request('/smartgrind/api/user/progress/batch', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            credentials: 'include',
-                            body: JSON.stringify({
-                                operations: batch,
-                                clientVersion: 1,
-                            }),
-                        }),
-                        (req) => fetch(req)
-                    );
-
-                    if (retryResponse.ok) {
-                        for (const op of deduplicated) {
-                            await this.operationQueue.markCompleted(op.id);
-                        }
-                    } else {
-                        throw new Error(`Retry failed: ${retryResponse.status}`);
-                    }
-                } else {
-                    throw new Error('Authentication failed');
-                }
+                // Auth error - session is invalid, notify clients
+                await this.notifyClients('AUTH_REQUIRED', {
+                    message: 'Authentication required for sync.',
+                    timestamp: Date.now(),
+                });
+                throw new Error('Authentication failed');
             } else if (response.status === 409) {
                 // Batch conflict - handle individually
                 await this.syncIndividualOperations(deduplicated);
@@ -719,13 +676,10 @@ export class BackgroundSyncManager {
             }
 
             try {
-                const authHeaders = await this.authManager.getAuthHeaders();
-
                 const response = await fetch('/smartgrind/api/user/progress', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        ...authHeaders,
                     },
                     credentials: 'include',
                     body: JSON.stringify({
@@ -740,32 +694,12 @@ export class BackgroundSyncManager {
                 if (response.ok) {
                     await this.operationQueue.markCompleted(op.id);
                 } else if (response.status === 401 || response.status === 403) {
-                    // Auth error - try to refresh and retry once
-                    const refreshed = await this.authManager.handleAuthError(response);
-                    if (refreshed) {
-                        const retryResponse = await this.authManager.retryWithFreshToken(
-                            new Request('/smartgrind/api/user/progress', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                credentials: 'include',
-                                body: JSON.stringify({
-                                    problemId: (op.data as { problemId: string }).problemId,
-                                    operation: op.data,
-                                    timestamp: op.timestamp,
-                                    deviceId: op.deviceId,
-                                }),
-                            }),
-                            (req) => fetch(req)
-                        );
-
-                        if (retryResponse.ok) {
-                            await this.operationQueue.markCompleted(op.id);
-                        } else {
-                            throw new Error(`Retry failed: ${retryResponse.status}`);
-                        }
-                    } else {
-                        throw new Error('Authentication failed');
-                    }
+                    // Auth error - session is invalid, notify clients
+                    await this.notifyClients('AUTH_REQUIRED', {
+                        message: 'Authentication required for sync.',
+                        timestamp: Date.now(),
+                    });
+                    throw new Error('Authentication failed');
                 } else if (response.status === 409) {
                     const serverData = await response.json();
                     await this.handleServerConflictWithAutoResolve({
