@@ -11,7 +11,7 @@ import { OperationQueue } from './operation-queue';
 declare const self: ServiceWorkerGlobalScope;
 
 // Version for cache busting - update this when deploying new versions
-const SW_VERSION = '1.0.1';
+const SW_VERSION = '1.0.2';
 const CACHE_VERSION = `v${SW_VERSION}`;
 
 // Initialize managers
