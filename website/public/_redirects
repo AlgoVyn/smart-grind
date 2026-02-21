@@ -5,10 +5,6 @@
 /smartgrind/solutions/* /solutions/:splat 200
 /smartgrind/patterns/* /patterns/:splat 200
 
-# Service Worker - MUST be served as JS, not index.html (first match wins)
-# Without this, /smartgrind/* would catch /smartgrind/sw.js and return HTML → SyntaxError
-/smartgrind/sw.js /smartgrind/sw.js 200
-
 # Directory-level fallbacks
 /smartgrind/solutions /solutions/ 200
 /smartgrind/patterns /patterns/ 200
