@@ -373,14 +373,17 @@ export async function onRequestGet({ request, env }) {
             return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 500 });
         }
 
-        // Return HTML that handles auth for popup or fallback
+        // Return HTML that handles auth for popup or fallback.
+        // Include token so the main app can store it in IndexedDB for the Service Worker;
+        // the SW often does not receive HttpOnly cookies on fetch (e.g. SameSite=Strict).
+        const authData = { userId, displayName, token };
         const html = `
     <!DOCTYPE html>
     <html>
     <head><title>Sign In Success</title></head>
     <body>
     <script>
-      const authData = ${JSON.stringify({ userId, displayName })};
+      const authData = ${JSON.stringify(authData)};
       if (window.opener) {
         window.opener.postMessage({ type: 'auth-success', ...authData }, window.location.origin);
         setTimeout(() => window.close(), 500);

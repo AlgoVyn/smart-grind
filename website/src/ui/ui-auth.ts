@@ -70,8 +70,12 @@ export const handleGoogleLogin = () => {
     let authCompleted = false;
     let popupCheckInterval: ReturnType<typeof setInterval> | null = null;
 
-    const handleAuthSuccess = (authData: { userId: string; displayName: string }) => {
-        const { userId, displayName } = authData;
+    const handleAuthSuccess = async (authData: {
+        userId: string;
+        displayName: string;
+        token?: string;
+    }) => {
+        const { userId, displayName, token } = authData;
         localStorage.setItem('userId', userId);
         localStorage.setItem('displayName', displayName);
 
@@ -82,6 +86,12 @@ export const handleGoogleLogin = () => {
         }
         state.user.type = 'signed-in';
         localStorage.setItem('smartgrind-user-type', 'signed-in');
+
+        // So background sync can authenticate (SW often doesn't receive HttpOnly cookies)
+        if (token) {
+            const { storeTokenForServiceWorker } = await import('../sw-auth-storage');
+            storeTokenForServiceWorker(token).catch(() => {});
+        }
 
         api.loadData();
         updateAuthUI();
@@ -116,18 +126,21 @@ export const handleGoogleLogin = () => {
     };
 
     // Listen for auth messages
-    const messageHandler = (event: MessageEvent) => {
-        // Strict origin check for security
+    const messageHandler = (event: MessageEvent): void | Promise<void> => {
         if (event.origin !== window.location.origin) {
             return;
         }
         authCompleted = true;
         if (event.data.type === 'auth-success') {
-            handleAuthSuccess(event.data);
-        } else if (event.data.type === 'auth-failure') {
+            const p = handleAuthSuccess(event.data);
+            p.finally(cleanupAuth);
+            return p;
+        }
+        if (event.data.type === 'auth-failure') {
             handleAuthFailure(event.data);
         }
         cleanupAuth();
+        return;
     };
     window.addEventListener('message', messageHandler);
 
@@ -167,6 +180,8 @@ export const handleLogout = async () => {
         // Switch to local user
         localStorage.removeItem('userId');
         localStorage.removeItem('displayName');
+        const { clearTokenForServiceWorker } = await import('../sw-auth-storage');
+        clearTokenForServiceWorker().catch(() => {});
         // Note: Cookie will be cleared by server or expire naturally
         state.user.id = null;
 

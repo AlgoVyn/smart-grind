@@ -111,6 +111,8 @@ const checkAuth = async () => {
         window.history.replaceState({}, document.title, window.location.pathname);
 
         localStorage.setItem('token', urlToken);
+        const { storeTokenForServiceWorker } = await import('./sw-auth-storage');
+        storeTokenForServiceWorker(urlToken).catch(() => {});
         await withErrorHandling(async () => {
             await _setupSignedInUser(urlUserId, sanitizedDisplayName, categoryParam);
         }, 'Failed to set up signed-in user');

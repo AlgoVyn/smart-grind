@@ -1,8 +1,29 @@
 // Background Sync Manager for SmartGrind Service Worker
 // Handles syncing user progress when connection is restored
 
+import { getAuthManager } from './auth-manager';
 import { OperationQueue, QueuedOperation } from './operation-queue';
 import { SyncConflictResolver } from './sync-conflict-resolver';
+
+/** Fetch options: use Bearer token from IndexedDB when present, else credentials (cookies). */
+async function getAuthFetchOpts(
+    extraHeaders: Record<string, string> = {}
+): Promise<{ headers: Record<string, string>; credentials: RequestCredentials }> {
+    try {
+        const auth = getAuthManager();
+        if (!auth || typeof auth.waitForLoad !== 'function') {
+            return { headers: extraHeaders, credentials: 'include' };
+        }
+        await auth.waitForLoad();
+        const authHeaders = await auth.getAuthHeaders();
+        if (Object.keys(authHeaders).length > 0) {
+            return { headers: { ...extraHeaders, ...authHeaders }, credentials: 'omit' };
+        }
+    } catch {
+        // e.g. IndexedDB or auth not available (tests)
+    }
+    return { headers: extraHeaders, credentials: 'include' };
+}
 
 // Sync configuration
 const SYNC_TAGS = {
@@ -174,34 +195,22 @@ export class BackgroundSyncManager {
     }
 
     /**
-     * Verify authentication by making a lightweight request to check session validity
-     * The app uses cookie-based auth, so we verify the session is still valid via cookies
+     * Verify authentication: try Bearer token from IndexedDB (set by main app on sign-in),
+     * then cookies. SW often does not receive HttpOnly cookies on fetch.
      */
     private async verifyAuthentication(): Promise<boolean> {
         try {
-            // Make a lightweight request to check if the user session is valid
-            // Using credentials: 'include' to send cookies
+            const opts = await getAuthFetchOpts();
             const response = await fetch('/smartgrind/api/user?action=csrf', {
                 method: 'GET',
-                credentials: 'include',
+                headers: opts.headers,
+                credentials: opts.credentials,
             });
 
-            // If we get a successful response, the session is valid
-            if (response.ok) {
-                return true;
-            }
-
-            // If we get 401/403, the session is not valid
-            if (response.status === 401 || response.status === 403) {
-                return false;
-            }
-
-            // For other errors, assume we're offline and allow sync to proceed
-            // The actual sync requests will handle auth errors appropriately
+            if (response.ok) return true;
+            if (response.status === 401 || response.status === 403) return false;
             return true;
         } catch {
-            // Network error - assume offline, allow sync to proceed
-            // The sync will be retried when connection is restored
             return true;
         }
     }
@@ -414,12 +423,11 @@ export class BackgroundSyncManager {
             }
 
             try {
+                const opts = await getAuthFetchOpts({ 'Content-Type': 'application/json' });
                 const response = await fetch('/smartgrind/api/user/custom-problems', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include',
+                    headers: opts.headers,
+                    credentials: opts.credentials,
                     body: JSON.stringify(op.data),
                     signal: this.syncAbortController?.signal || null,
                 });
@@ -512,14 +520,14 @@ export class BackgroundSyncManager {
         // Note: latestOp is guaranteed to exist because we checked pendingOps.length > 0 above
 
         try {
-            // Get CSRF token first
+            const csrfOpts = await getAuthFetchOpts();
             const csrfResponse = await fetch('/smartgrind/api/user?action=csrf', {
-                credentials: 'include',
+                headers: csrfOpts.headers,
+                credentials: csrfOpts.credentials,
             });
 
             if (!csrfResponse.ok) {
                 if (csrfResponse.status === 401 || csrfResponse.status === 403) {
-                    // Auth error - session is invalid
                     await this.notifyClients('AUTH_REQUIRED', {
                         message: 'Authentication required for sync.',
                         timestamp: Date.now(),
@@ -532,14 +540,14 @@ export class BackgroundSyncManager {
             const csrfData = await csrfResponse.json();
             const csrfToken = csrfData.csrfToken;
 
-            // Sync full user data to /api/user endpoint
+            const opts = await getAuthFetchOpts({
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken,
+            });
             const response = await fetch('/smartgrind/api/user', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken,
-                },
-                credentials: 'include',
+                headers: opts.headers,
+                credentials: opts.credentials,
                 body: JSON.stringify({ data: latestOp.data }),
                 signal: this.syncAbortController?.signal || null,
             });
@@ -592,12 +600,11 @@ export class BackgroundSyncManager {
         }));
 
         try {
+            const opts = await getAuthFetchOpts({ 'Content-Type': 'application/json' });
             const response = await fetch('/smartgrind/api/user/progress/batch', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
+                headers: opts.headers,
+                credentials: opts.credentials,
                 body: JSON.stringify({
                     operations: batch,
                     clientVersion: 1,
@@ -676,12 +683,11 @@ export class BackgroundSyncManager {
             }
 
             try {
+                const opts = await getAuthFetchOpts({ 'Content-Type': 'application/json' });
                 const response = await fetch('/smartgrind/api/user/progress', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include',
+                    headers: opts.headers,
+                    credentials: opts.credentials,
                     body: JSON.stringify({
                         problemId: (op.data as { problemId: string }).problemId,
                         operation: op.data,

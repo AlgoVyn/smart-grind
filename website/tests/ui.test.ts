@@ -142,6 +142,11 @@ window.SmartGrind = {
     renderers: {},
 };
 
+jest.mock('../src/sw-auth-storage', () => ({
+    storeTokenForServiceWorker: jest.fn().mockResolvedValue(undefined),
+    clearTokenForServiceWorker: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Now import the module
 import { ui } from '../src/ui/ui';
 import { state } from '../src/state';
@@ -632,10 +637,10 @@ describe('SmartGrind UI', () => {
     });
 
     describe('handleLogout', () => {
-        test('switches to local mode for signed-in users', () => {
+        test('switches to local mode for signed-in users', async () => {
             state.user.type = 'signed-in';
 
-            ui.handleLogout();
+            await ui.handleLogout();
 
             expect(state.user.type).toBe('local');
             expect(app.initializeLocalUser).toHaveBeenCalled();
@@ -1800,13 +1805,12 @@ describe('SmartGrind UI', () => {
     });
 
     describe('handleGoogleLogin message handling', () => {
-        test('handles auth success message', () => {
+        test('handles auth success message', async () => {
             const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
             mockOpen.mockReturnValue({});
 
             ui.handleGoogleLogin();
 
-            // Simulate message event
             const messageEvent = {
                 origin: window.location.origin,
                 data: {
@@ -1817,11 +1821,13 @@ describe('SmartGrind UI', () => {
                 },
             };
 
-            // Get the message handler from the spy
             const messageHandler = addEventListenerSpy.mock.calls.find(
                 (call) => call[0] === 'message'
             )[1];
-            messageHandler(messageEvent);
+            const result = messageHandler(messageEvent);
+            if (result && typeof (result as Promise<unknown>).then === 'function') {
+                await result;
+            }
 
             expect(localStorageSetItem).toHaveBeenCalledWith('userId', 'test-user');
             expect(localStorageSetItem).toHaveBeenCalledWith('displayName', 'Test User');

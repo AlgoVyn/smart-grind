@@ -3,11 +3,12 @@
  * Tests for sync registration, user progress sync, custom problems sync, and conflict resolution
  */
 
-// Create mock instances
+// Create mock instances (must include waitForLoad - used by getAuthFetchOpts in background-sync)
 const createMockAuthManager = () => ({
+    waitForLoad: jest.fn().mockResolvedValue(undefined),
     isAuthenticated: jest.fn().mockReturnValue(true),
     refreshToken: jest.fn().mockResolvedValue('mock-token'),
-    getAuthHeaders: jest.fn().mockResolvedValue({ Authorization: 'Bearer mock-token' }),
+    getAuthHeaders: jest.fn().mockResolvedValue({}),
     handleAuthError: jest.fn().mockResolvedValue(false),
     retryWithFreshToken: jest.fn().mockResolvedValue({ ok: true }),
 });
@@ -46,10 +47,17 @@ const createMockConflictResolver = () => ({
     }),
 });
 
-// Set up module mocks
+// Set up module mocks (factory runs hoisted; inline mock so getAuthManager() returns waitForLoad)
 jest.mock('../../src/sw/auth-manager', () => ({
-    getAuthManager: jest.fn().mockImplementation(() => createMockAuthManager()),
-    AuthManager: jest.fn().mockImplementation(() => createMockAuthManager()),
+    getAuthManager: jest.fn().mockImplementation(() => ({
+        waitForLoad: jest.fn().mockResolvedValue(undefined),
+        isAuthenticated: jest.fn().mockReturnValue(true),
+        refreshToken: jest.fn().mockResolvedValue('mock-token'),
+        getAuthHeaders: jest.fn().mockResolvedValue({}),
+        handleAuthError: jest.fn().mockResolvedValue(false),
+        retryWithFreshToken: jest.fn().mockResolvedValue({ ok: true }),
+    })),
+    AuthManager: jest.fn(),
 }));
 
 jest.mock('../../src/sw/operation-queue', () => ({
@@ -94,11 +102,12 @@ describe('BackgroundSyncManager', () => {
     let mockOperationQueue: jest.Mocked<OperationQueue>;
     let mockConflictResolver: jest.Mocked<SyncConflictResolver>;
 
-    // Create mock auth manager to inject into the manager
+    // Create mock auth manager to inject into the manager (waitForLoad used by getAuthFetchOpts)
     const createMockAuthManagerInstance = () => ({
+        waitForLoad: jest.fn().mockResolvedValue(undefined),
         isAuthenticated: jest.fn().mockReturnValue(true),
         refreshToken: jest.fn().mockResolvedValue('mock-token'),
-        getAuthHeaders: jest.fn().mockResolvedValue({ Authorization: 'Bearer mock-token' }),
+        getAuthHeaders: jest.fn().mockResolvedValue({}),
         handleAuthError: jest.fn().mockResolvedValue(false),
         retryWithFreshToken: jest.fn().mockResolvedValue({ ok: true }),
     });
@@ -245,11 +254,14 @@ describe('BackgroundSyncManager', () => {
             mockOperationQueue.getPendingOperations.mockResolvedValue(mockOps);
             mockOperationQueue.markCompleted.mockResolvedValue(undefined);
 
-            // Mock successful batch sync
-            global.fetch = jest.fn().mockResolvedValue({
-                ok: true,
-                json: () => Promise.resolve({ conflicts: [] }),
-            });
+            // Mock: first call is verifyAuthentication (csrf), then batch sync
+            global.fetch = jest
+                .fn()
+                .mockResolvedValueOnce({ ok: true }) // csrf check
+                .mockResolvedValue({
+                    ok: true,
+                    json: () => Promise.resolve({ conflicts: [] }),
+                });
 
             await manager.syncUserProgress();
 
@@ -569,9 +581,10 @@ describe('BackgroundSyncManager', () => {
                 data: { problemId: 'two-sum', solved: true, solveCount: 1 },
             });
 
-            // First batch call returns 409, then individual calls also return 409
+            // First call: verifyAuthentication (csrf). Then batch 409, then individual 409.
             global.fetch = jest
                 .fn()
+                .mockResolvedValueOnce({ ok: true }) // csrf
                 .mockResolvedValueOnce({
                     ok: false,
                     status: 409,
@@ -612,9 +625,10 @@ describe('BackgroundSyncManager', () => {
                 message: 'Manual resolution required',
             });
 
-            // First batch call returns 409, then individual calls also return 409
+            // First call: csrf. Then batch 409, then individual 409.
             global.fetch = jest
                 .fn()
+                .mockResolvedValueOnce({ ok: true }) // csrf
                 .mockResolvedValueOnce({
                     ok: false,
                     status: 409,
