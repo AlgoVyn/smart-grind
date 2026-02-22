@@ -52,17 +52,10 @@ const AUTH_ROUTES = [/\/smartgrind\/api\/auth/];
  */
 const shouldHandleRequest = (requestUrl: URL): boolean => {
     // Skip non-http/https schemes (e.g., chrome-extension, data, blob)
-    // These cannot be cached by the Cache API
-    if (requestUrl.protocol !== 'http:' && requestUrl.protocol !== 'https:') {
-        return false;
-    }
-
     // Skip auth routes - let browser handle OAuth redirects naturally
-    if (AUTH_ROUTES.some((pattern) => pattern.test(requestUrl.pathname))) {
-        return false;
-    }
-
-    return true;
+    const isHttpScheme = requestUrl.protocol === 'http:' || requestUrl.protocol === 'https:';
+    const isAuthRoute = AUTH_ROUTES.some((pattern) => pattern.test(requestUrl.pathname));
+    return isHttpScheme && !isAuthRoute;
 };
 
 /**
@@ -74,7 +67,7 @@ const shouldHandleRequest = (requestUrl: URL): boolean => {
 const getRequestHandler = (
     requestUrl: URL,
     request: Request
-): ((req: Request) => Promise<Response>) | null => {
+): ((_req: Request) => Promise<Response>) | null => {
     // Check if this is a problem file request
     const isProblemFile = PROBLEM_PATTERNS.some((pattern) => {
         return pattern.test(requestUrl.pathname);
@@ -226,7 +219,6 @@ self.addEventListener('fetch', (event: FetchEvent) => {
  */
 async function handleAPIRequest(request: Request): Promise<Response> {
     try {
-        // Try network first
         const networkResponse = await fetch(request);
 
         // Handle redirect responses - don't cache, return as-is
@@ -248,7 +240,6 @@ async function handleAPIRequest(request: Request): Promise<Response> {
             return networkResponse;
         }
 
-        // For other errors, try cache fallback
         throw new Error(`API error: ${networkResponse.status}`);
     } catch (error) {
         return handleAPIError(request, error);
@@ -262,7 +253,6 @@ async function handleAPIRequest(request: Request): Promise<Response> {
  * @returns Cached response or offline fallback
  */
 async function handleAPIError(request: Request, error: unknown): Promise<Response> {
-    // Check if this is actually a network error (TypeError) or just a server error
     const isNetworkError = error instanceof TypeError;
 
     // Try cache for GET requests
@@ -270,12 +260,9 @@ async function handleAPIError(request: Request, error: unknown): Promise<Respons
         const cache = await caches.open(`${CACHE_NAMES.API}-${CACHE_VERSION}`);
         const cachedResponse = await cache.match(request);
         if (cachedResponse) {
-            // Add header to indicate cached response
             const headers = new Headers(cachedResponse.headers);
             headers.set('X-SW-Cache', 'true');
-            if (isNetworkError) {
-                headers.set('X-SW-Offline', 'true');
-            }
+            if (isNetworkError) headers.set('X-SW-Offline', 'true');
 
             return new Response(cachedResponse.body, {
                 status: cachedResponse.status,
@@ -295,15 +282,11 @@ async function handleAPIError(request: Request, error: unknown): Promise<Respons
             }),
             {
                 status: 503,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-SW-Offline': 'true',
-                },
+                headers: { 'Content-Type': 'application/json', 'X-SW-Offline': 'true' },
             }
         );
     }
 
-    // Re-throw other errors to let the client handle them
     throw error;
 }
 
@@ -313,14 +296,11 @@ async function handleAPIError(request: Request, error: unknown): Promise<Respons
  * @returns Response from cache or network
  */
 async function handleProblemRequest(request: Request): Promise<Response> {
-    const cacheName = `${CACHE_NAMES.PROBLEMS}-${CACHE_VERSION}`;
-    const cache = await caches.open(cacheName);
+    const cache = await caches.open(`${CACHE_NAMES.PROBLEMS}-${CACHE_VERSION}`);
 
     // Try cache first
     const cachedResponse = await cache.match(request, { ignoreSearch: true });
-    if (cachedResponse) {
-        return serveCachedProblem(request, cachedResponse, cache);
-    }
+    if (cachedResponse) return serveCachedProblem(request, cachedResponse, cache);
 
     // Not in cache, try network
     return fetchProblemFromNetwork(request, cache);
@@ -328,23 +308,15 @@ async function handleProblemRequest(request: Request): Promise<Response> {
 
 /**
  * Serves a cached problem response with background revalidation
- * @param request - The original fetch request
- * @param cachedResponse - The cached response to serve
- * @param cache - The cache instance for storing updated content
- * @returns The cached response
  */
 function serveCachedProblem(request: Request, cachedResponse: Response, cache: Cache): Response {
     // Revalidate in background (will fail silently if offline)
     if (request.method === 'GET') {
         fetch(request)
             .then((networkResponse) => {
-                if (networkResponse.ok) {
-                    cache.put(request, networkResponse);
-                }
+                if (networkResponse.ok) cache.put(request, networkResponse);
             })
-            .catch(() => {
-                // Ignore background revalidation errors
-            });
+            .catch(() => {});
     }
 
     // If it's a HEAD request, return response with no body
@@ -361,71 +333,43 @@ function serveCachedProblem(request: Request, cachedResponse: Response, cache: C
 
 /**
  * Fetches a problem from the network and caches it
- * @param request - The fetch request
- * @param cache - The cache instance for storing the response
- * @returns Response from network or offline fallback
  */
 async function fetchProblemFromNetwork(request: Request, cache: Cache): Promise<Response> {
     try {
         const networkResponse = await fetch(request);
-        if (networkResponse.ok) {
-            cache.put(request, networkResponse.clone());
-        }
+        if (networkResponse.ok) cache.put(request, networkResponse.clone());
         return networkResponse;
     } catch {
-        // Return offline fallback
         return new Response(
             '# Offline\n\nThis problem is not available offline. Please connect to the internet to access this content.',
-            {
-                status: 503,
-                headers: {
-                    'Content-Type': 'text/markdown',
-                    'X-SW-Offline': 'true',
-                },
-            }
+            { status: 503, headers: { 'Content-Type': 'text/markdown', 'X-SW-Offline': 'true' } }
         );
     }
 }
 
 /**
  * Handles static asset requests with stale-while-revalidate strategy
- * @param request - The fetch request to handle
- * @returns Response from cache or network
  */
 async function handleStaticRequest(request: Request): Promise<Response> {
     const cache = await caches.open(`${CACHE_NAMES.STATIC}-${CACHE_VERSION}`);
-
-    // Try cache first
     const cachedResponse = await cache.match(request);
 
     // Always try to fetch from network for revalidation
     const networkFetch = fetch(request)
         .then((networkResponse) => {
-            if (networkResponse.ok) {
-                // Cache successful responses
-                cache.put(request, networkResponse.clone());
-                return networkResponse;
-            }
+            if (networkResponse.ok) cache.put(request, networkResponse.clone());
             return networkResponse;
         })
-        .catch(() => {
-            // Network failed, will use cache if available
-            return null;
-        });
+        .catch(() => null);
 
     if (cachedResponse) {
-        // Return cached version immediately, revalidate in background
         revalidateStaticAsset(request, networkFetch);
         return cachedResponse;
     }
 
-    // Not in cache, wait for network
     const networkResponse = await networkFetch;
-    if (networkResponse) {
-        return networkResponse;
-    }
+    if (networkResponse) return networkResponse;
 
-    // Both cache and network failed
     return new Response('Offline - Resource not available', {
         status: 503,
         statusText: 'Service Unavailable',
@@ -434,19 +378,13 @@ async function handleStaticRequest(request: Request): Promise<Response> {
 
 /**
  * Revalidates a static asset in the background and notifies clients of updates
- * @param request - The original fetch request
- * @param networkFetch - Promise resolving to the network response
  */
 function revalidateStaticAsset(request: Request, networkFetch: Promise<Response | null>): void {
     networkFetch.then((networkResponse) => {
         if (networkResponse) {
-            // Notify clients about update if content changed
             self.clients.matchAll().then((matchedClients) => {
                 matchedClients.forEach((client) => {
-                    client.postMessage({
-                        type: 'ASSET_UPDATED',
-                        url: request.url,
-                    });
+                    client.postMessage({ type: 'ASSET_UPDATED', url: request.url });
                 });
             });
         }

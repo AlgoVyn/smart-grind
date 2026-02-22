@@ -150,42 +150,6 @@ export const utils = {
         }
     },
 
-    // AI provider configurations
-    _aiProviders: {
-        chatgpt: {
-            mobileIntent:
-                'intent://chat.openai.com#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchatgpt.com%2F;end',
-            desktopUrl: 'https://chatgpt.com/?q=',
-        },
-        aistudio: {
-            mobileIntent:
-                'intent://aistudio.google.com#Intent;scheme=https;package=com.google.ai.apps.aistudio;S.browser_fallback_url=https%3A%2F%2Faistudio.google.com;end',
-            desktopUrl: 'https://aistudio.google.com/prompts/new_chat?prompt=',
-        },
-        grok: {
-            mobileIntent:
-                'intent://grok.com#Intent;scheme=https;package=com.xai.grok;S.browser_fallback_url=https%3A%2F%2Fgrok.com;end',
-            desktopUrl: 'https://grok.com/?q=',
-        },
-    },
-
-    // Helper to check if running on mobile
-    _isMobile: () =>
-        /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
-
-    // Helper to build AI URL
-    _buildAIUrl: (provider: 'chatgpt' | 'aistudio' | 'grok', encodedPrompt: string) => {
-        const config = utils._aiProviders[provider];
-        if (utils._isMobile()) {
-            const fallbackParam = encodeURIComponent(`${config.desktopUrl}${encodedPrompt}`);
-            return config.mobileIntent.replace(
-                /S\.browser_fallback_url=[^;]+/,
-                `S.browser_fallback_url=${fallbackParam}`
-            );
-        }
-        return config.desktopUrl + encodedPrompt;
-    },
-
     // AI helper
 
     /**
@@ -200,14 +164,44 @@ export const utils = {
      * await utils.askAI('Two Sum', 'chatgpt');
      */
     askAI: async (problemName: string, provider: 'chatgpt' | 'aistudio' | 'grok') => {
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+        );
+
+        // AI provider configurations
+        const providers = {
+            chatgpt: {
+                desktopUrl: 'https://chatgpt.com/?q=',
+                mobileIntent:
+                    'intent://chat.openai.com#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchatgpt.com%2F;end',
+            },
+            aistudio: {
+                desktopUrl: 'https://aistudio.google.com/prompts/new_chat?prompt=',
+                mobileIntent:
+                    'intent://aistudio.google.com#Intent;scheme=https;package=com.google.ai.apps.aistudio;S.browser_fallback_url=https%3A%2F%2Faistudio.google.com;end',
+            },
+            grok: {
+                desktopUrl: 'https://grok.com/?q=',
+                mobileIntent:
+                    'intent://grok.com#Intent;scheme=https;package=com.xai.grok;S.browser_fallback_url=https%3A%2F%2Fgrok.com;end',
+            },
+        };
+
         const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the detailed problem statement, examples, intuition, multiple approaches with code, and time/space complexity analysis. Include related problems, video tutorial links and followup questions with brief answers without code.`;
         const encodedPrompt = encodeURIComponent(aiPrompt);
 
         localStorage.setItem('preferred-ai', provider);
         state.ui.preferredAI = provider;
 
-        const url = utils._buildAIUrl(provider, encodedPrompt);
-        if (utils._isMobile()) {
+        const config = providers[provider];
+        const url = isMobile
+            ? config.mobileIntent.replace(
+                  /S\.browser_fallback_url=[^;]+/,
+                  `S.browser_fallback_url=${encodeURIComponent(`${config.desktopUrl}${encodedPrompt}`)}`
+              )
+            : config.desktopUrl + encodedPrompt;
+
+        if (isMobile) {
             window.location.href = url;
         } else {
             window.open(url, '_blank');
@@ -248,20 +242,17 @@ export const utils = {
     sanitizeInput: (input: string | null | undefined) => {
         if (!input) return '';
 
-        // Normalize line endings and trim each line
+        // Normalize line endings, trim lines, remove control chars and HTML
         let sanitized = input
             .replace(/\r\n/g, '\n')
             .split('\n')
             .map((line) => line.trim())
-            .join('\n');
-
-        // Remove control characters (except newlines), HTML tags, and quotes
-        sanitized = sanitized
+            .join('\n')
             .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, '')
             .replace(/<[^>]*>/g, '')
             .replace(/["'\\]/g, '');
 
-        // Remove dangerous URL schemes and event handlers
+        // Remove dangerous patterns (URL schemes and event handlers)
         const dangerousPatterns = [
             /javascript:/gi,
             /data:/gi,
@@ -290,10 +281,10 @@ export const utils = {
     sanitizeUrl: (url: string | null | undefined) => {
         if (!url) return '';
 
-        let sanitized = url.trim();
-
-        // Reject dangerous URL schemes BEFORE any processing to prevent bypass
+        const sanitized = url.trim();
         const lowerSanitized = sanitized.toLowerCase();
+
+        // Reject dangerous URL schemes before processing
         if (
             lowerSanitized.includes('javascript:') ||
             lowerSanitized.includes('data:') ||
@@ -302,27 +293,17 @@ export const utils = {
             return '';
         }
 
-        // Basic URL validation and sanitization
+        // Prepend https:// if missing and validate
         try {
-            // If it doesn't start with http:// or https://, prepend https://
-            if (!lowerSanitized.startsWith('http://') && !lowerSanitized.startsWith('https://')) {
-                sanitized = 'https://' + sanitized;
-            }
-
-            // Create URL object to validate
-            new URL(sanitized);
-        } catch (_e) {
-            // If URL parsing fails, return empty string
-
+            const urlWithScheme =
+                lowerSanitized.startsWith('http://') || lowerSanitized.startsWith('https://')
+                    ? sanitized
+                    : 'https://' + sanitized;
+            new URL(urlWithScheme);
+            return urlWithScheme.substring(0, 500);
+        } catch {
             return '';
         }
-
-        // Limit URL length
-        if (sanitized.length > 500) {
-            sanitized = sanitized.substring(0, 500);
-        }
-
-        return sanitized;
     },
 
     // Toast notifications
@@ -472,33 +453,34 @@ export const utils = {
      */
     shouldShowProblem: (problem: Problem, filter: string, searchQuery: string, today: string) => {
         // Status filter check
-        const passesFilter =
-            filter === 'all' ||
-            (filter === 'unsolved' && problem.status === 'unsolved') ||
-            (filter === 'solved' && problem.status === 'solved') ||
-            (filter === 'review' &&
-                problem.status === 'solved' &&
-                problem.nextReviewDate !== null &&
-                problem.nextReviewDate <= today);
-
-        if (!passesFilter) return false;
-
-        // Apply date filter for review/solved modes
-        if ((filter === 'review' || filter === 'solved') && state.ui.reviewDateFilter) {
-            if (problem.nextReviewDate !== state.ui.reviewDateFilter) return false;
+        if (filter === 'unsolved' && problem.status !== 'unsolved') return false;
+        if (filter === 'solved' && problem.status !== 'solved') return false;
+        if (
+            filter === 'review' &&
+            (problem.status !== 'solved' ||
+                !problem.nextReviewDate ||
+                problem.nextReviewDate > today)
+        ) {
+            return false;
         }
 
-        // Apply search query
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            return (
-                problem.name.toLowerCase().includes(query) ||
-                problem.note?.toLowerCase().includes(query) ||
-                false
-            );
+        // Date filter for review/solved modes
+        if (
+            (filter === 'review' || filter === 'solved') &&
+            state.ui.reviewDateFilter &&
+            problem.nextReviewDate !== state.ui.reviewDateFilter
+        ) {
+            return false;
         }
 
-        return true;
+        // Search query filter
+        if (!searchQuery) return true;
+        const query = searchQuery.toLowerCase();
+        return (
+            problem.name.toLowerCase().includes(query) ||
+            problem.note?.toLowerCase().includes(query) ||
+            false
+        );
     },
 
     // Get available review dates from problems
@@ -518,20 +500,13 @@ export const utils = {
         const dates = new Set<string>();
         state.problems.forEach((problem: Problem) => {
             if (problem.status === 'solved' && problem.nextReviewDate !== null) {
-                // For review filter: only include due dates (today or earlier)
-                // For solved filter: include all solved dates
                 const isDue = problem.nextReviewDate <= today;
-                if (filter === 'review') {
-                    if (isDue) {
-                        dates.add(problem.nextReviewDate);
-                    }
-                } else {
-                    // For solved mode, include all dates
+                // For review filter: only include due dates; for solved: include all
+                if (filter !== 'review' || isDue) {
                     dates.add(problem.nextReviewDate);
                 }
             }
         });
-        // Sort dates ascending (oldest first)
         return Array.from(dates).sort();
     },
 };

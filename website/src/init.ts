@@ -106,8 +106,8 @@ const checkAuth = async () => {
     // Listen for auth required events from Service Worker (background sync auth failures)
     // Register this EARLY so we don't miss events if initialization is slow
     swRegister.on('authRequired', (eventData: unknown) => {
-        const data = eventData as { message?: string; timestamp?: number };
-        console.warn('[Init] Received authRequired event:', data.message);
+        const eventDataObj = eventData as { message?: string; timestamp?: number };
+        console.warn('[Init] Received authRequired event:', eventDataObj.message);
 
         // Show sign-in modal to ask user to sign in again
         openSigninModal();
@@ -119,12 +119,11 @@ const checkAuth = async () => {
 
     // Extract category from URL path
     const path = window.location.pathname;
-    let categoryParam: string | null = null;
-    if (path === '/smartgrind/') {
-        categoryParam = 'all';
-    } else if (path.startsWith('/smartgrind/c/')) {
-        categoryParam = path.split('/smartgrind/c/')[1] || null;
-    }
+    const categoryParam = path.startsWith('/smartgrind/c/')
+        ? path.split('/smartgrind/c/')[1] || null
+        : path === '/smartgrind/'
+          ? 'all'
+          : null;
 
     // Check URL params for PWA auth callback (new secure flow)
     // Token is NO LONGER in URL - only userId and displayName

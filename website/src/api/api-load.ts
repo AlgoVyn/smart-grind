@@ -23,18 +23,22 @@ async function getResponseText(response: Response): Promise<string> {
 
     if (bytes.length === 0) return '';
 
+    // Check if already uncompressed (JSON starts with { or [, or ASCII text)
     const firstChar = bytes[0]!;
     if (firstChar === 0x7b || firstChar === 0x5b || (firstChar >= 32 && firstChar < 127)) {
         return new TextDecoder().decode(bytes);
     }
 
-    try {
-        let format: CompressionFormat;
-        if (contentEncoding === 'gzip') format = 'gzip';
-        else if (contentEncoding === 'deflate') format = 'deflate';
-        else if (contentEncoding === 'br') format = 'br' as CompressionFormat;
-        else return new TextDecoder().decode(bytes);
+    // Map content encoding to compression format
+    const formatMap: Record<string, CompressionFormat | undefined> = {
+        gzip: 'gzip',
+        deflate: 'deflate',
+        br: 'br' as CompressionFormat,
+    };
+    const format = formatMap[contentEncoding];
+    if (!format) return new TextDecoder().decode(bytes);
 
+    try {
         const stream = new ReadableStream({
             start(controller) {
                 controller.enqueue(bytes);
@@ -43,15 +47,14 @@ async function getResponseText(response: Response): Promise<string> {
         });
 
         const ds = new DecompressionStream(format);
-        const decompressedStream = stream.pipeThrough(ds);
-        const reader = decompressedStream.getReader();
+        const reader = stream.pipeThrough(ds).getReader();
         const chunks: Uint8Array[] = [];
-        let done = false;
 
-        while (!done) {
-            const result = await reader.read();
-            done = result.done;
-            if (!done && result.value) chunks.push(result.value);
+        // Read all chunks from the decompression stream
+        let readResult = await reader.read();
+        while (!readResult.done) {
+            if (readResult.value) chunks.push(readResult.value);
+            readResult = await reader.read();
         }
 
         const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
@@ -63,7 +66,7 @@ async function getResponseText(response: Response): Promise<string> {
         }
 
         return new TextDecoder().decode(result);
-    } catch (_err) {
+    } catch {
         return new TextDecoder().decode(bytes);
     }
 }

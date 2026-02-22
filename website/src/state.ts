@@ -132,35 +132,48 @@ export const state = {
         this.cacheElements();
     },
 
+    // Helper to get storage keys based on user type
+    _getStorageKeys() {
+        const isSignedIn = this.user.type === 'signed-in';
+        const prefix = isSignedIn ? 'SIGNED_IN_' : '';
+        return {
+            problems:
+                data.LOCAL_STORAGE_KEYS[
+                    `${prefix}PROBLEMS` as keyof typeof data.LOCAL_STORAGE_KEYS
+                ],
+            deletedIds:
+                data.LOCAL_STORAGE_KEYS[
+                    `${prefix}DELETED_IDS` as keyof typeof data.LOCAL_STORAGE_KEYS
+                ],
+            displayName:
+                data.LOCAL_STORAGE_KEYS[
+                    `${prefix}DISPLAY_NAME` as keyof typeof data.LOCAL_STORAGE_KEYS
+                ],
+        };
+    },
+
     // Load state from localStorage
     loadFromStorage(): void {
         try {
-            // Determine which keys to use based on user type
-            const isSignedIn = this.user.type === 'signed-in';
-            const problemsKey = isSignedIn
-                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_PROBLEMS
-                : data.LOCAL_STORAGE_KEYS.PROBLEMS;
-            const deletedIdsKey = isSignedIn
-                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_DELETED_IDS
-                : data.LOCAL_STORAGE_KEYS.DELETED_IDS;
-            const displayNameKey = isSignedIn
-                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_DISPLAY_NAME
-                : data.LOCAL_STORAGE_KEYS.DISPLAY_NAME;
-
+            const keys = this._getStorageKeys();
             const problemsObj = safeJsonParse<Record<string, Problem>>(
-                localStorage.getItem(problemsKey),
+                localStorage.getItem(keys.problems),
                 {}
             );
-            const deletedIdsArr = safeJsonParse<string[]>(localStorage.getItem(deletedIdsKey), []);
+            const deletedIdsArr = safeJsonParse<string[]>(
+                localStorage.getItem(keys.deletedIds),
+                []
+            );
 
             this.problems = new Map(Object.entries(problemsObj));
             this.problems.forEach((p) => (p.loading = false));
             this.deletedProblemIds = new Set(deletedIdsArr);
             this.user.displayName =
-                localStorage.getItem(displayNameKey) || (isSignedIn ? '' : 'Local User');
+                localStorage.getItem(keys.displayName) ||
+                (this.user.type === 'signed-in' ? '' : 'Local User');
             this.user.type = (localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE) ||
                 'local') as 'local' | 'signed-in';
-        } catch (_e) {
+        } catch {
             // ignore
         }
     },
@@ -168,102 +181,104 @@ export const state = {
     // Save state to localStorage
     saveToStorage(): void {
         try {
-            // Determine which keys to use based on user type
-            const isSignedIn = this.user.type === 'signed-in';
-            const problemsKey = isSignedIn
-                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_PROBLEMS
-                : data.LOCAL_STORAGE_KEYS.PROBLEMS;
-            const deletedIdsKey = isSignedIn
-                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_DELETED_IDS
-                : data.LOCAL_STORAGE_KEYS.DELETED_IDS;
-            const displayNameKey = isSignedIn
-                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_DISPLAY_NAME
-                : data.LOCAL_STORAGE_KEYS.DISPLAY_NAME;
-
+            const keys = this._getStorageKeys();
             const problemsWithoutLoading = Object.fromEntries(
                 Array.from(this.problems.entries()).map(([id, p]) => {
                     const { loading: _, noteVisible: __, ...rest } = p;
                     return [id, rest];
                 })
             );
-            localStorage.setItem(problemsKey, JSON.stringify(problemsWithoutLoading));
-            localStorage.setItem(deletedIdsKey, JSON.stringify(Array.from(this.deletedProblemIds)));
-            localStorage.setItem(displayNameKey, this.user.displayName);
+            localStorage.setItem(keys.problems, JSON.stringify(problemsWithoutLoading));
+            localStorage.setItem(
+                keys.deletedIds,
+                JSON.stringify(Array.from(this.deletedProblemIds))
+            );
+            localStorage.setItem(keys.displayName, this.user.displayName);
             localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
-        } catch (_e) {
+        } catch {
             // ignore
         }
     },
 
     // Cache DOM elements
     cacheElements(): void {
-        // Element ID mappings: property name -> [DOM ID, input type or null for regular elements]
-        const elementMappings: Record<string, [string, 'input' | 'select' | null]> = {
-            setupModal: ['setup-modal', null],
-            addProblemModal: ['add-problem-modal', null],
-            signinModal: ['signin-modal', null],
-            signinModalContent: ['signin-modal-content', null],
-            alertModal: ['alert-modal', null],
-            confirmModal: ['confirm-modal', null],
-            alertMessage: ['alert-message', null],
-            confirmMessage: ['confirm-message', null],
-            alertTitle: ['alert-title', null],
-            confirmTitle: ['confirm-title', null],
-            alertOkBtn: ['alert-ok-btn', null],
-            confirmOkBtn: ['confirm-ok-btn', null],
-            confirmCancelBtn: ['confirm-cancel-btn', null],
-            appWrapper: ['app-wrapper', null],
-            loadingScreen: ['loading-screen', null],
-            googleLoginBtn: ['google-login-button', null],
-            modalGoogleLoginBtn: ['modal-google-login-button', null],
-            setupError: ['setup-error', null],
-            signinError: ['signin-error', null],
-            topicList: ['topic-list', null],
-            problemsContainer: ['problems-container', null],
-            mobileMenuBtn: ['mobile-menu-btn', null],
-            openAddModalBtn: ['open-add-modal-btn', null],
-            cancelAddBtn: ['cancel-add-btn', null],
-            saveAddBtn: ['save-add-btn', null],
-            sidebarSolvedText: ['sidebar-total-stat', null],
-            sidebarSolvedBar: ['sidebar-total-bar', null],
-            mainTotalText: ['stat-total', null],
-            mainSolvedText: ['stat-solved', null],
-            mainSolvedBar: ['progress-bar-solved', null],
-            mainDueText: ['stat-due', null],
-            mainDueBadge: ['stat-due-badge', null],
-            currentFilterDisplay: ['current-filter-display', null],
-            contentScroll: ['content-scroll', null],
-            emptyState: ['empty-state', null],
-            currentViewTitle: ['current-view-title', null],
-            reviewBanner: ['review-banner', null],
-            reviewCountBanner: ['review-count-banner', null],
-            toastContainer: ['toast-container', null],
-            userDisplay: ['user-display', null],
-            disconnectBtn: ['disconnect-btn', null],
-            themeToggleBtn: ['theme-toggle-btn', null],
-            mainSidebar: ['main-sidebar', null],
-            sidebarResizer: ['sidebar-resizer', null],
-            sidebarBackdrop: ['sidebar-backdrop', null],
-            mobileMenuBtnMain: ['mobile-menu-btn-main', null],
-            scrollToTopBtn: ['scroll-to-top-btn', null],
-            sidebarLogo: ['sidebar-logo', null],
-            mobileLogo: ['mobile-logo', null],
-            solutionModal: ['solution-modal', null],
-            solutionCloseBtn: ['solution-close-btn', null],
-            headerDisconnectBtn: ['header-disconnect-btn', null],
-            dateFilterContainer: ['date-filter-container', null],
-            addProbName: ['add-prob-name', 'input'],
-            addProbUrl: ['add-prob-url', 'input'],
-            addProbCategoryNew: ['add-prob-category-new', 'input'],
-            addProbPatternNew: ['add-prob-pattern-new', 'input'],
-            problemSearch: ['problem-search', 'input'],
-            addProbCategory: ['add-prob-category', 'select'],
-            addProbPattern: ['add-prob-pattern', 'select'],
-            reviewDateFilter: ['review-date-filter', 'select'],
-        };
+        // Element configurations: { id, type? }
+        // type: 'input' -> HTMLInputElement, 'select' -> HTMLSelectElement, undefined -> HTMLElement
+        const elementConfigs: Array<{ id: string; type?: 'input' | 'select' }> = [
+            // Modals
+            { id: 'setup-modal' },
+            { id: 'add-problem-modal' },
+            { id: 'signin-modal' },
+            { id: 'signin-modal-content' },
+            { id: 'alert-modal' },
+            { id: 'confirm-modal' },
+            { id: 'alert-message' },
+            { id: 'confirm-message' },
+            { id: 'alert-title' },
+            { id: 'confirm-title' },
+            { id: 'alert-ok-btn' },
+            { id: 'confirm-ok-btn' },
+            { id: 'confirm-cancel-btn' },
+            { id: 'solution-modal' },
+            { id: 'solution-close-btn' },
+            // App structure
+            { id: 'app-wrapper' },
+            { id: 'loading-screen' },
+            { id: 'topic-list' },
+            { id: 'problems-container' },
+            { id: 'content-scroll' },
+            { id: 'empty-state' },
+            { id: 'current-view-title' },
+            { id: 'current-filter-display' },
+            // Auth elements
+            { id: 'google-login-button' },
+            { id: 'modal-google-login-button' },
+            { id: 'setup-error' },
+            { id: 'signin-error' },
+            { id: 'user-display' },
+            { id: 'disconnect-btn' },
+            { id: 'header-disconnect-btn' },
+            // Stats elements
+            { id: 'sidebar-total-stat' },
+            { id: 'sidebar-total-bar' },
+            { id: 'stat-total' },
+            { id: 'stat-solved' },
+            { id: 'progress-bar-solved' },
+            { id: 'stat-due' },
+            { id: 'stat-due-badge' },
+            { id: 'review-banner' },
+            { id: 'review-count-banner' },
+            // Navigation & controls
+            { id: 'mobile-menu-btn' },
+            { id: 'mobile-menu-btn-main' },
+            { id: 'open-add-modal-btn' },
+            { id: 'cancel-add-btn' },
+            { id: 'save-add-btn' },
+            { id: 'theme-toggle-btn' },
+            { id: 'scroll-to-top-btn' },
+            { id: 'sidebar-logo' },
+            { id: 'mobile-logo' },
+            { id: 'main-sidebar' },
+            { id: 'sidebar-resizer' },
+            { id: 'sidebar-backdrop' },
+            { id: 'date-filter-container' },
+            { id: 'toast-container' },
+            // Form inputs
+            { id: 'add-prob-name', type: 'input' },
+            { id: 'add-prob-url', type: 'input' },
+            { id: 'add-prob-category-new', type: 'input' },
+            { id: 'add-prob-pattern-new', type: 'input' },
+            { id: 'problem-search', type: 'input' },
+            // Form selects
+            { id: 'add-prob-category', type: 'select' },
+            { id: 'add-prob-pattern', type: 'select' },
+            { id: 'review-date-filter', type: 'select' },
+        ];
 
         const elements: Partial<ElementCache> = {};
-        for (const [key, [id, type]] of Object.entries(elementMappings)) {
+
+        for (const { id, type } of elementConfigs) {
+            const key = id.replace(/-([a-z])/g, (_, c) => c.toUpperCase()) as keyof ElementCache;
             const el = document.getElementById(id);
             (elements as Record<string, HTMLElement | HTMLInputElement | HTMLSelectElement | null>)[
                 key
@@ -274,6 +289,7 @@ export const state = {
                       ? (el as HTMLSelectElement | null)
                       : el;
         }
+
         elements['filterBtns'] = document.querySelectorAll('.filter-btn');
         this.elements = elements;
     },

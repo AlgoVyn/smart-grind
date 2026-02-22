@@ -6,7 +6,7 @@
 import { SYNC_CONFIG } from '../config/sync-config';
 
 interface CacheStrategy {
-    fetch(request: Request): Promise<Response>;
+    fetch(_request: Request): Promise<Response>;
 }
 
 class StaleWhileRevalidate implements CacheStrategy {
@@ -166,25 +166,22 @@ export class CacheStrategies {
         this.version = version;
     }
 
+    private getFullCacheName(cacheName: string): string {
+        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
+        return `${baseName}-${this.version}`;
+    }
+
     /**
      * CacheFirst strategy - returns cached response if available, otherwise fetches from network
      */
     async cacheFirst(request: Request, cacheName: string): Promise<Response> {
-        // Use the version from the constructor to match test expectations
-        // cacheName is the base name (e.g., 'static-cache') or key (e.g., 'STATIC')
-        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
-        const fullCacheName = `${baseName}-${this.version}`;
-        const cache = await caches.open(fullCacheName);
+        const cache = await caches.open(this.getFullCacheName(cacheName));
         const cached = await cache.match(request);
 
-        if (cached) {
-            return cached;
-        }
+        if (cached) return cached;
 
         const response = await fetch(request);
-        if (response && response.ok) {
-            await cache.put(request, response.clone());
-        }
+        if (response?.ok) await cache.put(request, response.clone());
         return response;
     }
 
@@ -192,12 +189,11 @@ export class CacheStrategies {
      * NetworkFirst strategy - fetches from network first, falls back to cache on failure
      */
     async networkFirst(request: Request, cacheName: string): Promise<Response> {
-        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
-        const fullCacheName = `${baseName}-${this.version}`;
+        const fullCacheName = this.getFullCacheName(cacheName);
 
         try {
             const networkResponse = await fetch(request);
-            if (networkResponse && networkResponse.ok) {
+            if (networkResponse?.ok) {
                 const cache = await caches.open(fullCacheName);
                 await cache.put(request, networkResponse.clone());
                 return networkResponse;
@@ -205,24 +201,16 @@ export class CacheStrategies {
             // Non-OK response - try cache fallback
             const cache = await caches.open(fullCacheName);
             const cached = await cache.match(request);
-            if (cached) {
-                return cached;
-            }
-            // No cache fallback, throw error for non-OK response
+            if (cached) return cached;
             throw new Error(
                 `Network request failed with status ${networkResponse?.status || 'unknown'}`
             );
         } catch (error) {
-            // If it's already an error we threw, re-throw it
-            if (error instanceof Error && error.message.includes('Network request failed')) {
+            if (error instanceof Error && error.message.includes('Network request failed'))
                 throw error;
-            }
-            // Otherwise it's a network error, try cache fallback
             const cache = await caches.open(fullCacheName);
             const cached = await cache.match(request);
-            if (cached) {
-                return cached;
-            }
+            if (cached) return cached;
             throw error;
         }
     }
@@ -231,8 +219,7 @@ export class CacheStrategies {
      * StaleWhileRevalidate strategy - returns cached response immediately, updates cache in background
      */
     async staleWhileRevalidate(request: Request, cacheName: string): Promise<Response> {
-        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
-        const fullCacheName = `${baseName}-${this.version}`;
+        const fullCacheName = this.getFullCacheName(cacheName);
         const cache = await caches.open(fullCacheName);
         const cached = await cache.match(request);
 
@@ -240,22 +227,18 @@ export class CacheStrategies {
             // Revalidate in background
             fetch(request)
                 .then(async (response) => {
-                    if (response && response.ok) {
+                    if (response?.ok) {
                         const bgCache = await caches.open(fullCacheName);
                         await bgCache.put(request, response.clone());
                     }
                 })
-                .catch(() => {
-                    // Silently fail background revalidation
-                });
+                .catch(() => {});
             return cached.clone();
         }
 
         // No cache, fetch from network
         const response = await fetch(request);
-        if (response && response.ok) {
-            await cache.put(request, response.clone());
-        }
+        if (response?.ok) await cache.put(request, response.clone());
         return response;
     }
 
@@ -263,15 +246,9 @@ export class CacheStrategies {
      * CacheOnly strategy - only returns cached response, throws if not found
      */
     async cacheOnly(request: Request, cacheName: string): Promise<Response> {
-        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
-        const fullCacheName = `${baseName}-${this.version}`;
-        const cache = await caches.open(fullCacheName);
+        const cache = await caches.open(this.getFullCacheName(cacheName));
         const cached = await cache.match(request);
-
-        if (cached) {
-            return cached;
-        }
-
+        if (cached) return cached;
         throw new Error('Cache miss');
     }
 
@@ -286,19 +263,14 @@ export class CacheStrategies {
      * Pre-cache multiple URLs
      */
     async preCacheUrls(urls: string[], cacheName: string): Promise<void> {
-        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
-        const fullCacheName = `${baseName}-${this.version}`;
-        const cache = await caches.open(fullCacheName);
+        const cache = await caches.open(this.getFullCacheName(cacheName));
 
         await Promise.all(
             urls.map(async (url) => {
                 try {
                     const response = await fetch(url);
-                    if (response && response.ok) {
-                        await cache.put(url, response.clone());
-                    }
+                    if (response?.ok) await cache.put(url, response.clone());
                 } catch (error) {
-                    // Silently fail individual pre-cache failures
                     console.error(`Failed to pre-cache ${url}:`, error);
                 }
             })
@@ -309,9 +281,7 @@ export class CacheStrategies {
      * Get all cached URLs for a cache
      */
     async getCachedUrls(cacheName: string): Promise<string[]> {
-        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
-        const fullCacheName = `${baseName}-${this.version}`;
-        const cache = await caches.open(fullCacheName);
+        const cache = await caches.open(this.getFullCacheName(cacheName));
         const keys = await cache.keys();
         return keys.map((request) => request.url);
     }
@@ -320,9 +290,7 @@ export class CacheStrategies {
      * Clear all entries from a cache
      */
     async clearCache(cacheName: string): Promise<void> {
-        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
-        const fullCacheName = `${baseName}-${this.version}`;
-        const cache = await caches.open(fullCacheName);
+        const cache = await caches.open(this.getFullCacheName(cacheName));
         const keys = await cache.keys();
         await Promise.all(keys.map((key) => cache.delete(key)));
     }
@@ -332,18 +300,16 @@ export class CacheStrategies {
      */
     async getCacheInfo(): Promise<Array<{ name: string; itemCount: number }>> {
         const cacheNames = await caches.keys();
-        const info = await Promise.all(
+        return Promise.all(
             cacheNames.map(async (name) => {
                 const cache = await caches.open(name);
                 const keys = await cache.keys();
-                // Map full cache name back to simple name for test compatibility
                 const simpleName =
                     Object.entries(CACHE_NAMES).find(([, value]) => name.startsWith(value))?.[0] ||
                     name;
                 return { name: simpleName, itemCount: keys.length };
             })
         );
-        return info;
     }
 }
 

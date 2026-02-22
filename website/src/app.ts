@@ -87,18 +87,10 @@ export const initializeLocalUser = async () => {
     // Initialize scroll button after DOM is ready
     ui.initScrollButton();
 
-    const setupModal = state.elements['setupModal'];
-    const appWrapper = state.elements['appWrapper'];
-    const loadingScreen = state.elements['loadingScreen'];
-    if (setupModal) {
-        setupModal.classList.add('hidden');
-    }
-    if (appWrapper) {
-        appWrapper.classList.remove('hidden');
-    }
-    if (loadingScreen) {
-        loadingScreen.classList.add('hidden');
-    }
+    // Toggle visibility of modal elements
+    state.elements['setupModal']?.classList.add('hidden');
+    state.elements['appWrapper']?.classList.remove('hidden');
+    state.elements['loadingScreen']?.classList.add('hidden');
 
     // Update auth UI
     ui.updateAuthUI();

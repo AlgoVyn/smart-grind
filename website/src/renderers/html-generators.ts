@@ -21,25 +21,25 @@ const escapeHtml = (str: string): string =>
         .replace(/'/g, '&#039;');
 
 export const htmlGenerators = {
-    // Helper to check if a pattern is custom (not in original data)
-    _isCustomPattern: (patternName: string) => {
-        if (!data.ORIGINAL_TOPICS_DATA) return true;
-        return !data.ORIGINAL_TOPICS_DATA.some((topic: Topic) =>
-            topic.patterns.some((p: Pattern) => p.name === patternName)
-        );
-    },
-
-    // Helper to check if a problem is custom
-    _isCustomProblem: (problemId: string) => {
+    // Helper to check if an item exists in original data
+    // For patterns: checks by pattern name
+    // For problems: checks by problem ID
+    _isCustomItem: (type: 'pattern' | 'problem', identifier: string) => {
         if (!data.ORIGINAL_TOPICS_DATA) return true;
         return !data.ORIGINAL_TOPICS_DATA.some((topic: Topic) =>
             topic.patterns.some((pattern: Pattern) =>
-                pattern.problems.some((prob: string | ProblemDef) =>
-                    typeof prob === 'string' ? prob === problemId : prob.id === problemId
-                )
+                type === 'pattern'
+                    ? pattern.name === identifier
+                    : pattern.problems.some((prob: string | ProblemDef) =>
+                          typeof prob === 'string' ? prob === identifier : prob.id === identifier
+                      )
             )
         );
     },
+
+    // Legacy helpers for backward compatibility
+    _isCustomPattern: (patternName: string) => htmlGenerators._isCustomItem('pattern', patternName),
+    _isCustomProblem: (problemId: string) => htmlGenerators._isCustomItem('problem', problemId),
 
     // Helper to sort problems for review filter
     _sortReviewProblems: (problems: Problem[]) => {
@@ -171,9 +171,8 @@ export const htmlGenerators = {
 
     // Helper to generate badge HTML
     _generateBadge: (p: Problem, today: string) => {
-        const isSolved = p.status === 'solved';
-        const isDue = isSolved && p.nextReviewDate !== null && p.nextReviewDate <= today;
-        if (!isSolved) return '';
+        if (p.status !== 'solved') return '';
+        const isDue = p.nextReviewDate !== null && p.nextReviewDate <= today;
         const badgeClass = isDue
             ? 'bg-amber-500/20 text-amber-500'
             : 'bg-brand-500/20 text-brand-400';
@@ -186,32 +185,26 @@ export const htmlGenerators = {
         const isDue = isSolved && p.nextReviewDate !== null && p.nextReviewDate <= utils.getToday();
 
         // Determine action type and styling
-        const actionConfig = {
-            solve: {
-                action: 'solve',
-                class: 'bg-brand-600 text-white hover:bg-brand-500 shadow-lg shadow-brand-500/20',
-                text: 'Solve',
-            },
-            review: {
-                action: 'review',
-                class: 'bg-amber-500 text-white hover:bg-amber-400',
-                text: 'Review',
-            },
-            reset: {
-                action: 'reset',
-                class: 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold',
-                text: 'Reset',
-            },
-        };
+        const actionConfig = !isSolved
+            ? {
+                  action: 'solve',
+                  class: 'bg-brand-600 text-white hover:bg-brand-500 shadow-lg shadow-brand-500/20',
+                  text: 'Solve',
+              }
+            : isDue
+              ? {
+                    action: 'review',
+                    class: 'bg-amber-500 text-white hover:bg-amber-400',
+                    text: 'Review',
+                }
+              : {
+                    action: 'reset',
+                    class: 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold',
+                    text: 'Reset',
+                };
 
-        const config = isSolved
-            ? isDue
-                ? actionConfig.review
-                : actionConfig.reset
-            : actionConfig.solve;
-
-        const buttonText = p.loading ? htmlGenerators._getSpinner() : config.text;
-        return `<button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors min-w-[70px] ${config.class}" ${p.loading ? 'disabled' : ''} data-action="${config.action}">${buttonText}</button>`;
+        const buttonText = p.loading ? htmlGenerators._getSpinner() : actionConfig.text;
+        return `<button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors min-w-[70px] ${actionConfig.class}" ${p.loading ? 'disabled' : ''} data-action="${actionConfig.action}">${buttonText}</button>`;
     },
 
     // Helper to generate problem link HTML
@@ -302,13 +295,13 @@ export const htmlGenerators = {
         const isDue = isSolved && p.nextReviewDate !== null && today && p.nextReviewDate <= today;
 
         // Card styling based on status
-        const cardStyles = {
-            due: 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40',
-            solved: 'bg-dark-800 border-brand-500/20 hover:border-brand-500/40',
-            unsolved: 'bg-dark-800 border-theme hover:border-slate-400',
-        };
-        const styleKey = isDue ? 'due' : isSolved ? 'solved' : 'unsolved';
-        const className = `group p-4 rounded-xl border transition-all duration-200 overflow-hidden ${cardStyles[styleKey]}`;
+        const cardStyle = isDue
+            ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40'
+            : isSolved
+              ? 'bg-dark-800 border-brand-500/20 hover:border-brand-500/40'
+              : 'bg-dark-800 border-theme hover:border-slate-400';
+
+        const className = `group p-4 rounded-xl border transition-all duration-200 overflow-hidden ${cardStyle}`;
 
         const problemLink = htmlGenerators._generateProblemLink(p);
         const problemMeta = htmlGenerators._generateProblemMeta(p);
