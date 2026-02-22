@@ -718,6 +718,8 @@ async function downloadAndExtractBundle(): Promise<void> {
             throw new Error(`Failed to download bundle: ${response.status}`);
         }
 
+        console.log('[SW] Compressed bundle download started successfully');
+
         // Get total size for progress tracking
         const contentLength = response.headers.get('content-length');
         const totalSize = contentLength ? parseInt(contentLength, 10) : 0;
@@ -822,6 +824,8 @@ async function downloadAndExtractBundle(): Promise<void> {
         await saveStateToIDB(BUNDLE_STATE_KEY, state);
         await sendProgressUpdate(state);
 
+        console.log(`[SW] Compressed bundle downloaded and extracted successfully: ${state.extractedFiles} files`);
+
         // Notify clients that bundle is ready
         const clients = await self.clients.matchAll({ type: 'window' });
         clients.forEach((client) => {
@@ -831,12 +835,15 @@ async function downloadAndExtractBundle(): Promise<void> {
             });
         });
     } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`[SW] Compressed bundle download failed: ${errorMessage}`);
+
         const errorState: BundleDownloadState = {
             status: 'error',
             progress: 0,
             totalFiles: 0,
             extractedFiles: 0,
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: errorMessage,
         };
         await saveStateToIDB(BUNDLE_STATE_KEY, errorState);
         await sendProgressUpdate(errorState);
