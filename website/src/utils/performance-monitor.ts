@@ -169,7 +169,15 @@ class PerformanceMonitor {
             values.shift();
         }
 
-        // Send to analytics if available
+        // Send to analytics if endpoint is configured and available
+        // Only send in production environments where metrics endpoint exists
+        const metricsEndpoint = (window as { SMARTGRIND_METRICS_ENDPOINT?: string })
+            .SMARTGRIND_METRICS_ENDPOINT;
+        if (!metricsEndpoint) {
+            // Metrics endpoint not configured, skip remote reporting
+            return;
+        }
+
         const metric: PerformanceMetric = {
             name,
             value,
@@ -177,9 +185,9 @@ class PerformanceMonitor {
             url: window.location.href,
         };
 
-        // Use sendBeacon for reliable delivery
+        // Use sendBeacon for reliable delivery (fire-and-forget, no error handling needed)
         if (navigator.sendBeacon) {
-            navigator.sendBeacon('/api/metrics', JSON.stringify(metric));
+            navigator.sendBeacon(metricsEndpoint, JSON.stringify(metric));
         }
     }
 

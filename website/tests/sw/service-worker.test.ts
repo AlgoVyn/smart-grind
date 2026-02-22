@@ -407,7 +407,7 @@ describe('Service Worker', () => {
                 const _event = {
                     data: {
                         type: 'SYNC_OPERATIONS',
-                        operations: [{ type: 'MARK_SOLVED', data: {} }],
+                        operations: [{ type: 'MARK_SOLVED', data: {}, timestamp: Date.now() }],
                     },
                     waitUntil: jest.fn((promise: Promise<void>) => promise),
                     source: null,

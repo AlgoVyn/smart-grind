@@ -11,28 +11,11 @@ import { getConnectivityChecker } from './sw/connectivity-checker';
 import { isBrowserOnline as checkBrowserOnline } from './api/api-utils';
 import { SYNC_CONFIG } from './config/sync-config';
 import { cleanupManager } from './utils/cleanup-manager';
+import { isSyncStatusResponse, type SyncStatus, type APIOperation } from './types/sync';
 
-// Operation types for background sync
-export type APIOperationType =
-    | 'MARK_SOLVED'
-    | 'UPDATE_REVIEW_DATE'
-    | 'UPDATE_DIFFICULTY'
-    | 'ADD_NOTE'
-    | 'ADD_CUSTOM_PROBLEM'
-    | 'DELETE_PROBLEM'
-    | 'UPDATE_SETTINGS';
-
-export interface APIOperation {
-    type: APIOperationType;
-    data: unknown;
-    timestamp: number;
-}
-
-interface SWMessage {
-    type: string;
-    data?: unknown;
-    operations?: APIOperation[];
-}
+// Import and re-export types for backward compatibility
+import type { APIOperationType } from './types/sync';
+export type { APIOperationType, APIOperation };
 
 /**
  * Check if the browser is online with actual connectivity verification
@@ -50,7 +33,18 @@ export function isBrowserOnline(): boolean {
 }
 
 /**
+ * Service Worker message interface
+ */
+interface SWMessage {
+    type: string;
+    data?: unknown;
+    operations?: APIOperation[];
+}
+
+/**
  * Send a message to the service worker
+ * @param message - Message to send to the service worker
+ * @returns Response from service worker or null if unavailable
  */
 async function sendMessageToSW(message: SWMessage): Promise<unknown> {
     if (!('serviceWorker' in navigator) || !navigator.serviceWorker) return null;
@@ -87,6 +81,8 @@ function generateOperationId(): string {
 
 /**
  * Stores operations in localStorage fallback (when SW is unavailable)
+ * @param operations - Array of operations to store
+ * @returns Array of operation IDs
  */
 function storeOperationsLocally(operations: APIOperation[]): string[] {
     const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
@@ -98,6 +94,8 @@ function storeOperationsLocally(operations: APIOperation[]): string[] {
 
 /**
  * Queues API operations for background synchronization.
+ * @param operation - Single operation or array of operations to queue
+ * @returns Operation ID(s) or null if user is not signed in
  */
 export async function queueOperation(_operation: APIOperation): Promise<string | null>;
 export async function queueOperation(_operations: APIOperation[]): Promise<string[]>;
@@ -125,19 +123,17 @@ export async function queueOperation(
 
 /**
  * Queues multiple API operations for background synchronization in batch.
+ * @param operations - Array of operations to queue
+ * @returns Promise resolving to array of operation IDs
  */
 export const queueOperations = (operations: APIOperation[]): Promise<string[]> =>
     queueOperation(operations) as Promise<string[]>;
 
 /**
  * Retrieves the current synchronization status from the service worker.
+ * @returns Current sync status or null if unavailable
  */
-export async function getSyncStatus(): Promise<{
-    pendingCount: number;
-    isSyncing: boolean;
-    lastSyncAt: number | null;
-    stats: { pending: number; completed: number; failed: number; manual: number };
-} | null> {
+export async function getSyncStatus(): Promise<SyncStatus | null> {
     if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
         const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
         return {
@@ -149,20 +145,17 @@ export async function getSyncStatus(): Promise<{
     }
 
     const response = await sendMessageToSW({ type: 'GET_SYNC_STATUS' });
-    const data = response as {
-        type?: string;
-        status?: {
-            pendingCount: number;
-            isSyncing: boolean;
-            lastSyncAt: number | null;
-            stats: { pending: number; completed: number; failed: number; manual: number };
-        };
-    } | null;
-    return data?.status ?? null;
+
+    // Use type guard for validation
+    if (isSyncStatusResponse(response)) {
+        return response.status ?? null;
+    }
+
+    return null;
 }
 
 /**
- * Update sync status in state
+ * Update sync status in state from service worker
  */
 export async function updateSyncStatus(): Promise<void> {
     const status = await getSyncStatus();
@@ -177,6 +170,7 @@ export async function updateSyncStatus(): Promise<void> {
 
 /**
  * Forces an immediate synchronization of all pending operations.
+ * @returns Result of the sync operation
  */
 export async function forceSync(): Promise<{ success: boolean; synced: number; failed: number }> {
     if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
@@ -218,6 +212,8 @@ export async function clearPendingOperations(): Promise<void> {
 
 /**
  * Saves problem updates with automatic offline support.
+ * @param problemId - ID of the problem to update
+ * @param updates - Partial problem data to save
  */
 export async function saveProblemWithSync(
     problemId: string,
@@ -245,6 +241,7 @@ export async function saveProblemWithSync(
 
 /**
  * Deletes a problem with automatic offline support.
+ * @param problemId - ID of the problem to delete
  */
 export async function deleteProblemWithSync(problemId: string): Promise<void> {
     await saveDeletedId(problemId);
@@ -260,6 +257,7 @@ export async function deleteProblemWithSync(problemId: string): Promise<void> {
 
 /**
  * Migrates operations stored in localStorage to the service worker queue.
+ * This handles the case where operations were queued before the service worker was available.
  */
 async function migrateLocalStorageOperations(): Promise<void> {
     const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
@@ -280,6 +278,8 @@ async function migrateLocalStorageOperations(): Promise<void> {
 
 /**
  * Initializes offline/online detection and sync status monitoring.
+ * Sets up connectivity checking, sync status polling, and message handling.
+ * @returns Cleanup function to stop monitoring
  */
 export function initOfflineDetection(): () => void {
     const connectivityChecker = getConnectivityChecker();
