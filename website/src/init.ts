@@ -199,16 +199,16 @@ const checkAuth = async () => {
         }, 'Failed to initialize local user');
     } else {
         // Show setup modal for orphaned signed-in state
-        const { setupModal, appWrapper, loadingScreen, googleLoginBtn } = state.elements;
+        const { setupModal, appWrapper, loadingScreen, googleLoginButton } = state.elements;
 
         setupModal?.classList.remove('hidden');
         appWrapper?.classList.add('hidden');
         loadingScreen?.classList.add('hidden');
 
-        if (googleLoginBtn) {
-            (googleLoginBtn as HTMLButtonElement).disabled = false;
+        if (googleLoginButton) {
+            (googleLoginButton as HTMLButtonElement).disabled = false;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            googleLoginBtn.innerHTML =
+            googleLoginButton.innerHTML =
                 (window as Window & { SmartGrind?: { GOOGLE_BUTTON_HTML?: string } }).SmartGrind?.[
                     'GOOGLE_BUTTON_HTML'
                 ] || '';

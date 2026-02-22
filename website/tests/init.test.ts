@@ -476,7 +476,7 @@ describe('Initialization Module', () => {
             const mockSetupModal = { classList: { remove: jest.fn(), add: jest.fn() } };
             const mockAppWrapper = { classList: { remove: jest.fn(), add: jest.fn() } };
             const mockLoadingScreen = { classList: { remove: jest.fn(), add: jest.fn() } };
-            const mockGoogleLoginBtn = {
+            const mockGoogleLoginButton = {
                 classList: { remove: jest.fn(), add: jest.fn() },
                 disabled: false,
                 innerHTML: '',
@@ -486,7 +486,7 @@ describe('Initialization Module', () => {
                 setupModal: mockSetupModal as any,
                 appWrapper: mockAppWrapper as any,
                 loadingScreen: mockLoadingScreen as any,
-                googleLoginBtn: mockGoogleLoginBtn as any,
+                googleLoginButton: mockGoogleLoginButton as any,
             };
 
             // Mock localStorage to return 'signed-in' user type but no userId
@@ -509,7 +509,7 @@ describe('Initialization Module', () => {
             expect(mockLoadingScreen.classList.add).toHaveBeenCalledWith('hidden');
 
             // Should enable Google login button
-            expect(mockGoogleLoginBtn.disabled).toBe(false);
+            expect(mockGoogleLoginButton.disabled).toBe(false);
             expect(sharedMockUI.updateAuthUI).toHaveBeenCalled();
         });
 

@@ -36,8 +36,8 @@ interface ElementCache {
     currentViewTitle: HTMLElement | null;
     currentFilterDisplay: HTMLElement | null;
     // Auth elements
-    googleLoginBtn: HTMLElement | null;
-    modalGoogleLoginBtn: HTMLElement | null;
+    googleLoginButton: HTMLElement | null;
+    modalGoogleLoginButton: HTMLElement | null;
     setupError: HTMLElement | null;
     signinError: HTMLElement | null;
     userDisplay: HTMLElement | null;

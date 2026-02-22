@@ -31,7 +31,7 @@ const mockElements = {
     appWrapper: { classList: { add: jest.fn(), remove: jest.fn() } },
     loadingScreen: { classList: { add: jest.fn(), remove: jest.fn() } },
     userDisplay: { innerText: '' },
-    googleLoginBtn: { disabled: false, innerHTML: '' },
+    googleLoginButton: { disabled: false, innerHTML: '' },
     signinModal: { classList: { add: jest.fn(), remove: jest.fn() } },
     signinModalContent: { innerHTML: '', classList: { remove: jest.fn(), add: jest.fn() } },
     signinError: { textContent: '', classList: { add: jest.fn(), remove: jest.fn() } },

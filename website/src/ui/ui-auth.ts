@@ -40,8 +40,8 @@ export const setButtonLoading = (
  * Helper to reset all login buttons to default state
  */
 const resetLoginButtons = () => {
-    ui.setButtonLoading(state.elements.googleLoginBtn ?? null, false);
-    ui.setButtonLoading(state.elements.modalGoogleLoginBtn ?? null, false);
+    ui.setButtonLoading(state.elements.googleLoginButton ?? null, false);
+    ui.setButtonLoading(state.elements.modalGoogleLoginButton ?? null, false);
 };
 
 /**
@@ -51,8 +51,8 @@ const resetLoginButtons = () => {
  */
 export const handleGoogleLogin = () => {
     showError(null);
-    ui.setButtonLoading(state.elements.googleLoginBtn ?? null, true);
-    ui.setButtonLoading(state.elements.modalGoogleLoginBtn ?? null, true);
+    ui.setButtonLoading(state.elements.googleLoginButton ?? null, true);
+    ui.setButtonLoading(state.elements.modalGoogleLoginButton ?? null, true);
 
     // Open popup for auth
     const popup = window.open('/smartgrind/api/auth?action=login', 'auth', 'width=500,height=600');

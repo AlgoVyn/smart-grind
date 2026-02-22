@@ -43,8 +43,8 @@ export const bindEvents = () => {
 
 // Bind authentication-related events
 export const bindAuthEvents = () => {
-    state.elements['googleLoginBtn']?.addEventListener('click', handleGoogleLogin);
-    state.elements['modalGoogleLoginBtn']?.addEventListener('click', handleGoogleLogin);
+    state.elements['googleLoginButton']?.addEventListener('click', handleGoogleLogin);
+    state.elements['modalGoogleLoginButton']?.addEventListener('click', handleGoogleLogin);
     state.elements['disconnectBtn']?.addEventListener('click', handleLogout);
 };
 

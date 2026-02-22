@@ -195,8 +195,8 @@ describe('SmartGrind UI', () => {
             activeTopicId: 'all',
         };
         state.elements = {
-            googleLoginBtn: mockElement,
-            modalGoogleLoginBtn: mockElement,
+            googleLoginButton: mockElement,
+            modalGoogleLoginButton: mockElement,
             signinModal: mockElement,
             signinModalContent: mockElement,
             alertModal: mockElement,
@@ -2211,9 +2211,9 @@ describe('SmartGrind UI', () => {
                 'Sign-in popup was blocked. Please allow popups for this site and try again.',
                 'error'
             );
-            expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginBtn, false);
+            expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginButton, false);
             expect(setButtonLoadingSpy).toHaveBeenCalledWith(
-                state.elements.modalGoogleLoginBtn,
+                state.elements.modalGoogleLoginButton,
                 false
             );
 
@@ -2253,9 +2253,9 @@ describe('SmartGrind UI', () => {
                 'Sign-in failed: Test failure message',
                 'error'
             );
-            expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginBtn, false);
+            expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginButton, false);
             expect(setButtonLoadingSpy).toHaveBeenCalledWith(
-                state.elements.modalGoogleLoginBtn,
+                state.elements.modalGoogleLoginButton,
                 false
             );
 
@@ -2284,9 +2284,9 @@ describe('SmartGrind UI', () => {
             jest.advanceTimersByTime(500);
 
             // Buttons should be reset immediately, no timeout toast
-            expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginBtn, false);
+            expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginButton, false);
             expect(setButtonLoadingSpy).toHaveBeenCalledWith(
-                state.elements.modalGoogleLoginBtn,
+                state.elements.modalGoogleLoginButton,
                 false
             );
             // No timeout toast should be shown when popup is closed
