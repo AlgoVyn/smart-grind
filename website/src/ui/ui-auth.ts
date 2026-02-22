@@ -154,28 +154,21 @@ export const handleGoogleLogin = () => {
     window.addEventListener('message', messageHandler);
 
     // Monitor popup closure
+    // Note: popup.closed is accessible cross-origin, unlike popup.location
     popupCheckInterval = setInterval(() => {
-        try {
-            // Check if popup is closed - COOP may block this, so we check location.href first
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-            popup.location.href; // This will throw if COOP blocks access
-            if (popup.closed) handlePopupClose();
-        } catch {
-            // COOP blocks access to cross-origin popup, assume it's still open
-            // The message handler will clean up when auth completes
+        if (popup.closed) {
+            handlePopupClose();
         }
+        // If popup is still open but on a different origin (e.g., Google OAuth),
+        // we can't detect that, but the message handler will clean up when auth completes
     }, 500);
 
     const handleAuthTimeout = () => {
         if (!authCompleted) {
             authCompleted = true;
-            try {
-                // Try to close popup - COOP may block access
-                // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-                popup.location.href; // Check access first
-                if (!popup.closed) popup.close();
-            } catch {
-                // COOP blocks access, popup may already be closed
+            // popup.closed is accessible cross-origin, so we can safely check it
+            if (!popup.closed) {
+                popup.close();
             }
             utils.showToast('Sign-in timed out. Please try again.', 'error');
             cleanupAuth();
