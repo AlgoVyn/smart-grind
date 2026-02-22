@@ -2128,7 +2128,7 @@ describe('SmartGrind UI', () => {
             jest.useFakeTimers();
             const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
             setButtonLoadingSpy.mockImplementation(() => {});
-            const mockPopup = { closed: false, close: jest.fn() };
+            const mockPopup = { closed: false, close: jest.fn(), location: { href: '' } };
             mockOpen.mockReturnValue(mockPopup);
 
             // Mock utils.showToast to prevent DOM operations
@@ -2220,7 +2220,7 @@ describe('SmartGrind UI', () => {
         test('resets buttons immediately when popup is closed without auth', () => {
             jest.useFakeTimers();
             const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
-            const mockPopup = { closed: false, close: jest.fn() };
+            const mockPopup = { closed: false, close: jest.fn(), location: { href: '' } };
             mockOpen.mockReturnValue(mockPopup);
             const showToastSpy = jest.spyOn(utils, 'showToast');
             const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');

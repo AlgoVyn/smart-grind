@@ -193,9 +193,11 @@ async function handleAPIRequest(request: Request): Promise<Response> {
         }
 
         if (networkResponse.ok) {
-            // Cache successful API responses
-            const cache = await caches.open(`${CACHE_NAMES.API}-${CACHE_VERSION}`);
-            cache.put(request, networkResponse.clone());
+            // Only cache GET requests (Cache API doesn't support POST/PUT/DELETE)
+            if (request.method === 'GET') {
+                const cache = await caches.open(`${CACHE_NAMES.API}-${CACHE_VERSION}`);
+                cache.put(request, networkResponse.clone());
+            }
             return networkResponse;
         }
 

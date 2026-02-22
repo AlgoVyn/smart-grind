@@ -147,9 +147,13 @@ export const handleGoogleLogin = () => {
     // Monitor popup closure
     popupCheckInterval = setInterval(() => {
         try {
+            // Check if popup is closed - COOP may block this, so we check location.href first
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+            popup.location.href; // This will throw if COOP blocks access
             if (popup.closed) handlePopupClose();
         } catch {
-            /* COOP may block the check, ignore */
+            // COOP blocks access to cross-origin popup, assume it's still open
+            // The message handler will clean up when auth completes
         }
     }, 500);
 
@@ -157,9 +161,12 @@ export const handleGoogleLogin = () => {
         if (!authCompleted) {
             authCompleted = true;
             try {
+                // Try to close popup - COOP may block access
+                // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                popup.location.href; // Check access first
                 if (!popup.closed) popup.close();
             } catch {
-                /* ignore */
+                // COOP blocks access, popup may already be closed
             }
             utils.showToast('Sign-in timed out. Please try again.', 'error');
             cleanupAuth();
