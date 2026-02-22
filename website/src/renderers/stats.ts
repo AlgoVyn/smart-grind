@@ -14,11 +14,11 @@ export const statsRenderers = {
         const percentage = total > 0 ? (solved / total) * 100 : 0;
 
         // Update main dashboard stats safely
-        const mainTotalText = state.elements['mainTotalText'];
-        const mainSolvedText = state.elements['mainSolvedText'];
-        const mainDueText = state.elements['mainDueText'];
-        const mainSolvedBar = state.elements['mainSolvedBar'];
-        const mainDueBadge = state.elements['mainDueBadge'];
+        const mainTotalText = state.elements['statTotal'];
+        const mainSolvedText = state.elements['statSolved'];
+        const mainDueText = state.elements['statDue'];
+        const mainSolvedBar = state.elements['progressBarSolved'];
+        const mainDueBadge = state.elements['statDueBadge'];
 
         if (mainTotalText) mainTotalText.innerText = total.toString();
         if (mainSolvedText) mainSolvedText.innerText = solved.toString();
@@ -29,33 +29,20 @@ export const statsRenderers = {
         }
     },
 
-    // Helper to update current filter display
-    _updateCurrentFilterDisplay: () => {
-        const currentFilterDisplay = state.elements['currentFilterDisplay'];
-        if (!currentFilterDisplay) return;
-
-        const targetTopicTitle =
-            state.ui.activeTopicId === 'all'
-                ? null
-                : data.topicsData.find((t: Topic) => t.id === state.ui.activeTopicId)?.title;
-
-        currentFilterDisplay.innerText = targetTopicTitle || 'All Problems';
-    },
-
     // Helper to update sidebar statistics
     _updateSidebarStats: () => {
         const globalStats = utils.getUniqueProblemsForTopic('all');
         const percentage =
             globalStats.total > 0 ? Math.round((globalStats.solved / globalStats.total) * 100) : 0;
 
-        const sidebarSolvedText = state.elements['sidebarSolvedText'];
-        const sidebarSolvedBar = state.elements['sidebarSolvedBar'];
+        const sidebarTotalStat = state.elements['sidebarTotalStat'];
+        const sidebarTotalBar = state.elements['sidebarTotalBar'];
 
-        if (sidebarSolvedText) {
-            sidebarSolvedText.innerText = `${percentage}%`;
+        if (sidebarTotalStat) {
+            sidebarTotalStat.innerText = `${percentage}%`;
         }
-        if (sidebarSolvedBar) {
-            sidebarSolvedBar.style.width = `${globalStats.total > 0 ? (globalStats.solved / globalStats.total) * 100 : 0}%`;
+        if (sidebarTotalBar) {
+            sidebarTotalBar.style.width = `${globalStats.total > 0 ? (globalStats.solved / globalStats.total) * 100 : 0}%`;
         }
     },
 
@@ -80,7 +67,6 @@ export const statsRenderers = {
         const { due } = stats;
 
         renderers._updateMainStats(stats);
-        renderers._updateCurrentFilterDisplay();
         renderers._updateSidebarStats();
         renderers._updateReviewBanner(due);
 

@@ -134,6 +134,8 @@ export const utils = {
             // Fallback for older browsers or when clipboard API fails
             try {
                 const textArea = document.createElement('textarea');
+                textArea.id = 'clipboard-fallback';
+                textArea.name = 'clipboard-fallback';
                 textArea.value = text;
                 document.body.appendChild(textArea);
                 textArea.select();

@@ -34,7 +34,6 @@ interface ElementCache {
     contentScroll: HTMLElement | null;
     emptyState: HTMLElement | null;
     currentViewTitle: HTMLElement | null;
-    currentFilterDisplay: HTMLElement | null;
     // Auth elements
     googleLoginButton: HTMLElement | null;
     modalGoogleLoginButton: HTMLElement | null;
@@ -42,15 +41,14 @@ interface ElementCache {
     signinError: HTMLElement | null;
     userDisplay: HTMLElement | null;
     disconnectBtn: HTMLElement | null;
-    headerDisconnectBtn: HTMLElement | null;
     // Stats elements
-    sidebarSolvedText: HTMLElement | null;
-    sidebarSolvedBar: HTMLElement | null;
-    mainTotalText: HTMLElement | null;
-    mainSolvedText: HTMLElement | null;
-    mainSolvedBar: HTMLElement | null;
-    mainDueText: HTMLElement | null;
-    mainDueBadge: HTMLElement | null;
+    sidebarTotalStat: HTMLElement | null;
+    sidebarTotalBar: HTMLElement | null;
+    statTotal: HTMLElement | null;
+    statSolved: HTMLElement | null;
+    progressBarSolved: HTMLElement | null;
+    statDue: HTMLElement | null;
+    statDueBadge: HTMLElement | null;
     reviewBanner: HTMLElement | null;
     reviewCountBanner: HTMLElement | null;
     // Navigation & controls
@@ -229,7 +227,6 @@ export const state = {
             { id: 'content-scroll' },
             { id: 'empty-state' },
             { id: 'current-view-title' },
-            { id: 'current-filter-display' },
             // Auth elements
             { id: 'google-login-button' },
             { id: 'modal-google-login-button' },
@@ -237,7 +234,6 @@ export const state = {
             { id: 'signin-error' },
             { id: 'user-display' },
             { id: 'disconnect-btn' },
-            { id: 'header-disconnect-btn' },
             // Stats elements
             { id: 'sidebar-total-stat' },
             { id: 'sidebar-total-bar' },

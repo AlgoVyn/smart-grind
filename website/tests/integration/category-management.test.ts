@@ -143,7 +143,7 @@ const mockElements = {
     statSolved: { textContent: '0' },
     statDue: { textContent: '0' },
     progressBarSolved: { style: { width: '0%' } },
-    statDueBadge: { textContent: '0', classList: { add: jest.fn(), remove: jest.fn() } },
+    statDueBadge: { textContent: '0', classList: { add: jest.fn(), remove: jest.fn(), toggle: jest.fn() } },
     reviewBanner: { classList: { add: jest.fn(), remove: jest.fn() } },
     reviewCountBanner: { textContent: '0' },
     sidebarTotalStat: { textContent: '0' },

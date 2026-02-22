@@ -279,7 +279,7 @@ export const htmlGenerators = {
     // Helper to generate note area HTML
     _generateNoteArea: (p: Problem) => `
         <div class="note-area ${p.noteVisible ? '' : 'hidden'} mt-3 pt-3 border-t border-theme">
-            <textarea class="w-full bg-dark-950 border border-theme rounded-lg p-3 text-sm text-theme-base focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none resize-y" rows="6" placeholder="Notes..." ${p.loading ? 'disabled' : ''}>${escapeHtml(p.note || '')}</textarea>
+            <textarea id="note-${p.id}" name="note-${p.id}" class="w-full bg-dark-950 border border-theme rounded-lg p-3 text-sm text-theme-base focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none resize-y" rows="6" placeholder="Notes..." ${p.loading ? 'disabled' : ''}>${escapeHtml(p.note || '')}</textarea>
             <div class="flex justify-end mt-2">
                 <button class="px-4 py-1.5 rounded-lg text-xs font-bold transition-colors min-w-[60px] bg-slate-700 hover:bg-slate-600 text-white" ${p.loading ? 'disabled' : ''} data-action="save-note">
                     ${p.loading ? htmlGenerators._getSpinner('h-3 w-3') : 'Save'}
