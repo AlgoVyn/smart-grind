@@ -1,11 +1,8 @@
 // --- INITIALIZATION ---
-// IMPORTANT SECURITY NOTES:
-// - LocalStorage is used for storing user session data.
-// - WARNING: LocalStorage is vulnerable to XSS attacks. If malicious code can access the page,
-//   it can read all localStorage data. For production with sensitive data:
-//   - Consider using httpOnly cookies for authentication tokens
-//   - Implement Content Security Policy (CSP) headers
-//   - Encrypt sensitive data before storing
+// SECURITY: Authentication uses httpOnly cookies + CSRF tokens
+// - JWT tokens are stored in httpOnly cookies (not accessible to JavaScript)
+// - CSRF tokens protect against cross-site request forgery
+// - Service Worker gets token via secure /api/auth/token endpoint
 
 import { Topic } from './types';
 import { state } from './state';
@@ -38,8 +35,10 @@ const _applyCategory = async (categoryParam: string | null) => {
 const _setupSignedInUser = async (
     userId: string,
     displayName: string,
-    categoryParam: string | null
+    categoryParam: string | null,
+    token?: string
 ) => {
+    // Store user info in localStorage (not sensitive)
     localStorage.setItem('userId', userId);
     localStorage.setItem('displayName', displayName);
 
@@ -50,10 +49,49 @@ const _setupSignedInUser = async (
     state.user.type = 'signed-in';
     localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
 
+    // If token provided, store for Service Worker (IndexedDB, not localStorage)
+    if (token) {
+        const { storeTokenForServiceWorker } = await import('./sw-auth-storage');
+        await storeTokenForServiceWorker(token);
+    }
+
+    // Fetch CSRF token for state-changing operations
+    const { fetchCsrfToken } = await import('./app');
+    await fetchCsrfToken();
+
     await loadData();
     const { ui } = await import('./ui/ui');
     ui.updateAuthUI();
     await _applyCategory(categoryParam);
+};
+
+/**
+ * Fetch auth token from secure endpoint using httpOnly cookie
+ */
+const _fetchAuthToken = async (): Promise<{
+    token: string;
+    userId: string;
+    displayName: string;
+} | null> => {
+    try {
+        const response = await fetch('/smartgrind/api/auth?action=token', {
+            credentials: 'include', // Important: sends httpOnly cookies
+        });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const data = await response.json();
+        return {
+            token: data.token,
+            userId: data.userId,
+            displayName: data.displayName,
+        };
+    } catch (error) {
+        console.error('[Init] Failed to fetch auth token:', error);
+        return null;
+    }
 };
 
 // Helper to setup local user
@@ -88,46 +126,66 @@ const checkAuth = async () => {
         categoryParam = path.split('/smartgrind/c/')[1] || null;
     }
 
-    // Check URL params for PWA auth callback
+    // Check URL params for PWA auth callback (new secure flow)
+    // Token is NO LONGER in URL - only userId and displayName
     const urlParams = new URLSearchParams(window.location.search);
-    const urlToken = urlParams.get('token');
     const urlUserId = urlParams.get('userId');
     const urlDisplayName = urlParams.get('displayName');
 
-    // Handle PWA auth callback with error handling
-    if (urlToken && urlUserId && urlDisplayName) {
-        // Validate token format before storing (basic validation)
-        // Tokens should be non-empty and reasonably sized
-        if (urlToken.length < 10 || urlToken.length > 1000) {
-            const { ui } = await import('./ui/ui');
-            ui.showAlert('Invalid authentication token. Please try signing in again.');
-            return;
-        }
-
+    // Handle PWA auth callback - token is in httpOnly cookie, fetch it securely
+    if (urlUserId && urlDisplayName) {
         // Sanitize display name to prevent XSS
         const sanitizedDisplayName = utils.sanitizeInput(urlDisplayName) || 'User';
 
         // Clear URL parameters immediately for security
         window.history.replaceState({}, document.title, window.location.pathname);
 
-        localStorage.setItem('token', urlToken);
-        const { storeTokenForServiceWorker } = await import('./sw-auth-storage');
-        storeTokenForServiceWorker(urlToken).catch(() => {});
+        // Fetch token from secure endpoint (uses httpOnly cookie)
+        const authData = await _fetchAuthToken();
+
+        if (!authData) {
+            const { ui } = await import('./ui/ui');
+            ui.showAlert('Authentication failed. Please try signing in again.');
+            return;
+        }
+
         await withErrorHandling(async () => {
-            await _setupSignedInUser(urlUserId, sanitizedDisplayName, categoryParam);
+            await _setupSignedInUser(
+                urlUserId,
+                sanitizedDisplayName,
+                categoryParam,
+                authData.token
+            );
         }, 'Failed to set up signed-in user');
+
         // Initialize offline detection for signed-in users
         initOfflineDetection();
         return;
     }
 
-    // Check for existing session with error handling
+    // Check for existing session - verify with server using httpOnly cookie
     const userId = localStorage.getItem('userId');
     if (userId) {
-        const displayName = localStorage.getItem('displayName') || 'User';
-        await withErrorHandling(async () => {
-            await _setupSignedInUser(userId, displayName, categoryParam);
-        }, 'Failed to restore user session');
+        // Verify session is still valid by fetching token
+        const authData = await _fetchAuthToken();
+
+        if (authData) {
+            const displayName =
+                localStorage.getItem('displayName') || authData.displayName || 'User';
+            await withErrorHandling(async () => {
+                await _setupSignedInUser(userId, displayName, categoryParam, authData.token);
+            }, 'Failed to restore user session');
+        } else {
+            // Session expired, clear local state
+            localStorage.removeItem('userId');
+            localStorage.removeItem('displayName');
+            localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
+
+            // Show sign-in modal
+            openSigninModal();
+            utils.showToast('Session expired. Please sign in again.', 'error');
+        }
+
         // Initialize offline detection for signed-in users
         initOfflineDetection();
         return;

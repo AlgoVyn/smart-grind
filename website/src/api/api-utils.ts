@@ -4,11 +4,7 @@
 /**
  * Allowed origins for API response validation
  */
-const ALLOWED_ORIGINS = [
-    window.location.origin,
-    'https://smartgrind.com',
-    'https://www.smartgrind.com',
-];
+const ALLOWED_ORIGINS = [window.location.origin];
 
 /**
  * Validates that the API response originates from an expected origin

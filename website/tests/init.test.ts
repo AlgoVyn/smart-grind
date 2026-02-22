@@ -86,9 +86,18 @@ const sharedMockRenderers = {
     updateFilterBtns: jest.fn(),
 };
 
+// Define mock functions first (before jest.mock hoisting)
+const mockFetchCsrfToken = jest.fn().mockResolvedValue('mock-csrf-token');
+const mockGetCsrfToken = jest.fn().mockResolvedValue('mock-csrf-token');
+const mockClearCsrfToken = jest.fn();
+const mockOpenSigninModal = jest.fn();
+
 const sharedMockApp = {
     initializeLocalUser: jest.fn(),
     exportProgress: jest.fn(),
+    fetchCsrfToken: mockFetchCsrfToken,
+    getCsrfToken: mockGetCsrfToken,
+    clearCsrfToken: mockClearCsrfToken,
 };
 
 // Import modules after mocks - use dynamic imports to allow mock reset
@@ -158,7 +167,7 @@ jest.mock('../src/ui/ui', () => ({
 }));
 
 jest.mock('../src/ui/ui-modals', () => ({
-    openSigninModal: jest.fn(),
+    openSigninModal: mockOpenSigninModal,
 }));
 
 jest.mock('../src/utils', () => ({
@@ -171,7 +180,11 @@ jest.mock('../src/utils', () => ({
 }));
 
 jest.mock('../src/app', () => ({
+    __esModule: true,
     app: sharedMockApp,
+    fetchCsrfToken: mockFetchCsrfToken,
+    getCsrfToken: mockGetCsrfToken,
+    clearCsrfToken: mockClearCsrfToken,
 }));
 
 describe('Initialization Module', () => {
@@ -267,10 +280,9 @@ describe('Initialization Module', () => {
             const mockUserId = 'user-123';
             const mockDisplayName = 'Test User';
 
-            // Mock URLSearchParams to return auth params
+            // Mock URLSearchParams to return auth params (no token in URL now)
             mockURLSearchParams.mockImplementation(() => ({
                 get: jest.fn((param) => {
-                    if (param === 'token') return mockToken;
                     if (param === 'userId') return mockUserId;
                     if (param === 'displayName') return mockDisplayName;
                     return null;
@@ -278,18 +290,35 @@ describe('Initialization Module', () => {
             }));
 
             global.window.location.pathname = '/smartgrind/';
-            global.window.location.search = `?token=${mockToken}&userId=${mockUserId}&displayName=${mockDisplayName}`;
-            global.window.location.href = `http://localhost/smartgrind/?token=${mockToken}&userId=${mockUserId}&displayName=${mockDisplayName}`;
+            global.window.location.search = `?userId=${mockUserId}&displayName=${mockDisplayName}`;
+            global.window.location.href = `http://localhost/smartgrind/?userId=${mockUserId}&displayName=${mockDisplayName}`;
+
+            // Mock fetch for token endpoint
+            const mockFetch = jest.fn().mockResolvedValue({
+                ok: true,
+                json: jest.fn().mockResolvedValue({
+                    token: mockToken,
+                    userId: mockUserId,
+                    displayName: mockDisplayName,
+                }),
+            });
+            global.fetch = mockFetch;
 
             // Mock loadData to resolve
             (loadData as jest.Mock).mockResolvedValue(undefined);
 
             await checkAuth();
 
-            // Should store token and user info
-            expect(mockSetItem).toHaveBeenCalledWith('token', mockToken);
+            // Should NOT store token in localStorage (now in httpOnly cookie)
+            expect(mockSetItem).not.toHaveBeenCalledWith('token', expect.any(String));
+            // Should store user info
             expect(mockSetItem).toHaveBeenCalledWith('userId', mockUserId);
             expect(mockSetItem).toHaveBeenCalledWith('displayName', mockDisplayName);
+
+            // Should fetch token from secure endpoint
+            expect(mockFetch).toHaveBeenCalledWith('/smartgrind/api/auth?action=token', {
+                credentials: 'include',
+            });
 
             // Should clear URL parameters
             expect(mockReplaceState).toHaveBeenCalledWith(
@@ -309,13 +338,11 @@ describe('Initialization Module', () => {
         });
 
         test('should reject invalid token format', async () => {
-            const mockToken = 'short'; // Too short
             const mockUserId = 'user-123';
             const mockDisplayName = 'Test User';
 
             mockURLSearchParams.mockImplementation(() => ({
                 get: jest.fn((param) => {
-                    if (param === 'token') return mockToken;
                     if (param === 'userId') return mockUserId;
                     if (param === 'displayName') return mockDisplayName;
                     return null;
@@ -323,14 +350,21 @@ describe('Initialization Module', () => {
             }));
 
             global.window.location.pathname = '/smartgrind/';
-            global.window.location.search = `?token=${mockToken}&userId=${mockUserId}&displayName=${mockDisplayName}`;
-            global.window.location.href = `http://localhost/smartgrind/?token=${mockToken}&userId=${mockUserId}&displayName=${mockDisplayName}`;
+            global.window.location.search = `?userId=${mockUserId}&displayName=${mockDisplayName}`;
+            global.window.location.href = `http://localhost/smartgrind/?userId=${mockUserId}&displayName=${mockDisplayName}`;
+
+            // Mock fetch to return error (token fetch fails)
+            const mockFetch = jest.fn().mockResolvedValue({
+                ok: false,
+                status: 401,
+            });
+            global.fetch = mockFetch;
 
             await checkAuth();
 
-            // Should show error alert
+            // Should show error alert (updated message)
             expect(sharedMockUI.showAlert).toHaveBeenCalledWith(
-                'Invalid authentication token. Please try signing in again.'
+                'Authentication failed. Please try signing in again.'
             );
 
             // Should not set user state
@@ -344,7 +378,6 @@ describe('Initialization Module', () => {
 
             mockURLSearchParams.mockImplementation(() => ({
                 get: jest.fn((param) => {
-                    if (param === 'token') return mockToken;
                     if (param === 'userId') return mockUserId;
                     if (param === 'displayName') return mockDisplayName;
                     return null;
@@ -352,11 +385,22 @@ describe('Initialization Module', () => {
             }));
 
             global.window.location.pathname = '/smartgrind/';
-            global.window.location.search = `?token=${mockToken}&userId=${mockUserId}&displayName=${encodeURIComponent(mockDisplayName)}`;
-            global.window.location.href = `http://localhost/smartgrind/?token=${mockToken}&userId=${mockUserId}&displayName=${encodeURIComponent(mockDisplayName)}`;
+            global.window.location.search = `?userId=${mockUserId}&displayName=${encodeURIComponent(mockDisplayName)}`;
+            global.window.location.href = `http://localhost/smartgrind/?userId=${mockUserId}&displayName=${encodeURIComponent(mockDisplayName)}`;
 
             // Mock utils.sanitizeInput to return sanitized name
             (utils.sanitizeInput as jest.Mock).mockReturnValue('User');
+
+            // Mock fetch for token endpoint
+            const mockFetch = jest.fn().mockResolvedValue({
+                ok: true,
+                json: jest.fn().mockResolvedValue({
+                    token: mockToken,
+                    userId: mockUserId,
+                    displayName: 'User',
+                }),
+            });
+            global.fetch = mockFetch;
 
             // Mock loadData to resolve
             (loadData as jest.Mock).mockResolvedValue(undefined);
@@ -371,6 +415,7 @@ describe('Initialization Module', () => {
         test('should restore existing session from localStorage', async () => {
             const mockUserId = 'existing-user';
             const mockDisplayName = 'Existing User';
+            const mockToken = 'valid-session-token';
 
             mockGetItem.mockImplementation((key) => {
                 if (key === 'userId') return mockUserId;
@@ -378,10 +423,26 @@ describe('Initialization Module', () => {
                 return null;
             });
 
+            // Mock fetch for token endpoint (session validation)
+            const mockFetch = jest.fn().mockResolvedValue({
+                ok: true,
+                json: jest.fn().mockResolvedValue({
+                    token: mockToken,
+                    userId: mockUserId,
+                    displayName: mockDisplayName,
+                }),
+            });
+            global.fetch = mockFetch;
+
             // Mock loadData to resolve
             (loadData as jest.Mock).mockResolvedValue(undefined);
 
             await checkAuth();
+
+            // Should validate session with server
+            expect(mockFetch).toHaveBeenCalledWith('/smartgrind/api/auth?action=token', {
+                credentials: 'include',
+            });
 
             // Should restore user from localStorage
             expect(sharedMockState.user.id).toBe(mockUserId);
@@ -452,21 +513,33 @@ describe('Initialization Module', () => {
             expect(sharedMockUI.updateAuthUI).toHaveBeenCalled();
         });
 
-        test('should handle errors during checkAuth execution', async () => {
-            // Mock withErrorHandling to simulate an error during session restoration
+        test('should handle session expiration when token fetch fails', async () => {
+            const mockUserId = 'existing-user';
+            const mockDisplayName = 'Existing User';
+
             mockGetItem.mockImplementation((key) => {
-                if (key === 'userId') return 'user-123';
+                if (key === 'userId') return mockUserId;
+                if (key === 'displayName') return mockDisplayName;
                 return null;
             });
 
-            (withErrorHandling as jest.Mock).mockImplementation(async (fn, message) => {
-                if (message === 'Failed to restore user session') {
-                    throw new Error('Restore failed');
-                }
-                return fn();
+            // Mock fetch to return error (session expired)
+            const mockFetch = jest.fn().mockResolvedValue({
+                ok: false,
+                status: 401,
             });
+            global.fetch = mockFetch;
 
-            await expect(checkAuth()).rejects.toThrow('Restore failed');
+            await checkAuth();
+
+            // Should clear local state
+            expect(mockRemoveItem).toHaveBeenCalledWith('userId');
+            expect(mockRemoveItem).toHaveBeenCalledWith('displayName');
+            expect(mockSetItem).toHaveBeenCalledWith(sharedMockData.LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
+
+            // Should show sign-in modal and toast
+            expect(mockOpenSigninModal).toHaveBeenCalled();
+            expect(utils.showToast).toHaveBeenCalledWith('Session expired. Please sign in again.', 'error');
         });
 
         test('should handle errors during signed-in user setup', async () => {
@@ -478,6 +551,17 @@ describe('Initialization Module', () => {
                 if (key === 'displayName') return mockDisplayName;
                 return null;
             });
+
+            // Mock fetch to succeed but loadData to fail
+            const mockFetch = jest.fn().mockResolvedValue({
+                ok: true,
+                json: jest.fn().mockResolvedValue({
+                    token: 'valid-token',
+                    userId: mockUserId,
+                    displayName: mockDisplayName,
+                }),
+            });
+            global.fetch = mockFetch;
 
             // Mock withErrorHandling to throw error for _setupSignedInUser
             (withErrorHandling as jest.Mock).mockImplementation(async (fn, message) => {

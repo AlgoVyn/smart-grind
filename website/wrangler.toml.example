@@ -10,3 +10,4 @@ id = "your-kv-namespace-id"  # Replace with actual KV namespace ID
 GOOGLE_CLIENT_ID = "your-google-client-id"
 GOOGLE_CLIENT_SECRET = "your-google-client-secret"
 JWT_SECRET = "your-jwt-secret-key-change-this"
+OAUTH_REDIRECT_URI="https://algovyn.com/smartgrind/api/auth"
