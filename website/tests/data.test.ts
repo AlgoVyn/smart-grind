@@ -50,6 +50,9 @@ describe('SmartGrind Data Module', () => {
             PROBLEMS: 'smartgrind-local-problems',
             DELETED_IDS: 'smartgrind-local-deleted-ids',
             DISPLAY_NAME: 'smartgrind-local-display-name',
+            SIGNED_IN_PROBLEMS: 'smartgrind-signedin-problems',
+            SIGNED_IN_DELETED_IDS: 'smartgrind-signedin-deleted-ids',
+            SIGNED_IN_DISPLAY_NAME: 'smartgrind-signedin-display-name',
         };
 
         expect(data.LOCAL_STORAGE_KEYS).toEqual(expectedKeys);

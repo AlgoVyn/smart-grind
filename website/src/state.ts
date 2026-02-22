@@ -135,20 +135,29 @@ export const state = {
     // Load state from localStorage
     loadFromStorage(): void {
         try {
+            // Determine which keys to use based on user type
+            const isSignedIn = this.user.type === 'signed-in';
+            const problemsKey = isSignedIn
+                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_PROBLEMS
+                : data.LOCAL_STORAGE_KEYS.PROBLEMS;
+            const deletedIdsKey = isSignedIn
+                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_DELETED_IDS
+                : data.LOCAL_STORAGE_KEYS.DELETED_IDS;
+            const displayNameKey = isSignedIn
+                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_DISPLAY_NAME
+                : data.LOCAL_STORAGE_KEYS.DISPLAY_NAME;
+
             const problemsObj = safeJsonParse<Record<string, Problem>>(
-                localStorage.getItem(data.LOCAL_STORAGE_KEYS.PROBLEMS),
+                localStorage.getItem(problemsKey),
                 {}
             );
-            const deletedIdsArr = safeJsonParse<string[]>(
-                localStorage.getItem(data.LOCAL_STORAGE_KEYS.DELETED_IDS),
-                []
-            );
+            const deletedIdsArr = safeJsonParse<string[]>(localStorage.getItem(deletedIdsKey), []);
 
             this.problems = new Map(Object.entries(problemsObj));
             this.problems.forEach((p) => (p.loading = false));
             this.deletedProblemIds = new Set(deletedIdsArr);
             this.user.displayName =
-                localStorage.getItem(data.LOCAL_STORAGE_KEYS.DISPLAY_NAME) || 'Local User';
+                localStorage.getItem(displayNameKey) || (isSignedIn ? '' : 'Local User');
             this.user.type = (localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE) ||
                 'local') as 'local' | 'signed-in';
         } catch (_e) {
@@ -159,21 +168,27 @@ export const state = {
     // Save state to localStorage
     saveToStorage(): void {
         try {
+            // Determine which keys to use based on user type
+            const isSignedIn = this.user.type === 'signed-in';
+            const problemsKey = isSignedIn
+                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_PROBLEMS
+                : data.LOCAL_STORAGE_KEYS.PROBLEMS;
+            const deletedIdsKey = isSignedIn
+                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_DELETED_IDS
+                : data.LOCAL_STORAGE_KEYS.DELETED_IDS;
+            const displayNameKey = isSignedIn
+                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_DISPLAY_NAME
+                : data.LOCAL_STORAGE_KEYS.DISPLAY_NAME;
+
             const problemsWithoutLoading = Object.fromEntries(
                 Array.from(this.problems.entries()).map(([id, p]) => {
                     const { loading: _, noteVisible: __, ...rest } = p;
                     return [id, rest];
                 })
             );
-            localStorage.setItem(
-                data.LOCAL_STORAGE_KEYS.PROBLEMS,
-                JSON.stringify(problemsWithoutLoading)
-            );
-            localStorage.setItem(
-                data.LOCAL_STORAGE_KEYS.DELETED_IDS,
-                JSON.stringify(Array.from(this.deletedProblemIds))
-            );
-            localStorage.setItem(data.LOCAL_STORAGE_KEYS.DISPLAY_NAME, this.user.displayName);
+            localStorage.setItem(problemsKey, JSON.stringify(problemsWithoutLoading));
+            localStorage.setItem(deletedIdsKey, JSON.stringify(Array.from(this.deletedProblemIds)));
+            localStorage.setItem(displayNameKey, this.user.displayName);
             localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
         } catch (_e) {
             // ignore

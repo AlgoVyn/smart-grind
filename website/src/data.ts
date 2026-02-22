@@ -55,9 +55,14 @@ export const data = {
     // Local storage keys
     LOCAL_STORAGE_KEYS: {
         USER_TYPE: 'smartgrind-user-type',
+        // Local user keys
         PROBLEMS: 'smartgrind-local-problems',
         DELETED_IDS: 'smartgrind-local-deleted-ids',
         DISPLAY_NAME: 'smartgrind-local-display-name',
+        // Signed-in user keys (separate from local)
+        SIGNED_IN_PROBLEMS: 'smartgrind-signedin-problems',
+        SIGNED_IN_DELETED_IDS: 'smartgrind-signedin-deleted-ids',
+        SIGNED_IN_DISPLAY_NAME: 'smartgrind-signedin-display-name',
     },
 };
 
