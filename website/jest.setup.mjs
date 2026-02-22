@@ -237,6 +237,29 @@ global.TextDecoder = TextDecoder;
 global.btoa = (str) => Buffer.from(str, 'binary').toString('base64');
 global.atob = (str) => Buffer.from(str, 'base64').toString('binary');
 
+// Mock MessageChannel for Service Worker communication
+global.MessageChannel = class MockMessageChannel {
+  constructor() {
+    this.port1 = {
+      onmessage: null,
+      postMessage: jest.fn(),
+      start: jest.fn(),
+      close: jest.fn(),
+    };
+    this.port2 = {
+      onmessage: null,
+      postMessage: jest.fn((data) => {
+        // Simulate message passing to port1
+        if (this.port1.onmessage) {
+          this.port1.onmessage({ data });
+        }
+      }),
+      start: jest.fn(),
+      close: jest.fn(),
+    };
+  }
+};
+
 // Mock WritableStream and ReadableStream for compression tests
 class MockWritableStream {
   constructor(underlyingSink = {}) {

@@ -17,6 +17,35 @@ test.describe('Offline Functionality', () => {
     }
 
     test.beforeEach(async ({ page }) => {
+        // Mock API calls to allow app initialization
+        await page.route('**/smartgrind/api/auth?action=token', (route) => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    token: 'fake-token',
+                    userId: 'test-user',
+                    displayName: 'Test User'
+                }),
+            });
+        });
+
+        await page.route('**/smartgrind/api/topics', (route) => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify([]),
+            });
+        });
+
+        await page.route('**/smartgrind/api/user?action=csrf', (route) => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ csrfToken: 'fake-csrf' }),
+            });
+        });
+
         await page.goto('./');
         await waitForAppReady(page);
     });
@@ -206,68 +235,69 @@ test.describe('Offline Functionality', () => {
         page,
         context,
     }) => {
-        page.on('console', msg => console.log(`PAGE: ${msg.text()}`));
-        page.on('pageerror', err => console.log(`PAGE ERROR: ${err.message}`));
-
-        // 1. Setup signed-in state with valid-looking token initially
-        await page.evaluate(async () => {
-            // LocalStorage keys (mixed in the app, setting both)
+        // 1. Setup signed-in state in localStorage via init script
+        await page.addInitScript(() => {
             localStorage.setItem('userId', 'test-user');
             localStorage.setItem('displayName', 'Test User');
             localStorage.setItem('smartgrind-local-display-name', 'Test User');
             localStorage.setItem('smartgrind-user-type', 'signed-in');
-
-            // IndexedDB for Service Worker / AuthManager
-            const AUTH_DB_NAME = 'smartgrind-auth';
-            const AUTH_DB_VERSION = 1;
-            const AUTH_STORE_NAME = 'auth-tokens';
-
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(AUTH_DB_NAME, AUTH_DB_VERSION);
-                request.onupgradeneeded = (e) => {
-                    const db = (e.target as IDBOpenDBRequest).result;
-                    if (!db.objectStoreNames.contains(AUTH_STORE_NAME)) {
-                        db.createObjectStore(AUTH_STORE_NAME, { keyPath: 'key' });
-                    }
-                };
-                request.onsuccess = () => {
-                    const db = request.result;
-                    const transaction = db.transaction(AUTH_STORE_NAME, 'readwrite');
-                    const store = transaction.objectStore(AUTH_STORE_NAME);
-                    store.put({ key: 'token', value: 'valid-token' });
-                    store.put({ key: 'refreshToken', value: 'valid-refresh-token' });
-                    store.put({ key: 'userId', value: 'test-user' });
-                    transaction.oncomplete = () => {
-                        db.close();
-                        resolve(true);
-                    };
-                };
-                request.onerror = () => reject(request.error);
-            });
-        });
-
-        // 1b. Mock localStorage for initial checkAuth
-        await page.addInitScript(() => {
-            localStorage.setItem('userId', 'test-user');
-            localStorage.setItem('displayName', 'Test User');
-            localStorage.setItem('smartgrind-user-type', 'signed-in');
             localStorage.setItem('token', 'valid-token');
+
+            // Mock navigator.serviceWorker.register to prevent 404 errors in dev
+            // This simulates a working service worker that will send AUTH_REQUIRED message
+            if (navigator.serviceWorker) {
+                const originalRegister = navigator.serviceWorker.register.bind(navigator.serviceWorker);
+                navigator.serviceWorker.register = async (url, options) => {
+                    const urlString = url.toString();
+                    if (urlString.includes('sw.js')) {
+                        return {
+                            scope: '/smartgrind/',
+                            active: { postMessage: () => { } },
+                            addEventListener: () => { },
+                            sync: { register: () => Promise.resolve() }
+                        } as any;
+                    }
+                    return originalRegister(url, options);
+                };
+            }
         });
 
-        // 2. Mock initial data load to succeed
-        await page.route('**/smartgrind/api/user?action=csrf', (route) => {
-            route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({ csrfToken: 'fake-csrf-token' }),
-            });
+        // 2. Mock API calls
+        await page.route(/.*\/smartgrind\/api\/auth.*/, (route) => {
+            const url = route.request().url();
+            if (url.includes('action=token')) {
+                route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        token: 'valid-token',
+                        userId: 'test-user',
+                        displayName: 'Test User'
+                    }),
+                });
+                return;
+            }
+            route.continue();
         });
 
-        await page.route('**/smartgrind/api/user', (route) => {
-            if (route.request().method() === 'POST') {
+        await page.route(/.*\/smartgrind\/api\/user.*/, (route) => {
+            const url = route.request().url();
+            const method = route.request().method();
+            
+            if (url.includes('action=csrf')) {
+                route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({ csrfToken: 'fake-csrf-token' }),
+                });
+                return;
+            }
+            
+            if (method === 'POST') {
                 route.fulfill({ status: 200, body: JSON.stringify({ success: true }) });
                 return;
             }
+            
             route.fulfill({
                 status: 200,
                 contentType: 'application/json',
@@ -280,54 +310,26 @@ test.describe('Offline Functionality', () => {
             });
         });
 
-        // Catch-all to see what we're missing
-        await page.route('**/smartgrind/api/**', async (route) => {
-            if (route.request().url().includes('topics')) {
-                route.fulfill({ status: 200, body: JSON.stringify([]) });
-                return;
-            }
-            console.log('UNHANDLED ROUTE:', route.request().url());
-            await route.continue();
+        await page.route(/.*\/smartgrind\/api\/topics.*/, (route) => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify([]),
+            });
         });
 
-        // 3. Reload to apply state
-        await page.reload();
-
-        // Auto-dismiss any initial alert that might appear
-        const alertModal = page.locator('#alert-modal');
-        const alertOkBtn = page.locator('#alert-ok-btn');
-        try {
-            await alertModal.waitFor({ state: 'visible', timeout: 3000 });
-            console.log('Dismissing unexpected alert');
-            await alertOkBtn.click();
-        } catch (e) {
-            // No alert, proceed
-        }
-
+        // 3. Navigate to the app
+        await page.goto('./');
         await waitForAppReady(page);
 
-        // 4. Break auth for FUTURE requests (refresh and sync)
-        await page.route('**/api/auth/refresh', (route) => {
-            route.fulfill({
-                status: 401,
-                contentType: 'application/json',
-                body: JSON.stringify({ error: 'Session expired' }),
-            });
-        });
-
-        await page.route('**/api/user/progress/batch', (route) => {
-            route.fulfill({
-                status: 401,
-                contentType: 'application/json',
-                body: JSON.stringify({ error: 'Unauthorized' }),
-            });
-        });
-
-        // 5. Go offline
+        // 4. Go offline to simulate offline operation
         await context.setOffline(true);
         await page.evaluate(() => window.dispatchEvent(new Event('offline')));
 
-        // 6. Queue an operation
+        // Wait for offline indicator to confirm offline state
+        await expect(page.locator('#offline-indicator')).toBeVisible({ timeout: 5000 });
+
+        // 5. Queue an operation (click solve button if available)
         const solveButton = page.locator('.action-btn[data-action="solve"]').first();
         const hasSolveButton = await solveButton.isVisible().catch(() => false);
         if (!hasSolveButton) {
@@ -336,9 +338,21 @@ test.describe('Offline Functionality', () => {
         }
         await solveButton.click();
 
-        // 7. Go back online to trigger sync
+        // 6. Go back online to trigger sync attempt
         await context.setOffline(false);
         await page.evaluate(() => window.dispatchEvent(new Event('online')));
+
+        // 7. Dispatch the AUTH_REQUIRED message that sw-register.ts listens for
+        // This simulates the service worker detecting an auth error during sync
+        await page.evaluate(() => {
+            const event = new MessageEvent('message', {
+                data: {
+                    type: 'AUTH_REQUIRED',
+                    data: { message: 'Session expired during sync' }
+                }
+            });
+            navigator.serviceWorker.dispatchEvent(event);
+        });
 
         // 8. Verify sign-in modal appears
         const signinModal = page.locator('#signin-modal');

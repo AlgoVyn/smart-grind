@@ -14,6 +14,94 @@ const DOMPURIFY_CONFIG = {
     ALLOWED_ATTR: [], // No attributes allowed
 };
 
+/**
+ * Modal configuration options
+ */
+interface ModalOptions {
+    onOpen?: () => void;
+    onClose?: () => void;
+    closeOnBackdrop?: boolean;
+    closeOnEscape?: boolean;
+    returnFocusTo?: HTMLElement | null;
+    ariaLabel?: string;
+}
+
+/**
+ * Creates a reusable modal with consistent behavior
+ */
+export const createModal = (
+    modalEl: HTMLElement,
+    options: ModalOptions = {}
+): { show: () => void; hide: () => void; isVisible: () => boolean; destroy: () => void } => {
+    const {
+        onOpen,
+        onClose,
+        closeOnBackdrop = true,
+        closeOnEscape = true,
+        returnFocusTo = null,
+        ariaLabel,
+    } = options;
+
+    let isVisible = false;
+    let previouslyFocusedElement: Element | null = null;
+
+    const show = () => {
+        if (isVisible) return;
+        previouslyFocusedElement = document.activeElement;
+        modalEl.setAttribute('aria-hidden', 'false');
+        if (ariaLabel) modalEl.setAttribute('aria-label', ariaLabel);
+        modalEl.classList.remove('hidden');
+        isVisible = true;
+
+        if (closeOnEscape) document.addEventListener('keydown', handleKeydown);
+        if (closeOnBackdrop) modalEl.addEventListener('click', handleBackdrop);
+
+        const focusableElements = modalEl.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        (focusableElements[0] || modalEl).focus();
+        onOpen?.();
+    };
+
+    const hide = () => {
+        if (!isVisible) return;
+        modalEl.setAttribute('aria-hidden', 'true');
+        modalEl.classList.add('hidden');
+        isVisible = false;
+
+        document.removeEventListener('keydown', handleKeydown);
+        modalEl.removeEventListener('click', handleBackdrop);
+
+        (returnFocusTo || (previouslyFocusedElement as HTMLElement))?.focus();
+        onClose?.();
+    };
+
+    const handleKeydown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && isVisible) {
+            e.preventDefault();
+            hide();
+        }
+    };
+
+    const handleBackdrop = (e: Event) => {
+        if (e.target === modalEl) {
+            e.stopPropagation();
+            hide();
+        }
+    };
+
+    return {
+        show,
+        hide,
+        isVisible: () => isVisible,
+        destroy: () => {
+            hide();
+            modalEl.removeAttribute('aria-hidden');
+            if (ariaLabel) modalEl.removeAttribute('aria-label');
+        },
+    };
+};
+
 // Generic modal handler factory
 export const createModalHandler =
     (modalEl: HTMLElement, contentEl: HTMLElement | null | undefined, closeCallback?: () => void) =>

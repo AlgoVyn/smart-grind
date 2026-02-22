@@ -7,9 +7,6 @@ test.describe('Auth Sync UI Feedback', () => {
     }
 
     test('should show sign-in modal when SYNC_AUTH_REQUIRED message is received', async ({ page }) => {
-        page.on('console', msg => console.log(`PAGE: ${msg.text()}`));
-        page.on('pageerror', err => console.log(`PAGE ERROR: ${err.message}`));
-
         // 1. Setup signed-in state in localStorage
         await page.addInitScript(() => {
             localStorage.setItem('userId', 'test-user');
@@ -35,6 +32,18 @@ test.describe('Auth Sync UI Feedback', () => {
         });
 
         // 2. Mock API calls
+        await page.route('**/smartgrind/api/auth?action=token', (route) => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    token: 'fake-token',
+                    userId: 'test-user',
+                    displayName: 'Test User'
+                }),
+            });
+        });
+
         await page.route('**/smartgrind/api/user', (route) => {
             route.fulfill({
                 status: 200,
@@ -53,6 +62,14 @@ test.describe('Auth Sync UI Feedback', () => {
                 status: 200,
                 contentType: 'application/json',
                 body: JSON.stringify({ csrfToken: 'fake-csrf' }),
+            });
+        });
+
+        await page.route('**/smartgrind/api/topics', (route) => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify([]),
             });
         });
 

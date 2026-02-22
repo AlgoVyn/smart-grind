@@ -1,7 +1,7 @@
 // --- API MODULE ---
 // API functions for data management with offline detection and operation-based sync
 
-import { saveData, saveProblem, saveDeletedId } from './api/api-save';
+import { saveData, saveProblem, saveDeletedId, flushPendingSync } from './api/api-save';
 import { loadData } from './api/api-load';
 import { syncPlan, mergeStructure } from './api/api-sync';
 import { resetAll, resetCategory } from './api/api-reset';
@@ -369,4 +369,5 @@ export const api = {
     clearPendingOperations,
     isOnline,
     initOfflineDetection,
+    flushPendingSync,
 };
