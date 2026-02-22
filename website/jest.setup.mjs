@@ -1129,6 +1129,14 @@ global.MockExtendableMessageEvent = MockExtendableMessageEvent;
 global.MockPushEvent = MockPushEvent;
 global.MockPushSubscription = MockPushSubscription;
 
+// Mock DOMPurify - needed for HTML sanitization in tests
+jest.mock('dompurify', () => ({
+  __esModule: true,
+  default: {
+    sanitize: (html) => html, // Pass through HTML unchanged in tests
+  },
+}));
+
 // Clear storage before each test
 beforeEach(() => {
   globalDatabaseStorage.clear();

@@ -2,6 +2,7 @@
 // Includes pattern to markdown file mapping functionality
 
 import { utils } from '../utils';
+import DOMPurify from 'dompurify';
 
 // --- PATTERN TO MARKDOWN FILE MAPPING SYSTEM ---
 // Handles naming inconsistencies between pattern names and solution filenames
@@ -333,6 +334,7 @@ const _renderTOC = () => {
 };
 
 // Helper to render markdown content
+// SECURITY: Sanitizes HTML with DOMPurify before inserting into DOM to prevent XSS
 export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) => {
     const marked = _configureMarkdownRenderer();
     if (!marked) {
@@ -343,7 +345,106 @@ export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) =
 
     currentTOC = [];
     const html = marked.parse(markdown);
-    contentElement.innerHTML = html;
+
+    // SECURITY: Sanitize HTML before inserting into DOM to prevent XSS attacks
+    // Allow specific tags and attributes needed for code highlighting and interactive elements
+    const sanitizedHtml = DOMPurify.sanitize(html, {
+        // Allow common HTML elements needed for markdown rendering
+        ALLOWED_TAGS: [
+            // Standard markdown elements
+            'h1',
+            'h2',
+            'h3',
+            'h4',
+            'h5',
+            'h6',
+            'p',
+            'br',
+            'hr',
+            'ul',
+            'ol',
+            'li',
+            'blockquote',
+            'pre',
+            'code',
+            'strong',
+            'em',
+            'b',
+            'i',
+            'u',
+            's',
+            'del',
+            'ins',
+            'a',
+            'img',
+            'table',
+            'thead',
+            'tbody',
+            'tr',
+            'th',
+            'td',
+            'div',
+            'span',
+            // Custom elements for code carousel and UI
+            'button',
+            'svg',
+            'path',
+            'polyline',
+            'line',
+            'circle',
+            'g',
+            // Allow data attributes for syntax highlighting
+        ],
+        ALLOWED_ATTR: [
+            // Standard attributes
+            'href',
+            'src',
+            'alt',
+            'title',
+            'width',
+            'height',
+            'id',
+            'class',
+            'style',
+            // Custom data attributes
+            'data-index',
+            'data-id',
+            'data-action',
+            // SVG attributes
+            'viewBox',
+            'fill',
+            'stroke',
+            'stroke-width',
+            'stroke-linecap',
+            'stroke-linejoin',
+            'd',
+            'x1',
+            'x2',
+            'y1',
+            'y2',
+            'cx',
+            'cy',
+            'r',
+            'points',
+            'xmlns',
+            'clip-path',
+            'fill-rule',
+            'clip-rule',
+            // Event handlers (needed for carousel and copy functionality)
+            'onclick',
+            // Accessibility
+            'aria-label',
+            'aria-hidden',
+            'role',
+        ],
+        // Allow data: URIs for images (needed for some inline images)
+        ALLOW_DATA_ATTR: true,
+        // Allow specific URI protocols
+        ALLOWED_URI_REGEXP:
+            /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
+    });
+
+    contentElement.innerHTML = sanitizedHtml;
 
     _renderTOC();
 

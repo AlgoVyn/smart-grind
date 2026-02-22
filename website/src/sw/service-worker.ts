@@ -824,7 +824,9 @@ async function downloadAndExtractBundle(): Promise<void> {
         await saveStateToIDB(BUNDLE_STATE_KEY, state);
         await sendProgressUpdate(state);
 
-        console.log(`[SW] Compressed bundle downloaded and extracted successfully: ${state.extractedFiles} files`);
+        console.log(
+            `[SW] Compressed bundle downloaded and extracted successfully: ${state.extractedFiles} files`
+        );
 
         // Notify clients that bundle is ready
         const clients = await self.clients.matchAll({ type: 'window' });

@@ -64,6 +64,7 @@ describe('Auth API', () => {
             GOOGLE_CLIENT_SECRET: 'test-client-secret',
             JWT_SECRET: 'test-jwt-secret',
             KV: mockKV,
+            OAUTH_REDIRECT_URI: 'https://algovyn.com/smartgrind/api/auth',
         };
 
         // Mock crypto.randomUUID

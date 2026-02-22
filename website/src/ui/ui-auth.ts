@@ -70,12 +70,8 @@ export const handleGoogleLogin = () => {
     let authCompleted = false;
     let popupCheckInterval: ReturnType<typeof setInterval> | null = null;
 
-    const handleAuthSuccess = async (authData: {
-        userId: string;
-        displayName: string;
-        token?: string;
-    }) => {
-        const { userId, displayName, token } = authData;
+    const handleAuthSuccess = async (authData: { userId: string; displayName: string }) => {
+        const { userId, displayName } = authData;
         localStorage.setItem('userId', userId);
         localStorage.setItem('displayName', displayName);
 
@@ -87,10 +83,23 @@ export const handleGoogleLogin = () => {
         state.user.type = 'signed-in';
         localStorage.setItem('smartgrind-user-type', 'signed-in');
 
-        // So background sync can authenticate (SW often doesn't receive HttpOnly cookies)
-        if (token) {
-            const { storeTokenForServiceWorker } = await import('../sw-auth-storage');
-            storeTokenForServiceWorker(token).catch(() => {});
+        // Fetch token from secure endpoint for Service Worker
+        // The HttpOnly cookie is automatically sent with this request
+        try {
+            const tokenResponse = await fetch('/smartgrind/api/auth?action=token', {
+                credentials: 'include', // Send HttpOnly cookie
+            });
+
+            if (tokenResponse.ok) {
+                const tokenData = await tokenResponse.json();
+                if (tokenData.token) {
+                    const { storeTokenForServiceWorker } = await import('../sw-auth-storage');
+                    storeTokenForServiceWorker(tokenData.token).catch(() => {});
+                }
+            }
+        } catch {
+            // Token fetch failed - user is still authenticated via cookie
+            // SW will fall back to cookie-based auth
         }
 
         api.loadData();
