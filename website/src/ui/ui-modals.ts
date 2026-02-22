@@ -1,11 +1,18 @@
 // --- MODAL MANAGEMENT ---
 
+import DOMPurify from 'dompurify';
 import { Topic, Pattern } from '../types';
 import { state } from '../state';
 import { data } from '../data';
 import { utils } from '../utils';
 import { api } from '../api';
 // renderers import removed to break cycle
+
+// Configure DOMPurify to allow only specific tags for confirm messages
+const DOMPURIFY_CONFIG = {
+    ALLOWED_TAGS: ['b', 'i', 'u', 'br'],
+    ALLOWED_ATTR: [], // No attributes allowed
+};
 
 // Generic modal handler factory
 export const createModalHandler =
@@ -97,19 +104,29 @@ export const clearShowAlertHistory = () => {
 };
 export const closeAlertModal = () => hideModal(state.elements['alertModal']);
 
+/**
+ * Sanitizes a message string for safe HTML display while allowing specific formatting tags.
+ * Uses DOMPurify for robust XSS protection with a whitelist of allowed tags.
+ *
+ * @param message - The raw message string to sanitize
+ * @returns Sanitized HTML string safe for innerHTML assignment
+ *
+ * @example
+ * sanitizeConfirmMessage('<b>Bold</b> <script>alert("xss")</script>')
+ * // Returns: '<b>Bold</b> '
+ */
+export const sanitizeConfirmMessage = (message: string): string => {
+    return DOMPurify.sanitize(message, DOMPURIFY_CONFIG);
+};
+
 // Confirm modal functions
 export const showConfirm = (message: string, title = 'Confirm Action') =>
     new Promise((resolve: (_value: boolean) => void) => {
         showModal(state.elements['confirmModal'], () => {
             if (state.elements['confirmTitle']) state.elements['confirmTitle'].textContent = title;
             if (state.elements['confirmMessage']) {
-                // Sanitize but allow basic formatting
-                const sanitized = message
-                    .replace(/&/g, '&')
-                    .replace(/</g, '<')
-                    .replace(/>/g, '>')
-                    .replace(/<(b|i|u|br\s*\/?)>/gi, '<$1>')
-                    .replace(/<\/(b|i|u)>/gi, '</$1>');
+                // Sanitize but allow basic formatting using whitelist approach
+                const sanitized = sanitizeConfirmMessage(message);
                 state.elements['confirmMessage'].innerHTML = sanitized;
             }
             _confirmResolve = resolve;

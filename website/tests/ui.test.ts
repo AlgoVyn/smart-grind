@@ -1026,6 +1026,56 @@ describe('SmartGrind UI', () => {
             ui.closeConfirmModal(true);
             await promise;
         });
+
+        test('sanitizes dangerous HTML tags', async () => {
+            const promise = ui.showConfirm(
+                '<b>Bold</b> <script>alert("xss")</script> <i>italic</i>'
+            );
+
+            // DOMPurify removes script tags entirely
+            expect(state.elements.confirmMessage.innerHTML).toContain('<b>Bold</b>');
+            expect(state.elements.confirmMessage.innerHTML).toContain('<i>italic</i>');
+            expect(state.elements.confirmMessage.innerHTML).not.toContain('<script>');
+            expect(state.elements.confirmMessage.innerHTML).not.toContain('alert');
+
+            ui.closeConfirmModal(true);
+            await promise;
+        });
+
+        test('sanitizes javascript URLs', async () => {
+            const promise = ui.showConfirm('<a href="javascript:alert(1)">click</a>');
+
+            // DOMPurify removes the entire anchor tag since it contains javascript: URL
+            // and anchor tags are not in the allowed list
+            expect(state.elements.confirmMessage.innerHTML).not.toContain('javascript:');
+            expect(state.elements.confirmMessage.innerHTML).not.toContain('<a');
+            // The text content is preserved
+            expect(state.elements.confirmMessage.innerHTML).toContain('click');
+
+            ui.closeConfirmModal(true);
+            await promise;
+        });
+
+        test('allows br tags', async () => {
+            const promise = ui.showConfirm('Line 1<br>Line 2<br/>Line 3');
+
+            expect(state.elements.confirmMessage.innerHTML).toContain('<br>');
+
+            ui.closeConfirmModal(true);
+            await promise;
+        });
+
+        test('preserves text content with special characters', async () => {
+            const promise = ui.showConfirm('Test & "quotes" and \'apostrophes\'');
+
+            // DOMPurify preserves text content as-is when there's no dangerous HTML
+            expect(state.elements.confirmMessage.innerHTML).toContain('Test');
+            expect(state.elements.confirmMessage.innerHTML).toContain('quotes');
+            expect(state.elements.confirmMessage.innerHTML).toContain('apostrophes');
+
+            ui.closeConfirmModal(true);
+            await promise;
+        });
     });
 
     describe('handleKeyboard', () => {

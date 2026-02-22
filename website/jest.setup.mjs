@@ -1129,11 +1129,49 @@ global.MockExtendableMessageEvent = MockExtendableMessageEvent;
 global.MockPushEvent = MockPushEvent;
 global.MockPushSubscription = MockPushSubscription;
 
-// Mock DOMPurify - needed for HTML sanitization in tests
+// Mock DOMPurify - simulates sanitization behavior for testing
 jest.mock('dompurify', () => ({
   __esModule: true,
   default: {
-    sanitize: (html) => html, // Pass through HTML unchanged in tests
+    sanitize: (html, options = {}) => {
+      // Default allowed tags if not specified
+      const allowedTags = options.ALLOWED_TAGS || [];
+      
+      // If no restrictions, pass through (for backward compatibility)
+      if (allowedTags.length === 0) {
+        return html;
+      }
+      
+      // Simple mock sanitization: remove tags not in the allowed list
+      // This is a simplified version for testing - real DOMPurify is more comprehensive
+      
+      // Remove script tags entirely (including content)
+      let result = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+      
+      // Remove style tags entirely (including content)
+      result = result.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+      
+      // For non-allowed tags, remove the tag but keep content
+      // Build a regex to match any tag not in the allowed list
+      const allTags = ['script', 'style', 'a', 'div', 'span', 'p', 'img', 'iframe', 'form', 'input', 'button', 'object', 'embed', 'svg', 'math', 'table', 'tr', 'td', 'th', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'b', 'i', 'u', 'br', 'strong', 'em'];
+      const tagsToRemove = allTags.filter(tag => !allowedTags.includes(tag));
+      
+      for (const tag of tagsToRemove) {
+        // Self-closing tags
+        result = result.replace(new RegExp(`<${tag}[^>]*\\s*\\/>`, 'gi'), '');
+        // Opening and closing tags - keep content
+        result = result.replace(new RegExp(`<${tag}[^>]*>`, 'gi'), '');
+        result = result.replace(new RegExp(`<\\/${tag}>`, 'gi'), '');
+      }
+      
+      // Remove javascript: URLs
+      result = result.replace(/javascript:/gi, '');
+      
+      // Remove on* event handlers
+      result = result.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
+      
+      return result;
+    },
   },
 }));
 
