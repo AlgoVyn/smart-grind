@@ -48,6 +48,11 @@ const resetLoginButtons = () => {
  * Initiates Google OAuth login using a popup window.
  * Opens an authentication popup, listens for success/failure messages from the popup,
  * updates user session and UI on success, and handles errors or cancellations.
+ *
+ * Note: We do not poll the popup's closed property because Cross-Origin-Opener-Policy
+ * (COOP) blocks access to popup properties when the popup navigates to cross-origin
+ * pages (like Google OAuth). Instead, we rely on postMessage for completion and
+ * a timeout for fallback.
  */
 export const handleGoogleLogin = () => {
     showError(null);
@@ -68,7 +73,6 @@ export const handleGoogleLogin = () => {
     }
 
     let authCompleted = false;
-    let popupCheckInterval: ReturnType<typeof setInterval> | null = null;
 
     const handleAuthSuccess = async (authData: { userId: string; displayName: string }) => {
         const { userId, displayName } = authData;
@@ -118,28 +122,16 @@ export const handleGoogleLogin = () => {
 
     const cleanupAuth = () => {
         window.removeEventListener('message', messageHandler);
-        if (popupCheckInterval) {
-            clearInterval(popupCheckInterval);
-            popupCheckInterval = null;
-        }
         resetLoginButtons();
     };
 
-    // Listen for popup closure to reset buttons immediately
-    const handlePopupClose = () => {
-        if (!authCompleted) {
-            authCompleted = true;
-            clearTimeout(timeoutId);
-            cleanupAuth();
-        }
-    };
-
-    // Listen for auth messages
+    // Listen for auth messages from popup
     const messageHandler = (event: MessageEvent): void | Promise<void> => {
         if (event.origin !== window.location.origin) {
             return;
         }
         authCompleted = true;
+        clearTimeout(timeoutId);
         if (event.data.type === 'auth-success') {
             const p = handleAuthSuccess(event.data);
             p.finally(cleanupAuth);
@@ -153,23 +145,9 @@ export const handleGoogleLogin = () => {
     };
     window.addEventListener('message', messageHandler);
 
-    // Monitor popup closure
-    // Note: popup.closed is accessible cross-origin, unlike popup.location
-    popupCheckInterval = setInterval(() => {
-        if (popup.closed) {
-            handlePopupClose();
-        }
-        // If popup is still open but on a different origin (e.g., Google OAuth),
-        // we can't detect that, but the message handler will clean up when auth completes
-    }, 500);
-
     const handleAuthTimeout = () => {
         if (!authCompleted) {
             authCompleted = true;
-            // popup.closed is accessible cross-origin, so we can safely check it
-            if (!popup.closed) {
-                popup.close();
-            }
             utils.showToast('Sign-in timed out. Please try again.', 'error');
             cleanupAuth();
         }
