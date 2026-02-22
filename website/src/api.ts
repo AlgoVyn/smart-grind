@@ -9,6 +9,8 @@ import { deleteCategory } from './api/api-delete';
 import { state } from './state';
 import { getConnectivityChecker } from './sw/connectivity-checker';
 import { isBrowserOnline as checkBrowserOnline } from './api/api-utils';
+import { SYNC_CONFIG } from './config/sync-config';
+import { cleanupManager } from './utils/cleanup-manager';
 
 // Operation types for background sync
 export type APIOperationType =
@@ -69,7 +71,7 @@ async function sendMessageToSW(message: SWMessage): Promise<unknown> {
     const timeoutPromise = new Promise((_, reject) => {
         setTimeout(
             () => reject(new Error(`Service Worker message timed out type=${message.type}`)),
-            5000
+            SYNC_CONFIG.TIMEOUTS.SERVICE_WORKER_MESSAGE
         );
     });
 
@@ -330,12 +332,20 @@ export function initOfflineDetection(): () => void {
         });
     }
 
-    const intervalId = setInterval(() => updateSyncStatus().catch(() => {}), 30000);
+    const intervalId = setInterval(
+        () => updateSyncStatus().catch(() => {}),
+        SYNC_CONFIG.INTERVALS.SYNC_STATUS_POLL
+    );
 
-    return () => {
+    // Register cleanup
+    cleanupManager.register('api', () => {
         unsubscribe();
         connectivityChecker.stopMonitoring();
         clearInterval(intervalId);
+    });
+
+    return () => {
+        cleanupManager.cleanup('api');
     };
 }
 

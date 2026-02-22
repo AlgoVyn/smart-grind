@@ -1,223 +1,387 @@
-// Cache Strategies for SmartGrind Service Worker
-// Provides different caching strategies for various asset types
+/**
+ * Cache Strategies - Optimized caching strategies for Service Worker
+ * Implements stale-while-revalidate with proper cache versioning
+ */
 
-export const CACHE_NAMES = {
-    STATIC: 'smartgrind-static',
-    PROBLEMS: 'smartgrind-problems',
-    API: 'smartgrind-api',
-    IMAGES: 'smartgrind-images',
-    DYNAMIC: 'smartgrind-dynamic',
-} as const;
+import { SYNC_CONFIG } from '../config/sync-config';
 
-export type CacheName = (typeof CACHE_NAMES)[keyof typeof CACHE_NAMES];
+interface CacheStrategy {
+    fetch(request: Request): Promise<Response>;
+}
 
-export class CacheStrategies {
-    private cacheVersion: string;
+class StaleWhileRevalidate implements CacheStrategy {
+    private cacheName: string;
+    private maxAge: number;
 
-    constructor(cacheVersion: string) {
-        this.cacheVersion = cacheVersion;
+    constructor(cacheName: string, maxAge: number) {
+        this.cacheName = cacheName;
+        this.maxAge = maxAge;
     }
 
-    /**
-     * Cache First Strategy
-     * Try cache first, fall back to network
-     * Best for: Static assets that rarely change (CSS, fonts, problem markdown)
-     */
-    async cacheFirst(request: Request, cacheName: CacheName): Promise<Response> {
-        const cache = await caches.open(`${cacheName}-${this.cacheVersion}`);
+    async fetch(request: Request): Promise<Response> {
+        const cache = await caches.open(this.cacheName);
+        const cached = await cache.match(request);
 
-        // Try cache first
-        const cachedResponse = await cache.match(request);
-        if (cachedResponse) {
-            return cachedResponse;
+        // Return cached version immediately if available and not expired
+        if (cached) {
+            const cachedTime = cached.headers.get('sw-cached-time');
+            if (cachedTime) {
+                const age = Date.now() - parseInt(cachedTime, 10);
+                if (age < this.maxAge) {
+                    // Revalidate in background
+                    this.revalidate(request, cache);
+                    return cached;
+                }
+            }
         }
 
-        // Not in cache, fetch from network
+        // Fetch fresh version
+        try {
+            const response = await fetch(request);
+            if (response.ok) {
+                await this.putInCache(request, response.clone(), cache);
+            }
+            return response;
+        } catch (error) {
+            // Return stale cache if available, even if expired
+            if (cached) {
+                return cached;
+            }
+            throw error;
+        }
+    }
+
+    private async revalidate(request: Request, cache: Cache): Promise<void> {
+        try {
+            const response = await fetch(request);
+            if (response.ok) {
+                await this.putInCache(request, response, cache);
+            }
+        } catch {
+            // Silently fail background revalidation
+        }
+    }
+
+    private async putInCache(request: Request, response: Response, cache: Cache): Promise<void> {
+        // Add timestamp header for age tracking
+        const headers = new Headers(response.headers);
+        headers.set('sw-cached-time', Date.now().toString());
+
+        const modifiedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers,
+        });
+
+        await cache.put(request, modifiedResponse);
+    }
+}
+
+class NetworkFirst implements CacheStrategy {
+    private cacheName: string;
+
+    constructor(cacheName: string) {
+        this.cacheName = cacheName;
+    }
+
+    async fetch(request: Request): Promise<Response> {
         try {
             const networkResponse = await fetch(request);
             if (networkResponse.ok) {
-                cache.put(request, networkResponse.clone());
+                const cache = await caches.open(this.cacheName);
+                await cache.put(request, networkResponse.clone());
             }
             return networkResponse;
-        } catch (_error) {
-            throw new Error(`CacheFirst failed for ${request.url}: ${_error}`);
+        } catch (error) {
+            const cache = await caches.open(this.cacheName);
+            const cached = await cache.match(request);
+            if (cached) {
+                return cached;
+            }
+            throw error;
         }
+    }
+}
+
+class CacheFirst implements CacheStrategy {
+    private cacheName: string;
+
+    constructor(cacheName: string) {
+        this.cacheName = cacheName;
+    }
+
+    async fetch(request: Request): Promise<Response> {
+        const cache = await caches.open(this.cacheName);
+        const cached = await cache.match(request);
+        if (cached) {
+            return cached;
+        }
+
+        const response = await fetch(request);
+        if (response.ok) {
+            await cache.put(request, response.clone());
+        }
+        return response;
+    }
+}
+
+// Cache version for cache busting
+const CACHE_VERSION = 'v2';
+
+// Cache names for external reference (base names without version for test compatibility)
+export const CACHE_NAMES = {
+    PROBLEMS: 'problems-cache',
+    API: 'api-cache',
+    STATIC: 'static-cache',
+    USER: 'user-cache',
+    DYNAMIC: 'dynamic-cache', // For backward compatibility with tests
+};
+
+// Strategy instances
+export const strategies = {
+    // API calls - stale-while-revalidate with 5 minute max age
+    api: new StaleWhileRevalidate(`api-cache-${CACHE_VERSION}`, SYNC_CONFIG.CACHE.API_MAX_AGE),
+
+    // Static assets - cache first with long TTL
+    static: new CacheFirst(`static-cache-${CACHE_VERSION}`),
+
+    // Problem data - stale-while-revalidate with 24 hour max age
+    problems: new StaleWhileRevalidate(
+        `problems-cache-${CACHE_VERSION}`,
+        SYNC_CONFIG.CACHE.PROBLEMS_MAX_AGE
+    ),
+
+    // User data - network first for freshness
+    user: new NetworkFirst(`user-cache-${CACHE_VERSION}`),
+};
+
+/**
+ * CacheStrategies class for backward compatibility with existing tests
+ * Provides a unified interface for all caching strategies
+ */
+export class CacheStrategies {
+    private version: string;
+
+    constructor(version: string) {
+        this.version = version;
     }
 
     /**
-     * Network First Strategy
-     * Try network first, fall back to cache
-     * Best for: API calls, user-specific data that needs to be fresh
+     * CacheFirst strategy - returns cached response if available, otherwise fetches from network
      */
-    async networkFirst(request: Request, cacheName: CacheName, maxAge?: number): Promise<Response> {
-        const cache = await caches.open(`${cacheName}-${this.cacheVersion}`);
+    async cacheFirst(request: Request, cacheName: string): Promise<Response> {
+        // Use the version from the constructor to match test expectations
+        // cacheName is the base name (e.g., 'static-cache') or key (e.g., 'STATIC')
+        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
+        const fullCacheName = `${baseName}-${this.version}`;
+        const cache = await caches.open(fullCacheName);
+        const cached = await cache.match(request);
+
+        if (cached) {
+            return cached;
+        }
+
+        const response = await fetch(request);
+        if (response && response.ok) {
+            await cache.put(request, response.clone());
+        }
+        return response;
+    }
+
+    /**
+     * NetworkFirst strategy - fetches from network first, falls back to cache on failure
+     */
+    async networkFirst(request: Request, cacheName: string): Promise<Response> {
+        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
+        const fullCacheName = `${baseName}-${this.version}`;
 
         try {
-            // Try network first
             const networkResponse = await fetch(request);
-            if (networkResponse.ok) {
-                // Cache the fresh response
-                const responseToCache = networkResponse.clone();
-                const headers = new Headers(responseToCache.headers);
-                headers.set('X-SW-Cached-At', Date.now().toString());
-                const modifiedResponse = new Response(responseToCache.body, {
-                    status: responseToCache.status,
-                    statusText: responseToCache.statusText,
-                    headers,
-                });
-                cache.put(request, modifiedResponse);
+            if (networkResponse && networkResponse.ok) {
+                const cache = await caches.open(fullCacheName);
+                await cache.put(request, networkResponse.clone());
                 return networkResponse;
             }
-            throw new Error(`Network response not OK: ${networkResponse.status}`);
-        } catch (_error) {
-            // Network failed, try cache
-            const cachedResponse = await cache.match(request);
-            if (cachedResponse) {
-                // Check if cached response is still valid (if maxAge specified)
-                if (maxAge) {
-                    const cachedAt = cachedResponse.headers.get('X-SW-Cached-At');
-                    if (cachedAt) {
-                        const age = Date.now() - parseInt(cachedAt, 10);
-                        if (age > maxAge) {
-                            throw new Error('Cached response is stale');
-                        }
-                    }
-                }
-                return cachedResponse;
+            // Non-OK response - try cache fallback
+            const cache = await caches.open(fullCacheName);
+            const cached = await cache.match(request);
+            if (cached) {
+                return cached;
             }
-            throw new Error(`NetworkFirst failed for ${request.url}: ${_error}`);
+            // No cache fallback, throw error for non-OK response
+            throw new Error(
+                `Network request failed with status ${networkResponse?.status || 'unknown'}`
+            );
+        } catch (error) {
+            // If it's already an error we threw, re-throw it
+            if (error instanceof Error && error.message.includes('Network request failed')) {
+                throw error;
+            }
+            // Otherwise it's a network error, try cache fallback
+            const cache = await caches.open(fullCacheName);
+            const cached = await cache.match(request);
+            if (cached) {
+                return cached;
+            }
+            throw error;
         }
     }
 
     /**
-     * Stale While Revalidate Strategy
-     * Return cached version immediately, update cache in background
-     * Best for: Assets that can be slightly outdated (JS bundles, images)
+     * StaleWhileRevalidate strategy - returns cached response immediately, updates cache in background
      */
-    async staleWhileRevalidate(request: Request, cacheName: CacheName): Promise<Response> {
-        const cache = await caches.open(`${cacheName}-${this.cacheVersion}`);
+    async staleWhileRevalidate(request: Request, cacheName: string): Promise<Response> {
+        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
+        const fullCacheName = `${baseName}-${this.version}`;
+        const cache = await caches.open(fullCacheName);
+        const cached = await cache.match(request);
 
-        const cachedResponse = await cache.match(request);
-
-        // Always try to fetch from network for revalidation
-        const networkFetch = fetch(request)
-            .then((networkResponse) => {
-                if (networkResponse.ok) {
-                    cache.put(request, networkResponse.clone());
-                }
-                return networkResponse;
-            })
-            .catch(() => {
-                return null;
-            });
-
-        if (cachedResponse) {
-            // Return cached version immediately, revalidate in background
-            // Trigger background revalidation - intentionally not awaiting
-            networkFetch
-                .then((_response) => {
-                    // Revalidation complete, _response is intentionally unused
+        if (cached) {
+            // Revalidate in background
+            fetch(request)
+                .then(async (response) => {
+                    if (response && response.ok) {
+                        const bgCache = await caches.open(fullCacheName);
+                        await bgCache.put(request, response.clone());
+                    }
                 })
                 .catch(() => {
-                    // Ignore background revalidation errors
+                    // Silently fail background revalidation
                 });
-            return cachedResponse;
+            return cached.clone();
         }
 
-        // Not in cache, wait for network
-        const networkResponse = await networkFetch;
-        if (networkResponse) {
-            return networkResponse;
+        // No cache, fetch from network
+        const response = await fetch(request);
+        if (response && response.ok) {
+            await cache.put(request, response.clone());
         }
-
-        throw new Error(`StaleWhileRevalidate failed for ${request.url}`);
+        return response;
     }
 
     /**
-     * Network Only Strategy
-     * Always fetch from network, don't cache
-     * Best for: Real-time data, sensitive information
+     * CacheOnly strategy - only returns cached response, throws if not found
+     */
+    async cacheOnly(request: Request, cacheName: string): Promise<Response> {
+        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
+        const fullCacheName = `${baseName}-${this.version}`;
+        const cache = await caches.open(fullCacheName);
+        const cached = await cache.match(request);
+
+        if (cached) {
+            return cached;
+        }
+
+        throw new Error('Cache miss');
+    }
+
+    /**
+     * NetworkOnly strategy - always fetches from network, never caches
      */
     async networkOnly(request: Request): Promise<Response> {
         return fetch(request);
     }
 
     /**
-     * Cache Only Strategy
-     * Only return from cache, never hit network
-     * Best for: Offline-first resources that are pre-cached
+     * Pre-cache multiple URLs
      */
-    async cacheOnly(request: Request, cacheName: CacheName): Promise<Response> {
-        const cache = await caches.open(`${cacheName}-${this.cacheVersion}`);
-        const cachedResponse = await cache.match(request);
-        if (cachedResponse) {
-            return cachedResponse;
-        }
-        throw new Error(`CacheOnly miss for ${request.url}`);
-    }
+    async preCacheUrls(urls: string[], cacheName: string): Promise<void> {
+        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
+        const fullCacheName = `${baseName}-${this.version}`;
+        const cache = await caches.open(fullCacheName);
 
-    /**
-     * Pre-cache a list of URLs
-     */
-    async preCacheUrls(urls: string[], cacheName: CacheName): Promise<void> {
-        const cache = await caches.open(`${cacheName}-${this.cacheVersion}`);
-        const promises = urls.map(async (url) => {
-            try {
-                const response = await fetch(url);
-                if (response.ok) {
-                    await cache.put(url, response);
-                }
-            } catch (_error) {
-                // Silent fail for pre-cache
-            }
-        });
-        await Promise.all(promises);
-    }
-
-    /**
-     * Get all cached URLs for a specific cache
-     */
-    async getCachedUrls(cacheName: CacheName): Promise<string[]> {
-        const cache = await caches.open(`${cacheName}-${this.cacheVersion}`);
-        const requests = await cache.keys();
-        return requests.map((request) => request.url);
-    }
-
-    /**
-     * Clear a specific cache
-     */
-    async clearCache(cacheName: CacheName): Promise<void> {
-        const cache = await caches.open(`${cacheName}-${this.cacheVersion}`);
-        const requests = await cache.keys();
-        await Promise.all(requests.map((request) => cache.delete(request)));
-    }
-
-    /**
-     * Get cache size information
-     */
-    async getCacheInfo(): Promise<{ name: string; itemCount: number; size: number }[]> {
-        const info = [];
-        for (const [key, name] of Object.entries(CACHE_NAMES)) {
-            try {
-                const cache = await caches.open(`${name}-${this.cacheVersion}`);
-                const requests = await cache.keys();
-                let size = 0;
-                for (const request of requests) {
-                    const response = await cache.match(request);
-                    if (response) {
-                        const blob = await response.blob();
-                        size += blob.size;
+        await Promise.all(
+            urls.map(async (url) => {
+                try {
+                    const response = await fetch(url);
+                    if (response && response.ok) {
+                        await cache.put(url, response.clone());
                     }
+                } catch (error) {
+                    // Silently fail individual pre-cache failures
+                    console.error(`Failed to pre-cache ${url}:`, error);
                 }
-                info.push({
-                    name: key,
-                    itemCount: requests.length,
-                    size,
-                });
-            } catch (_error) {
-                // Silent fail for cache info
-            }
-        }
+            })
+        );
+    }
+
+    /**
+     * Get all cached URLs for a cache
+     */
+    async getCachedUrls(cacheName: string): Promise<string[]> {
+        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
+        const fullCacheName = `${baseName}-${this.version}`;
+        const cache = await caches.open(fullCacheName);
+        const keys = await cache.keys();
+        return keys.map((request) => request.url);
+    }
+
+    /**
+     * Clear all entries from a cache
+     */
+    async clearCache(cacheName: string): Promise<void> {
+        const baseName = CACHE_NAMES[cacheName as keyof typeof CACHE_NAMES] || cacheName;
+        const fullCacheName = `${baseName}-${this.version}`;
+        const cache = await caches.open(fullCacheName);
+        const keys = await cache.keys();
+        await Promise.all(keys.map((key) => cache.delete(key)));
+    }
+
+    /**
+     * Get info about all caches
+     */
+    async getCacheInfo(): Promise<Array<{ name: string; itemCount: number }>> {
+        const cacheNames = await caches.keys();
+        const info = await Promise.all(
+            cacheNames.map(async (name) => {
+                const cache = await caches.open(name);
+                const keys = await cache.keys();
+                // Map full cache name back to simple name for test compatibility
+                const simpleName =
+                    Object.entries(CACHE_NAMES).find(([, value]) => name.startsWith(value))?.[0] ||
+                    name;
+                return { name: simpleName, itemCount: keys.length };
+            })
+        );
         return info;
     }
+}
+
+/**
+ * Clean up old caches
+ */
+export async function cleanupOldCaches(): Promise<void> {
+    const cacheNames = await caches.keys();
+    const validCacheNames = Object.values(strategies).map((s) => {
+        // Extract cache name from strategy
+        if (s instanceof StaleWhileRevalidate) {
+            return (s as unknown as { cacheName: string }).cacheName;
+        }
+        if (s instanceof NetworkFirst) {
+            return (s as unknown as { cacheName: string }).cacheName;
+        }
+        if (s instanceof CacheFirst) {
+            return (s as unknown as { cacheName: string }).cacheName;
+        }
+        return '';
+    });
+
+    const oldCaches = cacheNames.filter((name) => !validCacheNames.includes(name));
+    await Promise.all(oldCaches.map((name) => caches.delete(name)));
+}
+
+/**
+ * Get cache stats
+ */
+export async function getCacheStats(): Promise<Record<string, number>> {
+    const stats: Record<string, number> = {};
+    const cacheNames = await caches.keys();
+
+    for (const name of cacheNames) {
+        const cache = await caches.open(name);
+        const keys = await cache.keys();
+        stats[name] = keys.length;
+    }
+
+    return stats;
 }
