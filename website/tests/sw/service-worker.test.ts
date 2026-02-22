@@ -97,6 +97,8 @@ jest.mock('../../src/sw/background-sync', () => ({
         syncUserProgress: jest.fn().mockResolvedValue(undefined),
         syncCustomProblems: jest.fn().mockResolvedValue(undefined),
         forceSync: jest.fn().mockResolvedValue({ success: true, synced: 1, failed: 0 }),
+        performSync: jest.fn().mockResolvedValue(undefined),
+        checkAndSync: jest.fn().mockResolvedValue(undefined),
     })),
 }));
 
@@ -294,6 +296,147 @@ describe('Service Worker', () => {
             }
         });
 
+        it('should handle API redirect responses (3xx) without caching', async () => {
+            const mockResponse = new Response('', {
+                status: 301,
+                statusText: 'Moved Permanently',
+                headers: { Location: '/new-location' },
+            });
+
+            global.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/api/user');
+                const _event = {
+                    request,
+                    respondWith: jest.fn((promise) => promise.then((r: Response) => r)),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
+        it('should handle API auth error (401) without caching', async () => {
+            const mockResponse = new Response('Unauthorized', {
+                status: 401,
+                statusText: 'Unauthorized',
+            });
+
+            global.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/api/user');
+                const _event = {
+                    request,
+                    respondWith: jest.fn((promise) => promise.then((r: Response) => r)),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
+        it('should handle API forbidden error (403) without caching', async () => {
+            const mockResponse = new Response('Forbidden', {
+                status: 403,
+                statusText: 'Forbidden',
+            });
+
+            global.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/api/user');
+                const _event = {
+                    request,
+                    respondWith: jest.fn((promise) => promise.then((r: Response) => r)),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
+        it('should fall back to cache when API request fails with network error', async () => {
+            // First, set up a cached response
+            const cachedResponse = new Response('{"cached": true}', {
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            const mockCache = {
+                match: jest.fn().mockResolvedValue(cachedResponse),
+                put: jest.fn(),
+            };
+
+            (global.caches as unknown as { open: jest.Mock }).open = jest
+                .fn()
+                .mockResolvedValue(mockCache);
+            global.fetch = jest.fn().mockRejectedValue(new TypeError('Network error'));
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/api/user');
+                const _event = {
+                    request,
+                    respondWith: jest.fn((promise) => promise),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
+        it('should return offline fallback when API fails and no cache exists', async () => {
+            const mockCache = {
+                match: jest.fn().mockResolvedValue(undefined),
+            };
+
+            (global.caches as unknown as { open: jest.Mock }).open = jest
+                .fn()
+                .mockResolvedValue(mockCache);
+            global.fetch = jest.fn().mockRejectedValue(new TypeError('Network error'));
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/api/user');
+                const _event = {
+                    request,
+                    respondWith: jest.fn((promise) => promise),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
         it('should handle problem markdown requests', async () => {
             const mockResponse = new Response('# Problem', {
                 headers: { 'Content-Type': 'text/markdown' },
@@ -311,6 +454,68 @@ describe('Service Worker', () => {
 
             if (fetchHandler) {
                 const request = new Request('https://example.com/smartgrind/patterns/two-sum.md');
+                const _event = {
+                    request,
+                    respondWith: jest.fn(),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
+        it('should fetch problem from network when not cached', async () => {
+            const mockResponse = new Response('# Problem Content', {
+                headers: { 'Content-Type': 'text/markdown' },
+            });
+
+            global.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+            const mockCache = {
+                match: jest.fn().mockResolvedValue(undefined),
+                put: jest.fn(),
+            };
+
+            (global.caches as unknown as { open: jest.Mock }).open = jest
+                .fn()
+                .mockResolvedValue(mockCache);
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/patterns/new-problem.md');
+                const _event = {
+                    request,
+                    respondWith: jest.fn(),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
+        it('should return offline response when problem not cached and offline', async () => {
+            const mockCache = {
+                match: jest.fn().mockResolvedValue(undefined),
+            };
+
+            (global.caches as unknown as { open: jest.Mock }).open = jest
+                .fn()
+                .mockResolvedValue(mockCache);
+            global.fetch = jest.fn().mockRejectedValue(new TypeError('Network error'));
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/patterns/offline-problem.md');
                 const _event = {
                     request,
                     respondWith: jest.fn(),
@@ -558,6 +763,214 @@ describe('Service Worker', () => {
             }
         });
 
+        it('should handle CACHE_ASSETS message', async () => {
+            const cacheAddAll = jest.fn().mockResolvedValue(undefined);
+            const mockCache = { addAll: cacheAddAll };
+
+            (global.caches as unknown as { open: jest.Mock }).open = jest
+                .fn()
+                .mockResolvedValue(mockCache);
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const messageHandler = eventHandlers.get('message');
+
+            if (messageHandler) {
+                const _event = {
+                    data: {
+                        type: 'CACHE_ASSETS',
+                        assets: ['/smartgrind/app.js', '/smartgrind/styles.css'],
+                    },
+                    waitUntil: jest.fn((promise: Promise<void>) => promise),
+                    source: null,
+                };
+
+                await messageHandler(_event);
+                expect(_event.waitUntil).toHaveBeenCalled();
+
+                // Await the promise passed to waitUntil
+                const promise = (_event.waitUntil as jest.Mock).mock.calls[0][0];
+                await promise;
+
+                expect(cacheAddAll).toHaveBeenCalledWith([
+                    '/smartgrind/app.js',
+                    '/smartgrind/styles.css',
+                ]);
+            }
+        });
+
+        it('should ignore CACHE_ASSETS message without assets array', async () => {
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const messageHandler = eventHandlers.get('message');
+
+            if (messageHandler) {
+                const _event = {
+                    data: { type: 'CACHE_ASSETS' },
+                    waitUntil: jest.fn(),
+                    source: null,
+                };
+
+                await messageHandler(_event);
+                expect(_event.waitUntil).not.toHaveBeenCalled();
+            }
+        });
+
+        it('should handle REQUEST_SYNC message', async () => {
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const messageHandler = eventHandlers.get('message');
+
+            if (messageHandler) {
+                const _event = {
+                    data: { type: 'REQUEST_SYNC', tag: 'sync-user-progress' },
+                    waitUntil: jest.fn((promise: Promise<void>) => promise),
+                    source: null,
+                };
+
+                await messageHandler(_event);
+                expect(_event.waitUntil).toHaveBeenCalled();
+            }
+        });
+
+        it('should ignore REQUEST_SYNC message without tag', async () => {
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const messageHandler = eventHandlers.get('message');
+
+            if (messageHandler) {
+                const _event = {
+                    data: { type: 'REQUEST_SYNC' },
+                    waitUntil: jest.fn(),
+                    source: null,
+                };
+
+                await messageHandler(_event);
+                expect(_event.waitUntil).not.toHaveBeenCalled();
+            }
+        });
+
+        it('should handle CLIENT_READY message', async () => {
+            const mockClient = {
+                id: 'client-1',
+                postMessage: jest.fn(),
+                frameType: 'top-level',
+            };
+            mockSelf.clients.matchAll = jest.fn().mockResolvedValue([mockClient]);
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const messageHandler = eventHandlers.get('message');
+
+            if (messageHandler) {
+                const _event = {
+                    data: { type: 'CLIENT_READY' },
+                    waitUntil: jest.fn((promise: Promise<void>) => promise),
+                    source: mockClient,
+                };
+
+                await messageHandler(_event);
+                expect(_event.waitUntil).toHaveBeenCalled();
+            }
+        });
+
+        it('should handle NETWORK_RESTORED message', async () => {
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const messageHandler = eventHandlers.get('message');
+
+            if (messageHandler) {
+                const _event = {
+                    data: { type: 'NETWORK_RESTORED' },
+                    waitUntil: jest.fn((promise: Promise<void>) => promise),
+                    source: null,
+                };
+
+                await messageHandler(_event);
+                expect(_event.waitUntil).toHaveBeenCalled();
+            }
+        });
+
+        it('should handle DOWNLOAD_BUNDLE message', async () => {
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const messageHandler = eventHandlers.get('message');
+            const mockPort = { postMessage: jest.fn() };
+
+            if (messageHandler) {
+                const _event = {
+                    data: { type: 'DOWNLOAD_BUNDLE' },
+                    waitUntil: jest.fn((promise: Promise<void>) => promise),
+                    source: null,
+                    ports: [mockPort],
+                };
+
+                await messageHandler(_event);
+                expect(_event.waitUntil).toHaveBeenCalled();
+
+                // The promise should complete (even if download fails due to mock)
+                const promise = (_event.waitUntil as jest.Mock).mock.calls[0][0];
+                await expect(promise).resolves.not.toThrow();
+            }
+        });
+
+        it('should handle GET_BUNDLE_STATUS message', async () => {
+            // Mock IndexedDB
+            const mockIDB = {
+                open: jest.fn().mockImplementation(() => ({
+                    onerror: null,
+                    onsuccess: null,
+                    onupgradeneeded: null,
+                    result: {
+                        objectStoreNames: { contains: () => false },
+                        transaction: jest.fn().mockReturnValue({
+                            objectStore: jest.fn().mockReturnValue({
+                                get: jest.fn().mockReturnValue({
+                                    onerror: null,
+                                    onsuccess: null,
+                                    result: undefined,
+                                }),
+                            }),
+                        }),
+                    },
+                })),
+            };
+            (global as unknown as { indexedDB: typeof mockIDB }).indexedDB = mockIDB as typeof indexedDB;
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const messageHandler = eventHandlers.get('message');
+            const mockPort = { postMessage: jest.fn() };
+
+            if (messageHandler) {
+                const _event = {
+                    data: { type: 'GET_BUNDLE_STATUS' },
+                    waitUntil: jest.fn((promise: Promise<void>) => promise),
+                    source: null,
+                    ports: [mockPort],
+                };
+
+                await messageHandler(_event);
+                expect(_event.waitUntil).toHaveBeenCalled();
+            }
+        });
+
         it('should ignore unknown message types', async () => {
             await jest.isolateModules(async () => {
                 await import('../../src/sw/service-worker');
@@ -771,6 +1184,128 @@ describe('Service Worker', () => {
                         body: 'Time for your daily coding practice!',
                     })
                 );
+            }
+        });
+
+        it('should ignore unknown periodic sync tags', async () => {
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const periodicHandler = eventHandlers.get('periodicsync');
+
+            if (periodicHandler) {
+                const _event = {
+                    tag: 'unknown-tag',
+                    waitUntil: jest.fn(),
+                };
+
+                await periodicHandler(_event);
+                expect(_event.waitUntil).not.toHaveBeenCalled();
+                expect(mockSelf.registration.showNotification).not.toHaveBeenCalled();
+            }
+        });
+    });
+
+    describe('Online Event', () => {
+        it('should register online event listener', async () => {
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            expect(mockSelf.addEventListener).toHaveBeenCalledWith('online', expect.any(Function));
+            expect(eventHandlers.has('online')).toBe(true);
+        });
+
+        it('should trigger sync on online event', async () => {
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const onlineHandler = eventHandlers.get('online');
+
+            if (onlineHandler) {
+                // The online event doesn't use waitUntil - it directly calls checkAndSync
+                // Just verify it doesn't throw
+                expect(() => onlineHandler({})).not.toThrow();
+            }
+        });
+    });
+
+    describe('Request URL Helpers', () => {
+        it('should not handle requests with non-http protocols', async () => {
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                // chrome-extension:// request
+                const request = new Request('chrome-extension://some-extension/resource.js');
+                const _event = {
+                    request,
+                    respondWith: jest.fn(),
+                };
+
+                await fetchHandler(_event);
+                // Non-http requests should not be handled
+                expect(_event.respondWith).not.toHaveBeenCalled();
+            }
+        });
+
+        it('should skip auth routes in shouldHandleRequest', async () => {
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                // Auth route request
+                const request = new Request('https://example.com/smartgrind/api/auth/callback');
+                const _event = {
+                    request,
+                    respondWith: jest.fn(),
+                };
+
+                await fetchHandler(_event);
+                // Auth routes should not be handled
+                expect(_event.respondWith).not.toHaveBeenCalled();
+            }
+        });
+
+        it('should handle static asset requests', async () => {
+            global.fetch = jest.fn().mockResolvedValue(
+                new Response('body { color: red }', {
+                    headers: { 'Content-Type': 'text/css' },
+                })
+            );
+
+            const mockCache = {
+                match: jest.fn().mockResolvedValue(undefined),
+                put: jest.fn(),
+            };
+
+            (global.caches as unknown as { open: jest.Mock }).open = jest
+                .fn()
+                .mockResolvedValue(mockCache);
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/styles.css');
+                const _event = {
+                    request,
+                    respondWith: jest.fn(),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
             }
         });
     });

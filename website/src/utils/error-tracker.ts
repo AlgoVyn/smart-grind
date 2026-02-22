@@ -148,7 +148,11 @@ class ErrorTracker {
      * Clear pending errors
      */
     clearPendingErrors(): void {
-        localStorage.removeItem('pending-errors');
+        try {
+            localStorage.removeItem('pending-errors');
+        } catch {
+            // Ignore localStorage errors
+        }
     }
 }
 

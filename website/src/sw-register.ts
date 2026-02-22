@@ -440,7 +440,7 @@ export async function requestSync(tag: string): Promise<boolean> {
         const registration = await navigator.serviceWorker.ready;
 
         // Check if Background Sync is supported
-        if ('sync' in registration) {
+        if ('sync' in registration && registration.sync) {
             await (
                 registration as ServiceWorkerRegistration & {
                     sync: { register(_tag: string): Promise<void> };
@@ -550,7 +550,7 @@ export function isOffline(): boolean {
  * This handles the case where operations were queued before the service worker was available.
  * @returns {Promise<number>} Number of operations migrated
  */
-async function migrateLocalStorageOperations(): Promise<number> {
+export async function migrateLocalStorageOperations(): Promise<number> {
     const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
     if (pendingOps.length === 0) return 0;
 

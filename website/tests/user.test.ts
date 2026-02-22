@@ -71,6 +71,18 @@ describe('User API', () => {
     });
 
     describe('onRequestGet', () => {
+        test('should handle CORS preflight request', async () => {
+            const request = new Request('https://example.com/user', {
+                method: 'OPTIONS',
+            });
+
+            const response = await onRequestGet({ request, env: mockEnv });
+
+            expect(response.status).toBe(204);
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+            expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
+        });
+
         test('should return 401 for missing authorization header', async () => {
             const request = new Request('https://example.com/user');
 
@@ -105,6 +117,68 @@ describe('User API', () => {
             expect(response.status).toBe(401);
             const data = await response.json();
             expect(data.error).toBe('Unauthorized');
+        });
+
+        test('should authenticate via cookie', async () => {
+            mockKV.getWithMetadata.mockResolvedValue({
+                value: null,
+                metadata: null,
+            });
+
+            const request = new Request('https://example.com/user', {
+                headers: { Cookie: 'auth_token=valid_token_from_cookie' },
+            });
+
+            const response = await onRequestGet({ request, env: mockEnv });
+
+            expect(response.status).toBe(200);
+            // jwtVerify is called with the token from cookie and the secret key
+            expect(jwtVerify).toHaveBeenCalled();
+            const callArgs = jwtVerify.mock.calls[0];
+            expect(callArgs[0]).toBe('valid_token_from_cookie');
+        });
+
+        test('should generate CSRF token with action=csrf', async () => {
+            const request = new Request('https://example.com/user?action=csrf', {
+                headers: { Authorization: 'Bearer header.payload.signature' },
+            });
+
+            const response = await onRequestGet({ request, env: mockEnv });
+
+            expect(response.status).toBe(200);
+            const data = await response.json();
+            // crypto.randomUUID is mocked to return 'test-csrf-token-12345'
+            expect(data.csrfToken).toBeDefined();
+            expect(typeof data.csrfToken).toBe('string');
+            expect(mockKV.put).toHaveBeenCalledWith(
+                'csrf_user123',
+                expect.any(String),
+                { expirationTtl: 3600 }
+            );
+        });
+
+        test('should return 401 for CSRF generation without auth', async () => {
+            const request = new Request('https://example.com/user?action=csrf');
+
+            const response = await onRequestGet({ request, env: mockEnv });
+
+            expect(response.status).toBe(401);
+            const data = await response.json();
+            expect(data.error).toBe('Unauthorized');
+        });
+
+        test('should return 400 for CSRF generation with invalid userId', async () => {
+            jwtVerify.mockResolvedValue({ payload: { userId: 123 } });
+
+            const request = new Request('https://example.com/user?action=csrf', {
+                headers: { Authorization: 'Bearer header.payload.signature' },
+            });
+
+            const response = await onRequestGet({ request, env: mockEnv });
+
+            expect(response.status).toBe(400);
+            const data = await response.json();
+            expect(data.error).toBe('Invalid userId');
         });
 
         test('should return 400 for invalid userId', async () => {
@@ -197,6 +271,30 @@ describe('User API', () => {
             expect(data).toEqual({ problems: {}, deletedIds: [] });
         });
 
+        test('should handle gzip compressed data', async () => {
+            const rawData = JSON.stringify({ problems: { '1': {} }, deletedIds: ['2'] });
+            const encoder = new TextEncoder();
+            const compressedData = encoder.encode(rawData).buffer;
+
+            mockKV.getWithMetadata.mockResolvedValue({
+                value: compressedData,
+                metadata: {
+                    'Content-Type': 'application/json',
+                    'Content-Encoding': 'gzip',
+                },
+            });
+
+            const request = new Request('https://example.com/user', {
+                headers: { Authorization: 'Bearer header.payload.signature' },
+            });
+
+            const response = await onRequestGet({ request, env: mockEnv });
+
+            expect(response.status).toBe(200);
+            const data = await response.json();
+            expect(data).toEqual({ problems: { '1': {} }, deletedIds: ['2'] });
+        });
+
         test('should return 500 on KV error', async () => {
             mockKV.getWithMetadata.mockRejectedValue(new Error('KV error'));
 
@@ -213,6 +311,18 @@ describe('User API', () => {
     });
 
     describe('onRequestPost', () => {
+        test('should handle CORS preflight request', async () => {
+            const request = new Request('https://example.com/user', {
+                method: 'OPTIONS',
+            });
+
+            const response = await onRequestPost({ request, env: mockEnv });
+
+            expect(response.status).toBe(204);
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+            expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
+        });
+
         test('should return 401 for missing authorization', async () => {
             const request = new Request('https://example.com/user', {
                 method: 'POST',
@@ -240,6 +350,44 @@ describe('User API', () => {
             expect(response.status).toBe(403);
             const data = await response.json();
             expect(data.error).toBe('Invalid CSRF token');
+        });
+
+        test('should return 403 for mismatched CSRF token', async () => {
+            jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
+            mockKV.get.mockResolvedValue('different-csrf-token');
+
+            const request = new Request('https://example.com/user', {
+                method: 'POST',
+                headers: {
+                    Authorization: 'Bearer header.payload.signature',
+                    'X-CSRF-Token': 'test-csrf-token-12345',
+                },
+                body: JSON.stringify({ data: {} }),
+            });
+
+            const response = await onRequestPost({ request, env: mockEnv });
+
+            expect(response.status).toBe(403);
+            const data = await response.json();
+            expect(data.error).toBe('Invalid CSRF token');
+        });
+
+        test('should delete CSRF token after successful validation', async () => {
+            jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
+            mockKV.get.mockResolvedValue('test-csrf-token-12345');
+
+            const request = new Request('https://example.com/user', {
+                method: 'POST',
+                headers: {
+                    Authorization: 'Bearer header.payload.signature',
+                    'X-CSRF-Token': 'test-csrf-token-12345',
+                },
+                body: JSON.stringify({ data: { problems: {}, deletedIds: [] } }),
+            });
+
+            await onRequestPost({ request, env: mockEnv });
+
+            expect(mockKV.delete).toHaveBeenCalledWith('csrf_user123');
         });
 
         test('should return 400 for invalid JSON', async () => {
@@ -329,6 +477,59 @@ describe('User API', () => {
                     'Content-Type': 'application/json',
                 })
             );
+        });
+
+        test('should store data with appropriate metadata', async () => {
+            jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
+            mockKV.get.mockResolvedValue('test-csrf-token-12345');
+
+            const smallData = { problems: { '1': { status: 'solved' } }, deletedIds: [] };
+
+            const request = new Request('https://example.com/user', {
+                method: 'POST',
+                headers: {
+                    Authorization: 'Bearer header.payload.signature',
+                    'X-CSRF-Token': 'test-csrf-token-12345',
+                },
+                body: JSON.stringify({ data: smallData }),
+            });
+
+            const response = await onRequestPost({ request, env: mockEnv });
+
+            expect(response.status).toBe(200);
+            expect(mockKV.put).toHaveBeenCalled();
+
+            // Verify the data was stored with metadata
+            const putCall = mockKV.put.mock.calls[0];
+            expect(putCall[2].metadata).toEqual(
+                expect.objectContaining({
+                    'Content-Type': 'application/json',
+                })
+            );
+        });
+
+        test('should authenticate via cookie for POST requests', async () => {
+            mockKV.get.mockImplementation((key) => {
+                if (key === 'csrf_user123') return Promise.resolve('test-csrf-token-12345');
+                return Promise.resolve(null);
+            });
+
+            const request = new Request('https://example.com/user', {
+                method: 'POST',
+                headers: {
+                    Cookie: 'auth_token=valid_token_from_cookie',
+                    'X-CSRF-Token': 'test-csrf-token-12345',
+                },
+                body: JSON.stringify({ data: { problems: {}, deletedIds: [] } }),
+            });
+
+            const response = await onRequestPost({ request, env: mockEnv });
+
+            expect(response.status).toBe(200);
+            // jwtVerify is called with the token from cookie
+            expect(jwtVerify).toHaveBeenCalled();
+            const callArgs = jwtVerify.mock.calls[0];
+            expect(callArgs[0]).toBe('valid_token_from_cookie');
         });
 
         test('should return 500 on KV error', async () => {
