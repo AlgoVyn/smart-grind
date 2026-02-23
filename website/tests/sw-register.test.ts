@@ -89,6 +89,9 @@ import {
     getBundleStatus,
     downloadBundle,
     migrateLocalStorageOperations,
+    checkOfflineReload,
+    getOfflineStatus,
+    setupOfflineReloadHandling,
     SYNC_TAGS,
 } from '../src/sw-register';
 
@@ -949,6 +952,262 @@ describe('Service Worker Registration Module', () => {
             jest.advanceTimersByTime(1100);
 
             jest.useRealTimers();
+        });
+    });
+
+    describe('checkOfflineReload', () => {
+        test('should return default status when no controller', async () => {
+            Object.defineProperty(navigator.serviceWorker, 'controller', {
+                value: null,
+                writable: true,
+                configurable: true,
+            });
+
+            const status = await checkOfflineReload();
+            expect(status).toEqual({
+                canReload: false,
+                pageCached: false,
+                assetsCached: false,
+                bundleReady: false,
+                cachedItemsCount: 0,
+            });
+        });
+
+        test('should request offline reload status from service worker', async () => {
+            const statusPromise = checkOfflineReload('https://example.com/test');
+
+            // Simulate response from service worker
+            setTimeout(() => {
+                if (mockPort1.onmessage) {
+                    mockPort1.onmessage({
+                        data: {
+                            type: 'OFFLINE_RELOAD_STATUS',
+                            canReload: true,
+                            pageCached: true,
+                            assetsCached: true,
+                            bundleReady: true,
+                            cachedItemsCount: 50,
+                        },
+                    });
+                }
+            }, 10);
+
+            const status = await statusPromise;
+            expect(status.canReload).toBe(true);
+            expect(status.pageCached).toBe(true);
+            expect(status.assetsCached).toBe(true);
+            expect(status.bundleReady).toBe(true);
+            expect(status.cachedItemsCount).toBe(50);
+        });
+
+        test('should work without URL parameter', async () => {
+            const statusPromise = checkOfflineReload();
+
+            // Simulate response from service worker
+            setTimeout(() => {
+                if (mockPort1.onmessage) {
+                    mockPort1.onmessage({
+                        data: {
+                            type: 'OFFLINE_RELOAD_STATUS',
+                            canReload: false,
+                            pageCached: false,
+                            assetsCached: true,
+                            bundleReady: false,
+                            cachedItemsCount: 10,
+                        },
+                    });
+                }
+            }, 10);
+
+            const status = await statusPromise;
+            expect(status.canReload).toBe(false);
+            expect(status.pageCached).toBe(false);
+        });
+
+        test('should timeout after 5 seconds', async () => {
+            jest.useFakeTimers();
+
+            const statusPromise = checkOfflineReload();
+
+            // Fast-forward time
+            jest.advanceTimersByTime(5100);
+
+            const status = await statusPromise;
+            expect(status).toEqual({
+                canReload: false,
+                pageCached: false,
+                assetsCached: false,
+                bundleReady: false,
+                cachedItemsCount: 0,
+            });
+
+            jest.useRealTimers();
+        });
+    });
+
+    describe('getOfflineStatus', () => {
+        test('should return default status when no controller', async () => {
+            Object.defineProperty(navigator.serviceWorker, 'controller', {
+                value: null,
+                writable: true,
+                configurable: true,
+            });
+
+            const status = await getOfflineStatus();
+            expect(status).toEqual({
+                isOffline: false, // navigator.onLine is true in test setup
+                canFunctionOffline: false,
+                cacheStatus: {
+                    staticAssets: 0,
+                    problems: 0,
+                    apiResponses: 0,
+                    bundleFiles: 0,
+                },
+            });
+        });
+
+        test('should request offline capability status from service worker', async () => {
+            const statusPromise = getOfflineStatus();
+
+            // Simulate response from service worker
+            setTimeout(() => {
+                if (mockPort1.onmessage) {
+                    mockPort1.onmessage({
+                        data: {
+                            type: 'OFFLINE_CAPABILITY',
+                            isOffline: false,
+                            canFunctionOffline: true,
+                            cacheStatus: {
+                                staticAssets: 10,
+                                problems: 50,
+                                apiResponses: 5,
+                                bundleFiles: 100,
+                            },
+                            lastBundleDownload: Date.now(),
+                            bundleVersion: '1.0.0',
+                        },
+                    });
+                }
+            }, 10);
+
+            const status = await statusPromise;
+            expect(status.isOffline).toBe(false);
+            expect(status.canFunctionOffline).toBe(true);
+            expect(status.cacheStatus.staticAssets).toBe(10);
+            expect(status.cacheStatus.problems).toBe(50);
+            expect(status.lastBundleDownload).toBeDefined();
+            expect(status.bundleVersion).toBe('1.0.0');
+        });
+
+        test('should handle response without optional fields', async () => {
+            const statusPromise = getOfflineStatus();
+
+            // Simulate response without optional fields
+            setTimeout(() => {
+                if (mockPort1.onmessage) {
+                    mockPort1.onmessage({
+                        data: {
+                            type: 'OFFLINE_CAPABILITY',
+                            isOffline: true,
+                            canFunctionOffline: false,
+                            cacheStatus: {
+                                staticAssets: 0,
+                                problems: 0,
+                                apiResponses: 0,
+                                bundleFiles: 0,
+                            },
+                        },
+                    });
+                }
+            }, 10);
+
+            const status = await statusPromise;
+            expect(status.isOffline).toBe(true);
+            expect(status.canFunctionOffline).toBe(false);
+            expect(status.lastBundleDownload).toBeUndefined();
+            expect(status.bundleVersion).toBeUndefined();
+        });
+
+        test('should timeout after 5 seconds', async () => {
+            jest.useFakeTimers();
+
+            const statusPromise = getOfflineStatus();
+
+            // Fast-forward time
+            jest.advanceTimersByTime(5100);
+
+            const status = await statusPromise;
+            expect(status.canFunctionOffline).toBe(false);
+            expect(status.cacheStatus).toEqual({
+                staticAssets: 0,
+                problems: 0,
+                apiResponses: 0,
+                bundleFiles: 0,
+            });
+
+            jest.useRealTimers();
+        });
+    });
+
+    describe('setupOfflineReloadHandling', () => {
+        test('should add offline/online/beforeunload event listeners', () => {
+            const cleanup = setupOfflineReloadHandling();
+
+            expect(mockAddEventListener).toHaveBeenCalledWith('offline', expect.any(Function));
+            expect(mockAddEventListener).toHaveBeenCalledWith('online', expect.any(Function));
+            expect(mockAddEventListener).toHaveBeenCalledWith('beforeunload', expect.any(Function));
+
+            cleanup();
+        });
+
+        test('should return cleanup function that removes listeners', () => {
+            const cleanup = setupOfflineReloadHandling();
+
+            cleanup();
+
+            expect(mockRemoveEventListener).toHaveBeenCalledWith('offline', expect.any(Function));
+            expect(mockRemoveEventListener).toHaveBeenCalledWith('online', expect.any(Function));
+            expect(mockRemoveEventListener).toHaveBeenCalledWith('beforeunload', expect.any(Function));
+        });
+
+        test('should handle offline event', () => {
+            const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+            setupOfflineReloadHandling();
+
+            // Get the offline handler
+            const offlineCall = mockAddEventListener.mock.calls.find(
+                (call: any[]) => call[0] === 'offline'
+            );
+            const offlineHandler = offlineCall?.[1];
+
+            if (offlineHandler) {
+                offlineHandler();
+            }
+
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '[SW-Register] App is offline. Cached content is available.'
+            );
+
+            consoleSpy.mockRestore();
+        });
+
+        test('should handle online event', () => {
+            const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+            setupOfflineReloadHandling();
+
+            // Get the online handler
+            const onlineCall = mockAddEventListener.mock.calls.find(
+                (call: any[]) => call[0] === 'online'
+            );
+            const onlineHandler = onlineCall?.[1];
+
+            if (onlineHandler) {
+                onlineHandler();
+            }
+
+            expect(consoleSpy).toHaveBeenCalledWith('[SW-Register] App is back online.');
+
+            consoleSpy.mockRestore();
         });
     });
 });

@@ -4,6 +4,7 @@
 /smartgrind/manifest.json /manifest.json 200
 /smartgrind/solutions/* /solutions/:splat 200
 /smartgrind/patterns/* /patterns/:splat 200
+/smartgrind/algorithms/* /algorithms/:splat 200
 
 # Service Worker - explicit rule to prevent wildcard catch
 # This ensures sw.js is served as a static file, not redirected to index.html
@@ -12,6 +13,7 @@
 # Directory-level fallbacks
 /smartgrind/solutions /solutions/ 200
 /smartgrind/patterns /patterns/ 200
+/smartgrind/algorithms /algorithms/ 200
 
 # SPA fallback: all other /smartgrind/ paths → index.html
 /smartgrind/* /index.html 200

@@ -23,7 +23,12 @@ export const bindNavigationEvents = () => {
                 }
                 state.ui.currentFilter = newFilter;
                 renderers.updateFilterBtns();
-                renderers.renderMainView(state.ui.activeTopicId);
+                // Check if we're viewing algorithms or problems
+                if (state.ui.activeAlgorithmCategoryId) {
+                    renderers.renderAlgorithmsView(state.ui.activeAlgorithmCategoryId);
+                } else {
+                    renderers.renderMainView(state.ui.activeTopicId);
+                }
             });
         });
     }
@@ -41,7 +46,12 @@ export const bindNavigationEvents = () => {
     const problemSearch = state.elements['problemSearch'];
     if (problemSearch) {
         problemSearch.addEventListener('input', () => {
-            renderers.renderMainView(state.ui.activeTopicId);
+            // Check if we're viewing algorithms or problems
+            if (state.ui.activeAlgorithmCategoryId) {
+                renderers.renderAlgorithmsView(state.ui.activeAlgorithmCategoryId);
+            } else {
+                renderers.renderMainView(state.ui.activeTopicId);
+            }
         });
     }
 

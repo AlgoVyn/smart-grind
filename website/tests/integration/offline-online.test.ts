@@ -362,4 +362,262 @@ describe('Integration: Offline/Online Transitions', () => {
             }
         });
     });
+
+    describe('Offline Reload Functionality', () => {
+        // Mock service worker controller
+        let mockController: {
+            postMessage: jest.Mock;
+            state: string;
+        };
+
+        beforeEach(() => {
+            mockController = {
+                postMessage: jest.fn(),
+                state: 'activated'
+            };
+
+            // Mock navigator.serviceWorker
+            Object.defineProperty(navigator, 'serviceWorker', {
+                value: {
+                    controller: mockController,
+                    ready: Promise.resolve({ active: mockController }),
+                    addEventListener: jest.fn(),
+                    removeEventListener: jest.fn(),
+                },
+                writable: true,
+                configurable: true
+            });
+        });
+
+        describe('checkOfflineReload', () => {
+            test('should return reload status when service worker responds', async () => {
+                const { checkOfflineReload } = require('../../src/sw-register');
+
+                // Mock MessageChannel response
+                mockController.postMessage.mockImplementation((message, transfer) => {
+                    const port = transfer[0];
+                    // Simulate service worker responding with reload status
+                    setTimeout(() => {
+                        port.postMessage({
+                            type: 'OFFLINE_RELOAD_STATUS',
+                            canReload: true,
+                            pageCached: true,
+                            assetsCached: true,
+                            bundleReady: true,
+                            cachedItemsCount: 50
+                        });
+                    }, 10);
+                });
+
+                const result = await checkOfflineReload();
+
+                expect(result).toEqual({
+                    canReload: true,
+                    pageCached: true,
+                    assetsCached: true,
+                    bundleReady: true,
+                    cachedItemsCount: 50
+                });
+            });
+
+            test('should return cannot reload when no cache available', async () => {
+                const { checkOfflineReload } = require('../../src/sw-register');
+
+                mockController.postMessage.mockImplementation((message, transfer) => {
+                    const port = transfer[0];
+                    setTimeout(() => {
+                        port.postMessage({
+                            type: 'OFFLINE_RELOAD_STATUS',
+                            canReload: false,
+                            pageCached: false,
+                            assetsCached: false,
+                            bundleReady: false,
+                            cachedItemsCount: 0
+                        });
+                    }, 10);
+                });
+
+                const result = await checkOfflineReload();
+
+                expect(result.canReload).toBe(false);
+                expect(result.pageCached).toBe(false);
+            });
+
+            test('should return default status when no service worker controller', async () => {
+                Object.defineProperty(navigator, 'serviceWorker', {
+                    value: {
+                        controller: null,
+                        ready: Promise.resolve({ active: null }),
+                    },
+                    writable: true,
+                    configurable: true
+                });
+
+                // Clear module cache and reimport
+                jest.resetModules();
+                const { checkOfflineReload } = require('../../src/sw-register');
+
+                const result = await checkOfflineReload();
+
+                // Should return default status object when no controller
+                expect(result.canReload).toBe(false);
+                expect(result.pageCached).toBe(false);
+                expect(result.assetsCached).toBe(false);
+                expect(result.bundleReady).toBe(false);
+                expect(result.cachedItemsCount).toBe(0);
+            });
+
+            test('should handle timeout gracefully', async () => {
+                const { checkOfflineReload } = require('../../src/sw-register');
+
+                // Mock postMessage that never responds
+                mockController.postMessage.mockImplementation(() => {
+                    // Don't send any response
+                });
+
+                // The function should timeout and return default status
+                const result = await checkOfflineReload();
+
+                expect(result.canReload).toBe(false);
+                expect(result.cachedItemsCount).toBe(0);
+            }, 10000);
+        });
+
+        describe('getOfflineStatus', () => {
+            test('should return offline capability status', async () => {
+                const { getOfflineStatus } = require('../../src/sw-register');
+
+                mockController.postMessage.mockImplementation((message, transfer) => {
+                    const port = transfer[0];
+                    setTimeout(() => {
+                        port.postMessage({
+                            type: 'OFFLINE_CAPABILITY',
+                            isOffline: false,
+                            canFunctionOffline: true,
+                            cacheStatus: {
+                                staticAssets: 10,
+                                problems: 20,
+                                apiResponses: 5,
+                                bundleFiles: 50
+                            },
+                            lastBundleDownload: Date.now(),
+                            bundleVersion: '1.0.0'
+                        });
+                    }, 10);
+                });
+
+                const result = await getOfflineStatus();
+
+                expect(result.isOffline).toBe(false);
+                expect(result.canFunctionOffline).toBe(true);
+                expect(result.cacheStatus.staticAssets).toBe(10);
+                expect(result.cacheStatus.bundleFiles).toBe(50);
+            });
+
+            test('should return default status when service worker unavailable', async () => {
+                Object.defineProperty(navigator, 'serviceWorker', {
+                    value: {
+                        controller: null,
+                        ready: Promise.resolve({ active: null }),
+                    },
+                    writable: true,
+                    configurable: true
+                });
+
+                jest.resetModules();
+                const { getOfflineStatus } = require('../../src/sw-register');
+
+                const result = await getOfflineStatus();
+
+                // Should return default status object when no controller
+                expect(result.canFunctionOffline).toBe(false);
+                expect(result.cacheStatus.staticAssets).toBe(0);
+            });
+        });
+
+        describe('setupOfflineReloadHandling', () => {
+            test('should setup event listeners for offline handling', () => {
+                const { setupOfflineReloadHandling } = require('../../src/sw-register');
+
+                const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
+
+                const cleanup = setupOfflineReloadHandling();
+
+                // Should add event listeners for offline/online events
+                expect(addEventListenerSpy).toHaveBeenCalledWith('offline', expect.any(Function));
+                expect(addEventListenerSpy).toHaveBeenCalledWith('online', expect.any(Function));
+                expect(addEventListenerSpy).toHaveBeenCalledWith('beforeunload', expect.any(Function));
+
+                // Cleanup should remove listeners
+                const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
+                cleanup();
+                expect(removeEventListenerSpy).toHaveBeenCalled();
+
+                addEventListenerSpy.mockRestore();
+                removeEventListenerSpy.mockRestore();
+            });
+
+            test('should return cleanup function', () => {
+                const { setupOfflineReloadHandling } = require('../../src/sw-register');
+
+                const cleanup = setupOfflineReloadHandling();
+
+                expect(typeof cleanup).toBe('function');
+
+                // Should not throw when called
+                expect(() => cleanup()).not.toThrow();
+            });
+        });
+
+        describe('Offline reload with cached content', () => {
+            test('should allow reload when page is cached', async () => {
+                const { checkOfflineReload } = require('../../src/sw-register');
+
+                mockController.postMessage.mockImplementation((message, transfer) => {
+                    const port = transfer[0];
+                    setTimeout(() => {
+                        port.postMessage({
+                            type: 'OFFLINE_RELOAD_STATUS',
+                            canReload: true,
+                            pageCached: true,
+                            assetsCached: true,
+                            bundleReady: true,
+                            cachedItemsCount: 100
+                        });
+                    }, 10);
+                });
+
+                const status = await checkOfflineReload();
+
+                expect(status.canReload).toBe(true);
+                expect(status.pageCached).toBe(true);
+            });
+
+            test('should indicate offline bundle availability', async () => {
+                const { getOfflineStatus } = require('../../src/sw-register');
+
+                mockController.postMessage.mockImplementation((message, transfer) => {
+                    const port = transfer[0];
+                    setTimeout(() => {
+                        port.postMessage({
+                            type: 'OFFLINE_CAPABILITY',
+                            isOffline: true,
+                            canFunctionOffline: true,
+                            cacheStatus: {
+                                staticAssets: 10,
+                                problems: 20,
+                                apiResponses: 5,
+                                bundleFiles: 100
+                            }
+                        });
+                    }, 10);
+                });
+
+                const status = await getOfflineStatus();
+
+                expect(status.canFunctionOffline).toBe(true);
+                expect(status.cacheStatus.bundleFiles).toBe(100);
+            });
+        });
+    });
 });

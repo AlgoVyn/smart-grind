@@ -3,6 +3,11 @@
 
 import { Topic } from './types';
 import { PROBLEMS_DATA, TOTAL_UNIQUE_PROBLEMS } from './data/problems-data';
+import {
+    ALGORITHMS_DATA,
+    TOTAL_UNIQUE_ALGORITHMS,
+    AlgorithmCategory,
+} from './data/algorithms-data';
 
 // Static problem data organized by topic (now imported from problems-data.ts)
 export const data = {
@@ -11,6 +16,9 @@ export const data = {
 
     // Data structure reference (imported from separate file for maintainability)
     topicsData: PROBLEMS_DATA as Topic[],
+
+    // Algorithms data organized by category (imported from algorithms-data.ts)
+    algorithmsData: ALGORITHMS_DATA as AlgorithmCategory[],
 
     // Initialize original topics data reference
     ORIGINAL_TOPICS_DATA: null as Topic[] | null,
@@ -51,6 +59,12 @@ export const data = {
      * Used for progress tracking and statistics calculations.
      */
     TOTAL_UNIQUE_PROBLEMS,
+
+    /**
+     * Total number of unique algorithms in the dataset.
+     * This count represents the current total from algorithmsData structure.
+     */
+    TOTAL_UNIQUE_ALGORITHMS,
 
     // Local storage keys
     LOCAL_STORAGE_KEYS: {

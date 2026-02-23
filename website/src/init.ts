@@ -18,8 +18,22 @@ import { openSigninModal } from './ui/ui-modals';
 setupGlobalErrorHandlers();
 
 // Helper to apply category from URL
-const _applyCategory = async (categoryParam: string | null) => {
+const _applyCategory = async (categoryParam: string | null, algorithmsParam: string | null) => {
     const { renderers } = await import('./renderers');
+
+    // Handle algorithms parameter first
+    if (algorithmsParam) {
+        const validCategory = data.algorithmsData.some((c) => c.id === algorithmsParam);
+        if (validCategory) {
+            state.ui.activeAlgorithmCategoryId = algorithmsParam;
+            renderers.renderSidebar();
+            await renderers.renderAlgorithmsView(algorithmsParam);
+            utils.scrollToTop();
+            return;
+        }
+    }
+
+    // Handle problems category parameter
     if (categoryParam && categoryParam !== 'all') {
         const validCategory = data.topicsData.some((t: Topic) => t.id === categoryParam);
         if (validCategory) {
@@ -36,6 +50,7 @@ const _setupSignedInUser = async (
     userId: string,
     displayName: string,
     categoryParam: string | null,
+    algorithmsParam: string | null,
     token?: string
 ) => {
     // Store user info in localStorage (not sensitive)
@@ -62,7 +77,7 @@ const _setupSignedInUser = async (
     await loadData();
     const { ui } = await import('./ui/ui');
     ui.updateAuthUI();
-    await _applyCategory(categoryParam);
+    await _applyCategory(categoryParam, algorithmsParam);
 };
 
 /**
@@ -95,10 +110,10 @@ const _fetchAuthToken = async (): Promise<{
 };
 
 // Helper to setup local user
-const _setupLocalUser = async (categoryParam: string | null) => {
+const _setupLocalUser = async (categoryParam: string | null, algorithmsParam: string | null) => {
     const { app } = await import('./app');
     app.initializeLocalUser();
-    await _applyCategory(categoryParam);
+    await _applyCategory(categoryParam, algorithmsParam);
 };
 
 // Check auth state and initialize app
@@ -125,9 +140,12 @@ const checkAuth = async () => {
           ? 'all'
           : null;
 
+    // Extract algorithms parameter from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const algorithmsParam = urlParams.get('algorithms');
+
     // Check URL params for PWA auth callback (new secure flow)
     // Token is NO LONGER in URL - only userId and displayName
-    const urlParams = new URLSearchParams(window.location.search);
     const urlUserId = urlParams.get('userId');
     const urlDisplayName = urlParams.get('displayName');
 
@@ -153,6 +171,7 @@ const checkAuth = async () => {
                 urlUserId,
                 sanitizedDisplayName,
                 categoryParam,
+                algorithmsParam,
                 authData.token
             );
         }, 'Failed to set up signed-in user');
@@ -172,7 +191,13 @@ const checkAuth = async () => {
             const displayName =
                 localStorage.getItem('displayName') || authData.displayName || 'User';
             await withErrorHandling(async () => {
-                await _setupSignedInUser(userId, displayName, categoryParam, authData.token);
+                await _setupSignedInUser(
+                    userId,
+                    displayName,
+                    categoryParam,
+                    algorithmsParam,
+                    authData.token
+                );
             }, 'Failed to restore user session');
         } else {
             // Session expired, clear local state
@@ -195,7 +220,7 @@ const checkAuth = async () => {
 
     if (userType === 'local') {
         await withErrorHandling(async () => {
-            await _setupLocalUser(categoryParam);
+            await _setupLocalUser(categoryParam, algorithmsParam);
         }, 'Failed to initialize local user');
     } else {
         // Show setup modal for orphaned signed-in state

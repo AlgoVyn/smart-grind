@@ -33,7 +33,11 @@ const STATIC_ASSETS: string[] = [];
 /**
  * URL patterns for problem content files to cache
  */
-const PROBLEM_PATTERNS = [/\/smartgrind\/patterns\/.+\.md$/, /\/smartgrind\/solutions\/.+\.md$/];
+const PROBLEM_PATTERNS = [
+    /\/smartgrind\/patterns\/.+\.md$/,
+    /\/smartgrind\/solutions\/.+\.md$/,
+    /\/smartgrind\/algorithms\/.+\.md$/,
+];
 
 /**
  * API route patterns that should use network-first strategy
@@ -68,10 +72,18 @@ const getRequestHandler = (
     requestUrl: URL,
     request: Request
 ): ((_req: Request) => Promise<Response>) | null => {
+    // Check if this is a navigation request (HTML page)
+    const isNavigationRequest = request.mode === 'navigate';
+
     // Check if this is a problem file request
     const isProblemFile = PROBLEM_PATTERNS.some((pattern) => {
         return pattern.test(requestUrl.pathname);
     });
+
+    // Handle navigation requests (HTML pages) - critical for offline reload
+    if (isNavigationRequest) {
+        return handleNavigationRequest;
+    }
 
     // Handle API requests
     if (API_ROUTES.some((pattern) => pattern.test(requestUrl.pathname))) {
@@ -391,6 +403,187 @@ function revalidateStaticAsset(request: Request, networkFetch: Promise<Response 
     });
 }
 
+/**
+ * Handles navigation requests (HTML pages) with network-first strategy and offline fallback
+ * This is critical for enabling page reloads when offline
+ * @param request - The navigation request to handle
+ * @returns Response from network or cached offline page
+ */
+async function handleNavigationRequest(request: Request): Promise<Response> {
+    const requestUrl = new URL(request.url);
+
+    // Try network first for navigation requests
+    try {
+        const networkResponse = await fetch(request);
+
+        // Cache successful responses for offline access
+        if (networkResponse.ok) {
+            const cache = await caches.open(`${CACHE_NAMES.STATIC}-${CACHE_VERSION}`);
+            // Clone the response before caching
+            cache.put(request, networkResponse.clone());
+        }
+
+        return networkResponse;
+    } catch {
+        // Network failed, try to serve from cache
+        const cache = await caches.open(`${CACHE_NAMES.STATIC}-${CACHE_VERSION}`);
+
+        // Try exact match first
+        let cachedResponse = await cache.match(request);
+
+        // If no exact match, try to find the main page for SPA routing
+        if (!cachedResponse) {
+            // For SPA routes, serve the main index.html
+            const mainPageUrl = `${requestUrl.origin}${requestUrl.pathname.split('/').slice(0, 3).join('/')}/`;
+            cachedResponse = await cache.match(mainPageUrl);
+
+            // If still no match, try the scope root
+            if (!cachedResponse) {
+                const scopeRoot = self.registration.scope;
+                cachedResponse = await cache.match(scopeRoot);
+            }
+        }
+
+        if (cachedResponse) {
+            // Return cached page with offline header
+            const headers = new Headers(cachedResponse.headers);
+            headers.set('X-SW-Offline', 'true');
+            headers.set('X-SW-Cache', 'true');
+
+            return new Response(cachedResponse.body, {
+                status: cachedResponse.status,
+                statusText: cachedResponse.statusText,
+                headers,
+            });
+        }
+
+        // No cached page available, return offline fallback
+        return createOfflineFallbackPage(requestUrl);
+    }
+}
+
+/**
+ * Creates an offline fallback page when no cached version is available
+ * @param _requestUrl - The URL that was requested (unused but kept for API consistency)
+ * @returns A basic offline page response
+ */
+function createOfflineFallbackPage(_requestUrl: URL): Response {
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartGrind - Offline</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            text-align: center;
+            max-width: 500px;
+        }
+        .icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            color: #a0a0a0;
+        }
+        .retry-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .retry-btn:hover {
+            background: #4338ca;
+        }
+        .status {
+            margin-top: 24px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1>You're Offline</h1>
+        <p>
+            It looks like you've lost your internet connection. 
+            SmartGrind needs to be online for the first load, but once loaded,
+            you can access cached problems offline.
+        </p>
+        <button class="retry-btn" onclick="location.reload()">
+            Try Again
+        </button>
+        <div class="status">
+            <p id="status-text">Checking connection...</p>
+        </div>
+    </div>
+    <script>
+        function checkConnection() {
+            if (navigator.onLine) {
+                document.getElementById('status-text').textContent = 
+                    'Connection restored! Click "Try Again" to reload.';
+            } else {
+                document.getElementById('status-text').textContent = 
+                    'Still offline. Please check your connection.';
+            }
+        }
+        
+        window.addEventListener('online', () => {
+            document.getElementById('status-text').textContent = 
+                'Connection restored! Click "Try Again" to reload.';
+        });
+        
+        window.addEventListener('offline', () => {
+            document.getElementById('status-text').textContent = 
+                'Still offline. Please check your connection.';
+        });
+        
+        checkConnection();
+        
+        // Auto-retry when connection is restored
+        window.addEventListener('online', () => {
+            setTimeout(() => location.reload(), 500);
+        });
+    </script>
+</body>
+</html>`;
+
+    return new Response(html, {
+        status: 200,
+        headers: {
+            'Content-Type': 'text/html',
+            'X-SW-Offline': 'true',
+            'X-SW-Fallback': 'true',
+        },
+    });
+}
+
 // ... (rest of imports and setup)
 
 // Helper to send reply via message channel or source
@@ -401,6 +594,130 @@ const sendReply = (event: ExtendableMessageEvent, message: unknown) => {
         event.source.postMessage(message);
     }
 };
+
+/**
+ * Check if the page can be reloaded while offline
+ * @param url - Optional URL to check, defaults to current scope
+ * @returns Status object with reload capability info
+ */
+async function checkOfflineReloadStatus(url?: string): Promise<{
+    canReload: boolean;
+    pageCached: boolean;
+    assetsCached: boolean;
+    bundleReady: boolean;
+    cachedItemsCount: number;
+}> {
+    const checkUrl = url || self.registration.scope;
+    const staticCache = await caches.open(`${CACHE_NAMES.STATIC}-${CACHE_VERSION}`);
+    const problemsCache = await caches.open(`${CACHE_NAMES.PROBLEMS}-${CACHE_VERSION}`);
+
+    // Check if main page is cached
+    let pageCached = false;
+    try {
+        const pageResponse = await staticCache.match(checkUrl);
+        pageCached = !!pageResponse;
+
+        // Also check for index.html variations
+        if (!pageCached) {
+            const urlObj = new URL(checkUrl);
+            const indexUrl = `${urlObj.origin}${urlObj.pathname}/index.html`;
+            const indexResponse = await staticCache.match(indexUrl);
+            pageCached = !!indexResponse;
+        }
+    } catch {
+        pageCached = false;
+    }
+
+    // Count cached static assets
+    const staticKeys = await staticCache.keys();
+    const assetsCached = staticKeys.length > 0;
+
+    // Check bundle status
+    const bundleStatus = await getBundleStatus();
+    const bundleReady = bundleStatus.status === 'complete';
+
+    // Count problems cache
+    const problemsKeys = await problemsCache.keys();
+
+    // Total cached items
+    const cachedItemsCount = staticKeys.length + problemsKeys.length;
+
+    return {
+        canReload: pageCached && assetsCached,
+        pageCached,
+        assetsCached,
+        bundleReady,
+        cachedItemsCount,
+    };
+}
+
+/**
+ * Get detailed offline capability status
+ * @returns Detailed offline capability information
+ */
+async function getOfflineCapabilityStatus(): Promise<{
+    isOffline: boolean;
+    canFunctionOffline: boolean;
+    cacheStatus: {
+        staticAssets: number;
+        problems: number;
+        apiResponses: number;
+        bundleFiles: number;
+    };
+    lastBundleDownload?: number;
+    bundleVersion?: string;
+}> {
+    // Get all cache stats
+    const staticCache = await caches.open(`${CACHE_NAMES.STATIC}-${CACHE_VERSION}`);
+    const problemsCache = await caches.open(`${CACHE_NAMES.PROBLEMS}-${CACHE_VERSION}`);
+    const apiCache = await caches.open(`${CACHE_NAMES.API}-${CACHE_VERSION}`);
+
+    const staticKeys = await staticCache.keys();
+    const problemsKeys = await problemsCache.keys();
+    const apiKeys = await apiCache.keys();
+
+    // Get bundle status
+    const bundleStatus = await getBundleStatus();
+
+    // Check if we have essential assets cached
+    const hasStaticAssets = staticKeys.length > 0;
+
+    // Determine if app can function offline
+    const canFunctionOffline = hasStaticAssets;
+
+    // Build result object with optional properties only if they have values
+    const result: {
+        isOffline: boolean;
+        canFunctionOffline: boolean;
+        cacheStatus: {
+            staticAssets: number;
+            problems: number;
+            apiResponses: number;
+            bundleFiles: number;
+        };
+        lastBundleDownload?: number;
+        bundleVersion?: string;
+    } = {
+        isOffline: !navigator.onLine,
+        canFunctionOffline,
+        cacheStatus: {
+            staticAssets: staticKeys.length,
+            problems: problemsKeys.length,
+            apiResponses: apiKeys.length,
+            bundleFiles: bundleStatus.status === 'complete' ? bundleStatus.totalFiles : 0,
+        },
+    };
+
+    // Only add optional properties if they have defined values
+    if (bundleStatus.downloadedAt !== undefined) {
+        result.lastBundleDownload = bundleStatus.downloadedAt;
+    }
+    if (bundleStatus.bundleVersion !== undefined) {
+        result.bundleVersion = bundleStatus.bundleVersion;
+    }
+
+    return result;
+}
 
 /**
  * Validates and extracts message data from an event
@@ -539,6 +856,24 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
                 (async () => {
                     const status = await getBundleStatus();
                     sendReply(event, { type: 'BUNDLE_STATUS', status });
+                })()
+            );
+            break;
+
+        case 'CHECK_OFFLINE_RELOAD':
+            event.waitUntil(
+                (async () => {
+                    const status = await checkOfflineReloadStatus(messageData.url);
+                    sendReply(event, { type: 'OFFLINE_RELOAD_STATUS', ...status });
+                })()
+            );
+            break;
+
+        case 'GET_OFFLINE_STATUS':
+            event.waitUntil(
+                (async () => {
+                    const status = await getOfflineCapabilityStatus();
+                    sendReply(event, { type: 'OFFLINE_CAPABILITY', ...status });
                 })()
             );
             break;

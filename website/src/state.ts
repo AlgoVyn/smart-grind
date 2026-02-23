@@ -105,6 +105,7 @@ export const state = {
     // UI state
     ui: {
         activeTopicId: 'all',
+        activeAlgorithmCategoryId: null as string | null,
         currentFilter: 'all',
         searchQuery: '',
         preferredAI: localStorage.getItem('preferred-ai') || null,

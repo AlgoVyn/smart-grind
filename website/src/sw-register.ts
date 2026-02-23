@@ -419,6 +419,14 @@ function handleSWMessage(event: MessageEvent): void {
             emit('authRequired', data);
             break;
 
+        case 'OFFLINE_RELOAD_STATUS':
+            emit('offlineReloadStatus', event.data);
+            break;
+
+        case 'OFFLINE_CAPABILITY':
+            emit('offlineCapability', event.data);
+            break;
+
         default:
         // Unknown message type
     }
@@ -855,4 +863,155 @@ function cacheDynamicAssets(registration: ServiceWorkerRegistration): void {
     } catch {
         // Cache dynamic assets failed, continue
     }
+}
+
+/**
+ * Check if the page can be reloaded while offline
+ * @param url - Optional URL to check, defaults to current page
+ * @returns Status object with reload capability info
+ */
+export async function checkOfflineReload(url?: string): Promise<{
+    canReload: boolean;
+    pageCached: boolean;
+    assetsCached: boolean;
+    bundleReady: boolean;
+    cachedItemsCount: number;
+}> {
+    const controller = navigator.serviceWorker.controller;
+    if (!controller) {
+        return {
+            canReload: false,
+            pageCached: false,
+            assetsCached: false,
+            bundleReady: false,
+            cachedItemsCount: 0,
+        };
+    }
+
+    return new Promise((resolve) => {
+        const channel = new MessageChannel();
+
+        channel.port1.onmessage = (event) => {
+            if (event.data.type === 'OFFLINE_RELOAD_STATUS') {
+                resolve({
+                    canReload: event.data.canReload,
+                    pageCached: event.data.pageCached,
+                    assetsCached: event.data.assetsCached,
+                    bundleReady: event.data.bundleReady,
+                    cachedItemsCount: event.data.cachedItemsCount,
+                });
+            }
+        };
+
+        controller.postMessage({ type: 'CHECK_OFFLINE_RELOAD', url }, [channel.port2]);
+
+        // Timeout after 5 seconds
+        setTimeout(() => {
+            resolve({
+                canReload: false,
+                pageCached: false,
+                assetsCached: false,
+                bundleReady: false,
+                cachedItemsCount: 0,
+            });
+        }, 5000);
+    });
+}
+
+/**
+ * Get detailed offline capability status
+ * @returns Detailed offline capability information
+ */
+export async function getOfflineStatus(): Promise<{
+    isOffline: boolean;
+    canFunctionOffline: boolean;
+    cacheStatus: {
+        staticAssets: number;
+        problems: number;
+        apiResponses: number;
+        bundleFiles: number;
+    };
+    lastBundleDownload?: number;
+    bundleVersion?: string;
+}> {
+    const controller = navigator.serviceWorker.controller;
+    if (!controller) {
+        return {
+            isOffline: !navigator.onLine,
+            canFunctionOffline: false,
+            cacheStatus: {
+                staticAssets: 0,
+                problems: 0,
+                apiResponses: 0,
+                bundleFiles: 0,
+            },
+        };
+    }
+
+    return new Promise((resolve) => {
+        const channel = new MessageChannel();
+
+        channel.port1.onmessage = (event) => {
+            if (event.data.type === 'OFFLINE_CAPABILITY') {
+                resolve({
+                    isOffline: event.data.isOffline,
+                    canFunctionOffline: event.data.canFunctionOffline,
+                    cacheStatus: event.data.cacheStatus,
+                    lastBundleDownload: event.data.lastBundleDownload,
+                    bundleVersion: event.data.bundleVersion,
+                });
+            }
+        };
+
+        controller.postMessage({ type: 'GET_OFFLINE_STATUS' }, [channel.port2]);
+
+        // Timeout after 5 seconds
+        setTimeout(() => {
+            resolve({
+                isOffline: !navigator.onLine,
+                canFunctionOffline: false,
+                cacheStatus: {
+                    staticAssets: 0,
+                    problems: 0,
+                    apiResponses: 0,
+                    bundleFiles: 0,
+                },
+            });
+        }, 5000);
+    });
+}
+
+/**
+ * Setup offline reload handling - call this to enable offline page reload support
+ * This should be called after service worker registration
+ */
+export function setupOfflineReloadHandling(): () => void {
+    const handleOffline = () => {
+        // Show a notification that the app is offline but can still function
+        console.log('[SW-Register] App is offline. Cached content is available.');
+    };
+
+    const handleOnline = () => {
+        console.log('[SW-Register] App is back online.');
+    };
+
+    const handleBeforeUnload = async () => {
+        // Cache the current page before unload to ensure it's available offline
+        const controller = navigator.serviceWorker.controller;
+        if (controller && window.location.pathname.startsWith('/smartgrind/')) {
+            // The service worker will cache the page on navigation requests
+            // This is handled automatically by handleNavigationRequest
+        }
+    };
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Return cleanup function
+    return () => {
+        window.removeEventListener('offline', handleOffline);
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
 }

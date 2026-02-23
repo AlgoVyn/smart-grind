@@ -80,6 +80,10 @@ describe('SmartGrind Renderers', () => {
         state.ui = {
             activeTopicId: 'all',
             currentFilter: 'all',
+            activeAlgorithmCategoryId: null,
+            searchQuery: '',
+            preferredAI: null,
+            reviewDateFilter: null,
         };
         state.elements = {
             topicList: { ...mockElement },
@@ -481,16 +485,16 @@ describe('SmartGrind Renderers', () => {
 
             renderers.renderSidebar();
 
-            // Verify calls: allBtn to fragment, topic btn to fragment, fragment to topicList = 3 calls
-            expect(mockAppendChild).toHaveBeenCalledTimes(3);
-            // First call should be to fragment with All Problems button
-            const allBtnCall = mockAppendChild.mock.calls[0][0];
-            expect(allBtnCall.className).toContain('sidebar-link');
-            // Second call should be to fragment with topic button
-            const topicBtnCall = mockAppendChild.mock.calls[1][0];
-            expect(topicBtnCall.className).toContain('sidebar-link');
-            // Third call should be to topicList with fragment
-            expect(mockAppendChild.mock.calls[2][0]).not.toHaveProperty('className');
+            // Verify that topicList.innerHTML was cleared and fragment was appended
+            // The sidebar now renders both Algorithms and Patterns sections
+            // So we verify the last call is the fragment being appended to topicList
+            expect(mockAppendChild).toHaveBeenCalled();
+            
+            // Find the fragment append call (it's the one without a className property)
+            const fragmentCall = mockAppendChild.mock.calls.find(
+                (call) => !call[0]?.className
+            );
+            expect(fragmentCall).toBeTruthy();
         });
     });
 
@@ -1108,13 +1112,13 @@ describe('SmartGrind Renderers', () => {
             const mockEvent = {
                 target: { closest: jest.fn(() => mockBtn) },
             };
-            const problem = { name: 'Two Sum' };
+            const problem = { id: 'two-sum', name: 'Two Sum' };
 
             utils.askAI = jest.fn();
 
             renderers.handleProblemCardClick(mockEvent, problem);
 
-            expect(utils.askAI).toHaveBeenCalledWith('Two Sum', 'chatgpt');
+            expect(utils.askAI).toHaveBeenCalledWith('Two Sum', 'chatgpt', 'problem');
         });
 
         test('handles ask-aistudio action', async () => {
@@ -1123,13 +1127,13 @@ describe('SmartGrind Renderers', () => {
             const mockEvent = {
                 target: { closest: jest.fn(() => mockBtn) },
             };
-            const problem = { name: 'Two Sum' };
+            const problem = { id: 'two-sum', name: 'Two Sum' };
 
             utils.askAI = jest.fn();
 
             renderers.handleProblemCardClick(mockEvent, problem);
 
-            expect(utils.askAI).toHaveBeenCalledWith('Two Sum', 'aistudio');
+            expect(utils.askAI).toHaveBeenCalledWith('Two Sum', 'aistudio', 'problem');
         });
 
         test('handles ask-grok action', async () => {
@@ -1138,13 +1142,29 @@ describe('SmartGrind Renderers', () => {
             const mockEvent = {
                 target: { closest: jest.fn(() => mockBtn) },
             };
-            const problem = { name: 'Two Sum' };
+            const problem = { id: 'two-sum', name: 'Two Sum' };
 
             utils.askAI = jest.fn();
 
             renderers.handleProblemCardClick(mockEvent, problem);
 
-            expect(utils.askAI).toHaveBeenCalledWith('Two Sum', 'grok');
+            expect(utils.askAI).toHaveBeenCalledWith('Two Sum', 'grok', 'problem');
+        });
+
+        test('handles ask-chatgpt action for algorithm', async () => {
+            const mockBtn = createMockElement();
+            mockBtn.dataset = { action: 'ask-chatgpt' };
+            const mockEvent = {
+                target: { closest: jest.fn(() => mockBtn) },
+            };
+            // Use an algorithm ID that exists in algorithmsData
+            const problem = { id: 'two-pointers', name: 'Two Pointers' };
+
+            utils.askAI = jest.fn();
+
+            renderers.handleProblemCardClick(mockEvent, problem);
+
+            expect(utils.askAI).toHaveBeenCalledWith('Two Pointers', 'chatgpt', 'algorithm');
         });
 
         test('handles solution action', async () => {

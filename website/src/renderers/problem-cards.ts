@@ -5,6 +5,7 @@ import { Problem } from '../types';
 import { htmlGenerators } from './html-generators';
 import { api } from '../api';
 import { utils } from '../utils';
+import { data } from '../data';
 // ui import removed to break cycle
 import { state } from '../state';
 
@@ -268,8 +269,12 @@ export const problemCardRenderers = {
     // Helper to handle AI assistant actions
     _handleAIActions: (p: Problem, action: string): void => {
         const provider = (action.split('-')[1] || 'chatgpt') as 'chatgpt' | 'aistudio' | 'grok';
-        const problemName = p.name || 'Unknown Problem';
-        utils.askAI(problemName, provider);
+        const name = p.name || 'Unknown Problem';
+        // Check if this is an algorithm by looking up in algorithms data
+        const isAlgorithm = data.algorithmsData.some((cat) =>
+            cat.algorithms.some((algo) => algo.id === p.id)
+        );
+        utils.askAI(name, provider, isAlgorithm ? 'algorithm' : 'problem');
     },
 
     // Helper to handle solution actions

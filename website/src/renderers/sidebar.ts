@@ -5,6 +5,7 @@ import { Topic } from '../types';
 import { state } from '../state';
 import { data } from '../data';
 import { utils } from '../utils';
+import { AlgorithmCategory } from '../data/algorithms-data';
 
 export const sidebarRenderers = {
     // Render sidebar navigation (consolidated click handlers)
@@ -17,28 +18,116 @@ export const sidebarRenderers = {
             // Helper for topic navigation
             const navigateToTopic = async (topicId: string) => {
                 sidebarRenderers.setActiveTopic(topicId);
+                sidebarRenderers.setActiveAlgorithmCategory(null);
                 utils.updateUrlParameter('category', topicId === 'all' ? null : topicId);
+                utils.updateUrlParameter('algorithms', null);
                 const { renderers } = await import('../renderers');
                 await renderers.renderMainView(topicId);
                 utils.scrollToTop();
             };
 
-            // "All Problems" Link
-            const allBtn = sidebarRenderers.createTopicButton('all', 'All Problems');
+            // Helper for algorithm category navigation
+            const navigateToAlgorithmCategory = async (categoryId: string) => {
+                sidebarRenderers.setActiveTopic(null);
+                sidebarRenderers.setActiveAlgorithmCategory(categoryId);
+                utils.updateUrlParameter('category', null);
+                utils.updateUrlParameter('algorithms', categoryId);
+                const { renderers } = await import('../renderers');
+                await renderers.renderAlgorithmsView(categoryId);
+                utils.scrollToTop();
+            };
+
+            // ===========================================
+            // ALGORITHMS SECTION (collapsible)
+            // ===========================================
+            const algorithmsSection = sidebarRenderers.createCollapsibleSection(
+                'algorithms-section',
+                'Algorithms',
+                data.TOTAL_UNIQUE_ALGORITHMS,
+                true // expanded by default
+            );
+            fragment.appendChild(algorithmsSection.container);
+
+            // "All Algorithms" Link
+            const allAlgorithmsBtn = sidebarRenderers.createAlgorithmAllButton();
+            allAlgorithmsBtn.onclick = () => navigateToAlgorithmCategory('all');
+            algorithmsSection.content.appendChild(allAlgorithmsBtn);
+
+            // Algorithm category buttons
+            data.algorithmsData.forEach((category: AlgorithmCategory) => {
+                const btn = sidebarRenderers.createAlgorithmCategoryButton(category);
+                btn.onclick = () => navigateToAlgorithmCategory(category.id);
+                algorithmsSection.content.appendChild(btn);
+            });
+
+            // ===========================================
+            // PATTERNS SECTION (collapsible)
+            // ===========================================
+            const patternsSection = sidebarRenderers.createCollapsibleSection(
+                'patterns-section',
+                'Patterns',
+                data.TOTAL_UNIQUE_PROBLEMS,
+                true // expanded by default
+            );
+            fragment.appendChild(patternsSection.container);
+
+            // "All Patterns" Link
+            const allBtn = sidebarRenderers.createTopicButton('all', 'All Patterns');
             allBtn.onclick = () => navigateToTopic('all');
-            fragment.appendChild(allBtn);
+            patternsSection.content.appendChild(allBtn);
 
             // Topic buttons
             data.topicsData.forEach((topic: Topic) => {
                 const btn = sidebarRenderers.createTopicButton(topic.id, topic.title);
                 btn.onclick = () => navigateToTopic(topic.id);
-                fragment.appendChild(btn);
+                patternsSection.content.appendChild(btn);
             });
 
             // Batch append all at once (single reflow)
             topicList.innerHTML = '';
             topicList.appendChild(fragment);
         }
+    },
+
+    // Create a collapsible section with header and content
+    createCollapsibleSection: (id: string, title: string, count: number, expanded: boolean) => {
+        const container = document.createElement('div');
+        container.className = 'sidebar-collapsible-section';
+        container.id = id;
+
+        // Create header
+        const header = document.createElement('button');
+        header.type = 'button';
+        header.className =
+            'sidebar-section-header w-full flex items-center justify-between cursor-pointer';
+        header.innerHTML = `
+            <div class="flex items-center gap-2">
+                <svg class="sidebar-chevron w-4 h-4 text-theme-muted transition-transform duration-200 ${expanded ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="sidebar-section-title">${title}</span>
+            </div>
+            <span class="sidebar-section-count">${count}</span>
+        `;
+
+        // Create content container
+        const content = document.createElement('div');
+        content.className = `sidebar-section-content ${expanded ? '' : 'hidden'}`;
+
+        // Toggle functionality
+        header.onclick = () => {
+            const isExpanded = !content.classList.contains('hidden');
+            content.classList.toggle('hidden');
+            const chevron = header.querySelector('.sidebar-chevron');
+            if (chevron) {
+                chevron.classList.toggle('rotate-90', !isExpanded);
+            }
+        };
+
+        container.appendChild(header);
+        container.appendChild(content);
+
+        return { container, content };
     },
 
     // Create a topic button for sidebar
@@ -65,13 +154,99 @@ export const sidebarRenderers = {
         return btn;
     },
 
+    // Create an algorithm category button (simple button, not collapsible)
+    createAlgorithmCategoryButton: (category: AlgorithmCategory) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isActive = state.ui.activeAlgorithmCategoryId === category.id;
+        btn.className = `sidebar-algorithm-category ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base hover:text-theme-bold hover:bg-dark-800 transition-colors flex justify-between items-center group cursor-pointer`;
+        btn.dataset['categoryId'] = category.id;
+
+        // Calculate progress for this category
+        let solved = 0;
+        category.algorithms.forEach((algo) => {
+            const problem = state.problems.get(algo.id);
+            if (problem && problem.status === 'solved') {
+                solved++;
+            }
+        });
+        const pct =
+            category.algorithms.length > 0
+                ? Math.round((solved / category.algorithms.length) * 100)
+                : 0;
+
+        btn.innerHTML = `
+            <span class="truncate mr-2">${category.title}</span>
+            <div class="flex items-center gap-3 shrink-0">
+                <span class="text-[10px] font-mono text-theme-muted bg-dark-800 group-hover:bg-dark-900 px-2 py-0.5 rounded border border-transparent group-hover:border-theme transition-all">${category.algorithms.length}</span>
+                <span class="text-[10px] ${pct === 100 ? 'text-green-400' : 'text-theme-muted group-hover:text-theme-base'} font-mono min-w-[24px] text-right transition-colors">${pct}%</span>
+            </div>
+        `;
+
+        return btn;
+    },
+
+    // Create "All Algorithms" button for sidebar
+    createAlgorithmAllButton: () => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isActive = state.ui.activeAlgorithmCategoryId === 'all';
+        btn.className = `sidebar-algorithm-category ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base hover:text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
+        btn.dataset['categoryId'] = 'all';
+
+        // Calculate progress for all algorithms
+        let totalAlgorithms = 0;
+        let solvedAlgorithms = 0;
+        data.algorithmsData.forEach((category: AlgorithmCategory) => {
+            category.algorithms.forEach((algo) => {
+                totalAlgorithms++;
+                const problem = state.problems.get(algo.id);
+                if (problem && problem.status === 'solved') {
+                    solvedAlgorithms++;
+                }
+            });
+        });
+        const pct =
+            totalAlgorithms > 0 ? Math.round((solvedAlgorithms / totalAlgorithms) * 100) : 0;
+
+        btn.innerHTML = `
+            <span class="truncate mr-2">All Algorithms</span>
+            <div class="flex items-center gap-3 shrink-0">
+                <span class="text-[10px] font-mono text-theme-muted bg-dark-800 group-hover:bg-dark-900 px-2 py-0.5 rounded border border-transparent group-hover:border-theme transition-all">${totalAlgorithms}</span>
+                <span class="text-[10px] ${pct === 100 ? 'text-green-400' : 'text-theme-muted group-hover:text-theme-base'} font-mono min-w-[24px] text-right transition-colors">${pct}%</span>
+            </div>
+        `;
+
+        return btn;
+    },
+
     // Set active topic in sidebar
-    setActiveTopic: (topicId: string) => {
+    setActiveTopic: (topicId: string | null) => {
         document.querySelectorAll('.sidebar-link').forEach((l) => l.classList.remove('active'));
-        const activeBtn =
-            document.querySelector(`[data-topic-id="${topicId}"]`) ||
-            document.querySelector('.sidebar-link:first-child'); // All problems
-        if (activeBtn) activeBtn.classList.add('active');
-        state.ui.activeTopicId = topicId;
+        if (topicId) {
+            const activeBtn =
+                document.querySelector(`[data-topic-id="${topicId}"]`) ||
+                document.querySelector('.sidebar-link:first-child'); // All patterns
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+        state.ui.activeTopicId = topicId || 'all';
+    },
+
+    // Set active algorithm category in sidebar
+    setActiveAlgorithmCategory: (categoryId: string | null) => {
+        document
+            .querySelectorAll('.sidebar-algorithm-category')
+            .forEach((l) => l.classList.remove('active'));
+        if (categoryId) {
+            const activeBtn = document.querySelector(
+                `[data-category-id="${categoryId}"].sidebar-algorithm-category`
+            );
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+        state.ui.activeAlgorithmCategoryId = categoryId;
+        // Clear active topic when viewing algorithms
+        if (categoryId) {
+            state.ui.activeTopicId = '';
+        }
     },
 };

@@ -6,6 +6,7 @@ import { state } from '../state';
 import { data } from '../data';
 import { utils } from '../utils';
 import { renderers } from '../renderers';
+import { AlgorithmCategory } from '../data/algorithms-data';
 
 export const statsRenderers = {
     // Helper to update main dashboard statistics
@@ -61,9 +62,66 @@ export const statsRenderers = {
         }
     },
 
+    // Get stats for algorithm category
+    _getAlgorithmCategoryStats: (categoryId: string) => {
+        let total = 0;
+        let solved = 0;
+        let due = 0;
+        const today = utils.getToday();
+
+        if (categoryId === 'all') {
+            // All algorithms
+            data.algorithmsData.forEach((category: AlgorithmCategory) => {
+                category.algorithms.forEach((algo) => {
+                    total++;
+                    const problem = state.problems.get(algo.id);
+                    if (problem && problem.status === 'solved') {
+                        solved++;
+                        if (problem.nextReviewDate && problem.nextReviewDate <= today) {
+                            due++;
+                        }
+                    }
+                });
+            });
+        } else {
+            // Specific category
+            const category = data.algorithmsData.find(
+                (c: AlgorithmCategory) => c.id === categoryId
+            );
+            if (category) {
+                category.algorithms.forEach((algo) => {
+                    total++;
+                    const problem = state.problems.get(algo.id);
+                    if (problem && problem.status === 'solved') {
+                        solved++;
+                        if (problem.nextReviewDate && problem.nextReviewDate <= today) {
+                            due++;
+                        }
+                    }
+                });
+            }
+        }
+
+        return { total, solved, due };
+    },
+
     // Update statistics display
     updateStats: () => {
-        const stats = utils.getUniqueProblemsForTopic(state.ui.activeTopicId);
+        // Check if we're viewing algorithms or patterns
+        const isAlgorithmView =
+            state.ui.activeAlgorithmCategoryId !== null &&
+            state.ui.activeAlgorithmCategoryId !== '';
+
+        let stats: { total: number; solved: number; due: number };
+
+        if (isAlgorithmView) {
+            stats = statsRenderers._getAlgorithmCategoryStats(
+                state.ui.activeAlgorithmCategoryId || 'all'
+            );
+        } else {
+            stats = utils.getUniqueProblemsForTopic(state.ui.activeTopicId);
+        }
+
         const { due } = stats;
 
         renderers._updateMainStats(stats);
@@ -98,6 +156,32 @@ export const statsRenderers = {
                             ? 'text-[10px] text-green-400 font-mono min-w-[24px] text-right transition-colors'
                             : 'text-[10px] text-theme-muted group-hover:text-theme-base font-mono min-w-[24px] text-right transition-colors';
                 }
+            }
+        });
+
+        // Update algorithm category buttons
+        statsRenderers._updateAlgorithmSidebarStats();
+    },
+
+    // Update algorithm category sidebar stats
+    _updateAlgorithmSidebarStats: () => {
+        const algoBtns = document.querySelectorAll('.sidebar-algorithm-category[data-category-id]');
+        algoBtns.forEach((btn) => {
+            const htmlBtn = btn as HTMLElement;
+            const categoryId = htmlBtn.dataset['categoryId'];
+            if (!categoryId) return;
+
+            const stats = statsRenderers._getAlgorithmCategoryStats(categoryId);
+            const pct = stats.total > 0 ? Math.round((stats.solved / stats.total) * 100) : 0;
+
+            // Find the percentage span (last span in the button)
+            const pctSpan = htmlBtn.querySelector('span:last-child');
+            if (pctSpan) {
+                pctSpan.textContent = `${pct}%`;
+                pctSpan.className =
+                    pct === 100
+                        ? 'text-[10px] text-green-400 font-mono min-w-[24px] text-right transition-colors'
+                        : 'text-[10px] text-theme-muted group-hover:text-theme-base font-mono min-w-[24px] text-right transition-colors';
             }
         });
     },

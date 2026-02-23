@@ -19,6 +19,8 @@ export const ALLOWED_SW_MESSAGE_TYPES = [
     'NETWORK_RESTORED',
     'DOWNLOAD_BUNDLE',
     'GET_BUNDLE_STATUS',
+    'CHECK_OFFLINE_RELOAD',
+    'GET_OFFLINE_STATUS',
 ] as const;
 
 /**
@@ -144,6 +146,22 @@ export interface GetBundleStatusMessage extends SWBaseMessage {
 }
 
 /**
+ * CHECK_OFFLINE_RELOAD message - checks if the page can be reloaded while offline
+ */
+export interface CheckOfflineReloadMessage extends SWBaseMessage {
+    type: 'CHECK_OFFLINE_RELOAD';
+    /** The URL to check for offline availability */
+    url?: string;
+}
+
+/**
+ * GET_OFFLINE_STATUS message - requests current offline status and cache availability
+ */
+export interface GetOfflineStatusMessage extends SWBaseMessage {
+    type: 'GET_OFFLINE_STATUS';
+}
+
+/**
  * Union type of all valid service worker messages from clients
  */
 export type SWClientMessage =
@@ -158,7 +176,9 @@ export type SWClientMessage =
     | ClientReadyMessage
     | NetworkRestoredMessage
     | DownloadBundleMessage
-    | GetBundleStatusMessage;
+    | GetBundleStatusMessage
+    | CheckOfflineReloadMessage
+    | GetOfflineStatusMessage;
 
 /**
  * Type guard to validate if a message type is allowed
@@ -237,6 +257,8 @@ export const ALLOWED_SW_RESPONSE_TYPES = [
     'BUNDLE_COMPLETE',
     'BUNDLE_ERROR',
     'BUNDLE_STATUS',
+    'OFFLINE_RELOAD_STATUS',
+    'OFFLINE_CAPABILITY',
 ] as const;
 
 /**
@@ -289,6 +311,45 @@ export interface BundleStatusResponse extends SWBaseResponse {
         bundleVersion?: string;
         downloadedAt?: number;
     };
+}
+
+/**
+ * OFFLINE_RELOAD_STATUS response - returns whether page can be reloaded offline
+ */
+export interface OfflineReloadStatusResponse extends SWBaseResponse {
+    type: 'OFFLINE_RELOAD_STATUS';
+    /** Whether the page can be reloaded while offline */
+    canReload: boolean;
+    /** Whether the main page is cached */
+    pageCached: boolean;
+    /** Whether critical assets are cached */
+    assetsCached: boolean;
+    /** Whether the offline bundle is downloaded */
+    bundleReady: boolean;
+    /** Total cached items count */
+    cachedItemsCount: number;
+}
+
+/**
+ * OFFLINE_CAPABILITY response - returns detailed offline capability status
+ */
+export interface OfflineCapabilityResponse extends SWBaseResponse {
+    type: 'OFFLINE_CAPABILITY';
+    /** Whether the app is currently offline */
+    isOffline: boolean;
+    /** Whether the app can function offline */
+    canFunctionOffline: boolean;
+    /** Details about cached resources */
+    cacheStatus: {
+        staticAssets: number;
+        problems: number;
+        apiResponses: number;
+        bundleFiles: number;
+    };
+    /** Last time the bundle was downloaded */
+    lastBundleDownload?: number;
+    /** Bundle version if downloaded */
+    bundleVersion?: string;
 }
 
 /**

@@ -155,17 +155,24 @@ export const utils = {
     // AI helper
 
     /**
-     * Opens an AI assistant with a pre-filled prompt for a coding problem.
+     * Opens an AI assistant with a pre-filled prompt for a coding problem or algorithm.
      * Supports ChatGPT, Google AI Studio, and Grok with mobile app deep linking.
      * Saves the preferred AI provider to localStorage for future use.
-     * @param {string} problemName - The name of the coding problem to ask about
+     * @param {string} name - The name of the coding problem or algorithm to ask about
      * @param {'chatgpt' | 'aistudio' | 'grok'} provider - The AI service provider to use
+     * @param {'problem' | 'algorithm'} type - Whether this is a problem or algorithm
      * @returns {Promise<void>}
      * @example
-     * // Open ChatGPT with pre-filled prompt about Two Sum
-     * await utils.askAI('Two Sum', 'chatgpt');
+     * // Open ChatGPT with pre-filled prompt about Two Sum problem
+     * await utils.askAI('Two Sum', 'chatgpt', 'problem');
+     * // Open ChatGPT with pre-filled prompt about Two Pointers algorithm
+     * await utils.askAI('Two Pointers', 'chatgpt', 'algorithm');
      */
-    askAI: async (problemName: string, provider: 'chatgpt' | 'aistudio' | 'grok') => {
+    askAI: async (
+        name: string,
+        provider: 'chatgpt' | 'aistudio' | 'grok',
+        type: 'problem' | 'algorithm' = 'problem'
+    ) => {
         const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
             navigator.userAgent
         );
@@ -189,7 +196,11 @@ export const utils = {
             },
         };
 
-        const aiPrompt = `Explain the solution for LeetCode problem: "${problemName}". Provide the detailed problem statement, examples, intuition, multiple approaches with code, and time/space complexity analysis. Include related problems, video tutorial links and followup questions with brief answers without code.`;
+        // Different prompts for problems vs algorithms
+        const aiPrompt =
+            type === 'algorithm'
+                ? `Explain the "${name}" algorithm/technique. Provide a detailed explanation of the core concept, when to use it, step-by-step approach, template code in multiple languages, time/space complexity analysis, common variations, and 3-5 practice problems that use this technique with brief explanations of how to apply it. Include video tutorial links if available.`
+                : `Explain the solution for LeetCode problem: "${name}". Provide the detailed problem statement, examples, intuition, multiple approaches with code, and time/space complexity analysis. Include related problems, video tutorial links and followup questions with brief answers without code.`;
         const encodedPrompt = encodeURIComponent(aiPrompt);
 
         localStorage.setItem('preferred-ai', provider);

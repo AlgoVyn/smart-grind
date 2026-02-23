@@ -227,6 +227,9 @@ export class OfflineManager {
         } else if (pathParts.includes('solutions')) {
             category = 'solutions';
             pattern = pathParts[pathParts.length - 1]?.replace('.md', '') || 'unknown';
+        } else if (pathParts.includes('algorithms')) {
+            category = 'algorithms';
+            pattern = pathParts[pathParts.length - 1]?.replace('.md', '') || 'unknown';
         }
 
         // Extract title from response or URL
@@ -308,6 +311,8 @@ export class OfflineManager {
             return `${base}/patterns/${metadata.id}.md`;
         } else if (metadata.category === 'solutions') {
             return `${base}/solutions/${metadata.id}.md`;
+        } else if (metadata.category === 'algorithms') {
+            return `${base}/algorithms/${metadata.id}.md`;
         }
         return `${base}/${metadata.id}.md`;
     }

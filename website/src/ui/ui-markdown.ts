@@ -2,6 +2,7 @@
 // Includes pattern to markdown file mapping functionality
 
 import { utils } from '../utils';
+import { data } from '../data';
 import DOMPurify from 'dompurify';
 
 // --- PATTERN TO MARKDOWN FILE MAPPING SYSTEM ---
@@ -495,8 +496,19 @@ const _loadSolution = (
 
 // Open solution modal
 export const openSolutionModal = (problemId: string) => {
-    const solutionFile = `${utils.getBaseUrl()}solutions/${problemId}.md`;
-    _loadSolution(solutionFile, 'Loading solution...', 'solution');
+    // Check if this is an algorithm by looking up in algorithms data
+    const isAlgorithm = data.algorithmsData.some((cat) =>
+        cat.algorithms.some((algo) => algo.id === problemId)
+    );
+    const solutionFile = isAlgorithm
+        ? `${utils.getBaseUrl()}algorithms/${problemId}.md`
+        : `${utils.getBaseUrl()}solutions/${problemId}.md`;
+    _loadSolution(
+        solutionFile,
+        isAlgorithm ? 'Loading algorithm...' : 'Loading solution...',
+        isAlgorithm ? 'algorithm' : 'solution',
+        isAlgorithm ? '<p>This algorithm may not have a dedicated file yet.</p>' : ''
+    );
 };
 
 // Open pattern solution modal

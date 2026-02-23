@@ -249,13 +249,18 @@ export const htmlGenerators = {
     _generateActionButtons: (p: Problem) => {
         const actionButton = htmlGenerators._generateActionButton(p);
         const isCustomProblem = htmlGenerators._isCustomProblem(p.id);
+        // Show solution button for non-custom problems OR for algorithms (check if ID exists in algorithms data)
+        const isAlgorithm = data.algorithmsData.some((cat) =>
+            cat.algorithms.some((algo) => algo.id === p.id)
+        );
+        const showSolutionButton = !isCustomProblem || isAlgorithm;
 
         return `
             <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes">
                 ${ICONS.note}
             </button>
             ${
-                !isCustomProblem
+                showSolutionButton
                     ? `
             <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center" data-action="solution" title="View Solution">
                 <svg fill="currentColor" class="w-4 h-4" viewBox="0 0 24 24">

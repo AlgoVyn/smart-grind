@@ -22,6 +22,7 @@ const PUBLIC_DIR = join(process.cwd(), 'public');
 const DIST_DIR = join(process.cwd(), 'dist');
 const PATTERNS_DIR = join(PUBLIC_DIR, 'patterns');
 const SOLUTIONS_DIR = join(PUBLIC_DIR, 'solutions');
+const ALGORITHMS_DIR = join(PUBLIC_DIR, 'algorithms');
 // Output to dist directory for deployment
 const OUTPUT_FILE = join(DIST_DIR, 'offline-bundle.tar.gz');
 const MANIFEST_FILE = join(DIST_DIR, 'offline-manifest.json');
@@ -119,7 +120,7 @@ function collectMdFiles(dir, baseDir) {
 /**
  * Create the tar archive as a buffer
  */
-async function createTarArchive(patternFiles, solutionFiles) {
+async function createTarArchive(patternFiles, solutionFiles, algorithmFiles) {
     const chunks = [];
     
     // Use timestamp for version - ensures unique version on every build
@@ -131,7 +132,8 @@ async function createTarArchive(patternFiles, solutionFiles) {
         createdAt: Date.now(),
         patterns: patternFiles.map(f => f.relativePath),
         solutions: solutionFiles.map(f => f.relativePath),
-        totalFiles: patternFiles.length + solutionFiles.length,
+        algorithms: algorithmFiles.map(f => f.relativePath),
+        totalFiles: patternFiles.length + solutionFiles.length + algorithmFiles.length,
     };
     
     const manifestContent = JSON.stringify(manifest, null, 2);
@@ -156,6 +158,16 @@ async function createTarArchive(patternFiles, solutionFiles) {
     for (const file of solutionFiles) {
         const content = readFileSync(file.path);
         const tarPath = `solutions/${file.relativePath}`;
+        
+        chunks.push(createTarHeader(tarPath, content.length));
+        chunks.push(content);
+        chunks.push(createPadding(content.length));
+    }
+    
+    // Add algorithm files
+    for (const file of algorithmFiles) {
+        const content = readFileSync(file.path);
+        const tarPath = `algorithms/${file.relativePath}`;
         
         chunks.push(createTarHeader(tarPath, content.length));
         chunks.push(content);
@@ -210,14 +222,18 @@ async function main() {
     const solutionFiles = collectMdFiles(SOLUTIONS_DIR, SOLUTIONS_DIR);
     console.log(`   Found ${solutionFiles.length} solution files`);
     
-    const totalFiles = patternFiles.length + solutionFiles.length;
-    const totalSize = [...patternFiles, ...solutionFiles].reduce((sum, f) => sum + f.size, 0);
+    console.log('📁 Collecting algorithm files...');
+    const algorithmFiles = collectMdFiles(ALGORITHMS_DIR, ALGORITHMS_DIR);
+    console.log(`   Found ${algorithmFiles.length} algorithm files`);
+    
+    const totalFiles = patternFiles.length + solutionFiles.length + algorithmFiles.length;
+    const totalSize = [...patternFiles, ...solutionFiles, ...algorithmFiles].reduce((sum, f) => sum + f.size, 0);
     
     console.log(`\n📊 Total: ${totalFiles} files, ${formatBytes(totalSize)} uncompressed\n`);
     
     // Create tar archive
     console.log('🗃️  Creating tar archive...');
-    const tarBuffer = await createTarArchive(patternFiles, solutionFiles);
+    const tarBuffer = await createTarArchive(patternFiles, solutionFiles, algorithmFiles);
     console.log(`   Tar size: ${formatBytes(tarBuffer.length)}`);
     
     // Compress with Gzip
@@ -246,6 +262,7 @@ async function main() {
 
         patterns: patternFiles.map(f => `patterns/${f.relativePath}`),
         solutions: solutionFiles.map(f => `solutions/${f.relativePath}`),
+        algorithms: algorithmFiles.map(f => `algorithms/${f.relativePath}`),
         totalFiles,
     };
     writeFileSync(MANIFEST_FILE, JSON.stringify(manifest, null, 2));

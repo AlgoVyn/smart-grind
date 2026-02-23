@@ -1,7 +1,7 @@
 // --- MAIN VIEW RENDERERS MODULE ---
 // Main view rendering functions
 
-import { Topic } from '../types';
+import { Topic, Problem } from '../types';
 import { state } from '../state';
 import { data } from '../data';
 import { utils } from '../utils';
@@ -9,6 +9,8 @@ import { utils } from '../utils';
 import { api } from '../api';
 import { ICONS } from './icons';
 import { htmlGenerators } from './html-generators';
+import { problemCardRenderers } from './problem-cards';
+import { AlgorithmCategory, AlgorithmDef } from '../data/algorithms-data';
 
 export const mainViewRenderers = {
     // Helper to create an action button
@@ -129,6 +131,160 @@ export const mainViewRenderers = {
         if (emptyState) {
             emptyState.classList.toggle('hidden', !shouldShowEmptyState);
         }
+        import('../renderers').then(({ renderers }) => renderers.updateStats());
+    },
+
+    // Set algorithm view title
+    _setAlgorithmViewTitle: (categoryId: string) => {
+        const title =
+            categoryId === 'all'
+                ? 'All Algorithms'
+                : data.algorithmsData.find((c: AlgorithmCategory) => c.id === categoryId)?.title ||
+                  'Algorithms';
+        const currentViewTitle = state.elements['currentViewTitle'];
+        if (currentViewTitle) {
+            currentViewTitle.innerText = title;
+        }
+
+        mainViewRenderers._removeExistingActionContainer();
+    },
+
+    // Convert algorithm definition to Problem object
+    _algorithmToProblem: (algoDef: AlgorithmDef, categoryId: string): Problem => {
+        const existingProblem = state.problems.get(algoDef.id);
+        if (existingProblem) {
+            return existingProblem;
+        }
+        // Create a new Problem object with default values
+        return {
+            id: algoDef.id,
+            name: algoDef.name,
+            url: algoDef.url,
+            status: 'unsolved',
+            topic: categoryId,
+            pattern: 'Algorithms',
+            reviewInterval: 0,
+            nextReviewDate: null,
+            note: '',
+            loading: false,
+            noteVisible: false,
+        };
+    },
+
+    // Render algorithms view for a category (treating algorithms as problems)
+    renderAlgorithmsView: async (categoryId: string) => {
+        state.ui.activeAlgorithmCategoryId = categoryId;
+        const container = state.elements['problemsContainer'];
+        if (container) {
+            container.innerHTML = '';
+        }
+
+        mainViewRenderers._setAlgorithmViewTitle(categoryId);
+
+        // Hide date filter for algorithms view
+        const { ui } = await import('../ui/ui');
+        ui.toggleDateFilterVisibility(false);
+
+        // Hide empty state
+        const emptyState = state.elements['emptyState'];
+        if (emptyState) {
+            emptyState.classList.add('hidden');
+        }
+
+        if (!container) {
+            return;
+        }
+
+        // Get search query
+        const searchQuery =
+            (state.elements['problemSearch'] as HTMLInputElement | null)?.value
+                .toLowerCase()
+                .trim() || '';
+
+        // Create section for algorithms
+        const section = document.createElement('div');
+        section.className = 'space-y-6';
+
+        // Handle "all" category - show all algorithms grouped by category
+        if (categoryId === 'all') {
+            data.algorithmsData.forEach((category: AlgorithmCategory) => {
+                // Filter algorithms by search
+                const filteredAlgorithms = category.algorithms.filter((algoDef: AlgorithmDef) => {
+                    if (searchQuery) {
+                        return algoDef.name.toLowerCase().includes(searchQuery);
+                    }
+                    return true;
+                });
+
+                if (filteredAlgorithms.length === 0) {
+                    return; // Skip empty categories
+                }
+
+                // Create category header
+                const categoryHeader = document.createElement('h3');
+                categoryHeader.className =
+                    'text-xl font-bold text-theme-bold border-b border-theme pb-2';
+                categoryHeader.textContent = category.title;
+                section.appendChild(categoryHeader);
+
+                // Create grid for algorithm cards
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 gap-3';
+
+                // Add algorithm cards
+                filteredAlgorithms.forEach((algoDef: AlgorithmDef) => {
+                    const problem = mainViewRenderers._algorithmToProblem(algoDef, category.id);
+                    if (!state.problems.has(algoDef.id)) {
+                        state.problems.set(algoDef.id, problem);
+                    }
+                    const card = problemCardRenderers.createProblemCard(problem);
+                    grid.appendChild(card);
+                });
+
+                section.appendChild(grid);
+            });
+        } else {
+            // Single category view
+            const category = data.algorithmsData.find(
+                (c: AlgorithmCategory) => c.id === categoryId
+            );
+            if (!category) {
+                return;
+            }
+
+            // Create grid for algorithm cards
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-1 gap-3';
+
+            // Filter and add algorithm cards (treating them as problems)
+            category.algorithms.forEach((algoDef: AlgorithmDef) => {
+                // Apply search filter
+                if (searchQuery) {
+                    const matchesSearch = algoDef.name.toLowerCase().includes(searchQuery);
+                    if (!matchesSearch) {
+                        return; // Skip this algorithm
+                    }
+                }
+
+                // Convert algorithm to Problem and ensure it exists in state
+                const problem = mainViewRenderers._algorithmToProblem(algoDef, categoryId);
+
+                // Initialize in state if not already present
+                if (!state.problems.has(algoDef.id)) {
+                    state.problems.set(algoDef.id, problem);
+                }
+
+                // Use the standard problem card renderer
+                const card = problemCardRenderers.createProblemCard(problem);
+                grid.appendChild(card);
+            });
+
+            section.appendChild(grid);
+        }
+
+        container.appendChild(section);
+
+        // Update stats
         import('../renderers').then(({ renderers }) => renderers.updateStats());
     },
 };
