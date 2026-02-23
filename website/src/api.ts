@@ -314,11 +314,35 @@ export function initOfflineDetection(): () => void {
 
             switch (event.data.type) {
                 case 'SYNC_COMPLETED':
-                    state.setSyncStatus({ isSyncing: false, lastSyncAt: Date.now() });
-                    updateSyncStatus().catch(() => {});
+                    {
+                        const syncData = event.data.data as
+                            | {
+                                  pending?: number;
+                                  synced?: number;
+                                  failed?: number;
+                              }
+                            | undefined;
+                        state.setSyncStatus({
+                            isSyncing: false,
+                            lastSyncAt: Date.now(),
+                            pendingCount: syncData?.pending ?? 0,
+                        });
+                    }
                     break;
                 case 'SYNC_PROGRESS_SYNCED':
-                    updateSyncStatus().catch(() => {});
+                    {
+                        const progressData = event.data.data as
+                            | {
+                                  count?: number;
+                                  pending?: number;
+                              }
+                            | undefined;
+                        if (progressData?.pending !== undefined) {
+                            state.setSyncStatus({
+                                pendingCount: progressData.pending,
+                            });
+                        }
+                    }
                     break;
                 case 'SYNC_CONFLICT_RESOLVED':
                     break;

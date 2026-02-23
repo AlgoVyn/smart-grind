@@ -372,6 +372,7 @@ function handleSWMessage(event: MessageEvent): void {
         case 'COMPLETED':
             state.syncPending = false;
             state.lastSyncAt = Date.now();
+            // The pending count is included in the data - emit it for listeners
             emit('syncCompleted', data);
             break;
 

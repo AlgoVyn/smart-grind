@@ -673,8 +673,10 @@ export class BackgroundSyncManager {
                 }
 
                 // Notify clients of successful sync
+                const currentStats = await this.operationQueue.getStats();
                 await this.notifyClients('PROGRESS_SYNCED', {
                     count: deduplicated.length,
+                    pending: currentStats.pending,
                     timestamp: Date.now(),
                 });
             } else if (response.status === 401 || response.status === 403) {
