@@ -43,7 +43,6 @@ export const sidebarRenderers = {
             const algorithmsSection = sidebarRenderers.createCollapsibleSection(
                 'algorithms-section',
                 'Algorithms',
-                data.TOTAL_UNIQUE_ALGORITHMS,
                 false // collapsed by default
             );
             fragment.appendChild(algorithmsSection.container);
@@ -66,7 +65,6 @@ export const sidebarRenderers = {
             const patternsSection = sidebarRenderers.createCollapsibleSection(
                 'patterns-section',
                 'Patterns',
-                data.TOTAL_UNIQUE_PROBLEMS,
                 true // expanded by default
             );
             fragment.appendChild(patternsSection.container);
@@ -90,7 +88,7 @@ export const sidebarRenderers = {
     },
 
     // Create a collapsible section with header and content
-    createCollapsibleSection: (id: string, title: string, count: number, expanded: boolean) => {
+    createCollapsibleSection: (id: string, title: string, expanded: boolean) => {
         const container = document.createElement('div');
         container.className = 'sidebar-collapsible-section';
         container.id = id;
@@ -107,7 +105,6 @@ export const sidebarRenderers = {
                 </svg>
                 <span class="sidebar-section-title">${title}</span>
             </div>
-            <span class="sidebar-section-count">${count}</span>
         `;
 
         // Create content container
@@ -136,7 +133,7 @@ export const sidebarRenderers = {
         btn.type = 'button';
         const isActive =
             state.ui.activeTopicId === topicId || (!state.ui.activeTopicId && topicId === 'all');
-        btn.className = `sidebar-link ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base hover:text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
+        btn.className = `sidebar-link ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
         btn.dataset['topicId'] = topicId;
 
         // Calculate progress
@@ -146,8 +143,8 @@ export const sidebarRenderers = {
         btn.innerHTML = `
             <span class="truncate mr-2">${title}</span>
             <div class="flex items-center gap-3 shrink-0">
-                <span class="text-[10px] font-mono text-theme-muted bg-dark-800 group-hover:bg-dark-900 px-2 py-0.5 rounded border border-transparent group-hover:border-theme transition-all">${stats.total}</span>
-                <span class="text-[10px] ${pct === 100 ? 'text-green-400' : 'text-theme-muted group-hover:text-theme-base'} font-mono min-w-[24px] text-right transition-colors">${pct}%</span>
+                <span class="text-[10px] font-mono text-theme-muted bg-dark-800 px-2 py-0.5 rounded border border-transparent">${stats.total}</span>
+                <span class="text-[10px] ${pct === 100 ? 'text-green-400' : 'text-theme-muted'} font-mono min-w-[24px] text-right">${pct}%</span>
             </div>
         `;
 
@@ -159,7 +156,7 @@ export const sidebarRenderers = {
         const btn = document.createElement('button');
         btn.type = 'button';
         const isActive = state.ui.activeAlgorithmCategoryId === category.id;
-        btn.className = `sidebar-algorithm-category ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base hover:text-theme-bold hover:bg-dark-800 transition-colors flex justify-between items-center group cursor-pointer`;
+        btn.className = `sidebar-algorithm-category ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base transition-colors flex justify-between items-center group cursor-pointer`;
         btn.dataset['categoryId'] = category.id;
 
         // Calculate progress for this category
@@ -178,8 +175,8 @@ export const sidebarRenderers = {
         btn.innerHTML = `
             <span class="truncate mr-2">${category.title}</span>
             <div class="flex items-center gap-3 shrink-0">
-                <span class="text-[10px] font-mono text-theme-muted bg-dark-800 group-hover:bg-dark-900 px-2 py-0.5 rounded border border-transparent group-hover:border-theme transition-all">${category.algorithms.length}</span>
-                <span class="text-[10px] ${pct === 100 ? 'text-green-400' : 'text-theme-muted group-hover:text-theme-base'} font-mono min-w-[24px] text-right transition-colors">${pct}%</span>
+                <span class="text-[10px] font-mono text-theme-muted bg-dark-800 px-2 py-0.5 rounded border border-transparent">${category.algorithms.length}</span>
+                <span class="text-[10px] ${pct === 100 ? 'text-green-400' : 'text-theme-muted'} font-mono min-w-[24px] text-right">${pct}%</span>
             </div>
         `;
 
@@ -191,7 +188,7 @@ export const sidebarRenderers = {
         const btn = document.createElement('button');
         btn.type = 'button';
         const isActive = state.ui.activeAlgorithmCategoryId === 'all';
-        btn.className = `sidebar-algorithm-category ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base hover:text-theme-bold hover:bg-dark-800 transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
+        btn.className = `sidebar-algorithm-category ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
         btn.dataset['categoryId'] = 'all';
 
         // Calculate progress for all algorithms
@@ -212,8 +209,8 @@ export const sidebarRenderers = {
         btn.innerHTML = `
             <span class="truncate mr-2">All Algorithms</span>
             <div class="flex items-center gap-3 shrink-0">
-                <span class="text-[10px] font-mono text-theme-muted bg-dark-800 group-hover:bg-dark-900 px-2 py-0.5 rounded border border-transparent group-hover:border-theme transition-all">${totalAlgorithms}</span>
-                <span class="text-[10px] ${pct === 100 ? 'text-green-400' : 'text-theme-muted group-hover:text-theme-base'} font-mono min-w-[24px] text-right transition-colors">${pct}%</span>
+                <span class="text-[10px] font-mono text-theme-muted bg-dark-800 px-2 py-0.5 rounded border border-transparent">${totalAlgorithms}</span>
+                <span class="text-[10px] ${pct === 100 ? 'text-green-400' : 'text-theme-muted'} font-mono min-w-[24px] text-right">${pct}%</span>
             </div>
         `;
 
