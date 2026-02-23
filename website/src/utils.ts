@@ -90,11 +90,23 @@ export const utils = {
      * // Update category in URL
      * utils.updateUrlParameter('category', 'arrays');
      * // Result: URL changes to /smartgrind/c/arrays
+     *
+     * // Update algorithms in URL
+     * utils.updateUrlParameter('algorithms', 'arrays-strings');
+     * // Result: URL changes to /smartgrind/a/arrays-strings
      */
     updateUrlParameter: (name: string, value: string | null) => {
         if (name === 'category') {
             if (value && value !== 'all') {
                 const newPath = `/smartgrind/c/${value}`;
+                window.history.pushState({ path: newPath }, '', newPath);
+            } else {
+                const newPath = '/smartgrind';
+                window.history.pushState({ path: newPath }, '', newPath);
+            }
+        } else if (name === 'algorithms') {
+            if (value && value !== 'all') {
+                const newPath = `/smartgrind/a/${value}`;
                 window.history.pushState({ path: newPath }, '', newPath);
             } else {
                 const newPath = '/smartgrind';

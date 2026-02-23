@@ -140,9 +140,13 @@ const checkAuth = async () => {
           ? 'all'
           : null;
 
-    // Extract algorithms parameter from URL
+    // Extract algorithms parameter from URL path (SEO-friendly: /smartgrind/a/{category})
+    const algorithmsParam = path.startsWith('/smartgrind/a/')
+        ? path.split('/smartgrind/a/')[1] || null
+        : null;
+
+    // URL params for auth callback handling
     const urlParams = new URLSearchParams(window.location.search);
-    const algorithmsParam = urlParams.get('algorithms');
 
     // Check URL params for PWA auth callback (new secure flow)
     // Token is NO LONGER in URL - only userId and displayName

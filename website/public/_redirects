@@ -8,7 +8,7 @@
 
 # Service Worker - explicit rule to prevent wildcard catch
 # This ensures sw.js is served as a static file, not redirected to index.html
-/smartgrind/sw.js /smartgrind/sw.js 200!
+/smartgrind/sw.js /smartgrind/sw.js 200
 
 # Directory-level fallbacks
 /smartgrind/solutions /solutions/ 200
