@@ -29,7 +29,7 @@ class StaleWhileRevalidate implements CacheStrategy {
                 const age = Date.now() - parseInt(cachedTime, 10);
                 if (age < this.maxAge) {
                     // Revalidate in background
-                    this.revalidate(request, cache);
+                    this.revalidate(request, cache).catch(() => {});
                     return cached;
                 }
             }
@@ -181,7 +181,7 @@ export class CacheStrategies {
         if (cached) return cached;
 
         const response = await fetch(request);
-        if (response?.ok) await cache.put(request, response.clone());
+        if (response?.ok) await cache.put(request, response.clone()).catch(() => {});
         return response;
     }
 
@@ -195,7 +195,7 @@ export class CacheStrategies {
             const networkResponse = await fetch(request);
             if (networkResponse?.ok) {
                 const cache = await caches.open(fullCacheName);
-                await cache.put(request, networkResponse.clone());
+                await cache.put(request, networkResponse.clone()).catch(() => {});
                 return networkResponse;
             }
             // Non-OK response - try cache fallback
@@ -229,7 +229,7 @@ export class CacheStrategies {
                 .then(async (response) => {
                     if (response?.ok) {
                         const bgCache = await caches.open(fullCacheName);
-                        await bgCache.put(request, response.clone());
+                        await bgCache.put(request, response.clone()).catch(() => {});
                     }
                 })
                 .catch(() => {});
@@ -238,7 +238,7 @@ export class CacheStrategies {
 
         // No cache, fetch from network
         const response = await fetch(request);
-        if (response?.ok) await cache.put(request, response.clone());
+        if (response?.ok) await cache.put(request, response.clone()).catch(() => {});
         return response;
     }
 
@@ -269,7 +269,7 @@ export class CacheStrategies {
             urls.map(async (url) => {
                 try {
                     const response = await fetch(url);
-                    if (response?.ok) await cache.put(url, response.clone());
+                    if (response?.ok) await cache.put(url, response.clone()).catch(() => {});
                 } catch (error) {
                     console.error(`Failed to pre-cache ${url}:`, error);
                 }

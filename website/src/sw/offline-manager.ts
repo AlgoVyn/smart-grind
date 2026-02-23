@@ -58,8 +58,8 @@ export class OfflineManager {
     async preCacheProblemIndex(): Promise<void> {
         try {
             // Fetch the problem data from the main app
-            const response = await fetch('/smartgrind/src/data/problems-data.ts');
-            if (!response.ok) {
+            const response = await fetch('/smartgrind/src/data/problems-data.ts').catch(() => null);
+            if (!response || !response.ok) {
                 return;
             }
 

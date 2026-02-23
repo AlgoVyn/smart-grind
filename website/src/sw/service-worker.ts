@@ -242,7 +242,7 @@ async function handleAPIRequest(request: Request): Promise<Response> {
             // Only cache GET requests (Cache API doesn't support POST/PUT/DELETE)
             if (request.method === 'GET') {
                 const cache = await caches.open(`${CACHE_NAMES.API}-${CACHE_VERSION}`);
-                cache.put(request, networkResponse.clone());
+                cache.put(request, networkResponse.clone()).catch(() => {});
             }
             return networkResponse;
         }
@@ -326,7 +326,9 @@ function serveCachedProblem(request: Request, cachedResponse: Response, cache: C
     if (request.method === 'GET') {
         fetch(request)
             .then((networkResponse) => {
-                if (networkResponse.ok) cache.put(request, networkResponse);
+                if (networkResponse.ok) {
+                    cache.put(request, networkResponse).catch(() => {});
+                }
             })
             .catch(() => {});
     }
@@ -349,7 +351,9 @@ function serveCachedProblem(request: Request, cachedResponse: Response, cache: C
 async function fetchProblemFromNetwork(request: Request, cache: Cache): Promise<Response> {
     try {
         const networkResponse = await fetch(request);
-        if (networkResponse.ok) cache.put(request, networkResponse.clone());
+        if (networkResponse.ok) {
+            cache.put(request, networkResponse.clone()).catch(() => {});
+        }
         return networkResponse;
     } catch {
         return new Response(
@@ -369,7 +373,10 @@ async function handleStaticRequest(request: Request): Promise<Response> {
     // Always try to fetch from network for revalidation
     const networkFetch = fetch(request)
         .then((networkResponse) => {
-            if (networkResponse.ok) cache.put(request, networkResponse.clone());
+            if (networkResponse.ok) {
+                // Handle cache.put() errors silently to avoid uncaught promise rejections
+                cache.put(request, networkResponse.clone()).catch(() => {});
+            }
             return networkResponse;
         })
         .catch(() => null);
@@ -392,15 +399,20 @@ async function handleStaticRequest(request: Request): Promise<Response> {
  * Revalidates a static asset in the background and notifies clients of updates
  */
 function revalidateStaticAsset(request: Request, networkFetch: Promise<Response | null>): void {
-    networkFetch.then((networkResponse) => {
-        if (networkResponse) {
-            self.clients.matchAll().then((matchedClients) => {
-                matchedClients.forEach((client) => {
-                    client.postMessage({ type: 'ASSET_UPDATED', url: request.url });
-                });
-            });
-        }
-    });
+    networkFetch
+        .then((networkResponse) => {
+            if (networkResponse) {
+                self.clients
+                    .matchAll()
+                    .then((matchedClients) => {
+                        matchedClients.forEach((client) => {
+                            client.postMessage({ type: 'ASSET_UPDATED', url: request.url });
+                        });
+                    })
+                    .catch(() => {});
+            }
+        })
+        .catch(() => {});
 }
 
 /**
@@ -419,8 +431,8 @@ async function handleNavigationRequest(request: Request): Promise<Response> {
         // Cache successful responses for offline access
         if (networkResponse.ok) {
             const cache = await caches.open(`${CACHE_NAMES.STATIC}-${CACHE_VERSION}`);
-            // Clone the response before caching
-            cache.put(request, networkResponse.clone());
+            // Clone the response before caching - handle errors silently
+            cache.put(request, networkResponse.clone()).catch(() => {});
         }
 
         return networkResponse;

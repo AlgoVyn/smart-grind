@@ -1,4 +1,4 @@
-# Smart Grind — Master Coding Interviews Intelligently 🚀
+# Smart Grind - Master Coding Interviews Intelligently
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 ![GitHub Stars](https://img.shields.io/github/stars/AlgoVyn/smart-grind?style=flat-square)
@@ -17,7 +17,7 @@
 
 ## Table of Contents
 
-- [Smart Grind — Master Coding Interviews Intelligently 🚀](#smart-grind--master-coding-interviews-intelligently-)
+- [Smart Grind - Master Coding Interviews Intelligently](#smart-grind---master-coding-interviews-intelligently)
   - [Table of Contents](#table-of-contents)
   - [Why Smart Grind?](#why-smart-grind)
     - [Key Benefits](#key-benefits)
