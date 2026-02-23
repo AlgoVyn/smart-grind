@@ -278,28 +278,27 @@ const checkAuth = async () => {
                 );
             }, 'Failed to restore user session');
         } else {
-            // If offline, try to use stored token from IndexedDB
-            if (!navigator.onLine) {
-                const storedToken = await _getStoredTokenForOffline();
-                if (storedToken) {
-                    const displayName = localStorage.getItem('displayName') || 'User';
-                    await withErrorHandling(async () => {
-                        await _setupSignedInUser(
-                            userId,
-                            displayName,
-                            categoryParam,
-                            algorithmsParam,
-                            storedToken
-                        );
-                    }, 'Failed to restore offline session');
+            // Fetch failed - try to use stored token from IndexedDB as fallback
+            // This handles both offline mode and network race conditions when coming online
+            const storedToken = await _getStoredTokenForOffline();
+            if (storedToken) {
+                const displayName = localStorage.getItem('displayName') || 'User';
+                await withErrorHandling(async () => {
+                    await _setupSignedInUser(
+                        userId,
+                        displayName,
+                        categoryParam,
+                        algorithmsParam,
+                        storedToken
+                    );
+                }, 'Failed to restore session with stored token');
 
-                    // Initialize offline detection for signed-in users
-                    initOfflineDetection();
-                    return;
-                }
+                // Initialize offline detection for signed-in users
+                initOfflineDetection();
+                return;
             }
 
-            // Session expired, clear local state
+            // No valid token available - session expired
             localStorage.removeItem('userId');
             localStorage.removeItem('displayName');
             localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
