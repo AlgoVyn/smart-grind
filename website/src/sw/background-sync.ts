@@ -195,8 +195,30 @@ export class BackgroundSyncManager {
     }
 
     /**
+     * Check if we have a stored token in IndexedDB
+     * This is used to avoid false AUTH_REQUIRED events when network is unstable
+     */
+    private async hasStoredToken(): Promise<boolean> {
+        try {
+            const auth = getAuthManager();
+            if (!auth || typeof auth.waitForLoad !== 'function') {
+                return false;
+            }
+            await auth.waitForLoad();
+            const authHeaders = await auth.getAuthHeaders();
+            return Object.keys(authHeaders).length > 0;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
      * Verify authentication: try Bearer token from IndexedDB (set by main app on sign-in),
      * then cookies. SW often does not receive HttpOnly cookies on fetch.
+     *
+     * If we have a stored token, we assume authentication is valid even if the network
+     * request fails. This prevents false AUTH_REQUIRED events when coming back online
+     * and the network is still stabilizing.
      */
     private async verifyAuthentication(): Promise<boolean> {
         try {
@@ -208,10 +230,22 @@ export class BackgroundSyncManager {
             });
 
             if (response.ok) return true;
-            if (response.status === 401 || response.status === 403) return false;
+
+            // If we got 401/403, check if we have a stored token
+            // If we do, assume it's a network issue and proceed
+            if (response.status === 401 || response.status === 403) {
+                const hasToken = await this.hasStoredToken();
+                if (hasToken) {
+                    // We have a stored token, assume network issue
+                    return true;
+                }
+                return false;
+            }
             return true;
         } catch {
-            return true;
+            // Network error - if we have a stored token, assume authenticated
+            const hasToken = await this.hasStoredToken();
+            return hasToken;
         }
     }
 
@@ -435,11 +469,15 @@ export class BackgroundSyncManager {
                 if (response.ok) {
                     await this.operationQueue.markCompleted(op.id);
                 } else if (response.status === 401 || response.status === 403) {
-                    // Auth error - session is invalid, notify clients
-                    await this.notifyClients('AUTH_REQUIRED', {
-                        message: 'Authentication required for sync.',
-                        timestamp: Date.now(),
-                    });
+                    // Auth error - check if we have a stored token before notifying
+                    // If we do, it's likely a network issue, not an actual auth failure
+                    const hasToken = await this.hasStoredToken();
+                    if (!hasToken) {
+                        await this.notifyClients('AUTH_REQUIRED', {
+                            message: 'Authentication required for sync.',
+                            timestamp: Date.now(),
+                        });
+                    }
                     throw new Error('Authentication failed');
                 } else if (response.status === 409) {
                     // Conflict - resolve using improved resolver
@@ -528,10 +566,14 @@ export class BackgroundSyncManager {
 
             if (!csrfResponse.ok) {
                 if (csrfResponse.status === 401 || csrfResponse.status === 403) {
-                    await this.notifyClients('AUTH_REQUIRED', {
-                        message: 'Authentication required for sync.',
-                        timestamp: Date.now(),
-                    });
+                    // Auth error - check if we have a stored token before notifying
+                    const hasToken = await this.hasStoredToken();
+                    if (!hasToken) {
+                        await this.notifyClients('AUTH_REQUIRED', {
+                            message: 'Authentication required for sync.',
+                            timestamp: Date.now(),
+                        });
+                    }
                     throw new Error('Authentication failed');
                 }
                 throw new Error('Failed to fetch CSRF token');
@@ -558,11 +600,14 @@ export class BackgroundSyncManager {
                     await this.operationQueue.markCompleted(op.id);
                 }
             } else if (response.status === 401 || response.status === 403) {
-                // Auth error - session is invalid, notify clients
-                await this.notifyClients('AUTH_REQUIRED', {
-                    message: 'Authentication required for sync.',
-                    timestamp: Date.now(),
-                });
+                // Auth error - check if we have a stored token before notifying
+                const hasToken = await this.hasStoredToken();
+                if (!hasToken) {
+                    await this.notifyClients('AUTH_REQUIRED', {
+                        message: 'Authentication required for sync.',
+                        timestamp: Date.now(),
+                    });
+                }
                 throw new Error('Authentication failed');
             } else {
                 throw new Error(`HTTP ${response.status}`);
@@ -633,11 +678,14 @@ export class BackgroundSyncManager {
                     timestamp: Date.now(),
                 });
             } else if (response.status === 401 || response.status === 403) {
-                // Auth error - session is invalid, notify clients
-                await this.notifyClients('AUTH_REQUIRED', {
-                    message: 'Authentication required for sync.',
-                    timestamp: Date.now(),
-                });
+                // Auth error - check if we have a stored token before notifying
+                const hasToken = await this.hasStoredToken();
+                if (!hasToken) {
+                    await this.notifyClients('AUTH_REQUIRED', {
+                        message: 'Authentication required for sync.',
+                        timestamp: Date.now(),
+                    });
+                }
                 throw new Error('Authentication failed');
             } else if (response.status === 409) {
                 // Batch conflict - handle individually
@@ -700,11 +748,14 @@ export class BackgroundSyncManager {
                 if (response.ok) {
                     await this.operationQueue.markCompleted(op.id);
                 } else if (response.status === 401 || response.status === 403) {
-                    // Auth error - session is invalid, notify clients
-                    await this.notifyClients('AUTH_REQUIRED', {
-                        message: 'Authentication required for sync.',
-                        timestamp: Date.now(),
-                    });
+                    // Auth error - check if we have a stored token before notifying
+                    const hasToken = await this.hasStoredToken();
+                    if (!hasToken) {
+                        await this.notifyClients('AUTH_REQUIRED', {
+                            message: 'Authentication required for sync.',
+                            timestamp: Date.now(),
+                        });
+                    }
                     throw new Error('Authentication failed');
                 } else if (response.status === 409) {
                     const serverData = await response.json();

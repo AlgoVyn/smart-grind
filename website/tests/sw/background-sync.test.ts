@@ -289,8 +289,11 @@ describe('BackgroundSyncManager', () => {
             mockOperationQueue.updateRetryCount.mockResolvedValue(1);
             mockOperationQueue.requeueOperation.mockResolvedValue(undefined);
 
-            // Mock failed batch sync - individual sync will also fail
-            global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+            // Mock: first call is verifyAuthentication (csrf) - succeeds, then batch sync fails
+            global.fetch = jest
+                .fn()
+                .mockResolvedValueOnce({ ok: true }) // csrf check succeeds
+                .mockRejectedValue(new Error('Network error')); // batch sync fails
 
             await manager.syncUserProgress();
 
@@ -318,8 +321,11 @@ describe('BackgroundSyncManager', () => {
             mockOperationQueue.updateRetryCount.mockResolvedValue(6);
             mockOperationQueue.markFailed.mockResolvedValue(undefined);
 
-            // Mock failed batch sync
-            global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+            // Mock: first call is verifyAuthentication (csrf) - succeeds, then batch sync fails
+            global.fetch = jest
+                .fn()
+                .mockResolvedValueOnce({ ok: true }) // csrf check succeeds
+                .mockRejectedValue(new Error('Network error')); // batch sync fails
 
             await manager.syncUserProgress();
 
