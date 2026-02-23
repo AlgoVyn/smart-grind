@@ -82,6 +82,7 @@ const _setupSignedInUser = async (
 
 /**
  * Fetch auth token from secure endpoint using httpOnly cookie
+ * In offline mode, returns null gracefully without logging an error
  */
 const _fetchAuthToken = async (): Promise<{
     token: string;
@@ -104,7 +105,10 @@ const _fetchAuthToken = async (): Promise<{
             displayName: data.displayName,
         };
     } catch (error) {
-        console.error('[Init] Failed to fetch auth token:', error);
+        // Only log error if we're online - offline is expected to fail
+        if (navigator.onLine) {
+            console.error('[Init] Failed to fetch auth token:', error);
+        }
         return null;
     }
 };
@@ -114,6 +118,76 @@ const _setupLocalUser = async (categoryParam: string | null, algorithmsParam: st
     const { app } = await import('./app');
     app.initializeLocalUser();
     await _applyCategory(categoryParam, algorithmsParam);
+};
+
+/**
+ * Get stored token from IndexedDB for offline scenarios
+ * Returns the token if valid (not expired), null otherwise
+ */
+const _getStoredTokenForOffline = async (): Promise<string | null> => {
+    return new Promise((resolve) => {
+        const request = indexedDB.open('smartgrind-auth', 1);
+
+        request.onerror = () => resolve(null);
+
+        request.onsuccess = async () => {
+            const db = request.result;
+
+            // Check if the object store exists
+            if (!db.objectStoreNames.contains('auth-tokens')) {
+                db.close();
+                resolve(null);
+                return;
+            }
+
+            try {
+                const transaction = db.transaction('auth-tokens', 'readonly');
+                const store = transaction.objectStore('auth-tokens');
+
+                const tokenRequest = store.get('token');
+                const expiresAtRequest = store.get('tokenExpiresAt');
+
+                const getToken = new Promise<string | null>((res) => {
+                    tokenRequest.onsuccess = () => res(tokenRequest.result?.value || null);
+                    tokenRequest.onerror = () => res(null);
+                });
+
+                const getExpiresAt = new Promise<number | null>((res) => {
+                    expiresAtRequest.onsuccess = () => {
+                        const val = expiresAtRequest.result?.value;
+                        res(val ? parseInt(val, 10) : null);
+                    };
+                    expiresAtRequest.onerror = () => res(null);
+                });
+
+                const [token, expiresAt] = await Promise.all([getToken, getExpiresAt]);
+                db.close();
+
+                if (!token) {
+                    resolve(null);
+                    return;
+                }
+
+                // Check if token is expired
+                if (expiresAt && Date.now() >= expiresAt) {
+                    resolve(null); // Token expired
+                    return;
+                }
+
+                resolve(token);
+            } catch {
+                db.close();
+                resolve(null);
+            }
+        };
+
+        request.onupgradeneeded = (event) => {
+            const db = (event.target as IDBOpenDBRequest).result;
+            if (!db.objectStoreNames.contains('auth-tokens')) {
+                db.createObjectStore('auth-tokens', { keyPath: 'key' });
+            }
+        };
+    });
 };
 
 // Check auth state and initialize app
@@ -204,6 +278,27 @@ const checkAuth = async () => {
                 );
             }, 'Failed to restore user session');
         } else {
+            // If offline, try to use stored token from IndexedDB
+            if (!navigator.onLine) {
+                const storedToken = await _getStoredTokenForOffline();
+                if (storedToken) {
+                    const displayName = localStorage.getItem('displayName') || 'User';
+                    await withErrorHandling(async () => {
+                        await _setupSignedInUser(
+                            userId,
+                            displayName,
+                            categoryParam,
+                            algorithmsParam,
+                            storedToken
+                        );
+                    }, 'Failed to restore offline session');
+
+                    // Initialize offline detection for signed-in users
+                    initOfflineDetection();
+                    return;
+                }
+            }
+
             // Session expired, clear local state
             localStorage.removeItem('userId');
             localStorage.removeItem('displayName');
