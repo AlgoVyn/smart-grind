@@ -19,8 +19,8 @@ export const sidebarRenderers = {
             const navigateToTopic = async (topicId: string) => {
                 sidebarRenderers.setActiveTopic(topicId);
                 sidebarRenderers.setActiveAlgorithmCategory(null);
+                // Only update URL once - set category path (clears algorithm path automatically)
                 utils.updateUrlParameter('category', topicId === 'all' ? null : topicId);
-                utils.updateUrlParameter('algorithms', null);
                 const { renderers } = await import('../renderers');
                 await renderers.renderMainView(topicId);
                 utils.scrollToTop();
@@ -30,8 +30,8 @@ export const sidebarRenderers = {
             const navigateToAlgorithmCategory = async (categoryId: string) => {
                 sidebarRenderers.setActiveTopic(null);
                 sidebarRenderers.setActiveAlgorithmCategory(categoryId);
-                utils.updateUrlParameter('category', null);
-                utils.updateUrlParameter('algorithms', categoryId);
+                // Only update URL once - set algorithm path (clears category path automatically)
+                utils.updateUrlParameter('algorithms', categoryId === 'all' ? null : categoryId);
                 const { renderers } = await import('../renderers');
                 await renderers.renderAlgorithmsView(categoryId);
                 utils.scrollToTop();
