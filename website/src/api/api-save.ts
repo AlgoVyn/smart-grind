@@ -7,6 +7,7 @@ import { data } from '../data';
 import { renderers } from '../renderers';
 import { ui } from '../ui/ui';
 import { validateResponseOrigin, isBrowserOnline, getErrorMessage } from './api-utils';
+import { getCachedCsrfToken } from '../app';
 
 /**
  * Debounce configuration for remote sync
@@ -226,15 +227,29 @@ export const _saveRemotely = async (): Promise<void> => {
 };
 
 // Set up page unload handler to flush pending syncs
+// SECURITY: Uses synchronous token access since beforeunload must be synchronous
+// The token is stored in memory (not localStorage) and passed in the request body
 if (typeof window !== 'undefined') {
     window.addEventListener('beforeunload', () => {
         if (syncDebounceTimer && pendingSyncData) {
-            const csrfToken = localStorage.getItem('smartgrind-csrf-token');
-            if (csrfToken && isBrowserOnline()) {
-                const blob = new Blob([JSON.stringify({ data: pendingSyncData })], {
-                    type: 'application/json',
-                });
-                navigator.sendBeacon(`${data.API_BASE}/user?_csrf=${csrfToken}`, blob);
+            if (isBrowserOnline()) {
+                // Get CSRF token from memory (synchronously via the app module's cached token)
+                // Note: We use a synchronous approach here since beforeunload doesn't support async
+                // The token is included in the body, not the URL, to prevent log exposure
+                const csrfToken = getCachedCsrfToken();
+                if (csrfToken) {
+                    // SECURITY: CSRF token in body, not URL, to prevent exposure in server logs
+                    const blob = new Blob(
+                        [
+                            JSON.stringify({
+                                data: pendingSyncData,
+                                _csrf: csrfToken, // Include CSRF in body instead of URL
+                            }),
+                        ],
+                        { type: 'application/json' }
+                    );
+                    navigator.sendBeacon(`${data.API_BASE}/user`, blob);
+                }
             }
         }
     });

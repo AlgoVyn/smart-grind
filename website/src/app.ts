@@ -47,6 +47,15 @@ export const getCsrfToken = async (): Promise<string | null> => {
 };
 
 /**
+ * Gets the cached CSRF token synchronously (for beforeunload handlers).
+ * Returns null if no token is cached (does not fetch).
+ * Use this only in contexts where async is not possible (e.g., beforeunload).
+ */
+export const getCachedCsrfToken = (): string | null => {
+    return csrfToken;
+};
+
+/**
  * Clears the CSRF token (e.g., on logout).
  */
 export const clearCsrfToken = (): void => {

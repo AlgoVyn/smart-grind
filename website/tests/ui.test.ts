@@ -1952,7 +1952,7 @@ describe('SmartGrind UI', () => {
             window.marked = mockMarked;
             window.Prism = { highlightAllUnder: jest.fn() };
 
-            const contentElement = { innerHTML: '' };
+            const contentElement = { innerHTML: '', addEventListener: jest.fn() };
             ui._renderMarkdown('markdown', contentElement);
 
             expect(mockMarked.setOptions).toHaveBeenCalledWith({

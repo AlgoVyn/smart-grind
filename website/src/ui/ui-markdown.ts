@@ -128,14 +128,15 @@ export const _configureMarkdownRenderer = () => {
                           ? 'JavaScript'
                           : innerLang.charAt(0).toUpperCase() + innerLang.slice(1);
 
-                // Tab Button
+                // Tab Button - SECURITY: Uses data-action attribute instead of onclick
+                // Event handlers are delegated in _renderMarkdown after sanitization
                 const activeTabClass =
                     index === 0
                         ? 'text-brand-400 bg-[#1e1e1e]'
                         : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50';
 
                 tabsHtml += `
-                    <button onclick="window.SmartGrind.ui.switchCarouselTab('${uniqueId}', ${index})" 
+                    <button data-action="carousel-tab" data-carousel-id="${uniqueId}" data-index="${index}"
                             class="carousel-tab-btn-${uniqueId} px-4 py-2 text-sm font-medium transition-all whitespace-nowrap ${activeTabClass}" 
                             data-index="${index}">
                         ${displayName}
@@ -146,8 +147,9 @@ export const _configureMarkdownRenderer = () => {
                 const langClass = `language-${innerLang}`;
 
                 // Copy Button (Absolute positioned inside the pane)
+                // SECURITY: Uses data-action attribute instead of onclick
                 const copyBtn =
-                    '<button class="code-copy-btn absolute top-3 right-3 p-1.5 text-white/40 hover:text-white bg-slate-700/30 hover:bg-slate-600 rounded opacity-0 group-hover:opacity-100 transition-all z-10" onclick="window.SmartGrind.ui.copyCode(this)" title="Copy Code"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>';
+                    '<button class="code-copy-btn absolute top-3 right-3 p-1.5 text-white/40 hover:text-white bg-slate-700/30 hover:bg-slate-600 rounded opacity-0 group-hover:opacity-100 transition-all z-10" data-action="copy-code" title="Copy Code"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>';
 
                 panesHtml += `
                     <div id="${uniqueId}-pane-${index}" class="${displayClass}">
@@ -168,8 +170,9 @@ export const _configureMarkdownRenderer = () => {
         const escapedCode = escapeHtml(code);
 
         // Use the same refined copy button style
+        // SECURITY: Uses data-action attribute instead of onclick
         const copyBtn =
-            '<button class="code-copy-btn absolute top-3 right-3 p-1.5 text-white/40 hover:text-white bg-slate-700/30 hover:bg-slate-600 rounded opacity-0 group-hover:opacity-100 transition-all z-10" onclick="window.SmartGrind.ui.copyCode(this)" title="Copy Code"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>';
+            '<button class="code-copy-btn absolute top-3 right-3 p-1.5 text-white/40 hover:text-white bg-slate-700/30 hover:bg-slate-600 rounded opacity-0 group-hover:opacity-100 transition-all z-10" data-action="copy-code" title="Copy Code"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>';
 
         return `<div class="relative mb-4 rounded-lg overflow-hidden bg-[#1e1e1e]">
             <pre class="${langClass} !m-0 !border-0 !shadow-none !bg-transparent relative"><code class="${langClass} !bg-transparent !border-0">${escapedCode}</code>${copyBtn}</pre>
@@ -217,7 +220,7 @@ export const _configureMarkdownRenderer = () => {
 
         return `<h${headingLevel} id="${id}" class="scroll-mt-24 mb-4 mt-8 font-bold text-theme-bold group flex items-center gap-2">
             ${headingText}
-            <a href="#${id}" class="opacity-0 group-hover:opacity-100 text-theme-muted hover:text-brand-500 transition-opacity" onclick="event.preventDefault(); document.getElementById('${id}').scrollIntoView({behavior: 'smooth'})">
+            <a href="#${id}" class="opacity-0 group-hover:opacity-100 text-theme-muted hover:text-brand-500 transition-opacity" data-action="scroll-to-heading" data-target="${id}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                 </svg>
@@ -298,6 +301,52 @@ export const copyCode = (btn: HTMLElement) => {
         });
 };
 
+/**
+ * SECURITY: Sets up delegated event handlers for interactive elements in markdown content.
+ * This approach avoids inline onclick handlers which could be exploited via XSS.
+ * Uses event delegation on the container element for efficiency.
+ */
+const _setupDelegatedEventHandlers = (container: HTMLElement) => {
+    // Handle carousel tab clicks
+    container.addEventListener('click', (e: Event) => {
+        const target = e.target as HTMLElement;
+
+        // Handle carousel tab buttons
+        const carouselTab = target.closest('[data-action="carousel-tab"]') as HTMLElement | null;
+        if (carouselTab) {
+            const carouselId = carouselTab.dataset['carouselId'];
+            const index = parseInt(carouselTab.dataset['index'] || '0', 10);
+            if (carouselId) {
+                switchCarouselTab(carouselId, index);
+            }
+            return;
+        }
+
+        // Handle copy code buttons
+        const copyBtn = target.closest('[data-action="copy-code"]') as HTMLElement | null;
+        if (copyBtn) {
+            copyCode(copyBtn);
+            return;
+        }
+
+        // Handle scroll to heading links
+        const scrollLink = target.closest(
+            '[data-action="scroll-to-heading"]'
+        ) as HTMLElement | null;
+        if (scrollLink) {
+            e.preventDefault();
+            const targetId = scrollLink.dataset['target'];
+            if (targetId) {
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+            return;
+        }
+    });
+};
+
 // Helper to separate TOC rendering logic
 const _renderTOC = () => {
     const tocList = document.getElementById('toc-list');
@@ -324,7 +373,8 @@ const _renderTOC = () => {
                class="toc-link block text-xs py-1.5 border-l-2 border-transparent text-theme-muted hover:text-theme-base transition-colors truncate"
                style="padding-left: ${paddingLeft}rem"
                data-id="${item.id}"
-               onclick="event.preventDefault(); document.getElementById('${item.id}')?.scrollIntoView({behavior: 'smooth'});">
+               data-action="scroll-to-heading"
+               data-target="${item.id}">
                 ${item.text}
             </a>
         `;
@@ -407,10 +457,12 @@ export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) =
             'id',
             'class',
             'style',
-            // Custom data attributes
+            // Custom data attributes - SECURITY: No onclick, use data-action with delegated handlers
             'data-index',
             'data-id',
             'data-action',
+            'data-target',
+            'data-carousel-id',
             // SVG attributes
             'viewBox',
             'fill',
@@ -431,8 +483,6 @@ export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) =
             'clip-path',
             'fill-rule',
             'clip-rule',
-            // Event handlers (needed for carousel and copy functionality)
-            'onclick',
             // Accessibility
             'aria-label',
             'aria-hidden',
@@ -446,6 +496,10 @@ export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) =
     });
 
     contentElement.innerHTML = sanitizedHtml;
+
+    // SECURITY: Set up delegated event handlers for interactive elements
+    // This approach avoids inline onclick handlers which could be exploited via XSS
+    _setupDelegatedEventHandlers(contentElement);
 
     _renderTOC();
 
