@@ -71,8 +71,8 @@ export const sidebarRenderers = {
             );
             fragment.appendChild(patternsSection.container);
 
-            // "All Patterns" Link
-            const allBtn = sidebarRenderers.createTopicButton('all', 'All Patterns');
+            // "All Problems" Link
+            const allBtn = sidebarRenderers.createTopicButton('all', 'All Problems');
             allBtn.onclick = () => navigateToTopic('all');
             patternsSection.content.appendChild(allBtn);
 
@@ -226,7 +226,7 @@ export const sidebarRenderers = {
         if (topicId) {
             const activeBtn =
                 document.querySelector(`[data-topic-id="${topicId}"]`) ||
-                document.querySelector('.sidebar-link:first-child'); // All patterns
+                document.querySelector('.sidebar-link:first-child'); // All problems
             if (activeBtn) activeBtn.classList.add('active');
         }
         state.ui.activeTopicId = topicId || 'all';

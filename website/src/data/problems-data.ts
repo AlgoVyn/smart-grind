@@ -4,9 +4,6 @@
 
 import { Topic } from '../types';
 
-// Total number of unique problems in the dataset
-export const TOTAL_UNIQUE_PROBLEMS = 438;
-
 export const PROBLEMS_DATA: Topic[] = [
     {
         id: 'two-pointers',
@@ -2738,3 +2735,15 @@ export const PROBLEMS_DATA: Topic[] = [
         ],
     },
 ];
+
+// Calculate unique problems count (some problems appear in multiple patterns)
+const uniqueProblemIds = new Set<string>();
+PROBLEMS_DATA.forEach((topic) => {
+    topic.patterns.forEach((pattern) => {
+        pattern.problems.forEach((prob) => {
+            const id = typeof prob === 'string' ? prob : prob.id;
+            uniqueProblemIds.add(id);
+        });
+    });
+});
+export const TOTAL_UNIQUE_PROBLEMS = uniqueProblemIds.size;

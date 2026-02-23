@@ -41,7 +41,8 @@ describe('SmartGrind Data Module', () => {
     });
 
     test('should have correct TOTAL_UNIQUE_PROBLEMS count', () => {
-        expect(data.TOTAL_UNIQUE_PROBLEMS).toBe(438);
+        // This is the actual unique count - some problems appear in multiple patterns
+        expect(data.TOTAL_UNIQUE_PROBLEMS).toBe(413);
     });
 
     test('should have correct LOCAL_STORAGE_KEYS', () => {

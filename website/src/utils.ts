@@ -395,8 +395,8 @@ export const utils = {
 
     /**
      * Retrieves all unique problem IDs associated with a specific topic.
-     * For 'all', returns all problem IDs in state. For specific topics,
-     * filters to only problems defined in that topic's patterns.
+     * For 'all', returns all problem IDs in state (excluding algorithms).
+     * For specific topics, filters to only problems defined in that topic's patterns.
      * @param {string} topicId - The topic identifier, or 'all' for all problems
      * @returns {Set<string>} Set of unique problem IDs
      * @example
@@ -406,7 +406,12 @@ export const utils = {
     getUniqueProblemIdsForTopic: (topicId: string) => {
         const ids = new Set<string>();
         if (topicId === 'all') {
-            state.problems.forEach((_: Problem, id: string) => ids.add(id));
+            // For 'all', only include pattern problems (exclude algorithms)
+            state.problems.forEach((problem: Problem, id: string) => {
+                if (problem.pattern !== 'Algorithms') {
+                    ids.add(id);
+                }
+            });
         } else {
             const topicObj = data.topicsData.find((t: Topic) => t.id === topicId);
             if (topicObj) {
