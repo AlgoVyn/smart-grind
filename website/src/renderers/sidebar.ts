@@ -44,7 +44,7 @@ export const sidebarRenderers = {
                 'algorithms-section',
                 'Algorithms',
                 data.TOTAL_UNIQUE_ALGORITHMS,
-                true // expanded by default
+                false // collapsed by default
             );
             fragment.appendChild(algorithmsSection.container);
 
