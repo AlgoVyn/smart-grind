@@ -32,9 +32,11 @@ export const statsRenderers = {
 
     // Helper to update sidebar statistics
     _updateSidebarStats: () => {
-        const globalStats = utils.getUniqueProblemsForTopic('all');
-        const percentage =
-            globalStats.total > 0 ? Math.round((globalStats.solved / globalStats.total) * 100) : 0;
+        // Use only problems data (not including algorithms) for sidebar stats
+        const allProblems = Array.from(state.problems.values());
+        const total = allProblems.length;
+        const solved = allProblems.filter((p) => p.status === 'solved').length;
+        const percentage = total > 0 ? Math.round((solved / total) * 100) : 0;
 
         const sidebarTotalStat = state.elements['sidebarTotalStat'];
         const sidebarTotalBar = state.elements['sidebarTotalBar'];
@@ -43,7 +45,7 @@ export const statsRenderers = {
             sidebarTotalStat.innerText = `${percentage}%`;
         }
         if (sidebarTotalBar) {
-            sidebarTotalBar.style.width = `${globalStats.total > 0 ? (globalStats.solved / globalStats.total) * 100 : 0}%`;
+            sidebarTotalBar.style.width = `${total > 0 ? (solved / total) * 100 : 0}%`;
         }
     },
 
@@ -118,6 +120,9 @@ export const statsRenderers = {
             stats = statsRenderers._getAlgorithmCategoryStats(
                 state.ui.activeAlgorithmCategoryId || 'all'
             );
+        } else if (state.ui.activeTopicId === 'all') {
+            // For 'all' view, only count problems (not algorithms) to match sidebar stats
+            stats = utils.getUniqueProblemsForTopic('all');
         } else {
             stats = utils.getUniqueProblemsForTopic(state.ui.activeTopicId);
         }

@@ -125,6 +125,11 @@ describe('SmartGrind Renderers', () => {
             solved: 1,
             due: 0,
         });
+        jest.spyOn(utils, 'getAllUniqueProblemsIncludingAlgorithms').mockReturnValue({
+            total: 10,
+            solved: 5,
+            due: 0,
+        });
         jest.spyOn(utils, 'updateUrlParameter').mockImplementation();
         jest.spyOn(utils, 'scrollToTop').mockImplementation();
         jest.spyOn(utils, 'formatDate').mockReturnValue('Jan 1');
@@ -364,6 +369,7 @@ describe('SmartGrind Renderers', () => {
     describe('updateStats', () => {
         test('updates statistics display', () => {
             const updateSidebarStatsOnlySpy = jest.spyOn(renderers, '_updateSidebarStatsOnly');
+            state.ui.activeTopicId = 'all';
 
             renderers.updateStats();
 
@@ -372,36 +378,40 @@ describe('SmartGrind Renderers', () => {
         });
 
         test('shows review banner when due problems exist', () => {
-            utils.getUniqueProblemsForTopic.mockReturnValueOnce({ total: 10, solved: 5, due: 3 });
+            state.ui.activeTopicId = 'all';
+            jest.spyOn(utils, 'getUniqueProblemsForTopic').mockReturnValueOnce({ total: 10, solved: 5, due: 3 });
 
             renderers.updateStats();
 
-            expect(state.elements.reviewBanner.classList.remove).toHaveBeenCalledWith('hidden');
-            expect(state.elements.reviewCountBanner.innerText).toBe('3');
+            expect(state.elements.reviewBanner?.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(state.elements.reviewCountBanner?.innerText).toBe('3');
         });
 
         test('hides review banner when no due problems', () => {
-            utils.getUniqueProblemsForTopic.mockReturnValueOnce({ total: 10, solved: 10, due: 0 });
+            state.ui.activeTopicId = 'all';
+            jest.spyOn(utils, 'getUniqueProblemsForTopic').mockReturnValueOnce({ total: 10, solved: 10, due: 0 });
 
             renderers.updateStats();
 
-            expect(state.elements.reviewBanner.classList.add).toHaveBeenCalledWith('hidden');
+            expect(state.elements.reviewBanner?.classList.add).toHaveBeenCalledWith('hidden');
         });
 
         test('updates main due badge when due problems exist', () => {
-            utils.getUniqueProblemsForTopic.mockReturnValueOnce({ total: 10, solved: 5, due: 2 });
+            state.ui.activeTopicId = 'all';
+            jest.spyOn(utils, 'getUniqueProblemsForTopic').mockReturnValueOnce({ total: 10, solved: 5, due: 2 });
 
             renderers.updateStats();
 
-            expect(state.elements.mainDueBadge.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(state.elements.mainDueBadge?.classList.remove).toHaveBeenCalledWith('hidden');
         });
 
         test('hides main due badge when no due problems', () => {
-            utils.getUniqueProblemsForTopic.mockReturnValueOnce({ total: 10, solved: 10, due: 0 });
+            state.ui.activeTopicId = 'all';
+            jest.spyOn(utils, 'getUniqueProblemsForTopic').mockReturnValueOnce({ total: 10, solved: 10, due: 0 });
 
             renderers.updateStats();
 
-            expect(state.elements.mainDueBadge.classList.add).toHaveBeenCalledWith('hidden');
+            expect(state.elements.mainDueBadge?.classList.add).toHaveBeenCalledWith('hidden');
         });
     });
 

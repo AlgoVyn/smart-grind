@@ -473,6 +473,54 @@ export const utils = {
     },
 
     /**
+     * Retrieves all unique problem IDs including both pattern problems and algorithms.
+     * Used for calculating total progress across all content.
+     * @returns {Set<string>} Set of unique problem IDs including algorithms
+     * @example
+     * const allIds = utils.getAllUniqueProblemIdsIncludingAlgorithms();
+     * // Returns Set of all problem and algorithm IDs
+     */
+    getAllUniqueProblemIdsIncludingAlgorithms: () => {
+        const ids = new Set<string>();
+
+        // Add all pattern problems
+        state.problems.forEach((_problem: Problem, id: string) => {
+            ids.add(id);
+        });
+
+        return ids;
+    },
+
+    /**
+     * Calculates statistics for all problems including algorithms.
+     * Returns total count, solved count, and due-for-review count across all content.
+     * @returns {{total: number, solved: number, due: number}} Statistics object
+     * @example
+     * const stats = utils.getAllUniqueProblemsIncludingAlgorithms();
+     * // Returns { total: 385, solved: 200, due: 10 } - includes both problems and algorithms
+     */
+    getAllUniqueProblemsIncludingAlgorithms: () => {
+        const today = utils.getToday();
+        const uniqueIds = utils.getAllUniqueProblemIdsIncludingAlgorithms();
+        let solved = 0;
+        let due = 0;
+
+        uniqueIds.forEach((id: string) => {
+            const problem = state.problems.get(id);
+            if (problem && problem.status === 'solved' && problem.nextReviewDate) {
+                solved++;
+                if (problem.nextReviewDate <= today) due++;
+            }
+        });
+
+        return {
+            total: uniqueIds.size,
+            solved,
+            due,
+        };
+    },
+
+    /**
      * Determines whether a problem should be displayed based on current filters.
      * Applies status filter, date filter (for review/solved modes), and search query.
      * @param {Problem} problem - The problem object to evaluate
