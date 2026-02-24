@@ -4,6 +4,7 @@
 import { Topic, Problem } from '../types';
 import { state } from '../state';
 import { data } from '../data';
+import { ALGORITHMS_DATA, AlgorithmCategory } from '../data/algorithms-data';
 import { ui } from '../ui/ui';
 import { renderers } from '../renderers';
 import { utils } from '../utils';
@@ -59,6 +60,25 @@ export const _removeCategoryAndProblems = (topic: Topic) => {
     const problemsToDelete: string[] = [];
     state.problems.forEach((p: Problem, id: string) => {
         if (p.topic === topic.title) {
+            problemsToDelete.push(id);
+        }
+    });
+    problemsToDelete.forEach((id) => {
+        state.problems.delete(id);
+        state.deletedProblemIds.add(id);
+    });
+};
+
+/**
+ * Helper to remove algorithm category and associated algorithms from the data structures.
+ * @param {string} categoryId - The ID of the algorithm category to remove.
+ * @param {string} categoryTitle - The title of the algorithm category.
+ */
+export const _removeAlgorithmCategoryAndProblems = (categoryId: string, categoryTitle: string) => {
+    // Remove associated algorithms (algorithms have pattern='Algorithms' and topic=categoryId)
+    const problemsToDelete: string[] = [];
+    state.problems.forEach((p: Problem, id: string) => {
+        if (p.pattern === 'Algorithms' && (p.topic === categoryId || p.topic === categoryTitle)) {
             problemsToDelete.push(id);
         }
     });
@@ -127,6 +147,46 @@ export const deleteCategory = async (topicId: string): Promise<void> => {
         _restoreOriginalState(originalState);
         const message = e instanceof Error ? e.message : String(e);
         ui.showAlert(`Failed to delete category: ${message}`);
+        throw e;
+    }
+};
+
+/**
+ * Deletes an algorithm category and all its associated algorithms.
+ * @param {string} categoryId - The ID of the algorithm category to delete.
+ * @throws {Error} Throws an error if the deletion fails.
+ */
+export const deleteAlgorithmCategory = async (categoryId: string): Promise<void> => {
+    const category = ALGORITHMS_DATA.find((c: AlgorithmCategory) => c.id === categoryId);
+    if (!category) {
+        ui.showAlert('Algorithm category not found.');
+        return;
+    }
+
+    const confirmed = await ui.showConfirm(
+        `Are you sure you want to delete the algorithm category "<b>${category.title}</b>" and all its associated algorithms? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    const originalState = _storeOriginalState();
+
+    try {
+        _removeAlgorithmCategoryAndProblems(categoryId, category.title);
+
+        // Save
+        await saveData();
+
+        // Re-render
+        renderers.renderSidebar();
+        // Re-render algorithms view to show updated state
+        const { renderers: renderersModule } = await import('../renderers');
+        await renderersModule.renderAlgorithmsView(categoryId);
+        utils.showToast('Algorithm category and associated algorithms removed');
+    } catch (e) {
+        // Restore original state on failure
+        _restoreOriginalState(originalState);
+        const message = e instanceof Error ? e.message : String(e);
+        ui.showAlert(`Failed to delete algorithm category: ${message}`);
         throw e;
     }
 };

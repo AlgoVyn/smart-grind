@@ -4,6 +4,7 @@
 import { Topic, Pattern, ProblemDef, Problem } from '../types';
 import { state } from '../state';
 import { data } from '../data';
+import { ALGORITHMS_DATA, AlgorithmCategory, AlgorithmDef } from '../data/algorithms-data';
 import { ui } from '../ui/ui';
 import { renderers } from '../renderers';
 import { utils } from '../utils';
@@ -139,12 +140,25 @@ export const _performResetAndRender = async (message: string): Promise<void> => 
     const currentFilter = state.ui.currentFilter;
     renderers.updateFilterBtns();
     renderers.renderSidebar();
-    renderers.renderMainView(state.ui.activeTopicId);
+
+    // Check if we're in algorithms view and render appropriately
+    if (state.ui.activeAlgorithmCategoryId) {
+        const { renderers: renderersModule } = await import('../renderers');
+        await renderersModule.renderAlgorithmsView(state.ui.activeAlgorithmCategoryId);
+    } else {
+        renderers.renderMainView(state.ui.activeTopicId);
+    }
+
     utils.showToast(message);
 
     // If the current filter is 'solved', refresh the cards to reflect the changes
     if (currentFilter === 'solved') {
-        renderers.renderMainView(state.ui.activeTopicId);
+        if (state.ui.activeAlgorithmCategoryId) {
+            const { renderers: renderersModule } = await import('../renderers');
+            await renderersModule.renderAlgorithmsView(state.ui.activeAlgorithmCategoryId);
+        } else {
+            renderers.renderMainView(state.ui.activeTopicId);
+        }
     }
 };
 
@@ -215,6 +229,103 @@ export const resetCategory = async (topicId: string): Promise<void> => {
         state.deletedProblemIds = originalDeletedIds;
         const message = e instanceof Error ? e.message : String(e);
         ui.showAlert(`Failed to reset category: ${message}`);
+        throw e;
+    }
+};
+
+/**
+ * Gets all algorithm IDs for a given category.
+ * @param {string} categoryId - The ID of the algorithm category.
+ * @returns {Set<string>} Set of algorithm IDs.
+ */
+export const _getAlgorithmIdsForCategory = (categoryId: string): Set<string> => {
+    const ids = new Set<string>();
+    if (categoryId === 'all') {
+        // Get all algorithm IDs across all categories
+        ALGORITHMS_DATA.forEach((category: AlgorithmCategory) => {
+            category.algorithms.forEach((algo) => {
+                ids.add(algo.id);
+            });
+        });
+    } else {
+        // Get algorithm IDs for specific category
+        const category = ALGORITHMS_DATA.find((c: AlgorithmCategory) => c.id === categoryId);
+        if (category) {
+            category.algorithms.forEach((algo) => {
+                ids.add(algo.id);
+            });
+        }
+    }
+    return ids;
+};
+
+/**
+ * Restores deleted algorithms for the given algorithm IDs.
+ * @param {Set<string>} algorithmIds - Set of algorithm IDs to restore.
+ */
+export const _restoreDeletedAlgorithms = (algorithmIds: Set<string>): void => {
+    algorithmIds.forEach((id: string) => {
+        if (!state.deletedProblemIds.has(id)) {
+            return;
+        }
+        state.deletedProblemIds.delete(id);
+
+        // Find the algorithm definition
+        let algoDef: AlgorithmDef | undefined;
+        for (const category of ALGORITHMS_DATA) {
+            algoDef = category.algorithms.find((a) => a.id === id);
+            if (algoDef) break;
+        }
+
+        if (algoDef) {
+            // Find which category this algorithm belongs to
+            const category = ALGORITHMS_DATA.find((c) => c.algorithms.some((a) => a.id === id));
+            state.problems.set(id, {
+                id: algoDef.id,
+                name: algoDef.name,
+                url: algoDef.url,
+                status: 'unsolved',
+                topic: category?.id || 'unknown',
+                pattern: 'Algorithms',
+                reviewInterval: 0,
+                nextReviewDate: null,
+                note: '',
+                loading: false,
+                noteVisible: false,
+            });
+        }
+    });
+};
+
+/**
+ * Resets all algorithms in a category to unsolved state and restores deleted algorithms.
+ * @param {string} categoryId - The ID of the algorithm category to reset.
+ * @throws {Error} Throws an error if the reset fails.
+ */
+export const resetAlgorithmCategory = async (categoryId: string): Promise<void> => {
+    const category = ALGORITHMS_DATA.find((c: AlgorithmCategory) => c.id === categoryId);
+    const title = categoryId === 'all' ? 'All Algorithms' : category?.title || 'Unknown Category';
+
+    const confirmed = await ui.showConfirm(
+        `Are you sure you want to reset <b>${title}</b>?</br></br>This will mark all algorithms as unsolved and restore any deleted algorithms.`
+    );
+    if (!confirmed) return;
+
+    // Store original state for rollback
+    const originalProblems = createProblemsBackup();
+    const originalDeletedIds = new Set(state.deletedProblemIds);
+
+    try {
+        const algorithmIds = _getAlgorithmIdsForCategory(categoryId);
+        _resetProblems(algorithmIds);
+        _restoreDeletedAlgorithms(algorithmIds);
+        await _performResetAndRender(`${title} reset and restored successfully`);
+    } catch (e) {
+        // Restore original state on failure
+        state.problems = originalProblems;
+        state.deletedProblemIds = originalDeletedIds;
+        const message = e instanceof Error ? e.message : String(e);
+        ui.showAlert(`Failed to reset algorithm category: ${message}`);
         throw e;
     }
 };

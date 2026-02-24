@@ -147,6 +147,33 @@ export const mainViewRenderers = {
         }
 
         mainViewRenderers._removeExistingActionContainer();
+
+        // Add reset and delete buttons for algorithm categories
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'category-action-container ml-2 flex gap-1';
+
+        const resetBtn = mainViewRenderers._createActionButton(
+            ICONS.reset,
+            categoryId === 'all' ? 'Reset All Algorithms' : 'Reset Category Algorithms',
+            'bg-blue-500/10',
+            () => api.resetAlgorithmCategory(categoryId)
+        );
+        buttonContainer.appendChild(resetBtn);
+
+        // Only show delete button for specific categories (not for 'all')
+        if (categoryId !== 'all') {
+            const deleteBtn = mainViewRenderers._createActionButton(
+                ICONS.delete,
+                'Delete Algorithm Category',
+                'bg-red-500/10',
+                () => api.deleteAlgorithmCategory(categoryId)
+            );
+            buttonContainer.appendChild(deleteBtn);
+        }
+
+        if (currentViewTitle) {
+            currentViewTitle.insertAdjacentElement('afterend', buttonContainer);
+        }
     },
 
     // Convert algorithm definition to Problem object
@@ -232,8 +259,12 @@ export const mainViewRenderers = {
                 const grid = document.createElement('div');
                 grid.className = 'grid grid-cols-1 gap-3';
 
-                // Add algorithm cards
+                // Add algorithm cards (skip deleted ones)
                 filteredAlgorithms.forEach((algoDef: AlgorithmDef) => {
+                    // Skip if algorithm was deleted
+                    if (state.deletedProblemIds.has(algoDef.id)) {
+                        return;
+                    }
                     const problem = mainViewRenderers._algorithmToProblem(algoDef, category.id);
                     if (!state.problems.has(algoDef.id)) {
                         state.problems.set(algoDef.id, problem);
@@ -259,6 +290,11 @@ export const mainViewRenderers = {
 
             // Filter and add algorithm cards (treating them as problems)
             category.algorithms.forEach((algoDef: AlgorithmDef) => {
+                // Skip if algorithm was deleted
+                if (state.deletedProblemIds.has(algoDef.id)) {
+                    return;
+                }
+
                 // Apply search filter
                 if (searchQuery) {
                     const matchesSearch = algoDef.name.toLowerCase().includes(searchQuery);

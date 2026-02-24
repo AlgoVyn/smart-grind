@@ -153,7 +153,13 @@ export const saveDeletedId = async (id: string): Promise<void> => {
         state.problems.delete(id);
         state.deletedProblemIds.add(id);
         await _performSave();
-        renderers.renderMainView(state.ui.activeTopicId);
+        // Check if we're in algorithms view and render appropriately
+        if (state.ui.activeAlgorithmCategoryId) {
+            const { renderers: renderersModule } = await import('../renderers');
+            await renderersModule.renderAlgorithmsView(state.ui.activeAlgorithmCategoryId);
+        } else {
+            renderers.renderMainView(state.ui.activeTopicId);
+        }
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         ui.showAlert(`Failed to delete problem: ${message}`);
