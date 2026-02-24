@@ -125,6 +125,9 @@ export const state = {
     // DOM elements cache
     elements: {} as Partial<ElementCache>,
 
+    // Track if state has been loaded from storage
+    _hasLoadedFromStorage: false,
+
     // Initialize state
     init() {
         this.loadFromStorage();
@@ -172,6 +175,8 @@ export const state = {
                 (this.user.type === 'signed-in' ? '' : 'Local User');
             this.user.type = (localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE) ||
                 'local') as 'local' | 'signed-in';
+
+            this._hasLoadedFromStorage = true;
         } catch {
             // ignore
         }
@@ -197,6 +202,11 @@ export const state = {
         } catch {
             // ignore
         }
+    },
+
+    // Check if state has valid data (not empty)
+    hasValidData(): boolean {
+        return this.problems.size > 0 || this.deletedProblemIds.size > 0;
     },
 
     // Cache DOM elements

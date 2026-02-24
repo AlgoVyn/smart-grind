@@ -64,6 +64,13 @@ const _setupSignedInUser = async (
     state.user.type = 'signed-in';
     localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
 
+    // CRITICAL: Load state from localStorage BEFORE any API calls
+    // This ensures offline data is available even if API fails
+    // But preserve the user type we just set (don't let localStorage override it)
+    const savedUserType = state.user.type;
+    state.loadFromStorage();
+    state.user.type = savedUserType;
+
     // If token provided, store for Service Worker (IndexedDB, not localStorage)
     if (token) {
         const { storeTokenForServiceWorker } = await import('./sw-auth-storage');

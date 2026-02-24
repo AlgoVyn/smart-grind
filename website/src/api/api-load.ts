@@ -82,8 +82,15 @@ export const _handleApiError = (response: Response): never => {
 
 /**
  * Processes the loaded user data and updates the application state.
+ * Preserves existing local state when offline to prevent data loss.
  */
-export const _processUserData = (userData: UserData): void => {
+export const _processUserData = (userData: UserData, isOfflineFallback = false): void => {
+    // If we're using offline fallback and already have local data, preserve it
+    if (isOfflineFallback && state.problems.size > 0) {
+        console.log('[API Load] Preserving local state during offline reload');
+        return;
+    }
+
     state.problems = new Map(Object.entries(userData.problems || {}));
     state.problems.forEach((p: Problem) => {
         p.loading = false;
@@ -109,6 +116,7 @@ export const _initializeUI = async (): Promise<void> => {
 
 /**
  * Loads user data from the API and initializes the application.
+ * Falls back to localStorage data when offline to preserve state.
  */
 export const loadData = async (): Promise<void> => {
     const { loadingScreen, appWrapper } = state.elements;
@@ -121,7 +129,7 @@ export const loadData = async (): Promise<void> => {
 
         const responseText = await getResponseText(response);
         const userData: UserData = JSON.parse(responseText);
-        _processUserData(userData);
+        _processUserData(userData, false);
 
         data.resetTopicsData();
         await syncPlan();
@@ -129,8 +137,22 @@ export const loadData = async (): Promise<void> => {
 
         await _initializeUI();
     } catch (e) {
-        const { ui } = await import('../ui/ui');
         const message = e instanceof Error ? e.message : String(e);
+        const isNetworkError =
+            message.includes('fetch') || message.includes('network') || !navigator.onLine;
+
+        // If network error and we have local data, preserve it and continue
+        if (isNetworkError && state.problems.size > 0) {
+            console.log('[API Load] Network error - preserving local state');
+            // Don't show error alert for offline mode with existing data
+            data.resetTopicsData();
+            await syncPlan();
+            mergeStructure();
+            await _initializeUI();
+            return;
+        }
+
+        const { ui } = await import('../ui/ui');
         ui.showAlert(`Failed to load data: ${message}`);
 
         const isAuthError =

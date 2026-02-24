@@ -201,10 +201,15 @@ describe('Integration: Authentication Flow', () => {
                 });
             
             // Simulate having userId and displayName in localStorage
-            // First call is for userId, second for displayName
+            // First call is for userId, then displayName
+            // Then loadFromStorage() calls: SIGNED_IN_PROBLEMS, SIGNED_IN_DELETED_IDS, SIGNED_IN_DISPLAY_NAME, smartgrind-user-type
             mockGetItem
-                .mockReturnValueOnce('user123')
-                .mockReturnValueOnce('Test User');
+                .mockReturnValueOnce('user123')  // userId
+                .mockReturnValueOnce('Test User')  // displayName
+                .mockReturnValueOnce(null)  // SIGNED_IN_PROBLEMS
+                .mockReturnValueOnce(null)  // SIGNED_IN_DELETED_IDS
+                .mockReturnValueOnce('Test User')  // SIGNED_IN_DISPLAY_NAME
+                .mockReturnValueOnce('signed-in');  // smartgrind-user-type
             
             // Import and execute auth check
             const { checkAuth } = await import('../../src/init');
@@ -264,9 +269,14 @@ describe('Integration: Authentication Flow', () => {
                 });
             
             // Mock localStorage to return userId for signed-in user check
+            // Then loadFromStorage() calls: SIGNED_IN_PROBLEMS, SIGNED_IN_DELETED_IDS, SIGNED_IN_DISPLAY_NAME, smartgrind-user-type
             mockGetItem
                 .mockReturnValueOnce('user123')  // userId
-                .mockReturnValueOnce('PWA User'); // displayName
+                .mockReturnValueOnce('PWA User')  // displayName
+                .mockReturnValueOnce(null)  // SIGNED_IN_PROBLEMS
+                .mockReturnValueOnce(null)  // SIGNED_IN_DELETED_IDS
+                .mockReturnValueOnce('PWA User')  // SIGNED_IN_DISPLAY_NAME
+                .mockReturnValueOnce('signed-in');  // smartgrind-user-type
             
             // Set up location with query params (simple assignment)
             (window as any).location = {
@@ -330,9 +340,14 @@ describe('Integration: Authentication Flow', () => {
                 });
             
             // Set userId and displayName in localStorage
+            // Then loadFromStorage() calls: SIGNED_IN_PROBLEMS, SIGNED_IN_DELETED_IDS, SIGNED_IN_DISPLAY_NAME, smartgrind-user-type
             mockGetItem
-                .mockReturnValueOnce('newuser')
-                .mockReturnValueOnce('New User');
+                .mockReturnValueOnce('newuser')  // userId
+                .mockReturnValueOnce('New User')  // displayName
+                .mockReturnValueOnce(null)  // SIGNED_IN_PROBLEMS
+                .mockReturnValueOnce(null)  // SIGNED_IN_DELETED_IDS
+                .mockReturnValueOnce('New User')  // SIGNED_IN_DISPLAY_NAME
+                .mockReturnValueOnce('signed-in');  // smartgrind-user-type
             
             const { checkAuth } = await import('../../src/init');
             (window as any).location = { pathname: '/smartgrind/', search: '', href: 'http://localhost/smartgrind/' };
