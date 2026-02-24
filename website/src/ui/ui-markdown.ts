@@ -554,9 +554,12 @@ export const openSolutionModal = (problemId: string) => {
     const isAlgorithm = data.algorithmsData.some((cat) =>
         cat.algorithms.some((algo) => algo.id === problemId)
     );
+    // Strip 'algo-' prefix from algorithm IDs when building file path
+    // Algorithm markdown files don't have the 'algo-' prefix in their filenames
+    const fileId = isAlgorithm ? problemId.replace(/^algo-/, '') : problemId;
     const solutionFile = isAlgorithm
-        ? `${utils.getBaseUrl()}algorithms/${problemId}.md`
-        : `${utils.getBaseUrl()}solutions/${problemId}.md`;
+        ? `${utils.getBaseUrl()}algorithms/${fileId}.md`
+        : `${utils.getBaseUrl()}solutions/${fileId}.md`;
     _loadSolution(
         solutionFile,
         isAlgorithm ? 'Loading algorithm...' : 'Loading solution...',
