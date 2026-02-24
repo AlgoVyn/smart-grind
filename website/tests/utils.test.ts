@@ -112,7 +112,7 @@ describe('SmartGrind Utils', () => {
             window.history.pushState = mockPushState;
 
             utils.updateUrlParameter('category', '');
-            expect(mockPushState).toHaveBeenCalledWith({ path: '/smartgrind' }, '', '/smartgrind');
+            expect(mockPushState).toHaveBeenCalledWith({ path: '/smartgrind/' }, '', '/smartgrind/');
 
             window.history.pushState = originalPushState;
         });

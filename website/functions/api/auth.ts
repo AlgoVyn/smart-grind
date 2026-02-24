@@ -474,7 +474,7 @@ export async function onRequestGet({ request, env }) {
       } else {
         localStorage.setItem('userId', authData.userId);
         localStorage.setItem('displayName', authData.displayName);
-        window.location.href = '/smartgrind';
+        window.location.href = '/smartgrind/';
       }
     </script>
     </body>

@@ -101,7 +101,7 @@ export const utils = {
                 const newPath = `/smartgrind/c/${value}`;
                 window.history.pushState({ path: newPath }, '', newPath);
             } else {
-                const newPath = '/smartgrind';
+                const newPath = '/smartgrind/';
                 window.history.pushState({ path: newPath }, '', newPath);
             }
         } else if (name === 'algorithms') {
@@ -109,7 +109,7 @@ export const utils = {
                 const newPath = `/smartgrind/a/${value}`;
                 window.history.pushState({ path: newPath }, '', newPath);
             } else {
-                const newPath = '/smartgrind';
+                const newPath = '/smartgrind/';
                 window.history.pushState({ path: newPath }, '', newPath);
             }
         } else {
