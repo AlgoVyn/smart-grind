@@ -53,23 +53,24 @@ const _setupSignedInUser = async (
     algorithmsParam: string | null,
     token?: string
 ) => {
+    // CRITICAL: Set user type FIRST before loading from storage
+    // This ensures loadFromStorage() uses the correct SIGNED_IN keys
+    state.user.type = 'signed-in';
+    
     // Store user info in localStorage (not sensitive)
     localStorage.setItem('userId', userId);
     localStorage.setItem('displayName', displayName);
+    localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
 
     state.user.id = userId;
     state.user.displayName = displayName;
     const userDisplayEl = state.elements['userDisplay'];
     if (userDisplayEl) userDisplayEl.innerText = displayName;
-    state.user.type = 'signed-in';
-    localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
 
     // CRITICAL: Load state from localStorage BEFORE any API calls
     // This ensures offline data is available even if API fails
-    // But preserve the user type we just set (don't let localStorage override it)
-    const savedUserType = state.user.type;
+    // User type is already 'signed-in', so it will load from SIGNED_IN keys
     state.loadFromStorage();
-    state.user.type = savedUserType;
 
     // If token provided, store for Service Worker (IndexedDB, not localStorage)
     if (token) {
