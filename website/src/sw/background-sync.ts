@@ -300,10 +300,14 @@ export class BackgroundSyncManager {
             // The app uses cookie-based auth, so we verify the session is still valid
             const isAuthenticated = await this.verifyAuthentication();
             if (!isAuthenticated) {
+                // Calculate truly pending ops (not yet synced, not being retried)
+                const trulyPendingOps = pendingOps.filter((op) => op.retryCount === 0);
+                const trulyPendingCount = trulyPendingOps.length;
+
                 // Notify clients that authentication is required
                 await this.notifyClients('AUTH_REQUIRED', {
                     message: 'Authentication required for sync.',
-                    pendingCount: pendingOps.length,
+                    pendingCount: trulyPendingCount,
                     timestamp: Date.now(),
                 });
                 return;

@@ -1157,8 +1157,8 @@ describe('SmartGrind Renderers', () => {
             const mockEvent = {
                 target: { closest: jest.fn(() => mockBtn) },
             };
-            // Use an algorithm ID that exists in algorithmsData
-            const problem = { id: 'two-pointers', name: 'Two Pointers' };
+            // Use an algorithm ID that exists in algorithmsData (now prefixed with 'algo-')
+            const problem = { id: 'algo-two-pointers', name: 'Two Pointers' };
 
             utils.askAI = jest.fn();
 

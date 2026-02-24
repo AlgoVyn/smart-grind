@@ -352,6 +352,20 @@ export function initOfflineDetection(): () => void {
                         conflictMessage: event.data.data?.message,
                     });
                     break;
+                case 'SYNC_AUTH_REQUIRED':
+                    {
+                        const authData = event.data.data as
+                            | {
+                                  pendingCount?: number;
+                                  message?: string;
+                              }
+                            | undefined;
+                        state.setSyncStatus({
+                            isSyncing: false,
+                            pendingCount: authData?.pendingCount ?? state.getPendingCount(),
+                        });
+                    }
+                    break;
             }
         });
     }

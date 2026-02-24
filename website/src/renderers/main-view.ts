@@ -151,6 +151,7 @@ export const mainViewRenderers = {
 
     // Convert algorithm definition to Problem object
     _algorithmToProblem: (algoDef: AlgorithmDef, categoryId: string): Problem => {
+        // Algorithm IDs are already prefixed with 'algo-' in the data file
         const existingProblem = state.problems.get(algoDef.id);
         if (existingProblem) {
             return existingProblem;

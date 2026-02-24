@@ -164,6 +164,7 @@ export const sidebarRenderers = {
         btn.dataset['categoryId'] = category.id;
 
         // Calculate progress for this category
+        // Algorithm IDs are already prefixed with 'algo-' in the data file
         let solved = 0;
         category.algorithms.forEach((algo) => {
             const problem = state.problems.get(algo.id);
@@ -196,6 +197,7 @@ export const sidebarRenderers = {
         btn.dataset['categoryId'] = 'all';
 
         // Calculate progress for all algorithms
+        // Algorithm IDs are already prefixed with 'algo-' in the data file
         let totalAlgorithms = 0;
         let solvedAlgorithms = 0;
         data.algorithmsData.forEach((category: AlgorithmCategory) => {
