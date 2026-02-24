@@ -37,13 +37,17 @@ export const sidebarRenderers = {
                 utils.scrollToTop();
             };
 
+            // Determine which sections should be expanded based on active view
+            const algorithmsExpanded = !!state.ui.activeAlgorithmCategoryId;
+            const patternsExpanded = !state.ui.activeAlgorithmCategoryId;
+
             // ===========================================
             // ALGORITHMS SECTION (collapsible)
             // ===========================================
             const algorithmsSection = sidebarRenderers.createCollapsibleSection(
                 'algorithms-section',
                 'Algorithms',
-                false // collapsed by default
+                algorithmsExpanded
             );
             fragment.appendChild(algorithmsSection.container);
 
@@ -65,7 +69,7 @@ export const sidebarRenderers = {
             const patternsSection = sidebarRenderers.createCollapsibleSection(
                 'patterns-section',
                 'Patterns',
-                true // expanded by default
+                patternsExpanded
             );
             fragment.appendChild(patternsSection.container);
 
