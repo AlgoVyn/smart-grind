@@ -103,7 +103,7 @@ export const mergeStructure = (): void => {
     });
 
     state.problems.forEach((p: Problem) => {
-        if (!existingIds.has(p.id) && p.topic) {
+        if (!existingIds.has(p.id) && p.topic && p.pattern !== 'Algorithms') {
             // It's a custom problem, add to topicsData
             let topic = data.topicsData.find((t: Topic) => t.title === p.topic);
             if (!topic) {
