@@ -660,13 +660,33 @@ describe('BackgroundSyncManager', () => {
     describe('Get Sync Status', () => {
         it('should return current sync status', async () => {
             mockOperationQueue.getPendingOperations.mockResolvedValue([
-                { id: 'op1' },
-            ] as QueuedOperation[]);
+                { id: 'op1', retryCount: 0 },
+            ] as unknown as QueuedOperation[]);
             mockOperationQueue.getFailedOperations.mockResolvedValue([]);
             mockOperationQueue.getLastSyncTime.mockResolvedValue(1234567890);
 
             const status = await manager.getSyncStatus();
 
+            expect(status).toEqual({
+                pendingCount: 1,
+                isSyncing: false,
+                lastSyncAt: 1234567890,
+                failedCount: 0,
+            });
+        });
+
+        it('should not count operations with retryCount > 0 as pending', async () => {
+            mockOperationQueue.getPendingOperations.mockResolvedValue([
+                { id: 'op1', retryCount: 0 }, // Truly pending (not yet synced)
+                { id: 'op2', retryCount: 1 }, // Being retried (already synced once)
+                { id: 'op3', retryCount: 2 }, // Being retried (already synced once)
+            ] as unknown as QueuedOperation[]);
+            mockOperationQueue.getFailedOperations.mockResolvedValue([]);
+            mockOperationQueue.getLastSyncTime.mockResolvedValue(1234567890);
+
+            const status = await manager.getSyncStatus();
+
+            // Only op1 should count as truly pending
             expect(status).toEqual({
                 pendingCount: 1,
                 isSyncing: false,

@@ -46,9 +46,8 @@ const updateOfflineIndicator = (isOnline: boolean, previousState?: boolean): voi
             elements.offlineIndicator.classList.add('hidden');
         } else {
             elements.offlineIndicator.classList.remove('hidden');
-            // Hide syncing and pending when offline
+            // Hide syncing when offline (can't sync while offline)
             elements.syncingIndicator?.classList.add('hidden');
-            elements.pendingIndicator?.classList.add('hidden');
             // Show toast when going offline
             if (previousState !== false) {
                 utils.showToast(
@@ -78,18 +77,19 @@ const updateSyncingIndicator = (isSyncing: boolean, previousState?: boolean): vo
 
 // Update pending indicator visibility and count
 // Hide when syncing is in progress to avoid UI clutter
+// Show in both online and offline mode to indicate queued changes
 const updatePendingIndicator = (
     pendingCount: number,
-    isOnline: boolean,
+    _isOnline: boolean,
     isSyncing: boolean
 ): void => {
     const elements = getElements();
     if (elements.pendingIndicator && elements.pendingCount) {
         // Only show pending indicator when:
         // 1. There are pending operations
-        // 2. We're online
-        // 3. We're NOT currently syncing (to avoid showing both indicators)
-        if (pendingCount > 0 && isOnline && !isSyncing) {
+        // 2. We're NOT currently syncing (to avoid showing both indicators)
+        // Note: Show in both online and offline mode to indicate queued changes
+        if (pendingCount > 0 && !isSyncing) {
             elements.pendingIndicator.classList.remove('hidden');
             elements.pendingCount.textContent = `${pendingCount} pending`;
         } else {

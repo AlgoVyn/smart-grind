@@ -113,10 +113,11 @@ describe('UI Sync Indicators Module', () => {
             expect(mockElements.pendingIndicator.classList.contains('hidden')).toBe(true);
         });
 
-        test('should hide indicator when offline even with pending count', () => {
-            mockElements.pendingIndicator.classList.remove('hidden');
+        test('should show indicator when offline with pending count', () => {
+            mockElements.pendingIndicator.classList.add('hidden');
             syncIndicators.updatePendingIndicator(5, false);
-            expect(mockElements.pendingIndicator.classList.contains('hidden')).toBe(true);
+            expect(mockElements.pendingIndicator.classList.contains('hidden')).toBe(false);
+            expect(mockElements.pendingCount.textContent).toBe('5 pending');
         });
 
         test('should handle null element gracefully', () => {
@@ -268,7 +269,7 @@ describe('Sync Indicators Integration', () => {
         expect(mockElements.offlineIndicator.classList.contains('hidden')).toBe(false);
     });
 
-    test('should hide pending when offline', () => {
+    test('should show pending when offline', () => {
         state.setSyncStatus({ pendingCount: 5 });
         syncIndicators.updatePendingIndicator(state.getPendingCount(), state.isOnline());
         expect(mockElements.pendingIndicator.classList.contains('hidden')).toBe(false);
@@ -276,6 +277,8 @@ describe('Sync Indicators Integration', () => {
         state.setOnlineStatus(false);
         syncIndicators.updateOfflineIndicator(state.isOnline());
         syncIndicators.updatePendingIndicator(state.getPendingCount(), state.isOnline());
-        expect(mockElements.pendingIndicator.classList.contains('hidden')).toBe(true);
+        // Pending should still show in offline mode to indicate queued changes
+        expect(mockElements.pendingIndicator.classList.contains('hidden')).toBe(false);
+        expect(mockElements.pendingCount.textContent).toBe('5 pending');
     });
 });
