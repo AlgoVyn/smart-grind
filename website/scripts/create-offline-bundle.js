@@ -254,7 +254,7 @@ async function main() {
     
     // Write manifest for quick access (without downloading bundle)
     const manifest = {
-        version: new Date().toISOString().split('T')[0],
+        version: version,
         createdAt: Date.now(),
         bundleUrl: '/offline-bundle.tar.gz',
         bundleSize: compressedBuffer.length,

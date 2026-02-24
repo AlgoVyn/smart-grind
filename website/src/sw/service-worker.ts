@@ -1087,21 +1087,60 @@ async function checkAndDownloadBundle(): Promise<void> {
         });
 
         if (!manifestResponse || !manifestResponse.ok) {
+            console.log('[SW] Bundle manifest not available, skipping download');
             return;
         }
 
         const manifest = await manifestResponse.json();
         const remoteVersion = manifest.version;
 
+        console.log(
+            `[SW] Bundle version check - cached: ${currentState.bundleVersion || 'none'}, remote: ${remoteVersion}`
+        );
+
         // Check if we need to download (no cache or new version)
         if (currentState.status === 'complete' && currentState.bundleVersion === remoteVersion) {
+            console.log('[SW] Bundle is up to date, skipping download');
             return;
         }
 
+        // If we have a different version cached, clear the old cache first
+        if (currentState.bundleVersion && currentState.bundleVersion !== remoteVersion) {
+            console.log(
+                `[SW] Bundle version changed from ${currentState.bundleVersion} to ${remoteVersion}, clearing old cache`
+            );
+            await clearBundleCache();
+        }
+
         // Download the bundle
+        console.log('[SW] Starting bundle download...');
         await downloadAndExtractBundle();
-    } catch {
+    } catch (error) {
+        console.error('[SW] Bundle download check failed:', error);
         throw new Error('Bundle download failed');
+    }
+}
+
+/**
+ * Clear the bundle cache when version changes
+ */
+async function clearBundleCache(): Promise<void> {
+    try {
+        const cache = await caches.open(`${CACHE_NAMES.PROBLEMS}-${CACHE_VERSION}`);
+        const keys = await cache.keys();
+
+        // Delete all cached problem files (patterns, solutions, algorithms)
+        const deletionPromises = keys
+            .filter((request) => {
+                const url = new URL(request.url);
+                return PROBLEM_PATTERNS.some((pattern) => pattern.test(url.pathname));
+            })
+            .map((request) => cache.delete(request));
+
+        await Promise.all(deletionPromises);
+        console.log(`[SW] Cleared ${deletionPromises.length} old bundle files from cache`);
+    } catch (error) {
+        console.error('[SW] Failed to clear bundle cache:', error);
     }
 }
 
@@ -1234,7 +1273,7 @@ async function downloadAndExtractBundle(): Promise<void> {
         await sendProgressUpdate(state);
 
         console.log(
-            `[SW] Compressed bundle downloaded and extracted successfully: ${state.extractedFiles} files`
+            `[SW] Compressed bundle downloaded and extracted successfully: ${state.extractedFiles} files (version: ${state.bundleVersion})`
         );
 
         // Notify clients that bundle is ready
