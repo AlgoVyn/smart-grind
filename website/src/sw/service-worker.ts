@@ -770,8 +770,20 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
             if (messageData.assets && Array.isArray(messageData.assets)) {
                 event.waitUntil(
                     (async () => {
-                        const cache = await caches.open(CACHE_NAMES.STATIC);
-                        await cache.addAll(messageData.assets);
+                        const cache = await caches.open(`${CACHE_NAMES.STATIC}-${CACHE_VERSION}`);
+                        // Cache assets individually to prevent one failure from failing the entire batch
+                        await Promise.allSettled(
+                            messageData.assets.map(async (assetUrl: string) => {
+                                try {
+                                    const response = await fetch(assetUrl);
+                                    if (response.ok) {
+                                        await cache.put(assetUrl, response);
+                                    }
+                                } catch {
+                                    // Individual asset fetch failed - continue with other assets
+                                }
+                            })
+                        );
                     })()
                 );
             }

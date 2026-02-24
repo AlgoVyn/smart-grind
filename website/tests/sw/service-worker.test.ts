@@ -764,12 +764,17 @@ describe('Service Worker', () => {
         });
 
         it('should handle CACHE_ASSETS message', async () => {
-            const cacheAddAll = jest.fn().mockResolvedValue(undefined);
-            const mockCache = { addAll: cacheAddAll };
+            const cachePut = jest.fn().mockResolvedValue(undefined);
+            const mockCache = { put: cachePut };
 
             (global.caches as unknown as { open: jest.Mock }).open = jest
                 .fn()
                 .mockResolvedValue(mockCache);
+
+            // Mock fetch for each asset
+            global.fetch = jest.fn().mockResolvedValue(
+                new Response('mock content', { status: 200, ok: true })
+            );
 
             await jest.isolateModules(async () => {
                 await import('../../src/sw/service-worker');
@@ -794,10 +799,10 @@ describe('Service Worker', () => {
                 const promise = (_event.waitUntil as jest.Mock).mock.calls[0][0];
                 await promise;
 
-                expect(cacheAddAll).toHaveBeenCalledWith([
-                    '/smartgrind/app.js',
-                    '/smartgrind/styles.css',
-                ]);
+                // Verify fetch was called for each asset
+                expect(global.fetch).toHaveBeenCalledTimes(2);
+                // Verify cache.put was called for each successful fetch
+                expect(cachePut).toHaveBeenCalledTimes(2);
             }
         });
 
