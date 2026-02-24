@@ -53,10 +53,10 @@ const _setupSignedInUser = async (
     algorithmsParam: string | null,
     token?: string
 ) => {
-    // CRITICAL: Set user type FIRST before loading from storage
+    // CRITICAL FIX: Set user type FIRST before loading from storage
     // This ensures loadFromStorage() uses the correct SIGNED_IN keys
     state.user.type = 'signed-in';
-    
+
     // Store user info in localStorage (not sensitive)
     localStorage.setItem('userId', userId);
     localStorage.setItem('displayName', displayName);
@@ -67,7 +67,7 @@ const _setupSignedInUser = async (
     const userDisplayEl = state.elements['userDisplay'];
     if (userDisplayEl) userDisplayEl.innerText = displayName;
 
-    // CRITICAL: Load state from localStorage BEFORE any API calls
+    // CRITICAL FIX: Load state from localStorage BEFORE any API calls
     // This ensures offline data is available even if API fails
     // User type is already 'signed-in', so it will load from SIGNED_IN keys
     state.loadFromStorage();
@@ -76,6 +76,41 @@ const _setupSignedInUser = async (
     if (token) {
         const { storeTokenForServiceWorker } = await import('./sw-auth-storage');
         await storeTokenForServiceWorker(token);
+    }
+
+    // CRITICAL FIX: If offline and we have valid local data, skip API calls entirely
+    // This prevents fetch failures from causing any state issues
+    if (!navigator.onLine && state.hasValidData()) {
+        console.log('[Init] Offline with valid local data - skipping API calls');
+        const { ui } = await import('./ui/ui');
+        const { renderers } = await import('./renderers');
+        const { api } = await import('./api');
+
+        // Initialize app with local data only (similar to initializeLocalUser but preserves signed-in state)
+        data.resetTopicsData();
+
+        try {
+            // Sync with static plan to ensure all problems exist
+            await api.syncPlan();
+        } catch (e) {
+            console.error('Error syncing plan:', e);
+        }
+
+        // Merge dynamically added problems into topicsData structure
+        api.mergeStructure();
+
+        renderers.renderSidebar();
+        renderers.renderMainView(state.ui.activeTopicId);
+        renderers.updateStats();
+        ui.initScrollButton();
+        ui.updateAuthUI();
+
+        state.elements.setupModal?.classList.add('hidden');
+        state.elements.appWrapper?.classList.remove('hidden');
+        state.elements.loadingScreen?.classList.add('hidden');
+
+        await _applyCategory(categoryParam, algorithmsParam);
+        return;
     }
 
     // Fetch CSRF token for state-changing operations
