@@ -85,6 +85,49 @@ export default defineConfig({
                 }
             },
         },
+        {
+            name: 'inject-sw-version',
+            closeBundle() {
+                // Inject version into service worker after build
+                // This ensures cache busting happens automatically on every build
+                const distPath = path.resolve(__dirname, 'dist');
+                const swFile = path.join(distPath, 'smartgrind', 'sw.js');
+                const packageJsonPath = path.resolve(__dirname, 'package.json');
+                
+                if (!fs.existsSync(swFile)) {
+                    return; // SW file doesn't exist, skip
+                }
+                
+                try {
+                    // Generate version from package.json + timestamp
+                    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+                    const baseVersion = packageJson.version || '1.0.0';
+                    
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                    const day = String(now.getDate()).padStart(2, '0');
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    const seconds = String(now.getSeconds()).padStart(2, '0');
+                    const buildTimestamp = `${year}${month}${day}.${hours}${minutes}${seconds}`;
+                    const version = `${baseVersion}+${buildTimestamp}`;
+                    
+                    // Read and update SW file
+                    const swContent = fs.readFileSync(swFile, 'utf-8');
+                    const updatedContent = swContent.replace(
+                        /const\s+SW_VERSION\s*=\s*['"][^'"]+['"]/,
+                        `const SW_VERSION = '${version}'`
+                    );
+                    
+                    fs.writeFileSync(swFile, updatedContent);
+                    console.log(`[vite] Service worker version injected: ${version}`);
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    console.warn('[vite] Failed to inject SW version:', errorMessage);
+                }
+            },
+        },
     ],
     server: {
         port: 3000,

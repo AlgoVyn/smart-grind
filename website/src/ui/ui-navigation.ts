@@ -61,29 +61,17 @@ export const bindNavigationEvents = () => {
         themeToggleBtn.addEventListener('click', toggleTheme);
     }
 
-    // Mobile menu
-    const mobileMenuBtn = state.elements['mobileMenuBtn'];
-    if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
-    }
-    const mobileMenuBtnMain = state.elements['mobileMenuBtnMain'];
-    if (mobileMenuBtnMain) {
-        mobileMenuBtnMain.addEventListener('click', toggleMobileMenu);
-    }
-    const sidebarBackdrop = state.elements['sidebarBackdrop'];
-    if (sidebarBackdrop) {
-        sidebarBackdrop.addEventListener('click', toggleMobileMenu);
-    }
+    // Mobile menu - bind same handler to multiple elements
+    [
+        state.elements['mobileMenuBtn'],
+        state.elements['mobileMenuBtnMain'],
+        state.elements['sidebarBackdrop'],
+    ].forEach((el) => el?.addEventListener('click', toggleMobileMenu));
 
-    // Logo clicks
-    const sidebarLogo = state.elements['sidebarLogo'];
-    if (sidebarLogo) {
-        sidebarLogo.addEventListener('click', loadDefaultView);
-    }
-    const mobileLogo = state.elements['mobileLogo'];
-    if (mobileLogo) {
-        mobileLogo.addEventListener('click', loadDefaultView);
-    }
+    // Logo clicks - bind same handler to both logos
+    [state.elements['sidebarLogo'], state.elements['mobileLogo']].forEach((el) =>
+        el?.addEventListener('click', loadDefaultView)
+    );
 };
 
 // Toggle date filter visibility based on current filter

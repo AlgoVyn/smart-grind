@@ -96,31 +96,22 @@ export const utils = {
      * // Result: URL changes to /smartgrind/a/arrays-strings
      */
     updateUrlParameter: (name: string, value: string | null) => {
-        if (name === 'category') {
-            if (value && value !== 'all') {
-                const newPath = `/smartgrind/c/${value}`;
-                window.history.pushState({ path: newPath }, '', newPath);
-            } else {
-                const newPath = '/smartgrind/';
-                window.history.pushState({ path: newPath }, '', newPath);
-            }
-        } else if (name === 'algorithms') {
-            if (value && value !== 'all') {
-                const newPath = `/smartgrind/a/${value}`;
-                window.history.pushState({ path: newPath }, '', newPath);
-            } else {
-                const newPath = '/smartgrind/';
-                window.history.pushState({ path: newPath }, '', newPath);
-            }
+        // Handle SEO-friendly path-based URLs for category and algorithms
+        const pathParams: Record<string, string> = { category: 'c', algorithms: 'a' };
+
+        if (name in pathParams) {
+            const prefix = pathParams[name];
+            const newPath =
+                value && value !== 'all' ? `/smartgrind/${prefix}/${value}` : '/smartgrind/';
+            window.history.pushState({ path: newPath }, '', newPath);
         } else {
+            // Handle query string parameters
             const urlParams = new URLSearchParams(window.location.search);
             if (value) {
                 urlParams.set(name, value);
             } else {
                 urlParams.delete(name);
             }
-
-            // Use history.pushState to update URL without page reload
             const newUrl =
                 window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
             window.history.pushState({ path: newUrl }, '', newUrl);

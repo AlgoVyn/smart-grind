@@ -6,8 +6,21 @@ import { openPatternSolutionModal } from './ui-markdown';
 
 // Bind problem-related events
 export const bindProblemEvents = () => {
-    // Event delegation for problem card buttons
+    // Single event delegation handler for all problem container clicks
     state.elements['problemsContainer']?.addEventListener('click', (e: MouseEvent) => {
+        // Check for pattern solution buttons first
+        const patternSolutionButton = (e.target as Element).closest(
+            'button[data-action="pattern-solution"]'
+        ) as HTMLElement | null;
+        if (patternSolutionButton) {
+            const patternName = patternSolutionButton.dataset['pattern'];
+            if (patternName) {
+                openPatternSolutionModal(patternName);
+            }
+            return;
+        }
+
+        // Handle problem card buttons
         const button = (e.target as Element).closest('button[data-action]');
         if (!button) return;
 
@@ -18,22 +31,8 @@ export const bindProblemEvents = () => {
         if (!problemId) return;
 
         const foundProblem = state.problems.get(problemId);
-
         if (foundProblem) {
             renderers.handleProblemCardClick(button as HTMLElement, foundProblem);
-        }
-    });
-
-    // Event delegation for pattern solution buttons (outside problem cards)
-    state.elements['problemsContainer']?.addEventListener('click', (e: MouseEvent) => {
-        const patternSolutionButton = (e.target as Element).closest(
-            'button[data-action="pattern-solution"]'
-        );
-        if (!patternSolutionButton) return;
-
-        const patternName = (patternSolutionButton as HTMLElement).dataset['pattern'];
-        if (patternName) {
-            openPatternSolutionModal(patternName);
         }
     });
 };

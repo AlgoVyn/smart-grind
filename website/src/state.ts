@@ -211,92 +211,98 @@ export const state = {
 
     // Cache DOM elements
     cacheElements(): void {
-        // Element configurations: { id, type? }
-        // type: 'input' -> HTMLInputElement, 'select' -> HTMLSelectElement, undefined -> HTMLElement
-        const elementConfigs: Array<{ id: string; type?: 'input' | 'select' }> = [
-            // Modals
-            { id: 'setup-modal' },
-            { id: 'add-problem-modal' },
-            { id: 'signin-modal' },
-            { id: 'signin-modal-content' },
-            { id: 'alert-modal' },
-            { id: 'confirm-modal' },
-            { id: 'alert-message' },
-            { id: 'confirm-message' },
-            { id: 'alert-title' },
-            { id: 'confirm-title' },
-            { id: 'alert-ok-btn' },
-            { id: 'confirm-ok-btn' },
-            { id: 'confirm-cancel-btn' },
-            { id: 'solution-modal' },
-            { id: 'solution-close-btn' },
-            // App structure
-            { id: 'app-wrapper' },
-            { id: 'loading-screen' },
-            { id: 'topic-list' },
-            { id: 'problems-container' },
-            { id: 'content-scroll' },
-            { id: 'empty-state' },
-            { id: 'current-view-title' },
-            // Auth elements
-            { id: 'google-login-button' },
-            { id: 'modal-google-login-button' },
-            { id: 'setup-error' },
-            { id: 'signin-error' },
-            { id: 'user-display' },
-            { id: 'disconnect-btn' },
-            // Stats elements
-            { id: 'sidebar-total-stat' },
-            { id: 'sidebar-total-bar' },
-            { id: 'stat-total' },
-            { id: 'stat-solved' },
-            { id: 'progress-bar-solved' },
-            { id: 'stat-due' },
-            { id: 'stat-due-badge' },
-            { id: 'review-banner' },
-            { id: 'review-count-banner' },
-            // Navigation & controls
-            { id: 'mobile-menu-btn' },
-            { id: 'mobile-menu-btn-main' },
-            { id: 'open-add-modal-btn' },
-            { id: 'cancel-add-btn' },
-            { id: 'save-add-btn' },
-            { id: 'theme-toggle-btn' },
-            { id: 'scroll-to-top-btn' },
-            { id: 'sidebar-logo' },
-            { id: 'mobile-logo' },
-            { id: 'main-sidebar' },
-            { id: 'sidebar-resizer' },
-            { id: 'sidebar-backdrop' },
-            { id: 'date-filter-container' },
-            { id: 'toast-container' },
-            // Form inputs
-            { id: 'add-prob-name', type: 'input' },
-            { id: 'add-prob-url', type: 'input' },
-            { id: 'add-prob-category-new', type: 'input' },
-            { id: 'add-prob-pattern-new', type: 'input' },
-            { id: 'problem-search', type: 'input' },
-            // Form selects
-            { id: 'add-prob-category', type: 'select' },
-            { id: 'add-prob-pattern', type: 'select' },
-            { id: 'review-date-filter', type: 'select' },
+        // Simple element IDs (HTMLElement)
+        const elementIds = [
+            'setup-modal',
+            'add-problem-modal',
+            'signin-modal',
+            'signin-modal-content',
+            'alert-modal',
+            'confirm-modal',
+            'alert-message',
+            'confirm-message',
+            'alert-title',
+            'confirm-title',
+            'alert-ok-btn',
+            'confirm-ok-btn',
+            'confirm-cancel-btn',
+            'solution-modal',
+            'solution-close-btn',
+            'app-wrapper',
+            'loading-screen',
+            'topic-list',
+            'problems-container',
+            'content-scroll',
+            'empty-state',
+            'current-view-title',
+            'google-login-button',
+            'modal-google-login-button',
+            'setup-error',
+            'signin-error',
+            'user-display',
+            'disconnect-btn',
+            'sidebar-total-stat',
+            'sidebar-total-bar',
+            'stat-total',
+            'stat-solved',
+            'progress-bar-solved',
+            'stat-due',
+            'stat-due-badge',
+            'review-banner',
+            'review-count-banner',
+            'mobile-menu-btn',
+            'mobile-menu-btn-main',
+            'open-add-modal-btn',
+            'cancel-add-btn',
+            'save-add-btn',
+            'theme-toggle-btn',
+            'scroll-to-top-btn',
+            'sidebar-logo',
+            'mobile-logo',
+            'main-sidebar',
+            'sidebar-resizer',
+            'sidebar-backdrop',
+            'date-filter-container',
+            'toast-container',
         ];
+
+        // Input element IDs (HTMLInputElement)
+        const inputIds = [
+            'add-prob-name',
+            'add-prob-url',
+            'add-prob-category-new',
+            'add-prob-pattern-new',
+            'problem-search',
+        ];
+
+        // Select element IDs (HTMLSelectElement)
+        const selectIds = ['add-prob-category', 'add-prob-pattern', 'review-date-filter'];
 
         const elements: Partial<ElementCache> = {};
 
-        for (const { id, type } of elementConfigs) {
-            const key = id.replace(/-([a-z])/g, (_, c) => c.toUpperCase()) as keyof ElementCache;
-            const el = document.getElementById(id);
-            (elements as Record<string, HTMLElement | HTMLInputElement | HTMLSelectElement | null>)[
-                key
-            ] =
-                type === 'input'
-                    ? (el as HTMLInputElement | null)
-                    : type === 'select'
-                      ? (el as HTMLSelectElement | null)
-                      : el;
+        // Helper to convert kebab-case to camelCase
+        const toCamelCase = (id: string) =>
+            id.replace(/-([a-z])/g, (_, c) => c.toUpperCase()) as keyof ElementCache;
+
+        // Cache simple elements
+        for (const id of elementIds) {
+            (elements as Record<string, HTMLElement | null>)[toCamelCase(id)] =
+                document.getElementById(id);
         }
 
+        // Cache input elements
+        for (const id of inputIds) {
+            (elements as Record<string, HTMLInputElement | null>)[toCamelCase(id)] =
+                document.getElementById(id) as HTMLInputElement | null;
+        }
+
+        // Cache select elements
+        for (const id of selectIds) {
+            (elements as Record<string, HTMLSelectElement | null>)[toCamelCase(id)] =
+                document.getElementById(id) as HTMLSelectElement | null;
+        }
+
+        // Cache collections
         elements['filterBtns'] = document.querySelectorAll('.filter-btn');
         this.elements = elements;
     },

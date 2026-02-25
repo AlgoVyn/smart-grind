@@ -111,7 +111,7 @@ export const initializeLocalUser = async () => {
  */
 const sanitizeExportData = (data: unknown): unknown => {
     if (typeof data === 'string') {
-        // Remove control characters and limit length
+        // Remove control characters and limit length (more permissive than sanitizeInput for export)
         return data.replace(/[\x00-\x1F\x7F]/g, '').substring(0, 10000);
     }
     if (Array.isArray(data)) {

@@ -145,27 +145,32 @@ export const statsRenderers = {
             statsCache.set(topic.id, utils.getUniqueProblemsForTopic(topic.id));
         });
 
-        // Update all topic buttons in a single pass using dataset (compatible with mock)
+        // Update all topic buttons in a single pass
         const topicBtns = document.querySelectorAll('.sidebar-link[data-topic-id]');
         topicBtns.forEach((btn) => {
             const htmlBtn = btn as HTMLElement;
-            const topicId = htmlBtn.dataset['topicId']; // Use dataset instead of getAttribute
+            const topicId = htmlBtn.dataset['topicId'];
             const stats = topicId ? statsCache.get(topicId) : null;
             if (stats) {
                 const pct = stats.total > 0 ? Math.round((stats.solved / stats.total) * 100) : 0;
-                const pctSpan = htmlBtn.querySelector('span:last-child');
-                if (pctSpan) {
-                    pctSpan.textContent = `${pct}%`;
-                    pctSpan.className =
-                        pct === 100
-                            ? 'text-[10px] text-green-400 font-mono min-w-[24px] text-right transition-colors'
-                            : 'text-[10px] text-theme-muted group-hover:text-theme-base font-mono min-w-[24px] text-right transition-colors';
-                }
+                statsRenderers._updateButtonPercentage(htmlBtn, pct);
             }
         });
 
         // Update algorithm category buttons
         statsRenderers._updateAlgorithmSidebarStats();
+    },
+
+    // Helper to update percentage span on a button
+    _updateButtonPercentage: (btn: HTMLElement, pct: number) => {
+        const pctSpan = btn.querySelector('span:last-child');
+        if (pctSpan) {
+            pctSpan.textContent = `${pct}%`;
+            pctSpan.className =
+                pct === 100
+                    ? 'text-[10px] text-green-400 font-mono min-w-[24px] text-right transition-colors'
+                    : 'text-[10px] text-theme-muted group-hover:text-theme-base font-mono min-w-[24px] text-right transition-colors';
+        }
     },
 
     // Update algorithm category sidebar stats
@@ -178,16 +183,7 @@ export const statsRenderers = {
 
             const stats = statsRenderers._getAlgorithmCategoryStats(categoryId);
             const pct = stats.total > 0 ? Math.round((stats.solved / stats.total) * 100) : 0;
-
-            // Find the percentage span (last span in the button)
-            const pctSpan = htmlBtn.querySelector('span:last-child');
-            if (pctSpan) {
-                pctSpan.textContent = `${pct}%`;
-                pctSpan.className =
-                    pct === 100
-                        ? 'text-[10px] text-green-400 font-mono min-w-[24px] text-right transition-colors'
-                        : 'text-[10px] text-theme-muted group-hover:text-theme-base font-mono min-w-[24px] text-right transition-colors';
-            }
+            statsRenderers._updateButtonPercentage(htmlBtn, pct);
         });
     },
 
