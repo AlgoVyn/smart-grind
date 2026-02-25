@@ -86,7 +86,7 @@ export const exportProgress = () => {
         exportDate: new Date().toISOString(),
         version: '1.0',
         problems: Object.fromEntries(state.problems),
-        deletedIds: Array.from(state.deletedProblemIds),
+        deletedIds: [...state.deletedProblemIds],
     };
 
     // Deep sanitize all user-provided data
@@ -113,7 +113,7 @@ export const exportProgress = () => {
 export const getCategoryStats = (
     categoryId: string
 ): { total: number; solved: number; unsolved: number; due: number; progress: number } => {
-    const allProblems = Array.from(state.problems.values());
+    const allProblems = [...state.problems.values()];
     const categoryProblems =
         categoryId === 'all'
             ? allProblems
@@ -142,7 +142,7 @@ export const getCategoryStats = (
  * @returns Array of problems in the category
  */
 export const getProblemsByCategory = (categoryId: string) => {
-    const allProblems = Array.from(state.problems.values());
+    const allProblems = [...state.problems.values()];
     if (categoryId === 'all') {
         return allProblems;
     }
@@ -156,7 +156,7 @@ export const getProblemsByCategory = (categoryId: string) => {
  * @returns Array of all problems
  */
 export const getAllProblems = () => {
-    return Array.from(state.problems.values());
+    return [...state.problems.values()];
 };
 
 export const app = {

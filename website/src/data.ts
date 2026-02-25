@@ -9,6 +9,19 @@ import {
     AlgorithmCategory,
 } from './data/algorithms-data';
 
+/**
+ * Deep clone utility that works in both browser and Node.js environments.
+ * Uses structuredClone when available (modern browsers), falls back to
+ * JSON methods for test environments.
+ */
+const deepClone = <T>(obj: T): T => {
+    if (typeof structuredClone === 'function') {
+        return structuredClone(obj);
+    }
+    // Fallback for Node.js test environment
+    return JSON.parse(JSON.stringify(obj));
+};
+
 // Static problem data organized by topic (now imported from problems-data.ts)
 export const data = {
     // Cloudflare API base
@@ -26,9 +39,8 @@ export const data = {
     // Initialize data module
     init: function () {
         if (!this.ORIGINAL_TOPICS_DATA) {
-            // Use JSON methods for deep cloning since we only have plain data (strings, objects, arrays)
-            // This preserves the exact data structure including union types
-            this.ORIGINAL_TOPICS_DATA = JSON.parse(JSON.stringify(this.topicsData));
+            // Use deepClone for efficient deep cloning of plain data
+            this.ORIGINAL_TOPICS_DATA = deepClone(this.topicsData);
         }
     },
 
@@ -36,8 +48,8 @@ export const data = {
     resetTopicsData: function () {
         // Ensure ORIGINAL_TOPICS_DATA is initialized before use
         if (this.ORIGINAL_TOPICS_DATA) {
-            // Use JSON methods for deep cloning since we only have plain data
-            this.topicsData = JSON.parse(JSON.stringify(this.ORIGINAL_TOPICS_DATA));
+            // Use deepClone for efficient deep cloning
+            this.topicsData = deepClone(this.ORIGINAL_TOPICS_DATA);
         }
     },
 

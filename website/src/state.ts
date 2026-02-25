@@ -166,13 +166,13 @@ export const state = {
     saveToStorage(): void {
         const keys = this._getStorageKeys();
         const problemsWithoutLoading = Object.fromEntries(
-            Array.from(this.problems.entries()).map(([id, p]) => {
+            [...this.problems.entries()].map(([id, p]) => {
                 const { loading: _, noteVisible: __, ...rest } = p;
                 return [id, rest];
             })
         );
         safeSetItem(keys.problems, problemsWithoutLoading);
-        safeSetItem(keys.deletedIds, Array.from(this.deletedProblemIds));
+        safeSetItem(keys.deletedIds, [...this.deletedProblemIds]);
         setStringItem(keys.displayName, this.user.displayName);
         setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
     },

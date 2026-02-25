@@ -22,11 +22,12 @@ let pendingSyncData: UserData | null = null;
  */
 const prepareDataForSave = (): UserData => ({
     problems: Object.fromEntries(
-        Array.from(state.problems.entries()).map(
-            ([id, { loading: _, noteVisible: __, ...rest }]) => [id, rest]
-        )
+        [...state.problems.entries()].map(([id, { loading: _, noteVisible: __, ...rest }]) => [
+            id,
+            rest,
+        ])
     ),
-    deletedIds: Array.from(state.deletedProblemIds),
+    deletedIds: [...state.deletedProblemIds],
 });
 
 /**

@@ -287,20 +287,22 @@ const handleProblemCardClick = async (e: Event | HTMLElement, p: Problem): Promi
     const action = button.dataset['action'];
     if (!action) return;
 
+    // Get reference to the exported object for test spying
+    const renderers = problemCardRenderers;
+
     // Use exported methods so tests can spy on them
     const actionHandlers: Record<string, () => void | Promise<void>> = {
-        solve: () => problemCardRenderers._handleSolve(button, p),
-        review: () => problemCardRenderers._handleReview(button, p),
-        reset: () => problemCardRenderers._handleReset(button, p),
-        delete: () => problemCardRenderers._handleDeleteAction(p),
-        note: () => problemCardRenderers._handleNoteToggle(button, p),
-        'save-note': () => problemCardRenderers._handleNoteSave(button, p),
-        'ask-chatgpt': () => problemCardRenderers._handleAIActions(p, 'ask-chatgpt'),
-        'ask-aistudio': () => problemCardRenderers._handleAIActions(p, 'ask-aistudio'),
-        'ask-grok': () => problemCardRenderers._handleAIActions(p, 'ask-grok'),
-        solution: () => problemCardRenderers._handleSolutionActions(button, p, 'solution'),
-        'pattern-solution': () =>
-            problemCardRenderers._handleSolutionActions(button, p, 'pattern-solution'),
+        solve: () => renderers._handleSolve(button, p),
+        review: () => renderers._handleReview(button, p),
+        reset: () => renderers._handleReset(button, p),
+        delete: () => renderers._handleDeleteAction(p),
+        note: () => renderers._handleNoteToggle(button, p),
+        'save-note': () => renderers._handleNoteSave(button, p),
+        'ask-chatgpt': () => renderers._handleAIActions(p, 'ask-chatgpt'),
+        'ask-aistudio': () => renderers._handleAIActions(p, 'ask-aistudio'),
+        'ask-grok': () => renderers._handleAIActions(p, 'ask-grok'),
+        solution: () => renderers._handleSolutionActions(button, p, 'solution'),
+        'pattern-solution': () => renderers._handleSolutionActions(button, p, 'pattern-solution'),
     };
 
     await actionHandlers[action]?.();
