@@ -95,12 +95,10 @@ jest.mock('../src/ui/ui', () => ({
 }));
 
 jest.mock('../src/utils', () => ({
-    utils: {
-        scrollToTop: jest.fn(),
-        sanitizeInput: jest.fn((input) => input),
-        updateUrlParameter: jest.fn(),
-        showToast: jest.fn(),
-    },
+    scrollToTop: jest.fn(),
+    sanitizeInput: jest.fn((input) => input),
+    updateUrlParameter: jest.fn(),
+    showToast: jest.fn(),
 }));
 
 // Import after mocks
@@ -110,7 +108,7 @@ import { data } from '../src/data';
 import { api } from '../src/api';
 import { renderers } from '../src/renderers';
 import { ui } from '../src/ui/ui';
-import { utils } from '../src/utils';
+import { showToast } from '../src/utils';
 
 describe('App Module', () => {
     beforeEach(() => {
@@ -303,7 +301,7 @@ describe('App Module', () => {
         test('should show success toast', () => {
             exportProgress();
 
-            expect(utils.showToast).toHaveBeenCalledWith(
+            expect(showToast).toHaveBeenCalledWith(
                 'Progress exported successfully!',
                 'success'
             );
@@ -317,7 +315,7 @@ describe('App Module', () => {
 
             expect(mockCreateElement).toHaveBeenCalledWith('a');
             expect(mockClick).toHaveBeenCalled();
-            expect(utils.showToast).toHaveBeenCalledWith(
+            expect(showToast).toHaveBeenCalledWith(
                 'Progress exported successfully!',
                 'success'
             );
@@ -372,7 +370,7 @@ describe('App Module', () => {
             app.exportProgress();
 
             expect(mockCreateElement).toHaveBeenCalledWith('a');
-            expect(utils.showToast).toHaveBeenCalled();
+            expect(showToast).toHaveBeenCalled();
         });
     });
 

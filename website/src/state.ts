@@ -114,13 +114,13 @@ export const state = {
 
     // Update user state
     setUser(userData: Partial<User>): void {
-        Object.assign(this.user, userData);
+        this.user = { ...this.user, ...userData };
         this.saveToStorage();
     },
 
     // Update UI state
     setUI(uiData: Partial<UIState>): void {
-        Object.assign(this.ui, uiData);
+        this.ui = { ...this.ui, ...uiData };
     },
 
     // Update sync status
@@ -133,7 +133,7 @@ export const state = {
             conflictMessage: string | null;
         }>
     ): void {
-        Object.assign(this.sync, status);
+        this.sync = { ...this.sync, ...status };
         this.emitSyncStatusChange();
     },
 

@@ -7,7 +7,7 @@ import { data } from '../data';
 import { ALGORITHMS_DATA, AlgorithmCategory } from '../data/algorithms-data';
 import { ui } from '../ui/ui';
 import { renderers } from '../renderers';
-import { utils } from '../utils';
+import { updateUrlParameter, showToast } from '../utils';
 import { saveData } from './api-save';
 
 /**
@@ -95,7 +95,7 @@ export const _removeAlgorithmCategoryAndProblems = (categoryId: string, category
 export const _handleActiveTopicSwitch = (topicId: string) => {
     if (state.ui.activeTopicId === topicId) {
         state.ui.activeTopicId = 'all';
-        utils.updateUrlParameter('category', null);
+        updateUrlParameter('category', null);
     }
 };
 
@@ -141,7 +141,7 @@ export const deleteCategory = async (topicId: string): Promise<void> => {
         // Re-render
         renderers.renderSidebar();
         renderers.renderMainView(state.ui.activeTopicId);
-        utils.showToast('Category and associated problems removed');
+        showToast('Category and associated problems removed');
     } catch (e) {
         // Restore original state on failure
         _restoreOriginalState(originalState);
@@ -181,7 +181,7 @@ export const deleteAlgorithmCategory = async (categoryId: string): Promise<void>
         // Re-render algorithms view to show updated state
         const { renderers: renderersModule } = await import('../renderers');
         await renderersModule.renderAlgorithmsView(categoryId);
-        utils.showToast('Algorithm category and associated algorithms removed');
+        showToast('Algorithm category and associated algorithms removed');
     } catch (e) {
         // Restore original state on failure
         _restoreOriginalState(originalState);

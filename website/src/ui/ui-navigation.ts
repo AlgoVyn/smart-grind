@@ -2,7 +2,13 @@
 
 import { state } from '../state';
 import { renderers } from '../renderers';
-import { utils } from '../utils';
+import {
+    getToday,
+    formatDate,
+    getAvailableReviewDates,
+    updateUrlParameter,
+    scrollToTop,
+} from '../utils';
 
 // Bind navigation-related events
 export const bindNavigationEvents = () => {
@@ -87,9 +93,9 @@ export const populateDateFilter = () => {
     const reviewDateFilter = state.elements['reviewDateFilter'];
     if (!reviewDateFilter) return;
 
-    const today = utils.getToday();
+    const today = getToday();
     const currentFilter = state.ui.currentFilter;
-    const availableDates = utils.getAvailableReviewDates(today, currentFilter);
+    const availableDates = getAvailableReviewDates(today, currentFilter);
 
     // Save current selection
     const currentSelection = reviewDateFilter.value;
@@ -101,7 +107,7 @@ export const populateDateFilter = () => {
     availableDates.forEach((date: string) => {
         const option = document.createElement('option');
         option.value = date;
-        option.textContent = utils.formatDate(date);
+        option.textContent = formatDate(date);
         reviewDateFilter.appendChild(option);
     });
 
@@ -150,9 +156,9 @@ export const toggleMobileMenu = () => {
 export const loadDefaultView = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (renderers as any).setActiveTopic('all');
-    utils.updateUrlParameter('category', null);
+    updateUrlParameter('category', null);
     renderers.renderMainView('all');
-    utils.scrollToTop();
+    scrollToTop();
     // Close mobile menu if open
     const mainSidebar = state.elements['mainSidebar'];
     if (window.innerWidth < 768 && mainSidebar && mainSidebar.classList.contains('translate-x-0')) {

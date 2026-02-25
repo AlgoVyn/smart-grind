@@ -4,7 +4,14 @@
 import { Problem } from '../types';
 import { htmlGenerators } from './html-generators';
 import { api } from '../api';
-import { utils } from '../utils';
+import {
+    getToday,
+    getNextReviewDate,
+    showToast,
+    sanitizeInput,
+    shouldShowProblem,
+    askAI,
+} from '../utils';
 import { data } from '../data';
 import { state } from '../state';
 
@@ -113,11 +120,11 @@ const performStatusChange = async (
         };
 
         await api.saveProblemWithSync(problem.id, updates);
-        if (successMessage) utils.showToast(successMessage, 'success');
+        if (successMessage) showToast(successMessage, 'success');
     } catch (error) {
         Object.assign(problem, original);
         const msg = error instanceof Error ? error.message : String(error);
-        utils.showToast(errorMessage || `Failed to update problem: ${msg}`, 'error');
+        showToast(errorMessage || `Failed to update problem: ${msg}`, 'error');
     } finally {
         clearTimeout(timeoutId);
         problem.loading = false;
@@ -131,16 +138,16 @@ const performStatusChange = async (
 
 // Status change handlers
 const handleSolve = async (button: HTMLElement, p: Problem): Promise<void> => {
-    const today = utils.getToday();
+    const today = getToday();
     await performStatusChange(button, p, (prob) => {
         prob.status = 'solved';
         prob.reviewInterval = 0;
-        prob.nextReviewDate = utils.getNextReviewDate(today, 0);
+        prob.nextReviewDate = getNextReviewDate(today, 0);
     });
 };
 
 const handleReview = async (button: HTMLElement, p: Problem): Promise<void> => {
-    const today = utils.getToday();
+    const today = getToday();
     const newInterval = (p.reviewInterval || 0) + 1;
     await performStatusChange(
         button,
@@ -148,11 +155,11 @@ const handleReview = async (button: HTMLElement, p: Problem): Promise<void> => {
         (prob) => {
             prob.status = 'solved';
             prob.reviewInterval = newInterval;
-            prob.nextReviewDate = utils.getNextReviewDate(today, newInterval);
+            prob.nextReviewDate = getNextReviewDate(today, newInterval);
         },
         {
             onFinally: (prob) => {
-                const shouldHide = !utils.shouldShowProblem(
+                const shouldHide = !shouldShowProblem(
                     prob,
                     state.ui.currentFilter,
                     state.ui.searchQuery || '',
@@ -188,7 +195,7 @@ const handleStatusAction = async (
 
 // Handle delete action
 const handleDeleteAction = async (p: Problem): Promise<void> => {
-    const sanitizedName = utils.sanitizeInput(p.name);
+    const sanitizedName = sanitizeInput(p.name);
     const { ui } = await import('../ui/ui');
     const confirmed = await ui.showConfirm(`Delete "<b>${sanitizedName}</b>"?`);
     if (confirmed) {
@@ -210,7 +217,7 @@ const handleNoteSave = async (button: HTMLElement, p: Problem): Promise<void> =>
     const textarea = button.closest('.note-area')?.querySelector('textarea') as HTMLTextAreaElement;
     if (!textarea) return;
 
-    const newNote = utils.sanitizeInput(textarea.value.trim());
+    const newNote = sanitizeInput(textarea.value.trim());
 
     await performStatusChange(button, p, (problem: Problem) => {
         problem.note = newNote;
@@ -225,7 +232,7 @@ const handleAIActions = (p: Problem, action: string): void => {
     const isAlgorithm = data.algorithmsData.some((cat) =>
         cat.algorithms.some((algo) => algo.id === p.id)
     );
-    utils.askAI(name, provider, isAlgorithm ? 'algorithm' : 'problem');
+    askAI(name, provider, isAlgorithm ? 'algorithm' : 'problem');
 };
 
 // Handle solution actions

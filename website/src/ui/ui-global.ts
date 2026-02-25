@@ -3,7 +3,7 @@
 import { Topic } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-import { utils } from '../utils';
+import { getUrlParameter, scrollToTop } from '../utils';
 import { renderers } from '../renderers';
 import { app } from '../app';
 import { toggleMobileMenu } from './ui-navigation';
@@ -44,7 +44,7 @@ export const handleKeyboard = (e: KeyboardEvent) => {
 
 // Browser navigation
 export const handlePopState = () => {
-    const categoryParam = utils.getUrlParameter('category');
+    const categoryParam = getUrlParameter('category');
     const category =
         categoryParam &&
         (data.topicsData.some((t: Topic) => t.id === categoryParam) || categoryParam === 'all')
@@ -54,7 +54,7 @@ export const handlePopState = () => {
     state.ui.activeTopicId = category;
     renderers.renderSidebar();
     renderers.renderMainView(state.ui.activeTopicId);
-    utils.scrollToTop();
+    scrollToTop();
 };
 
 // Bind global events

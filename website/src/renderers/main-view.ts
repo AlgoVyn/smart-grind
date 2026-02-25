@@ -4,7 +4,7 @@
 import { Topic, Problem } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-import { utils } from '../utils';
+import { getToday } from '../utils';
 // renderers import removed to break cycle
 import { api } from '../api';
 import { ICONS } from './icons';
@@ -89,7 +89,7 @@ export const mainViewRenderers = {
         ui.toggleDateFilterVisibility(showDateFilter);
         if (showDateFilter) ui.populateDateFilter();
 
-        const today = utils.getToday();
+        const today = getToday();
         const visibleCount = { count: 0 };
 
         const topics =

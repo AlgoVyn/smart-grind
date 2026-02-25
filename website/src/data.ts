@@ -11,9 +11,8 @@ import {
 import { STORAGE_KEYS } from './utils/storage';
 
 /**
- * Deep clone utility that works in both browser and Node.js environments.
- * Uses structuredClone when available (modern browsers), falls back to
- * JSON methods for test environments.
+ * Deep clone utility using structuredClone with JSON fallback for test environments.
+ * structuredClone is available in all modern browsers.
  */
 const cloneData = <T>(obj: T): T => {
     if (typeof structuredClone === 'function') {

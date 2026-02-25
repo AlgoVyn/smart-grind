@@ -7,7 +7,7 @@ import { data } from '../data';
 import { ALGORITHMS_DATA, AlgorithmCategory, AlgorithmDef } from '../data/algorithms-data';
 import { ui } from '../ui/ui';
 import { renderers } from '../renderers';
-import { utils } from '../utils';
+import { showToast } from '../utils';
 import { saveData } from './api-save';
 
 /**
@@ -149,7 +149,7 @@ export const _performResetAndRender = async (message: string): Promise<void> => 
         renderers.renderMainView(state.ui.activeTopicId);
     }
 
-    utils.showToast(message);
+    showToast(message);
 
     // If the current filter is 'solved', refresh the cards to reflect the changes
     if (currentFilter === 'solved') {

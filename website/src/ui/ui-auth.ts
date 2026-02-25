@@ -13,7 +13,7 @@ import { GOOGLE_BUTTON_HTML } from './ui-constants';
 import { state } from '../state';
 import { data } from '../data';
 import { api } from '../api';
-import { utils } from '../utils';
+import { showToast } from '../utils';
 import { app } from '../app';
 import { renderers } from '../renderers';
 import { openSigninModal } from './ui-modals';
@@ -65,7 +65,7 @@ export const handleGoogleLogin = () => {
     if (!popup) {
         // Popup blocked
         resetLoginButtons();
-        utils.showToast(
+        showToast(
             'Sign-in popup was blocked. Please allow popups for this site and try again.',
             'error'
         );
@@ -116,7 +116,7 @@ export const handleGoogleLogin = () => {
 
     const handleAuthFailure = (data: { message: string }) => {
         setTimeout(() => {
-            utils.showToast(`Sign-in failed: ${data.message}`, 'error');
+            showToast(`Sign-in failed: ${data.message}`, 'error');
         }, 100);
     };
 
@@ -148,7 +148,7 @@ export const handleGoogleLogin = () => {
     const handleAuthTimeout = () => {
         if (!authCompleted) {
             authCompleted = true;
-            utils.showToast('Sign-in timed out. Please try again.', 'error');
+            showToast('Sign-in timed out. Please try again.', 'error');
             cleanupAuth();
         }
     };
@@ -190,7 +190,7 @@ export const handleLogout = async () => {
         // Update the UI to show sign in option
         updateAuthUI();
 
-        utils.showToast('Switched to local mode');
+        showToast('Switched to local mode');
     } else {
         // Open sign in modal for local users
         openSigninModal();

@@ -6,7 +6,7 @@ import { data } from './data';
 import { api } from './api';
 import { renderers } from './renderers';
 import { ui } from './ui/ui';
-import { utils } from './utils';
+import { showToast } from './utils';
 import { fetchCsrfToken, getCsrfToken, getCachedCsrfToken, clearCsrfToken } from './utils/csrf';
 
 // Re-export CSRF functions for backward compatibility
@@ -102,7 +102,7 @@ export const exportProgress = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    utils.showToast('Progress exported successfully!', 'success');
+    showToast('Progress exported successfully!', 'success');
 };
 
 /**

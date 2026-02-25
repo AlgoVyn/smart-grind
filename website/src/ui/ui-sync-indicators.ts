@@ -2,7 +2,7 @@
 // UI components for displaying offline/sync status
 
 import { state } from '../state';
-import { utils } from '../utils';
+import { showToast } from '../utils';
 
 // DOM element cache for sync indicators
 interface SyncIndicatorElements {
@@ -50,7 +50,7 @@ const updateOfflineIndicator = (isOnline: boolean, previousState?: boolean): voi
             elements.syncingIndicator?.classList.add('hidden');
             // Show toast when going offline
             if (previousState !== false) {
-                utils.showToast(
+                showToast(
                     'You are now offline. Changes will sync when connection is restored.',
                     'warning'
                 );
@@ -69,7 +69,7 @@ const updateSyncingIndicator = (isSyncing: boolean, previousState?: boolean): vo
             elements.syncingIndicator.classList.add('hidden');
             // Show toast when sync completes
             if (previousState === true) {
-                utils.showToast('Sync completed successfully', 'success');
+                showToast('Sync completed successfully', 'success');
             }
         }
     }
@@ -106,7 +106,7 @@ const updateConflictIndicator = (hasConflicts: boolean, previousState?: boolean)
             elements.conflictIndicator.classList.remove('hidden');
             // Show toast when conflicts detected
             if (previousState !== true) {
-                utils.showToast('Sync conflict detected. Please review your changes.', 'error');
+                showToast('Sync conflict detected. Please review your changes.', 'error');
             }
         } else {
             elements.conflictIndicator.classList.add('hidden');

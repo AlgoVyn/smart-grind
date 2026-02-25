@@ -16,6 +16,49 @@ const mockStyle = {};
 const mockRemove = jest.fn();
 const mockInsertAdjacentElement = jest.fn();
 
+// Mock utils module
+jest.mock('../src/utils', () => ({
+    getToday: jest.fn(() => '2023-01-01'),
+    shouldShowProblem: jest.fn(() => true),
+    getUniqueProblemsForTopic: jest.fn(() => ({ total: 2, solved: 1, due: 0 })),
+    getAllUniqueProblemsIncludingAlgorithms: jest.fn(() => ({ total: 10, solved: 5, due: 0 })),
+    updateUrlParameter: jest.fn(),
+    scrollToTop: jest.fn(),
+    formatDate: jest.fn(() => 'Jan 1'),
+    showToast: jest.fn(),
+    getNextReviewDate: jest.fn(() => '2023-01-02'),
+    debounce: jest.fn((fn) => fn),
+    getLeetCodeProblemId: jest.fn(),
+    extractProblemName: jest.fn(),
+    generateProblemUrl: jest.fn(),
+    escapeHtml: jest.fn((str) => str),
+    safeParseInt: jest.fn(),
+    safeParseFloat: jest.fn(),
+    isValidDate: jest.fn(),
+    deepClone: jest.fn((obj) => JSON.parse(JSON.stringify(obj))),
+    generateId: jest.fn(() => 'test-id'),
+    truncate: jest.fn((str) => str),
+    capitalize: jest.fn((str) => str.charAt(0).toUpperCase() + str.slice(1)),
+    kebabToTitle: jest.fn((str) => str.replace(/-/g, ' ')),
+    getDifficultyColor: jest.fn(),
+    getStatusIcon: jest.fn(),
+    parseMarkdown: jest.fn(),
+    highlightCode: jest.fn(),
+    setupEventListeners: jest.fn(),
+    cacheElements: jest.fn(() => ({})),
+    safeGetItem: jest.fn(),
+    safeSetItem: jest.fn(),
+    getStringItem: jest.fn(),
+    setStringItem: jest.fn(),
+    removeItem: jest.fn(),
+    STORAGE_KEYS: {
+        PROBLEMS: jest.fn(() => 'problems'),
+        DELETED_IDS: jest.fn(() => 'deleted_ids'),
+        DISPLAY_NAME: jest.fn(() => 'display_name'),
+        USER_TYPE: 'user_type',
+    },
+}));
+
 // Mock element template
 const createMockElement = () => {
     const el = {
@@ -70,7 +113,7 @@ import { statsRenderers } from '../src/renderers/stats';
 import { ICONS } from '../src/renderers/icons';
 import { state } from '../src/state';
 import { data } from '../src/data';
-import { utils } from '../src/utils';
+import * as utils from '../src/utils';
 import { api } from '../src/api';
 import { ui } from '../src/ui/ui';
 
@@ -120,22 +163,24 @@ describe('SmartGrind Renderers', () => {
             },
         ];
 
-        // Mock utils
-        jest.spyOn(utils, 'getToday').mockReturnValue('2023-01-01');
-        jest.spyOn(utils, 'shouldShowProblem').mockReturnValue(true);
-        jest.spyOn(utils, 'getUniqueProblemsForTopic').mockReturnValue({
+        // Mock utils functions
+        jest.mocked(utils.getToday).mockReturnValue('2023-01-01');
+        jest.mocked(utils.shouldShowProblem).mockReturnValue(true);
+        jest.mocked(utils.getUniqueProblemsForTopic).mockReturnValue({
             total: 2,
             solved: 1,
             due: 0,
         });
-        jest.spyOn(utils, 'getAllUniqueProblemsIncludingAlgorithms').mockReturnValue({
+        jest.mocked(utils.getAllUniqueProblemsIncludingAlgorithms).mockReturnValue({
             total: 10,
             solved: 5,
             due: 0,
         });
-        jest.spyOn(utils, 'updateUrlParameter').mockImplementation();
-        jest.spyOn(utils, 'scrollToTop').mockImplementation();
-        jest.spyOn(utils, 'formatDate').mockReturnValue('Jan 1');
+        jest.mocked(utils.updateUrlParameter).mockImplementation(() => {});
+        jest.mocked(utils.scrollToTop).mockImplementation(() => {});
+        jest.mocked(utils.formatDate).mockReturnValue('Jan 1');
+        jest.mocked(utils.showToast).mockImplementation(() => {});
+        jest.mocked(utils.getNextReviewDate).mockReturnValue('2023-01-02');
 
         // Mock api
         jest.spyOn(api, 'deleteCategory').mockResolvedValue();
@@ -227,7 +272,7 @@ describe('SmartGrind Renderers', () => {
 
     describe('createTopicButton', () => {
         test('creates topic button with correct structure', () => {
-            utils.getUniqueProblemsForTopic.mockReturnValue({ total: 10, solved: 5 });
+            jest.mocked(utils.getUniqueProblemsForTopic).mockReturnValue({ total: 10, solved: 5 });
 
             const button = renderers.createTopicButton('arrays', 'Arrays');
 
@@ -240,7 +285,7 @@ describe('SmartGrind Renderers', () => {
 
         test('marks active topic', () => {
             state.ui.activeTopicId = 'arrays';
-            utils.getUniqueProblemsForTopic.mockReturnValue({ total: 10, solved: 10 });
+            jest.mocked(utils.getUniqueProblemsForTopic).mockReturnValue({ total: 10, solved: 10 });
 
             const button = renderers.createTopicButton('arrays', 'Arrays');
 
@@ -250,7 +295,7 @@ describe('SmartGrind Renderers', () => {
         });
 
         test('handles 100% completion styling', () => {
-            utils.getUniqueProblemsForTopic.mockReturnValue({ total: 10, solved: 10 });
+            jest.mocked(utils.getUniqueProblemsForTopic).mockReturnValue({ total: 10, solved: 10 });
 
             const button = renderers.createTopicButton('arrays', 'Arrays');
 
@@ -259,7 +304,7 @@ describe('SmartGrind Renderers', () => {
         });
 
         test('handles zero total problems', () => {
-            utils.getUniqueProblemsForTopic.mockReturnValue({ total: 0, solved: 0 });
+            jest.mocked(utils.getUniqueProblemsForTopic).mockReturnValue({ total: 0, solved: 0 });
 
             const button = renderers.createTopicButton('arrays', 'Arrays');
 
@@ -380,7 +425,7 @@ describe('SmartGrind Renderers', () => {
 
         test('shows review banner when due problems exist', () => {
             state.ui.activeTopicId = 'all';
-            jest.spyOn(utils, 'getUniqueProblemsForTopic').mockReturnValueOnce({ total: 10, solved: 5, due: 3 });
+            jest.mocked(utils.getUniqueProblemsForTopic).mockReturnValueOnce({ total: 10, solved: 5, due: 3 });
 
             renderers.updateStats();
 
@@ -390,7 +435,7 @@ describe('SmartGrind Renderers', () => {
 
         test('hides review banner when no due problems', () => {
             state.ui.activeTopicId = 'all';
-            jest.spyOn(utils, 'getUniqueProblemsForTopic').mockReturnValueOnce({ total: 10, solved: 10, due: 0 });
+            jest.mocked(utils.getUniqueProblemsForTopic).mockReturnValueOnce({ total: 10, solved: 10, due: 0 });
 
             renderers.updateStats();
 
@@ -399,7 +444,7 @@ describe('SmartGrind Renderers', () => {
 
         test('updates main due badge when due problems exist', () => {
             state.ui.activeTopicId = 'all';
-            jest.spyOn(utils, 'getUniqueProblemsForTopic').mockReturnValueOnce({ total: 10, solved: 5, due: 2 });
+            jest.mocked(utils.getUniqueProblemsForTopic).mockReturnValueOnce({ total: 10, solved: 5, due: 2 });
 
             renderers.updateStats();
 
@@ -408,7 +453,7 @@ describe('SmartGrind Renderers', () => {
 
         test('hides main due badge when no due problems', () => {
             state.ui.activeTopicId = 'all';
-            jest.spyOn(utils, 'getUniqueProblemsForTopic').mockReturnValueOnce({ total: 10, solved: 10, due: 0 });
+            jest.mocked(utils.getUniqueProblemsForTopic).mockReturnValueOnce({ total: 10, solved: 10, due: 0 });
 
             renderers.updateStats();
 
@@ -492,7 +537,7 @@ describe('SmartGrind Renderers', () => {
 
     describe('renderSidebar', () => {
         test('renders sidebar with all problems and topic buttons', () => {
-            utils.getUniqueProblemsForTopic.mockReturnValue({ total: 10, solved: 5 });
+            jest.mocked(utils.getUniqueProblemsForTopic).mockReturnValue({ total: 10, solved: 5 });
 
             renderers.renderSidebar();
 
@@ -640,7 +685,7 @@ describe('SmartGrind Renderers', () => {
             const mockButton = { closest: jest.fn(() => mockElement) };
             const error = new Error('Network error');
             api.saveProblemWithSync = jest.fn().mockRejectedValue(error);
-            utils.showToast = jest.fn();
+            jest.mocked(utils.showToast).mockImplementation(() => {});
 
             await problemCardRenderers.handleStatusChange(mockButton, problem, 'solved', 1, '2024-01-01');
 
@@ -704,8 +749,8 @@ describe('SmartGrind Renderers', () => {
         test('solves the problem and re-renders card', async () => {
             const mockButton = { closest: jest.fn(() => mockElement) };
             const problem = { id: '1', status: 'unsolved' };
-            utils.getToday = jest.fn(() => '2023-01-01');
-            utils.getNextReviewDate = jest.fn(() => '2023-01-02');
+            jest.mocked(utils.getToday).mockReturnValue('2023-01-01');
+            jest.mocked(utils.getNextReviewDate).mockReturnValue('2023-01-02');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
 
             await problemCardRenderers.handleSolve(mockButton, problem);
@@ -729,8 +774,8 @@ describe('SmartGrind Renderers', () => {
             const mockButton = { closest: jest.fn(() => mockElement) };
             const problem = { id: '1', status: 'solved', reviewInterval: 1 };
             state.ui.currentFilter = 'all';
-            utils.getToday = jest.fn(() => '2023-01-01');
-            utils.getNextReviewDate = jest.fn(() => '2023-01-03');
+            jest.mocked(utils.getToday).mockReturnValue('2023-01-01');
+            jest.mocked(utils.getNextReviewDate).mockReturnValue('2023-01-03');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
 
             await problemCardRenderers.handleReview(mockButton, problem);
@@ -750,12 +795,12 @@ describe('SmartGrind Renderers', () => {
             const problem = { id: '1', status: 'solved', reviewInterval: 1, nextReviewDate: '2023-01-01' };
             state.ui.currentFilter = 'review';
             state.ui.reviewDateFilter = null; // No date filter selected
-            utils.getToday = jest.fn(() => '2023-01-01');
-            utils.getNextReviewDate = jest.fn(() => '2023-01-03');
+            jest.mocked(utils.getToday).mockReturnValue('2023-01-01');
+            jest.mocked(utils.getNextReviewDate).mockReturnValue('2023-01-03');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
             problemCardRenderers.hideCardIfFilteredOut = jest.fn();
             // Use actual shouldShowProblem - after review, nextReviewDate is in future so it won't match review filter
-            utils.shouldShowProblem.mockImplementation((p, filter, searchQuery, today) => {
+            jest.mocked(utils.shouldShowProblem).mockImplementation((p, filter, searchQuery, today) => {
                 // After review, nextReviewDate is '2023-01-03' which is > '2023-01-01' (today)
                 // So it should NOT pass the review filter
                 if (filter === 'review') {
@@ -774,12 +819,12 @@ describe('SmartGrind Renderers', () => {
             const problem = { id: '1', status: 'solved', reviewInterval: 1, nextReviewDate: '2023-01-01' };
             state.ui.currentFilter = 'review';
             state.ui.reviewDateFilter = '2023-01-01'; // Date filter selected
-            utils.getToday = jest.fn(() => '2023-01-01');
-            utils.getNextReviewDate = jest.fn(() => '2023-01-03');
+            jest.mocked(utils.getToday).mockReturnValue('2023-01-01');
+            jest.mocked(utils.getNextReviewDate).mockReturnValue('2023-01-03');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
             problemCardRenderers.hideCardIfFilteredOut = jest.fn();
             // Use actual shouldShowProblem logic
-            utils.shouldShowProblem.mockImplementation((p, filter, searchQuery, today) => {
+            jest.mocked(utils.shouldShowProblem).mockImplementation((p, filter, searchQuery, today) => {
                 // After review, nextReviewDate is '2023-01-03'
                 // It doesn't match the date filter '2023-01-01'
                 if (filter === 'review') {
@@ -824,8 +869,8 @@ describe('SmartGrind Renderers', () => {
             const mockButton = { closest: jest.fn(() => mockCard1) };
             const problem = { id: 'multi-pattern-problem', status: 'solved', reviewInterval: 1 };
             state.ui.currentFilter = 'all';
-            utils.getToday = jest.fn(() => '2023-01-01');
-            utils.getNextReviewDate = jest.fn(() => '2023-01-03');
+            jest.mocked(utils.getToday).mockReturnValue('2023-01-01');
+            jest.mocked(utils.getNextReviewDate).mockReturnValue('2023-01-03');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
             problemCardRenderers.reRenderCard = jest.fn();
 
@@ -873,12 +918,12 @@ describe('SmartGrind Renderers', () => {
                 reviewInterval: 1,
             };
             state.ui.currentFilter = 'review';
-            utils.getToday = jest.fn(() => '2023-01-01');
-            utils.getNextReviewDate = jest.fn(() => '2023-01-03');
+            jest.mocked(utils.getToday).mockReturnValue('2023-01-01');
+            jest.mocked(utils.getNextReviewDate).mockReturnValue('2023-01-03');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
             problemCardRenderers.hideCardIfFilteredOut = jest.fn();
             // Mock shouldShowProblem to return false since problem no longer matches review filter
-            utils.shouldShowProblem = jest.fn().mockReturnValue(false);
+            jest.mocked(utils.shouldShowProblem).mockReturnValue(false);
 
             await problemCardRenderers.handleReview(mockButton, problem);
 

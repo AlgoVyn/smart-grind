@@ -4,7 +4,7 @@
 import { Topic } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-import { utils } from '../utils';
+import { getToday, getUniqueProblemsForTopic } from '../utils';
 import { renderers } from '../renderers';
 import { AlgorithmCategory } from '../data/algorithms-data';
 
@@ -69,7 +69,7 @@ export const statsRenderers = {
         let total = 0;
         let solved = 0;
         let due = 0;
-        const today = utils.getToday();
+        const today = getToday();
 
         if (categoryId === 'all') {
             // All algorithms
@@ -122,9 +122,9 @@ export const statsRenderers = {
             );
         } else if (state.ui.activeTopicId === 'all') {
             // For 'all' view, only count problems (not algorithms) to match sidebar stats
-            stats = utils.getUniqueProblemsForTopic('all');
+            stats = getUniqueProblemsForTopic('all');
         } else {
-            stats = utils.getUniqueProblemsForTopic(state.ui.activeTopicId);
+            stats = getUniqueProblemsForTopic(state.ui.activeTopicId);
         }
 
         const { due } = stats;
@@ -142,7 +142,7 @@ export const statsRenderers = {
         // Cache all topic stats to avoid recalculating for each button
         const statsCache = new Map<string, { total: number; solved: number }>();
         data.topicsData.forEach((topic: Topic) => {
-            statsCache.set(topic.id, utils.getUniqueProblemsForTopic(topic.id));
+            statsCache.set(topic.id, getUniqueProblemsForTopic(topic.id));
         });
 
         // Update all topic buttons in a single pass

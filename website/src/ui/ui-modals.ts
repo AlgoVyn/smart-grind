@@ -3,7 +3,7 @@
 import DOMPurify from 'dompurify';
 import { state } from '../state';
 import { data } from '../data';
-import { utils } from '../utils';
+import { sanitizeInput, sanitizeUrl, showToast } from '../utils';
 import { api } from '../api';
 
 // Configure DOMPurify to allow only specific tags for confirm messages
@@ -160,12 +160,10 @@ export const _getSanitizedInputs = () => {
     const getValue = (id: string) => (state.elements[id] as HTMLInputElement | null)?.value || '';
 
     return {
-        name: utils.sanitizeInput(getValue('addProbName')),
-        url: utils.sanitizeUrl(getValue('addProbUrl')),
-        category: utils.sanitizeInput(
-            getValue('addProbCategory') || getValue('addProbCategoryNew')
-        ),
-        pattern: utils.sanitizeInput(
+        name: sanitizeInput(getValue('addProbName')),
+        url: sanitizeUrl(getValue('addProbUrl')),
+        category: sanitizeInput(getValue('addProbCategory') || getValue('addProbCategoryNew')),
+        pattern: sanitizeInput(
             getValue('addProbPattern') ||
                 (getValue('addProbCategory') ? getValue('addProbPatternNew') : '')
         ),
@@ -228,7 +226,7 @@ export const _updateUIAfterAddingProblem = async () => {
     const { renderers } = await import('../renderers');
     renderers.renderSidebar();
     renderers.renderMainView(state.ui.activeTopicId);
-    utils.showToast('Problem added!');
+    showToast('Problem added!');
 };
 
 export const saveNewProblem = async () => {

@@ -4,7 +4,7 @@
 import { Topic } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-import { utils } from '../utils';
+import { updateUrlParameter, scrollToTop, getUniqueProblemsForTopic } from '../utils';
 import { AlgorithmCategory } from '../data/algorithms-data';
 
 export const sidebarRenderers = {
@@ -20,10 +20,10 @@ export const sidebarRenderers = {
                 sidebarRenderers.setActiveTopic(topicId);
                 sidebarRenderers.setActiveAlgorithmCategory(null);
                 // Only update URL once - set category path (clears algorithm path automatically)
-                utils.updateUrlParameter('category', topicId === 'all' ? null : topicId);
+                updateUrlParameter('category', topicId === 'all' ? null : topicId);
                 const { renderers } = await import('../renderers');
                 await renderers.renderMainView(topicId);
-                utils.scrollToTop();
+                scrollToTop();
             };
 
             // Helper for algorithm category navigation
@@ -31,10 +31,10 @@ export const sidebarRenderers = {
                 sidebarRenderers.setActiveTopic(null);
                 sidebarRenderers.setActiveAlgorithmCategory(categoryId);
                 // Only update URL once - set algorithm path (clears category path automatically)
-                utils.updateUrlParameter('algorithms', categoryId === 'all' ? null : categoryId);
+                updateUrlParameter('algorithms', categoryId === 'all' ? null : categoryId);
                 const { renderers } = await import('../renderers');
                 await renderers.renderAlgorithmsView(categoryId);
-                utils.scrollToTop();
+                scrollToTop();
             };
 
             // Determine which sections should be expanded based on active view
@@ -141,7 +141,7 @@ export const sidebarRenderers = {
         btn.dataset['topicId'] = topicId;
 
         // Calculate progress
-        const stats = utils.getUniqueProblemsForTopic(topicId);
+        const stats = getUniqueProblemsForTopic(topicId);
         const pct = stats.total > 0 ? Math.round((stats.solved / stats.total) * 100) : 0;
 
         btn.innerHTML = `

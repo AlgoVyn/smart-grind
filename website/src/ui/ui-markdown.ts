@@ -1,7 +1,7 @@
 // --- MARKDOWN RENDERING AND SOLUTION MODAL ---
 // Includes pattern to markdown file mapping functionality
 
-import { utils } from '../utils';
+import { getBaseUrl, showToast } from '../utils';
 import { data } from '../data';
 import DOMPurify from 'dompurify';
 
@@ -41,7 +41,7 @@ export const patterns = {
     // Function to check if a pattern solution file exists
     async checkPatternSolutionExists(patternName: string) {
         const filename = this.getPatternFilename(patternName);
-        const solutionFile = `${utils.getBaseUrl()}patterns/${filename}.md`;
+        const solutionFile = `${getBaseUrl()}patterns/${filename}.md`;
 
         try {
             const response = await fetch(solutionFile, { method: 'HEAD' });
@@ -297,7 +297,7 @@ export const copyCode = (btn: HTMLElement) => {
             }, 2000);
         })
         .catch(() => {
-            utils.showToast('Failed to copy code');
+            showToast('Failed to copy code');
         });
 };
 
@@ -558,8 +558,8 @@ export const openSolutionModal = (problemId: string) => {
     // Algorithm markdown files don't have the 'algo-' prefix in their filenames
     const fileId = isAlgorithm ? problemId.replace(/^algo-/, '') : problemId;
     const solutionFile = isAlgorithm
-        ? `${utils.getBaseUrl()}algorithms/${fileId}.md`
-        : `${utils.getBaseUrl()}solutions/${fileId}.md`;
+        ? `${getBaseUrl()}algorithms/${fileId}.md`
+        : `${getBaseUrl()}solutions/${fileId}.md`;
     _loadSolution(
         solutionFile,
         isAlgorithm ? 'Loading algorithm...' : 'Loading solution...',
@@ -571,7 +571,7 @@ export const openSolutionModal = (problemId: string) => {
 // Open pattern solution modal
 export const openPatternSolutionModal = (patternName: string) => {
     const patternFilename = patterns.getPatternFilename(patternName);
-    const solutionFile = `${utils.getBaseUrl()}patterns/${patternFilename}.md`;
+    const solutionFile = `${getBaseUrl()}patterns/${patternFilename}.md`;
     _loadSolution(
         solutionFile,
         'Loading pattern solution...',

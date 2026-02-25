@@ -3,10 +3,51 @@ import { state } from '../src/state';
 import { data } from '../src/data';
 import { renderers } from '../src/renderers';
 import { ui } from '../src/ui/ui';
-import { utils } from '../src/utils';
+import { updateUrlParameter, showToast } from '../src/utils';
 
 // Import the api-save module
 import * as apiSave from '../src/api/api-save';
+
+// Mock the utils module
+jest.mock('../src/utils', () => ({
+    updateUrlParameter: jest.fn(),
+    showToast: jest.fn(),
+    scrollToTop: jest.fn(),
+    sanitizeInput: jest.fn((input) => input),
+    debounce: jest.fn((fn) => fn),
+    getLeetCodeProblemId: jest.fn(),
+    extractProblemName: jest.fn(),
+    generateProblemUrl: jest.fn(),
+    escapeHtml: jest.fn((str) => str),
+    formatDate: jest.fn(),
+    getTodayDate: jest.fn(() => '2024-01-01'),
+    getNextReviewDate: jest.fn(),
+    safeParseInt: jest.fn(),
+    safeParseFloat: jest.fn(),
+    isValidDate: jest.fn(),
+    deepClone: jest.fn((obj) => JSON.parse(JSON.stringify(obj))),
+    generateId: jest.fn(() => 'test-id'),
+    truncate: jest.fn((str) => str),
+    capitalize: jest.fn((str) => str.charAt(0).toUpperCase() + str.slice(1)),
+    kebabToTitle: jest.fn((str) => str.replace(/-/g, ' ')),
+    getDifficultyColor: jest.fn(),
+    getStatusIcon: jest.fn(),
+    parseMarkdown: jest.fn(),
+    highlightCode: jest.fn(),
+    setupEventListeners: jest.fn(),
+    cacheElements: jest.fn(() => ({})),
+    safeGetItem: jest.fn(),
+    safeSetItem: jest.fn(),
+    getStringItem: jest.fn(),
+    setStringItem: jest.fn(),
+    removeItem: jest.fn(),
+    STORAGE_KEYS: {
+        PROBLEMS: jest.fn(() => 'problems'),
+        DELETED_IDS: jest.fn(() => 'deleted_ids'),
+        DISPLAY_NAME: jest.fn(() => 'display_name'),
+        USER_TYPE: 'user_type',
+    },
+}));
 
 describe('SmartGrind API Module', () => {
     let mockFetch;
@@ -58,10 +99,6 @@ describe('SmartGrind API Module', () => {
         data.API_BASE = '/smartgrind/api';
         data.resetTopicsData = jest.fn();
         data.topicsData = [];
-
-        // Mock utils
-        utils.updateUrlParameter = jest.fn();
-        utils.showToast = jest.fn();
     });
 
     /**
@@ -625,7 +662,7 @@ describe('SmartGrind API Module', () => {
             expect(mockUpdateFilterBtns).toHaveBeenCalled();
             expect(mockRenderSidebar).toHaveBeenCalled();
             expect(mockRenderMainView).toHaveBeenCalledWith('all');
-            expect(utils.showToast).toHaveBeenCalledWith('All problems reset and restored');
+            expect(showToast).toHaveBeenCalledWith('All problems reset and restored');
         });
 
         test('should not reset if confirmation is cancelled', async () => {
@@ -749,7 +786,7 @@ describe('SmartGrind API Module', () => {
             expect(mockUpdateFilterBtns).toHaveBeenCalled();
             expect(mockRenderSidebar).toHaveBeenCalled();
             expect(mockRenderMainView).toHaveBeenCalledWith('all');
-            expect(utils.showToast).toHaveBeenCalledWith('Category problems reset and restored');
+            expect(showToast).toHaveBeenCalledWith('Category problems reset and restored');
         });
 
         test('should not reset if confirmation is cancelled', async () => {

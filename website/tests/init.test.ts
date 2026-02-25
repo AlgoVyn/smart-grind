@@ -114,8 +114,9 @@ import { api } from '../src/api';
 import { loadData } from '../src/api/api-load';
 import { renderers as _renderers } from '../src/renderers';
 import { ui } from '../src/ui/ui';
-import { utils } from '../src/utils';
+import { scrollToTop, sanitizeInput, updateUrlParameter, showToast } from '../src/utils';
 import * as swRegister from '../src/sw-register';
+
 import {
     withErrorHandling,
     setupGlobalErrorHandlers as _setupGlobalErrorHandlers,
@@ -171,12 +172,10 @@ jest.mock('../src/ui/ui-modals', () => ({
 }));
 
 jest.mock('../src/utils', () => ({
-    utils: {
-        scrollToTop: jest.fn(),
-        sanitizeInput: jest.fn((input) => input),
-        updateUrlParameter: jest.fn(),
-        showToast: jest.fn(),
-    },
+    scrollToTop: jest.fn(),
+    sanitizeInput: jest.fn((input) => input),
+    updateUrlParameter: jest.fn(),
+    showToast: jest.fn(),
 }));
 
 jest.mock('../src/app', () => ({
@@ -388,8 +387,8 @@ describe('Initialization Module', () => {
             global.window.location.search = `?userId=${mockUserId}&displayName=${encodeURIComponent(mockDisplayName)}`;
             global.window.location.href = `http://localhost/smartgrind/?userId=${mockUserId}&displayName=${encodeURIComponent(mockDisplayName)}`;
 
-            // Mock utils.sanitizeInput to return sanitized name
-            (utils.sanitizeInput as jest.Mock).mockReturnValue('User');
+            // Mock sanitizeInput to return sanitized name
+            (sanitizeInput as jest.Mock).mockReturnValue('User');
 
             // Mock fetch for token endpoint
             const mockFetch = jest.fn().mockResolvedValue({
@@ -408,7 +407,7 @@ describe('Initialization Module', () => {
             await checkAuth();
 
             // Should sanitize the display name
-            expect(utils.sanitizeInput).toHaveBeenCalledWith(mockDisplayName);
+            expect(sanitizeInput).toHaveBeenCalledWith(mockDisplayName);
             expect(sharedMockState.user.displayName).toBe('User');
         });
 
@@ -539,7 +538,7 @@ describe('Initialization Module', () => {
 
             // Should show sign-in modal and toast
             expect(mockOpenSigninModal).toHaveBeenCalled();
-            expect(utils.showToast).toHaveBeenCalledWith('Session expired. Please sign in again.', 'error');
+            expect(showToast).toHaveBeenCalledWith('Session expired. Please sign in again.', 'error');
         });
 
         test('should handle errors during signed-in user setup', async () => {

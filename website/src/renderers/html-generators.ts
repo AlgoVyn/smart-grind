@@ -4,7 +4,7 @@
 import { Problem, Topic, Pattern, ProblemDef } from '../types';
 import { data } from '../data';
 import { state } from '../state';
-import { utils } from '../utils';
+import { shouldShowProblem, getToday, formatDate } from '../utils';
 import { problemCardRenderers } from './problem-cards';
 import { ICONS } from './icons';
 import { SPINNER_HTML, AI_BUTTONS_HTML, SOLUTION_BUTTON_HTML } from '../ui/ui-constants';
@@ -69,7 +69,7 @@ export const htmlGenerators = {
             const p = state.problems.get(id);
             if (!p) return; // Skip if deleted
 
-            if (utils.shouldShowProblem(p, state.ui.currentFilter, searchQuery, today)) {
+            if (shouldShowProblem(p, state.ui.currentFilter, searchQuery, today)) {
                 problems.push(p);
             }
         });
@@ -175,7 +175,8 @@ export const htmlGenerators = {
     // Helper to generate action button HTML
     generateActionButton: (p: Problem) => {
         const isSolved = p.status === 'solved';
-        const isDue = isSolved && p.nextReviewDate !== null && p.nextReviewDate <= utils.getToday();
+        const today = getToday();
+        const isDue = isSolved && p.nextReviewDate !== null && p.nextReviewDate <= today;
 
         // Determine action type and styling using early returns pattern
         const getActionConfig = () => {
@@ -207,7 +208,8 @@ export const htmlGenerators = {
 
     // Helper to generate problem link HTML
     generateProblemLink: (p: Problem) => {
-        const badge = htmlGenerators.generateBadge(p, utils.getToday());
+        const today = getToday();
+        const badge = htmlGenerators.generateBadge(p, today);
         return `
             <div class="flex items-center gap-2 mb-1">
                 <a href="${p.url}" target="_blank" class="text-base font-medium text-theme-bold group-hover:text-brand-400 transition-colors truncate cursor-pointer">
@@ -221,7 +223,7 @@ export const htmlGenerators = {
     // Helper to generate problem metadata HTML
     generateProblemMeta: (p: Problem) => `
         <div class="flex items-center gap-4 text-xs text-theme-muted font-mono">
-            <span>Next: ${p.nextReviewDate ? utils.formatDate(p.nextReviewDate) : '--'}</span>
+            <span>Next: ${p.nextReviewDate ? formatDate(p.nextReviewDate) : '--'}</span>
             <span class="${p.note ? 'text-brand-400' : ''}">${p.note ? 'Has Note' : ''}</span>
         </div>
     `,
@@ -266,7 +268,7 @@ export const htmlGenerators = {
     // Helper to get card style based on problem status
     getCardStyle: (p: Problem): string => {
         const isSolved = p.status === 'solved';
-        const today = utils.getToday();
+        const today = getToday();
         const isDue = isSolved && p.nextReviewDate !== null && p.nextReviewDate <= today;
 
         if (isDue) return 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40';

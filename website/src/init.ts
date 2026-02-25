@@ -9,7 +9,7 @@ import { state } from './state';
 import { data } from './data';
 import { initOfflineDetection } from './api';
 import { loadData } from './api/api-load';
-import { utils } from './utils';
+import { scrollToTop, sanitizeInput, showToast } from './utils';
 import { withErrorHandling, setupGlobalErrorHandlers } from './error-boundary';
 import * as swRegister from './sw-register';
 import { openSigninModal } from './ui/ui-modals';
@@ -150,7 +150,7 @@ const applyCategory = async (categoryParam: string | null, algorithmsParam: stri
             state.ui.activeAlgorithmCategoryId = algorithmsParam;
             renderers.renderSidebar();
             await renderers.renderAlgorithmsView(algorithmsParam);
-            utils.scrollToTop();
+            scrollToTop();
             return;
         }
     }
@@ -164,7 +164,7 @@ const applyCategory = async (categoryParam: string | null, algorithmsParam: stri
     }
     renderers.renderSidebar();
     await renderers.renderMainView(state.ui.activeTopicId);
-    utils.scrollToTop();
+    scrollToTop();
 };
 
 // Helper to initialize UI after user setup
@@ -253,7 +253,7 @@ const handlePwaAuthCallback = async (
     categoryParam: string | null,
     algorithmsParam: string | null
 ): Promise<boolean> => {
-    const sanitizedDisplayName = utils.sanitizeInput(urlDisplayName) || 'User';
+    const sanitizedDisplayName = sanitizeInput(urlDisplayName) || 'User';
     window.history.replaceState({}, document.title, window.location.pathname);
 
     const authData = await fetchAuthToken();
@@ -323,7 +323,7 @@ const handleExistingSession = async (
     localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
 
     openSigninModal();
-    utils.showToast('Session expired. Please sign in again.', 'error');
+    showToast('Session expired. Please sign in again.', 'error');
     return false;
 };
 
@@ -355,7 +355,7 @@ const checkAuth = async () => {
         const eventDataObj = eventData as { message?: string; timestamp?: number };
         console.warn('[Init] Received authRequired event:', eventDataObj.message);
         openSigninModal();
-        utils.showToast('Session expired. Please sign in again.', 'error');
+        showToast('Session expired. Please sign in again.', 'error');
     });
 
     const categoryParam = getCategoryFromUrl();

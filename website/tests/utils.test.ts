@@ -31,7 +31,24 @@ jest.mock('../src/utils/toast', () => ({
 }));
 
 // Now import the module
-import { utils } from '../src/utils';
+import {
+    getToday,
+    addDays,
+    formatDate,
+    getUrlParameter,
+    updateUrlParameter,
+    scrollToTop,
+    showToast,
+    getNextReviewDate,
+    getUniqueProblemIdsForTopic,
+    getUniqueProblemsForTopic,
+    shouldShowProblem,
+    getAvailableReviewDates,
+    copyToClipboard,
+    sanitizeInput,
+    countLines,
+    askAI,
+} from '../src/utils';
 import { state } from '../src/state';
 import { data } from '../src/data';
 
@@ -41,22 +58,22 @@ describe('SmartGrind Utils', () => {
         jest.clearAllMocks();
 
         // Set state and data
-        state.ui = {};
+        state.ui = {} as typeof state.ui;
         state.elements = {
             toastContainer: {
                 appendChild: mockAppendChild,
-            },
+            } as unknown as HTMLElement,
             contentScroll: {
                 scrollTo: mockContentScrollTo,
-            },
-        };
+            } as unknown as HTMLElement,
+        } as typeof state.elements;
         state.problems = new Map();
         data.SPACED_REPETITION_INTERVALS = [1, 3, 7, 14, 30];
         data.topicsData = [];
 
         // Reset state
         state.problems.clear();
-        state.ui = {};
+        state.ui = {} as typeof state.ui;
     });
 
     afterEach(() => {
@@ -65,17 +82,17 @@ describe('SmartGrind Utils', () => {
 
     describe('Date helpers', () => {
         test('getToday returns current date in YYYY-MM-DD format', () => {
-            const today = utils.getToday();
+            const today = getToday();
             expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
         });
 
         test('addDays adds days correctly', () => {
-            const result = utils.addDays('2023-01-01', 5);
+            const result = addDays('2023-01-01', 5);
             expect(result).toBe('2023-01-06');
         });
 
         test('formatDate formats date correctly', () => {
-            const result = utils.formatDate('2023-01-15');
+            const result = formatDate('2023-01-15');
             expect(result).toBe('Jan 15');
         });
     });
@@ -90,11 +107,11 @@ describe('SmartGrind Utils', () => {
                 .mockReturnValueOnce(null);
             global.URLSearchParams = jest.fn(() => ({
                 get: mockGet,
-            }));
+            })) as unknown as typeof URLSearchParams;
 
-            expect(utils.getUrlParameter('category')).toBe('strings');
-            expect(utils.getUrlParameter('filter')).toBe('all');
-            expect(utils.getUrlParameter('nonexistent')).toBe(null);
+            expect(getUrlParameter('category')).toBe('strings');
+            expect(getUrlParameter('filter')).toBe('all');
+            expect(getUrlParameter('nonexistent')).toBe(null);
 
             global.URLSearchParams = originalURLSearchParams;
         });
@@ -103,7 +120,7 @@ describe('SmartGrind Utils', () => {
             const originalPushState = window.history.pushState;
             window.history.pushState = mockPushState;
 
-            utils.updateUrlParameter('category', 'strings');
+            updateUrlParameter('category', 'strings');
             expect(mockPushState).toHaveBeenCalledWith(
                 { path: '/smartgrind/c/strings' },
                 '',
@@ -117,7 +134,7 @@ describe('SmartGrind Utils', () => {
             const originalPushState = window.history.pushState;
             window.history.pushState = mockPushState;
 
-            utils.updateUrlParameter('category', '');
+            updateUrlParameter('category', '');
             expect(mockPushState).toHaveBeenCalledWith({ path: '/smartgrind/' }, '', '/smartgrind/');
 
             window.history.pushState = originalPushState;
@@ -133,10 +150,10 @@ describe('SmartGrind Utils', () => {
                 set: mockSet,
                 delete: mockDelete,
                 toString: jest.fn(() => 'category=strings&filter=all'),
-            }));
+            })) as unknown as typeof URLSearchParams;
             window.history.pushState = mockPushState;
 
-            utils.updateUrlParameter('filter', 'newfilter');
+            updateUrlParameter('filter', 'newfilter');
 
             expect(mockSet).toHaveBeenCalledWith('filter', 'newfilter');
             expect(mockPushState).toHaveBeenCalledWith(
@@ -153,9 +170,9 @@ describe('SmartGrind Utils', () => {
 
     describe('Scroll helpers', () => {
         test('scrollToTop scrolls smoothly', () => {
-            utils.scrollToTop(true);
+            scrollToTop(true);
 
-            expect(state.elements.contentScroll.scrollTo).toHaveBeenCalledWith({
+            expect(state.elements.contentScroll?.scrollTo).toHaveBeenCalledWith({
                 top: 0,
                 behavior: 'smooth',
             });
@@ -168,19 +185,19 @@ describe('SmartGrind Utils', () => {
 
     describe('Toast notifications', () => {
         test('showToast displays success message', () => {
-            utils.showToast('Test message', 'success');
+            showToast('Test message', 'success');
             expect(mockShowToast).toHaveBeenCalledWith('Test message', 'success');
         });
 
         test('showToast displays error message', () => {
-            utils.showToast('Error message', 'error');
+            showToast('Error message', 'error');
             expect(mockShowToast).toHaveBeenCalledWith('Error message', 'error');
         });
     });
 
     describe('Review date calculation', () => {
         test('getNextReviewDate calculates correct date', () => {
-            const result = utils.getNextReviewDate('2023-01-01', 2);
+            const result = getNextReviewDate('2023-01-01', 2);
             expect(result).toBe('2023-01-08'); // 1 + 7 days
         });
     });
@@ -188,23 +205,37 @@ describe('SmartGrind Utils', () => {
     describe('Problem filtering', () => {
         beforeEach(() => {
             state.problems.set('1', {
+                id: '1',
+                name: 'Problem 1',
+                url: 'https://leetcode.com/1',
                 status: 'solved',
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
                 nextReviewDate: '2023-01-01',
+                note: '',
             });
             state.problems.set('2', {
+                id: '2',
+                name: 'Problem 2',
+                url: 'https://leetcode.com/2',
                 status: 'unsolved',
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
                 nextReviewDate: '2023-01-05',
+                note: '',
             });
         });
 
         test('getUniqueProblemIdsForTopic returns all problems for "all"', () => {
-            const result = utils.getUniqueProblemIdsForTopic('all');
+            const result = getUniqueProblemIdsForTopic('all');
             expect(result.has('1')).toBe(true);
             expect(result.has('2')).toBe(true);
         });
 
         test('getUniqueProblemsForTopic calculates stats correctly', () => {
-            const result = utils.getUniqueProblemsForTopic('all');
+            const result = getUniqueProblemsForTopic('all');
             expect(result.total).toBe(2);
             expect(result.solved).toBe(1);
             expect(result.due).toBe(1); // Assuming today is after 2023-01-01
@@ -213,11 +244,18 @@ describe('SmartGrind Utils', () => {
         test('getUniqueProblemsForTopic handles due dates correctly', () => {
             // Add a solved problem with future review date
             state.problems.set('3', {
+                id: '3',
+                name: 'Problem 3',
+                url: 'https://leetcode.com/3',
                 status: 'solved',
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
                 nextReviewDate: '2030-01-01', // Future date
+                note: '',
             });
 
-            const result = utils.getUniqueProblemsForTopic('all');
+            const result = getUniqueProblemsForTopic('all');
             expect(result.total).toBe(3);
             expect(result.solved).toBe(2);
             expect(result.due).toBe(1); // Only the one with past date is due
@@ -227,34 +265,47 @@ describe('SmartGrind Utils', () => {
 
         test('shouldShowProblem filters correctly', () => {
             const problem = {
+                id: '1',
                 name: 'Two Sum',
-                status: 'solved',
+                url: 'https://leetcode.com/1',
+                status: 'solved' as const,
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
                 nextReviewDate: '2023-01-01',
                 note: 'Easy problem',
             };
 
-            expect(utils.shouldShowProblem(problem, 'all', '', '2023-01-15')).toBe(true);
-            expect(utils.shouldShowProblem(problem, 'solved', '', '2023-01-15')).toBe(true);
-            expect(utils.shouldShowProblem(problem, 'review', '', '2023-01-15')).toBe(true);
-            expect(utils.shouldShowProblem(problem, 'unsolved', '', '2023-01-15')).toBe(false);
+            expect(shouldShowProblem(problem, 'all', '', '2023-01-15')).toBe(true);
+            expect(shouldShowProblem(problem, 'solved', '', '2023-01-15')).toBe(true);
+            expect(shouldShowProblem(problem, 'review', '', '2023-01-15')).toBe(true);
+            expect(shouldShowProblem(problem, 'unsolved', '', '2023-01-15')).toBe(false);
 
             // Search functionality
-            expect(utils.shouldShowProblem(problem, 'all', 'two', '2023-01-15')).toBe(true);
-            expect(utils.shouldShowProblem(problem, 'all', 'hard', '2023-01-15')).toBe(false);
+            expect(shouldShowProblem(problem, 'all', 'two', '2023-01-15')).toBe(true);
+            expect(shouldShowProblem(problem, 'all', 'hard', '2023-01-15')).toBe(false);
         });
 
         test('shouldShowProblem filters by date in review mode', () => {
             const problem1 = {
                 id: '1',
                 name: 'Two Sum',
-                status: 'solved',
+                url: 'https://leetcode.com/1',
+                status: 'solved' as const,
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
                 nextReviewDate: '2023-01-01',
                 note: '',
             };
             const problem2 = {
                 id: '2',
                 name: 'Three Sum',
-                status: 'solved',
+                url: 'https://leetcode.com/2',
+                status: 'solved' as const,
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
                 nextReviewDate: '2023-01-15',
                 note: '',
             };
@@ -262,27 +313,35 @@ describe('SmartGrind Utils', () => {
             // Set date filter
             state.ui.reviewDateFilter = '2023-01-01';
 
-            expect(utils.shouldShowProblem(problem1, 'review', '', '2023-01-15')).toBe(true);
-            expect(utils.shouldShowProblem(problem2, 'review', '', '2023-01-15')).toBe(false);
+            expect(shouldShowProblem(problem1, 'review', '', '2023-01-15')).toBe(true);
+            expect(shouldShowProblem(problem2, 'review', '', '2023-01-15')).toBe(false);
 
             // Clear date filter
             state.ui.reviewDateFilter = null;
-            expect(utils.shouldShowProblem(problem1, 'review', '', '2023-01-15')).toBe(true);
-            expect(utils.shouldShowProblem(problem2, 'review', '', '2023-01-15')).toBe(true);
+            expect(shouldShowProblem(problem1, 'review', '', '2023-01-15')).toBe(true);
+            expect(shouldShowProblem(problem2, 'review', '', '2023-01-15')).toBe(true);
         });
 
         test('shouldShowProblem filters by date in solved mode', () => {
             const problem1 = {
                 id: '1',
                 name: 'Two Sum',
-                status: 'solved',
+                url: 'https://leetcode.com/1',
+                status: 'solved' as const,
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
                 nextReviewDate: '2023-01-01',
                 note: '',
             };
             const problem2 = {
                 id: '2',
                 name: 'Three Sum',
-                status: 'solved',
+                url: 'https://leetcode.com/2',
+                status: 'solved' as const,
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
                 nextReviewDate: '2023-01-15',
                 note: '',
             };
@@ -290,13 +349,13 @@ describe('SmartGrind Utils', () => {
             // Set date filter
             state.ui.reviewDateFilter = '2023-01-01';
 
-            expect(utils.shouldShowProblem(problem1, 'solved', '', '2023-01-15')).toBe(true);
-            expect(utils.shouldShowProblem(problem2, 'solved', '', '2023-01-15')).toBe(false);
+            expect(shouldShowProblem(problem1, 'solved', '', '2023-01-15')).toBe(true);
+            expect(shouldShowProblem(problem2, 'solved', '', '2023-01-15')).toBe(false);
 
             // Clear date filter
             state.ui.reviewDateFilter = null;
-            expect(utils.shouldShowProblem(problem1, 'solved', '', '2023-01-15')).toBe(true);
-            expect(utils.shouldShowProblem(problem2, 'solved', '', '2023-01-15')).toBe(true);
+            expect(shouldShowProblem(problem1, 'solved', '', '2023-01-15')).toBe(true);
+            expect(shouldShowProblem(problem2, 'solved', '', '2023-01-15')).toBe(true);
         });
     });
 
@@ -351,20 +410,20 @@ describe('SmartGrind Utils', () => {
 
         test('returns only due dates (today or earlier)', () => {
             const today = '2023-01-20';
-            const dates = utils.getAvailableReviewDates(today, 'review');
+            const dates = getAvailableReviewDates(today, 'review');
             // Only dates on or before today should be included
             expect(dates).toEqual(['2023-01-01', '2023-01-15']);
         });
 
         test('excludes future dates', () => {
             const today = '2023-01-20';
-            const dates = utils.getAvailableReviewDates(today, 'review');
+            const dates = getAvailableReviewDates(today, 'review');
             expect(dates).not.toContain('2030-01-01');
         });
 
         test('excludes unsolved problems', () => {
             const today = '2023-01-20';
-            const dates = utils.getAvailableReviewDates(today, 'review');
+            const dates = getAvailableReviewDates(today, 'review');
             expect(dates).not.toContain('2023-01-10');
         });
 
@@ -382,13 +441,13 @@ describe('SmartGrind Utils', () => {
                 note: '',
             });
             const today = '2023-01-20';
-            const dates = utils.getAvailableReviewDates(today, 'review');
+            const dates = getAvailableReviewDates(today, 'review');
             expect(dates).toEqual([]);
         });
 
         test('sorts dates in ascending order', () => {
             const today = '2023-01-20';
-            const dates = utils.getAvailableReviewDates(today, 'review');
+            const dates = getAvailableReviewDates(today, 'review');
             expect(dates[0]).toBe('2023-01-01');
             expect(dates[1]).toBe('2023-01-15');
         });
@@ -407,7 +466,7 @@ describe('SmartGrind Utils', () => {
                 note: '',
             });
             const today = '2023-01-20';
-            const dates = utils.getAvailableReviewDates(today, 'review');
+            const dates = getAvailableReviewDates(today, 'review');
             expect(dates).toContain('2023-01-20');
         });
     });
@@ -416,29 +475,29 @@ describe('SmartGrind Utils', () => {
         test('copies text using clipboard API', async () => {
             const text = 'Test prompt';
 
-            await utils.copyToClipboard(text);
+            await copyToClipboard(text);
 
             expect(navigator.clipboard.writeText).toHaveBeenCalledWith(text);
             expect(mockShowToast).toHaveBeenCalledWith('Prompt copied to clipboard', 'success');
         });
 
         test('falls back to execCommand on clipboard API failure', async () => {
-            navigator.clipboard.writeText.mockRejectedValue(new Error('Clipboard not available'));
+            (navigator.clipboard.writeText as jest.Mock).mockRejectedValue(new Error('Clipboard not available'));
             const text = 'Test prompt';
 
-            await utils.copyToClipboard(text);
+            await copyToClipboard(text);
 
             expect(document.execCommand).toHaveBeenCalledWith('copy');
             expect(mockShowToast).toHaveBeenCalledWith('Prompt copied to clipboard', 'success');
         });
 
         test('shows error toast on complete failure', async () => {
-            navigator.clipboard.writeText.mockRejectedValue(new Error('Clipboard not available'));
+            (navigator.clipboard.writeText as jest.Mock).mockRejectedValue(new Error('Clipboard not available'));
             const execCommandSpy = jest.spyOn(document, 'execCommand');
             execCommandSpy.mockReturnValue(false);
             const text = 'Test prompt';
 
-            await utils.copyToClipboard(text);
+            await copyToClipboard(text);
 
             expect(mockShowToast).toHaveBeenCalledWith('Failed to copy prompt', 'error');
         });
@@ -447,36 +506,36 @@ describe('SmartGrind Utils', () => {
     describe('sanitizeInput', () => {
         test('preserves newlines in multiline text', () => {
             const input = 'Line 1\nLine 2\nLine 3';
-            const result = utils.sanitizeInput(input);
+            const result = sanitizeInput(input);
             expect(result).toBe('Line 1\nLine 2\nLine 3');
         });
 
         test('removes control characters except newlines and carriage returns', () => {
             const input = 'Hello\x00World\x01Test\x02';
-            const result = utils.sanitizeInput(input);
+            const result = sanitizeInput(input);
             expect(result).toBe('HelloWorldTest');
         });
 
         test('normalizes Windows line endings to Unix', () => {
             const input = 'Line 1\r\nLine 2\r\nLine 3';
-            const result = utils.sanitizeInput(input);
+            const result = sanitizeInput(input);
             expect(result).toBe('Line 1\nLine 2\nLine 3');
         });
 
         test('handles empty string', () => {
-            const result = utils.sanitizeInput('');
+            const result = sanitizeInput('');
             expect(result).toBe('');
         });
 
         test('handles string with only newlines', () => {
             const input = '\n\n\n';
-            const result = utils.sanitizeInput(input);
+            const result = sanitizeInput(input);
             expect(result).toBe('\n\n\n');
         });
 
         test('trims whitespace while preserving internal newlines', () => {
             const input = '  Line 1\nLine 2  \n  Line 3  ';
-            const result = utils.sanitizeInput(input);
+            const result = sanitizeInput(input);
             expect(result).toBe('Line 1\nLine 2\nLine 3');
         });
     });
@@ -484,35 +543,35 @@ describe('SmartGrind Utils', () => {
     describe('countLines', () => {
         test('counts lines in multiline text', () => {
             const input = 'Line 1\nLine 2\nLine 3';
-            const result = utils.countLines(input);
+            const result = countLines(input);
             expect(result).toBe(3);
         });
 
         test('returns 0 for empty string', () => {
-            const result = utils.countLines('');
+            const result = countLines('');
             expect(result).toBe(0);
         });
 
         test('returns 1 for single line without newlines', () => {
-            const result = utils.countLines('Single line');
+            const result = countLines('Single line');
             expect(result).toBe(1);
         });
 
         test('counts lines with Windows-style line endings', () => {
             const input = 'Line 1\r\nLine 2\r\nLine 3';
-            const result = utils.countLines(input);
+            const result = countLines(input);
             expect(result).toBe(3);
         });
 
         test('counts lines with mixed line endings', () => {
             const input = 'Line 1\nLine 2\r\nLine 3\nLine 4';
-            const result = utils.countLines(input);
+            const result = countLines(input);
             expect(result).toBe(4);
         });
 
         test('handles string with trailing newline', () => {
             const input = 'Line 1\nLine 2\n';
-            const result = utils.countLines(input);
+            const result = countLines(input);
             expect(result).toBe(2);
         });
     });
@@ -528,11 +587,11 @@ describe('SmartGrind Utils', () => {
 
             const problemName = 'Two Sum';
             const provider = 'aistudio';
-            const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => {});
+            const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
 
             const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-            await utils.askAI(problemName, provider);
+            await askAI(problemName, provider);
 
             expect(state.ui.preferredAI).toBe('aistudio');
             expect(window.open).toHaveBeenCalledWith(
@@ -560,11 +619,11 @@ describe('SmartGrind Utils', () => {
 
             const problemName = 'Two Sum';
             const provider = 'grok';
-            const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => {});
+            const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
 
             const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-            await utils.askAI(problemName, provider);
+            await askAI(problemName, provider);
 
             expect(state.ui.preferredAI).toBe('grok');
             expect(window.open).toHaveBeenCalledWith(

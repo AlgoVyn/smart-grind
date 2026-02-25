@@ -12,7 +12,7 @@ export * from './ui-scroll';
 export * from './ui-markdown';
 export * from './ui-bindings';
 
-// Backward-compatible ui object
+// Backward-compatible ui object - consolidated from all UI modules
 import * as uiModals from './ui-modals';
 import * as uiAuth from './ui-auth';
 import * as uiNavigation from './ui-navigation';
@@ -39,13 +39,13 @@ export const ui = {
 
 // Scroll to review section
 import { state } from '../state';
-import { utils } from '../utils';
+import { scrollToTop } from '../utils';
 import { GOOGLE_BUTTON_HTML } from './ui-constants';
 
 export const scrollToReview = () => {
     const contentScroll = state.elements['contentScroll'];
     if (contentScroll) {
-        utils.scrollToTop(true);
+        scrollToTop(true);
         const reviewBtn = document.querySelector(
             '[data-filter="review"]'
         ) as HTMLButtonElement | null;

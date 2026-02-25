@@ -1,7 +1,7 @@
 // --- SCROLL BUTTON ---
 
 import { state } from '../state';
-import { utils } from '../utils';
+import { scrollToTop } from '../utils';
 
 // Scroll button
 export const initScrollButton = () => {
@@ -25,7 +25,7 @@ export const initScrollButton = () => {
         });
 
         state.elements['scrollToTopBtn'].addEventListener('click', () => {
-            utils.scrollToTop(true);
+            scrollToTop(true);
         });
     }
 };

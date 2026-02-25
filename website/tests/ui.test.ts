@@ -151,10 +151,90 @@ jest.mock('../src/sw-auth-storage', () => ({
 import { ui } from '../src/ui/ui';
 import { state } from '../src/state';
 import { data } from '../src/data';
-import { utils } from '../src/utils';
+import {
+    showToast,
+    updateUrlParameter,
+    scrollToTop,
+    getUrlParameter,
+    getBaseUrl,
+    sanitizeInput,
+    sanitizeUrl,
+} from '../src/utils';
 import { api } from '../src/api';
 import { app } from '../src/app';
 import { renderers } from '../src/renderers';
+
+// Mock utils module
+jest.mock('../src/utils', () => ({
+    showToast: jest.fn(),
+    updateUrlParameter: jest.fn(),
+    scrollToTop: jest.fn(),
+    getUrlParameter: jest.fn(),
+    getBaseUrl: jest.fn(() => '/smartgrind/'),
+    sanitizeInput: jest.fn((input) => {
+        if (!input) return '';
+        let sanitized = input.trim();
+        sanitized = sanitized.replace(/<[^>]*>/g, '');
+        sanitized = sanitized.replace(/["'\\]/g, '');
+        sanitized = sanitized.replace(/javascript:/gi, '');
+        sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+        if (sanitized.length > 200) {
+            sanitized = sanitized.substring(0, 200);
+        }
+        return sanitized;
+    }),
+    sanitizeUrl: jest.fn((url) => {
+        if (!url) return '';
+        let sanitized = url.trim();
+        try {
+            if (!sanitized.startsWith('http://') && !sanitized.startsWith('https://')) {
+                sanitized = 'https://' + sanitized;
+            }
+            new URL(sanitized);
+            sanitized = sanitized.replace(/javascript:/gi, '');
+            sanitized = sanitized.replace(/data:/gi, '');
+            if (sanitized.length > 500) {
+                sanitized = sanitized.substring(0, 500);
+            }
+            return sanitized;
+        } catch (_e) {
+            return '';
+        }
+    }),
+    debounce: jest.fn((fn) => fn),
+    getLeetCodeProblemId: jest.fn(),
+    extractProblemName: jest.fn(),
+    generateProblemUrl: jest.fn(),
+    escapeHtml: jest.fn((str) => str),
+    formatDate: jest.fn(),
+    getTodayDate: jest.fn(() => '2024-01-01'),
+    getNextReviewDate: jest.fn(),
+    safeParseInt: jest.fn(),
+    safeParseFloat: jest.fn(),
+    isValidDate: jest.fn(),
+    deepClone: jest.fn((obj) => JSON.parse(JSON.stringify(obj))),
+    generateId: jest.fn(() => 'test-id'),
+    truncate: jest.fn((str) => str),
+    capitalize: jest.fn((str) => str.charAt(0).toUpperCase() + str.slice(1)),
+    kebabToTitle: jest.fn((str) => str.replace(/-/g, ' ')),
+    getDifficultyColor: jest.fn(),
+    getStatusIcon: jest.fn(),
+    parseMarkdown: jest.fn(),
+    highlightCode: jest.fn(),
+    setupEventListeners: jest.fn(),
+    cacheElements: jest.fn(() => ({})),
+    safeGetItem: jest.fn(),
+    safeSetItem: jest.fn(),
+    getStringItem: jest.fn(),
+    setStringItem: jest.fn(),
+    removeItem: jest.fn(),
+    STORAGE_KEYS: {
+        PROBLEMS: jest.fn(() => 'problems'),
+        DELETED_IDS: jest.fn(() => 'deleted_ids'),
+        DISPLAY_NAME: jest.fn(() => 'display_name'),
+        USER_TYPE: 'user_type',
+    },
+}));
 
 describe('SmartGrind UI', () => {
     beforeEach(() => {
@@ -267,52 +347,7 @@ describe('SmartGrind UI', () => {
 
         window.URL = URLConstructor;
 
-        utils = {
-            showToast: jest.fn(),
-            updateUrlParameter: jest.fn(),
-            scrollToTop: jest.fn(),
-            getUrlParameter: jest.fn(),
-            getBaseUrl: jest.fn(() => '/smartgrind/'),
-            sanitizeInput: (input) => {
-                if (!input) return '';
-                let sanitized = input.trim();
-                sanitized = sanitized.replace(/<[^>]*>/g, '');
-                sanitized = sanitized.replace(/["'\\]/g, '');
-                sanitized = sanitized.replace(/javascript:/gi, '');
-                sanitized = sanitized.replace(/on\w+\s*=/gi, '');
-                if (sanitized.length > 200) {
-                    sanitized = sanitized.substring(0, 200);
-                }
-                return sanitized;
-            },
-            sanitizeUrl: (url) => {
-                if (!url) return '';
-                let sanitized = url.trim();
-                try {
-                    // If it doesn't start with http:// or https://, prepend https://
-                    if (!sanitized.startsWith('http://') && !sanitized.startsWith('https://')) {
-                        sanitized = 'https://' + sanitized;
-                    }
-
-                    // Create URL object to validate
-                    new URL(sanitized);
-
-                    // Remove any script-related content from URL
-                    sanitized = sanitized.replace(/javascript:/gi, '');
-                    sanitized = sanitized.replace(/data:/gi, '');
-
-                    // Limit URL length
-                    if (sanitized.length > 500) {
-                        sanitized = sanitized.substring(0, 500);
-                    }
-
-                    return sanitized;
-                } catch (_e) {
-                    // If URL parsing fails, return empty string
-                    return '';
-                }
-            },
-        };
+        // Utils are now mocked via jest.mock above
         api = {
             loadData: jest.fn(),
             deleteCategory: jest.fn(),
@@ -350,7 +385,7 @@ describe('SmartGrind UI', () => {
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                utils.showToast('Progress exported successfully!', 'success');
+                showToast('Progress exported successfully!', 'success');
             }),
         };
         renderers = {
@@ -644,7 +679,7 @@ describe('SmartGrind UI', () => {
 
             expect(state.user.type).toBe('local');
             expect(app.initializeLocalUser).toHaveBeenCalled();
-            expect(utils.showToast).toHaveBeenCalledWith('Switched to local mode');
+            expect(showToast).toHaveBeenCalledWith('Switched to local mode');
         });
 
         test('opens signin modal for local users', () => {
@@ -752,7 +787,7 @@ describe('SmartGrind UI', () => {
 
             expect(api.saveProblem).toHaveBeenCalled();
             expect(renderers.renderSidebar).toHaveBeenCalled();
-            expect(utils.showToast).toHaveBeenCalledWith('Problem added!');
+            expect(showToast).toHaveBeenCalledWith('Problem added!');
         });
 
         test('does not save problem when fields are missing', async () => {
@@ -846,18 +881,9 @@ describe('SmartGrind UI', () => {
             state.elements.addProbPatternNew = patternNewEl;
             state.elements.addProblemModal = problemModalEl;
 
-            // Spy on the sanitization functions and API calls to see what they return
-            const sanitizeInputSpy = jest.spyOn(utils, 'sanitizeInput');
-            const sanitizeUrlSpy = jest.spyOn(utils, 'sanitizeUrl');
-            const apiSaveSpy = jest.spyOn(api, 'saveProblem');
-            const showAlertSpy = jest.spyOn(ui, 'showAlert');
-
-            await ui.saveNewProblem();
-
-            sanitizeInputSpy.mockRestore();
-            sanitizeUrlSpy.mockRestore();
-            apiSaveSpy.mockRestore();
-            showAlertSpy.mockRestore();
+            // Verify saveNewProblem completes without error
+            // The mocked functions (sanitizeInput, sanitizeUrl) are already set up via jest.mock
+            await expect(ui.saveNewProblem()).resolves.not.toThrow();
         });
 
         test('saves new problem with custom pattern when category selected but pattern not', async () => {
@@ -1276,9 +1302,9 @@ describe('SmartGrind UI', () => {
             ui.loadDefaultView();
 
             expect(renderers.setActiveTopic).toHaveBeenCalledWith('all');
-            expect(utils.updateUrlParameter).toHaveBeenCalledWith('category', null);
+            expect(updateUrlParameter).toHaveBeenCalledWith('category', null);
             expect(renderers.renderMainView).toHaveBeenCalledWith('all');
-            expect(utils.scrollToTop).toHaveBeenCalled();
+            expect(scrollToTop).toHaveBeenCalled();
             // toggleMobileMenu is called which uses toggle, not remove
             expect(mockClassListToggle).toHaveBeenCalledWith('translate-x-0', false);
 
@@ -1294,9 +1320,9 @@ describe('SmartGrind UI', () => {
             ui.loadDefaultView();
 
             expect(renderers.setActiveTopic).toHaveBeenCalledWith('all');
-            expect(utils.updateUrlParameter).toHaveBeenCalledWith('category', null);
+            expect(updateUrlParameter).toHaveBeenCalledWith('category', null);
             expect(renderers.renderMainView).toHaveBeenCalledWith('all');
-            expect(utils.scrollToTop).toHaveBeenCalled();
+            expect(scrollToTop).toHaveBeenCalled();
             // On desktop, toggleMobileMenu is not called
             expect(mockClassListToggle).not.toHaveBeenCalledWith('translate-x-0', false);
 
@@ -1315,7 +1341,7 @@ describe('SmartGrind UI', () => {
 
     describe('handlePopState', () => {
         test('handles category from URL', () => {
-            utils.getUrlParameter = jest.fn(() => 'arrays');
+            getUrlParameter = jest.fn(() => 'arrays');
             data.topicsData = [{ id: 'arrays' }];
 
             ui.handlePopState();
@@ -1326,7 +1352,7 @@ describe('SmartGrind UI', () => {
         });
 
         test('defaults to all when no category', () => {
-            utils.getUrlParameter = jest.fn(() => null);
+            getUrlParameter = jest.fn(() => null);
 
             ui.handlePopState();
 
@@ -1707,7 +1733,7 @@ describe('SmartGrind UI', () => {
                 expect(createObjectURLSpy).toHaveBeenCalled();
                 expect(mockClick).toHaveBeenCalled();
                 expect(revokeObjectURLSpy).toHaveBeenCalled();
-                expect(utils.showToast).toHaveBeenCalledWith(
+                expect(showToast).toHaveBeenCalledWith(
                     'Progress exported successfully!',
                     'success'
                 );
@@ -2007,7 +2033,10 @@ describe('SmartGrind UI', () => {
             };
             navigator.clipboard = { writeText: jest.fn(() => Promise.reject(new Error('fail'))) };
 
-            const showToastSpy = jest.spyOn(utils, 'showToast');
+            const showToastSpy = jest.spyOn(
+                require('../src/utils'),
+                'showToast'
+            );
 
             await ui.copyCode(mockBtn);
             await new Promise((resolve) => setTimeout(resolve, 0));
@@ -2181,9 +2210,9 @@ describe('SmartGrind UI', () => {
             const mockPopup = { closed: false, close: jest.fn(), location: { href: '' } };
             mockOpen.mockReturnValue(mockPopup);
 
-            // Mock utils.showToast to prevent DOM operations
+            // Mock showToast to prevent DOM operations
             const utilsModule = require('../src/utils');
-            jest.spyOn(utilsModule.utils, 'showToast').mockImplementation(() => {});
+            jest.spyOn(utilsModule, 'showToast').mockImplementation(() => {});
 
             // Call handleGoogleLogin to start the timeout
             ui.handleGoogleLogin();
@@ -2202,7 +2231,10 @@ describe('SmartGrind UI', () => {
     describe('handleGoogleLogin popup blocked', () => {
         test('shows toast when popup is blocked', () => {
             mockOpen.mockReturnValue(null);
-            const showToastSpy = jest.spyOn(utils, 'showToast');
+            const showToastSpy = jest.spyOn(
+                require('../src/utils'),
+                'showToast'
+            );
             const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
             setButtonLoadingSpy.mockImplementation(() => {});
 
@@ -2228,7 +2260,10 @@ describe('SmartGrind UI', () => {
             jest.useFakeTimers();
             const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
             mockOpen.mockReturnValue({});
-            const showToastSpy = jest.spyOn(utils, 'showToast');
+            const showToastSpy = jest.spyOn(
+                require('../src/utils'),
+                'showToast'
+            );
             const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
             setButtonLoadingSpy.mockImplementation(() => {});
 
@@ -2273,7 +2308,10 @@ describe('SmartGrind UI', () => {
             const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
             const mockPopup = { closed: false, close: jest.fn(), location: { href: '' } };
             mockOpen.mockReturnValue(mockPopup);
-            const showToastSpy = jest.spyOn(utils, 'showToast');
+            const showToastSpy = jest.spyOn(
+                require('../src/utils'),
+                'showToast'
+            );
             const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
             setButtonLoadingSpy.mockImplementation(() => {});
 
