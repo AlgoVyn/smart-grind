@@ -75,10 +75,13 @@ interface ElementCache {
     addProbPatternNew: HTMLInputElement | null;
     problemSearch: HTMLInputElement | null;
     reviewDateFilter: HTMLSelectElement | null;
+    // Other elements
     dateFilterContainer: HTMLElement | null;
-    // Collections
-    filterBtns: NodeListOf<Element>;
     toastContainer: HTMLElement | null;
+    // Element collections
+    filterBtns: NodeListOf<Element> | null;
+    // Index signature for dynamic access
+    [key: string]: HTMLElement | HTMLInputElement | HTMLSelectElement | NodeListOf<Element> | null;
 }
 
 export const state = {
@@ -184,7 +187,7 @@ export const state = {
 
     // Cache DOM elements
     cacheElements(): void {
-        this.elements = cacheElements<Partial<ElementCache>>();
+        this.elements = cacheElements<ElementCache>();
     },
 
     // Update user state

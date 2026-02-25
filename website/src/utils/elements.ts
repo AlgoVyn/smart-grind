@@ -91,38 +91,31 @@ const COLLECTIONS = {
  * Cache all DOM elements and return the element cache object
  * @returns Object with cached elements keyed by camelCase IDs
  */
-export const cacheElements = <
-    T extends Record<
+export const cacheElements = <T>(): T => {
+    const elements = {} as Record<
         string,
         HTMLElement | HTMLInputElement | HTMLSelectElement | NodeListOf<Element> | null
-    >,
->(): T => {
-    const elements = {} as T;
+    >;
 
     // Cache simple HTMLElements
     for (const id of ELEMENT_IDS.elements) {
-        (elements as Record<string, HTMLElement | null>)[toCamelCase(id)] =
-            document.getElementById(id);
+        elements[toCamelCase(id)] = document.getElementById(id);
     }
 
     // Cache input elements
     for (const id of ELEMENT_IDS.inputs) {
-        (elements as Record<string, HTMLInputElement | null>)[toCamelCase(id)] =
-            document.getElementById(id) as HTMLInputElement | null;
+        elements[toCamelCase(id)] = document.getElementById(id) as HTMLInputElement | null;
     }
 
     // Cache select elements
     for (const id of ELEMENT_IDS.selects) {
-        (elements as Record<string, HTMLSelectElement | null>)[toCamelCase(id)] =
-            document.getElementById(id) as HTMLSelectElement | null;
+        elements[toCamelCase(id)] = document.getElementById(id) as HTMLSelectElement | null;
     }
 
-    // Cache element collections
-    (elements as Record<string, NodeListOf<Element>>)['filterBtns'] = document.querySelectorAll(
-        COLLECTIONS.filterBtns
-    );
+    // Cache filter buttons
+    elements['filterBtns'] = document.querySelectorAll(COLLECTIONS.filterBtns);
 
-    return elements;
+    return elements as T;
 };
 
 /**

@@ -58,8 +58,6 @@ function storeOperationsLocally(operations: APIOperation[]): string[] {
  * @param operation - Single operation or array of operations to queue
  * @returns Operation ID(s) or null if user is not signed in
  */
-export async function queueOperation(_operation: APIOperation): Promise<string | null>;
-export async function queueOperation(_operations: APIOperation[]): Promise<string[]>;
 export async function queueOperation(
     operationOrOperations: APIOperation | APIOperation[]
 ): Promise<string | string[] | null> {
@@ -236,95 +234,59 @@ async function migrateLocalStorageOperations(): Promise<void> {
 
 /**
  * Initializes offline/online detection and sync status monitoring.
- * Sets up connectivity checking, sync status polling, and message handling.
  * @returns Cleanup function to stop monitoring
  */
 export function initOfflineDetection(): () => void {
-    const connectivityChecker = getConnectivityChecker();
+    const checker = getConnectivityChecker();
 
-    const unsubscribe = connectivityChecker.onConnectivityChange(async (online) => {
+    const unsubscribe = checker.onConnectivityChange(async (online) => {
         state.setOnlineStatus(online);
-        if (online) {
-            try {
-                await migrateLocalStorageOperations();
-                if (state.user.type === 'signed-in') {
-                    const { _performSave } = await import('./api/api-save');
-                    await _performSave();
-                }
-                await forceSync();
-            } catch (_error) {
-                // Failed to sync after connectivity restore
+        if (!online) return;
+        try {
+            await migrateLocalStorageOperations();
+            if (state.user.type === 'signed-in') {
+                const { _performSave } = await import('./api/api-save');
+                await _performSave();
             }
+            await forceSync();
+        } catch {
+            // Failed to sync after connectivity restore
         }
     });
 
-    connectivityChecker.startMonitoring();
-
-    const initialCheck = async () => {
-        const isActuallyOnline = await connectivityChecker.isOnline();
-        state.setOnlineStatus(isActuallyOnline);
-    };
-    initialCheck();
+    checker.startMonitoring();
+    checker.isOnline().then((online) => state.setOnlineStatus(online));
 
     if (isServiceWorkerAvailable()) {
         navigator.serviceWorker.addEventListener('message', (event) => {
-            if (!event.data?.type) return;
+            const { type, data } = event.data || {};
+            if (!type) return;
 
-            switch (event.data.type) {
-                case 'SYNC_COMPLETED':
-                    {
-                        const syncData = event.data.data as
-                            | {
-                                  pending?: number;
-                                  synced?: number;
-                                  failed?: number;
-                              }
-                            | undefined;
-                        state.setSyncStatus({
-                            isSyncing: false,
-                            lastSyncAt: Date.now(),
-                            pendingCount: syncData?.pending ?? 0,
-                        });
-                    }
-                    break;
-                case 'SYNC_PROGRESS_SYNCED':
-                    {
-                        const progressData = event.data.data as
-                            | {
-                                  count?: number;
-                                  pending?: number;
-                              }
-                            | undefined;
-                        if (progressData?.pending !== undefined) {
-                            state.setSyncStatus({
-                                pendingCount: progressData.pending,
-                            });
-                        }
-                    }
-                    break;
-                case 'SYNC_CONFLICT_RESOLVED':
-                    break;
-                case 'SYNC_CONFLICT_REQUIRES_MANUAL':
+            const handlers: Record<string, () => void> = {
+                SYNC_COMPLETED: () =>
+                    state.setSyncStatus({
+                        isSyncing: false,
+                        lastSyncAt: Date.now(),
+                        pendingCount: data?.pending ?? 0,
+                    }),
+                SYNC_PROGRESS_SYNCED: () =>
+                    data?.pending !== undefined &&
+                    state.setSyncStatus({
+                        pendingCount: data.pending,
+                    }),
+                SYNC_CONFLICT_REQUIRES_MANUAL: () =>
                     state.setSyncStatus({
                         hasConflicts: true,
-                        conflictMessage: event.data.data?.message,
-                    });
-                    break;
-                case 'SYNC_AUTH_REQUIRED':
-                    {
-                        const authData = event.data.data as
-                            | {
-                                  pendingCount?: number;
-                                  message?: string;
-                              }
-                            | undefined;
-                        state.setSyncStatus({
-                            isSyncing: false,
-                            pendingCount: authData?.pendingCount ?? state.sync.pendingCount,
-                        });
-                    }
-                    break;
-            }
+                        conflictMessage: data?.message,
+                    }),
+                SYNC_AUTH_REQUIRED: () =>
+                    state.setSyncStatus({
+                        isSyncing: false,
+                        pendingCount: data?.pendingCount ?? state.sync.pendingCount,
+                    }),
+            };
+
+            handlers[type]?.();
         });
     }
 
@@ -333,16 +295,13 @@ export function initOfflineDetection(): () => void {
         SYNC_CONFIG.INTERVALS.SYNC_STATUS_POLL
     );
 
-    // Register cleanup
     cleanupManager.register('api', () => {
         unsubscribe();
-        connectivityChecker.stopMonitoring();
+        checker.stopMonitoring();
         clearInterval(intervalId);
     });
 
-    return () => {
-        cleanupManager.cleanup('api');
-    };
+    return () => cleanupManager.cleanup('api');
 }
 
 // Export all API functions

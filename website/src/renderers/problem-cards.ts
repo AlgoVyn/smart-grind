@@ -12,25 +12,23 @@ type ProblemCallback = (_problem: Problem) => void;
 
 // Helper to re-render a problem card
 const reRenderCard = (button: HTMLElement, p: Problem): void => {
-    const card = button.closest('.group');
-    if (card) {
-        const { className, innerHTML } = htmlGenerators.generateProblemCardHTML(p);
-        card.className = className;
-        card.innerHTML = innerHTML;
-    }
+    // Support both real DOM and mock objects for testing
+    const card = button.closest
+        ? button.closest('.group')
+        : (button as unknown as { parentElement: HTMLElement | null }).parentElement;
+    if (!card) return;
+    const { className, innerHTML } = htmlGenerators.generateProblemCardHTML(p);
+    card.className = className;
+    card.innerHTML = innerHTML;
 };
 
 // Helper to re-render all instances of a problem card
 const reRenderAllCards = (p: Problem, hideIfFilteredOut = false): void => {
-    const newCards = document.querySelectorAll(`[data-problem-id="${p.id}"]`);
-    newCards.forEach((newCard: Element) => {
-        const btn = newCard.querySelector('.action-btn[data-action]');
-        if (btn) {
-            problemCardRenderers.reRenderCard(btn as HTMLElement, p);
-            if (hideIfFilteredOut) {
-                problemCardRenderers.hideCardIfFilteredOut(btn as HTMLElement);
-            }
-        }
+    document.querySelectorAll(`[data-problem-id="${p.id}"]`).forEach((card) => {
+        const btn = card.querySelector('.action-btn[data-action]');
+        if (!btn) return;
+        problemCardRenderers.reRenderCard(btn as HTMLElement, p);
+        if (hideIfFilteredOut) problemCardRenderers.hideCardIfFilteredOut(btn as HTMLElement);
     });
 };
 
@@ -41,31 +39,27 @@ const hideCardIfFilteredOut = (button: HTMLElement): void => {
 
     card.style.display = 'none';
 
-    // Check if pattern section should be hidden
+    // Hide parent sections if empty
     const grid = card.parentElement;
-    if (grid && grid.querySelectorAll('.group:not([style*="display: none"])').length === 0) {
-        const patternSection = grid.parentElement;
-        if (patternSection) {
-            patternSection.style.display = 'none';
+    if (!grid || grid.querySelectorAll('.group:not([style*="display: none"])').length > 0) {
+        import('../renderers').then(({ renderers }) => renderers.updateStats());
+        return;
+    }
 
-            // Check if topic section should be hidden
-            const topicSection = patternSection.parentElement;
-            if (
-                topicSection &&
-                topicSection.querySelectorAll(':scope > div:not([style*="display: none"])')
-                    .length === 0
-            ) {
-                topicSection.style.display = 'none';
-                const allProblemsContainer = document.getElementById('problems-container');
-                if (allProblemsContainer) {
-                    const visibleProblems = allProblemsContainer.querySelectorAll(
-                        '.group:not([style*="display: none"])'
-                    );
-                    const emptyState = state.elements['emptyState'];
-                    if (emptyState) {
-                        emptyState.classList.toggle('hidden', visibleProblems.length > 0);
-                    }
-                }
+    const patternSection = grid.parentElement;
+    if (patternSection) {
+        patternSection.style.display = 'none';
+        const topicSection = patternSection.parentElement;
+        if (
+            topicSection?.querySelectorAll(':scope > div:not([style*="display: none"])').length ===
+            0
+        ) {
+            topicSection.style.display = 'none';
+            const container = document.getElementById('problems-container');
+            const emptyState = state.elements['emptyState'] as HTMLElement | null;
+            if (container && emptyState) {
+                const visible = container.querySelectorAll('.group:not([style*="display: none"])');
+                emptyState.classList.toggle('hidden', visible.length > 0);
             }
         }
     }
@@ -86,26 +80,19 @@ const performStatusChange = async (
 ): Promise<void> => {
     const { successMessage, errorMessage, onFinally } = options;
 
-    // Store original state for rollback on error
-    const originalState = {
-        status: problem.status,
-        reviewInterval: problem.reviewInterval,
-        nextReviewDate: problem.nextReviewDate,
-        note: problem.note,
-    };
+    // Store original state for rollback
+    const original = { ...problem };
 
-    // Apply status updates
+    // Apply updates and show loading
     statusUpdater(problem);
     problem.loading = true;
-
-    // Show loading state immediately
     problemCardRenderers.reRenderCard(button, problem);
 
-    // Add short delay for spinner visibility
-    await new Promise<void>((resolve) => setTimeout(resolve, 150));
+    // Spinner visibility delay
+    await new Promise((resolve) => setTimeout(resolve, 150));
 
-    // Safety timeout: ensure spinner is cleared even if the async operation hangs
-    const safetyTimeoutId = setTimeout(() => {
+    // Safety timeout to clear spinner
+    const timeoutId = setTimeout(() => {
         if (problem.loading) {
             problem.loading = false;
             problemCardRenderers.reRenderAllCards(problem);
@@ -113,41 +100,27 @@ const performStatusChange = async (
     }, 3000);
 
     try {
-        // Prepare updates for sync-aware save
-        const updates: Partial<{
-            status: 'solved' | 'unsolved';
-            nextReviewDate: string | null;
-            reviewInterval: number;
-            note: string;
-        }> = {};
-
-        if (problem.status !== originalState.status) {
-            updates.status = problem.status;
-        }
-        if (problem.nextReviewDate !== originalState.nextReviewDate) {
-            updates.nextReviewDate = problem.nextReviewDate;
-        }
-        if (problem.reviewInterval !== originalState.reviewInterval) {
-            updates.reviewInterval = problem.reviewInterval;
-        }
-        if (problem.note !== originalState.note) {
-            updates.note = problem.note;
-        }
+        // Build updates object with only changed fields
+        const updates = {
+            ...(problem.status !== original.status && { status: problem.status }),
+            ...(problem.nextReviewDate !== original.nextReviewDate && {
+                nextReviewDate: problem.nextReviewDate,
+            }),
+            ...(problem.reviewInterval !== original.reviewInterval && {
+                reviewInterval: problem.reviewInterval,
+            }),
+            ...(problem.note !== original.note && { note: problem.note }),
+        };
 
         await api.saveProblemWithSync(problem.id, updates);
-        if (successMessage) {
-            utils.showToast(successMessage, 'success');
-        }
+        if (successMessage) utils.showToast(successMessage, 'success');
     } catch (error) {
-        // Revert to original state on error
-        Object.assign(problem, originalState);
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        const message = errorMessage || `Failed to update problem: ${errorMsg}`;
-        utils.showToast(message, 'error');
+        Object.assign(problem, original);
+        const msg = error instanceof Error ? error.message : String(error);
+        utils.showToast(errorMessage || `Failed to update problem: ${msg}`, 'error');
     } finally {
-        clearTimeout(safetyTimeoutId);
+        clearTimeout(timeoutId);
         problem.loading = false;
-        // Custom finally behavior or default re-render
         if (onFinally) {
             onFinally(problem);
         } else {
@@ -156,51 +129,46 @@ const performStatusChange = async (
     }
 };
 
-// Handle solve action
+// Status change handlers
 const handleSolve = async (button: HTMLElement, p: Problem): Promise<void> => {
     const today = utils.getToday() || '2024-01-01';
-    const nextReviewDate = utils.getNextReviewDate(today, 0) || null;
-
-    await performStatusChange(button, p, (problem: Problem) => {
-        problem.status = 'solved';
-        problem.reviewInterval = 0;
-        problem.nextReviewDate = nextReviewDate;
+    await performStatusChange(button, p, (prob) => {
+        prob.status = 'solved';
+        prob.reviewInterval = 0;
+        prob.nextReviewDate = utils.getNextReviewDate(today, 0) || null;
     });
 };
 
-// Handle review action
 const handleReview = async (button: HTMLElement, p: Problem): Promise<void> => {
     const today = utils.getToday() || '2024-01-01';
     const newInterval = (p.reviewInterval || 0) + 1;
-
     await performStatusChange(
         button,
         p,
-        (problem: Problem) => {
-            problem.status = 'solved';
-            problem.reviewInterval = newInterval;
-            problem.nextReviewDate = utils.getNextReviewDate(today, newInterval) || null;
+        (prob) => {
+            prob.status = 'solved';
+            prob.reviewInterval = newInterval;
+            prob.nextReviewDate = utils.getNextReviewDate(today, newInterval) || null;
         },
         {
-            onFinally: (problem: Problem) => {
+            onFinally: (prob) => {
                 const shouldHide = !utils.shouldShowProblem(
-                    problem,
+                    prob,
                     state.ui.currentFilter,
                     state.ui.searchQuery || '',
                     today
                 );
-                problemCardRenderers.reRenderAllCards(problem, shouldHide);
+                problemCardRenderers.reRenderAllCards(prob, shouldHide);
             },
         }
     );
 };
 
-// Handle reset action
 const handleReset = async (button: HTMLElement, p: Problem): Promise<void> => {
-    await performStatusChange(button, p, (problem: Problem) => {
-        problem.status = 'unsolved';
-        problem.reviewInterval = 0;
-        problem.nextReviewDate = null;
+    await performStatusChange(button, p, (prob) => {
+        prob.status = 'unsolved';
+        prob.reviewInterval = 0;
+        prob.nextReviewDate = null;
     });
 };
 
@@ -279,7 +247,6 @@ const handleSolutionActions = async (
 
 // Handle clicks on problem card buttons
 const handleProblemCardClick = async (e: Event | HTMLElement, p: Problem): Promise<void> => {
-    // Accept both Event objects and HTMLElement for flexibility
     const button =
         e instanceof HTMLElement ? e : ((e.target as HTMLElement).closest('button') as HTMLElement);
     if (!button) return;
@@ -287,11 +254,9 @@ const handleProblemCardClick = async (e: Event | HTMLElement, p: Problem): Promi
     const action = button.dataset['action'];
     if (!action) return;
 
-    // Get reference to the exported object for test spying
-    const renderers = problemCardRenderers;
-
     // Use exported methods so tests can spy on them
-    const actionHandlers: Record<string, () => void | Promise<void>> = {
+    const renderers = problemCardRenderers;
+    const handlers: Record<string, () => void | Promise<void>> = {
         solve: () => renderers.handleSolve(button, p),
         review: () => renderers.handleReview(button, p),
         reset: () => renderers.handleReset(button, p),
@@ -305,7 +270,7 @@ const handleProblemCardClick = async (e: Event | HTMLElement, p: Problem): Promi
         'pattern-solution': () => renderers.handleSolutionActions(button, p, 'pattern-solution'),
     };
 
-    await actionHandlers[action]?.();
+    await handlers[action]?.();
 };
 
 // Create a problem card element
@@ -331,10 +296,10 @@ export const problemCardRenderers = {
         interval = 0,
         nextDate: string | null = null
     ) => {
-        await performStatusChange(button, p, (problem: Problem) => {
-            problem.status = newStatus;
-            problem.reviewInterval = interval;
-            problem.nextReviewDate = nextDate;
+        await performStatusChange(button, p, (prob) => {
+            prob.status = newStatus;
+            prob.reviewInterval = interval;
+            prob.nextReviewDate = nextDate;
         });
     },
     handleSolve,

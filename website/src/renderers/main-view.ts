@@ -14,123 +14,106 @@ import { AlgorithmCategory, AlgorithmDef } from '../data/algorithms-data';
 
 export const mainViewRenderers = {
     // Helper to create an action button
-    _createActionButton: (icon: string, title: string, hoverColor: string, onClick: () => void) => {
-        const button = document.createElement('button');
-        button.className = `category-action-btn p-1 rounded hover:${hoverColor} text-theme-muted hover:text-${hoverColor.split('-')[1]}-400 transition-colors`;
-        button.title = title;
-        button.innerHTML = icon;
-        button.onclick = onClick;
-        return button;
+    _createActionBtn: (icon: string, title: string, color: string, onClick: () => void) => {
+        const btn = document.createElement('button');
+        btn.className = `category-action-btn p-1 rounded hover:${color} text-theme-muted hover:text-${color.split('-')[1]}-400 transition-colors`;
+        btn.title = title;
+        btn.innerHTML = icon;
+        btn.onclick = onClick;
+        return btn;
     },
 
     // Helper to remove existing action button container
-    _removeExistingActionContainer: () => {
-        const currentViewTitle = state.elements['currentViewTitle'];
-        if (currentViewTitle) {
-            const existingContainer = currentViewTitle.nextElementSibling;
-            if (existingContainer?.classList.contains('category-action-container')) {
-                existingContainer.remove();
-            }
+    _removeActionContainer: () => {
+        const title = state.elements['currentViewTitle'] as HTMLElement | null;
+        const container = title?.nextElementSibling;
+        if (container?.classList.contains('category-action-container')) {
+            container.remove();
         }
     },
 
     // Helper to set view title and action buttons
-    _setViewTitle: (filterTopicId: string) => {
+    _setViewTitle: (topicId: string) => {
         const title =
-            filterTopicId === 'all'
+            topicId === 'all'
                 ? 'All Problems'
-                : data.topicsData.find((t: Topic) => t.id === filterTopicId)?.title ||
-                  'Unknown Topic';
-        const currentViewTitle = state.elements['currentViewTitle'];
-        if (currentViewTitle) {
-            currentViewTitle.innerText = title;
-        }
+                : data.topicsData.find((t: Topic) => t.id === topicId)?.title || 'Unknown Topic';
 
-        mainViewRenderers._removeExistingActionContainer();
+        const viewTitle = state.elements['currentViewTitle'] as HTMLElement | null;
+        if (viewTitle) viewTitle.innerText = title;
 
-        // Add action buttons
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'category-action-container ml-2 flex gap-1';
+        mainViewRenderers._removeActionContainer();
 
-        if (filterTopicId === 'all') {
-            // Reset All button for "All Problems" view
-            const resetAllBtn = mainViewRenderers._createActionButton(
-                ICONS.reset,
-                'Reset All Problems',
-                'bg-blue-500/10',
-                () => api.resetAll()
+        const container = document.createElement('div');
+        container.className = 'category-action-container ml-2 flex gap-1';
+
+        if (topicId === 'all') {
+            container.appendChild(
+                mainViewRenderers._createActionBtn(ICONS.reset, 'Reset All', 'bg-blue-500/10', () =>
+                    api.resetAll()
+                )
             );
-            buttonContainer.appendChild(resetAllBtn);
         } else {
-            // Reset and Delete buttons for specific topics
-            const resetBtn = mainViewRenderers._createActionButton(
-                ICONS.reset,
-                'Reset Category Problems',
-                'bg-blue-500/10',
-                () => api.resetCategory(filterTopicId)
+            container.appendChild(
+                mainViewRenderers._createActionBtn(
+                    ICONS.reset,
+                    'Reset Category',
+                    'bg-blue-500/10',
+                    () => api.resetCategory(topicId)
+                )
             );
-            buttonContainer.appendChild(resetBtn);
-
-            const deleteBtn = mainViewRenderers._createActionButton(
-                ICONS.delete,
-                'Delete Category',
-                'bg-red-500/10',
-                () => api.deleteCategory(filterTopicId)
+            container.appendChild(
+                mainViewRenderers._createActionBtn(
+                    ICONS.delete,
+                    'Delete Category',
+                    'bg-red-500/10',
+                    () => api.deleteCategory(topicId)
+                )
             );
-            buttonContainer.appendChild(deleteBtn);
         }
 
-        if (currentViewTitle) {
-            currentViewTitle.insertAdjacentElement('afterend', buttonContainer);
-        }
+        viewTitle?.insertAdjacentElement('afterend', container);
     },
 
     // Render main problem view
-    renderMainView: async (filterTopicId: string) => {
-        state.ui.activeTopicId = filterTopicId || state.ui.activeTopicId;
-        const container = state.elements['problemsContainer'];
-        if (container) {
-            container.innerHTML = '';
-        }
+    renderMainView: async (topicId: string) => {
+        state.ui.activeTopicId = topicId || state.ui.activeTopicId;
+        const container = state.elements['problemsContainer'] as HTMLElement | null;
+        if (container) container.innerHTML = '';
 
         mainViewRenderers._setViewTitle(state.ui.activeTopicId);
 
-        // Update date filter visibility and populate dates when in review or solved mode
-        const showDateFilter =
-            state.ui.currentFilter === 'review' || state.ui.currentFilter === 'solved';
+        // Update date filter for review/solved modes
+        const showDateFilter = ['review', 'solved'].includes(state.ui.currentFilter);
         const { ui } = await import('../ui/ui');
         ui.toggleDateFilterVisibility(showDateFilter);
-        if (showDateFilter) {
-            ui.populateDateFilter();
-        }
+        if (showDateFilter) ui.populateDateFilter();
 
         const today = utils.getToday();
-        const visibleCountRef = { count: 0 };
+        const visibleCount = { count: 0 };
 
-        const relevantTopics =
+        const topics =
             state.ui.activeTopicId === 'all'
                 ? data.topicsData
                 : data.topicsData.filter((t: Topic) => t.id === state.ui.activeTopicId);
 
-        relevantTopics.forEach((topic: Topic) => {
-            const topicSection = htmlGenerators.renderTopicSection(
+        topics.forEach((topic: Topic) => {
+            const section = htmlGenerators.renderTopicSection(
                 topic,
                 state.ui.activeTopicId,
                 today,
-                visibleCountRef
+                visibleCount
             );
-            if (topicSection && container) {
-                container.appendChild(topicSection);
-            }
+            if (section && container) container.appendChild(section);
         });
 
-        // Show empty state only when in review filter and no problems are visible
-        const shouldShowEmptyState =
-            visibleCountRef.count === 0 && state.ui.currentFilter === 'review';
-        const emptyState = state.elements['emptyState'];
-        if (emptyState) {
-            emptyState.classList.toggle('hidden', !shouldShowEmptyState);
-        }
+        // Show empty state only in review filter with no visible problems
+        const showEmpty = visibleCount.count === 0 && state.ui.currentFilter === 'review';
+        (state.elements['emptyState'] as HTMLElement | null)?.classList.toggle(
+            'hidden',
+            !showEmpty
+        );
+
         import('../renderers').then(({ renderers }) => renderers.updateStats());
     },
 
@@ -141,187 +124,115 @@ export const mainViewRenderers = {
                 ? 'All Algorithms'
                 : data.algorithmsData.find((c: AlgorithmCategory) => c.id === categoryId)?.title ||
                   'Algorithms';
-        const currentViewTitle = state.elements['currentViewTitle'];
-        if (currentViewTitle) {
-            currentViewTitle.innerText = title;
-        }
 
-        mainViewRenderers._removeExistingActionContainer();
+        const viewTitle = state.elements['currentViewTitle'] as HTMLElement | null;
+        if (viewTitle) viewTitle.innerText = title;
 
-        // Add reset and delete buttons for algorithm categories
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'category-action-container ml-2 flex gap-1';
+        mainViewRenderers._removeActionContainer();
 
-        const resetBtn = mainViewRenderers._createActionButton(
-            ICONS.reset,
-            categoryId === 'all' ? 'Reset All Algorithms' : 'Reset Category Algorithms',
-            'bg-blue-500/10',
-            () => api.resetAlgorithmCategory(categoryId)
+        const container = document.createElement('div');
+        container.className = 'category-action-container ml-2 flex gap-1';
+
+        const resetLabel = categoryId === 'all' ? 'Reset All Algorithms' : 'Reset Category';
+        container.appendChild(
+            mainViewRenderers._createActionBtn(ICONS.reset, resetLabel, 'bg-blue-500/10', () =>
+                api.resetAlgorithmCategory(categoryId)
+            )
         );
-        buttonContainer.appendChild(resetBtn);
 
-        // Only show delete button for specific categories (not for 'all')
         if (categoryId !== 'all') {
-            const deleteBtn = mainViewRenderers._createActionButton(
-                ICONS.delete,
-                'Delete Algorithm Category',
-                'bg-red-500/10',
-                () => api.deleteAlgorithmCategory(categoryId)
+            container.appendChild(
+                mainViewRenderers._createActionBtn(
+                    ICONS.delete,
+                    'Delete Category',
+                    'bg-red-500/10',
+                    () => api.deleteAlgorithmCategory(categoryId)
+                )
             );
-            buttonContainer.appendChild(deleteBtn);
         }
 
-        if (currentViewTitle) {
-            currentViewTitle.insertAdjacentElement('afterend', buttonContainer);
-        }
+        viewTitle?.insertAdjacentElement('afterend', container);
     },
 
     // Convert algorithm definition to Problem object
     _algorithmToProblem: (algoDef: AlgorithmDef, categoryId: string): Problem => {
-        // Algorithm IDs are already prefixed with 'algo-' in the data file
-        const existingProblem = state.problems.get(algoDef.id);
-        if (existingProblem) {
-            return existingProblem;
-        }
-        // Create a new Problem object with default values
-        return {
-            id: algoDef.id,
-            name: algoDef.name,
-            url: algoDef.url,
-            status: 'unsolved',
-            topic: categoryId,
-            pattern: 'Algorithms',
-            reviewInterval: 0,
-            nextReviewDate: null,
-            note: '',
-            loading: false,
-            noteVisible: false,
-        };
+        return (
+            state.problems.get(algoDef.id) || {
+                id: algoDef.id,
+                name: algoDef.name,
+                url: algoDef.url,
+                status: 'unsolved',
+                topic: categoryId,
+                pattern: 'Algorithms',
+                reviewInterval: 0,
+                nextReviewDate: null,
+                note: '',
+                loading: false,
+                noteVisible: false,
+            }
+        );
     },
 
     // Render algorithms view for a category (treating algorithms as problems)
     renderAlgorithmsView: async (categoryId: string) => {
         state.ui.activeAlgorithmCategoryId = categoryId;
-        const container = state.elements['problemsContainer'];
-        if (container) {
-            container.innerHTML = '';
-        }
+        const container = state.elements['problemsContainer'] as HTMLElement | null;
+        if (!container) return;
 
+        container.innerHTML = '';
         mainViewRenderers._setAlgorithmViewTitle(categoryId);
 
-        // Hide date filter for algorithms view
+        // Hide date filter and empty state
         const { ui } = await import('../ui/ui');
         ui.toggleDateFilterVisibility(false);
+        (state.elements['emptyState'] as HTMLElement | null)?.classList.add('hidden');
 
-        // Hide empty state
-        const emptyState = state.elements['emptyState'];
-        if (emptyState) {
-            emptyState.classList.add('hidden');
-        }
-
-        if (!container) {
-            return;
-        }
-
-        // Get search query
         const searchQuery =
             (state.elements['problemSearch'] as HTMLInputElement | null)?.value
                 .toLowerCase()
                 .trim() || '';
-
-        // Create section for algorithms
         const section = document.createElement('div');
         section.className = 'space-y-6';
 
-        // Handle "all" category - show all algorithms grouped by category
+        const renderAlgorithmCard = (algoDef: AlgorithmDef, catId: string, grid: HTMLElement) => {
+            if (state.deletedProblemIds.has(algoDef.id)) return;
+            if (searchQuery && !algoDef.name.toLowerCase().includes(searchQuery)) return;
+
+            const problem = mainViewRenderers._algorithmToProblem(algoDef, catId);
+            if (!state.problems.has(algoDef.id)) state.problems.set(algoDef.id, problem);
+            grid.appendChild(problemCardRenderers.createProblemCard(problem));
+        };
+
         if (categoryId === 'all') {
             data.algorithmsData.forEach((category: AlgorithmCategory) => {
-                // Filter algorithms by search
-                const filteredAlgorithms = category.algorithms.filter((algoDef: AlgorithmDef) => {
-                    if (searchQuery) {
-                        return algoDef.name.toLowerCase().includes(searchQuery);
-                    }
-                    return true;
-                });
+                const filtered = category.algorithms.filter(
+                    (a) => !searchQuery || a.name.toLowerCase().includes(searchQuery)
+                );
+                if (filtered.length === 0) return;
 
-                if (filteredAlgorithms.length === 0) {
-                    return; // Skip empty categories
-                }
+                const header = document.createElement('h3');
+                header.className = 'text-xl font-bold text-theme-bold border-b border-theme pb-2';
+                header.textContent = category.title;
+                section.appendChild(header);
 
-                // Create category header
-                const categoryHeader = document.createElement('h3');
-                categoryHeader.className =
-                    'text-xl font-bold text-theme-bold border-b border-theme pb-2';
-                categoryHeader.textContent = category.title;
-                section.appendChild(categoryHeader);
-
-                // Create grid for algorithm cards
                 const grid = document.createElement('div');
                 grid.className = 'grid grid-cols-1 gap-3';
-
-                // Add algorithm cards (skip deleted ones)
-                filteredAlgorithms.forEach((algoDef: AlgorithmDef) => {
-                    // Skip if algorithm was deleted
-                    if (state.deletedProblemIds.has(algoDef.id)) {
-                        return;
-                    }
-                    const problem = mainViewRenderers._algorithmToProblem(algoDef, category.id);
-                    if (!state.problems.has(algoDef.id)) {
-                        state.problems.set(algoDef.id, problem);
-                    }
-                    const card = problemCardRenderers.createProblemCard(problem);
-                    grid.appendChild(card);
-                });
-
+                filtered.forEach((algo) => renderAlgorithmCard(algo, category.id, grid));
                 section.appendChild(grid);
             });
         } else {
-            // Single category view
             const category = data.algorithmsData.find(
                 (c: AlgorithmCategory) => c.id === categoryId
             );
-            if (!category) {
-                return;
-            }
+            if (!category) return;
 
-            // Create grid for algorithm cards
             const grid = document.createElement('div');
             grid.className = 'grid grid-cols-1 gap-3';
-
-            // Filter and add algorithm cards (treating them as problems)
-            category.algorithms.forEach((algoDef: AlgorithmDef) => {
-                // Skip if algorithm was deleted
-                if (state.deletedProblemIds.has(algoDef.id)) {
-                    return;
-                }
-
-                // Apply search filter
-                if (searchQuery) {
-                    const matchesSearch = algoDef.name.toLowerCase().includes(searchQuery);
-                    if (!matchesSearch) {
-                        return; // Skip this algorithm
-                    }
-                }
-
-                // Convert algorithm to Problem and ensure it exists in state
-                const problem = mainViewRenderers._algorithmToProblem(algoDef, categoryId);
-
-                // Initialize in state if not already present
-                if (!state.problems.has(algoDef.id)) {
-                    state.problems.set(algoDef.id, problem);
-                }
-
-                // Use the standard problem card renderer
-                const card = problemCardRenderers.createProblemCard(problem);
-                grid.appendChild(card);
-            });
-
+            category.algorithms.forEach((algo) => renderAlgorithmCard(algo, categoryId, grid));
             section.appendChild(grid);
         }
 
         container.appendChild(section);
-
-        // Update stats
         import('../renderers').then(({ renderers }) => renderers.updateStats());
     },
 };
