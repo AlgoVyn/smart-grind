@@ -158,9 +158,9 @@ describe('Integration: Data Synchronization', () => {
             // Save again
             state.saveToStorage();
             
-            // Verify local keys were used (local users use 'smartgrind-local-problems')
+            // Verify local keys were used (local users use 'smartgrind-problems')
             expect(localStorage.setItem).toHaveBeenCalledWith(
-                'smartgrind-local-problems',
+                'smartgrind-problems',
                 expect.any(String)
             );
         });

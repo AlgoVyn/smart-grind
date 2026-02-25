@@ -10,9 +10,7 @@ import { data } from '../data';
  * @example
  * const today = getToday(); // Returns "2024-01-15"
  */
-export const getToday = (): string => {
-    return new Date().toISOString().split('T')[0]!;
-};
+export const getToday = (): string => new Date().toISOString().split('T')[0]!;
 
 /**
  * Adds a specified number of days to a given date.
@@ -26,7 +24,7 @@ export const getToday = (): string => {
 export const addDays = (date: string, days: number): string => {
     const result = new Date(date);
     result.setDate(result.getDate() + days);
-    return result.toISOString().split('T')[0] ?? date;
+    return result.toISOString().split('T')[0]!;
 };
 
 /**
@@ -56,7 +54,5 @@ export const formatDate = (date: string): string =>
  * // Final interval (60 days later)
  * const final = getNextReviewDate('2024-01-15', 5); // Returns "2024-03-15"
  */
-export const getNextReviewDate = (today: string, intervalIndex: number): string => {
-    const daysToAdd = data.SPACED_REPETITION_INTERVALS[intervalIndex] ?? 1;
-    return addDays(today, daysToAdd);
-};
+export const getNextReviewDate = (today: string, intervalIndex: number): string =>
+    addDays(today, data.SPACED_REPETITION_INTERVALS[intervalIndex] ?? 1);

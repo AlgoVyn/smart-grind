@@ -8,6 +8,7 @@ import {
     TOTAL_UNIQUE_ALGORITHMS,
     AlgorithmCategory,
 } from './data/algorithms-data';
+import { STORAGE_KEYS } from './utils/storage';
 
 /**
  * Deep clone utility that works in both browser and Node.js environments.
@@ -83,17 +84,17 @@ export const data = {
      */
     TOTAL_UNIQUE_ALGORITHMS,
 
-    // Local storage keys
+    // Local storage keys - re-exported from storage.ts for backward compatibility
     LOCAL_STORAGE_KEYS: {
-        USER_TYPE: 'smartgrind-user-type',
+        USER_TYPE: STORAGE_KEYS.USER_TYPE,
         // Local user keys
-        PROBLEMS: 'smartgrind-local-problems',
-        DELETED_IDS: 'smartgrind-local-deleted-ids',
-        DISPLAY_NAME: 'smartgrind-local-display-name',
+        PROBLEMS: STORAGE_KEYS.PROBLEMS(false),
+        DELETED_IDS: STORAGE_KEYS.DELETED_IDS(false),
+        DISPLAY_NAME: STORAGE_KEYS.DISPLAY_NAME(false),
         // Signed-in user keys (separate from local)
-        SIGNED_IN_PROBLEMS: 'smartgrind-signedin-problems',
-        SIGNED_IN_DELETED_IDS: 'smartgrind-signedin-deleted-ids',
-        SIGNED_IN_DISPLAY_NAME: 'smartgrind-signedin-display-name',
+        SIGNED_IN_PROBLEMS: STORAGE_KEYS.PROBLEMS(true),
+        SIGNED_IN_DELETED_IDS: STORAGE_KEYS.DELETED_IDS(true),
+        SIGNED_IN_DISPLAY_NAME: STORAGE_KEYS.DISPLAY_NAME(true),
     },
 };
 

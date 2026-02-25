@@ -177,25 +177,30 @@ export const htmlGenerators = {
         const isSolved = p.status === 'solved';
         const isDue = isSolved && p.nextReviewDate !== null && p.nextReviewDate <= utils.getToday();
 
-        // Determine action type and styling
-        const actionConfig = !isSolved
-            ? {
-                  action: 'solve',
-                  class: 'bg-brand-600 text-white hover:bg-brand-500 shadow-lg shadow-brand-500/20',
-                  text: 'Solve',
-              }
-            : isDue
-              ? {
+        // Determine action type and styling using early returns pattern
+        const getActionConfig = () => {
+            if (!isSolved) {
+                return {
+                    action: 'solve',
+                    class: 'bg-brand-600 text-white hover:bg-brand-500 shadow-lg shadow-brand-500/20',
+                    text: 'Solve',
+                };
+            }
+            if (isDue) {
+                return {
                     action: 'review',
                     class: 'bg-amber-500 text-white hover:bg-amber-400',
                     text: 'Review',
-                }
-              : {
-                    action: 'reset',
-                    class: 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold',
-                    text: 'Reset',
                 };
+            }
+            return {
+                action: 'reset',
+                class: 'bg-dark-900 text-theme-muted hover:bg-dark-800 hover:text-theme-bold',
+                text: 'Reset',
+            };
+        };
 
+        const actionConfig = getActionConfig();
         const buttonText = p.loading ? htmlGenerators.getSpinner() : actionConfig.text;
         return `<button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors min-w-[70px] ${actionConfig.class}" ${p.loading ? 'disabled' : ''} data-action="${actionConfig.action}">${buttonText}</button>`;
     },
@@ -258,41 +263,36 @@ export const htmlGenerators = {
         </div>
     `,
 
-    // Helper to generate problem card HTML
-    generateProblemCardHTML: (p: Problem) => {
+    // Helper to get card style based on problem status
+    getCardStyle: (p: Problem): string => {
         const isSolved = p.status === 'solved';
         const today = utils.getToday();
-        const isDue = isSolved && p.nextReviewDate !== null && today && p.nextReviewDate <= today;
+        const isDue = isSolved && p.nextReviewDate !== null && p.nextReviewDate <= today;
 
-        // Card styling based on status
-        const cardStyle = isDue
-            ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40'
-            : isSolved
-              ? 'bg-dark-800 border-brand-500/20 hover:border-brand-500/40'
-              : 'bg-dark-800 border-theme hover:border-slate-400';
+        if (isDue) return 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40';
+        if (isSolved) return 'bg-dark-800 border-brand-500/20 hover:border-brand-500/40';
+        return 'bg-dark-800 border-theme hover:border-slate-400';
+    },
 
+    // Helper to generate problem card HTML
+    generateProblemCardHTML: (p: Problem) => {
+        const cardStyle = htmlGenerators.getCardStyle(p);
         const className = `group p-4 rounded-xl border transition-all duration-200 overflow-hidden ${cardStyle}`;
-
-        const problemLink = htmlGenerators.generateProblemLink(p);
-        const problemMeta = htmlGenerators.generateProblemMeta(p);
-        const aiButtons = htmlGenerators.generateAIButtons();
-        const actionButtons = htmlGenerators.generateActionButtons(p);
-        const noteArea = htmlGenerators.generateNoteArea(p);
 
         return {
             className,
             innerHTML: `
             <div class="flex flex-col sm:flex-row justify-between gap-4">
                 <div class="flex-1 overflow-hidden">
-                    ${problemLink}
-                    ${problemMeta}
+                    ${htmlGenerators.generateProblemLink(p)}
+                    ${htmlGenerators.generateProblemMeta(p)}
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                    ${aiButtons}
-                    ${actionButtons}
+                    ${htmlGenerators.generateAIButtons()}
+                    ${htmlGenerators.generateActionButtons(p)}
                 </div>
             </div>
-            ${noteArea}
+            ${htmlGenerators.generateNoteArea(p)}
         `,
         };
     },

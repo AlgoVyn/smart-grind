@@ -167,6 +167,33 @@ const applyCategory = async (categoryParam: string | null, algorithmsParam: stri
     utils.scrollToTop();
 };
 
+// Helper to initialize UI after user setup
+const initializeUIAfterSetup = async () => {
+    const { ui } = await import('./ui/ui');
+    const { renderers } = await import('./renderers');
+    const { api } = await import('./api');
+
+    data.resetTopicsData();
+
+    try {
+        await api.syncPlan();
+    } catch (e) {
+        console.error('Error syncing plan:', e);
+    }
+
+    api.mergeStructure();
+
+    renderers.renderSidebar();
+    renderers.renderMainView(state.ui.activeTopicId);
+    renderers.updateStats();
+    ui.initScrollButton();
+    ui.updateAuthUI();
+
+    state.elements.setupModal?.classList.add('hidden');
+    state.elements.appWrapper?.classList.remove('hidden');
+    state.elements.loadingScreen?.classList.add('hidden');
+};
+
 const setupSignedInUser = async (
     userId: string,
     displayName: string,
@@ -196,30 +223,7 @@ const setupSignedInUser = async (
     // If offline with valid local data, skip API calls
     if (!navigator.onLine && state.hasValidData()) {
         console.log('[Init] Offline with valid local data - skipping API calls');
-        const { ui } = await import('./ui/ui');
-        const { renderers } = await import('./renderers');
-        const { api } = await import('./api');
-
-        data.resetTopicsData();
-
-        try {
-            await api.syncPlan();
-        } catch (e) {
-            console.error('Error syncing plan:', e);
-        }
-
-        api.mergeStructure();
-
-        renderers.renderSidebar();
-        renderers.renderMainView(state.ui.activeTopicId);
-        renderers.updateStats();
-        ui.initScrollButton();
-        ui.updateAuthUI();
-
-        state.elements.setupModal?.classList.add('hidden');
-        state.elements.appWrapper?.classList.remove('hidden');
-        state.elements.loadingScreen?.classList.add('hidden');
-
+        await initializeUIAfterSetup();
         await applyCategory(categoryParam, algorithmsParam);
         return;
     }

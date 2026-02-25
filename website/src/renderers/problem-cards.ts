@@ -131,16 +131,16 @@ const performStatusChange = async (
 
 // Status change handlers
 const handleSolve = async (button: HTMLElement, p: Problem): Promise<void> => {
-    const today = utils.getToday() || '2024-01-01';
+    const today = utils.getToday();
     await performStatusChange(button, p, (prob) => {
         prob.status = 'solved';
         prob.reviewInterval = 0;
-        prob.nextReviewDate = utils.getNextReviewDate(today, 0) || null;
+        prob.nextReviewDate = utils.getNextReviewDate(today, 0);
     });
 };
 
 const handleReview = async (button: HTMLElement, p: Problem): Promise<void> => {
-    const today = utils.getToday() || '2024-01-01';
+    const today = utils.getToday();
     const newInterval = (p.reviewInterval || 0) + 1;
     await performStatusChange(
         button,
@@ -148,7 +148,7 @@ const handleReview = async (button: HTMLElement, p: Problem): Promise<void> => {
         (prob) => {
             prob.status = 'solved';
             prob.reviewInterval = newInterval;
-            prob.nextReviewDate = utils.getNextReviewDate(today, newInterval) || null;
+            prob.nextReviewDate = utils.getNextReviewDate(today, newInterval);
         },
         {
             onFinally: (prob) => {

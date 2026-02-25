@@ -49,12 +49,12 @@ describe('SmartGrind Data Module', () => {
     test('should have correct LOCAL_STORAGE_KEYS', () => {
         const expectedKeys = {
             USER_TYPE: 'smartgrind-user-type',
-            PROBLEMS: 'smartgrind-local-problems',
-            DELETED_IDS: 'smartgrind-local-deleted-ids',
-            DISPLAY_NAME: 'smartgrind-local-display-name',
-            SIGNED_IN_PROBLEMS: 'smartgrind-signedin-problems',
-            SIGNED_IN_DELETED_IDS: 'smartgrind-signedin-deleted-ids',
-            SIGNED_IN_DISPLAY_NAME: 'smartgrind-signedin-display-name',
+            PROBLEMS: 'smartgrind-problems',
+            DELETED_IDS: 'smartgrind-deleted-ids',
+            DISPLAY_NAME: 'smartgrind-display-name',
+            SIGNED_IN_PROBLEMS: 'SIGNED_IN_smartgrind-problems',
+            SIGNED_IN_DELETED_IDS: 'SIGNED_IN_smartgrind-deleted-ids',
+            SIGNED_IN_DISPLAY_NAME: 'SIGNED_IN_smartgrind-display-name',
         };
 
         expect(data.LOCAL_STORAGE_KEYS).toEqual(expectedKeys);

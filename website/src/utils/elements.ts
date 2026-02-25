@@ -2,6 +2,84 @@
 // Centralized DOM element caching for fast access throughout the app
 
 /**
+ * Interface for DOM element cache
+ * Elements are cached on init for fast access throughout the app
+ */
+export interface ElementCache {
+    // Modals
+    setupModal: HTMLElement | null;
+    addProblemModal: HTMLElement | null;
+    signinModal: HTMLElement | null;
+    signinModalContent: HTMLElement | null;
+    alertModal: HTMLElement | null;
+    confirmModal: HTMLElement | null;
+    solutionModal: HTMLElement | null;
+    // Modal content elements
+    alertMessage: HTMLElement | null;
+    confirmMessage: HTMLElement | null;
+    alertTitle: HTMLElement | null;
+    confirmTitle: HTMLElement | null;
+    alertOkBtn: HTMLElement | null;
+    confirmOkBtn: HTMLElement | null;
+    confirmCancelBtn: HTMLElement | null;
+    solutionCloseBtn: HTMLElement | null;
+    // App structure
+    appWrapper: HTMLElement | null;
+    loadingScreen: HTMLElement | null;
+    topicList: HTMLElement | null;
+    problemsContainer: HTMLElement | null;
+    contentScroll: HTMLElement | null;
+    emptyState: HTMLElement | null;
+    currentViewTitle: HTMLElement | null;
+    // Auth elements
+    googleLoginButton: HTMLElement | null;
+    modalGoogleLoginButton: HTMLElement | null;
+    setupError: HTMLElement | null;
+    signinError: HTMLElement | null;
+    userDisplay: HTMLElement | null;
+    disconnectBtn: HTMLElement | null;
+    // Stats elements
+    sidebarTotalStat: HTMLElement | null;
+    sidebarTotalBar: HTMLElement | null;
+    statTotal: HTMLElement | null;
+    statSolved: HTMLElement | null;
+    progressBarSolved: HTMLElement | null;
+    statDue: HTMLElement | null;
+    statDueBadge: HTMLElement | null;
+    reviewBanner: HTMLElement | null;
+    reviewCountBanner: HTMLElement | null;
+    // Navigation & controls
+    mobileMenuBtn: HTMLElement | null;
+    mobileMenuBtnMain: HTMLElement | null;
+    openAddModalBtn: HTMLElement | null;
+    cancelAddBtn: HTMLElement | null;
+    saveAddBtn: HTMLElement | null;
+    themeToggleBtn: HTMLElement | null;
+    scrollToTopBtn: HTMLElement | null;
+    sidebarLogo: HTMLElement | null;
+    mobileLogo: HTMLElement | null;
+    mainSidebar: HTMLElement | null;
+    sidebarResizer: HTMLElement | null;
+    sidebarBackdrop: HTMLElement | null;
+    // Form inputs
+    addProbName: HTMLInputElement | null;
+    addProbUrl: HTMLInputElement | null;
+    addProbCategory: HTMLSelectElement | null;
+    addProbCategoryNew: HTMLInputElement | null;
+    addProbPattern: HTMLSelectElement | null;
+    addProbPatternNew: HTMLInputElement | null;
+    problemSearch: HTMLInputElement | null;
+    reviewDateFilter: HTMLSelectElement | null;
+    // Other elements
+    dateFilterContainer: HTMLElement | null;
+    toastContainer: HTMLElement | null;
+    // Element collections
+    filterBtns: NodeListOf<Element> | null;
+    // Index signature for dynamic access
+    [key: string]: HTMLElement | HTMLInputElement | HTMLSelectElement | NodeListOf<Element> | null;
+}
+
+/**
  * Converts kebab-case string to camelCase
  * @example 'setup-modal' → 'setupModal'
  */
