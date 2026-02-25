@@ -152,48 +152,48 @@ describe('State Sync Module', () => {
     describe('isOnline', () => {
         test('should return true when online', () => {
             state.sync.isOnline = true;
-            expect(state.isOnline()).toBe(true);
+            expect(state.sync.isOnline).toBe(true);
         });
 
         test('should return false when offline', () => {
             state.sync.isOnline = false;
-            expect(state.isOnline()).toBe(false);
+            expect(state.sync.isOnline).toBe(false);
         });
     });
 
     describe('isSyncing', () => {
         test('should return true when syncing', () => {
             state.sync.isSyncing = true;
-            expect(state.isSyncing()).toBe(true);
+            expect(state.sync.isSyncing).toBe(true);
         });
 
         test('should return false when not syncing', () => {
             state.sync.isSyncing = false;
-            expect(state.isSyncing()).toBe(false);
+            expect(state.sync.isSyncing).toBe(false);
         });
     });
 
     describe('getPendingCount', () => {
         test('should return current pending count', () => {
             state.sync.pendingCount = 15;
-            expect(state.getPendingCount()).toBe(15);
+            expect(state.sync.pendingCount).toBe(15);
         });
 
         test('should return 0 when no pending operations', () => {
             state.sync.pendingCount = 0;
-            expect(state.getPendingCount()).toBe(0);
+            expect(state.sync.pendingCount).toBe(0);
         });
     });
 
     describe('hasSyncConflicts', () => {
         test('should return true when conflicts exist', () => {
             state.sync.hasConflicts = true;
-            expect(state.hasSyncConflicts()).toBe(true);
+            expect(state.sync.hasConflicts).toBe(true);
         });
 
         test('should return false when no conflicts', () => {
             state.sync.hasConflicts = false;
-            expect(state.hasSyncConflicts()).toBe(false);
+            expect(state.sync.hasConflicts).toBe(false);
         });
     });
 

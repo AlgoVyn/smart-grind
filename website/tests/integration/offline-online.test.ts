@@ -51,7 +51,7 @@ describe('Integration: Offline/Online Transitions', () => {
             const isOnline = navigator.onLine;
             state.setOnlineStatus(isOnline);
             
-            expect(state.isOnline()).toBe(true);
+            expect(state.sync.isOnline).toBe(true);
             expect(state.sync.isOnline).toBe(true);
         });
 
@@ -66,7 +66,7 @@ describe('Integration: Offline/Online Transitions', () => {
             const isOnline = navigator.onLine;
             state.setOnlineStatus(isOnline);
             
-            expect(state.isOnline()).toBe(false);
+            expect(state.sync.isOnline).toBe(false);
             expect(state.sync.isOnline).toBe(false);
         });
 
@@ -203,14 +203,14 @@ describe('Integration: Offline/Online Transitions', () => {
         test('should track pending operations count', () => {
             state.setSyncStatus({ pendingCount: 5 });
             
-            expect(state.getPendingCount()).toBe(5);
+            expect(state.sync.pendingCount).toBe(5);
             expect(state.sync.pendingCount).toBe(5);
         });
 
         test('should track sync in progress', () => {
             state.setSyncStatus({ isSyncing: true });
             
-            expect(state.isSyncing()).toBe(true);
+            expect(state.sync.isSyncing).toBe(true);
             expect(state.sync.isSyncing).toBe(true);
         });
 
@@ -227,7 +227,7 @@ describe('Integration: Offline/Online Transitions', () => {
                 conflictMessage: 'Data conflict detected between local and server'
             });
             
-            expect(state.hasSyncConflicts()).toBe(true);
+            expect(state.sync.hasConflicts).toBe(true);
             expect(state.sync.conflictMessage).toBe('Data conflict detected between local and server');
         });
     });
@@ -279,10 +279,10 @@ describe('Integration: Offline/Online Transitions', () => {
         test('should setup connectivity monitoring', () => {
             // Just verify state can be updated
             state.setOnlineStatus(true);
-            expect(state.isOnline()).toBe(true);
+            expect(state.sync.isOnline).toBe(true);
             
             state.setOnlineStatus(false);
-            expect(state.isOnline()).toBe(false);
+            expect(state.sync.isOnline).toBe(false);
         });
     });
 
@@ -334,7 +334,7 @@ describe('Integration: Offline/Online Transitions', () => {
             for (let i = 0; i < cycles; i++) {
                 // Go offline
                 state.setOnlineStatus(false);
-                expect(state.isOnline()).toBe(false);
+                expect(state.sync.isOnline).toBe(false);
                 
                 // Add data
                 state.problems.set(`cycle-${i}`, {
@@ -353,7 +353,7 @@ describe('Integration: Offline/Online Transitions', () => {
                 
                 // Come online
                 state.setOnlineStatus(true);
-                expect(state.isOnline()).toBe(true);
+                expect(state.sync.isOnline).toBe(true);
             }
             
             // Verify all data persisted

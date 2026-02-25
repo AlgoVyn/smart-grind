@@ -320,7 +320,7 @@ export function initOfflineDetection(): () => void {
                             | undefined;
                         state.setSyncStatus({
                             isSyncing: false,
-                            pendingCount: authData?.pendingCount ?? state.getPendingCount(),
+                            pendingCount: authData?.pendingCount ?? state.sync.pendingCount,
                         });
                     }
                     break;

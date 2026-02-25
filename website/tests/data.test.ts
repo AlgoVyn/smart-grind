@@ -6,23 +6,24 @@ describe('SmartGrind Data Module', () => {
         data.init();
     });
 
-    test('should initialize ORIGINAL_TOPICS_DATA on first init call', () => {
+    test('should initialize original topics data on first init call', () => {
         // Reset for clean state
+        // @ts-expect-error - Testing internal state
         data.ORIGINAL_TOPICS_DATA = null;
 
         data.init();
 
-        expect(data.ORIGINAL_TOPICS_DATA).not.toBeNull();
-        expect(Array.isArray(data.ORIGINAL_TOPICS_DATA)).toBe(true);
-        expect(data.ORIGINAL_TOPICS_DATA.length).toBeGreaterThan(0);
+        expect(data.getOriginalTopicsData()).not.toBeNull();
+        expect(Array.isArray(data.getOriginalTopicsData())).toBe(true);
+        expect(data.getOriginalTopicsData()?.length).toBeGreaterThan(0);
     });
 
-    test('should not overwrite ORIGINAL_TOPICS_DATA on subsequent init calls', () => {
-        const originalData = data.ORIGINAL_TOPICS_DATA;
+    test('should not overwrite original topics data on subsequent init calls', () => {
+        const originalData = data.getOriginalTopicsData();
 
         data.init();
 
-        expect(data.ORIGINAL_TOPICS_DATA).toBe(originalData);
+        expect(data.getOriginalTopicsData()).toBe(originalData);
     });
 
     test('should reset topicsData to original state', () => {

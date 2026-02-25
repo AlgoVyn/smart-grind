@@ -25,9 +25,10 @@ export const htmlGenerators = {
     // Helper to check if an item exists in original data
     // For patterns: checks by pattern name
     // For problems: checks by problem ID
-    _isCustomItem: (type: 'pattern' | 'problem', identifier: string) => {
-        if (!data.ORIGINAL_TOPICS_DATA) return true;
-        return !data.ORIGINAL_TOPICS_DATA.some((topic: Topic) =>
+    isCustomItem: (type: 'pattern' | 'problem', identifier: string) => {
+        const originalData = data.getOriginalTopicsData();
+        if (!originalData) return true;
+        return !originalData.some((topic: Topic) =>
             topic.patterns.some((pattern: Pattern) =>
                 type === 'pattern'
                     ? pattern.name === identifier
@@ -39,11 +40,11 @@ export const htmlGenerators = {
     },
 
     // Legacy helpers for backward compatibility
-    _isCustomPattern: (patternName: string) => htmlGenerators._isCustomItem('pattern', patternName),
-    _isCustomProblem: (problemId: string) => htmlGenerators._isCustomItem('problem', problemId),
+    isCustomPattern: (patternName: string) => htmlGenerators.isCustomItem('pattern', patternName),
+    isCustomProblem: (problemId: string) => htmlGenerators.isCustomItem('problem', problemId),
 
     // Helper to sort problems for review filter
-    _sortReviewProblems: (problems: Problem[]) => {
+    sortReviewProblems: (problems: Problem[]) => {
         return problems.sort((a, b) => {
             if (a.nextReviewDate === b.nextReviewDate) return 0;
             if (!a.nextReviewDate) return 1;
@@ -53,10 +54,10 @@ export const htmlGenerators = {
     },
 
     // Helper to get spinner HTML
-    _getSpinner: (size = 'h-4 w-4', color = 'text-current') => SPINNER_HTML(size, color),
+    getSpinner: (size = 'h-4 w-4', color = 'text-current') => SPINNER_HTML(size, color),
 
     // Helper to filter visible problems for a pattern
-    _getVisibleProblemsForPattern: (pattern: Pattern, today: string) => {
+    getVisibleProblemsForPattern: (pattern: Pattern, today: string) => {
         const problems: Problem[] = [];
         const searchQuery =
             (state.elements['problemSearch'] as HTMLInputElement | null)?.value
@@ -75,14 +76,14 @@ export const htmlGenerators = {
 
         // Sort review problems by next review date (ascending: oldest/overdue first)
         if (state.ui.currentFilter === 'review') {
-            return htmlGenerators._sortReviewProblems(problems);
+            return htmlGenerators.sortReviewProblems(problems);
         }
 
         return problems;
     },
 
     // Helper to create pattern header with solution button
-    _createPatternHeader: (pattern: Pattern) => {
+    createPatternHeader: (pattern: Pattern) => {
         const patternHeader = document.createElement('div');
         patternHeader.className = 'flex items-center justify-between mb-3 mt-6';
 
@@ -94,7 +95,7 @@ export const htmlGenerators = {
         patternHeader.appendChild(patternTitle);
 
         // Only show pattern solution button for non-custom patterns
-        if (!htmlGenerators._isCustomPattern(pattern.name)) {
+        if (!htmlGenerators.isCustomPattern(pattern.name)) {
             const patternSolutionButton = document.createElement('button');
             patternSolutionButton.className =
                 'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
@@ -117,7 +118,7 @@ export const htmlGenerators = {
     },
 
     // Helper to render a topic section
-    _renderTopicSection: (
+    renderTopicSection: (
         topic: Topic,
         filterTopicId: string,
         today: string,
@@ -134,7 +135,7 @@ export const htmlGenerators = {
         let hasVisiblePattern = false;
 
         topic.patterns.forEach((pattern: Pattern) => {
-            const patternProblems = htmlGenerators._getVisibleProblemsForPattern(pattern, today);
+            const patternProblems = htmlGenerators.getVisibleProblemsForPattern(pattern, today);
 
             if (patternProblems.length > 0) {
                 hasVisiblePattern = true;
@@ -142,7 +143,7 @@ export const htmlGenerators = {
                 const patternEl = document.createElement('div');
 
                 // Create pattern header with solution button
-                const patternHeader = htmlGenerators._createPatternHeader(pattern);
+                const patternHeader = htmlGenerators.createPatternHeader(pattern);
                 patternEl.appendChild(patternHeader);
 
                 // Create grid for problem cards
@@ -162,7 +163,7 @@ export const htmlGenerators = {
     },
 
     // Helper to generate badge HTML
-    _generateBadge: (p: Problem, today: string) => {
+    generateBadge: (p: Problem, today: string) => {
         if (p.status !== 'solved') return '';
         const isDue = p.nextReviewDate !== null && p.nextReviewDate <= today;
         const badgeClass = isDue
@@ -172,7 +173,7 @@ export const htmlGenerators = {
     },
 
     // Helper to generate action button HTML
-    _generateActionButton: (p: Problem) => {
+    generateActionButton: (p: Problem) => {
         const isSolved = p.status === 'solved';
         const isDue = isSolved && p.nextReviewDate !== null && p.nextReviewDate <= utils.getToday();
 
@@ -195,13 +196,13 @@ export const htmlGenerators = {
                     text: 'Reset',
                 };
 
-        const buttonText = p.loading ? htmlGenerators._getSpinner() : actionConfig.text;
+        const buttonText = p.loading ? htmlGenerators.getSpinner() : actionConfig.text;
         return `<button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors min-w-[70px] ${actionConfig.class}" ${p.loading ? 'disabled' : ''} data-action="${actionConfig.action}">${buttonText}</button>`;
     },
 
     // Helper to generate problem link HTML
-    _generateProblemLink: (p: Problem) => {
-        const badge = htmlGenerators._generateBadge(p, utils.getToday());
+    generateProblemLink: (p: Problem) => {
+        const badge = htmlGenerators.generateBadge(p, utils.getToday());
         return `
             <div class="flex items-center gap-2 mb-1">
                 <a href="${p.url}" target="_blank" class="text-base font-medium text-theme-bold group-hover:text-brand-400 transition-colors truncate cursor-pointer">
@@ -213,7 +214,7 @@ export const htmlGenerators = {
     },
 
     // Helper to generate problem metadata HTML
-    _generateProblemMeta: (p: Problem) => `
+    generateProblemMeta: (p: Problem) => `
         <div class="flex items-center gap-4 text-xs text-theme-muted font-mono">
             <span>Next: ${p.nextReviewDate ? utils.formatDate(p.nextReviewDate) : '--'}</span>
             <span class="${p.note ? 'text-brand-400' : ''}">${p.note ? 'Has Note' : ''}</span>
@@ -221,12 +222,12 @@ export const htmlGenerators = {
     `,
 
     // Helper to generate AI helper buttons HTML
-    _generateAIButtons: () => AI_BUTTONS_HTML,
+    generateAIButtons: () => AI_BUTTONS_HTML,
 
     // Helper to generate action buttons HTML
-    _generateActionButtons: (p: Problem) => {
-        const actionButton = htmlGenerators._generateActionButton(p);
-        const isCustomProblem = htmlGenerators._isCustomProblem(p.id);
+    generateActionButtons: (p: Problem) => {
+        const actionButton = htmlGenerators.generateActionButton(p);
+        const isCustomProblem = htmlGenerators.isCustomProblem(p.id);
         // Show solution button for non-custom problems OR for algorithms (check if ID exists in algorithms data)
         const isAlgorithm = data.algorithmsData.some((cat) =>
             cat.algorithms.some((algo) => algo.id === p.id)
@@ -246,19 +247,19 @@ export const htmlGenerators = {
     },
 
     // Helper to generate note area HTML
-    _generateNoteArea: (p: Problem) => `
+    generateNoteArea: (p: Problem) => `
         <div class="note-area ${p.noteVisible ? '' : 'hidden'} mt-3 pt-3 border-t border-theme">
             <textarea name="note-${p.id}" class="w-full bg-dark-950 border border-theme rounded-lg p-3 text-sm text-theme-base focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none resize-y" rows="6" placeholder="Notes..." ${p.loading ? 'disabled' : ''}>${escapeHtml(p.note || '')}</textarea>
             <div class="flex justify-end mt-2">
                 <button class="px-4 py-1.5 rounded-lg text-xs font-bold transition-colors min-w-[60px] bg-slate-700 hover:bg-slate-600 text-white" ${p.loading ? 'disabled' : ''} data-action="save-note">
-                    ${p.loading ? htmlGenerators._getSpinner('h-3 w-3') : 'Save'}
+                    ${p.loading ? htmlGenerators.getSpinner('h-3 w-3') : 'Save'}
                 </button>
             </div>
         </div>
     `,
 
     // Helper to generate problem card HTML
-    _generateProblemCardHTML: (p: Problem) => {
+    generateProblemCardHTML: (p: Problem) => {
         const isSolved = p.status === 'solved';
         const today = utils.getToday();
         const isDue = isSolved && p.nextReviewDate !== null && today && p.nextReviewDate <= today;
@@ -272,11 +273,11 @@ export const htmlGenerators = {
 
         const className = `group p-4 rounded-xl border transition-all duration-200 overflow-hidden ${cardStyle}`;
 
-        const problemLink = htmlGenerators._generateProblemLink(p);
-        const problemMeta = htmlGenerators._generateProblemMeta(p);
-        const aiButtons = htmlGenerators._generateAIButtons();
-        const actionButtons = htmlGenerators._generateActionButtons(p);
-        const noteArea = htmlGenerators._generateNoteArea(p);
+        const problemLink = htmlGenerators.generateProblemLink(p);
+        const problemMeta = htmlGenerators.generateProblemMeta(p);
+        const aiButtons = htmlGenerators.generateAIButtons();
+        const actionButtons = htmlGenerators.generateActionButtons(p);
+        const noteArea = htmlGenerators.generateNoteArea(p);
 
         return {
             className,

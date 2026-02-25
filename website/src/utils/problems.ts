@@ -70,24 +70,7 @@ export const getUniqueProblemIdsForTopic = (topicId: string): Set<string> => {
 export const getUniqueProblemsForTopic = (
     topicId: string
 ): { total: number; solved: number; due: number } => {
-    const today = getToday();
-    const uniqueIds = getUniqueProblemIdsForTopic(topicId);
-    let solved = 0;
-    let due = 0;
-
-    uniqueIds.forEach((id: string) => {
-        const problem = state.problems.get(id);
-        if (problem && problem.status === 'solved' && problem.nextReviewDate) {
-            solved++;
-            if (problem.nextReviewDate <= today) due++;
-        }
-    });
-
-    return {
-        total: uniqueIds.size,
-        solved,
-        due,
-    };
+    return calculateStatsForIds(getUniqueProblemIdsForTopic(topicId));
 };
 
 /**
@@ -99,12 +82,7 @@ export const getUniqueProblemsForTopic = (
  * // Returns Set of all problem and algorithm IDs
  */
 export const getAllUniqueProblemIdsIncludingAlgorithms = (): Set<string> => {
-    const ids = new Set<string>();
-    // Add all pattern problems
-    state.problems.forEach((_problem: Problem, id: string) => {
-        ids.add(id);
-    });
-    return ids;
+    return new Set(state.problems.keys());
 };
 
 /**
@@ -120,21 +98,28 @@ export const getAllUniqueProblemsIncludingAlgorithms = (): {
     solved: number;
     due: number;
 } => {
+    return calculateStatsForIds(getAllUniqueProblemIdsIncludingAlgorithms());
+};
+
+/**
+ * Shared helper to calculate statistics for a set of problem IDs.
+ * Consolidates the common stats calculation logic.
+ */
+const calculateStatsForIds = (ids: Set<string>): { total: number; solved: number; due: number } => {
     const today = getToday();
-    const uniqueIds = getAllUniqueProblemIdsIncludingAlgorithms();
     let solved = 0;
     let due = 0;
 
-    uniqueIds.forEach((id: string) => {
+    ids.forEach((id: string) => {
         const problem = state.problems.get(id);
-        if (problem && problem.status === 'solved' && problem.nextReviewDate) {
+        if (problem?.status === 'solved' && problem.nextReviewDate) {
             solved++;
             if (problem.nextReviewDate <= today) due++;
         }
     });
 
     return {
-        total: uniqueIds.size,
+        total: ids.size,
         solved,
         due,
     };

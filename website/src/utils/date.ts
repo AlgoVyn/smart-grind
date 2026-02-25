@@ -6,13 +6,12 @@ import { data } from '../data';
 /**
  * Gets today's date in ISO format (YYYY-MM-DD).
  * Used for calculating review dates and filtering problems.
- * @returns Today's date in YYYY-MM-DD format, or fallback date '2024-01-01' if parsing fails
+ * @returns Today's date in YYYY-MM-DD format
  * @example
  * const today = getToday(); // Returns "2024-01-15"
  */
 export const getToday = (): string => {
-    const today = new Date().toISOString().split('T')[0];
-    return today ?? '2024-01-01';
+    return new Date().toISOString().split('T')[0]!;
 };
 
 /**

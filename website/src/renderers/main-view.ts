@@ -113,7 +113,7 @@ export const mainViewRenderers = {
                 : data.topicsData.filter((t: Topic) => t.id === state.ui.activeTopicId);
 
         relevantTopics.forEach((topic: Topic) => {
-            const topicSection = htmlGenerators._renderTopicSection(
+            const topicSection = htmlGenerators.renderTopicSection(
                 topic,
                 state.ui.activeTopicId,
                 today,

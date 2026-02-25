@@ -171,7 +171,7 @@ describe('UI Sync Indicators Module', () => {
 
             syncIndicators.init();
 
-            expect(state.isOnline()).toBe(false);
+            expect(state.sync.isOnline).toBe(false);
 
             addEventListenerSpy.mockRestore();
         });
@@ -230,53 +230,53 @@ describe('Sync Indicators Integration', () => {
     test('should handle full sync status change', () => {
         // Set offline state and update UI
         state.setOnlineStatus(false);
-        syncIndicators.updateOfflineIndicator(state.isOnline());
+        syncIndicators.updateOfflineIndicator(state.sync.isOnline);
         expect(mockElements.offlineIndicator.classList.contains('hidden')).toBe(false);
 
         // Reset to online and update UI
         state.setOnlineStatus(true);
-        syncIndicators.updateOfflineIndicator(state.isOnline());
+        syncIndicators.updateOfflineIndicator(state.sync.isOnline);
         expect(mockElements.offlineIndicator.classList.contains('hidden')).toBe(true);
 
         // Set syncing state and update UI
         state.setSyncStatus({ isSyncing: true });
-        syncIndicators.updateSyncingIndicator(state.isSyncing());
+        syncIndicators.updateSyncingIndicator(state.sync.isSyncing);
         expect(mockElements.syncingIndicator.classList.contains('hidden')).toBe(false);
 
         // Set pending count and update UI
         state.setSyncStatus({ pendingCount: 5 });
-        syncIndicators.updatePendingIndicator(state.getPendingCount(), state.isOnline());
+        syncIndicators.updatePendingIndicator(state.sync.pendingCount, state.sync.isOnline);
         expect(mockElements.pendingIndicator.classList.contains('hidden')).toBe(false);
         expect(mockElements.pendingCount.textContent).toBe('5 pending');
 
         // Set conflicts and update UI
         state.setSyncStatus({ hasConflicts: true, conflictMessage: 'Conflict detected' });
-        syncIndicators.updateConflictIndicator(state.hasSyncConflicts());
+        syncIndicators.updateConflictIndicator(state.sync.hasConflicts);
         expect(mockElements.conflictIndicator.classList.contains('hidden')).toBe(false);
     });
 
     test('should hide syncing when offline', () => {
         state.setSyncStatus({ isSyncing: true });
-        syncIndicators.updateSyncingIndicator(state.isSyncing());
+        syncIndicators.updateSyncingIndicator(state.sync.isSyncing);
         expect(mockElements.syncingIndicator.classList.contains('hidden')).toBe(false);
 
         // When going offline, syncing stops and offline indicator shows
         state.setOnlineStatus(false);
         state.setSyncStatus({ isSyncing: false }); // Syncing stops when offline
-        syncIndicators.updateOfflineIndicator(state.isOnline());
-        syncIndicators.updateSyncingIndicator(state.isSyncing());
+        syncIndicators.updateOfflineIndicator(state.sync.isOnline);
+        syncIndicators.updateSyncingIndicator(state.sync.isSyncing);
         expect(mockElements.syncingIndicator.classList.contains('hidden')).toBe(true);
         expect(mockElements.offlineIndicator.classList.contains('hidden')).toBe(false);
     });
 
     test('should show pending when offline', () => {
         state.setSyncStatus({ pendingCount: 5 });
-        syncIndicators.updatePendingIndicator(state.getPendingCount(), state.isOnline());
+        syncIndicators.updatePendingIndicator(state.sync.pendingCount, state.sync.isOnline);
         expect(mockElements.pendingIndicator.classList.contains('hidden')).toBe(false);
 
         state.setOnlineStatus(false);
-        syncIndicators.updateOfflineIndicator(state.isOnline());
-        syncIndicators.updatePendingIndicator(state.getPendingCount(), state.isOnline());
+        syncIndicators.updateOfflineIndicator(state.sync.isOnline);
+        syncIndicators.updatePendingIndicator(state.sync.pendingCount, state.sync.isOnline);
         // Pending should still show in offline mode to indicate queued changes
         expect(mockElements.pendingIndicator.classList.contains('hidden')).toBe(false);
         expect(mockElements.pendingCount.textContent).toBe('5 pending');

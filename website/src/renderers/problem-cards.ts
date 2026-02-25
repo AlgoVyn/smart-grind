@@ -14,7 +14,7 @@ type ProblemCallback = (_problem: Problem) => void;
 const reRenderCard = (button: HTMLElement, p: Problem): void => {
     const card = button.closest('.group');
     if (card) {
-        const { className, innerHTML } = htmlGenerators._generateProblemCardHTML(p);
+        const { className, innerHTML } = htmlGenerators.generateProblemCardHTML(p);
         card.className = className;
         card.innerHTML = innerHTML;
     }
@@ -26,9 +26,9 @@ const reRenderAllCards = (p: Problem, hideIfFilteredOut = false): void => {
     newCards.forEach((newCard: Element) => {
         const btn = newCard.querySelector('.action-btn[data-action]');
         if (btn) {
-            problemCardRenderers._reRenderCard(btn as HTMLElement, p);
+            problemCardRenderers.reRenderCard(btn as HTMLElement, p);
             if (hideIfFilteredOut) {
-                problemCardRenderers._hideCardIfFilteredOut(btn as HTMLElement);
+                problemCardRenderers.hideCardIfFilteredOut(btn as HTMLElement);
             }
         }
     });
@@ -99,7 +99,7 @@ const performStatusChange = async (
     problem.loading = true;
 
     // Show loading state immediately
-    problemCardRenderers._reRenderCard(button, problem);
+    problemCardRenderers.reRenderCard(button, problem);
 
     // Add short delay for spinner visibility
     await new Promise<void>((resolve) => setTimeout(resolve, 150));
@@ -108,7 +108,7 @@ const performStatusChange = async (
     const safetyTimeoutId = setTimeout(() => {
         if (problem.loading) {
             problem.loading = false;
-            problemCardRenderers._reRenderAllCards(problem);
+            problemCardRenderers.reRenderAllCards(problem);
         }
     }, 3000);
 
@@ -151,7 +151,7 @@ const performStatusChange = async (
         if (onFinally) {
             onFinally(problem);
         } else {
-            problemCardRenderers._reRenderAllCards(problem);
+            problemCardRenderers.reRenderAllCards(problem);
         }
     }
 };
@@ -189,7 +189,7 @@ const handleReview = async (button: HTMLElement, p: Problem): Promise<void> => {
                     state.ui.searchQuery || '',
                     today
                 );
-                problemCardRenderers._reRenderAllCards(problem, shouldHide);
+                problemCardRenderers.reRenderAllCards(problem, shouldHide);
             },
         }
     );
@@ -211,9 +211,9 @@ const handleStatusAction = async (
     action: string
 ): Promise<void> => {
     const handlers: Record<string, () => Promise<void>> = {
-        solve: () => problemCardRenderers._handleSolve(button, p),
-        review: () => problemCardRenderers._handleReview(button, p),
-        reset: () => problemCardRenderers._handleReset(button, p),
+        solve: () => problemCardRenderers.handleSolve(button, p),
+        review: () => problemCardRenderers.handleReview(button, p),
+        reset: () => problemCardRenderers.handleReset(button, p),
     };
     await handlers[action]?.();
 };
@@ -292,17 +292,17 @@ const handleProblemCardClick = async (e: Event | HTMLElement, p: Problem): Promi
 
     // Use exported methods so tests can spy on them
     const actionHandlers: Record<string, () => void | Promise<void>> = {
-        solve: () => renderers._handleSolve(button, p),
-        review: () => renderers._handleReview(button, p),
-        reset: () => renderers._handleReset(button, p),
-        delete: () => renderers._handleDeleteAction(p),
-        note: () => renderers._handleNoteToggle(button, p),
-        'save-note': () => renderers._handleNoteSave(button, p),
-        'ask-chatgpt': () => renderers._handleAIActions(p, 'ask-chatgpt'),
-        'ask-aistudio': () => renderers._handleAIActions(p, 'ask-aistudio'),
-        'ask-grok': () => renderers._handleAIActions(p, 'ask-grok'),
-        solution: () => renderers._handleSolutionActions(button, p, 'solution'),
-        'pattern-solution': () => renderers._handleSolutionActions(button, p, 'pattern-solution'),
+        solve: () => renderers.handleSolve(button, p),
+        review: () => renderers.handleReview(button, p),
+        reset: () => renderers.handleReset(button, p),
+        delete: () => renderers.handleDeleteAction(p),
+        note: () => renderers.handleNoteToggle(button, p),
+        'save-note': () => renderers.handleNoteSave(button, p),
+        'ask-chatgpt': () => renderers.handleAIActions(p, 'ask-chatgpt'),
+        'ask-aistudio': () => renderers.handleAIActions(p, 'ask-aistudio'),
+        'ask-grok': () => renderers.handleAIActions(p, 'ask-grok'),
+        solution: () => renderers.handleSolutionActions(button, p, 'solution'),
+        'pattern-solution': () => renderers.handleSolutionActions(button, p, 'pattern-solution'),
     };
 
     await actionHandlers[action]?.();
@@ -311,7 +311,7 @@ const handleProblemCardClick = async (e: Event | HTMLElement, p: Problem): Promi
 // Create a problem card element
 const createProblemCard = (_p: Problem): HTMLElement => {
     const el = document.createElement('div');
-    const { className, innerHTML } = htmlGenerators._generateProblemCardHTML(_p);
+    const { className, innerHTML } = htmlGenerators.generateProblemCardHTML(_p);
     el.className = className;
     el.dataset['problemId'] = _p.id;
     el.innerHTML = innerHTML;
@@ -321,10 +321,10 @@ const createProblemCard = (_p: Problem): HTMLElement => {
 
 // Export the problem card renderers
 export const problemCardRenderers = {
-    _reRenderCard: reRenderCard,
-    _performStatusChange: performStatusChange,
-    _reRenderAllCards: reRenderAllCards,
-    _handleStatusChange: async (
+    reRenderCard,
+    performStatusChange,
+    reRenderAllCards,
+    handleStatusChange: async (
         button: HTMLElement,
         p: Problem,
         newStatus: 'unsolved' | 'solved',
@@ -337,16 +337,16 @@ export const problemCardRenderers = {
             problem.nextReviewDate = nextDate;
         });
     },
-    _handleSolve: handleSolve,
-    _handleReview: handleReview,
-    _handleReset: handleReset,
-    _hideCardIfFilteredOut: hideCardIfFilteredOut,
-    _handleStatusAction: handleStatusAction,
-    _handleDeleteAction: handleDeleteAction,
-    _handleNoteToggle: handleNoteToggle,
-    _handleNoteSave: handleNoteSave,
-    _handleAIActions: handleAIActions,
-    _handleSolutionActions: handleSolutionActions,
+    handleSolve,
+    handleReview,
+    handleReset,
+    hideCardIfFilteredOut,
+    handleStatusAction,
+    handleDeleteAction,
+    handleNoteToggle,
+    handleNoteSave,
+    handleAIActions,
+    handleSolutionActions,
     handleProblemCardClick,
     createProblemCard,
 };

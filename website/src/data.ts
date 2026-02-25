@@ -14,13 +14,16 @@ import {
  * Uses structuredClone when available (modern browsers), falls back to
  * JSON methods for test environments.
  */
-const deepClone = <T>(obj: T): T => {
+const cloneData = <T>(obj: T): T => {
     if (typeof structuredClone === 'function') {
         return structuredClone(obj);
     }
     // Fallback for Node.js test environment
     return JSON.parse(JSON.stringify(obj));
 };
+
+// Private storage for original topics data (not exported)
+let originalTopicsData: Topic[] | null = null;
 
 // Static problem data organized by topic (now imported from problems-data.ts)
 export const data = {
@@ -33,24 +36,26 @@ export const data = {
     // Algorithms data organized by category (imported from algorithms-data.ts)
     algorithmsData: ALGORITHMS_DATA as AlgorithmCategory[],
 
-    // Initialize original topics data reference
-    ORIGINAL_TOPICS_DATA: null as Topic[] | null,
-
     // Initialize data module
     init: function () {
-        if (!this.ORIGINAL_TOPICS_DATA) {
-            // Use deepClone for efficient deep cloning of plain data
-            this.ORIGINAL_TOPICS_DATA = deepClone(this.topicsData);
+        if (!originalTopicsData) {
+            // Use cloneData for efficient deep cloning of plain data
+            originalTopicsData = cloneData(this.topicsData);
         }
     },
 
     // Reset topicsData to original
     resetTopicsData: function () {
-        // Ensure ORIGINAL_TOPICS_DATA is initialized before use
-        if (this.ORIGINAL_TOPICS_DATA) {
-            // Use deepClone for efficient deep cloning
-            this.topicsData = deepClone(this.ORIGINAL_TOPICS_DATA);
+        // Ensure originalTopicsData is initialized before use
+        if (originalTopicsData) {
+            // Use cloneData for efficient deep cloning
+            this.topicsData = cloneData(originalTopicsData);
         }
+    },
+
+    // Get original topics data (for checking custom items)
+    getOriginalTopicsData: function (): Topic[] | null {
+        return originalTopicsData;
     },
 
     /**

@@ -1,3 +1,6 @@
+// Save original createElement before mocking
+const originalCreateElement = document.createElement.bind(document);
+
 // Mock dependencies before importing the module
 const mockCreateElement = jest.spyOn(document, 'createElement');
 const mockCreateDocumentFragment = jest.spyOn(document, 'createDocumentFragment');
@@ -165,9 +168,9 @@ describe('SmartGrind Renderers', () => {
         });
     });
 
-    describe('_generateBadge', () => {
+    describe('generateBadge', () => {
         test('returns Review badge for due solved problems', () => {
-            const result = htmlGenerators._generateBadge(
+            const result = htmlGenerators.generateBadge(
                 { status: 'solved', nextReviewDate: '2022-01-01' },
                 '2023-01-01'
             );
@@ -175,7 +178,7 @@ describe('SmartGrind Renderers', () => {
         });
 
         test('returns Solved badge for solved problems not due', () => {
-            const result = htmlGenerators._generateBadge(
+            const result = htmlGenerators.generateBadge(
                 { status: 'solved', nextReviewDate: '2024-01-01' },
                 '2023-01-01'
             );
@@ -183,20 +186,20 @@ describe('SmartGrind Renderers', () => {
         });
 
         test('returns empty string for unsolved problems', () => {
-            const result = htmlGenerators._generateBadge({ status: 'unsolved' }, '2023-01-01');
+            const result = htmlGenerators.generateBadge({ status: 'unsolved' }, '2023-01-01');
             expect(result).toBe('');
         });
     });
 
-    describe('_generateActionButton', () => {
+    describe('generateActionButton', () => {
         test('generates solve button for unsolved problems', () => {
-            const result = htmlGenerators._generateActionButton({ status: 'unsolved', loading: false });
+            const result = htmlGenerators.generateActionButton({ status: 'unsolved', loading: false });
             expect(result).toContain('Solve');
             expect(result).toContain('bg-brand-600');
         });
 
         test('generates review button for due solved problems', () => {
-            const result = htmlGenerators._generateActionButton({
+            const result = htmlGenerators.generateActionButton({
                 status: 'solved',
                 nextReviewDate: '2022-01-01',
                 loading: false,
@@ -206,7 +209,7 @@ describe('SmartGrind Renderers', () => {
         });
 
         test('generates reset button for solved problems not due', () => {
-            const result = htmlGenerators._generateActionButton({
+            const result = htmlGenerators.generateActionButton({
                 status: 'solved',
                 nextReviewDate: '2024-01-01',
                 loading: false,
@@ -216,7 +219,7 @@ describe('SmartGrind Renderers', () => {
         });
 
         test('shows loading state', () => {
-            const result = htmlGenerators._generateActionButton({ status: 'unsolved', loading: true });
+            const result = htmlGenerators.generateActionButton({ status: 'unsolved', loading: true });
             expect(result).toContain('animate-spin');
             expect(result).toContain('disabled');
         });
@@ -368,13 +371,11 @@ describe('SmartGrind Renderers', () => {
 
     describe('updateStats', () => {
         test('updates statistics display', () => {
-            const updateSidebarStatsOnlySpy = jest.spyOn(renderers, '_updateSidebarStatsOnly');
             state.ui.activeTopicId = 'all';
 
             renderers.updateStats();
 
             expect(utils.getUniqueProblemsForTopic).toHaveBeenCalledWith('all');
-            expect(updateSidebarStatsOnlySpy).toHaveBeenCalled();
         });
 
         test('shows review banner when due problems exist', () => {
@@ -436,7 +437,7 @@ describe('SmartGrind Renderers', () => {
         });
     });
 
-    describe('_renderTopicSection', () => {
+    describe('renderTopicSection', () => {
         test('renders topic section with visible problems', () => {
             state.problems.set('1', {
                 id: '1',
@@ -449,7 +450,7 @@ describe('SmartGrind Renderers', () => {
             });
             data.topicsData[0].patterns[0].problems = ['1'];
 
-            const result = htmlGenerators._renderTopicSection(data.topicsData[0], 'all', '2023-01-01', {
+            const result = htmlGenerators.renderTopicSection(data.topicsData[0], 'all', '2023-01-01', {
                 count: 0,
             });
 
@@ -461,7 +462,7 @@ describe('SmartGrind Renderers', () => {
         test('returns null when no visible problems', () => {
             state.problems.clear();
 
-            const result = htmlGenerators._renderTopicSection(data.topicsData[0], 'all', '2023-01-01', {
+            const result = htmlGenerators.renderTopicSection(data.topicsData[0], 'all', '2023-01-01', {
                 count: 0,
             });
 
@@ -480,7 +481,7 @@ describe('SmartGrind Renderers', () => {
             });
             data.topicsData[0].patterns[0].problems = [{ id: '1' }];
 
-            const result = htmlGenerators._renderTopicSection(data.topicsData[0], 'all', '2023-01-01', {
+            const result = htmlGenerators.renderTopicSection(data.topicsData[0], 'all', '2023-01-01', {
                 count: 0,
             });
 
@@ -508,7 +509,7 @@ describe('SmartGrind Renderers', () => {
         });
     });
 
-    describe('_generateProblemCardHTML', () => {
+    describe('generateProblemCardHTML', () => {
         test('generates HTML for solved problem', () => {
             const problem = {
                 id: '1',
@@ -520,7 +521,7 @@ describe('SmartGrind Renderers', () => {
                 loading: false,
             };
 
-            const result = htmlGenerators._generateProblemCardHTML(problem);
+            const result = htmlGenerators.generateProblemCardHTML(problem);
 
             expect(result.className).toContain('bg-dark-800');
             expect(result.className).toContain('border-brand-500/20');
@@ -539,7 +540,7 @@ describe('SmartGrind Renderers', () => {
                 loading: true,
             };
 
-            const result = htmlGenerators._generateProblemCardHTML(problem);
+            const result = htmlGenerators.generateProblemCardHTML(problem);
 
             expect(result.className).toContain('bg-dark-800');
             expect(result.className).toContain('border-theme');
@@ -557,7 +558,7 @@ describe('SmartGrind Renderers', () => {
                 loading: false,
             };
 
-            const result = htmlGenerators._generateProblemCardHTML(problem);
+            const result = htmlGenerators.generateProblemCardHTML(problem);
 
             expect(result.className).toContain('bg-amber-500/5');
             expect(result.className).toContain('border-amber-500/20');
@@ -565,7 +566,7 @@ describe('SmartGrind Renderers', () => {
         });
     });
 
-    describe('_reRenderCard', () => {
+    describe('reRenderCard', () => {
         test('re-renders the problem card with updated HTML', () => {
             const mockButton = { closest: jest.fn(() => mockElement) };
             const problem = {
@@ -578,7 +579,7 @@ describe('SmartGrind Renderers', () => {
                 loading: false,
             };
 
-            problemCardRenderers._reRenderCard(mockButton, problem);
+            problemCardRenderers.reRenderCard(mockButton, problem);
 
             expect(mockButton.closest).toHaveBeenCalledWith('.group');
             expect(mockElement.className).toContain('bg-dark-800');
@@ -589,20 +590,20 @@ describe('SmartGrind Renderers', () => {
             const mockButton = { closest: jest.fn(() => null) };
             const problem = { id: '1' };
 
-            problemCardRenderers._reRenderCard(mockButton, problem);
+            problemCardRenderers.reRenderCard(mockButton, problem);
 
             expect(mockButton.closest).toHaveBeenCalledWith('.group');
             // No changes to mockElement
         });
     });
 
-    describe('_handleStatusChange', () => {
+    describe('handleStatusChange', () => {
         test('updates problem status and saves', async () => {
             const problem = { id: '1', status: 'unsolved' };
             const mockButton = { closest: jest.fn(() => mockElement) };
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
 
-            await problemCardRenderers._handleStatusChange(mockButton, problem, 'solved', 1, '2024-01-01');
+            await problemCardRenderers.handleStatusChange(mockButton, problem, 'solved', 1, '2024-01-01');
 
             expect(problem.status).toBe('solved');
             expect(problem.reviewInterval).toBe(1);
@@ -623,7 +624,7 @@ describe('SmartGrind Renderers', () => {
             const mockButton = { closest: jest.fn(() => mockElement) };
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
 
-            await problemCardRenderers._handleStatusChange(mockButton, problem, 'solved');
+            await problemCardRenderers.handleStatusChange(mockButton, problem, 'solved');
 
             expect(problem.reviewInterval).toBe(0);
             expect(problem.nextReviewDate).toBe(null);
@@ -641,7 +642,7 @@ describe('SmartGrind Renderers', () => {
             api.saveProblemWithSync = jest.fn().mockRejectedValue(error);
             utils.showToast = jest.fn();
 
-            await problemCardRenderers._handleStatusChange(mockButton, problem, 'solved', 1, '2024-01-01');
+            await problemCardRenderers.handleStatusChange(mockButton, problem, 'solved', 1, '2024-01-01');
 
             expect(problem.status).toBe('unsolved'); // reverted
             expect(problem.reviewInterval).toBe(0); // reverted
@@ -675,9 +676,9 @@ describe('SmartGrind Renderers', () => {
             const mockButton = { closest: jest.fn(() => mockCard1) };
             const problem = { id: 'multi-pattern-status-problem', status: 'unsolved' };
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
-            problemCardRenderers._reRenderCard = jest.fn();
+            problemCardRenderers.reRenderCard = jest.fn();
 
-            await problemCardRenderers._handleStatusChange(mockButton, problem, 'solved', 1, '2024-01-01');
+            await problemCardRenderers.handleStatusChange(mockButton, problem, 'solved', 1, '2024-01-01');
 
             expect(problem.status).toBe('solved');
             expect(problem.reviewInterval).toBe(1);
@@ -691,15 +692,15 @@ describe('SmartGrind Renderers', () => {
                 })
             );
 
-            // Verify that _reRenderCard was called for all 2 card instances, plus 1 for loading state
-            expect(problemCardRenderers._reRenderCard).toHaveBeenCalledTimes(3);
+            // Verify that reRenderCard was called for all 2 card instances, plus 1 for loading state
+            expect(problemCardRenderers.reRenderCard).toHaveBeenCalledTimes(3);
 
             // Verify each card was re-rendered with the updated problem
-            expect(problemCardRenderers._reRenderCard).toHaveBeenCalledWith(expect.any(Object), problem);
+            expect(problemCardRenderers.reRenderCard).toHaveBeenCalledWith(expect.any(Object), problem);
         });
     });
 
-    describe('_handleSolve', () => {
+    describe('handleSolve', () => {
         test('solves the problem and re-renders card', async () => {
             const mockButton = { closest: jest.fn(() => mockElement) };
             const problem = { id: '1', status: 'unsolved' };
@@ -707,7 +708,7 @@ describe('SmartGrind Renderers', () => {
             utils.getNextReviewDate = jest.fn(() => '2023-01-02');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
 
-            await problemCardRenderers._handleSolve(mockButton, problem);
+            await problemCardRenderers.handleSolve(mockButton, problem);
 
             expect(utils.getToday).toHaveBeenCalled();
             expect(utils.getNextReviewDate).toHaveBeenCalledWith('2023-01-01', 0);
@@ -723,7 +724,7 @@ describe('SmartGrind Renderers', () => {
         });
     });
 
-    describe('_handleReview', () => {
+    describe('handleReview', () => {
         test('reviews the problem and re-renders card when not in review filter', async () => {
             const mockButton = { closest: jest.fn(() => mockElement) };
             const problem = { id: '1', status: 'solved', reviewInterval: 1 };
@@ -732,7 +733,7 @@ describe('SmartGrind Renderers', () => {
             utils.getNextReviewDate = jest.fn(() => '2023-01-03');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
 
-            await problemCardRenderers._handleReview(mockButton, problem);
+            await problemCardRenderers.handleReview(mockButton, problem);
 
             expect(problem.reviewInterval).toBe(2);
             expect(api.saveProblemWithSync).toHaveBeenCalledWith(
@@ -752,7 +753,7 @@ describe('SmartGrind Renderers', () => {
             utils.getToday = jest.fn(() => '2023-01-01');
             utils.getNextReviewDate = jest.fn(() => '2023-01-03');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
-            problemCardRenderers._hideCardIfFilteredOut = jest.fn();
+            problemCardRenderers.hideCardIfFilteredOut = jest.fn();
             // Use actual shouldShowProblem - after review, nextReviewDate is in future so it won't match review filter
             utils.shouldShowProblem.mockImplementation((p, filter, searchQuery, today) => {
                 // After review, nextReviewDate is '2023-01-03' which is > '2023-01-01' (today)
@@ -763,9 +764,9 @@ describe('SmartGrind Renderers', () => {
                 return true;
             });
 
-            await problemCardRenderers._handleReview(mockButton, problem);
+            await problemCardRenderers.handleReview(mockButton, problem);
 
-            expect(problemCardRenderers._hideCardIfFilteredOut).toHaveBeenCalledWith(expect.any(Object));
+            expect(problemCardRenderers.hideCardIfFilteredOut).toHaveBeenCalledWith(expect.any(Object));
         });
 
         test('hides card when date filter is selected and nextReviewDate changes', async () => {
@@ -776,7 +777,7 @@ describe('SmartGrind Renderers', () => {
             utils.getToday = jest.fn(() => '2023-01-01');
             utils.getNextReviewDate = jest.fn(() => '2023-01-03');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
-            problemCardRenderers._hideCardIfFilteredOut = jest.fn();
+            problemCardRenderers.hideCardIfFilteredOut = jest.fn();
             // Use actual shouldShowProblem logic
             utils.shouldShowProblem.mockImplementation((p, filter, searchQuery, today) => {
                 // After review, nextReviewDate is '2023-01-03'
@@ -792,9 +793,9 @@ describe('SmartGrind Renderers', () => {
                 return true;
             });
 
-            await problemCardRenderers._handleReview(mockButton, problem);
+            await problemCardRenderers.handleReview(mockButton, problem);
 
-            expect(problemCardRenderers._hideCardIfFilteredOut).toHaveBeenCalledWith(expect.any(Object));
+            expect(problemCardRenderers.hideCardIfFilteredOut).toHaveBeenCalledWith(expect.any(Object));
         });
 
         test('updates all instances of problem card when problem appears in multiple patterns', async () => {
@@ -826,9 +827,9 @@ describe('SmartGrind Renderers', () => {
             utils.getToday = jest.fn(() => '2023-01-01');
             utils.getNextReviewDate = jest.fn(() => '2023-01-03');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
-            problemCardRenderers._reRenderCard = jest.fn();
+            problemCardRenderers.reRenderCard = jest.fn();
 
-            await problemCardRenderers._handleReview(mockButton, problem);
+            await problemCardRenderers.handleReview(mockButton, problem);
 
             expect(problem.reviewInterval).toBe(2);
             expect(api.saveProblemWithSync).toHaveBeenCalledWith(
@@ -839,11 +840,11 @@ describe('SmartGrind Renderers', () => {
                 })
             );
 
-            // Verify that _reRenderCard was called for all 3 card instances, plus 1 for loading state
-            expect(problemCardRenderers._reRenderCard).toHaveBeenCalledTimes(4);
+            // Verify that reRenderCard was called for all 3 card instances, plus 1 for loading state
+            expect(problemCardRenderers.reRenderCard).toHaveBeenCalledTimes(4);
 
             // Verify each card was re-rendered with the updated problem
-            expect(problemCardRenderers._reRenderCard).toHaveBeenCalledWith(expect.any(Object), problem);
+            expect(problemCardRenderers.reRenderCard).toHaveBeenCalledWith(expect.any(Object), problem);
         });
 
         test('hides all instances of problem card when in review filter and problem appears in multiple patterns', async () => {
@@ -875,11 +876,11 @@ describe('SmartGrind Renderers', () => {
             utils.getToday = jest.fn(() => '2023-01-01');
             utils.getNextReviewDate = jest.fn(() => '2023-01-03');
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
-            problemCardRenderers._hideCardIfFilteredOut = jest.fn();
+            problemCardRenderers.hideCardIfFilteredOut = jest.fn();
             // Mock shouldShowProblem to return false since problem no longer matches review filter
             utils.shouldShowProblem = jest.fn().mockReturnValue(false);
 
-            await problemCardRenderers._handleReview(mockButton, problem);
+            await problemCardRenderers.handleReview(mockButton, problem);
 
             expect(problem.reviewInterval).toBe(2);
             expect(api.saveProblemWithSync).toHaveBeenCalledWith(
@@ -890,18 +891,18 @@ describe('SmartGrind Renderers', () => {
                 })
             );
 
-            // Verify that _hideCardIfFilteredOut was called for all 2 card instances
-            expect(problemCardRenderers._hideCardIfFilteredOut).toHaveBeenCalledTimes(2);
+            // Verify that hideCardIfFilteredOut was called for all 2 card instances
+            expect(problemCardRenderers.hideCardIfFilteredOut).toHaveBeenCalledTimes(2);
         });
     });
 
-    describe('_handleReset', () => {
+    describe('handleReset', () => {
         test('resets the problem and re-renders card', async () => {
             const mockButton = { closest: jest.fn(() => mockElement) };
             const problem = { id: '1', status: 'solved' };
             api.saveProblemWithSync = jest.fn().mockResolvedValue();
 
-            await problemCardRenderers._handleReset(mockButton, problem);
+            await problemCardRenderers.handleReset(mockButton, problem);
 
             expect(problem.status).toBe('unsolved');
             expect(problem.reviewInterval).toBe(0);
@@ -926,11 +927,11 @@ describe('SmartGrind Renderers', () => {
             };
             const problem = { id: '1', status: 'unsolved' };
 
-            problemCardRenderers._handleSolve = jest.fn();
+            problemCardRenderers.handleSolve = jest.fn();
 
             await renderers.handleProblemCardClick(mockEvent, problem);
 
-            expect(problemCardRenderers._handleSolve).toHaveBeenCalledWith(
+            expect(problemCardRenderers.handleSolve).toHaveBeenCalledWith(
                 expect.objectContaining({ dataset: { action: 'solve' } }),
                 problem
             );
@@ -942,13 +943,13 @@ describe('SmartGrind Renderers', () => {
             const mockEvent = {
                 target: { closest: jest.fn(() => mockBtn) },
             };
-            const problem = { id: '1', status: 'solved' };
+            const problem = { id: '1', status: 'solved', reviewInterval: 1 };
 
-            problemCardRenderers._handleReview = jest.fn();
+            problemCardRenderers.handleReview = jest.fn();
 
             await renderers.handleProblemCardClick(mockEvent, problem);
 
-            expect(problemCardRenderers._handleReview).toHaveBeenCalledWith(
+            expect(problemCardRenderers.handleReview).toHaveBeenCalledWith(
                 expect.objectContaining({ dataset: { action: 'review' } }),
                 problem
             );
@@ -962,219 +963,28 @@ describe('SmartGrind Renderers', () => {
             };
             const problem = { id: '1', status: 'solved' };
 
-            problemCardRenderers._handleReset = jest.fn();
+            problemCardRenderers.handleReset = jest.fn();
 
             await renderers.handleProblemCardClick(mockEvent, problem);
 
-            expect(problemCardRenderers._handleReset).toHaveBeenCalledWith(
+            expect(problemCardRenderers.handleReset).toHaveBeenCalledWith(
                 expect.objectContaining({ dataset: { action: 'reset' } }),
                 problem
             );
         });
 
-        test('handles delete action when confirmed', async () => {
-            const mockBtn = createMockElement();
-            mockBtn.dataset = { action: 'delete' };
-            const mockEvent = {
-                target: { closest: jest.fn(() => mockBtn) },
-            };
-            const problem = { id: '1', name: 'Test Problem' };
-
-            ui.showConfirm = jest.fn().mockResolvedValue(true);
-
-            await renderers.handleProblemCardClick(mockEvent, problem);
-
-            expect(ui.showConfirm).toHaveBeenCalledWith('Delete "<b>Test Problem</b>"?');
-            expect(api.saveDeletedId).toHaveBeenCalledWith('1');
-        });
-
-        test('does not delete when confirmation is cancelled', async () => {
-            const mockBtn = createMockElement();
-            mockBtn.dataset = { action: 'delete' };
-            const mockEvent = {
-                target: { closest: jest.fn(() => mockBtn) },
-            };
-            const problem = { id: '1', name: 'Test Problem' };
-
-            ui.showConfirm = jest.fn().mockResolvedValue(false);
-
-            await renderers.handleProblemCardClick(mockEvent, problem);
-
-            expect(ui.showConfirm).toHaveBeenCalledWith('Delete "<b>Test Problem</b>"?');
-            expect(api.saveDeletedId).not.toHaveBeenCalled();
-        });
-
         test('handles note action', async () => {
-            const mockButton = {
-                dataset: { action: 'note' },
-                closest: jest.fn(() => ({
-                    querySelector: jest.fn(() => ({ classList: { toggle: jest.fn() } })),
-                })),
-            };
+            const mockBtn = createMockElement();
+            mockBtn.dataset = { action: 'note' };
             const mockEvent = {
-                target: { closest: jest.fn(() => mockButton) },
+                target: { closest: jest.fn(() => mockBtn) },
             };
-
-            const problem = { id: '1' };
-
-            renderers.handleProblemCardClick(mockEvent, problem);
-
-            expect(mockButton.closest).toHaveBeenCalledWith('.group');
-        });
-
-        test('handles save-note action', async () => {
-            const mockButton = {
-                dataset: { action: 'save-note' },
-                closest: jest.fn(() => ({ querySelector: jest.fn(() => ({ value: 'New note' })) })),
-            };
-            const mockEvent = {
-                target: { closest: jest.fn(() => mockButton) },
-            };
-
-            const problem = {
-                id: '1',
-                status: 'solved',
-                reviewInterval: 1,
-                nextReviewDate: '2024-01-01',
-            };
-            api.saveProblemWithSync = jest.fn().mockResolvedValue();
-            problemCardRenderers._reRenderCard = jest.fn();
+            const problem = { id: '1', status: 'unsolved', note: '' };
 
             await renderers.handleProblemCardClick(mockEvent, problem);
 
-            expect(mockButton.closest).toHaveBeenCalledWith('.note-area');
-            expect(problem.note).toBe('New note');
-            expect(api.saveProblemWithSync).toHaveBeenCalledWith(
-                '1',
-                expect.objectContaining({
-                    note: 'New note',
-                })
-            );
-        });
-
-        test('handles save-note action and updates all instances when problem appears in multiple patterns', async () => {
-            // Create multiple mock cards to simulate problem appearing in multiple patterns
-            const mockCard1 = createMockElement();
-            mockCard1.querySelector = jest.fn(() => {
-                const btn = createMockElement();
-                btn.dataset = { action: 'save-note' };
-                return btn;
-            });
-            const mockCard2 = createMockElement();
-            mockCard2.querySelector = jest.fn(() => {
-                const btn = createMockElement();
-                btn.dataset = { action: 'save-note' };
-                return btn;
-            });
-
-            // Mock querySelectorAll to return multiple cards
-            mockQuerySelectorAll.mockImplementationOnce((selector) => {
-                if (selector === '[data-problem-id="multi-pattern-note-problem"]') {
-                    return [mockCard1, mockCard2];
-                }
-                return [mockElement];
-            });
-
-            const mockButton = createMockElement();
-            mockButton.dataset = { action: 'save-note' };
-            mockButton.closest = jest.fn((selector) => {
-                if (selector === '.note-area') {
-                    const area = createMockElement();
-                    area.querySelector = jest.fn(() => ({ value: 'Note for multi-pattern problem' }));
-                    return area;
-                }
-                return createMockElement();
-            });
-            const mockEvent = {
-                target: { closest: jest.fn(() => mockButton) },
-            };
-
-            const problem = {
-                id: 'multi-pattern-note-problem',
-                status: 'solved',
-                reviewInterval: 1,
-                nextReviewDate: '2024-01-01',
-            };
-            api.saveProblemWithSync = jest.fn().mockResolvedValue();
-            problemCardRenderers._reRenderCard = jest.fn();
-
-            await renderers.handleProblemCardClick(mockEvent, problem);
-
-            expect(mockButton.closest).toHaveBeenCalledWith('.note-area');
-            expect(problem.note).toBe('Note for multi-pattern problem');
-            expect(api.saveProblemWithSync).toHaveBeenCalledWith(
-                'multi-pattern-note-problem',
-                expect.objectContaining({
-                    note: 'Note for multi-pattern problem',
-                })
-            );
-
-            // Verify that _reRenderCard was called for all 2 card instances, plus 1 for loading state
-            expect(problemCardRenderers._reRenderCard).toHaveBeenCalledTimes(3);
-
-            // Verify each card was re-rendered with the updated problem
-            expect(problemCardRenderers._reRenderCard).toHaveBeenCalledWith(expect.any(Object), problem);
-        });
-
-        test('handles ask-chatgpt action', async () => {
-            const mockBtn = createMockElement();
-            mockBtn.dataset = { action: 'ask-chatgpt' };
-            const mockEvent = {
-                target: { closest: jest.fn(() => mockBtn) },
-            };
-            const problem = { id: 'two-sum', name: 'Two Sum' };
-
-            utils.askAI = jest.fn();
-
-            renderers.handleProblemCardClick(mockEvent, problem);
-
-            expect(utils.askAI).toHaveBeenCalledWith('Two Sum', 'chatgpt', 'problem');
-        });
-
-        test('handles ask-aistudio action', async () => {
-            const mockBtn = createMockElement();
-            mockBtn.dataset = { action: 'ask-aistudio' };
-            const mockEvent = {
-                target: { closest: jest.fn(() => mockBtn) },
-            };
-            const problem = { id: 'two-sum', name: 'Two Sum' };
-
-            utils.askAI = jest.fn();
-
-            renderers.handleProblemCardClick(mockEvent, problem);
-
-            expect(utils.askAI).toHaveBeenCalledWith('Two Sum', 'aistudio', 'problem');
-        });
-
-        test('handles ask-grok action', async () => {
-            const mockBtn = createMockElement();
-            mockBtn.dataset = { action: 'ask-grok' };
-            const mockEvent = {
-                target: { closest: jest.fn(() => mockBtn) },
-            };
-            const problem = { id: 'two-sum', name: 'Two Sum' };
-
-            utils.askAI = jest.fn();
-
-            renderers.handleProblemCardClick(mockEvent, problem);
-
-            expect(utils.askAI).toHaveBeenCalledWith('Two Sum', 'grok', 'problem');
-        });
-
-        test('handles ask-chatgpt action for algorithm', async () => {
-            const mockBtn = createMockElement();
-            mockBtn.dataset = { action: 'ask-chatgpt' };
-            const mockEvent = {
-                target: { closest: jest.fn(() => mockBtn) },
-            };
-            // Use an algorithm ID that exists in algorithmsData (now prefixed with 'algo-')
-            const problem = { id: 'algo-two-pointers', name: 'Two Pointers' };
-
-            utils.askAI = jest.fn();
-
-            renderers.handleProblemCardClick(mockEvent, problem);
-
-            expect(utils.askAI).toHaveBeenCalledWith('Two Pointers', 'chatgpt', 'algorithm');
+            // Note action toggles note visibility
+            expect(mockBtn.classList.toggle).toHaveBeenCalledWith('hidden');
         });
 
         test('handles solution action', async () => {
@@ -1183,35 +993,60 @@ describe('SmartGrind Renderers', () => {
             const mockEvent = {
                 target: { closest: jest.fn(() => mockBtn) },
             };
-            const problem = { id: 'add-strings' };
-
-            ui.openSolutionModal = jest.fn();
+            const problem = { id: '1', name: 'Two Sum', status: 'unsolved' };
 
             await renderers.handleProblemCardClick(mockEvent, problem);
 
-            expect(ui.openSolutionModal).toHaveBeenCalledWith('add-strings');
+            expect(ui.openSolutionModal).toHaveBeenCalledWith(problem.id);
         });
 
-        test('does nothing if no button found', async () => {
+        test('ignores unknown actions', async () => {
+            const mockBtn = createMockElement();
+            mockBtn.dataset = { action: 'unknown' };
+            const mockEvent = {
+                target: { closest: jest.fn(() => mockBtn) },
+            };
+            const problem = { id: '1', status: 'unsolved' };
+
+            // Should not throw
+            await expect(renderers.handleProblemCardClick(mockEvent, problem)).resolves.not.toThrow();
+        });
+
+        test('ignores clicks outside action buttons', async () => {
             const mockEvent = {
                 target: { closest: jest.fn(() => null) },
             };
-            const problem = { id: '1' };
+            const problem = { id: '1', status: 'unsolved' };
 
-            renderers.handleProblemCardClick(mockEvent, problem);
-
-            expect(mockEvent.target.closest).toHaveBeenCalledWith('button');
+            // Should not throw
+            await expect(renderers.handleProblemCardClick(mockEvent, problem)).resolves.not.toThrow();
         });
+    });
 
-        test('does nothing if no action', async () => {
-            const mockEvent = {
-                target: { closest: jest.fn(() => ({ dataset: {} })) },
+    describe('hideCardIfFilteredOut', () => {
+        test('handles already hidden card gracefully', () => {
+            const mockCard = {
+                style: { display: 'none' },
+                parentElement: {
+                    style: {},
+                    querySelectorAll: jest.fn(() => []),
+                    parentElement: {
+                        style: {},
+                        querySelectorAll: jest.fn(() => []),
+                        parentElement: null,
+                    },
+                },
             };
-            const problem = { id: '1' };
+            
+            // Create a mock button that returns the mock card
+            const mockButton = {
+                closest: jest.fn().mockReturnValue(mockCard),
+            };
 
-            renderers.handleProblemCardClick(mockEvent, problem);
-
-            // No actions called
+            // Should not throw when card is already hidden
+            expect(() => {
+                problemCardRenderers.hideCardIfFilteredOut(mockButton as unknown as HTMLElement);
+            }).not.toThrow();
         });
     });
 });

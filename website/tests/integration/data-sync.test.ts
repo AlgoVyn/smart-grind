@@ -340,7 +340,7 @@ describe('Integration: Data Synchronization', () => {
             
             // Just verify state can be updated
             state.setOnlineStatus(true);
-            expect(state.isOnline()).toBe(true);
+            expect(state.sync.isOnline).toBe(true);
         });
 
         test('should handle sync conflicts', async () => {
@@ -353,7 +353,7 @@ describe('Integration: Data Synchronization', () => {
             });
             
             // Verify conflict state
-            expect(state.hasSyncConflicts()).toBe(true);
+            expect(state.sync.hasConflicts).toBe(true);
             expect(state.sync.conflictMessage).toBe('Data conflict detected');
         });
     });
@@ -492,8 +492,8 @@ describe('Integration: Data Synchronization', () => {
     describe('Sync Status Management', () => {
         test('should track sync status correctly', () => {
             // Initial state
-            expect(state.isSyncing()).toBe(false);
-            expect(state.getPendingCount()).toBe(0);
+            expect(state.sync.isSyncing).toBe(false);
+            expect(state.sync.pendingCount).toBe(0);
             
             // Update sync status
             state.setSyncStatus({
@@ -503,8 +503,8 @@ describe('Integration: Data Synchronization', () => {
             });
             
             // Verify updated state
-            expect(state.isSyncing()).toBe(true);
-            expect(state.getPendingCount()).toBe(5);
+            expect(state.sync.isSyncing).toBe(true);
+            expect(state.sync.pendingCount).toBe(5);
             expect(state.sync.lastSyncAt).toBeTruthy();
         });
 
@@ -523,16 +523,16 @@ describe('Integration: Data Synchronization', () => {
 
         test('should track online/offline status', () => {
             // Initially online
-            expect(state.isOnline()).toBe(true);
+            expect(state.sync.isOnline).toBe(true);
             
             // Go offline
             state.setOnlineStatus(false);
-            expect(state.isOnline()).toBe(false);
+            expect(state.sync.isOnline).toBe(false);
             expect(state.sync.isOnline).toBe(false);
             
             // Come back online
             state.setOnlineStatus(true);
-            expect(state.isOnline()).toBe(true);
+            expect(state.sync.isOnline).toBe(true);
         });
     });
 });

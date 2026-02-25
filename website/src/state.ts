@@ -117,7 +117,7 @@ export const state = {
     elements: {} as Partial<ElementCache>,
 
     // Track if state has been loaded from storage
-    _hasLoadedFromStorage: false,
+    hasLoadedFromStorage: false,
 
     // Initialize state
     init() {
@@ -126,7 +126,7 @@ export const state = {
     },
 
     // Helper to get storage keys based on user type
-    _getStorageKeys() {
+    getStorageKeys() {
         const isSignedIn = this.user.type === 'signed-in';
         return {
             problems: isSignedIn
@@ -143,7 +143,7 @@ export const state = {
 
     // Load state from localStorage
     loadFromStorage(): void {
-        const keys = this._getStorageKeys();
+        const keys = this.getStorageKeys();
 
         const problemsObj = safeGetItem<Record<string, Problem>>(keys.problems, {});
         const deletedIdsArr = safeGetItem<string[]>(keys.deletedIds, []);
@@ -159,12 +159,12 @@ export const state = {
             | 'local'
             | 'signed-in';
 
-        this._hasLoadedFromStorage = true;
+        this.hasLoadedFromStorage = true;
     },
 
     // Save state to localStorage
     saveToStorage(): void {
-        const keys = this._getStorageKeys();
+        const keys = this.getStorageKeys();
         const problemsWithoutLoading = Object.fromEntries(
             [...this.problems.entries()].map(([id, p]) => {
                 const { loading: _, noteVisible: __, ...rest } = p;
@@ -227,10 +227,8 @@ export const state = {
         }
     },
 
-    // Convenience getters for sync status
-    isOnline: () => state.sync.isOnline,
-    isSyncing: () => state.sync.isSyncing,
-    getPendingCount: () => state.sync.pendingCount,
-    hasSyncConflicts: () => state.sync.hasConflicts,
-    getSyncStatus: () => ({ ...state.sync }),
+    // Get current sync status
+    getSyncStatus(): typeof this.sync {
+        return { ...this.sync };
+    },
 };
