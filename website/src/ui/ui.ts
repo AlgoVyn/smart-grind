@@ -1,8 +1,18 @@
 // --- UI MODULE ---
-// UI-specific functions and event handlers
+// UI-specific functions and event handlers - clean barrel exports
 
-import { pullToRefresh } from './ui-pull-to-refresh';
-import { sidebarResizer } from './ui-sidebar-resizer';
+export { pullToRefresh } from './ui-pull-to-refresh';
+export { sidebarResizer } from './ui-sidebar-resizer';
+export * from './ui-modals';
+export * from './ui-auth';
+export * from './ui-navigation';
+export * from './ui-problems';
+export * from './ui-global';
+export * from './ui-scroll';
+export * from './ui-markdown';
+export * from './ui-bindings';
+
+// Backward-compatible ui object
 import * as uiModals from './ui-modals';
 import * as uiAuth from './ui-auth';
 import * as uiNavigation from './ui-navigation';
@@ -11,11 +21,9 @@ import * as uiGlobal from './ui-global';
 import * as uiScroll from './ui-scroll';
 import * as uiMarkdown from './ui-markdown';
 import * as uiBindings from './ui-bindings';
-import { state } from '../state';
-import { utils } from '../utils';
-import { GOOGLE_BUTTON_HTML } from './ui-constants';
+import { pullToRefresh } from './ui-pull-to-refresh';
+import { sidebarResizer } from './ui-sidebar-resizer';
 
-// Combine all UI modules into a single ui object
 export const ui = {
     ...uiModals,
     ...uiAuth,
@@ -30,11 +38,14 @@ export const ui = {
 };
 
 // Scroll to review section
+import { state } from '../state';
+import { utils } from '../utils';
+import { GOOGLE_BUTTON_HTML } from './ui-constants';
+
 export const scrollToReview = () => {
     const contentScroll = state.elements['contentScroll'];
     if (contentScroll) {
         utils.scrollToTop(true);
-        // Set filter to 'review' and scroll to top
         const reviewBtn = document.querySelector(
             '[data-filter="review"]'
         ) as HTMLButtonElement | null;
@@ -44,12 +55,10 @@ export const scrollToReview = () => {
     }
 };
 
-// Expose ui, scrollToReview, and GOOGLE_BUTTON_HTML to window for inline onclick handlers
+// Expose to window for inline onclick handlers
 if (typeof window !== 'undefined') {
     window.SmartGrind = window.SmartGrind || {};
     window.SmartGrind.ui = ui;
     window.SmartGrind['GOOGLE_BUTTON_HTML'] = GOOGLE_BUTTON_HTML;
     window.scrollToReview = scrollToReview;
 }
-
-// Side effects removed. Apps should use src/main.ts as the entry point.

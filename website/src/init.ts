@@ -17,129 +17,42 @@ import { openSigninModal } from './ui/ui-modals';
 // Initialize global error handlers
 setupGlobalErrorHandlers();
 
-// Helper to apply category from URL
-const _applyCategory = async (categoryParam: string | null, algorithmsParam: string | null) => {
-    const { renderers } = await import('./renderers');
+// ============================================================================
+// URL Parameter Helpers
+// ============================================================================
 
-    // Handle algorithms parameter first
-    if (algorithmsParam) {
-        const validCategory = data.algorithmsData.some((c) => c.id === algorithmsParam);
-        if (validCategory) {
-            state.ui.activeAlgorithmCategoryId = algorithmsParam;
-            renderers.renderSidebar();
-            await renderers.renderAlgorithmsView(algorithmsParam);
-            utils.scrollToTop();
-            return;
-        }
+const getCategoryFromUrl = (): string | null => {
+    const path = window.location.pathname;
+    if (path.startsWith('/smartgrind/c/')) {
+        return path.split('/smartgrind/c/')[1] || null;
     }
-
-    // Handle problems category parameter
-    if (categoryParam && categoryParam !== 'all') {
-        const validCategory = data.topicsData.some((t: Topic) => t.id === categoryParam);
-        if (validCategory) {
-            state.ui.activeTopicId = categoryParam;
-        }
-    }
-    renderers.renderSidebar();
-    await renderers.renderMainView(state.ui.activeTopicId);
-    utils.scrollToTop();
+    return path === '/smartgrind/' ? 'all' : null;
 };
 
-// Helper to setup signed-in user
-const _setupSignedInUser = async (
-    userId: string,
-    displayName: string,
-    categoryParam: string | null,
-    algorithmsParam: string | null,
-    token?: string
-) => {
-    // CRITICAL FIX: Set user type FIRST before loading from storage
-    // This ensures loadFromStorage() uses the correct SIGNED_IN keys
-    state.user.type = 'signed-in';
-
-    // Store user info in localStorage (not sensitive)
-    localStorage.setItem('userId', userId);
-    localStorage.setItem('displayName', displayName);
-    localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
-
-    state.user.id = userId;
-    state.user.displayName = displayName;
-    const userDisplayEl = state.elements['userDisplay'];
-    if (userDisplayEl) userDisplayEl.innerText = displayName;
-
-    // CRITICAL FIX: Load state from localStorage BEFORE any API calls
-    // This ensures offline data is available even if API fails
-    // User type is already 'signed-in', so it will load from SIGNED_IN keys
-    state.loadFromStorage();
-
-    // If token provided, store for Service Worker (IndexedDB, not localStorage)
-    if (token) {
-        const { storeTokenForServiceWorker } = await import('./sw-auth-storage');
-        await storeTokenForServiceWorker(token);
-    }
-
-    // CRITICAL FIX: If offline and we have valid local data, skip API calls entirely
-    // This prevents fetch failures from causing any state issues
-    if (!navigator.onLine && state.hasValidData()) {
-        console.log('[Init] Offline with valid local data - skipping API calls');
-        const { ui } = await import('./ui/ui');
-        const { renderers } = await import('./renderers');
-        const { api } = await import('./api');
-
-        // Initialize app with local data only (similar to initializeLocalUser but preserves signed-in state)
-        data.resetTopicsData();
-
-        try {
-            // Sync with static plan to ensure all problems exist
-            await api.syncPlan();
-        } catch (e) {
-            console.error('Error syncing plan:', e);
-        }
-
-        // Merge dynamically added problems into topicsData structure
-        api.mergeStructure();
-
-        renderers.renderSidebar();
-        renderers.renderMainView(state.ui.activeTopicId);
-        renderers.updateStats();
-        ui.initScrollButton();
-        ui.updateAuthUI();
-
-        state.elements.setupModal?.classList.add('hidden');
-        state.elements.appWrapper?.classList.remove('hidden');
-        state.elements.loadingScreen?.classList.add('hidden');
-
-        await _applyCategory(categoryParam, algorithmsParam);
-        return;
-    }
-
-    // Fetch CSRF token for state-changing operations
-    const { fetchCsrfToken } = await import('./app');
-    await fetchCsrfToken();
-
-    await loadData();
-    const { ui } = await import('./ui/ui');
-    ui.updateAuthUI();
-    await _applyCategory(categoryParam, algorithmsParam);
+const getAlgorithmsFromUrl = (): string | null => {
+    const path = window.location.pathname;
+    return path.startsWith('/smartgrind/a/') ? path.split('/smartgrind/a/')[1] || null : null;
 };
+
+// ============================================================================
+// Auth Token Management
+// ============================================================================
 
 /**
  * Fetch auth token from secure endpoint using httpOnly cookie
  * In offline mode, returns null gracefully without logging an error
  */
-const _fetchAuthToken = async (): Promise<{
+const fetchAuthToken = async (): Promise<{
     token: string;
     userId: string;
     displayName: string;
 } | null> => {
     try {
         const response = await fetch('/smartgrind/api/auth?action=token', {
-            credentials: 'include', // Important: sends httpOnly cookies
+            credentials: 'include',
         });
 
-        if (!response.ok) {
-            return null;
-        }
+        if (!response.ok) return null;
 
         const data = await response.json();
         return {
@@ -148,7 +61,6 @@ const _fetchAuthToken = async (): Promise<{
             displayName: data.displayName,
         };
     } catch (error) {
-        // Only log error if we're online - offline is expected to fail
         if (navigator.onLine) {
             console.error('[Init] Failed to fetch auth token:', error);
         }
@@ -156,18 +68,11 @@ const _fetchAuthToken = async (): Promise<{
     }
 };
 
-// Helper to setup local user
-const _setupLocalUser = async (categoryParam: string | null, algorithmsParam: string | null) => {
-    const { app } = await import('./app');
-    app.initializeLocalUser();
-    await _applyCategory(categoryParam, algorithmsParam);
-};
-
 /**
  * Get stored token from IndexedDB for offline scenarios
  * Returns the token if valid (not expired), null otherwise
  */
-const _getStoredTokenForOffline = async (): Promise<string | null> => {
+const getStoredTokenForOffline = async (): Promise<string | null> => {
     return new Promise((resolve) => {
         const request = indexedDB.open('smartgrind-auth', 1);
 
@@ -176,7 +81,6 @@ const _getStoredTokenForOffline = async (): Promise<string | null> => {
         request.onsuccess = async () => {
             const db = request.result;
 
-            // Check if the object store exists
             if (!db.objectStoreNames.contains('auth-tokens')) {
                 db.close();
                 resolve(null);
@@ -211,9 +115,8 @@ const _getStoredTokenForOffline = async (): Promise<string | null> => {
                     return;
                 }
 
-                // Check if token is expired
                 if (expiresAt && Date.now() >= expiresAt) {
-                    resolve(null); // Token expired
+                    resolve(null);
                     return;
                 }
 
@@ -233,127 +136,246 @@ const _getStoredTokenForOffline = async (): Promise<string | null> => {
     });
 };
 
-// Check auth state and initialize app
-const checkAuth = async () => {
-    // Listen for auth required events from Service Worker (background sync auth failures)
-    // Register this EARLY so we don't miss events if initialization is slow
-    swRegister.on('authRequired', (eventData: unknown) => {
-        const eventDataObj = eventData as { message?: string; timestamp?: number };
-        console.warn('[Init] Received authRequired event:', eventDataObj.message);
+// ============================================================================
+// User Setup Functions
+// ============================================================================
 
-        // Show sign-in modal to ask user to sign in again
-        openSigninModal();
-        console.warn('[Init] Called openSigninModal()');
+const applyCategory = async (categoryParam: string | null, algorithmsParam: string | null) => {
+    const { renderers } = await import('./renderers');
 
-        // Show toast notification
-        utils.showToast('Session expired. Please sign in again.', 'error');
-    });
-
-    // Extract category from URL path
-    const path = window.location.pathname;
-    const categoryParam = path.startsWith('/smartgrind/c/')
-        ? path.split('/smartgrind/c/')[1] || null
-        : path === '/smartgrind/'
-          ? 'all'
-          : null;
-
-    // Extract algorithms parameter from URL path (SEO-friendly: /smartgrind/a/{category})
-    const algorithmsParam = path.startsWith('/smartgrind/a/')
-        ? path.split('/smartgrind/a/')[1] || null
-        : null;
-
-    // URL params for auth callback handling
-    const urlParams = new URLSearchParams(window.location.search);
-
-    // Check URL params for PWA auth callback (new secure flow)
-    // Token is NO LONGER in URL - only userId and displayName
-    const urlUserId = urlParams.get('userId');
-    const urlDisplayName = urlParams.get('displayName');
-
-    // Handle PWA auth callback - token is in httpOnly cookie, fetch it securely
-    if (urlUserId && urlDisplayName) {
-        // Sanitize display name to prevent XSS
-        const sanitizedDisplayName = utils.sanitizeInput(urlDisplayName) || 'User';
-
-        // Clear URL parameters immediately for security
-        window.history.replaceState({}, document.title, window.location.pathname);
-
-        // Fetch token from secure endpoint (uses httpOnly cookie)
-        const authData = await _fetchAuthToken();
-
-        if (!authData) {
-            const { ui } = await import('./ui/ui');
-            ui.showAlert('Authentication failed. Please try signing in again.');
+    // Handle algorithms parameter first
+    if (algorithmsParam) {
+        const validCategory = data.algorithmsData.some((c) => c.id === algorithmsParam);
+        if (validCategory) {
+            state.ui.activeAlgorithmCategoryId = algorithmsParam;
+            renderers.renderSidebar();
+            await renderers.renderAlgorithmsView(algorithmsParam);
+            utils.scrollToTop();
             return;
         }
+    }
 
+    // Handle problems category parameter
+    if (categoryParam && categoryParam !== 'all') {
+        const validCategory = data.topicsData.some((t: Topic) => t.id === categoryParam);
+        if (validCategory) {
+            state.ui.activeTopicId = categoryParam;
+        }
+    }
+    renderers.renderSidebar();
+    await renderers.renderMainView(state.ui.activeTopicId);
+    utils.scrollToTop();
+};
+
+const setupSignedInUser = async (
+    userId: string,
+    displayName: string,
+    categoryParam: string | null,
+    algorithmsParam: string | null,
+    token?: string
+) => {
+    // Set user type FIRST before loading from storage
+    state.user.type = 'signed-in';
+
+    localStorage.setItem('userId', userId);
+    localStorage.setItem('displayName', displayName);
+    localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
+
+    state.user.id = userId;
+    state.user.displayName = displayName;
+    const userDisplayEl = state.elements['userDisplay'];
+    if (userDisplayEl) userDisplayEl.innerText = displayName;
+
+    state.loadFromStorage();
+
+    if (token) {
+        const { storeTokenForServiceWorker } = await import('./sw-auth-storage');
+        await storeTokenForServiceWorker(token);
+    }
+
+    // If offline with valid local data, skip API calls
+    if (!navigator.onLine && state.hasValidData()) {
+        console.log('[Init] Offline with valid local data - skipping API calls');
+        const { ui } = await import('./ui/ui');
+        const { renderers } = await import('./renderers');
+        const { api } = await import('./api');
+
+        data.resetTopicsData();
+
+        try {
+            await api.syncPlan();
+        } catch (e) {
+            console.error('Error syncing plan:', e);
+        }
+
+        api.mergeStructure();
+
+        renderers.renderSidebar();
+        renderers.renderMainView(state.ui.activeTopicId);
+        renderers.updateStats();
+        ui.initScrollButton();
+        ui.updateAuthUI();
+
+        state.elements.setupModal?.classList.add('hidden');
+        state.elements.appWrapper?.classList.remove('hidden');
+        state.elements.loadingScreen?.classList.add('hidden');
+
+        await applyCategory(categoryParam, algorithmsParam);
+        return;
+    }
+
+    const { fetchCsrfToken } = await import('./app');
+    await fetchCsrfToken();
+
+    await loadData();
+    const { ui } = await import('./ui/ui');
+    ui.updateAuthUI();
+    await applyCategory(categoryParam, algorithmsParam);
+};
+
+const setupLocalUser = async (categoryParam: string | null, algorithmsParam: string | null) => {
+    const { app } = await import('./app');
+    app.initializeLocalUser();
+    await applyCategory(categoryParam, algorithmsParam);
+};
+
+// ============================================================================
+// Auth Handlers
+// ============================================================================
+
+const handlePwaAuthCallback = async (
+    urlUserId: string,
+    urlDisplayName: string,
+    categoryParam: string | null,
+    algorithmsParam: string | null
+): Promise<boolean> => {
+    const sanitizedDisplayName = utils.sanitizeInput(urlDisplayName) || 'User';
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    const authData = await fetchAuthToken();
+
+    if (!authData) {
+        const { ui } = await import('./ui/ui');
+        ui.showAlert('Authentication failed. Please try signing in again.');
+        return false;
+    }
+
+    await withErrorHandling(async () => {
+        await setupSignedInUser(
+            urlUserId,
+            sanitizedDisplayName,
+            categoryParam,
+            algorithmsParam,
+            authData.token
+        );
+    }, 'Failed to set up signed-in user');
+
+    initOfflineDetection();
+    return true;
+};
+
+const handleExistingSession = async (
+    userId: string,
+    categoryParam: string | null,
+    algorithmsParam: string | null
+): Promise<boolean> => {
+    const authData = await fetchAuthToken();
+
+    if (authData) {
+        const displayName = localStorage.getItem('displayName') || authData.displayName || 'User';
         await withErrorHandling(async () => {
-            await _setupSignedInUser(
-                urlUserId,
-                sanitizedDisplayName,
+            await setupSignedInUser(
+                userId,
+                displayName,
                 categoryParam,
                 algorithmsParam,
                 authData.token
             );
-        }, 'Failed to set up signed-in user');
-
-        // Initialize offline detection for signed-in users
+        }, 'Failed to restore user session');
         initOfflineDetection();
-        return;
+        return true;
     }
 
-    // Check for existing session - verify with server using httpOnly cookie
+    // Try stored token as fallback
+    const storedToken = await getStoredTokenForOffline();
+    if (storedToken) {
+        const displayName = localStorage.getItem('displayName') || 'User';
+        await withErrorHandling(async () => {
+            await setupSignedInUser(
+                userId,
+                displayName,
+                categoryParam,
+                algorithmsParam,
+                storedToken
+            );
+        }, 'Failed to restore session with stored token');
+        initOfflineDetection();
+        return true;
+    }
+
+    // No valid token - session expired
+    localStorage.removeItem('userId');
+    localStorage.removeItem('displayName');
+    localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
+
+    openSigninModal();
+    utils.showToast('Session expired. Please sign in again.', 'error');
+    return false;
+};
+
+const showSetupModal = async () => {
+    const { setupModal, appWrapper, loadingScreen, googleLoginButton } = state.elements;
+
+    setupModal?.classList.remove('hidden');
+    appWrapper?.classList.add('hidden');
+    loadingScreen?.classList.add('hidden');
+
+    if (googleLoginButton) {
+        (googleLoginButton as HTMLButtonElement).disabled = false;
+        googleLoginButton.innerHTML =
+            (window as Window & { SmartGrind?: { GOOGLE_BUTTON_HTML?: string } }).SmartGrind?.[
+                'GOOGLE_BUTTON_HTML'
+            ] || '';
+    }
+    const { ui } = await import('./ui/ui');
+    ui.updateAuthUI();
+};
+
+// ============================================================================
+// Main Auth Check
+// ============================================================================
+
+const checkAuth = async () => {
+    // Listen for auth required events from Service Worker
+    swRegister.on('authRequired', (eventData: unknown) => {
+        const eventDataObj = eventData as { message?: string; timestamp?: number };
+        console.warn('[Init] Received authRequired event:', eventDataObj.message);
+        openSigninModal();
+        utils.showToast('Session expired. Please sign in again.', 'error');
+    });
+
+    const categoryParam = getCategoryFromUrl();
+    const algorithmsParam = getAlgorithmsFromUrl();
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlUserId = urlParams.get('userId');
+    const urlDisplayName = urlParams.get('displayName');
+
+    // Handle PWA auth callback
+    if (urlUserId && urlDisplayName) {
+        const success = await handlePwaAuthCallback(
+            urlUserId,
+            urlDisplayName,
+            categoryParam,
+            algorithmsParam
+        );
+        if (success) return;
+    }
+
+    // Check for existing session
     const userId = localStorage.getItem('userId');
     if (userId) {
-        // Verify session is still valid by fetching token
-        const authData = await _fetchAuthToken();
-
-        if (authData) {
-            const displayName =
-                localStorage.getItem('displayName') || authData.displayName || 'User';
-            await withErrorHandling(async () => {
-                await _setupSignedInUser(
-                    userId,
-                    displayName,
-                    categoryParam,
-                    algorithmsParam,
-                    authData.token
-                );
-            }, 'Failed to restore user session');
-        } else {
-            // Fetch failed - try to use stored token from IndexedDB as fallback
-            // This handles both offline mode and network race conditions when coming online
-            const storedToken = await _getStoredTokenForOffline();
-            if (storedToken) {
-                const displayName = localStorage.getItem('displayName') || 'User';
-                await withErrorHandling(async () => {
-                    await _setupSignedInUser(
-                        userId,
-                        displayName,
-                        categoryParam,
-                        algorithmsParam,
-                        storedToken
-                    );
-                }, 'Failed to restore session with stored token');
-
-                // Initialize offline detection for signed-in users
-                initOfflineDetection();
-                return;
-            }
-
-            // No valid token available - session expired
-            localStorage.removeItem('userId');
-            localStorage.removeItem('displayName');
-            localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
-
-            // Show sign-in modal
-            openSigninModal();
-            utils.showToast('Session expired. Please sign in again.', 'error');
-        }
-
-        // Initialize offline detection for signed-in users
-        initOfflineDetection();
-        return;
+        const hasSession = await handleExistingSession(userId, categoryParam, algorithmsParam);
+        if (hasSession) return;
     }
 
     // Default to local user
@@ -361,29 +383,12 @@ const checkAuth = async () => {
 
     if (userType === 'local') {
         await withErrorHandling(async () => {
-            await _setupLocalUser(categoryParam, algorithmsParam);
+            await setupLocalUser(categoryParam, algorithmsParam);
         }, 'Failed to initialize local user');
     } else {
-        // Show setup modal for orphaned signed-in state
-        const { setupModal, appWrapper, loadingScreen, googleLoginButton } = state.elements;
-
-        setupModal?.classList.remove('hidden');
-        appWrapper?.classList.add('hidden');
-        loadingScreen?.classList.add('hidden');
-
-        if (googleLoginButton) {
-            (googleLoginButton as HTMLButtonElement).disabled = false;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            googleLoginButton.innerHTML =
-                (window as Window & { SmartGrind?: { GOOGLE_BUTTON_HTML?: string } }).SmartGrind?.[
-                    'GOOGLE_BUTTON_HTML'
-                ] || '';
-        }
-        const { ui } = await import('./ui/ui');
-        ui.updateAuthUI();
+        await showSetupModal();
     }
 
-    // Initialize offline detection and sync monitoring
     initOfflineDetection();
 };
 

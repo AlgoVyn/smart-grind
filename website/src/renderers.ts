@@ -1,19 +1,24 @@
 // --- RENDERERS MODULE ---
-// UI rendering functions
+// UI rendering functions - clean barrel exports
 
-import { ICONS } from './renderers/icons';
-import { htmlGenerators } from './renderers/html-generators';
-import { sidebarRenderers } from './renderers/sidebar';
+export { ICONS } from './renderers/icons';
+export { mainViewRenderers } from './renderers/main-view';
+export { problemCardRenderers } from './renderers/problem-cards';
+export { htmlGenerators } from './renderers/html-generators';
+export { sidebarRenderers } from './renderers/sidebar';
+export { statsRenderers } from './renderers/stats';
+
+// Backward-compatible renderers object
 import { mainViewRenderers } from './renderers/main-view';
 import { problemCardRenderers } from './renderers/problem-cards';
+import { htmlGenerators } from './renderers/html-generators';
+import { sidebarRenderers } from './renderers/sidebar';
 import { statsRenderers } from './renderers/stats';
 
-export { ICONS };
-
 export const renderers = {
-    ...htmlGenerators,
-    ...sidebarRenderers,
     ...mainViewRenderers,
     ...problemCardRenderers,
+    ...htmlGenerators,
+    ...sidebarRenderers,
     ...statsRenderers,
 };
