@@ -9,9 +9,10 @@ import { deleteCategory, deleteAlgorithmCategory } from './api/api-delete';
 import { state } from './state';
 import { getConnectivityChecker } from './sw/connectivity-checker';
 import { isBrowserOnline as checkBrowserOnline } from './api/api-utils';
-import { SYNC_CONFIG } from './config/sync-config';
 import { cleanupManager } from './utils/cleanup-manager';
 import { isSyncStatusResponse, type SyncStatus, type APIOperation } from './types/sync';
+import { sendMessageToSW, isServiceWorkerAvailable } from './sw/sw-messaging';
+import { SYNC_CONFIG } from './config/sync-config';
 
 // Import and re-export types for backward compatibility
 import type { APIOperationType } from './types/sync';
@@ -30,46 +31,6 @@ export async function isOnline(): Promise<boolean> {
  */
 export function isBrowserOnline(): boolean {
     return checkBrowserOnline();
-}
-
-/**
- * Service Worker message interface
- */
-interface SWMessage {
-    type: string;
-    data?: unknown;
-    operations?: APIOperation[];
-}
-
-/**
- * Send a message to the service worker
- * @param message - Message to send to the service worker
- * @returns Response from service worker or null if unavailable
- */
-async function sendMessageToSW(message: SWMessage): Promise<unknown> {
-    if (!('serviceWorker' in navigator) || !navigator.serviceWorker) return null;
-
-    const registration = await navigator.serviceWorker.ready;
-    if (!registration.active) return null;
-
-    const messagePromise = new Promise((resolve, reject) => {
-        const channel = new MessageChannel();
-        channel.port1.onmessage = (event) => resolve(event.data);
-        try {
-            registration.active?.postMessage(message, [channel.port2]);
-        } catch (error) {
-            reject(error);
-        }
-    });
-
-    const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(
-            () => reject(new Error(`Service Worker message timed out type=${message.type}`)),
-            SYNC_CONFIG.TIMEOUTS.SERVICE_WORKER_MESSAGE
-        );
-    });
-
-    return Promise.race([messagePromise, timeoutPromise]);
 }
 
 /**
@@ -109,7 +70,7 @@ export async function queueOperation(
         : [operationOrOperations];
     const isSingle = !Array.isArray(operationOrOperations);
 
-    if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
+    if (!isServiceWorkerAvailable()) {
         const ids = storeOperationsLocally(operations);
         return isSingle ? (ids[0] ?? null) : ids;
     }
@@ -134,7 +95,7 @@ export const queueOperations = (operations: APIOperation[]): Promise<string[]> =
  * @returns Current sync status or null if unavailable
  */
 export async function getSyncStatus(): Promise<SyncStatus | null> {
-    if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
+    if (!isServiceWorkerAvailable()) {
         const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
         return {
             pendingCount: pendingOps.length,
@@ -173,7 +134,7 @@ export async function updateSyncStatus(): Promise<void> {
  * @returns Result of the sync operation
  */
 export async function forceSync(): Promise<{ success: boolean; synced: number; failed: number }> {
-    if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
+    if (!isServiceWorkerAvailable()) {
         const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
         if (pendingOps.length === 0) return { success: true, synced: 0, failed: 0 };
         return { success: false, synced: 0, failed: pendingOps.length };
@@ -202,7 +163,7 @@ export async function forceSync(): Promise<{ success: boolean; synced: number; f
  * Clear all pending operations (for logout/reset)
  */
 export async function clearPendingOperations(): Promise<void> {
-    if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
+    if (!isServiceWorkerAvailable()) {
         localStorage.removeItem('pending-operations');
         return;
     }
@@ -263,10 +224,7 @@ async function migrateLocalStorageOperations(): Promise<void> {
     const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
     if (pendingOps.length === 0) return;
 
-    if (!('serviceWorker' in navigator) || !navigator.serviceWorker) return;
-
-    const registration = await navigator.serviceWorker.ready;
-    if (!registration.active) return;
+    if (!isServiceWorkerAvailable()) return;
 
     try {
         await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations: pendingOps });
@@ -308,7 +266,7 @@ export function initOfflineDetection(): () => void {
     };
     initialCheck();
 
-    if ('serviceWorker' in navigator && navigator.serviceWorker) {
+    if (isServiceWorkerAvailable()) {
         navigator.serviceWorker.addEventListener('message', (event) => {
             if (!event.data?.type) return;
 

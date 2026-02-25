@@ -24,6 +24,12 @@ const mockDocument = {
 global.window.document = mockDocument;
 global.window.scrollTo = mockScrollTo;
 
+// Mock the toast module
+const mockShowToast = jest.fn();
+jest.mock('../src/utils/toast', () => ({
+    showToast: mockShowToast,
+}));
+
 // Now import the module
 import { utils } from '../src/utils';
 import { state } from '../src/state';
@@ -162,29 +168,13 @@ describe('SmartGrind Utils', () => {
 
     describe('Toast notifications', () => {
         test('showToast displays success message', () => {
-            jest.useFakeTimers();
-
             utils.showToast('Test message', 'success');
-
-            expect(mockAppendChild).toHaveBeenCalled();
-            const el = mockAppendChild.mock.calls[0][0];
-            expect(el.className).toContain('bg-brand-600');
-            expect(el.innerHTML).toContain('Test message');
-
-            jest.runAllTimers();
-
-            expect(el.style.opacity).toBe('0');
-            expect(el.style.transform).toBe('translateY(10px)');
-
-            jest.useRealTimers();
+            expect(mockShowToast).toHaveBeenCalledWith('Test message', 'success');
         });
 
         test('showToast displays error message', () => {
             utils.showToast('Error message', 'error');
-
-            expect(mockAppendChild).toHaveBeenCalled();
-            const el = mockAppendChild.mock.calls[0][0];
-            expect(el.className).toContain('bg-red-500');
+            expect(mockShowToast).toHaveBeenCalledWith('Error message', 'error');
         });
     });
 
@@ -425,23 +415,21 @@ describe('SmartGrind Utils', () => {
     describe('copyToClipboard', () => {
         test('copies text using clipboard API', async () => {
             const text = 'Test prompt';
-            const showToastSpy = jest.spyOn(utils, 'showToast');
 
             await utils.copyToClipboard(text);
 
             expect(navigator.clipboard.writeText).toHaveBeenCalledWith(text);
-            expect(showToastSpy).toHaveBeenCalledWith('Prompt copied to clipboard', 'success');
+            expect(mockShowToast).toHaveBeenCalledWith('Prompt copied to clipboard', 'success');
         });
 
         test('falls back to execCommand on clipboard API failure', async () => {
             navigator.clipboard.writeText.mockRejectedValue(new Error('Clipboard not available'));
             const text = 'Test prompt';
-            const showToastSpy = jest.spyOn(utils, 'showToast');
 
             await utils.copyToClipboard(text);
 
             expect(document.execCommand).toHaveBeenCalledWith('copy');
-            expect(showToastSpy).toHaveBeenCalledWith('Prompt copied to clipboard', 'success');
+            expect(mockShowToast).toHaveBeenCalledWith('Prompt copied to clipboard', 'success');
         });
 
         test('shows error toast on complete failure', async () => {
@@ -449,11 +437,10 @@ describe('SmartGrind Utils', () => {
             const execCommandSpy = jest.spyOn(document, 'execCommand');
             execCommandSpy.mockReturnValue(false);
             const text = 'Test prompt';
-            const showToastSpy = jest.spyOn(utils, 'showToast');
 
             await utils.copyToClipboard(text);
 
-            expect(showToastSpy).toHaveBeenCalledWith('Failed to copy prompt', 'error');
+            expect(mockShowToast).toHaveBeenCalledWith('Failed to copy prompt', 'error');
         });
     });
 

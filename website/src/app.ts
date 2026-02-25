@@ -7,60 +7,10 @@ import { api } from './api';
 import { renderers } from './renderers';
 import { ui } from './ui/ui';
 import { utils } from './utils';
+import { fetchCsrfToken, getCsrfToken, getCachedCsrfToken, clearCsrfToken } from './utils/csrf';
 
-// CSRF token storage (in memory, not localStorage for security)
-let csrfToken: string | null = null;
-
-/**
- * Fetches a new CSRF token from the server.
- * Called after authentication and before state-changing operations.
- */
-export const fetchCsrfToken = async (): Promise<string | null> => {
-    try {
-        const response = await fetch('/smartgrind/api/user?action=csrf', {
-            method: 'GET',
-            credentials: 'include', // Important: sends httpOnly cookies
-        });
-
-        if (!response.ok) {
-            console.error('[App] Failed to fetch CSRF token:', response.status);
-            return null;
-        }
-
-        const data = await response.json();
-        csrfToken = data.csrfToken;
-        return csrfToken;
-    } catch (error) {
-        console.error('[App] Error fetching CSRF token:', error);
-        return null;
-    }
-};
-
-/**
- * Gets the current CSRF token, fetching a new one if needed.
- */
-export const getCsrfToken = async (): Promise<string | null> => {
-    if (!csrfToken) {
-        return await fetchCsrfToken();
-    }
-    return csrfToken;
-};
-
-/**
- * Gets the cached CSRF token synchronously (for beforeunload handlers).
- * Returns null if no token is cached (does not fetch).
- * Use this only in contexts where async is not possible (e.g., beforeunload).
- */
-export const getCachedCsrfToken = (): string | null => {
-    return csrfToken;
-};
-
-/**
- * Clears the CSRF token (e.g., on logout).
- */
-export const clearCsrfToken = (): void => {
-    csrfToken = null;
-};
+// Re-export CSRF functions for backward compatibility
+export { fetchCsrfToken, getCsrfToken, getCachedCsrfToken, clearCsrfToken };
 
 // Initialize local user
 export const initializeLocalUser = async () => {
