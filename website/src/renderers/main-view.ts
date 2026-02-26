@@ -4,7 +4,7 @@
 import { Topic, Problem } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-import { getToday } from '../utils';
+import { getToday, shouldShowProblem } from '../utils';
 // renderers import removed to break cycle
 import { api } from '../api';
 import { ICONS } from './icons';
@@ -182,10 +182,14 @@ export const mainViewRenderers = {
         container.innerHTML = '';
         mainViewRenderers._setAlgorithmViewTitle(categoryId);
 
-        // Hide date filter and empty state
+        // Update date filter for review/solved modes
+        const showDateFilter = ['review', 'solved'].includes(state.ui.currentFilter);
         const { ui } = await import('../ui/ui');
-        ui.toggleDateFilterVisibility(false);
-        (state.elements['emptyState'] as HTMLElement | null)?.classList.add('hidden');
+        ui.toggleDateFilterVisibility(showDateFilter);
+        if (showDateFilter) ui.populateDateFilter();
+
+        const today = getToday();
+        const visibleCount = { count: 0 };
 
         const searchQuery =
             (state.elements['problemSearch'] as HTMLInputElement | null)?.value
@@ -196,19 +200,32 @@ export const mainViewRenderers = {
 
         const renderAlgorithmCard = (algoDef: AlgorithmDef, catId: string, grid: HTMLElement) => {
             if (state.deletedProblemIds.has(algoDef.id)) return;
-            if (searchQuery && !algoDef.name.toLowerCase().includes(searchQuery)) return;
 
             const problem = mainViewRenderers._algorithmToProblem(algoDef, catId);
             if (!state.problems.has(algoDef.id)) state.problems.set(algoDef.id, problem);
+
+            // Apply the same filtering logic as pattern problems
+            if (!shouldShowProblem(problem, state.ui.currentFilter, searchQuery, today)) return;
+
+            visibleCount.count++;
             grid.appendChild(problemCardRenderers.createProblemCard(problem));
         };
 
         if (categoryId === 'all') {
             data.algorithmsData.forEach((category: AlgorithmCategory) => {
-                const filtered = category.algorithms.filter(
-                    (a) => !searchQuery || a.name.toLowerCase().includes(searchQuery)
-                );
-                if (filtered.length === 0) return;
+                // First, determine which algorithms match all filters
+                const matchingAlgorithms: AlgorithmDef[] = [];
+                category.algorithms.forEach((algoDef) => {
+                    if (state.deletedProblemIds.has(algoDef.id)) return;
+                    const problem = mainViewRenderers._algorithmToProblem(algoDef, category.id);
+                    if (!state.problems.has(algoDef.id)) state.problems.set(algoDef.id, problem);
+                    if (shouldShowProblem(problem, state.ui.currentFilter, searchQuery, today)) {
+                        matchingAlgorithms.push(algoDef);
+                    }
+                });
+
+                // Only show category header if there are matching algorithms
+                if (matchingAlgorithms.length === 0) return;
 
                 const header = document.createElement('h3');
                 header.className = 'text-xl font-bold text-theme-bold border-b border-theme pb-2';
@@ -217,7 +234,7 @@ export const mainViewRenderers = {
 
                 const grid = document.createElement('div');
                 grid.className = 'grid grid-cols-1 gap-3';
-                filtered.forEach((algo) => renderAlgorithmCard(algo, category.id, grid));
+                matchingAlgorithms.forEach((algo) => renderAlgorithmCard(algo, category.id, grid));
                 section.appendChild(grid);
             });
         } else {
@@ -229,8 +246,19 @@ export const mainViewRenderers = {
             const grid = document.createElement('div');
             grid.className = 'grid grid-cols-1 gap-3';
             category.algorithms.forEach((algo) => renderAlgorithmCard(algo, categoryId, grid));
-            section.appendChild(grid);
+
+            // Only append grid if there are matching algorithms
+            if (grid.children.length > 0) {
+                section.appendChild(grid);
+            }
         }
+
+        // Show empty state only in review filter with no visible problems
+        const showEmpty = visibleCount.count === 0 && state.ui.currentFilter === 'review';
+        (state.elements['emptyState'] as HTMLElement | null)?.classList.toggle(
+            'hidden',
+            !showEmpty
+        );
 
         container.appendChild(section);
         import('../renderers').then(({ renderers }) => renderers.updateStats());
