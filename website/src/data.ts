@@ -25,77 +25,117 @@ const cloneData = <T>(obj: T): T => {
 // Private storage for original topics data (not exported)
 let originalTopicsData: Topic[] | null = null;
 
-// Static problem data organized by topic (now imported from problems-data.ts)
-export const data = {
-    // Cloudflare API base
-    API_BASE: '/smartgrind/api',
+// Mutable topics data - starts as a copy of PROBLEMS_DATA
+const _topicsData: Topic[] = cloneData(PROBLEMS_DATA);
 
-    // Data structure reference (imported from separate file for maintainability)
-    topicsData: PROBLEMS_DATA as Topic[],
+// Algorithms data organized by category (imported from algorithms-data.ts)
+export const algorithmsData: AlgorithmCategory[] = ALGORITHMS_DATA;
 
-    // Algorithms data organized by category (imported from algorithms-data.ts)
-    algorithmsData: ALGORITHMS_DATA as AlgorithmCategory[],
+// Cloudflare API base
+export const API_BASE = '/smartgrind/api';
 
-    // Initialize data module
-    init: function () {
-        if (!originalTopicsData) {
-            // Use cloneData for efficient deep cloning of plain data
-            originalTopicsData = cloneData(this.topicsData);
-        }
-    },
+/**
+ * Spaced repetition intervals in days for the Leitner system.
+ * Problems are reviewed at increasing intervals to optimize memory retention.
+ * Day 1: First review (immediate reinforcement)
+ * Day 3: Second review (short-term memory check)
+ * Day 7: Third review (weekly consolidation)
+ * Day 14: Fourth review (bi-weekly reinforcement)
+ * Day 30: Fifth review (monthly review)
+ * Day 60: Final interval before problems are considered "mastered"
+ */
+export const SPACED_REPETITION_INTERVALS = [1, 3, 7, 14, 30, 60];
 
-    // Reset topicsData to original
-    resetTopicsData: function () {
-        // Ensure originalTopicsData is initialized before use
-        if (originalTopicsData) {
-            // Use cloneData for efficient deep cloning
-            this.topicsData = cloneData(originalTopicsData);
-        }
-    },
+/**
+ * Total number of unique problems in the dataset.
+ * This count represents the current total from topicsData structure.
+ * Used for progress tracking and statistics calculations.
+ */
+export const TOTAL_UNIQUE_PROBLEMS_COUNT = TOTAL_UNIQUE_PROBLEMS;
 
-    // Get original topics data (for checking custom items)
-    getOriginalTopicsData: function (): Topic[] | null {
-        return originalTopicsData;
-    },
+/**
+ * Total number of unique algorithms in the dataset.
+ * This count represents the current total from algorithmsData structure.
+ */
+export const TOTAL_UNIQUE_ALGORITHMS_COUNT = TOTAL_UNIQUE_ALGORITHMS;
 
-    /**
-     * Spaced repetition intervals in days for the Leitner system.
-     * Problems are reviewed at increasing intervals to optimize memory retention.
-     * Day 1: First review (immediate reinforcement)
-     * Day 3: Second review (short-term memory check)
-     * Day 7: Third review (weekly consolidation)
-     * Day 14: Fourth review (bi-weekly reinforcement)
-     * Day 30: Fifth review (monthly review)
-     * Day 60: Final interval before problems are considered "mastered"
-     */
-    SPACED_REPETITION_INTERVALS: [1, 3, 7, 14, 30, 60],
-
-    /**
-     * Total number of unique problems in the dataset.
-     * This count represents the current total from topicsData structure.
-     * Used for progress tracking and statistics calculations.
-     */
-    TOTAL_UNIQUE_PROBLEMS,
-
-    /**
-     * Total number of unique algorithms in the dataset.
-     * This count represents the current total from algorithmsData structure.
-     */
-    TOTAL_UNIQUE_ALGORITHMS,
-
-    // Local storage keys - re-exported from storage.ts for backward compatibility
-    LOCAL_STORAGE_KEYS: {
-        USER_TYPE: STORAGE_KEYS.USER_TYPE,
-        // Local user keys
-        PROBLEMS: STORAGE_KEYS.PROBLEMS(false),
-        DELETED_IDS: STORAGE_KEYS.DELETED_IDS(false),
-        DISPLAY_NAME: STORAGE_KEYS.DISPLAY_NAME(false),
-        // Signed-in user keys (separate from local)
-        SIGNED_IN_PROBLEMS: STORAGE_KEYS.PROBLEMS(true),
-        SIGNED_IN_DELETED_IDS: STORAGE_KEYS.DELETED_IDS(true),
-        SIGNED_IN_DISPLAY_NAME: STORAGE_KEYS.DISPLAY_NAME(true),
-    },
+// Local storage keys - re-exported from storage.ts for backward compatibility
+export const LOCAL_STORAGE_KEYS = {
+    USER_TYPE: STORAGE_KEYS.USER_TYPE,
+    // Local user keys
+    PROBLEMS: STORAGE_KEYS.PROBLEMS(false),
+    DELETED_IDS: STORAGE_KEYS.DELETED_IDS(false),
+    DISPLAY_NAME: STORAGE_KEYS.DISPLAY_NAME(false),
+    // Signed-in user keys (separate from local)
+    SIGNED_IN_PROBLEMS: STORAGE_KEYS.PROBLEMS(true),
+    SIGNED_IN_DELETED_IDS: STORAGE_KEYS.DELETED_IDS(true),
+    SIGNED_IN_DISPLAY_NAME: STORAGE_KEYS.DISPLAY_NAME(true),
 };
 
-// Initialize the data module
-data.init();
+// Initialize original data on first access
+const ensureOriginalData = () => {
+    if (!originalTopicsData) {
+        originalTopicsData = cloneData(PROBLEMS_DATA);
+    }
+};
+
+// Reset topicsData to original
+export const resetTopicsData = () => {
+    ensureOriginalData();
+    if (originalTopicsData) {
+        // Clear and repopulate the array to maintain reference
+        _topicsData.length = 0;
+        _topicsData.push(...cloneData(originalTopicsData));
+    }
+};
+
+// Get original topics data (for checking custom items)
+export const getOriginalTopicsData = (): Topic[] | null => {
+    ensureOriginalData();
+    return originalTopicsData;
+};
+
+// Backward-compatible data object for existing code
+// Using getter/setter to ensure topicsData always references _topicsData
+export const data = {
+    // Cloudflare API base
+    API_BASE,
+
+    // Data structure reference - getter ensures it always returns current _topicsData
+    get topicsData(): Topic[] {
+        return _topicsData;
+    },
+    set topicsData(value: Topic[]) {
+        // When assigned, update _topicsData to maintain sync
+        _topicsData.length = 0;
+        _topicsData.push(...value);
+    },
+
+    // Algorithms data organized by category
+    algorithmsData,
+
+    // Initialize data module
+    init: ensureOriginalData,
+
+    // Reset topicsData to original
+    resetTopicsData,
+
+    // Get original topics data (for checking custom items)
+    getOriginalTopicsData,
+
+    // Spaced repetition intervals
+    SPACED_REPETITION_INTERVALS,
+
+    // Total counts
+    TOTAL_UNIQUE_PROBLEMS: TOTAL_UNIQUE_PROBLEMS_COUNT,
+    TOTAL_UNIQUE_ALGORITHMS: TOTAL_UNIQUE_ALGORITHMS_COUNT,
+
+    // Local storage keys
+    LOCAL_STORAGE_KEYS,
+};
+
+// Also export topicsData directly for tree-shaking
+export { _topicsData as topicsData };
+
+// Initialize on module load
+ensureOriginalData();

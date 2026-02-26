@@ -77,3 +77,20 @@ export const sanitizeUrl = (url: string | null | undefined): string => {
         return '';
     }
 };
+
+/**
+ * Escapes HTML special characters to prevent XSS.
+ * Replaces &, <, >, ", and ' with their HTML entity equivalents.
+ * @param str - The string to escape
+ * @returns Escaped string safe for HTML insertion
+ * @example
+ * const safe = escapeHtml('<script>alert("xss")</script>');
+ * // Returns "<script>alert("xss")</script>"
+ */
+export const escapeHtml = (str: string): string =>
+    str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '<')
+        .replace(/>/g, '>')
+        .replace(/"/g, '"')
+        .replace(/'/g, '&#039;');

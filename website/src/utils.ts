@@ -4,7 +4,7 @@
 // Import all utilities for the utils object
 import { getToday, addDays, formatDate, getNextReviewDate } from './utils/date';
 import { getUrlParameter, getBaseUrl, updateUrlParameter } from './utils/url';
-import { sanitizeInput, sanitizeUrl } from './utils/sanitization';
+import { sanitizeInput, sanitizeUrl, escapeHtml } from './utils/sanitization';
 import { copyToClipboard } from './utils/clipboard';
 import { showToast } from './utils/toast';
 import { scrollToTop } from './utils/scroll';
@@ -41,6 +41,7 @@ export {
     updateUrlParameter,
     sanitizeInput,
     sanitizeUrl,
+    escapeHtml,
     copyToClipboard,
     showToast,
     scrollToTop,

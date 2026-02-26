@@ -3,7 +3,7 @@
 import DOMPurify from 'dompurify';
 import { state } from '../state';
 import { data } from '../data';
-import { sanitizeInput, sanitizeUrl, showToast } from '../utils';
+import { sanitizeInput, sanitizeUrl, showToast, escapeHtml } from '../utils';
 import { api } from '../api';
 
 // Configure DOMPurify to allow only specific tags for confirm messages
@@ -52,7 +52,11 @@ export const _setupAddModal = () => {
     if (categoryEl) {
         categoryEl.innerHTML =
             '<option value="">-- Select or Type New --</option>' +
-            data.topicsData.map((t) => `<option value="${t.title}">${t.title}</option>`).join('');
+            data.topicsData
+                .map(
+                    (t) => `<option value="${escapeHtml(t.title)}">${escapeHtml(t.title)}</option>`
+                )
+                .join('');
     }
 
     ['addProbName', 'addProbUrl', 'addProbCategoryNew', 'addProbPatternNew'].forEach((id) => {
@@ -141,7 +145,11 @@ export const handleCategoryChange = (e: Event) => {
         const topic = data.topicsData.find((t) => t.title === val);
         patternEl.innerHTML = topic
             ? '<option value="">-- Select or Type New --</option>' +
-              topic.patterns.map((p) => `<option value="${p.name}">${p.name}</option>`).join('')
+              topic.patterns
+                  .map(
+                      (p) => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`
+                  )
+                  .join('')
             : '<option value="">-- No Patterns Found --</option>';
     } else if (patternEl) {
         patternEl.innerHTML = '<option value="">-- Select Category First --</option>';

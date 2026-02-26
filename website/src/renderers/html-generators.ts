@@ -4,22 +4,10 @@
 import { Problem, Topic, Pattern, ProblemDef } from '../types';
 import { data } from '../data';
 import { state } from '../state';
-import { shouldShowProblem, getToday, formatDate } from '../utils';
+import { shouldShowProblem, getToday, formatDate, escapeHtml } from '../utils';
 import { problemCardRenderers } from './problem-cards';
 import { ICONS } from './icons';
 import { SPINNER_HTML, AI_BUTTONS_HTML, SOLUTION_BUTTON_HTML } from '../ui/ui-constants';
-
-/**
- * Escapes HTML special characters to prevent XSS.
- * Replaces &, <, >, ", and ' with their HTML entity equivalents.
- */
-const escapeHtml = (str: string): string =>
-    str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '<')
-        .replace(/>/g, '>')
-        .replace(/"/g, '"')
-        .replace(/'/g, '&#039;');
 
 export const htmlGenerators = {
     // Helper to check if an item exists in original data

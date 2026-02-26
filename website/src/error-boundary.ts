@@ -2,6 +2,7 @@
 // Global error handling and error boundary utilities
 
 import { ui } from './ui/ui';
+import { escapeHtml } from './utils/sanitization';
 
 /**
  * Error boundary class for catching and handling errors in component-like operations
@@ -48,27 +49,13 @@ export class ErrorBoundary {
                 `
                 <div class="error-fallback p-4 bg-red-50 border border-red-200 rounded-lg">
                     <h3 class="text-red-800 font-semibold mb-2">Something went wrong</h3>
-                    <p class="text-red-600 text-sm">${this.sanitizeMessage(message)}</p>
+                    <p class="text-red-600 text-sm">${escapeHtml(message)}</p>
                     <button onclick="location.reload()" class="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
                         Reload Page
                     </button>
                 </div>
             `;
         }
-    }
-
-    /**
-     * Sanitizes error messages for safe HTML display
-     * @param message The error message to sanitize
-     */
-    private sanitizeMessage(message: string): string {
-        // Properly escape HTML entities to prevent XSS attacks
-        return message
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '<')
-            .replace(/>/g, '>')
-            .replace(/"/g, '"')
-            .replace(/'/g, '&#x27;');
     }
 
     /**
