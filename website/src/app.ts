@@ -81,7 +81,6 @@ const sanitizeExportData = (data: unknown): unknown => {
 
 // Export progress
 export const exportProgress = () => {
-    // Sanitize data before export to prevent XSS via exported files
     const rawExportData = {
         exportDate: new Date().toISOString(),
         version: '1.0',
@@ -89,14 +88,15 @@ export const exportProgress = () => {
         deletedIds: [...state.deletedProblemIds],
     };
 
-    // Deep sanitize all user-provided data
     const exportData = sanitizeExportData(rawExportData) as typeof rawExportData;
-
+    const dateStr = new Date().toISOString().split('T')[0];
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
+
     const a = document.createElement('a');
     a.href = url;
-    a.download = `smartgrind-progress-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `smartgrind-progress-${dateStr}.json`;
+
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -114,23 +114,23 @@ export const getCategoryStats = (
     categoryId: string
 ): { total: number; solved: number; unsolved: number; due: number; progress: number } => {
     const allProblems = [...state.problems.values()];
+
     const categoryProblems =
         categoryId === 'all'
             ? allProblems
-            : allProblems.filter(
-                  (p) =>
-                      p.topic === categoryId ||
-                      data.topicsData.find((t) => t.id === categoryId)?.title === p.topic
-              );
+            : allProblems.filter((p) => {
+                  if (p.topic === categoryId) return true;
+                  const topic = data.topicsData.find((t) => t.id === categoryId);
+                  return topic?.title === p.topic;
+              });
 
     const total = categoryProblems.length;
     const solved = categoryProblems.filter((p) => p.status === 'solved').length;
     const unsolved = total - solved;
     const now = new Date().toISOString().split('T')[0] || '';
-    const due = categoryProblems.filter((p) => {
-        if (p.status !== 'solved') return false;
-        return p.nextReviewDate && p.nextReviewDate <= now;
-    }).length;
+    const due = categoryProblems.filter(
+        (p) => p.status === 'solved' && p.nextReviewDate && p.nextReviewDate <= now
+    ).length;
     const progress = total > 0 ? Math.round((solved / total) * 100) : 0;
 
     return { total, solved, unsolved, due, progress };

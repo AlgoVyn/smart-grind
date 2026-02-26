@@ -36,22 +36,21 @@ export function isBrowserOnline(): boolean {
 /**
  * Generates a unique operation ID
  */
-function generateOperationId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-}
+const generateOperationId = (): string =>
+    `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
 /**
  * Stores operations in localStorage fallback (when SW is unavailable)
  * @param operations - Array of operations to store
  * @returns Array of operation IDs
  */
-function storeOperationsLocally(operations: APIOperation[]): string[] {
+const storeOperationsLocally = (operations: APIOperation[]): string[] => {
     const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
     const opsWithIds = operations.map((op) => ({ ...op, id: generateOperationId() }));
     pendingOps.push(...opsWithIds);
     localStorage.setItem('pending-operations', JSON.stringify(pendingOps));
     return opsWithIds.map((op) => op.id);
-}
+};
 
 /**
  * Queues API operations for background synchronization.
@@ -257,38 +256,41 @@ export function initOfflineDetection(): () => void {
     checker.startMonitoring();
     checker.isOnline().then((online) => state.setOnlineStatus(online));
 
-    if (isServiceWorkerAvailable()) {
-        navigator.serviceWorker.addEventListener('message', (event) => {
-            const { type, data } = event.data || {};
-            if (!type) return;
-
-            const handlers: Record<string, () => void> = {
-                SYNC_COMPLETED: () =>
-                    state.setSyncStatus({
-                        isSyncing: false,
-                        lastSyncAt: Date.now(),
-                        pendingCount: data?.pending ?? 0,
-                    }),
-                SYNC_PROGRESS_SYNCED: () =>
-                    data?.pending !== undefined &&
-                    state.setSyncStatus({
-                        pendingCount: data.pending,
-                    }),
-                SYNC_CONFLICT_REQUIRES_MANUAL: () =>
-                    state.setSyncStatus({
-                        hasConflicts: true,
-                        conflictMessage: data?.message,
-                    }),
-                SYNC_AUTH_REQUIRED: () =>
-                    state.setSyncStatus({
-                        isSyncing: false,
-                        pendingCount: data?.pendingCount ?? state.sync.pendingCount,
-                    }),
-            };
-
-            handlers[type]?.();
-        });
+    if (!isServiceWorkerAvailable()) {
+        return () => cleanupManager.cleanup('api');
     }
+
+    navigator.serviceWorker.addEventListener('message', (event) => {
+        const { type, data } = event.data || {};
+        if (!type) return;
+
+        switch (type) {
+            case 'SYNC_COMPLETED':
+                state.setSyncStatus({
+                    isSyncing: false,
+                    lastSyncAt: Date.now(),
+                    pendingCount: data?.pending ?? 0,
+                });
+                break;
+            case 'SYNC_PROGRESS_SYNCED':
+                if (data?.pending !== undefined) {
+                    state.setSyncStatus({ pendingCount: data.pending });
+                }
+                break;
+            case 'SYNC_CONFLICT_REQUIRES_MANUAL':
+                state.setSyncStatus({
+                    hasConflicts: true,
+                    conflictMessage: data?.message,
+                });
+                break;
+            case 'SYNC_AUTH_REQUIRED':
+                state.setSyncStatus({
+                    isSyncing: false,
+                    pendingCount: data?.pendingCount ?? state.sync.pendingCount,
+                });
+                break;
+        }
+    });
 
     const intervalId = setInterval(
         () => updateSyncStatus().catch(() => {}),

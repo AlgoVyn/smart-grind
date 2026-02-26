@@ -52,17 +52,12 @@ export const state = {
 
     // Helper to get storage keys based on user type
     getStorageKeys() {
+        const keys = data.LOCAL_STORAGE_KEYS;
         const isSignedIn = this.user.type === 'signed-in';
         return {
-            problems: isSignedIn
-                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_PROBLEMS
-                : data.LOCAL_STORAGE_KEYS.PROBLEMS,
-            deletedIds: isSignedIn
-                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_DELETED_IDS
-                : data.LOCAL_STORAGE_KEYS.DELETED_IDS,
-            displayName: isSignedIn
-                ? data.LOCAL_STORAGE_KEYS.SIGNED_IN_DISPLAY_NAME
-                : data.LOCAL_STORAGE_KEYS.DISPLAY_NAME,
+            problems: isSignedIn ? keys.SIGNED_IN_PROBLEMS : keys.PROBLEMS,
+            deletedIds: isSignedIn ? keys.SIGNED_IN_DELETED_IDS : keys.DELETED_IDS,
+            displayName: isSignedIn ? keys.SIGNED_IN_DISPLAY_NAME : keys.DISPLAY_NAME,
         };
     },
 
@@ -92,7 +87,7 @@ export const state = {
         const keys = this.getStorageKeys();
         const problemsWithoutLoading = Object.fromEntries(
             [...this.problems.entries()].map(([id, p]) => {
-                const { loading: _, noteVisible: __, ...rest } = p;
+                const { loading: _loading, noteVisible: _noteVisible, ...rest } = p;
                 return [id, rest];
             })
         );
@@ -145,11 +140,8 @@ export const state = {
 
     // Emit sync status change event for UI updates
     emitSyncStatusChange(): void {
-        if (typeof window !== 'undefined') {
-            window.dispatchEvent(
-                new CustomEvent('sync-status-change', { detail: { ...this.sync } })
-            );
-        }
+        if (typeof window === 'undefined') return;
+        window.dispatchEvent(new CustomEvent('sync-status-change', { detail: { ...this.sync } }));
     },
 
     // Get current sync status

@@ -68,65 +68,24 @@ const fetchAuthToken = async (): Promise<{
     }
 };
 
+// Helper to get value from IndexedDB store
+const getIndexedDBValue = <T>(store: IDBObjectStore, key: string): Promise<T | null> =>
+    new Promise((resolve) => {
+        const request = store.get(key);
+        request.onsuccess = () => resolve(request.result?.value ?? null);
+        request.onerror = () => resolve(null);
+    });
+
 /**
  * Get stored token from IndexedDB for offline scenarios
  * Returns the token if valid (not expired), null otherwise
  */
 const getStoredTokenForOffline = async (): Promise<string | null> => {
-    return new Promise((resolve) => {
-        const request = indexedDB.open('smartgrind-auth', 1);
+    const request = indexedDB.open('smartgrind-auth', 1);
 
+    const db = await new Promise<IDBDatabase | null>((resolve) => {
+        request.onsuccess = () => resolve(request.result);
         request.onerror = () => resolve(null);
-
-        request.onsuccess = async () => {
-            const db = request.result;
-
-            if (!db.objectStoreNames.contains('auth-tokens')) {
-                db.close();
-                resolve(null);
-                return;
-            }
-
-            try {
-                const transaction = db.transaction('auth-tokens', 'readonly');
-                const store = transaction.objectStore('auth-tokens');
-
-                const tokenRequest = store.get('token');
-                const expiresAtRequest = store.get('tokenExpiresAt');
-
-                const getToken = new Promise<string | null>((res) => {
-                    tokenRequest.onsuccess = () => res(tokenRequest.result?.value || null);
-                    tokenRequest.onerror = () => res(null);
-                });
-
-                const getExpiresAt = new Promise<number | null>((res) => {
-                    expiresAtRequest.onsuccess = () => {
-                        const val = expiresAtRequest.result?.value;
-                        res(val ? parseInt(val, 10) : null);
-                    };
-                    expiresAtRequest.onerror = () => res(null);
-                });
-
-                const [token, expiresAt] = await Promise.all([getToken, getExpiresAt]);
-                db.close();
-
-                if (!token) {
-                    resolve(null);
-                    return;
-                }
-
-                if (expiresAt && Date.now() >= expiresAt) {
-                    resolve(null);
-                    return;
-                }
-
-                resolve(token);
-            } catch {
-                db.close();
-                resolve(null);
-            }
-        };
-
         request.onupgradeneeded = (event) => {
             const db = (event.target as IDBOpenDBRequest).result;
             if (!db.objectStoreNames.contains('auth-tokens')) {
@@ -134,6 +93,33 @@ const getStoredTokenForOffline = async (): Promise<string | null> => {
             }
         };
     });
+
+    if (!db || !db.objectStoreNames.contains('auth-tokens')) {
+        db?.close();
+        return null;
+    }
+
+    try {
+        const transaction = db.transaction('auth-tokens', 'readonly');
+        const store = transaction.objectStore('auth-tokens');
+
+        const [token, expiresAtVal] = await Promise.all([
+            getIndexedDBValue<string>(store, 'token'),
+            getIndexedDBValue<string>(store, 'tokenExpiresAt'),
+        ]);
+
+        db.close();
+
+        if (!token) return null;
+
+        const expiresAt = expiresAtVal ? parseInt(expiresAtVal, 10) : null;
+        if (expiresAt && Date.now() >= expiresAt) return null;
+
+        return token;
+    } catch {
+        db.close();
+        return null;
+    }
 };
 
 // ============================================================================
@@ -144,24 +130,23 @@ const applyCategory = async (categoryParam: string | null, algorithmsParam: stri
     const { renderers } = await import('./renderers');
 
     // Handle algorithms parameter first
-    if (algorithmsParam) {
-        const validCategory = data.algorithmsData.some((c) => c.id === algorithmsParam);
-        if (validCategory) {
-            state.ui.activeAlgorithmCategoryId = algorithmsParam;
-            renderers.renderSidebar();
-            await renderers.renderAlgorithmsView(algorithmsParam);
-            scrollToTop();
-            return;
-        }
+    if (algorithmsParam && data.algorithmsData.some((c) => c.id === algorithmsParam)) {
+        state.ui.activeAlgorithmCategoryId = algorithmsParam;
+        renderers.renderSidebar();
+        await renderers.renderAlgorithmsView(algorithmsParam);
+        scrollToTop();
+        return;
     }
 
     // Handle problems category parameter
-    if (categoryParam && categoryParam !== 'all') {
-        const validCategory = data.topicsData.some((t: Topic) => t.id === categoryParam);
-        if (validCategory) {
-            state.ui.activeTopicId = categoryParam;
-        }
+    if (
+        categoryParam &&
+        categoryParam !== 'all' &&
+        data.topicsData.some((t: Topic) => t.id === categoryParam)
+    ) {
+        state.ui.activeTopicId = categoryParam;
     }
+
     renderers.renderSidebar();
     await renderers.renderMainView(state.ui.activeTopicId);
     scrollToTop();

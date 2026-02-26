@@ -261,23 +261,43 @@ const handleProblemCardClick = async (e: Event | HTMLElement, p: Problem): Promi
     const action = button.dataset['action'];
     if (!action) return;
 
-    // Use exported methods so tests can spy on them
     const renderers = problemCardRenderers;
-    const handlers: Record<string, () => void | Promise<void>> = {
-        solve: () => renderers.handleSolve(button, p),
-        review: () => renderers.handleReview(button, p),
-        reset: () => renderers.handleReset(button, p),
-        delete: () => renderers.handleDeleteAction(p),
-        note: () => renderers.handleNoteToggle(button, p),
-        'save-note': () => renderers.handleNoteSave(button, p),
-        'ask-chatgpt': () => renderers.handleAIActions(p, 'ask-chatgpt'),
-        'ask-aistudio': () => renderers.handleAIActions(p, 'ask-aistudio'),
-        'ask-grok': () => renderers.handleAIActions(p, 'ask-grok'),
-        solution: () => renderers.handleSolutionActions(button, p, 'solution'),
-        'pattern-solution': () => renderers.handleSolutionActions(button, p, 'pattern-solution'),
-    };
 
-    await handlers[action]?.();
+    switch (action) {
+        case 'solve':
+            await renderers.handleSolve(button, p);
+            break;
+        case 'review':
+            await renderers.handleReview(button, p);
+            break;
+        case 'reset':
+            await renderers.handleReset(button, p);
+            break;
+        case 'delete':
+            await renderers.handleDeleteAction(p);
+            break;
+        case 'note':
+            renderers.handleNoteToggle(button, p);
+            break;
+        case 'save-note':
+            await renderers.handleNoteSave(button, p);
+            break;
+        case 'ask-chatgpt':
+            await renderers.handleAIActions(p, 'ask-chatgpt');
+            break;
+        case 'ask-aistudio':
+            await renderers.handleAIActions(p, 'ask-aistudio');
+            break;
+        case 'ask-grok':
+            await renderers.handleAIActions(p, 'ask-grok');
+            break;
+        case 'solution':
+            await renderers.handleSolutionActions(button, p, 'solution');
+            break;
+        case 'pattern-solution':
+            await renderers.handleSolutionActions(button, p, 'pattern-solution');
+            break;
+    }
 };
 
 // Create a problem card element

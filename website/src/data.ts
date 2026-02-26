@@ -96,20 +96,12 @@ export const getOriginalTopicsData = (): Topic[] | null => {
 };
 
 // Backward-compatible data object for existing code
-// Using getter/setter to ensure topicsData always references _topicsData
 export const data = {
     // Cloudflare API base
     API_BASE,
 
-    // Data structure reference - getter ensures it always returns current _topicsData
-    get topicsData(): Topic[] {
-        return _topicsData;
-    },
-    set topicsData(value: Topic[]) {
-        // When assigned, update _topicsData to maintain sync
-        _topicsData.length = 0;
-        _topicsData.push(...value);
-    },
+    // Data structure reference (mutable array)
+    topicsData: _topicsData,
 
     // Algorithms data organized by category
     algorithmsData,

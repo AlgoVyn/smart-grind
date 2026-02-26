@@ -147,6 +147,24 @@ jest.mock('../src/sw-auth-storage', () => ({
     clearTokenForServiceWorker: jest.fn().mockResolvedValue(undefined),
 }));
 
+// Mock renderers module before importing
+jest.mock('../src/renderers', () => ({
+    renderers: {
+        renderSidebar: jest.fn(),
+        renderMainView: jest.fn(),
+        setActiveTopic: jest.fn(),
+        updateFilterBtns: jest.fn(),
+        updateStats: jest.fn(),
+        handleProblemCardClick: jest.fn(),
+    },
+    mainViewRenderers: {},
+    problemCardRenderers: {},
+    htmlGenerators: {},
+    sidebarRenderers: {},
+    statsRenderers: {},
+    ICONS: {},
+}));
+
 // Now import the module
 import { ui } from '../src/ui/ui';
 import { state } from '../src/state';
@@ -388,14 +406,13 @@ describe('SmartGrind UI', () => {
                 showToast('Progress exported successfully!', 'success');
             }),
         };
-        renderers = {
-            renderSidebar: jest.fn(),
-            renderMainView: jest.fn(),
-            setActiveTopic: jest.fn(),
-            updateFilterBtns: jest.fn(),
-            updateStats: jest.fn(),
-            handleProblemCardClick: jest.fn(),
-        };
+        // Reset renderers mock functions
+        (renderers.renderSidebar as jest.Mock).mockClear();
+        (renderers.renderMainView as jest.Mock).mockClear();
+        (renderers.setActiveTopic as jest.Mock).mockClear();
+        (renderers.updateFilterBtns as jest.Mock).mockClear();
+        (renderers.updateStats as jest.Mock).mockClear();
+        (renderers.handleProblemCardClick as jest.Mock).mockClear();
     });
 
     afterEach(() => {

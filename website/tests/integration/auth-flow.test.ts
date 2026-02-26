@@ -70,8 +70,8 @@ describe('Integration: Authentication Flow', () => {
         state.sync = { isOnline: true, isSyncing: false, pendingCount: 0, lastSyncAt: null, hasConflicts: false, conflictMessage: null };
         state.elements = { ...mockElements } as any;
         
-        // Reset data
-        data.topicsData = [];
+        // Reset data - ensure topicsData is properly initialized
+        data.resetTopicsData();
         
         // Reset localStorage mock
         mockGetItem.mockReturnValue(null);
@@ -87,8 +87,8 @@ describe('Integration: Authentication Flow', () => {
             const { app } = await import('../../src/app');
             const { data: dataModule } = await import('../../src/data');
             
-            // Store original topicsData length
-            const originalLength = dataModule.topicsData.length;
+            // Ensure data is reset before test
+            dataModule.resetTopicsData();
             
             // Execute initialization
             await app.initializeLocalUser();
@@ -133,6 +133,9 @@ describe('Integration: Authentication Flow', () => {
         test('should handle local user with custom problems', async () => {
             const { data: dataModule } = await import('../../src/data');
             const { api: apiModule } = await import('../../src/api');
+            
+            // Ensure data is reset before test
+            dataModule.resetTopicsData();
             
             // Store original length
             const originalLength = dataModule.topicsData.length;

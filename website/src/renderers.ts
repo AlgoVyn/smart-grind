@@ -8,17 +8,5 @@ export { htmlGenerators } from './renderers/html-generators';
 export { sidebarRenderers } from './renderers/sidebar';
 export { statsRenderers } from './renderers/stats';
 
-// Backward-compatible renderers object
-import { mainViewRenderers } from './renderers/main-view';
-import { problemCardRenderers } from './renderers/problem-cards';
-import { htmlGenerators } from './renderers/html-generators';
-import { sidebarRenderers } from './renderers/sidebar';
-import { statsRenderers } from './renderers/stats';
-
-export const renderers = {
-    ...mainViewRenderers,
-    ...problemCardRenderers,
-    ...htmlGenerators,
-    ...sidebarRenderers,
-    ...statsRenderers,
-};
+// Backward-compatible renderers object - re-exports combined
+export { renderers } from './renderers/combined';
