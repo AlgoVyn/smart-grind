@@ -12,14 +12,34 @@ export * from './ui-scroll';
 export * from './ui-markdown';
 export * from './ui-bindings';
 
-// Backward-compatible ui object - re-exported from combined module
-export { ui } from './ui-combined';
-
-// Import for window exposure (must be at module level for immediate execution)
-import { ui } from './ui-combined';
+// Import all UI modules to create combined ui object
+import * as uiModals from './ui-modals';
+import * as uiAuth from './ui-auth';
+import * as uiNavigation from './ui-navigation';
+import * as uiProblems from './ui-problems';
+import * as uiGlobal from './ui-global';
+import * as uiScroll from './ui-scroll';
+import * as uiMarkdown from './ui-markdown';
+import * as uiBindings from './ui-bindings';
+import { pullToRefresh } from './ui-pull-to-refresh';
+import { sidebarResizer } from './ui-sidebar-resizer';
 import { state } from '../state';
 import { scrollToTop } from '../utils';
 import { GOOGLE_BUTTON_HTML } from './ui-constants';
+
+// Backward-compatible ui object - combines all UI modules
+export const ui = {
+    ...uiModals,
+    ...uiAuth,
+    ...uiNavigation,
+    ...uiProblems,
+    ...uiGlobal,
+    ...uiScroll,
+    ...uiMarkdown,
+    ...uiBindings,
+    pullToRefresh,
+    sidebarResizer,
+};
 
 export const scrollToReview = () => {
     const contentScroll = state.elements['contentScroll'];
