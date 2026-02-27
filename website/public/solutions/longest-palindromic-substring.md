@@ -985,6 +985,7 @@ For a comprehensive guide on related patterns, including detailed explanations a
 
 - **[Two Pointers - String Reversal](../patterns/two-pointers-string-reversal.md)** - Two pointers technique for string problems
 - **[Backtracking - Palindrome Partitioning](../patterns/backtracking-palindrome-partitioning.md)** - Using backtracking for palindrome problems
+- **[Manacher's Algorithm](../algorithms/manachers-algorithm.md)** - Comprehensive algorithm guide with variations and practice problems
 
 ---
 
