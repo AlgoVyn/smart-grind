@@ -12,6 +12,19 @@ import { fetchCsrfToken, getCsrfToken, getCachedCsrfToken, clearCsrfToken } from
 // Re-export CSRF functions for backward compatibility
 export { fetchCsrfToken, getCsrfToken, getCachedCsrfToken, clearCsrfToken };
 
+// Export data limits for sanitization
+const EXPORT_LIMITS = {
+    /** Maximum length for string values in exported data (10KB) */
+    MAX_STRING_LENGTH: 10000,
+    /** Maximum length for object keys in exported data */
+    MAX_KEY_LENGTH: 100,
+} as const;
+
+// Control characters regex: matches ASCII control characters (0x00-0x1F) and DEL (0x7F)
+const CONTROL_CHARS_REGEX = /[\x00-\x1F\x7F]/g;
+// Safe key regex: only allows word characters, whitespace, and hyphens
+const SAFE_KEY_REGEX = /[^\w\s-]/g;
+
 // Initialize local user
 export const initializeLocalUser = async () => {
     state.user.type = 'local';
@@ -62,7 +75,7 @@ export const initializeLocalUser = async () => {
 const sanitizeExportData = (data: unknown): unknown => {
     if (typeof data === 'string') {
         // Remove control characters and limit length (more permissive than sanitizeInput for export)
-        return data.replace(/[\x00-\x1F\x7F]/g, '').slice(0, 10000);
+        return data.replace(CONTROL_CHARS_REGEX, '').slice(0, EXPORT_LIMITS.MAX_STRING_LENGTH);
     }
     if (Array.isArray(data)) {
         return data.map(sanitizeExportData);
@@ -70,7 +83,7 @@ const sanitizeExportData = (data: unknown): unknown => {
     if (data && typeof data === 'object') {
         return Object.fromEntries(
             Object.entries(data).map(([key, value]) => [
-                key.replace(/[^\w\s-]/g, '').slice(0, 100),
+                key.replace(SAFE_KEY_REGEX, '').slice(0, EXPORT_LIMITS.MAX_KEY_LENGTH),
                 sanitizeExportData(value),
             ])
         );

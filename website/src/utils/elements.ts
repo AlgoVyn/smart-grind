@@ -75,8 +75,26 @@ export interface ElementCache {
     toastContainer: HTMLElement | null;
     // Element collections
     filterBtns: NodeListOf<Element> | null;
-    // Index signature for dynamic access
+    /**
+     * Index signature for dynamic access.
+     * Note: Prefer using direct property access when possible for better type safety.
+     * Example: state.elements.userDisplay (typed) vs state.elements['userDisplay'] (less safe)
+     */
     [key: string]: HTMLElement | HTMLInputElement | HTMLSelectElement | NodeListOf<Element> | null;
+}
+
+/**
+ * Type-safe element accessor that validates the element exists
+ * Use this instead of direct bracket access for type safety
+ * @param cache - The element cache
+ * @param key - The element key
+ * @returns The element or null if not found
+ */
+export function getCachedElement<K extends keyof ElementCache>(
+    cache: Partial<ElementCache>,
+    key: K
+): ElementCache[K] {
+    return cache[key] ?? null;
 }
 
 /**

@@ -22,7 +22,7 @@ export {
     getAvailableReviewDates,
 } from './utils/problems';
 
-export { cacheElements, getElement, getElements } from './utils/elements';
+export { cacheElements, getElement, getElements, getCachedElement } from './utils/elements';
 
 export {
     safeGetItem,

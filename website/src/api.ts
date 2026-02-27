@@ -13,6 +13,7 @@ import { cleanupManager } from './utils/cleanup-manager';
 import { isSyncStatusResponse, type SyncStatus, type APIOperation } from './types/sync';
 import { sendMessageToSW, isServiceWorkerAvailable } from './sw/sw-messaging';
 import { SYNC_CONFIG } from './config/sync-config';
+import { errorTracker } from './utils/error-tracker';
 
 // Import and re-export types for backward compatibility
 import type { APIOperationType } from './types/sync';
@@ -73,7 +74,9 @@ export async function queueOperation(
     }
 
     await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations });
-    updateSyncStatus().catch(() => {});
+    updateSyncStatus().catch((error) => {
+        errorTracker.captureException(error, { type: 'sync_status_update_failed' });
+    });
 
     const ids = operations.map(() => generateOperationId());
     return isSingle ? (ids[0] ?? null) : ids;
@@ -145,8 +148,8 @@ export async function forceSync(): Promise<{ success: boolean; synced: number; f
     if (swRegistration.sync) {
         try {
             await swRegistration.sync.register('sync-user-progress');
-        } catch (_e) {
-            // Background Sync registration failed
+        } catch (error) {
+            errorTracker.captureException(error, { type: 'background_sync_registration_failed' });
         }
     }
 
@@ -193,7 +196,9 @@ export async function saveProblemWithSync(
             type: operationType,
             data: { problemId, ...updates, timestamp: Date.now() },
             timestamp: Date.now(),
-        }).catch(() => {});
+        }).catch((error) => {
+            errorTracker.captureException(error, { type: 'queue_operation_failed', operationType });
+        });
     }
 }
 
@@ -226,8 +231,8 @@ async function migrateLocalStorageOperations(): Promise<void> {
     try {
         await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations: pendingOps });
         localStorage.removeItem('pending-operations');
-    } catch (_error) {
-        // Failed to migrate localStorage operations
+    } catch (error) {
+        errorTracker.captureException(error, { type: 'migrate_localstorage_operations_failed' });
     }
 }
 
@@ -248,8 +253,10 @@ export function initOfflineDetection(): () => void {
                 await _performSave();
             }
             await forceSync();
-        } catch {
-            // Failed to sync after connectivity restore
+        } catch (error) {
+            errorTracker.captureException(error, {
+                type: 'sync_after_connectivity_restore_failed',
+            });
         }
     });
 
@@ -293,7 +300,12 @@ export function initOfflineDetection(): () => void {
     });
 
     const intervalId = setInterval(
-        () => updateSyncStatus().catch(() => {}),
+        () =>
+            updateSyncStatus().catch((error) => {
+                errorTracker.captureException(error, {
+                    type: 'periodic_sync_status_update_failed',
+                });
+            }),
         SYNC_CONFIG.INTERVALS.SYNC_STATUS_POLL
     );
 
