@@ -85,12 +85,12 @@ export const sanitizeUrl = (url: string | null | undefined): string => {
  * @returns Escaped string safe for HTML insertion
  * @example
  * const safe = escapeHtml('<script>alert("xss")</script>');
- * // Returns "<script>alert("xss")</script>"
+ * // Returns "&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;"
  */
 export const escapeHtml = (str: string): string =>
     str
         .replace(/&/g, '&amp;')
-        .replace(/</g, '<')
-        .replace(/>/g, '>')
-        .replace(/"/g, '"')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');

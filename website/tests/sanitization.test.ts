@@ -1,6 +1,6 @@
 // Test suite for input sanitization functions
 import { expect } from '@jest/globals';
-import { sanitizeInput, sanitizeUrl } from '../src/utils';
+import { sanitizeInput, sanitizeUrl, escapeHtml } from '../src/utils';
 
 describe('Input Sanitization Tests', () => {
     describe('sanitizeInput()', () => {
@@ -111,6 +111,69 @@ describe('Input Sanitization Tests', () => {
             const leetcodeUrl = 'leetcode.com/problems/two-sum/';
             const result = sanitizeUrl(leetcodeUrl);
             expect(result).toBe('https://leetcode.com/problems/two-sum/');
+        });
+    });
+
+    describe('escapeHtml()', () => {
+        it('should escape less-than sign', () => {
+            const result = escapeHtml('<script>');
+            expect(result).toBe('&lt;script&gt;');
+        });
+
+        it('should escape greater-than sign', () => {
+            const result = escapeHtml('text>');
+            expect(result).toBe('text&gt;');
+        });
+
+        it('should escape ampersand', () => {
+            const result = escapeHtml('A & B');
+            expect(result).toBe('A &amp; B');
+        });
+
+        it('should escape double quotes', () => {
+            const result = escapeHtml('value="test"');
+            expect(result).toBe('value=&quot;test&quot;');
+        });
+
+        it('should escape single quotes', () => {
+            const result = escapeHtml("value='test'");
+            expect(result).toBe('value=&#039;test&#039;');
+        });
+
+        it('should escape all HTML special characters', () => {
+            const input = '<script>alert("XSS")</script>';
+            const result = escapeHtml(input);
+            expect(result).toBe('&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;');
+        });
+
+        it('should handle XSS payload with event handler', () => {
+            const input = '<img src=x onerror=alert(1)>';
+            const result = escapeHtml(input);
+            expect(result).toBe('&lt;img src=x onerror=alert(1)&gt;');
+        });
+
+        it('should escape multiple occurrences', () => {
+            const input = '<<test>>';
+            const result = escapeHtml(input);
+            expect(result).toBe('&lt;&lt;test&gt;&gt;');
+        });
+
+        it('should handle empty string', () => {
+            const result = escapeHtml('');
+            expect(result).toBe('');
+        });
+
+        it('should handle string with no special characters', () => {
+            const input = 'Hello World';
+            const result = escapeHtml(input);
+            expect(result).toBe('Hello World');
+        });
+
+        it('should prevent script injection via HTML entities', () => {
+            const input = '<script>document.location="evil.com"</script>';
+            const result = escapeHtml(input);
+            expect(result).not.toContain('<script>');
+            expect(result).toContain('&lt;script&gt;');
         });
     });
 });
