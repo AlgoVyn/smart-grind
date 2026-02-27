@@ -68,54 +68,51 @@ const fetchAuthToken = async (): Promise<{
     }
 };
 
-// Helper to get value from IndexedDB store
-const getIndexedDBValue = <T>(store: IDBObjectStore, key: string): Promise<T | null> =>
-    new Promise((resolve) => {
-        const request = store.get(key);
-        request.onsuccess = () => resolve(request.result?.value ?? null);
-        request.onerror = () => resolve(null);
-    });
-
 /**
  * Get stored token from IndexedDB for offline scenarios
  * Returns the token if valid (not expired), null otherwise
  */
 const getStoredTokenForOffline = async (): Promise<string | null> => {
-    const request = indexedDB.open('smartgrind-auth', 1);
+    const DB_NAME = 'smartgrind-auth';
+    const STORE_NAME = 'auth-tokens';
 
-    const db = await new Promise<IDBDatabase | null>((resolve) => {
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => resolve(null);
-        request.onupgradeneeded = (event) => {
-            const db = (event.target as IDBOpenDBRequest).result;
-            if (!db.objectStoreNames.contains('auth-tokens')) {
-                db.createObjectStore('auth-tokens', { keyPath: 'key' });
-            }
-        };
-    });
+    const openDB = (): Promise<IDBDatabase | null> =>
+        new Promise((resolve) => {
+            const req = indexedDB.open(DB_NAME, 1);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+            req.onupgradeneeded = (e) => {
+                const db = (e.target as IDBOpenDBRequest).result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+                }
+            };
+        });
 
-    if (!db || !db.objectStoreNames.contains('auth-tokens')) {
+    const getValue = <T>(store: IDBObjectStore, key: string): Promise<T | null> =>
+        new Promise((resolve) => {
+            const req = store.get(key);
+            req.onsuccess = () => resolve(req.result?.value ?? null);
+            req.onerror = () => resolve(null);
+        });
+
+    const db = await openDB();
+    if (!db?.objectStoreNames.contains(STORE_NAME)) {
         db?.close();
         return null;
     }
 
     try {
-        const transaction = db.transaction('auth-tokens', 'readonly');
-        const store = transaction.objectStore('auth-tokens');
-
-        const [token, expiresAtVal] = await Promise.all([
-            getIndexedDBValue<string>(store, 'token'),
-            getIndexedDBValue<string>(store, 'tokenExpiresAt'),
+        const store = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME);
+        const [token, expiresAt] = await Promise.all([
+            getValue<string>(store, 'token'),
+            getValue<string>(store, 'tokenExpiresAt'),
         ]);
-
         db.close();
 
         if (!token) return null;
-
-        const expiresAt = expiresAtVal ? parseInt(expiresAtVal, 10) : null;
-        if (expiresAt && Date.now() >= expiresAt) return null;
-
-        return token;
+        const expiry = expiresAt ? parseInt(expiresAt, 10) : null;
+        return expiry && Date.now() >= expiry ? null : token;
     } catch {
         db.close();
         return null;
@@ -129,7 +126,7 @@ const getStoredTokenForOffline = async (): Promise<string | null> => {
 const applyCategory = async (categoryParam: string | null, algorithmsParam: string | null) => {
     const { renderers } = await import('./renderers');
 
-    // Handle algorithms parameter first
+    // Handle algorithms view
     if (algorithmsParam && data.algorithmsData.some((c) => c.id === algorithmsParam)) {
         state.ui.activeAlgorithmCategoryId = algorithmsParam;
         renderers.renderSidebar();
@@ -138,14 +135,13 @@ const applyCategory = async (categoryParam: string | null, algorithmsParam: stri
         return;
     }
 
-    // Handle problems category parameter
-    if (
+    // Handle problems category
+    const isValidCategory =
         categoryParam &&
         categoryParam !== 'all' &&
-        data.topicsData.some((t: Topic) => t.id === categoryParam)
-    ) {
-        state.ui.activeTopicId = categoryParam;
-    }
+        data.topicsData.some((t: Topic) => t.id === categoryParam);
+
+    if (isValidCategory) state.ui.activeTopicId = categoryParam;
 
     renderers.renderSidebar();
     await renderers.renderMainView(state.ui.activeTopicId);
@@ -263,50 +259,59 @@ const handlePwaAuthCallback = async (
     return true;
 };
 
+const restoreSession = async (
+    userId: string,
+    displayName: string,
+    token: string,
+    categoryParam: string | null,
+    algorithmsParam: string | null,
+    errorMessage: string
+): Promise<void> => {
+    await withErrorHandling(async () => {
+        await setupSignedInUser(userId, displayName, categoryParam, algorithmsParam, token);
+    }, errorMessage);
+    initOfflineDetection();
+};
+
 const handleExistingSession = async (
     userId: string,
     categoryParam: string | null,
     algorithmsParam: string | null
 ): Promise<boolean> => {
+    // Try to get fresh auth token first
     const authData = await fetchAuthToken();
-
     if (authData) {
         const displayName = localStorage.getItem('displayName') || authData.displayName || 'User';
-        await withErrorHandling(async () => {
-            await setupSignedInUser(
-                userId,
-                displayName,
-                categoryParam,
-                algorithmsParam,
-                authData.token
-            );
-        }, 'Failed to restore user session');
-        initOfflineDetection();
+        await restoreSession(
+            userId,
+            displayName,
+            authData.token,
+            categoryParam,
+            algorithmsParam,
+            'Failed to restore user session'
+        );
         return true;
     }
 
-    // Try stored token as fallback
+    // Fallback to stored token for offline
     const storedToken = await getStoredTokenForOffline();
     if (storedToken) {
         const displayName = localStorage.getItem('displayName') || 'User';
-        await withErrorHandling(async () => {
-            await setupSignedInUser(
-                userId,
-                displayName,
-                categoryParam,
-                algorithmsParam,
-                storedToken
-            );
-        }, 'Failed to restore session with stored token');
-        initOfflineDetection();
+        await restoreSession(
+            userId,
+            displayName,
+            storedToken,
+            categoryParam,
+            algorithmsParam,
+            'Failed to restore session with stored token'
+        );
         return true;
     }
 
-    // No valid token - session expired
+    // Session expired - clear and show signin
     localStorage.removeItem('userId');
     localStorage.removeItem('displayName');
     localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
-
     openSigninModal();
     showToast('Session expired. Please sign in again.', 'error');
     return false;
@@ -321,11 +326,9 @@ const showSetupModal = async () => {
 
     if (googleLoginButton) {
         (googleLoginButton as HTMLButtonElement).disabled = false;
-        googleLoginButton.innerHTML =
-            (window as Window & { SmartGrind?: { GOOGLE_BUTTON_HTML?: string } }).SmartGrind?.[
-                'GOOGLE_BUTTON_HTML'
-            ] || '';
+        googleLoginButton.innerHTML = window.SmartGrind?.GOOGLE_BUTTON_HTML || '';
     }
+
     const { ui } = await import('./ui/ui');
     ui.updateAuthUI();
 };
@@ -336,9 +339,9 @@ const showSetupModal = async () => {
 
 const checkAuth = async () => {
     // Listen for auth required events from Service Worker
-    swRegister.on('authRequired', (eventData: unknown) => {
-        const eventDataObj = eventData as { message?: string; timestamp?: number };
-        console.warn('[Init] Received authRequired event:', eventDataObj.message);
+    swRegister.on('authRequired', (data: unknown) => {
+        const { message } = (data || {}) as { message?: string };
+        console.warn('[Init] Auth required:', message);
         openSigninModal();
         showToast('Session expired. Please sign in again.', 'error');
     });
@@ -362,18 +365,18 @@ const checkAuth = async () => {
 
     // Check for existing session
     const userId = localStorage.getItem('userId');
-    if (userId) {
-        const hasSession = await handleExistingSession(userId, categoryParam, algorithmsParam);
-        if (hasSession) return;
+    if (userId && (await handleExistingSession(userId, categoryParam, algorithmsParam))) {
+        return;
     }
 
-    // Default to local user
-    const userType = localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE) || 'local';
+    // Default to local user or show setup modal
+    const userType = localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE);
 
-    if (userType === 'local') {
-        await withErrorHandling(async () => {
-            await setupLocalUser(categoryParam, algorithmsParam);
-        }, 'Failed to initialize local user');
+    if (userType === 'local' || (!userId && !userType)) {
+        await withErrorHandling(
+            () => setupLocalUser(categoryParam, algorithmsParam),
+            'Failed to initialize local user'
+        );
     } else {
         await showSetupModal();
     }

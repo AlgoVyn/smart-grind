@@ -62,19 +62,18 @@ export const initializeLocalUser = async () => {
 const sanitizeExportData = (data: unknown): unknown => {
     if (typeof data === 'string') {
         // Remove control characters and limit length (more permissive than sanitizeInput for export)
-        return data.replace(/[\x00-\x1F\x7F]/g, '').substring(0, 10000);
+        return data.replace(/[\x00-\x1F\x7F]/g, '').slice(0, 10000);
     }
     if (Array.isArray(data)) {
         return data.map(sanitizeExportData);
     }
-    if (typeof data === 'object' && data !== null) {
-        const sanitized: Record<string, unknown> = {};
-        for (const [key, value] of Object.entries(data)) {
-            // Sanitize keys too
-            const safeKey = key.replace(/[^\w\s-]/g, '').substring(0, 100);
-            sanitized[safeKey] = sanitizeExportData(value);
-        }
-        return sanitized;
+    if (data && typeof data === 'object') {
+        return Object.fromEntries(
+            Object.entries(data).map(([key, value]) => [
+                key.replace(/[^\w\s-]/g, '').slice(0, 100),
+                sanitizeExportData(value),
+            ])
+        );
     }
     return data;
 };
@@ -115,25 +114,35 @@ export const getCategoryStats = (
 ): { total: number; solved: number; unsolved: number; due: number; progress: number } => {
     const allProblems = [...state.problems.values()];
 
+    // Get topic title for category matching
+    const topicTitle = data.topicsData.find((t) => t.id === categoryId)?.title;
+
+    // Filter problems by category
     const categoryProblems =
         categoryId === 'all'
             ? allProblems
-            : allProblems.filter((p) => {
-                  if (p.topic === categoryId) return true;
-                  const topic = data.topicsData.find((t) => t.id === categoryId);
-                  return topic?.title === p.topic;
-              });
+            : allProblems.filter((p) => p.topic === categoryId || p.topic === topicTitle);
+
+    // Calculate stats in a single pass
+    let solved = 0;
+    let due = 0;
+    const now = new Date().toISOString().split('T')[0] || '';
+
+    for (const p of categoryProblems) {
+        if (p.status === 'solved') {
+            solved++;
+            if (p.nextReviewDate && p.nextReviewDate <= now) due++;
+        }
+    }
 
     const total = categoryProblems.length;
-    const solved = categoryProblems.filter((p) => p.status === 'solved').length;
-    const unsolved = total - solved;
-    const now = new Date().toISOString().split('T')[0] || '';
-    const due = categoryProblems.filter(
-        (p) => p.status === 'solved' && p.nextReviewDate && p.nextReviewDate <= now
-    ).length;
-    const progress = total > 0 ? Math.round((solved / total) * 100) : 0;
-
-    return { total, solved, unsolved, due, progress };
+    return {
+        total,
+        solved,
+        unsolved: total - solved,
+        due,
+        progress: total > 0 ? Math.round((solved / total) * 100) : 0,
+    };
 };
 
 /**

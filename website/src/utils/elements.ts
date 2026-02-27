@@ -88,9 +88,10 @@ const toCamelCase = (str: string): string =>
 
 /**
  * Element ID definitions organized by type
+ * Grouped for easier maintenance
  */
 const ELEMENT_IDS = {
-    // Simple HTMLElement IDs
+    // Modal elements
     elements: [
         'setup-modal',
         'add-problem-modal',
@@ -98,6 +99,7 @@ const ELEMENT_IDS = {
         'signin-modal-content',
         'alert-modal',
         'confirm-modal',
+        'solution-modal',
         'alert-message',
         'confirm-message',
         'alert-title',
@@ -105,8 +107,10 @@ const ELEMENT_IDS = {
         'alert-ok-btn',
         'confirm-ok-btn',
         'confirm-cancel-btn',
-        'solution-modal',
         'solution-close-btn',
+    ],
+    // App structure
+    elementsApp: [
         'app-wrapper',
         'loading-screen',
         'topic-list',
@@ -114,12 +118,18 @@ const ELEMENT_IDS = {
         'content-scroll',
         'empty-state',
         'current-view-title',
+    ],
+    // Auth elements
+    elementsAuth: [
         'google-login-button',
         'modal-google-login-button',
         'setup-error',
         'signin-error',
         'user-display',
         'disconnect-btn',
+    ],
+    // Stats elements
+    elementsStats: [
         'sidebar-total-stat',
         'sidebar-total-bar',
         'stat-total',
@@ -129,6 +139,9 @@ const ELEMENT_IDS = {
         'stat-due-badge',
         'review-banner',
         'review-count-banner',
+    ],
+    // Navigation & controls
+    elementsNav: [
         'mobile-menu-btn',
         'mobile-menu-btn-main',
         'open-add-modal-btn',
@@ -145,7 +158,7 @@ const ELEMENT_IDS = {
         'toast-container',
     ],
 
-    // HTMLInputElement IDs
+    // Form inputs
     inputs: [
         'add-prob-name',
         'add-prob-url',
@@ -154,7 +167,7 @@ const ELEMENT_IDS = {
         'problem-search',
     ],
 
-    // HTMLSelectElement IDs
+    // Select elements
     selects: ['add-prob-category', 'add-prob-pattern', 'review-date-filter'],
 };
 
@@ -175,20 +188,27 @@ export const cacheElements = <T>(): T => {
         HTMLElement | HTMLInputElement | HTMLSelectElement | NodeListOf<Element> | null
     >;
 
-    // Cache simple HTMLElements
-    for (const id of ELEMENT_IDS.elements) {
-        elements[toCamelCase(id)] = document.getElementById(id);
-    }
+    // Helper to cache elements by ID array
+    const cacheByIds = (ids: string[], type?: 'input' | 'select') => {
+        for (const id of ids) {
+            const el = document.getElementById(id);
+            elements[toCamelCase(id)] =
+                type === 'input'
+                    ? (el as HTMLInputElement | null)
+                    : type === 'select'
+                      ? (el as HTMLSelectElement | null)
+                      : el;
+        }
+    };
 
-    // Cache input elements
-    for (const id of ELEMENT_IDS.inputs) {
-        elements[toCamelCase(id)] = document.getElementById(id) as HTMLInputElement | null;
-    }
-
-    // Cache select elements
-    for (const id of ELEMENT_IDS.selects) {
-        elements[toCamelCase(id)] = document.getElementById(id) as HTMLSelectElement | null;
-    }
+    // Cache all element groups
+    cacheByIds(ELEMENT_IDS.elements);
+    cacheByIds(ELEMENT_IDS.elementsApp);
+    cacheByIds(ELEMENT_IDS.elementsAuth);
+    cacheByIds(ELEMENT_IDS.elementsStats);
+    cacheByIds(ELEMENT_IDS.elementsNav);
+    cacheByIds(ELEMENT_IDS.inputs, 'input');
+    cacheByIds(ELEMENT_IDS.selects, 'select');
 
     // Cache filter buttons
     elements['filterBtns'] = document.querySelectorAll(COLLECTIONS.filterBtns);

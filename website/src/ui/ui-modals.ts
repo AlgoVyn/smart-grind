@@ -12,30 +12,31 @@ const DOMPURIFY_CONFIG = {
     ALLOWED_ATTR: [],
 };
 
-// Generic modal handler factory
-export const createModalHandler =
-    (modalEl: HTMLElement, contentEl: HTMLElement | null | undefined, closeCallback?: () => void) =>
-    (_e: Event) => {
-        if (_e && _e.target !== modalEl) {
-            if (contentEl) _e?.stopPropagation();
-            return;
-        }
-        modalEl.classList.add('hidden');
-        closeCallback?.();
-    };
-
 // Modal helper functions
-const showModal = (modalEl: HTMLElement | null | undefined, setupCallback?: () => void) => {
+const showModal = (modalEl: HTMLElement | null | undefined, setup?: () => void) => {
     if (!modalEl) return;
-    setupCallback?.();
+    setup?.();
     modalEl.classList.remove('hidden');
 };
 
-const hideModal = (modalEl: HTMLElement | null | undefined, cleanupCallback?: () => void) => {
+const hideModal = (modalEl: HTMLElement | null | undefined, cleanup?: () => void) => {
     if (!modalEl) return;
     modalEl.classList.add('hidden');
-    cleanupCallback?.();
+    cleanup?.();
 };
+
+// Generic modal handler factory
+export const createModalHandler =
+    (modalEl: HTMLElement, contentEl?: HTMLElement | null, onClose?: () => void) =>
+    (e: Event | null | undefined) => {
+        // Close modal when event is null/undefined or target is the modal itself
+        if (e && e.target !== modalEl) {
+            if (contentEl) e.stopPropagation();
+            return;
+        }
+        modalEl.classList.add('hidden');
+        onClose?.();
+    };
 
 // Signin modal
 export const openSigninModal = () => showModal(state.elements['signinModal'] as HTMLElement | null);
@@ -178,31 +179,26 @@ export const _getSanitizedInputs = () => {
     };
 };
 
+const REQUIRED_FIELDS = [
+    { key: 'name', message: 'Problem name is required.' },
+    { key: 'url', message: 'Problem URL is required.' },
+    { key: 'category', message: 'Category is required.' },
+    { key: 'pattern', message: 'Pattern is required.' },
+] as const;
+
 export const _validateInputs = (
-    {
-        name,
-        url,
-        category,
-        pattern,
-    }: { name: string; url: string; category: string; pattern: string },
+    inputs: { name: string; url: string; category: string; pattern: string },
     alertFn = showAlert
 ) => {
-    const fields = [
-        { value: name.trim(), message: 'Problem name is required.' },
-        { value: url.trim(), message: 'Problem URL is required.' },
-        { value: category.trim(), message: 'Category is required.' },
-        { value: pattern.trim(), message: 'Pattern is required.' },
-    ];
-
-    for (const field of fields) {
-        if (!field.value) {
-            alertFn(field.message);
+    for (const { key, message } of REQUIRED_FIELDS) {
+        if (!inputs[key].trim()) {
+            alertFn(message);
             return false;
         }
     }
 
     try {
-        new URL(url);
+        new URL(inputs.url);
     } catch {
         alertFn('Please enter a valid URL for the problem.');
         return false;

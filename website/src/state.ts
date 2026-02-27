@@ -64,6 +64,7 @@ export const state = {
     // Load state from localStorage
     loadFromStorage(): void {
         const keys = this.getStorageKeys();
+        const isSignedIn = this.user.type === 'signed-in';
 
         const problemsObj = safeGetItem<Record<string, Problem>>(keys.problems, {});
         const deletedIdsArr = safeGetItem<string[]>(keys.deletedIds, []);
@@ -71,10 +72,7 @@ export const state = {
         this.problems = new Map(Object.entries(problemsObj));
         this.problems.forEach((p) => (p.loading = false));
         this.deletedProblemIds = new Set(deletedIdsArr);
-        this.user.displayName = getStringItem(
-            keys.displayName,
-            this.user.type === 'signed-in' ? '' : 'Local User'
-        );
+        this.user.displayName = getStringItem(keys.displayName, isSignedIn ? '' : 'Local User');
         this.user.type = getStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local') as
             | 'local'
             | 'signed-in';
@@ -85,12 +83,15 @@ export const state = {
     // Save state to localStorage
     saveToStorage(): void {
         const keys = this.getStorageKeys();
+
+        // Strip transient properties before saving
         const problemsWithoutLoading = Object.fromEntries(
-            [...this.problems.entries()].map(([id, p]) => {
-                const { loading: _loading, noteVisible: _noteVisible, ...rest } = p;
-                return [id, rest];
-            })
+            [...this.problems.entries()].map(([id, { loading: _l, noteVisible: _n, ...rest }]) => [
+                id,
+                rest,
+            ])
         );
+
         safeSetItem(keys.problems, problemsWithoutLoading);
         safeSetItem(keys.deletedIds, [...this.deletedProblemIds]);
         setStringItem(keys.displayName, this.user.displayName);
