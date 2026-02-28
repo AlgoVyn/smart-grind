@@ -1459,20 +1459,25 @@ async function downloadAndExtractBundle(): Promise<void> {
         const chunks: Uint8Array[] = [];
         let downloadedSize = 0;
 
-        let readResult = await reader.read();
-        while (!readResult.done) {
-            const { value } = readResult;
-            if (value) {
-                chunks.push(value);
-                downloadedSize += value.length;
+        try {
+            let readResult = await reader.read();
+            while (!readResult.done) {
+                const { value } = readResult;
+                if (value) {
+                    chunks.push(value);
+                    downloadedSize += value.length;
 
-                // Update progress (0-50% for download)
-                if (totalSize > 0) {
-                    state.progress = Math.round((downloadedSize / totalSize) * 50);
-                    await sendProgressUpdate(state);
+                    // Update progress (0-50% for download)
+                    if (totalSize > 0) {
+                        state.progress = Math.round((downloadedSize / totalSize) * 50);
+                        await sendProgressUpdate(state);
+                    }
                 }
+                readResult = await reader.read();
             }
-            readResult = await reader.read();
+        } finally {
+            // Always release the reader to prevent memory leaks
+            reader.releaseLock();
         }
 
         // Decompress the bundle

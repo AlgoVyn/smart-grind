@@ -50,3 +50,12 @@ export interface UIState {
     preferredAI: string | null;
     reviewDateFilter: string | null;
 }
+
+/** Sync status update - partial type for setSyncStatus */
+export interface SyncStatusUpdate {
+    pendingCount?: number;
+    isSyncing?: boolean;
+    lastSyncAt?: number | null;
+    hasConflicts?: boolean;
+    conflictMessage?: string | null;
+}

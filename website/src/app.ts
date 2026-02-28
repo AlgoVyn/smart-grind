@@ -8,6 +8,7 @@ import { renderers } from './renderers';
 import { ui } from './ui/ui';
 import { showToast } from './utils';
 import { fetchCsrfToken, getCsrfToken, getCachedCsrfToken, clearCsrfToken } from './utils/csrf';
+import type { Problem } from './types';
 
 // Re-export CSRF functions for backward compatibility
 export { fetchCsrfToken, getCsrfToken, getCachedCsrfToken, clearCsrfToken };
@@ -125,30 +126,30 @@ export const exportProgress = () => {
 export const getCategoryStats = (
     categoryId: string
 ): { total: number; solved: number; unsolved: number; due: number; progress: number } => {
-    const allProblems = [...state.problems.values()];
-
     // Get topic title for category matching
     const topicTitle = data.topicsData.find((t) => t.id === categoryId)?.title;
 
-    // Filter problems by category
-    const categoryProblems =
-        categoryId === 'all'
-            ? allProblems
-            : allProblems.filter((p) => p.topic === categoryId || p.topic === topicTitle);
-
-    // Calculate stats in a single pass
+    // Calculate stats by iterating Map directly (avoids unnecessary array copy for filtered categories)
+    let total = 0;
     let solved = 0;
     let due = 0;
     const now = new Date().toISOString().split('T')[0] || '';
 
-    for (const p of categoryProblems) {
+    for (const p of state.problems.values()) {
+        // Check if problem matches category (if not 'all')
+        if (categoryId !== 'all' && p.topic !== categoryId && p.topic !== topicTitle) {
+            continue;
+        }
+
+        total++;
         if (p.status === 'solved') {
             solved++;
-            if (p.nextReviewDate && p.nextReviewDate <= now) due++;
+            if (p.nextReviewDate && p.nextReviewDate <= now) {
+                due++;
+            }
         }
     }
 
-    const total = categoryProblems.length;
     return {
         total,
         solved,
@@ -163,14 +164,23 @@ export const getCategoryStats = (
  * @param categoryId - The category/topic ID
  * @returns Array of problems in the category
  */
-export const getProblemsByCategory = (categoryId: string) => {
-    const allProblems = [...state.problems.values()];
+export const getProblemsByCategory = (categoryId: string): Problem[] => {
     if (categoryId === 'all') {
-        return allProblems;
+        // Only convert to array when returning all problems
+        return [...state.problems.values()];
     }
+
     const topic = data.topicsData.find((t) => t.id === categoryId);
     const topicTitle = topic?.title || categoryId;
-    return allProblems.filter((p) => p.topic === topicTitle);
+
+    // Filter by iterating Map directly (avoids copying all problems)
+    const result: Problem[] = [];
+    for (const p of state.problems.values()) {
+        if (p.topic === topicTitle) {
+            result.push(p);
+        }
+    }
+    return result;
 };
 
 /**

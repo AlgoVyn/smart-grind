@@ -1,7 +1,7 @@
 // --- STATE MANAGEMENT MODULE ---
 // Centralized state management for the application
 
-import { User, Problem, UIState } from './types';
+import { User, Problem, UIState, SyncStatusUpdate } from './types';
 import { data } from './data';
 import { cacheElements, ElementCache } from './utils/elements';
 import { safeGetItem, safeSetItem, getStringItem, setStringItem } from './utils/storage';
@@ -126,15 +126,7 @@ export const state = {
     },
 
     // Update sync status
-    setSyncStatus(
-        status: Partial<{
-            pendingCount: number;
-            isSyncing: boolean;
-            lastSyncAt: number | null;
-            hasConflicts: boolean;
-            conflictMessage: string | null;
-        }>
-    ): void {
+    setSyncStatus(status: Partial<SyncStatusUpdate>): void {
         this.sync = { ...this.sync, ...status };
         this.emitSyncStatusChange();
     },
