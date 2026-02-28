@@ -483,11 +483,27 @@ export async function onRequestGet({ request, env }) {
         // Set httpOnly cookie with the JWT
         const cookieHeader = `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${24 * 60 * 60}; Path=/smartgrind; Priority=High`;
 
+        // Comprehensive CSP to prevent XSS and other injection attacks
+        const cspHeader = [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline'", // Required for inline postMessage script
+            "style-src 'self' 'unsafe-inline' https://accounts.google.com",
+            "img-src 'self' data: https:",
+            "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com",
+            "frame-ancestors 'none'", // Prevent clickjacking
+            "form-action 'self' https://accounts.google.com",
+            "base-uri 'self'",
+            "upgrade-insecure-requests",
+        ].join('; ');
+
         return new Response(html, {
             headers: {
                 'Content-Type': 'text/html',
                 'Set-Cookie': cookieHeader,
-                'Content-Security-Policy': "base-uri 'self' https://accounts.google.com",
+                'Content-Security-Policy': cspHeader,
+                'X-Content-Type-Options': 'nosniff',
+                'X-Frame-Options': 'DENY',
+                'Referrer-Policy': 'strict-origin-when-cross-origin',
             },
         });
     }

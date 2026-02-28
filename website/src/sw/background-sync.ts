@@ -32,10 +32,16 @@ const SYNC_TAGS = {
     USER_SETTINGS: 'sync-user-settings',
 } as const;
 
+// Retry and timeout configuration
 const MAX_RETRY_ATTEMPTS = 5;
 const SYNC_TIMEOUT_MS = 60000; // 60 seconds timeout for sync batch (increased from 30)
 const REQUEST_TIMEOUT_MS = 15000; // 15 seconds timeout for individual requests (increased from 10)
 const PENDING_RETRY_CHECK_INTERVAL_MS = 30000; // Check for pending retries every 30 seconds
+
+// Delay configuration for exponential backoff
+const RETRY_BASE_DELAY_MS = 1000; // 1 second base delay for exponential backoff
+const RETRY_MAX_DELAY_MS = 60000; // 1 minute maximum delay
+const SCHEDULED_RETRY_DELAY_MS = 5000; // 5 seconds delay for scheduled retries
 
 // IndexedDB configuration for persisting retry state
 const RETRY_DB_NAME = 'smartgrind-sync-retry';
@@ -60,8 +66,11 @@ export class BackgroundSyncManager {
     constructor() {
         this.operationQueue = new OperationQueue();
         this.conflictResolver = new SyncConflictResolver();
-        this.initRetryDB().catch(() => {
-            // Retry DB init failed, continue without persistence
+        this.initRetryDB().catch((error) => {
+            console.warn(
+                '[BackgroundSync] Retry DB init failed, continuing without persistence:',
+                error
+            );
         });
         this.startRetryCheckInterval();
     }
@@ -100,15 +109,15 @@ export class BackgroundSyncManager {
         const swSelf = self as unknown as ServiceWorkerGlobalScope;
         if (typeof swSelf.setInterval === 'function') {
             this.retryCheckInterval = swSelf.setInterval(() => {
-                this.processPersistedRetries().catch(() => {
-                    // Ignore retry processing errors
+                this.processPersistedRetries().catch((error) => {
+                    console.warn('[BackgroundSync] Retry processing error:', error);
                 });
             }, PENDING_RETRY_CHECK_INTERVAL_MS);
         }
 
         // Also process any persisted retries on startup
-        this.processPersistedRetries().catch(() => {
-            // Ignore startup retry errors
+        this.processPersistedRetries().catch((error) => {
+            console.warn('[BackgroundSync] Startup retry processing error:', error);
         });
     }
 
@@ -183,8 +192,8 @@ export class BackgroundSyncManager {
                         await this.syncUserProgress();
                         // Remove the persisted retry after processing
                         await this.removePersistedRetry(retry.id);
-                    } catch {
-                        // Ignore individual retry errors
+                    } catch (error) {
+                        console.warn('[BackgroundSync] Individual retry processing failed:', error);
                     }
                 }
                 resolve();
@@ -267,7 +276,11 @@ export class BackgroundSyncManager {
                     sync: { register(_tag: string): Promise<void> };
                 }
             ).sync.register(tag);
-        } catch {
+        } catch (error) {
+            console.warn(
+                '[BackgroundSync] Background sync registration failed, falling back to immediate sync:',
+                error
+            );
             // Fallback: try immediate sync
             await this.performSync(tag);
         }
@@ -321,21 +334,24 @@ export class BackgroundSyncManager {
 
             try {
                 await this.syncProblemProgressWithTimeout(groupedOps['problemProgress'] || []);
-            } catch {
+            } catch (error) {
+                console.warn('[BackgroundSync] Problem progress sync failed:', error);
                 const progressOps = groupedOps['problemProgress'] || [];
                 failedOps.push(...progressOps);
             }
 
             try {
                 await this.syncCustomProblemsWithTimeout();
-            } catch {
+            } catch (error) {
+                console.warn('[BackgroundSync] Custom problems sync failed:', error);
                 const customOps = groupedOps['customProblems'] || [];
                 failedOps.push(...customOps);
             }
 
             try {
                 await this.syncUserSettingsWithTimeout();
-            } catch {
+            } catch (error) {
+                console.warn('[BackgroundSync] User settings sync failed:', error);
                 const settingsOps = groupedOps['settings'] || [];
                 failedOps.push(...settingsOps);
             }
@@ -368,12 +384,13 @@ export class BackgroundSyncManager {
             if (finalStats.pending > 0) {
                 // Use setTimeout to allow other operations to complete
                 setTimeout(() => {
-                    this.syncUserProgress().catch(() => {
-                        // Ignore retry errors
+                    this.syncUserProgress().catch((error) => {
+                        console.warn('[BackgroundSync] Scheduled retry sync failed:', error);
                     });
-                }, 5000); // Retry after 5 seconds
+                }, SCHEDULED_RETRY_DELAY_MS);
             }
-        } catch {
+        } catch (error) {
+            console.warn('[BackgroundSync] Sync operation failed:', error);
             // Sync failed, will be retried
         } finally {
             clearTimeout(timeoutId);
@@ -391,10 +408,8 @@ export class BackgroundSyncManager {
 
         if (retryCount < MAX_RETRY_ATTEMPTS) {
             // Calculate exponential backoff delay
-            const baseDelay = 1000; // 1 second
-            const delay = baseDelay * Math.pow(2, retryCount - 1); // retryCount is already incremented
-            const maxDelay = 60000; // 1 minute max
-            const actualDelay = Math.min(delay, maxDelay);
+            const delay = RETRY_BASE_DELAY_MS * Math.pow(2, retryCount - 1); // retryCount is already incremented
+            const actualDelay = Math.min(delay, RETRY_MAX_DELAY_MS);
 
             // Persist the retry to IndexedDB so it survives SW termination
             await this.persistRetry(op.id, actualDelay);
@@ -404,11 +419,11 @@ export class BackgroundSyncManager {
                 try {
                     await this.operationQueue.requeueOperation(op);
                     // Trigger a new sync to process the requeued operation
-                    this.syncUserProgress().catch(() => {
-                        // Ignore sync errors
+                    this.syncUserProgress().catch((error) => {
+                        console.warn('[BackgroundSync] Requeue sync failed:', error);
                     });
-                } catch {
-                    // Ignore requeue errors
+                } catch (error) {
+                    console.warn('[BackgroundSync] Requeue operation failed:', error);
                 }
             }, actualDelay);
         } else {
@@ -936,7 +951,8 @@ export class BackgroundSyncManager {
                 synced: pendingOps.length - remainingOps.length,
                 failed: failedOps.length,
             };
-        } catch (_error) {
+        } catch (error) {
+            console.warn('[BackgroundSync] Force sync failed:', error);
             return { success: false, synced: 0, failed: pendingOps.length };
         }
     }

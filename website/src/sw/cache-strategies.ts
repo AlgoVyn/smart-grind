@@ -29,7 +29,9 @@ class StaleWhileRevalidate implements CacheStrategy {
                 const age = Date.now() - parseInt(cachedTime, 10);
                 if (age < this.maxAge) {
                     // Revalidate in background
-                    this.revalidate(request, cache).catch(() => {});
+                    this.revalidate(request, cache).catch((error) => {
+                        console.warn('[CacheStrategy] Background revalidation failed:', error);
+                    });
                     return cached;
                 }
             }
@@ -57,8 +59,8 @@ class StaleWhileRevalidate implements CacheStrategy {
             if (response.ok) {
                 await this.putInCache(request, response, cache);
             }
-        } catch {
-            // Silently fail background revalidation
+        } catch (error) {
+            console.warn('[CacheStrategy] Background revalidation error:', error);
         }
     }
 
@@ -181,7 +183,13 @@ export class CacheStrategies {
         if (cached) return cached;
 
         const response = await fetch(request);
-        if (response?.ok) await cache.put(request, response.clone()).catch(() => {});
+        if (response?.ok)
+            await cache.put(request, response.clone()).catch((error) => {
+                console.warn(
+                    '[CacheStrategy] Failed to cache stale-while-revalidate response:',
+                    error
+                );
+            });
         return response;
     }
 
@@ -195,7 +203,9 @@ export class CacheStrategies {
             const networkResponse = await fetch(request);
             if (networkResponse?.ok) {
                 const cache = await caches.open(fullCacheName);
-                await cache.put(request, networkResponse.clone()).catch(() => {});
+                await cache.put(request, networkResponse.clone()).catch((error) => {
+                    console.warn('[CacheStrategy] Failed to cache network-first response:', error);
+                });
                 return networkResponse;
             }
             // Non-OK response - try cache fallback
@@ -229,16 +239,23 @@ export class CacheStrategies {
                 .then(async (response) => {
                     if (response?.ok) {
                         const bgCache = await caches.open(fullCacheName);
-                        await bgCache.put(request, response.clone()).catch(() => {});
+                        await bgCache.put(request, response.clone()).catch((error) => {
+                            console.warn('[CacheStrategy] Background cache update failed:', error);
+                        });
                     }
                 })
-                .catch(() => {});
+                .catch((error) => {
+                    console.warn('[CacheStrategy] Background revalidation fetch failed:', error);
+                });
             return cached.clone();
         }
 
         // No cache, fetch from network
         const response = await fetch(request);
-        if (response?.ok) await cache.put(request, response.clone()).catch(() => {});
+        if (response?.ok)
+            await cache.put(request, response.clone()).catch((error) => {
+                console.warn('[CacheStrategy] Failed to cache cache-first response:', error);
+            });
         return response;
     }
 
@@ -269,7 +286,10 @@ export class CacheStrategies {
             urls.map(async (url) => {
                 try {
                     const response = await fetch(url);
-                    if (response?.ok) await cache.put(url, response.clone()).catch(() => {});
+                    if (response?.ok)
+                        await cache.put(url, response.clone()).catch((error) => {
+                            console.warn('[CacheStrategy] Failed to cache preloaded asset:', error);
+                        });
                 } catch (error) {
                     console.error(`Failed to pre-cache ${url}:`, error);
                 }

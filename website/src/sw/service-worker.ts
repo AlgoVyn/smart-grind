@@ -374,7 +374,8 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                 });
 
                 // Check and download bundle in background if needed
-                checkAndDownloadBundle().catch(() => {
+                checkAndDownloadBundle().catch((error) => {
+                    console.warn('[SW] Bundle download failed during activation:', error);
                     // Bundle download failed, will retry later
                 });
 
@@ -432,7 +433,9 @@ async function handleAPIRequest(request: Request): Promise<Response> {
             if (request.method === 'GET') {
                 const cache = await caches.open(`${CACHE_NAMES.API}-${CACHE_VERSION}`);
                 const responseWithHeaders = addCacheHeaders(networkResponse.clone());
-                cache.put(request, responseWithHeaders).catch(() => {});
+                cache.put(request, responseWithHeaders).catch((error) => {
+                    console.warn('[SW] Failed to cache API response:', error);
+                });
             }
             return networkResponse;
         }
@@ -518,10 +521,23 @@ function serveCachedProblem(request: Request, cachedResponse: Response, cache: C
             .then((networkResponse) => {
                 if (networkResponse.ok) {
                     const responseWithHeaders = addCacheHeaders(networkResponse);
-                    cache.put(request, responseWithHeaders).catch(() => {});
+                    cache.put(request, responseWithHeaders).catch((error) => {
+                        console.warn(
+                            '[SW] Failed to update problem cache during revalidation:',
+                            error
+                        );
+                    });
                 }
             })
-            .catch(() => {});
+            .catch((error) => {
+                // Background revalidation failed, likely offline - this is expected
+                if (error instanceof Error && error.name !== 'AbortError') {
+                    console.log(
+                        '[SW] Background revalidation failed (likely offline):',
+                        error.message
+                    );
+                }
+            });
     }
 
     // If it's a HEAD request, return response with no body
@@ -543,7 +559,9 @@ async function fetchProblemFromNetwork(request: Request, cache: Cache): Promise<
     try {
         const networkResponse = await fetch(request);
         if (networkResponse.ok) {
-            cache.put(request, networkResponse.clone()).catch(() => {});
+            cache.put(request, networkResponse.clone()).catch((error) => {
+                console.warn('[SW] Failed to cache problem from network:', error);
+            });
         }
         return networkResponse;
     } catch {
@@ -567,11 +585,16 @@ async function handleStaticRequest(request: Request): Promise<Response> {
             if (networkResponse.ok) {
                 // Add cache headers and store
                 const responseWithHeaders = addCacheHeaders(networkResponse.clone());
-                cache.put(request, responseWithHeaders).catch(() => {});
+                cache.put(request, responseWithHeaders).catch((error) => {
+                    console.warn('[SW] Failed to cache static asset:', error);
+                });
             }
             return networkResponse;
         })
-        .catch(() => null);
+        .catch((error) => {
+            console.warn('[SW] Network fetch for static asset failed:', error);
+            return null;
+        });
 
     if (cachedResponse) {
         revalidateStaticAsset(request, networkFetch);
@@ -601,10 +624,14 @@ function revalidateStaticAsset(request: Request, networkFetch: Promise<Response 
                             client.postMessage({ type: 'ASSET_UPDATED', url: request.url });
                         });
                     })
-                    .catch(() => {});
+                    .catch((error) => {
+                        console.warn('[SW] Failed to notify clients of asset update:', error);
+                    });
             }
         })
-        .catch(() => {});
+        .catch((error) => {
+            console.warn('[SW] Static asset revalidation failed:', error);
+        });
 }
 
 /**
@@ -625,7 +652,9 @@ async function handleNavigationRequest(request: Request): Promise<Response> {
             const cache = await caches.open(`${CACHE_NAMES.STATIC}-${CACHE_VERSION}`);
             // Add cache headers and store
             const responseWithHeaders = addCacheHeaders(networkResponse.clone());
-            cache.put(request, responseWithHeaders).catch(() => {});
+            cache.put(request, responseWithHeaders).catch((error) => {
+                console.warn('[SW] Failed to cache navigation response:', error);
+            });
         }
 
         return networkResponse;
@@ -1058,7 +1087,8 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
 
         case 'NETWORK_RESTORED':
             event.waitUntil(
-                backgroundSync.checkAndSync().catch(() => {
+                backgroundSync.checkAndSync().catch((error) => {
+                    console.warn('[SW] Network restored sync failed:', error);
                     // Sync failed, will retry
                 })
             );
@@ -1150,7 +1180,8 @@ self.addEventListener('periodicsync', (event: Event) => {
 // This is critical for ensuring offline changes get synced
 self.addEventListener('online', () => {
     // Use waitUntil pattern to ensure sync completes
-    backgroundSync.checkAndSync().catch(() => {
+    backgroundSync.checkAndSync().catch((error) => {
+        console.warn('[SW] Online event sync failed:', error);
         // Sync failed, will retry
     });
 });
@@ -1273,7 +1304,8 @@ async function checkAndDownloadBundle(retryAttempt = 0): Promise<void> {
         const currentState = await getBundleStatus();
 
         // Fetch the manifest to check version
-        const manifestResponse = await fetch(BUNDLE_MANIFEST_URL).catch(() => {
+        const manifestResponse = await fetch(BUNDLE_MANIFEST_URL).catch((error) => {
+            console.warn('[SW] Failed to fetch bundle manifest:', error);
             return null;
         });
 

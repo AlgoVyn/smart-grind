@@ -226,8 +226,8 @@ export class ConnectivityChecker {
         window.addEventListener('online', () => {
             // Force immediate check without cache - critical for reliable sync
             this.state.lastChecked = 0; // Reset cache to force fresh check
-            this.checkConnectivity().catch(() => {
-                // Check failed, will retry on next interval
+            this.checkConnectivity().catch((error) => {
+                console.warn('[ConnectivityChecker] Scheduled connectivity check failed:', error);
             });
         });
 

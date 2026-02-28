@@ -153,8 +153,8 @@ export class AuthManager {
         };
         this.storage = new AuthStorage();
         // Load from storage asynchronously
-        this.loadFromStorage().catch(() => {
-            // Load failed, will retry on next access
+        this.loadFromStorage().catch((error) => {
+            console.warn('[AuthManager] Failed to load auth from storage:', error);
         });
     }
 
