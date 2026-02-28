@@ -34,6 +34,12 @@ export function isBrowserOnline(): boolean {
     return checkBrowserOnline();
 }
 
+/** Maximum number of pending operations to prevent localStorage quota exceeded */
+const MAX_PENDING_OPERATIONS = 1000;
+
+/** Key for storing pending operations in localStorage */
+const PENDING_OPS_KEY = 'pending-operations';
+
 /**
  * Generates a unique operation ID
  */
@@ -44,12 +50,31 @@ const generateOperationId = (): string =>
  * Stores operations in localStorage fallback (when SW is unavailable)
  * @param operations - Array of operations to store
  * @returns Array of operation IDs
+ * @throws Error if pending operations limit exceeded
  */
 const storeOperationsLocally = (operations: APIOperation[]): string[] => {
-    const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
+    const pendingOps = JSON.parse(localStorage.getItem(PENDING_OPS_KEY) || '[]');
+    
+    // Check if adding these operations would exceed the limit
+    if (pendingOps.length + operations.length > MAX_PENDING_OPERATIONS) {
+        console.error(`[API] Pending operations limit exceeded: ${pendingOps.length + operations.length}/${MAX_PENDING_OPERATIONS}`);
+        throw new Error(`Pending operations limit exceeded (${MAX_PENDING_OPERATIONS}). Please sync your data.`);
+    }
+    
     const opsWithIds = operations.map((op) => ({ ...op, id: generateOperationId() }));
     pendingOps.push(...opsWithIds);
-    localStorage.setItem('pending-operations', JSON.stringify(pendingOps));
+    
+    try {
+        localStorage.setItem(PENDING_OPS_KEY, JSON.stringify(pendingOps));
+    } catch (e) {
+        // Handle quota exceeded error
+        if (e instanceof Error && (e.name === 'QuotaExceededError' || e.message.includes('quota'))) {
+            console.error('[API] localStorage quota exceeded');
+            throw new Error('Storage quota exceeded. Please sync your data to free up space.');
+        }
+        throw e;
+    }
+    
     return opsWithIds.map((op) => op.id);
 };
 
@@ -96,7 +121,7 @@ export const queueOperations = (operations: APIOperation[]): Promise<string[]> =
  */
 export async function getSyncStatus(): Promise<SyncStatus | null> {
     if (!isServiceWorkerAvailable()) {
-        const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
+        const pendingOps = JSON.parse(localStorage.getItem(PENDING_OPS_KEY) || '[]');
         return {
             pendingCount: pendingOps.length,
             isSyncing: false,
@@ -135,7 +160,7 @@ export async function updateSyncStatus(): Promise<void> {
  */
 export async function forceSync(): Promise<{ success: boolean; synced: number; failed: number }> {
     if (!isServiceWorkerAvailable()) {
-        const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
+        const pendingOps = JSON.parse(localStorage.getItem(PENDING_OPS_KEY) || '[]');
         if (pendingOps.length === 0) return { success: true, synced: 0, failed: 0 };
         return { success: false, synced: 0, failed: pendingOps.length };
     }
@@ -164,7 +189,7 @@ export async function forceSync(): Promise<{ success: boolean; synced: number; f
  */
 export async function clearPendingOperations(): Promise<void> {
     if (!isServiceWorkerAvailable()) {
-        localStorage.removeItem('pending-operations');
+        localStorage.removeItem(PENDING_OPS_KEY);
         return;
     }
     await sendMessageToSW({ type: 'CLEAR_ALL_CACHES' });
@@ -223,14 +248,14 @@ export async function deleteProblemWithSync(problemId: string): Promise<void> {
  * This handles the case where operations were queued before the service worker was available.
  */
 async function migrateLocalStorageOperations(): Promise<void> {
-    const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
+    const pendingOps = JSON.parse(localStorage.getItem(PENDING_OPS_KEY) || '[]');
     if (pendingOps.length === 0) return;
 
     if (!isServiceWorkerAvailable()) return;
 
     try {
         await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations: pendingOps });
-        localStorage.removeItem('pending-operations');
+        localStorage.removeItem(PENDING_OPS_KEY);
     } catch (error) {
         errorTracker.captureException(error, { type: 'migrate_localstorage_operations_failed' });
     }

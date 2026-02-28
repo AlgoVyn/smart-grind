@@ -46,6 +46,12 @@ export const state = {
 
     // Initialize state
     init() {
+        // Initialize user type from storage BEFORE loading other state
+        const storedUserType = localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE);
+        if (storedUserType === 'signed-in' || storedUserType === 'local') {
+            this.user.type = storedUserType;
+        }
+        
         this.loadFromStorage();
         this.cacheElements();
     },

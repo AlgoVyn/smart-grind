@@ -207,13 +207,23 @@ export const _validateInputs = (
     return true;
 };
 
+/**
+ * Generates a unique problem ID using timestamp and random component
+ * Format: custom-{timestamp}-{random} to avoid collisions
+ */
+const generateProblemId = (): string => {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 11);
+    return `custom-${timestamp}-${random}`;
+};
+
 export const _createNewProblem = (
     name: string,
     url: string,
     category: string,
     pattern: string
 ) => ({
-    id: 'custom-' + Date.now(),
+    id: generateProblemId(),
     name,
     url,
     topic: category,

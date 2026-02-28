@@ -286,8 +286,9 @@ self.addEventListener('install', (event: ExtendableEvent) => {
 
                 // Skip waiting to activate immediately
                 await self.skipWaiting();
-            } catch {
-                throw new Error('Service worker install failed');
+            } catch (error) {
+                console.error('[SW] Install failed:', error);
+                throw new Error(`Service worker install failed: ${error instanceof Error ? error.message : String(error)}`);
             }
         })()
     );
@@ -385,8 +386,9 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                     cachedAt: Date.now(),
                     assets: [],
                 });
-            } catch {
-                throw new Error('Service worker activation failed');
+            } catch (error) {
+                console.error('[SW] Activation failed:', error);
+                throw new Error(`Service worker activation failed: ${error instanceof Error ? error.message : String(error)}`);
             }
         })()
     );
@@ -564,7 +566,8 @@ async function fetchProblemFromNetwork(request: Request, cache: Cache): Promise<
             });
         }
         return networkResponse;
-    } catch {
+    } catch (error) {
+        console.warn('[SW] Failed to fetch problem from network:', error);
         return new Response(
             '# Offline\n\nThis problem is not available offline. Please connect to the internet to access this content.',
             { status: 503, headers: { 'Content-Type': 'text/markdown', 'X-SW-Offline': 'true' } }
@@ -658,7 +661,8 @@ async function handleNavigationRequest(request: Request): Promise<Response> {
         }
 
         return networkResponse;
-    } catch {
+    } catch (error) {
+        console.log('[SW] Network request failed, serving from cache:', error);
         // Network failed, try to serve from cache
         const cache = await caches.open(`${CACHE_NAMES.STATIC}-${CACHE_VERSION}`);
 
@@ -1600,21 +1604,39 @@ interface TarFile {
     content: Uint8Array;
 }
 
+/** Maximum safe tar file size (10MB) */
+const MAX_TAR_SIZE = 10 * 1024 * 1024;
+
+/** Maximum safe file count in tar archive */
+const MAX_TAR_FILES = 10000;
+
 /**
- * Parse a tar archive
+ * Parse a tar archive with bounds checking
+ * @throws Error if archive is malformed or exceeds safety limits
  */
 function parseTar(buffer: Uint8Array): TarFile[] {
+    // Safety check: buffer size
+    if (buffer.length > MAX_TAR_SIZE) {
+        throw new Error(`Tar archive too large: ${buffer.length} bytes (max: ${MAX_TAR_SIZE})`);
+    }
+
     const files: TarFile[] = [];
     let offset = 0;
 
-    while (offset < buffer.length - 512) {
+    while (offset < buffer.length) {
         // Check for end of archive (two empty blocks)
-        if (buffer.slice(offset, offset + 512).every((b) => b === 0)) {
+        if (offset + 512 > buffer.length || buffer.slice(offset, offset + 512).every((b) => b === 0)) {
             break;
+        }
+
+        // Bounds check: ensure we have enough bytes for header
+        if (offset + 512 > buffer.length) {
+            throw new Error(`Malformed tar: incomplete header at offset ${offset}`);
         }
 
         // Parse header
         const header = buffer.slice(offset, offset + 512);
+        offset += 512;
 
         // Extract filename (first 100 bytes, null-terminated)
         let nameEnd = 0;
@@ -1623,17 +1645,35 @@ function parseTar(buffer: Uint8Array): TarFile[] {
         }
         const name = new TextDecoder().decode(header.slice(0, nameEnd));
 
+        // Validate filename
+        if (name.includes('..') || name.startsWith('/')) {
+            throw new Error(`Invalid tar entry name: ${name}`);
+        }
+
         // Extract file size (bytes 124-136, octal string)
         const sizeStr = new TextDecoder().decode(header.slice(124, 136)).trim();
         const size = parseInt(sizeStr, 8) || 0;
 
-        // Skip to content
-        offset += 512;
+        // Validate size
+        if (size < 0 || size > MAX_TAR_SIZE) {
+            throw new Error(`Invalid tar entry size: ${size}`);
+        }
 
-        // Extract content
-        if (size > 0 && name) {
+        // Safety check: file count limit
+        if (files.length >= MAX_TAR_FILES) {
+            throw new Error(`Too many files in tar archive (max: ${MAX_TAR_FILES})`);
+        }
+
+        // Bounds check: ensure we have enough bytes for content
+        if (size > 0) {
+            if (offset + size > buffer.length) {
+                throw new Error(`Malformed tar: incomplete content for ${name}`);
+            }
+
             const content = buffer.slice(offset, offset + size);
-            files.push({ name, content });
+            if (name) {
+                files.push({ name, content });
+            }
         }
 
         // Move to next header (aligned to 512 bytes)
