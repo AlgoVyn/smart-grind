@@ -11,17 +11,183 @@ import { OfflineManager } from './offline-manager';
 import { BackgroundSyncManager } from './background-sync';
 import { OperationQueue } from './operation-queue';
 import { isValidSWClientMessage, type SWClientMessage } from '../types/sw-messages';
+import {
+    openDatabase,
+    safeStore,
+    safeRetrieve,
+    IDBOperationError,
+    IDBErrorType,
+} from '../utils/indexeddb-helper';
 
 declare const self: ServiceWorkerGlobalScope;
 
-// Version for cache busting - update this when deploying new versions
-const SW_VERSION = '1.0.2';
+// ============================================================================
+// VERSION MANAGEMENT
+// ============================================================================
+
+/**
+ * Service Worker Version
+ * This is replaced at build time by the build process
+ * Format: YYYYMMDD-HHMMSS-gitsha (e.g., 20240115-143022-a1b2c3d)
+ */
+declare const __SW_VERSION__: string | undefined;
+const SW_VERSION: string =
+    typeof __SW_VERSION__ !== 'undefined' ? __SW_VERSION__ : 'dev-' + Date.now();
 const CACHE_VERSION = `v${SW_VERSION}`;
+
+// Maximum age for cached API responses (30 minutes)
+const API_CACHE_MAX_AGE = 30 * 60 * 1000;
+
+// Maximum age for cached static assets (24 hours)
+const STATIC_CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
+
+// ============================================================================
+// CACHE INVENTORY - Track what we should have cached
+// ============================================================================
+
+interface CacheInventory {
+    version: string;
+    cachedAt: number;
+    assets: string[];
+}
+
+const INVENTORY_KEY = 'smartgrind-cache-inventory';
+
+/**
+ * Save the current cache inventory to IndexedDB
+ */
+async function saveCacheInventory(inventory: CacheInventory): Promise<void> {
+    try {
+        const db = await openInventoryDB();
+        try {
+            await safeStore(db, 'inventory', INVENTORY_KEY, inventory);
+        } finally {
+            db.close();
+        }
+    } catch (error) {
+        if (error instanceof IDBOperationError && error.type === IDBErrorType.QUOTA_EXCEEDED) {
+            console.warn('[SW] Storage quota exceeded, cannot save cache inventory');
+        } else {
+            console.warn('[SW] Failed to save cache inventory:', error);
+        }
+    }
+}
+
+/**
+ * Get the last saved cache inventory
+ */
+async function getCacheInventory(): Promise<CacheInventory | null> {
+    try {
+        const db = await openInventoryDB();
+        try {
+            return await safeRetrieve<CacheInventory>(db, 'inventory', INVENTORY_KEY);
+        } finally {
+            db.close();
+        }
+    } catch (error) {
+        console.warn('[SW] Failed to get cache inventory:', error);
+        return null;
+    }
+}
+
+/**
+ * Database names for different purposes
+ */
+const INVENTORY_DB_NAME = 'smartgrind-sw-inventory';
+const BUNDLE_STATE_DB_NAME = 'smartgrind-offline';
+
+/**
+ * Open the IndexedDB for inventory storage
+ */
+async function openInventoryDB(): Promise<IDBDatabase> {
+    return openDatabase(INVENTORY_DB_NAME, 1, (db) => {
+        if (!db.objectStoreNames.contains('inventory')) {
+            db.createObjectStore('inventory', { keyPath: 'key' });
+        }
+    });
+}
+
+/**
+ * Open the IndexedDB for bundle state storage
+ */
+async function openBundleStateDB(): Promise<IDBDatabase> {
+    return openDatabase(BUNDLE_STATE_DB_NAME, 1, (db) => {
+        if (!db.objectStoreNames.contains('bundle-state')) {
+            db.createObjectStore('bundle-state', { keyPath: 'key' });
+        }
+    });
+}
+
+/**
+ * Validate current caches and remove orphaned entries
+ */
+async function validateAndCleanCaches(): Promise<void> {
+    const inventory = await getCacheInventory();
+    if (!inventory || inventory.version !== SW_VERSION) {
+        console.log('[SW] Cache inventory outdated or missing, performing full cleanup');
+        return;
+    }
+
+    // Check each cache for orphaned entries
+    for (const cacheName of Object.values(CACHE_NAMES)) {
+        const versionedCacheName = `${cacheName}-${CACHE_VERSION}`;
+        try {
+            const cache = await caches.open(versionedCacheName);
+            const keys = await cache.keys();
+            const orphanedKeys: Request[] = [];
+
+            for (const request of keys) {
+                // Check if this request should still be cached
+                const cachedResponse = await cache.match(request);
+                if (cachedResponse) {
+                    const cachedAt = cachedResponse.headers.get('X-SW-Cached-At');
+                    const age = cachedAt ? Date.now() - parseInt(cachedAt, 10) : Infinity;
+
+                    // Check for stale entries based on cache type
+                    const isAPICache = cacheName === CACHE_NAMES.API;
+                    const maxAge = isAPICache ? API_CACHE_MAX_AGE : STATIC_CACHE_MAX_AGE;
+
+                    if (age > maxAge) {
+                        orphanedKeys.push(request);
+                    }
+                }
+            }
+
+            // Remove orphaned entries
+            if (orphanedKeys.length > 0) {
+                console.log(
+                    `[SW] Removing ${orphanedKeys.length} orphaned entries from ${versionedCacheName}`
+                );
+                await Promise.all(orphanedKeys.map((key) => cache.delete(key)));
+            }
+        } catch (error) {
+            console.warn(`[SW] Error validating cache ${versionedCacheName}:`, error);
+        }
+    }
+}
 
 // Initialize managers
 const offlineManager = new OfflineManager();
 const backgroundSync = new BackgroundSyncManager();
 const operationQueue = new OperationQueue();
+
+// ============================================================================
+// CACHE HELPERS
+// ============================================================================
+
+/**
+ * Adds cache timestamp headers to a response before storing
+ */
+function addCacheHeaders(response: Response): Response {
+    const headers = new Headers(response.headers);
+    headers.set('X-SW-Cached-At', Date.now().toString());
+    headers.set('X-SW-Version', SW_VERSION);
+    return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+    });
+}
 
 // Static assets to cache on install
 // Note: Only cache files that are known to exist at build time
@@ -138,14 +304,30 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                 );
                 const allCaches = await caches.keys();
 
+                // Delete old versioned caches and orphaned caches
                 const deletionPromises = allCaches
-                    .filter((cacheName) => !cacheWhitelist.includes(cacheName))
-                    .map((oldCache) => caches.delete(oldCache));
+                    .filter((cacheName) => {
+                        // Keep caches that match our current version
+                        if (cacheWhitelist.includes(cacheName)) return false;
+
+                        // Delete old SmartGrind caches
+                        if (cacheName.includes('smartgrind') || cacheName.includes('v1.')) {
+                            return true;
+                        }
+
+                        return false;
+                    })
+                    .map((oldCache) => {
+                        console.log(`[SW] Deleting old cache: ${oldCache}`);
+                        return caches.delete(oldCache);
+                    });
 
                 await Promise.all(deletionPromises);
 
+                // Validate and clean current caches
+                await validateAndCleanCaches();
+
                 // Small delay to ensure browser has processed the activation
-                // This helps prevent race conditions with client-side detection
                 await new Promise((resolve) => setTimeout(resolve, 100));
 
                 // Claim clients immediately - this is critical for the SW to control the page
@@ -195,6 +377,13 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                 checkAndDownloadBundle().catch(() => {
                     // Bundle download failed, will retry later
                 });
+
+                // Save current inventory
+                await saveCacheInventory({
+                    version: SW_VERSION,
+                    cachedAt: Date.now(),
+                    assets: [],
+                });
             } catch {
                 throw new Error('Service worker activation failed');
             }
@@ -242,7 +431,8 @@ async function handleAPIRequest(request: Request): Promise<Response> {
             // Only cache GET requests (Cache API doesn't support POST/PUT/DELETE)
             if (request.method === 'GET') {
                 const cache = await caches.open(`${CACHE_NAMES.API}-${CACHE_VERSION}`);
-                cache.put(request, networkResponse.clone()).catch(() => {});
+                const responseWithHeaders = addCacheHeaders(networkResponse.clone());
+                cache.put(request, responseWithHeaders).catch(() => {});
             }
             return networkResponse;
         }
@@ -327,7 +517,8 @@ function serveCachedProblem(request: Request, cachedResponse: Response, cache: C
         fetch(request)
             .then((networkResponse) => {
                 if (networkResponse.ok) {
-                    cache.put(request, networkResponse).catch(() => {});
+                    const responseWithHeaders = addCacheHeaders(networkResponse);
+                    cache.put(request, responseWithHeaders).catch(() => {});
                 }
             })
             .catch(() => {});
@@ -374,8 +565,9 @@ async function handleStaticRequest(request: Request): Promise<Response> {
     const networkFetch = fetch(request)
         .then((networkResponse) => {
             if (networkResponse.ok) {
-                // Handle cache.put() errors silently to avoid uncaught promise rejections
-                cache.put(request, networkResponse.clone()).catch(() => {});
+                // Add cache headers and store
+                const responseWithHeaders = addCacheHeaders(networkResponse.clone());
+                cache.put(request, responseWithHeaders).catch(() => {});
             }
             return networkResponse;
         })
@@ -431,8 +623,9 @@ async function handleNavigationRequest(request: Request): Promise<Response> {
         // Cache successful responses for offline access
         if (networkResponse.ok) {
             const cache = await caches.open(`${CACHE_NAMES.STATIC}-${CACHE_VERSION}`);
-            // Clone the response before caching - handle errors silently
-            cache.put(request, networkResponse.clone()).catch(() => {});
+            // Add cache headers and store
+            const responseWithHeaders = addCacheHeaders(networkResponse.clone());
+            cache.put(request, responseWithHeaders).catch(() => {});
         }
 
         return networkResponse;
@@ -997,61 +1190,40 @@ async function getBundleStatus(): Promise<BundleDownloadState> {
 }
 
 /**
- * Store state in IndexedDB
+ * Store state in IndexedDB with quota handling
  */
 async function getStateFromIDB<T>(key: string): Promise<T | null> {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open('smartgrind-offline', 1);
-
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => {
-            const db = request.result;
-            if (!db.objectStoreNames.contains('bundle-state')) {
-                resolve(null);
-                return;
-            }
-            const transaction = db.transaction('bundle-state', 'readonly');
-            const store = transaction.objectStore('bundle-state');
-            const getRequest = store.get(key);
-
-            getRequest.onsuccess = () => resolve(getRequest.result?.value || null);
-            getRequest.onerror = () => reject(getRequest.error);
-        };
-
-        request.onupgradeneeded = (event) => {
-            const db = (event.target as IDBOpenDBRequest).result;
-            if (!db.objectStoreNames.contains('bundle-state')) {
-                db.createObjectStore('bundle-state', { keyPath: 'key' });
-            }
-        };
-    });
+    try {
+        const db = await openBundleStateDB();
+        try {
+            return await safeRetrieve<T>(db, 'bundle-state', key);
+        } finally {
+            db.close();
+        }
+    } catch (error) {
+        console.warn('[SW] Failed to get bundle state from IndexedDB:', error);
+        return null;
+    }
 }
 
 /**
- * Save state to IndexedDB
+ * Save state to IndexedDB with quota handling
  */
 async function saveStateToIDB<T>(key: string, value: T): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open('smartgrind-offline', 1);
-
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => {
-            const db = request.result;
-            const transaction = db.transaction('bundle-state', 'readwrite');
-            const store = transaction.objectStore('bundle-state');
-            store.put({ key, value });
-
-            transaction.oncomplete = () => resolve();
-            transaction.onerror = () => reject(transaction.error);
-        };
-
-        request.onupgradeneeded = (event) => {
-            const db = (event.target as IDBOpenDBRequest).result;
-            if (!db.objectStoreNames.contains('bundle-state')) {
-                db.createObjectStore('bundle-state', { keyPath: 'key' });
-            }
-        };
-    });
+    try {
+        const db = await openBundleStateDB();
+        try {
+            await safeStore(db, 'bundle-state', key, value);
+        } finally {
+            db.close();
+        }
+    } catch (error) {
+        if (error instanceof IDBOperationError && error.type === IDBErrorType.QUOTA_EXCEEDED) {
+            console.warn('[SW] Storage quota exceeded, cannot save bundle state');
+        } else {
+            console.warn('[SW] Failed to save bundle state to IndexedDB:', error);
+        }
+    }
 }
 
 /**
@@ -1068,10 +1240,29 @@ async function sendProgressUpdate(state: BundleDownloadState): Promise<void> {
 }
 
 /**
+ * Maximum number of retry attempts for bundle download
+ */
+const MAX_BUNDLE_RETRIES = 5;
+
+/**
+ * Calculate delay for exponential backoff with jitter
+ * @param attempt - Current attempt number (0-indexed)
+ * @returns Delay in milliseconds
+ */
+function getBundleRetryDelay(attempt: number): number {
+    // Base delay: 1s, 2s, 4s, 8s, max 16s
+    const baseDelay = Math.min(1000 * Math.pow(2, attempt), 16000);
+    // Add jitter: ±25% random variation to prevent thundering herd
+    const jitter = baseDelay * 0.25 * (Math.random() * 2 - 1);
+    return Math.floor(baseDelay + jitter);
+}
+
+/**
  * Check if bundle needs to be downloaded and download it in background
  * This is called automatically when SW activates
+ * Implements exponential backoff for failed downloads
  */
-async function checkAndDownloadBundle(): Promise<void> {
+async function checkAndDownloadBundle(retryAttempt = 0): Promise<void> {
     // Skip in development mode
     if (isDev) {
         return;
@@ -1113,11 +1304,62 @@ async function checkAndDownloadBundle(): Promise<void> {
         }
 
         // Download the bundle
-        console.log('[SW] Starting bundle download...');
+        console.log(
+            `[SW] Starting bundle download... (attempt ${retryAttempt + 1}/${MAX_BUNDLE_RETRIES})`
+        );
         await downloadAndExtractBundle();
     } catch (error) {
-        console.error('[SW] Bundle download check failed:', error);
-        throw new Error('Bundle download failed');
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`[SW] Bundle download attempt ${retryAttempt + 1} failed:`, errorMessage);
+
+        // Check if we should retry
+        if (retryAttempt < MAX_BUNDLE_RETRIES - 1) {
+            const delay = getBundleRetryDelay(retryAttempt);
+            console.log(`[SW] Retrying bundle download in ${delay}ms...`);
+
+            // Save error state with retry info
+            const errorState: BundleDownloadState = {
+                status: 'error',
+                progress: 0,
+                totalFiles: 0,
+                extractedFiles: 0,
+                error: `${errorMessage} (retrying in ${Math.round(delay / 1000)}s... attempt ${retryAttempt + 1}/${MAX_BUNDLE_RETRIES})`,
+            };
+            await saveStateToIDB(BUNDLE_STATE_KEY, errorState);
+            await sendProgressUpdate(errorState);
+
+            // Wait and retry
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return checkAndDownloadBundle(retryAttempt + 1);
+        }
+
+        // All retries exhausted
+        console.error('[SW] Bundle download failed after all retry attempts');
+
+        // Save final error state
+        const finalErrorState: BundleDownloadState = {
+            status: 'error',
+            progress: 0,
+            totalFiles: 0,
+            extractedFiles: 0,
+            error: `Download failed after ${MAX_BUNDLE_RETRIES} attempts: ${errorMessage}. Will retry on next SW activation.`,
+        };
+        await saveStateToIDB(BUNDLE_STATE_KEY, finalErrorState);
+        await sendProgressUpdate(finalErrorState);
+
+        // Notify clients that bundle download failed permanently
+        const clients = await self.clients.matchAll({ type: 'window' });
+        clients.forEach((client) => {
+            client.postMessage({
+                type: 'BUNDLE_FAILED',
+                error: errorMessage,
+                retryExhausted: true,
+            });
+        });
+
+        throw new Error(
+            `Bundle download failed after ${MAX_BUNDLE_RETRIES} attempts: ${errorMessage}`
+        );
     }
 }
 

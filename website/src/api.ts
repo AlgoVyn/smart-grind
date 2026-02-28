@@ -267,7 +267,8 @@ export function initOfflineDetection(): () => void {
         return () => cleanupManager.cleanup('api');
     }
 
-    navigator.serviceWorker.addEventListener('message', (event) => {
+    // Define message handler as named function for proper cleanup
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
         const { type, data } = event.data || {};
         if (!type) return;
 
@@ -297,7 +298,9 @@ export function initOfflineDetection(): () => void {
                 });
                 break;
         }
-    });
+    };
+
+    navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
 
     const intervalId = setInterval(
         () =>
@@ -313,6 +316,10 @@ export function initOfflineDetection(): () => void {
         unsubscribe();
         checker.stopMonitoring();
         clearInterval(intervalId);
+        // Remove service worker message listener to prevent memory leak
+        if (isServiceWorkerAvailable()) {
+            navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+        }
     });
 
     return () => cleanupManager.cleanup('api');

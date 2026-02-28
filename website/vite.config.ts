@@ -99,7 +99,7 @@ export default defineConfig({
                 }
                 
                 try {
-                    // Generate version from package.json + timestamp
+                    // Generate version from package.json + timestamp + git hash
                     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
                     const baseVersion = packageJson.version || '1.0.0';
                     
@@ -110,14 +110,31 @@ export default defineConfig({
                     const hours = String(now.getHours()).padStart(2, '0');
                     const minutes = String(now.getMinutes()).padStart(2, '0');
                     const seconds = String(now.getSeconds()).padStart(2, '0');
-                    const buildTimestamp = `${year}${month}${day}.${hours}${minutes}${seconds}`;
-                    const version = `${baseVersion}+${buildTimestamp}`;
+                    
+                    // Try to get git commit hash
+                    let gitHash = 'dev';
+                    try {
+                        const { execSync } = require('child_process');
+                        gitHash = execSync('git rev-parse --short HEAD', {
+                            encoding: 'utf-8',
+                            stdio: ['pipe', 'pipe', 'ignore']
+                        }).trim();
+                    } catch {
+                        // Git not available, use 'dev'
+                    }
+                    
+                    const buildTimestamp = `${year}${month}${day}-${hours}${minutes}${seconds}`;
+                    const version = `${baseVersion}-${buildTimestamp}-${gitHash}`;
                     
                     // Read and update SW file
                     const swContent = fs.readFileSync(swFile, 'utf-8');
+
+                    // Replace the SW_VERSION declaration with the actual version
+                    // Handles both the dev fallback and any existing version
+                    // Use [\s\S] to match across multiple lines (dot doesn't match newlines)
                     const updatedContent = swContent.replace(
-                        /const\s+SW_VERSION\s*=\s*['"][^'"]+['"]/,
-                        `const SW_VERSION = '${version}'`
+                        /const\s+SW_VERSION\s*=\s*[\s\S]+?;/,
+                        `const SW_VERSION = '${version}';`
                     );
                     
                     fs.writeFileSync(swFile, updatedContent);
