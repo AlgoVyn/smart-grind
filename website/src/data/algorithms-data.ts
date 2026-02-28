@@ -379,14 +379,69 @@ export const ALGORITHMS_DATA: AlgorithmCategory[] = [
                 url: 'https://leetcode.com/problems/greatest-common-divisor-of-array/',
             },
             {
+                id: 'algo-extended-euclidean',
+                name: 'Extended Euclidean Algorithm',
+                url: 'https://leetcode.com/problems/check-if-it-is-a-good-array/',
+            },
+            {
                 id: 'algo-sieve-eratosthenes',
                 name: 'Sieve of Eratosthenes',
+                url: 'https://leetcode.com/problems/count-primes/',
+            },
+            {
+                id: 'algo-linear-sieve',
+                name: "Linear Sieve (Euler's Sieve)",
                 url: 'https://leetcode.com/problems/count-primes/',
             },
             {
                 id: 'algo-modular-exponentiation',
                 name: 'Modular Exponentiation',
                 url: 'https://leetcode.com/problems/powx-n/',
+            },
+            {
+                id: 'algo-modular-inverse',
+                name: 'Modular Inverse',
+                url: 'https://leetcode.com/problems/find-the-value-of-the-partition/',
+            },
+            {
+                id: 'algo-ncr-binomial',
+                name: 'Binomial Coefficients (nCr)',
+                url: 'https://leetcode.com/problems/unique-paths/',
+            },
+            {
+                id: 'algo-catalan-numbers',
+                name: 'Catalan Numbers',
+                url: 'https://leetcode.com/problems/unique-binary-search-trees/',
+            },
+            {
+                id: 'algo-inclusion-exclusion',
+                name: 'Inclusion-Exclusion Principle',
+                url: 'https://leetcode.com/problems/number-of-ways-to-form-a-target-string-given-a-dictionary/',
+            },
+            {
+                id: 'algo-matrix-exponentiation',
+                name: 'Matrix Exponentiation',
+                url: 'https://leetcode.com/problems/fibonacci-number/',
+            },
+            {
+                id: 'algo-chinese-remainder',
+                name: 'Chinese Remainder Theorem',
+                url: 'https://leetcode.com/problems/chalk-replacement/',
+            },
+            {
+                id: 'algo-miller-rabin',
+                name: 'Miller-Rabin Primality Test',
+                url: 'https://leetcode.com/problems/prime-palindrome/',
+            },
+            {
+                id: 'algo-fft-ntt',
+                name: 'Fast Fourier Transform (FFT/NTT)',
+                url: 'https://leetcode.com/problems/closest-subsequence-sum/',
+            },
+            {
+                id: 'algo-game-theory-nim',
+                name: 'Game Theory (Nim / Grundy Numbers)',
+                url: 'https://leetcode.com/problems/cat-and-mouse-ii/',
             },
             {
                 id: 'algo-karatsuba',
