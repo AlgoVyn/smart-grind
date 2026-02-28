@@ -3,7 +3,6 @@
 
 import { CACHE_NAMES } from './cache-strategies';
 
-// Problem metadata stored in IndexedDB
 interface ProblemMetadata {
     id: string;
     title: string;
@@ -15,29 +14,31 @@ interface ProblemMetadata {
     lastAccessed: number;
 }
 
-// IndexedDB configuration
 const DB_NAME = 'smartgrind-offline';
 const DB_VERSION = 1;
 const STORE_NAME = 'problem-metadata';
 
+/** Promisify IndexedDB request */
+function promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
 export class OfflineManager {
     private db: IDBDatabase | null = null;
 
-    /**
-     * Initialize IndexedDB connection
-     */
     private async initDB(): Promise<IDBDatabase> {
         if (this.db) return this.db;
 
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
-
             request.onerror = () => reject(request.error);
             request.onsuccess = () => {
                 this.db = request.result;
                 resolve(this.db);
             };
-
             request.onupgradeneeded = (event) => {
                 const db = (event.target as IDBOpenDBRequest).result;
                 if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -51,24 +52,18 @@ export class OfflineManager {
         });
     }
 
-    /**
-     * Pre-cache the problem index/metadata
-     * This should be called during SW install to cache the list of all problems
-     */
+    private async getStore(mode: IDBTransactionMode): Promise<IDBObjectStore> {
+        const db = await this.initDB();
+        return db.transaction(STORE_NAME, mode).objectStore(STORE_NAME);
+    }
+
+    /** Pre-cache the problem index/metadata - called during SW install */
     async preCacheProblemIndex(): Promise<void> {
         try {
-            // Fetch the problem data from the main app
-            const response = await fetch('/smartgrind/src/data/problems-data.ts').catch((error) => {
-                console.warn('[OfflineManager] Failed to fetch problem data:', error);
-                return null;
-            });
-            if (!response || !response.ok) {
-                return;
-            }
-
-            // Parse and cache problem metadata
-            // Note: In production, this would be a JSON endpoint
-        } catch (_error) {
+            const response = await fetch('/smartgrind/src/data/problems-data.ts').catch(() => null);
+            if (!response?.ok) return;
+            // Parse and cache problem metadata (production: JSON endpoint)
+        } catch {
             // Pre-cache index failed (expected in dev)
         }
     }
@@ -138,104 +133,48 @@ export class OfflineManager {
         return response !== null;
     }
 
-    /**
-     * Get list of all cached problems
-     */
+    /** Get list of all cached problems */
     async getCachedProblems(): Promise<ProblemMetadata[]> {
-        const db = await this.initDB();
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(STORE_NAME, 'readonly');
-            const store = transaction.objectStore(STORE_NAME);
-            const request = store.getAll();
-
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
+        const store = await this.getStore('readonly');
+        return promisifyRequest(store.getAll());
     }
 
-    /**
-     * Get cached problems by category
-     */
+    /** Get cached problems by category */
     async getProblemsByCategory(category: string): Promise<ProblemMetadata[]> {
-        const db = await this.initDB();
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(STORE_NAME, 'readonly');
-            const store = transaction.objectStore(STORE_NAME);
-            const index = store.index('category');
-            const request = index.getAll(category);
-
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
+        const store = await this.getStore('readonly');
+        return promisifyRequest(store.index('category').getAll(category));
     }
 
-    /**
-     * Store problem metadata in IndexedDB
-     */
+    /** Store problem metadata in IndexedDB */
     private async storeMetadata(metadata: ProblemMetadata): Promise<void> {
-        const db = await this.initDB();
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(STORE_NAME, 'readwrite');
-            const store = transaction.objectStore(STORE_NAME);
-            const request = store.put(metadata);
-
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-        });
+        const store = await this.getStore('readwrite');
+        await promisifyRequest(store.put(metadata));
     }
 
-    /**
-     * Update last accessed timestamp
-     */
+    /** Update last accessed timestamp */
     private async updateLastAccessed(url: string): Promise<void> {
-        const db = await this.initDB();
+        const store = await this.getStore('readwrite');
         const id = this.extractIdFromUrl(url);
-
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(STORE_NAME, 'readwrite');
-            const store = transaction.objectStore(STORE_NAME);
-            const getRequest = store.get(id);
-
-            getRequest.onsuccess = () => {
-                const data = getRequest.result;
-                if (data) {
-                    data.lastAccessed = Date.now();
-                    const putRequest = store.put(data);
-                    putRequest.onsuccess = () => resolve();
-                    putRequest.onerror = () => reject(putRequest.error);
-                } else {
-                    resolve();
-                }
-            };
-
-            getRequest.onerror = () => reject(getRequest.error);
-        });
+        const data = await promisifyRequest<ProblemMetadata | undefined>(store.get(id));
+        if (data) {
+            data.lastAccessed = Date.now();
+            await promisifyRequest(store.put(data));
+        }
     }
 
-    /**
-     * Extract metadata from URL and response
-     */
+    /** Extract metadata from URL and response */
     private extractMetadata(url: string, _response: Response): ProblemMetadata {
         const id = this.extractIdFromUrl(url);
-        const urlObj = new URL(url);
-        const pathParts = urlObj.pathname.split('/');
+        const pathParts = new URL(url).pathname.split('/');
 
-        // Determine category and pattern from URL path
         let category = 'unknown';
-        let pattern = 'unknown';
+        const lastPart = pathParts[pathParts.length - 1];
+        const pattern = lastPart?.replace('.md', '') || 'unknown';
 
-        if (pathParts.includes('patterns')) {
-            category = 'patterns';
-            pattern = pathParts[pathParts.length - 1]?.replace('.md', '') || 'unknown';
-        } else if (pathParts.includes('solutions')) {
-            category = 'solutions';
-            pattern = pathParts[pathParts.length - 1]?.replace('.md', '') || 'unknown';
-        } else if (pathParts.includes('algorithms')) {
-            category = 'algorithms';
-            pattern = pathParts[pathParts.length - 1]?.replace('.md', '') || 'unknown';
-        }
+        if (pathParts.includes('patterns')) category = 'patterns';
+        else if (pathParts.includes('solutions')) category = 'solutions';
+        else if (pathParts.includes('algorithms')) category = 'algorithms';
 
-        // Extract title from response or URL
         const title = pattern.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 
         return {
@@ -243,7 +182,7 @@ export class OfflineManager {
             title,
             category,
             pattern,
-            difficulty: 'Medium', // Default, would be extracted from content
+            difficulty: 'Medium',
             cachedAt: Date.now(),
             lastAccessed: Date.now(),
         };
@@ -259,45 +198,25 @@ export class OfflineManager {
         return filename.replace('.md', '');
     }
 
-    /**
-     * Clean up old cached problems (LRU eviction)
-     */
-    async cleanupOldProblems(maxAgeDays: number = 30): Promise<number> {
-        const db = await this.initDB();
+    /** Clean up old cached problems (LRU eviction) */
+    async cleanupOldProblems(maxAgeDays = 30): Promise<number> {
+        const store = await this.getStore('readonly');
         const maxAge = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
+        const range = IDBKeyRange.upperBound(maxAge);
+        const oldProblems = await promisifyRequest<ProblemMetadata[]>(
+            store.index('lastAccessed').getAll(range)
+        );
 
-        const oldProblems = await new Promise<ProblemMetadata[]>((resolve, reject) => {
-            const transaction = db.transaction(STORE_NAME, 'readonly');
-            const store = transaction.objectStore(STORE_NAME);
-            const index = store.index('lastAccessed');
-            const range = IDBKeyRange.upperBound(maxAge);
-            const request = index.getAll(range);
-
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
-
-        // Delete old problems from cache and IndexedDB
         const cache = await caches.open(CACHE_NAMES.PROBLEMS);
         let deletedCount = 0;
 
         for (const problem of oldProblems) {
             try {
-                // Reconstruct URL from ID
-                const url = this.reconstructUrl(problem);
-                await cache.delete(url);
-
-                // Delete from IndexedDB
-                await new Promise<void>((resolve, reject) => {
-                    const transaction = db.transaction(STORE_NAME, 'readwrite');
-                    const store = transaction.objectStore(STORE_NAME);
-                    const request = store.delete(problem.id);
-                    request.onsuccess = () => resolve();
-                    request.onerror = () => reject(request.error);
-                });
-
+                await cache.delete(this.reconstructUrl(problem));
+                const writeStore = await this.getStore('readwrite');
+                await promisifyRequest(writeStore.delete(problem.id));
                 deletedCount++;
-            } catch (_error) {
+            } catch {
                 // Silent fail for individual cleanup
             }
         }
@@ -320,25 +239,16 @@ export class OfflineManager {
         return `${base}/${metadata.id}.md`;
     }
 
-    /**
-     * Get offline storage statistics
-     */
+    /** Get offline storage statistics */
     async getStorageStats(): Promise<{
         problemCount: number;
         totalSize: number;
         oldestCache: number;
         newestCache: number;
     }> {
-        const db = await this.initDB();
+        const store = await this.getStore('readonly');
         const cache = await caches.open(CACHE_NAMES.PROBLEMS);
-
-        const allProblems = await new Promise<ProblemMetadata[]>((resolve, reject) => {
-            const transaction = db.transaction(STORE_NAME, 'readonly');
-            const store = transaction.objectStore(STORE_NAME);
-            const request = store.getAll();
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
+        const allProblems = await promisifyRequest<ProblemMetadata[]>(store.getAll());
 
         let totalSize = 0;
         let oldestCache = Date.now();
@@ -346,25 +256,18 @@ export class OfflineManager {
 
         for (const problem of allProblems) {
             try {
-                const url = this.reconstructUrl(problem);
-                const response = await cache.match(url);
+                const response = await cache.match(this.reconstructUrl(problem));
                 if (response) {
                     const blob = await response.blob();
                     totalSize += blob.size;
                 }
-
-                if (problem.cachedAt < oldestCache) oldestCache = problem.cachedAt;
-                if (problem.cachedAt > newestCache) newestCache = problem.cachedAt;
-            } catch (_error) {
+                oldestCache = Math.min(oldestCache, problem.cachedAt);
+                newestCache = Math.max(newestCache, problem.cachedAt);
+            } catch {
                 // Ignore errors for individual problems
             }
         }
 
-        return {
-            problemCount: allProblems.length,
-            totalSize,
-            oldestCache,
-            newestCache,
-        };
+        return { problemCount: allProblems.length, totalSize, oldestCache, newestCache };
     }
 }

@@ -158,20 +158,15 @@ export class ConnectivityChecker {
         return this.checkConnectivity();
     }
 
-    /**
-     * Force a fresh connectivity check, bypassing cache
-     * Use this when coming online to ensure accurate state
-     */
-    async forceFreshCheck(): Promise<boolean> {
+    /** Force a fresh connectivity check, bypassing cache */
+    async forceCheck(): Promise<boolean> {
         this.state.lastChecked = 0;
         return this.checkConnectivity();
     }
 
-    /**
-     * Force immediate connectivity check
-     */
-    async forceCheck(): Promise<boolean> {
-        return this.checkConnectivity();
+    /** Alias for forceCheck - for backward compatibility */
+    async forceFreshCheck(): Promise<boolean> {
+        return this.forceCheck();
     }
 
     /**
@@ -222,12 +217,11 @@ export class ConnectivityChecker {
      * Set up browser online/offline event listeners
      */
     private setupEventListeners(): void {
-        // Browser online event
+        // Browser online event - force fresh check
         window.addEventListener('online', () => {
-            // Force immediate check without cache - critical for reliable sync
-            this.state.lastChecked = 0; // Reset cache to force fresh check
+            this.state.lastChecked = 0;
             this.checkConnectivity().catch((error) => {
-                console.warn('[ConnectivityChecker] Scheduled connectivity check failed:', error);
+                console.warn('[ConnectivityChecker] Online check failed:', error);
             });
         });
 
@@ -237,29 +231,13 @@ export class ConnectivityChecker {
             this.notifyListeners(false);
         });
 
-        // Page visibility change - check connectivity when page becomes visible
+        // Check connectivity when page becomes visible
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
-                // Force check when page becomes visible to catch network state changes
                 this.state.lastChecked = 0;
-                this.debouncedCheck();
+                this.checkConnectivity().catch(() => {});
             }
         });
-    }
-
-    /**
-     * Debounced connectivity check
-     */
-    private debouncedCheckTimeout: number | null = null;
-
-    private debouncedCheck(): void {
-        if (this.debouncedCheckTimeout) {
-            clearTimeout(this.debouncedCheckTimeout);
-        }
-
-        this.debouncedCheckTimeout = window.setTimeout(() => {
-            this.checkConnectivity();
-        }, 200); // Wait 200ms after event before checking
     }
 
     /**

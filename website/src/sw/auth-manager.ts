@@ -28,14 +28,21 @@ const AUTH_DB_VERSION = 1;
 const AUTH_STORE_NAME = 'auth-tokens';
 
 /**
+ * Helper to promisify IndexedDB requests
+ */
+function promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+/**
  * AuthStorage class using IndexedDB (compatible with Service Workers)
  */
 class AuthStorage {
     private db: IDBDatabase | null = null;
 
-    /**
-     * Initialize IndexedDB connection
-     */
     private async initDB(): Promise<IDBDatabase> {
         if (this.db) return this.db;
 
@@ -57,79 +64,43 @@ class AuthStorage {
         });
     }
 
-    /**
-     * Get a value from storage
-     */
+    private async getStore(mode: IDBTransactionMode): Promise<IDBObjectStore> {
+        const db = await this.initDB();
+        return db.transaction(AUTH_STORE_NAME, mode).objectStore(AUTH_STORE_NAME);
+    }
+
     async getItem(key: string): Promise<string | null> {
         try {
-            const db = await this.initDB();
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(AUTH_STORE_NAME, 'readonly');
-                const store = transaction.objectStore(AUTH_STORE_NAME);
-                const request = store.get(key);
-
-                request.onsuccess = () => {
-                    resolve(request.result?.value || null);
-                };
-                request.onerror = () => reject(request.error);
-            });
+            const store = await this.getStore('readonly');
+            const result = await promisifyRequest(store.get(key));
+            return result?.value ?? null;
         } catch {
             return null;
         }
     }
 
-    /**
-     * Set a value in storage
-     */
     async setItem(key: string, value: string): Promise<void> {
         try {
-            const db = await this.initDB();
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(AUTH_STORE_NAME, 'readwrite');
-                const store = transaction.objectStore(AUTH_STORE_NAME);
-                const request = store.put({ key, value });
-
-                request.onsuccess = () => resolve();
-                request.onerror = () => reject(request.error);
-            });
+            const store = await this.getStore('readwrite');
+            await promisifyRequest(store.put({ key, value }));
         } catch {
             // Storage operation failed
         }
     }
 
-    /**
-     * Remove a value from storage
-     */
     async removeItem(key: string): Promise<void> {
         try {
-            const db = await this.initDB();
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(AUTH_STORE_NAME, 'readwrite');
-                const store = transaction.objectStore(AUTH_STORE_NAME);
-                const request = store.delete(key);
-
-                request.onsuccess = () => resolve();
-                request.onerror = () => reject(request.error);
-            });
+            const store = await this.getStore('readwrite');
+            await promisifyRequest(store.delete(key));
         } catch {
             // Storage operation failed
         }
     }
 
-    /**
-     * Clear all auth data
-     */
     async clear(): Promise<void> {
         try {
-            const db = await this.initDB();
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(AUTH_STORE_NAME, 'readwrite');
-                const store = transaction.objectStore(AUTH_STORE_NAME);
-                const request = store.clear();
-
-                request.onsuccess = () => resolve();
-                request.onerror = () => reject(request.error);
-            });
+            const store = await this.getStore('readwrite');
+            await promisifyRequest(store.clear());
         } catch {
             // Storage operation failed
         }

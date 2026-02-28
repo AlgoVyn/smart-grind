@@ -1,9 +1,16 @@
 // Background Sync Manager for SmartGrind Service Worker
-// Handles syncing user progress when connection is restored
 
 import { getAuthManager } from './auth-manager';
 import { OperationQueue, QueuedOperation } from './operation-queue';
 import { SyncConflictResolver } from './sync-conflict-resolver';
+
+/** Promisify IndexedDB request */
+function promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
 
 /** Fetch options: use Bearer token from IndexedDB when present, else credentials (cookies). */
 async function getAuthFetchOpts(
@@ -20,32 +27,29 @@ async function getAuthFetchOpts(
             return { headers: { ...extraHeaders, ...authHeaders }, credentials: 'omit' };
         }
     } catch {
-        // e.g. IndexedDB or auth not available (tests)
+        // IndexedDB or auth not available (tests)
     }
     return { headers: extraHeaders, credentials: 'include' };
 }
 
-// Sync configuration
+// Configuration
+const CONFIG = {
+    MAX_RETRY_ATTEMPTS: 5,
+    SYNC_TIMEOUT_MS: 60000,
+    REQUEST_TIMEOUT_MS: 15000,
+    RETRY_CHECK_INTERVAL_MS: 30000,
+    RETRY_BASE_DELAY_MS: 1000,
+    RETRY_MAX_DELAY_MS: 60000,
+    SCHEDULED_RETRY_DELAY_MS: 5000,
+} as const;
+
 const SYNC_TAGS = {
     USER_PROGRESS: 'sync-user-progress',
     CUSTOM_PROBLEMS: 'sync-custom-problems',
     USER_SETTINGS: 'sync-user-settings',
 } as const;
 
-// Retry and timeout configuration
-const MAX_RETRY_ATTEMPTS = 5;
-const SYNC_TIMEOUT_MS = 60000; // 60 seconds timeout for sync batch (increased from 30)
-const REQUEST_TIMEOUT_MS = 15000; // 15 seconds timeout for individual requests (increased from 10)
-const PENDING_RETRY_CHECK_INTERVAL_MS = 30000; // Check for pending retries every 30 seconds
-
-// Delay configuration for exponential backoff
-const RETRY_BASE_DELAY_MS = 1000; // 1 second base delay for exponential backoff
-const RETRY_MAX_DELAY_MS = 60000; // 1 minute maximum delay
-const SCHEDULED_RETRY_DELAY_MS = 5000; // 5 seconds delay for scheduled retries
-
-// IndexedDB configuration for persisting retry state
 const RETRY_DB_NAME = 'smartgrind-sync-retry';
-const RETRY_DB_VERSION = 1;
 const RETRY_STORE_NAME = 'pending-retries';
 
 interface PersistedRetry {
@@ -80,7 +84,7 @@ export class BackgroundSyncManager {
      */
     private async initRetryDB(): Promise<void> {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open(RETRY_DB_NAME, RETRY_DB_VERSION);
+            const request = indexedDB.open(RETRY_DB_NAME, 1);
 
             request.onerror = () => reject(request.error);
             request.onsuccess = () => {
@@ -112,7 +116,7 @@ export class BackgroundSyncManager {
                 this.processPersistedRetries().catch((error) => {
                     console.warn('[BackgroundSync] Retry processing error:', error);
                 });
-            }, PENDING_RETRY_CHECK_INTERVAL_MS);
+            }, CONFIG.RETRY_CHECK_INTERVAL_MS);
         }
 
         // Also process any persisted retries on startup
@@ -138,14 +142,9 @@ export class BackgroundSyncManager {
             createdAt: Date.now(),
         };
 
-        return new Promise((resolve, reject) => {
-            const transaction = this.retryDB!.transaction(RETRY_STORE_NAME, 'readwrite');
-            const store = transaction.objectStore(RETRY_STORE_NAME);
-            const request = store.put(retry);
-
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-        });
+        const transaction = this.retryDB.transaction(RETRY_STORE_NAME, 'readwrite');
+        const store = transaction.objectStore(RETRY_STORE_NAME);
+        await promisifyRequest(store.put(retry));
     }
 
     /**
@@ -153,54 +152,34 @@ export class BackgroundSyncManager {
      */
     private async removePersistedRetry(id: string): Promise<void> {
         if (!this.retryDB) return;
-
-        return new Promise((resolve, reject) => {
-            const transaction = this.retryDB!.transaction(RETRY_STORE_NAME, 'readwrite');
-            const store = transaction.objectStore(RETRY_STORE_NAME);
-            const request = store.delete(id);
-
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-        });
+        const transaction = this.retryDB.transaction(RETRY_STORE_NAME, 'readwrite');
+        const store = transaction.objectStore(RETRY_STORE_NAME);
+        await promisifyRequest(store.delete(id));
     }
 
     /**
      * Process any persisted retries that are due
      */
     private async processPersistedRetries(): Promise<void> {
-        if (!this.retryDB) {
-            await this.initRetryDB();
-        }
-
+        if (!this.retryDB) await this.initRetryDB();
         if (!this.retryDB) return;
 
-        const now = Date.now();
+        const store = this.retryDB
+            .transaction(RETRY_STORE_NAME, 'readwrite')
+            .objectStore(RETRY_STORE_NAME);
+        const index = store.index('scheduledFor');
+        const retries = await promisifyRequest<PersistedRetry[]>(
+            index.getAll(IDBKeyRange.upperBound(Date.now()))
+        );
 
-        return new Promise((resolve, reject) => {
-            const transaction = this.retryDB!.transaction(RETRY_STORE_NAME, 'readwrite');
-            const store = transaction.objectStore(RETRY_STORE_NAME);
-            const index = store.index('scheduledFor');
-            const range = IDBKeyRange.upperBound(now);
-            const request = index.getAll(range);
-
-            request.onsuccess = async () => {
-                const retries: PersistedRetry[] = request.result;
-
-                for (const retry of retries) {
-                    try {
-                        // Trigger sync for this operation
-                        await this.syncUserProgress();
-                        // Remove the persisted retry after processing
-                        await this.removePersistedRetry(retry.id);
-                    } catch (error) {
-                        console.warn('[BackgroundSync] Individual retry processing failed:', error);
-                    }
-                }
-                resolve();
-            };
-
-            request.onerror = () => reject(request.error);
-        });
+        for (const retry of retries) {
+            try {
+                await this.syncUserProgress();
+                await this.removePersistedRetry(retry.id);
+            } catch {
+                // Individual retry failed, will be retried
+            }
+        }
     }
 
     /**
@@ -300,7 +279,7 @@ export class BackgroundSyncManager {
         // Set up timeout to prevent stuck sync
         const timeoutId = setTimeout(() => {
             this.isSyncing = false;
-        }, SYNC_TIMEOUT_MS);
+        }, CONFIG.SYNC_TIMEOUT_MS);
 
         try {
             // Get pending operations
@@ -387,7 +366,7 @@ export class BackgroundSyncManager {
                     this.syncUserProgress().catch((error) => {
                         console.warn('[BackgroundSync] Scheduled retry sync failed:', error);
                     });
-                }, SCHEDULED_RETRY_DELAY_MS);
+                }, CONFIG.SCHEDULED_RETRY_DELAY_MS);
             }
         } catch (error) {
             console.warn('[BackgroundSync] Sync operation failed:', error);
@@ -406,10 +385,10 @@ export class BackgroundSyncManager {
     private async handleFailedOperation(op: QueuedOperation): Promise<void> {
         const retryCount = await this.operationQueue.updateRetryCount(op.id);
 
-        if (retryCount < MAX_RETRY_ATTEMPTS) {
+        if (retryCount < CONFIG.MAX_RETRY_ATTEMPTS) {
             // Calculate exponential backoff delay
-            const delay = RETRY_BASE_DELAY_MS * Math.pow(2, retryCount - 1); // retryCount is already incremented
-            const actualDelay = Math.min(delay, RETRY_MAX_DELAY_MS);
+            const delay = CONFIG.RETRY_BASE_DELAY_MS * Math.pow(2, retryCount - 1);
+            const actualDelay = Math.min(delay, CONFIG.RETRY_MAX_DELAY_MS);
 
             // Persist the retry to IndexedDB so it survives SW termination
             await this.persistRetry(op.id, actualDelay);
@@ -436,7 +415,7 @@ export class BackgroundSyncManager {
      */
     private async executeWithTimeout<T>(
         fn: () => Promise<T>,
-        timeoutMs: number = REQUEST_TIMEOUT_MS
+        timeoutMs: number = CONFIG.REQUEST_TIMEOUT_MS
     ): Promise<T> {
         return new Promise((resolve, reject) => {
             const timeoutId = setTimeout(() => {
@@ -467,72 +446,59 @@ export class BackgroundSyncManager {
     private syncUserSettingsWithTimeout = () =>
         this.executeWithTimeout(() => this.syncUserSettings());
 
-    /**
-     * Sync custom problems
-     */
+    /** Handle auth error (401/403) - notifies clients if no stored token */
+    private async handleAuthError(): Promise<void> {
+        const hasToken = await this.hasStoredToken();
+        if (!hasToken) {
+            await this.notifyClients('AUTH_REQUIRED', {
+                message: 'Authentication required for sync.',
+                timestamp: Date.now(),
+            });
+        }
+    }
+
+    /** Check if sync was aborted and throw if so */
+    private checkAborted(): void {
+        if (this.syncAbortController?.signal.aborted) {
+            throw new Error('Sync aborted');
+        }
+    }
+
+    /** Sync custom problems */
     async syncCustomProblems(): Promise<void> {
         const pendingOps = await this.operationQueue.getOperationsByType('ADD_CUSTOM_PROBLEM');
         if (pendingOps.length === 0) return;
 
         for (const op of pendingOps) {
-            // Check if sync was aborted
-            if (this.syncAbortController?.signal.aborted) {
-                throw new Error('Sync aborted');
-            }
+            this.checkAborted();
 
-            try {
-                const opts = await getAuthFetchOpts({ 'Content-Type': 'application/json' });
-                const response = await fetch('/smartgrind/api/user/custom-problems', {
-                    method: 'POST',
-                    headers: opts.headers,
-                    credentials: opts.credentials,
-                    body: JSON.stringify(op.data),
-                    signal: this.syncAbortController?.signal || null,
-                });
+            const opts = await getAuthFetchOpts({ 'Content-Type': 'application/json' });
+            const response = await fetch('/smartgrind/api/user/custom-problems', {
+                method: 'POST',
+                headers: opts.headers,
+                credentials: opts.credentials,
+                body: JSON.stringify(op.data),
+                signal: this.syncAbortController?.signal || null,
+            });
 
-                if (response.ok) {
-                    await this.operationQueue.markCompleted(op.id);
-                } else if (response.status === 401 || response.status === 403) {
-                    // Auth error - check if we have a stored token before notifying
-                    // If we do, it's likely a network issue, not an actual auth failure
-                    const hasToken = await this.hasStoredToken();
-                    if (!hasToken) {
-                        await this.notifyClients('AUTH_REQUIRED', {
-                            message: 'Authentication required for sync.',
-                            timestamp: Date.now(),
-                        });
-                    }
-                    throw new Error('Authentication failed');
-                } else if (response.status === 409) {
-                    // Conflict - resolve using improved resolver
-                    const serverData = await response.json();
-                    const resolution = await this.conflictResolver.resolveCustomProblemConflict(
-                        op.data as {
-                            id: string;
-                            name: string;
-                            url?: string;
-                            category: string;
-                            pattern: string;
-                            difficulty: 'Easy' | 'Medium' | 'Hard';
-                            timestamp: number;
-                        },
-                        serverData
-                    );
-                    // Only apply if resolution is not an error
-                    if (resolution.status !== 'error') {
-                        await this.applyConflictResolution(op.id, resolution);
-                    } else {
-                        throw new Error(resolution.message || 'Conflict resolution failed');
-                    }
+            if (response.ok) {
+                await this.operationQueue.markCompleted(op.id);
+            } else if (response.status === 401 || response.status === 403) {
+                await this.handleAuthError();
+                throw new Error('Authentication failed');
+            } else if (response.status === 409) {
+                const serverData = await response.json();
+                const resolution = await this.conflictResolver.resolveCustomProblemConflict(
+                    op.data as { id: string; name: string; difficulty: 'Easy' | 'Medium' | 'Hard' },
+                    serverData
+                );
+                if (resolution.status !== 'error') {
+                    await this.applyConflictResolution(op.id, resolution);
                 } else {
-                    throw new Error(`HTTP ${response.status}`);
+                    throw new Error(resolution.message || 'Conflict resolution failed');
                 }
-            } catch (error) {
-                if (error instanceof Error && error.name === 'AbortError') {
-                    throw error; // Re-throw abort errors
-                }
-                // Re-throw other errors to be handled at higher level
-                throw error;
+            } else {
+                throw new Error(`HTTP ${response.status}`);
             }
         }
     }
@@ -569,79 +535,49 @@ export class BackgroundSyncManager {
         );
     }
 
-    /**
-     * Sync user settings - this now performs a full data sync to /api/user
-     * The UPDATE_SETTINGS operation contains the full user data
-     */
+    /** Sync user settings - performs full data sync to /api/user */
     async syncUserSettings(): Promise<void> {
         const pendingOps = await this.operationQueue.getOperationsByType('UPDATE_SETTINGS');
         if (pendingOps.length === 0) return;
 
-        // Get the most recent settings operation - it contains the full data
         const latestOp = pendingOps[pendingOps.length - 1]!;
-        // Note: latestOp is guaranteed to exist because we checked pendingOps.length > 0 above
 
-        try {
-            const csrfOpts = await getAuthFetchOpts();
-            const csrfResponse = await fetch('/smartgrind/api/user?action=csrf', {
-                headers: csrfOpts.headers,
-                credentials: csrfOpts.credentials,
-            });
+        const csrfOpts = await getAuthFetchOpts();
+        const csrfResponse = await fetch('/smartgrind/api/user?action=csrf', {
+            headers: csrfOpts.headers,
+            credentials: csrfOpts.credentials,
+        });
 
-            if (!csrfResponse.ok) {
-                if (csrfResponse.status === 401 || csrfResponse.status === 403) {
-                    // Auth error - check if we have a stored token before notifying
-                    const hasToken = await this.hasStoredToken();
-                    if (!hasToken) {
-                        await this.notifyClients('AUTH_REQUIRED', {
-                            message: 'Authentication required for sync.',
-                            timestamp: Date.now(),
-                        });
-                    }
-                    throw new Error('Authentication failed');
-                }
-                throw new Error('Failed to fetch CSRF token');
-            }
-
-            const csrfData = await csrfResponse.json();
-            const csrfToken = csrfData.csrfToken;
-
-            const opts = await getAuthFetchOpts({
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken,
-            });
-            const response = await fetch('/smartgrind/api/user', {
-                method: 'POST',
-                headers: opts.headers,
-                credentials: opts.credentials,
-                body: JSON.stringify({ data: latestOp.data }),
-                signal: this.syncAbortController?.signal || null,
-            });
-
-            if (response.ok) {
-                // Mark all settings operations as completed
-                for (const op of pendingOps) {
-                    await this.operationQueue.markCompleted(op.id);
-                }
-            } else if (response.status === 401 || response.status === 403) {
-                // Auth error - check if we have a stored token before notifying
-                const hasToken = await this.hasStoredToken();
-                if (!hasToken) {
-                    await this.notifyClients('AUTH_REQUIRED', {
-                        message: 'Authentication required for sync.',
-                        timestamp: Date.now(),
-                    });
-                }
+        if (!csrfResponse.ok) {
+            if (csrfResponse.status === 401 || csrfResponse.status === 403) {
+                await this.handleAuthError();
                 throw new Error('Authentication failed');
-            } else {
-                throw new Error(`HTTP ${response.status}`);
             }
-        } catch (error) {
-            if (error instanceof Error && error.name === 'AbortError') {
-                throw error;
+            throw new Error('Failed to fetch CSRF token');
+        }
+
+        const { csrfToken } = await csrfResponse.json();
+        const opts = await getAuthFetchOpts({
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
+        });
+        const response = await fetch('/smartgrind/api/user', {
+            method: 'POST',
+            headers: opts.headers,
+            credentials: opts.credentials,
+            body: JSON.stringify({ data: latestOp.data }),
+            signal: this.syncAbortController?.signal || null,
+        });
+
+        if (response.ok) {
+            for (const op of pendingOps) {
+                await this.operationQueue.markCompleted(op.id);
             }
-            // Re-throw other errors to be handled at higher level
-            throw error;
+        } else if (response.status === 401 || response.status === 403) {
+            await this.handleAuthError();
+            throw new Error('Authentication failed');
+        } else {
+            throw new Error(`HTTP ${response.status}`);
         }
     }
 
