@@ -47,13 +47,23 @@ export class OperationQueue {
         if (this.db) return this.db;
 
         // If initialization is in progress, wait for it
-        if (this.dbInitPromise) return this.dbInitPromise;
+        if (this.dbInitPromise) {
+            const db = await this.dbInitPromise;
+            if (db) return db;
+            // If the promise resolved to null/undefined, continue with new initialization
+        }
 
-        // Start initialization
-        this.dbInitPromise = this.performDBInit();
+        // Start initialization with proper locking
+        const initPromise = this.performDBInit();
+        this.dbInitPromise = initPromise;
 
         try {
-            return await this.dbInitPromise;
+            const db = await initPromise;
+            this.db = db;
+            return db;
+        } catch (error) {
+            console.error('[OperationQueue] IndexedDB initialization failed:', error);
+            throw error;
         } finally {
             // Clear the promise after completion so future calls can reinitialize if needed
             this.dbInitPromise = null;
@@ -396,8 +406,8 @@ export class OperationQueue {
                     request.onerror = () => reject(request.error);
                 });
                 deletedCount++;
-            } catch (_error) {
-                // Silent fail for cleanup
+            } catch (error) {
+                console.warn(`[OperationQueue] Failed to cleanup old operation ${op.id}:`, error);
             }
         }
 

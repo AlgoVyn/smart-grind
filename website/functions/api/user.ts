@@ -3,8 +3,16 @@ import { jwtVerify } from 'jose';
 // Type definitions for global variables
 declare const jest: typeof import('@jest/globals') | undefined;
 
-// Type definition for KVNamespace to avoid TypeScript errors
-type KVNamespace = any;
+// KVNamespace type definition for Cloudflare Workers environment
+// In production, this comes from @cloudflare/workers-types
+interface KVNamespace {
+    get(key: string): Promise<string | null>;
+    get(key: string, type: 'text'): Promise<string | null>;
+    get(key: string, type: 'arrayBuffer'): Promise<ArrayBuffer | null>;
+    getWithMetadata(key: string, type?: 'text' | 'arrayBuffer', options?: { cacheTtl?: number }): Promise<{ value: string | ArrayBuffer | null; metadata: Record<string, string> | null }>;
+    put(key: string, value: string | ArrayBuffer, options?: { expirationTtl?: number; metadata?: Record<string, string> }): Promise<void>;
+    delete(key: string): Promise<void>;
+}
 
 /**
  * Creates a Response with CORS headers to allow credentials

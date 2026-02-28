@@ -42,14 +42,25 @@ function promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
  */
 class AuthStorage {
     private db: IDBDatabase | null = null;
+    private dbInitPromise: Promise<IDBDatabase> | null = null;
 
     private async initDB(): Promise<IDBDatabase> {
+        // Return existing database if already initialized
         if (this.db) return this.db;
 
-        return new Promise((resolve, reject) => {
+        // If initialization is already in progress, wait for it
+        if (this.dbInitPromise) {
+            return this.dbInitPromise;
+        }
+
+        // Create new initialization promise with proper locking
+        this.dbInitPromise = new Promise((resolve, reject) => {
             const request = indexedDB.open(AUTH_DB_NAME, AUTH_DB_VERSION);
 
-            request.onerror = () => reject(request.error);
+            request.onerror = () => {
+                console.error('[AuthStorage] IndexedDB initialization error:', request.error);
+                reject(request.error);
+            };
             request.onsuccess = () => {
                 this.db = request.result;
                 resolve(this.db);
@@ -62,6 +73,13 @@ class AuthStorage {
                 }
             };
         });
+
+        try {
+            return await this.dbInitPromise;
+        } finally {
+            // Clear the promise so future calls can reinitialize if needed
+            this.dbInitPromise = null;
+        }
     }
 
     private async getStore(mode: IDBTransactionMode): Promise<IDBObjectStore> {
@@ -74,7 +92,8 @@ class AuthStorage {
             const store = await this.getStore('readonly');
             const result = await promisifyRequest(store.get(key));
             return result?.value ?? null;
-        } catch {
+        } catch (error) {
+            console.error(`[AuthStorage] Failed to get item '${key}':`, error);
             return null;
         }
     }
@@ -83,8 +102,8 @@ class AuthStorage {
         try {
             const store = await this.getStore('readwrite');
             await promisifyRequest(store.put({ key, value }));
-        } catch {
-            // Storage operation failed
+        } catch (error) {
+            console.error(`[AuthStorage] Failed to set item '${key}':`, error);
         }
     }
 
@@ -92,8 +111,8 @@ class AuthStorage {
         try {
             const store = await this.getStore('readwrite');
             await promisifyRequest(store.delete(key));
-        } catch {
-            // Storage operation failed
+        } catch (error) {
+            console.error(`[AuthStorage] Failed to remove item '${key}':`, error);
         }
     }
 
@@ -101,8 +120,8 @@ class AuthStorage {
         try {
             const store = await this.getStore('readwrite');
             await promisifyRequest(store.clear());
-        } catch {
-            // Storage operation failed
+        } catch (error) {
+            console.error('[AuthStorage] Failed to clear storage:', error);
         }
     }
 }
@@ -125,7 +144,7 @@ export class AuthManager {
         this.storage = new AuthStorage();
         // Load from storage asynchronously
         this.loadFromStorage().catch((error) => {
-            console.warn('[AuthManager] Failed to load auth from storage:', error);
+            console.error('[AuthManager] Failed to load auth from storage:', error);
         });
     }
 
@@ -150,8 +169,8 @@ export class AuthManager {
             this.state.token = token;
             this.state.refreshToken = refreshToken;
             this.state.expiresAt = expiresAt ? parseInt(expiresAt, 10) : null;
-        } catch {
-            // Storage load failed
+        } catch (error) {
+            console.error('[AuthManager] Failed to load auth state from storage:', error);
         }
     }
 
@@ -183,8 +202,8 @@ export class AuthManager {
             }
 
             await Promise.all(promises);
-        } catch {
-            // Storage save failed
+        } catch (error) {
+            console.error('[AuthManager] Failed to save auth state to storage:', error);
         }
     }
 
@@ -331,7 +350,8 @@ export class AuthManager {
 
             await this.updateTokens(data.token, data.refreshToken, data.expiresIn);
             return data.token;
-        } catch (_error) {
+        } catch (error) {
+            console.error('[AuthManager] Token refresh failed:', error);
             this.refreshRetries++;
             if (this.refreshRetries < this.options.maxRefreshRetries) {
                 // Exponential backoff

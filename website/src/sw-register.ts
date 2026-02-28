@@ -17,12 +17,12 @@ const REGISTRATION_RETRY = {
     backoffMultiplier: 2,
 };
 
-// Sync tags
-const SYNC_TAGS = {
+// Sync tags - Single source of truth for all sync tags
+export const SYNC_TAGS = {
     USER_PROGRESS: 'sync-user-progress',
     CUSTOM_PROBLEMS: 'sync-custom-problems',
     USER_SETTINGS: 'sync-user-settings',
-};
+} as const;
 
 // Service Worker state
 interface SWState {
@@ -764,7 +764,7 @@ export async function unregister(): Promise<boolean> {
     }
 }
 
-export { SYNC_TAGS };
+// SYNC_TAGS already exported above
 
 /**
  * Get the current bundle download status

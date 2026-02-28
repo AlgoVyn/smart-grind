@@ -61,17 +61,9 @@ export interface CacheProblemsMessage extends SWBaseMessage {
     problemUrls: string[];
 }
 
-/**
- * Operation types for background sync
- */
-export type OperationType =
-    | 'MARK_SOLVED'
-    | 'UPDATE_REVIEW_DATE'
-    | 'UPDATE_DIFFICULTY'
-    | 'ADD_NOTE'
-    | 'ADD_CUSTOM_PROBLEM'
-    | 'DELETE_PROBLEM'
-    | 'UPDATE_SETTINGS';
+// OperationType is now exported from operation-queue.ts - single source of truth
+import type { OperationType } from '../sw/operation-queue';
+export type { OperationType };
 
 /**
  * SYNC_OPERATIONS message - queues operations for background sync

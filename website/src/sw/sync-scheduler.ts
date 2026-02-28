@@ -384,7 +384,8 @@ export class SyncScheduler {
             try {
                 await this.executeWithTimeout(task);
                 completed++;
-            } catch (_error) {
+            } catch (error) {
+                console.error(`[SyncScheduler] Force sync failed for task ${task.id}:`, error);
                 failed++;
                 // Don't retry on force sync
             }

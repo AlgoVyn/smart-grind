@@ -3,6 +3,7 @@
 import { getAuthManager } from './auth-manager';
 import { OperationQueue, QueuedOperation } from './operation-queue';
 import { SyncConflictResolver } from './sync-conflict-resolver';
+import { SYNC_TAGS } from '../sw-register';
 
 /** Promisify IndexedDB request */
 function promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
@@ -43,11 +44,7 @@ const CONFIG = {
     SCHEDULED_RETRY_DELAY_MS: 5000,
 } as const;
 
-const SYNC_TAGS = {
-    USER_PROGRESS: 'sync-user-progress',
-    CUSTOM_PROBLEMS: 'sync-custom-problems',
-    USER_SETTINGS: 'sync-user-settings',
-} as const;
+// SYNC_TAGS imported from sw-register.ts - single source of truth
 
 const RETRY_DB_NAME = 'smartgrind-sync-retry';
 const RETRY_STORE_NAME = 'pending-retries';

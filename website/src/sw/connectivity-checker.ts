@@ -118,8 +118,9 @@ export class ConnectivityChecker {
             }
 
             return this.state.isOnline;
-        } catch (_error) {
+        } catch (error) {
             // Network error - we're offline
+            console.warn('[ConnectivityChecker] Network check failed:', error);
             const wasOnline = this.state.isOnline;
             this.state.isOnline = false;
             this.state.consecutiveFailures++;

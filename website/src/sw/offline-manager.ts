@@ -28,13 +28,24 @@ function promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
 
 export class OfflineManager {
     private db: IDBDatabase | null = null;
+    private dbInitPromise: Promise<IDBDatabase> | null = null;
 
     private async initDB(): Promise<IDBDatabase> {
+        // Return existing database if already initialized
         if (this.db) return this.db;
 
-        return new Promise((resolve, reject) => {
+        // If initialization is already in progress, wait for it
+        if (this.dbInitPromise) {
+            return this.dbInitPromise;
+        }
+
+        // Create new initialization promise with proper locking
+        this.dbInitPromise = new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
-            request.onerror = () => reject(request.error);
+            request.onerror = () => {
+                console.error('[OfflineManager] IndexedDB initialization error:', request.error);
+                reject(request.error);
+            };
             request.onsuccess = () => {
                 this.db = request.result;
                 resolve(this.db);
@@ -50,6 +61,13 @@ export class OfflineManager {
                 }
             };
         });
+
+        try {
+            return await this.dbInitPromise;
+        } finally {
+            // Clear the promise so future calls can reinitialize if needed
+            this.dbInitPromise = null;
+        }
     }
 
     private async getStore(mode: IDBTransactionMode): Promise<IDBObjectStore> {
@@ -63,8 +81,8 @@ export class OfflineManager {
             const response = await fetch('/smartgrind/src/data/problems-data.ts').catch(() => null);
             if (!response?.ok) return;
             // Parse and cache problem metadata (production: JSON endpoint)
-        } catch {
-            // Pre-cache index failed (expected in dev)
+        } catch (error) {
+            console.warn('[OfflineManager] Pre-cache index failed:', error);
         }
     }
 
@@ -94,8 +112,8 @@ export class OfflineManager {
                     const metadata = this.extractMetadata(url, response);
                     await this.storeMetadata(metadata);
                 }
-            } catch (_error) {
-                // Silent fail for individual problem cache
+            } catch (error) {
+                console.warn(`[OfflineManager] Failed to cache problem ${url}:`, error);
             }
         });
 
@@ -216,8 +234,8 @@ export class OfflineManager {
                 const writeStore = await this.getStore('readwrite');
                 await promisifyRequest(writeStore.delete(problem.id));
                 deletedCount++;
-            } catch {
-                // Silent fail for individual cleanup
+            } catch (error) {
+                console.warn(`[OfflineManager] Failed to cleanup problem ${problem.id}:`, error);
             }
         }
 
@@ -263,8 +281,8 @@ export class OfflineManager {
                 }
                 oldestCache = Math.min(oldestCache, problem.cachedAt);
                 newestCache = Math.max(newestCache, problem.cachedAt);
-            } catch {
-                // Ignore errors for individual problems
+            } catch (error) {
+                console.warn(`[OfflineManager] Failed to get stats for problem:`, error);
             }
         }
 
