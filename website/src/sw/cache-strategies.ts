@@ -170,10 +170,10 @@ function getFullCacheName(cacheName: string, version: string): string {
  * Provides a unified interface for all caching strategies
  */
 export class CacheStrategies {
-    constructor(private version: string) {}
+    constructor(private _version: string) {}
 
     private getCacheName(name: string): string {
-        return getFullCacheName(name, this.version);
+        return getFullCacheName(name, this._version);
     }
 
     async cacheFirst(request: Request, cacheName: string): Promise<Response> {

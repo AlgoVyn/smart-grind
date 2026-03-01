@@ -13,7 +13,7 @@ export interface RetryOptions {
     /** Backoff multiplier (default: 2) */
     multiplier: number;
     /** Optional callback for each retry attempt */
-    onRetry?: (attempt: number, error: unknown, nextDelay: number) => void;
+    onRetry?: (_attempt: number, _error: unknown, _nextDelay: number) => void;
 }
 
 export const DEFAULT_RETRY_OPTIONS: RetryOptions = {
@@ -92,11 +92,11 @@ export async function withRetry<T>(
  * @param options - Default retry configuration options
  * @returns Wrapped function with retry capability
  */
-export function createRetryWrapper<T extends (...args: unknown[]) => Promise<unknown>>(
+export function createRetryWrapper<T extends (..._args: unknown[]) => Promise<unknown>>(
     fn: T,
     options: Partial<RetryOptions> = {}
-): (...args: Parameters<T>) => Promise<ReturnType<T>> {
-    return async (...args: Parameters<T>): Promise<ReturnType<T>> => {
-        return withRetry(() => fn(...args) as Promise<ReturnType<T>>, options);
+): (..._args: Parameters<T>) => Promise<ReturnType<T>> {
+    return async (..._args: Parameters<T>): Promise<ReturnType<T>> => {
+        return withRetry(() => fn(..._args) as Promise<ReturnType<T>>, options);
     };
 }
