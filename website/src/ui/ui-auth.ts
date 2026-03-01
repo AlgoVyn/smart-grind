@@ -85,7 +85,7 @@ export const handleGoogleLogin = () => {
             state.elements.userDisplay.innerText = displayName;
         }
         state.user.type = 'signed-in';
-        localStorage.setItem('smartgrind-user-type', 'signed-in');
+        localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
 
         // Fetch token from secure endpoint for Service Worker
         // The HttpOnly cookie is automatically sent with this request

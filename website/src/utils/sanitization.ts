@@ -12,7 +12,8 @@
  * // Returns "Hello"
  */
 export const sanitizeInput = (input: string | null | undefined): string => {
-    if (!input) return '';
+    // Explicit null/undefined check to prevent runtime errors
+    if (input === null || input === undefined) return '';
 
     // Normalize line endings, trim lines, remove control chars and HTML
     let sanitized = input

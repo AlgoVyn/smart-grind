@@ -27,7 +27,7 @@ const CONTROL_CHARS_REGEX = /[\x00-\x1F\x7F]/g;
 const SAFE_KEY_REGEX = /[^\w\s-]/g;
 
 // Initialize local user
-export const initializeLocalUser = async () => {
+export const initializeLocalUser = async (): Promise<void> => {
     state.user.type = 'local';
     localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
 
@@ -93,7 +93,7 @@ const sanitizeExportData = (data: unknown): unknown => {
 };
 
 // Export progress
-export const exportProgress = () => {
+export const exportProgress = (): void => {
     const rawExportData = {
         exportDate: new Date().toISOString(),
         version: '1.0',
@@ -187,7 +187,7 @@ export const getProblemsByCategory = (categoryId: string): Problem[] => {
  * Get all problems
  * @returns Array of all problems
  */
-export const getAllProblems = () => {
+export const getAllProblems = (): Problem[] => {
     return [...state.problems.values()];
 };
 

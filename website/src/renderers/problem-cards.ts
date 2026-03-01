@@ -26,6 +26,8 @@ const reRenderCard = (button: HTMLElement, p: Problem): void => {
     if (!card) return;
     const { className, innerHTML } = htmlGenerators.generateProblemCardHTML(p);
     card.className = className;
+    // SECURITY: htmlGenerators.generateProblemCardHTML properly escapes all user data
+    // via escapeHtml() before including in HTML content
     card.innerHTML = innerHTML;
 };
 
@@ -306,6 +308,8 @@ const createProblemCard = (_p: Problem): HTMLElement => {
     const { className, innerHTML } = htmlGenerators.generateProblemCardHTML(_p);
     el.className = className;
     el.dataset['problemId'] = _p.id;
+    // SECURITY: htmlGenerators.generateProblemCardHTML properly escapes all user data
+    // via escapeHtml() before including in HTML content
     el.innerHTML = innerHTML;
 
     return el;

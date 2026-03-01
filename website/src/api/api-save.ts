@@ -245,17 +245,29 @@ if (typeof window !== 'undefined') {
                 // The token is included in the body, not the URL, to prevent log exposure
                 const csrfToken = getCachedCsrfToken();
                 if (csrfToken) {
-                    // SECURITY: CSRF token in body, not URL, to prevent exposure in server logs
-                    const blob = new Blob(
-                        [
-                            JSON.stringify({
-                                data: pendingSyncData,
-                                _csrf: csrfToken, // Include CSRF in body instead of URL
-                            }),
-                        ],
-                        { type: 'application/json' }
-                    );
-                    navigator.sendBeacon(`${data.API_BASE}/user`, blob);
+                    try {
+                        // SECURITY: CSRF token in body, not URL, to prevent exposure in server logs
+                        const blob = new Blob(
+                            [
+                                JSON.stringify({
+                                    data: pendingSyncData,
+                                    _csrf: csrfToken, // Include CSRF in body instead of URL
+                                }),
+                            ],
+                            { type: 'application/json' }
+                        );
+                        const success = navigator.sendBeacon(`${data.API_BASE}/user`, blob);
+                        if (!success) {
+                            // Beacon queued for delivery but may fail - data will be synced on next session
+                            console.warn('[API Save] sendBeacon returned false, sync may have failed');
+                        }
+                    } catch (error) {
+                        // sendBeacon failed - data will remain in localStorage for next session
+                        console.error('[API Save] sendBeacon failed:', error);
+                    }
+                } else {
+                    // No CSRF token available - data will be synced on next session
+                    console.warn('[API Save] No CSRF token available for beforeunload sync');
                 }
             }
         }
