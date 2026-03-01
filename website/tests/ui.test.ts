@@ -1924,7 +1924,7 @@ describe('SmartGrind UI', () => {
 
             expect(localStorageSetItem).toHaveBeenCalledWith('userId', 'test-user');
             expect(localStorageSetItem).toHaveBeenCalledWith('displayName', 'Test User');
-            expect(localStorageSetItem).toHaveBeenCalledWith('smartgrind-user-type', 'signed-in');
+            expect(localStorageSetItem).toHaveBeenCalledWith('userType', 'signed-in');
             expect(state.user.id).toBe('test-user');
             expect(state.user.displayName).toBe('Test User');
             expect(api.loadData).toHaveBeenCalled();

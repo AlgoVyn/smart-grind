@@ -54,27 +54,34 @@ const generateOperationId = (): string =>
  */
 const storeOperationsLocally = (operations: APIOperation[]): string[] => {
     const pendingOps = JSON.parse(localStorage.getItem(PENDING_OPS_KEY) || '[]');
-    
+
     // Check if adding these operations would exceed the limit
     if (pendingOps.length + operations.length > MAX_PENDING_OPERATIONS) {
-        console.error(`[API] Pending operations limit exceeded: ${pendingOps.length + operations.length}/${MAX_PENDING_OPERATIONS}`);
-        throw new Error(`Pending operations limit exceeded (${MAX_PENDING_OPERATIONS}). Please sync your data.`);
+        console.error(
+            `[API] Pending operations limit exceeded: ${pendingOps.length + operations.length}/${MAX_PENDING_OPERATIONS}`
+        );
+        throw new Error(
+            `Pending operations limit exceeded (${MAX_PENDING_OPERATIONS}). Please sync your data.`
+        );
     }
-    
+
     const opsWithIds = operations.map((op) => ({ ...op, id: generateOperationId() }));
     pendingOps.push(...opsWithIds);
-    
+
     try {
         localStorage.setItem(PENDING_OPS_KEY, JSON.stringify(pendingOps));
     } catch (e) {
         // Handle quota exceeded error
-        if (e instanceof Error && (e.name === 'QuotaExceededError' || e.message.includes('quota'))) {
+        if (
+            e instanceof Error &&
+            (e.name === 'QuotaExceededError' || e.message.includes('quota'))
+        ) {
             console.error('[API] localStorage quota exceeded');
             throw new Error('Storage quota exceeded. Please sync your data to free up space.');
         }
         throw e;
     }
-    
+
     return opsWithIds.map((op) => op.id);
 };
 

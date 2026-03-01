@@ -259,7 +259,9 @@ if (typeof window !== 'undefined') {
                         const success = navigator.sendBeacon(`${data.API_BASE}/user`, blob);
                         if (!success) {
                             // Beacon queued for delivery but may fail - data will be synced on next session
-                            console.warn('[API Save] sendBeacon returned false, sync may have failed');
+                            console.warn(
+                                '[API Save] sendBeacon returned false, sync may have failed'
+                            );
                         }
                     } catch (error) {
                         // sendBeacon failed - data will remain in localStorage for next session

@@ -288,7 +288,9 @@ self.addEventListener('install', (event: ExtendableEvent) => {
                 await self.skipWaiting();
             } catch (error) {
                 console.error('[SW] Install failed:', error);
-                throw new Error(`Service worker install failed: ${error instanceof Error ? error.message : String(error)}`);
+                throw new Error(
+                    `Service worker install failed: ${error instanceof Error ? error.message : String(error)}`
+                );
             }
         })()
     );
@@ -388,7 +390,9 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                 });
             } catch (error) {
                 console.error('[SW] Activation failed:', error);
-                throw new Error(`Service worker activation failed: ${error instanceof Error ? error.message : String(error)}`);
+                throw new Error(
+                    `Service worker activation failed: ${error instanceof Error ? error.message : String(error)}`
+                );
             }
         })()
     );
@@ -1630,7 +1634,10 @@ function parseTar(buffer: Uint8Array): TarFile[] {
 
     while (offset < buffer.length) {
         // Check for end of archive (two empty blocks)
-        if (offset + 512 > buffer.length || buffer.slice(offset, offset + 512).every((b) => b === 0)) {
+        if (
+            offset + 512 > buffer.length ||
+            buffer.slice(offset, offset + 512).every((b) => b === 0)
+        ) {
             break;
         }
 

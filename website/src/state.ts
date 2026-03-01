@@ -51,7 +51,7 @@ export const state = {
         if (storedUserType === 'signed-in' || storedUserType === 'local') {
             this.user.type = storedUserType;
         }
-        
+
         this.loadFromStorage();
         this.cacheElements();
     },
