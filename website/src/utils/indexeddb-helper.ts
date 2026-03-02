@@ -274,7 +274,7 @@ export async function getStorageEstimate(): Promise<{
     quota: number;
     usageDetails?: Record<string, number> | undefined;
 } | null> {
-    if ('storage' in navigator && 'estimate' in navigator.storage) {
+    if ('storage' in navigator && navigator.storage && 'estimate' in navigator.storage) {
         try {
             const estimate = await navigator.storage.estimate();
             const result: {
@@ -340,6 +340,12 @@ export async function safeIDBOperation<T>(
                 }
             }
 
+            // If we have retries left, continue to next attempt
+            if (attempt < maxRetries) {
+                continue;
+            }
+
+            // No retries left, throw the error
             throw error;
         }
     }

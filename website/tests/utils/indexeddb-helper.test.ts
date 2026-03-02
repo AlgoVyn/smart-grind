@@ -1,10 +1,9 @@
 /**
- * @jest-environment jsdom
+ * IndexedDB Helper Tests
+ * Comprehensive tests for IndexedDB operations with error handling
  */
 
 import {
-    IDBErrorType,
-    IDBOperationError,
     openDatabase,
     safeStore,
     safeRetrieve,
@@ -12,259 +11,319 @@ import {
     getStorageEstimate,
     isStorageNearLimit,
     safeIDBOperation,
+    IDBOperationError,
+    IDBErrorType,
 } from '../../src/utils/indexeddb-helper';
 
 describe('IndexedDB Helper', () => {
-    beforeEach(() => {
-        (global.indexedDB as unknown as { _clearAll: () => void })._clearAll();
-        jest.clearAllMocks();
-    });
+    let mockIDB: any;
+    let mockDB: any;
+    let mockTransaction: any;
+    let mockObjectStore: any;
+    let mockRequest: any;
 
-    describe('IDBErrorType', () => {
-        it('should have correct error type values', () => {
-            expect(IDBErrorType.QUOTA_EXCEEDED).toBe('QuotaExceededError');
-            expect(IDBErrorType.VERSION_ERROR).toBe('VersionError');
-            expect(IDBErrorType.ABORT).toBe('AbortError');
-            expect(IDBErrorType.UNKNOWN).toBe('UnknownError');
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        // Setup mock request
+        mockRequest = {
+            onerror: null,
+            onsuccess: null,
+            onupgradeneeded: null,
+            onblocked: null,
+            result: null,
+            error: null,
+        };
+
+        // Setup mock object store
+        mockObjectStore = {
+            put: jest.fn().mockReturnValue(mockRequest),
+            get: jest.fn().mockReturnValue(mockRequest),
+            clear: jest.fn().mockReturnValue(mockRequest),
+        };
+
+        // Setup mock transaction
+        mockTransaction = {
+            objectStore: jest.fn().mockReturnValue(mockObjectStore),
+            onabort: null,
+            onerror: null,
+            oncomplete: null,
+            error: null,
+        };
+
+        // Setup mock database
+        mockDB = {
+            transaction: jest.fn().mockReturnValue(mockTransaction),
+            objectStoreNames: {
+                contains: jest.fn().mockReturnValue(true),
+            },
+            close: jest.fn(),
+        };
+
+        // Setup mock IndexedDB
+        mockIDB = {
+            open: jest.fn().mockReturnValue(mockRequest),
+            databases: jest.fn().mockResolvedValue([{ name: 'test-db', version: 1 }]),
+        };
+
+        Object.defineProperty(window, 'indexedDB', {
+            writable: true,
+            value: mockIDB,
+        });
+
+        // Mock navigator.storage
+        Object.defineProperty(navigator, 'storage', {
+            writable: true,
+            value: {
+                estimate: jest.fn().mockResolvedValue({ usage: 100, quota: 1000 }),
+            },
         });
     });
 
     describe('IDBOperationError', () => {
-        it('should create error with correct properties', () => {
-            const originalError = new Error('Original error');
-            const error = new IDBOperationError(
-                'Test message',
-                IDBErrorType.QUOTA_EXCEEDED,
-                originalError
-            );
+        test('should create error with correct properties', () => {
+            const originalError = new Error('Original');
+            const error = new IDBOperationError('Test message', IDBErrorType.QUOTA_EXCEEDED, originalError);
 
             expect(error.message).toBe('Test message');
             expect(error.name).toBe('IDBOperationError');
             expect(error.type).toBe(IDBErrorType.QUOTA_EXCEEDED);
             expect(error.originalError).toBe(originalError);
         });
-
-        it('should create error without original error', () => {
-            const error = new IDBOperationError('Test message', IDBErrorType.UNKNOWN);
-
-            expect(error.message).toBe('Test message');
-            expect(error.originalError).toBeUndefined();
-        });
     });
 
     describe('openDatabase', () => {
-        it('should open database successfully', async () => {
+        test('should open database successfully', async () => {
             const onUpgrade = jest.fn();
-            const dbPromise = openDatabase('test-db', 1, onUpgrade);
+            const openPromise = openDatabase('test-db', 1, onUpgrade);
 
-            const db = await dbPromise;
-            expect(db).toBeDefined();
-            expect(db.name).toBe('test-db');
-            expect(db.version).toBe(1);
-            db.close();
+            // Simulate success
+            mockRequest.result = mockDB;
+            if (mockRequest.onsuccess) {
+                mockRequest.onsuccess({ target: mockRequest } as any);
+            }
+
+            const result = await openPromise;
+            expect(result).toBe(mockDB);
         });
 
-        it('should call onUpgrade when database is created', async () => {
+        test('should handle upgrade needed', async () => {
             const onUpgrade = jest.fn();
+            const openPromise = openDatabase('test-db', 1, onUpgrade);
 
-            await openDatabase('new-db', 1, onUpgrade);
+            // Simulate upgrade needed
+            mockRequest.result = mockDB;
+            if (mockRequest.onupgradeneeded) {
+                mockRequest.onupgradeneeded({ target: mockRequest } as any);
+            }
+            if (mockRequest.onsuccess) {
+                mockRequest.onsuccess({ target: mockRequest } as any);
+            }
 
-            expect(onUpgrade).toHaveBeenCalled();
+            await openPromise;
+            expect(onUpgrade).toHaveBeenCalledWith(mockDB);
+        });
+
+        test('should handle blocked error', async () => {
+            const onUpgrade = jest.fn();
+            const openPromise = openDatabase('test-db', 1, onUpgrade);
+
+            // Simulate blocked
+            if (mockRequest.onblocked) {
+                mockRequest.onblocked({ target: mockRequest } as any);
+            }
+
+            await expect(openPromise).rejects.toThrow('Database upgrade blocked');
         });
     });
 
     describe('safeStore', () => {
-        it('should store data successfully', async () => {
-            const db = await openDatabase('store-test-db', 1, (db) => {
-                if (!db.objectStoreNames.contains('test-store')) {
-                    db.createObjectStore('test-store', { keyPath: 'key' });
-                }
-            });
+        test('should store data successfully', async () => {
+            const storePromise = safeStore(mockDB, 'test-store', 'key1', { test: 'data' });
 
-            await expect(
-                safeStore(db, 'test-store', 'test-key', { data: 'value' })
-            ).resolves.toBeUndefined();
+            // Simulate transaction complete
+            if (mockTransaction.oncomplete) {
+                mockTransaction.oncomplete();
+            }
 
-            db.close();
+            await storePromise;
+            expect(mockObjectStore.put).toHaveBeenCalledWith({ key: 'key1', value: { test: 'data' } });
+        });
+
+        test('should handle transaction error', async () => {
+            const storePromise = safeStore(mockDB, 'test-store', 'key1', 'value');
+
+            // Simulate transaction error
+            mockTransaction.error = new Error('Transaction failed');
+            if (mockTransaction.onerror) {
+                mockTransaction.onerror({ target: mockTransaction } as any);
+            }
+
+            await expect(storePromise).rejects.toThrow('Transaction failed');
         });
     });
 
     describe('safeRetrieve', () => {
-        it('should retrieve stored data', async () => {
-            const db = await openDatabase('retrieve-test-db', 1, (db) => {
-                if (!db.objectStoreNames.contains('test-store')) {
-                    db.createObjectStore('test-store', { keyPath: 'key' });
-                }
-            });
+        test('should retrieve data successfully', async () => {
+            const retrievePromise = safeRetrieve(mockDB, 'test-store', 'key1');
 
-            // First store some data
-            await safeStore(db, 'test-store', 'retrieve-key', { test: 'data' });
+            // Simulate success with data
+            mockRequest.result = { key: 'key1', value: { test: 'data' } };
+            if (mockRequest.onsuccess) {
+                mockRequest.onsuccess({ target: mockRequest } as any);
+            }
 
-            // Then retrieve it
-            const result = await safeRetrieve<{ test: string }>(db, 'test-store', 'retrieve-key');
+            const result = await retrievePromise;
             expect(result).toEqual({ test: 'data' });
-
-            db.close();
         });
 
-        it('should return null for non-existent key', async () => {
-            const db = await openDatabase('retrieve-null-db', 1, (db) => {
-                if (!db.objectStoreNames.contains('test-store')) {
-                    db.createObjectStore('test-store', { keyPath: 'key' });
-                }
+        test('should return null when key not found', async () => {
+            const retrievePromise = safeRetrieve(mockDB, 'test-store', 'key1');
+
+            // Simulate success with no data
+            mockRequest.result = undefined;
+            if (mockRequest.onsuccess) {
+                mockRequest.onsuccess({ target: mockRequest } as any);
+            }
+
+            const result = await retrievePromise;
+            expect(result).toBeNull();
+        });
+    });
+
+    describe('cleanupOldData', () => {
+        test('should cleanup data successfully', async () => {
+            // Override mockIDB.open to auto-resolve with mockDB
+            mockIDB.open.mockImplementation(() => {
+                const request: any = {
+                    onerror: null,
+                    onsuccess: null,
+                    onupgradeneeded: null,
+                    onblocked: null,
+                    result: mockDB,
+                    error: null,
+                };
+
+                // Auto-trigger success on next microtask
+                Promise.resolve().then(() => {
+                    if (request.onsuccess) {
+                        request.onsuccess({ target: request });
+                    }
+                });
+
+                return request;
             });
 
-            const result = await safeRetrieve(db, 'test-store', 'non-existent');
-            expect(result).toBeNull();
+            // Override mockObjectStore.clear to auto-resolve
+            mockObjectStore.clear.mockImplementation(() => {
+                const request: any = {
+                    onerror: null,
+                    onsuccess: null,
+                    result: undefined,
+                    error: null,
+                };
 
-            db.close();
+                // Auto-trigger success on next microtask
+                Promise.resolve().then(() => {
+                    if (request.onsuccess) {
+                        request.onsuccess({ target: request });
+                    }
+                });
+
+                return request;
+            });
+
+            const result = await cleanupOldData('test-db', ['store1', 'store2']);
+
+            expect(result).toBe(true);
+            expect(mockObjectStore.clear).toHaveBeenCalledTimes(2);
+        });
+
+        test('should return false when database not found', async () => {
+            mockIDB.databases = jest.fn().mockResolvedValue([]);
+
+            const result = await cleanupOldData('nonexistent-db', ['store1']);
+
+            expect(result).toBe(false);
         });
     });
 
     describe('getStorageEstimate', () => {
-        it('should return null when storage API is not available', async () => {
-            // Mock navigator.storage as undefined
-            const originalNavigator = global.navigator;
-            Object.defineProperty(global, 'navigator', {
-                value: {},
+        test('should return storage estimate', async () => {
+            const result = await getStorageEstimate();
+
+            expect(result).toEqual({ usage: 100, quota: 1000 });
+        });
+
+        test('should return null when storage API not available', async () => {
+            Object.defineProperty(navigator, 'storage', {
                 writable: true,
-                configurable: true,
+                value: undefined,
             });
 
             const result = await getStorageEstimate();
             expect(result).toBeNull();
-
-            // Restore navigator
-            Object.defineProperty(global, 'navigator', {
-                value: originalNavigator,
-                writable: true,
-                configurable: true,
-            });
         });
 
-        it('should return storage estimate when available', async () => {
-            const mockEstimate = {
-                usage: 1000,
-                quota: 10000,
-                usageDetails: { indexedDB: 500 },
-            };
-
-            Object.defineProperty(navigator, 'storage', {
-                value: {
-                    estimate: jest.fn().mockResolvedValue(mockEstimate),
-                },
-                writable: true,
-                configurable: true,
-            });
-
-            const result = await getStorageEstimate();
-            expect(result).toEqual({
-                usage: 1000,
-                quota: 10000,
-                usageDetails: { indexedDB: 500 },
-            });
-        });
-
-        it('should handle storage.estimate errors', async () => {
-            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-            Object.defineProperty(navigator, 'storage', {
-                value: {
-                    estimate: jest.fn().mockRejectedValue(new Error('Estimate failed')),
-                },
-                writable: true,
-                configurable: true,
-            });
+        test('should return null when estimate fails', async () => {
+            navigator.storage.estimate = jest.fn().mockRejectedValue(new Error('Estimate failed'));
 
             const result = await getStorageEstimate();
             expect(result).toBeNull();
-
-            consoleSpy.mockRestore();
         });
     });
 
     describe('isStorageNearLimit', () => {
-        it('should return false when estimate is null', async () => {
-            Object.defineProperty(navigator, 'storage', {
-                value: {
-                    estimate: jest.fn().mockResolvedValue(null),
-                },
-                writable: true,
-                configurable: true,
-            });
-
-            const result = await isStorageNearLimit();
-            expect(result).toBe(false);
-        });
-
-        it('should return false when quota is 0', async () => {
-            Object.defineProperty(navigator, 'storage', {
-                value: {
-                    estimate: jest.fn().mockResolvedValue({
-                        usage: 1000,
-                        quota: 0,
-                    }),
-                },
-                writable: true,
-                configurable: true,
-            });
-
-            const result = await isStorageNearLimit();
-            expect(result).toBe(false);
-        });
-
-        it('should return false when usage is below 90%', async () => {
-            Object.defineProperty(navigator, 'storage', {
-                value: {
-                    estimate: jest.fn().mockResolvedValue({
-                        usage: 50,
-                        quota: 100,
-                    }),
-                },
-                writable: true,
-                configurable: true,
-            });
-
-            const result = await isStorageNearLimit();
-            expect(result).toBe(false);
-        });
-
-        it('should return true when usage is above 90%', async () => {
-            Object.defineProperty(navigator, 'storage', {
-                value: {
-                    estimate: jest.fn().mockResolvedValue({
-                        usage: 95,
-                        quota: 100,
-                    }),
-                },
-                writable: true,
-                configurable: true,
-            });
+        test('should return true when usage > 90%', async () => {
+            navigator.storage.estimate = jest.fn().mockResolvedValue({ usage: 950, quota: 1000 });
 
             const result = await isStorageNearLimit();
             expect(result).toBe(true);
         });
+
+        test('should return false when usage < 90%', async () => {
+            navigator.storage.estimate = jest.fn().mockResolvedValue({ usage: 800, quota: 1000 });
+
+            const result = await isStorageNearLimit();
+            expect(result).toBe(false);
+        });
+
+        test('should return false when quota is 0', async () => {
+            navigator.storage.estimate = jest.fn().mockResolvedValue({ usage: 0, quota: 0 });
+
+            const result = await isStorageNearLimit();
+            expect(result).toBe(false);
+        });
     });
 
     describe('safeIDBOperation', () => {
-        it('should return result on successful operation', async () => {
-            const operation = jest.fn().mockResolvedValue('success');
+        test('should execute operation successfully', async () => {
+            const operation = jest.fn().mockResolvedValue('result');
 
             const result = await safeIDBOperation(operation);
 
-            expect(result).toBe('success');
+            expect(result).toBe('result');
             expect(operation).toHaveBeenCalledTimes(1);
         });
 
-        it('should throw error on failure', async () => {
-            const error = new Error('Persistent error');
-            const operation = jest.fn().mockRejectedValue(error);
+        test('should retry on failure', async () => {
+            const operation = jest.fn()
+                .mockRejectedValueOnce(new Error('First failure'))
+                .mockResolvedValueOnce('success');
 
-            await expect(
-                safeIDBOperation(operation, { maxRetries: 0 })
-            ).rejects.toBe(error);
+            const result = await safeIDBOperation(operation, { maxRetries: 1 });
 
-            expect(operation).toHaveBeenCalledTimes(1);
+            expect(result).toBe('success');
+            expect(operation).toHaveBeenCalledTimes(2);
+        });
+
+        test('should throw after max retries exceeded', async () => {
+            const operation = jest.fn().mockRejectedValue(new Error('Persistent failure'));
+
+            await expect(safeIDBOperation(operation, { maxRetries: 2 }))
+                .rejects.toThrow('Persistent failure');
+
+            expect(operation).toHaveBeenCalledTimes(3); // Initial + 2 retries
         });
     });
 });

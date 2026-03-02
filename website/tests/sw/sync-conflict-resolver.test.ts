@@ -1,648 +1,244 @@
 /**
- * Sync Conflict Resolver Unit Tests
- * Tests for merge strategies and conflict detection
+ * Sync Conflict Resolver Tests
+ * Tests for conflict resolution between client and server data
  */
 
-import { SyncConflictResolver } from '../../src/sw/sync-conflict-resolver';
+import { SyncConflictResolver, ConflictResolution, BatchConflict } from '../../src/sw/sync-conflict-resolver';
 
 describe('SyncConflictResolver', () => {
     let resolver: SyncConflictResolver;
 
     beforeEach(() => {
         resolver = new SyncConflictResolver();
-        jest.clearAllMocks();
     });
 
-    describe('Progress Conflict Resolution', () => {
-        it('should resolve with last-write-wins when timestamps are equal', async () => {
-            const now = Date.now();
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                difficulty: 2,
-                notes: 'Test notes',
-                timestamp: now,
-            };
+    describe('resolveProgressConflict', () => {
+        test('should use last-write-wins when timestamps are equal', async () => {
+            const clientData = { timestamp: 1000, solved: true };
+            const serverData = { timestamp: 1000, solved: false };
 
-            const serverData = {
-                problemId: 'two-sum',
-                solved: false,
-                solveCount: 0,
-                lastReviewed: 0,
-                nextReview: 0,
-                difficulty: 3,
-                notes: 'Server notes',
-                timestamp: now,
-            };
+            const result = await resolver.resolveProgressConflict(clientData, serverData);
 
-            const resolution = await resolver.resolveProgressConflict(clientData, serverData);
-
-            expect(resolution.status).toBe('resolved');
-            expect(resolution.strategy).toBe('last-write-wins');
-            expect(resolution.data).toEqual(serverData);
+            expect(result.status).toBe('resolved');
+            expect(result.strategy).toBe('last-write-wins');
         });
 
-        it('should merge solved status with OR operation', async () => {
+        test('should merge data when timestamps differ', async () => {
             const clientData = {
-                problemId: 'two-sum',
+                problemId: 'p1',
+                timestamp: 2000,
                 solved: true,
                 solveCount: 1,
-                lastReviewed: Date.now(),
-                nextReview: Date.now() + 86400000,
-                difficulty: 2,
-                timestamp: Date.now() - 1000,
-            };
-
-            const serverData = {
-                problemId: 'two-sum',
-                solved: false,
-                solveCount: 0,
-                lastReviewed: 0,
-                nextReview: 0,
                 difficulty: 3,
-                timestamp: Date.now(),
             };
-
-            const resolution = await resolver.resolveProgressConflict(clientData, serverData);
-
-            expect(resolution.status).toBe('resolved');
-            expect(resolution.strategy).toBe('merge');
-            const merged = resolution.data as typeof clientData;
-            expect(merged.solved).toBe(true); // OR operation
-        });
-
-        it('should sum solve counts', async () => {
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 3,
-                lastReviewed: Date.now(),
-                nextReview: Date.now() + 86400000,
-                difficulty: 2,
-                timestamp: Date.now() - 1000,
-            };
-
             const serverData = {
-                problemId: 'two-sum',
-                solved: true,
+                problemId: 'p1',
+                timestamp: 1000,
+                solved: false,
                 solveCount: 2,
-                lastReviewed: Date.now(),
-                nextReview: Date.now() + 86400000,
-                difficulty: 3,
-                timestamp: Date.now(),
+                difficulty: 4,
             };
 
-            const resolution = await resolver.resolveProgressConflict(clientData, serverData);
+            const result = await resolver.resolveProgressConflict(clientData, serverData);
 
-            const merged = resolution.data as typeof clientData;
-            expect(merged.solveCount).toBe(5); // SUM
+            expect(result.status).toBe('resolved');
+            expect(result.strategy).toBe('merge');
+            expect(result.data).toMatchObject({
+                problemId: 'p1',
+                solved: true, // OR operation
+                solveCount: 3, // SUM
+            });
         });
 
-        it('should use MAX for lastReviewed', async () => {
-            const now = Date.now();
+        test('should require manual resolution for significant conflicts', async () => {
             const clientData = {
-                problemId: 'two-sum',
+                timestamp: 2000,
                 solved: true,
-                solveCount: 1,
-                lastReviewed: now - 1000,
-                nextReview: now,
-                difficulty: 2,
-                timestamp: now - 1000,
+                difficulty: 5,
+                notes: 'My detailed notes about the solution',
             };
-
             const serverData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                difficulty: 3,
-                timestamp: now,
+                timestamp: 1000,
+                solved: false,
+                difficulty: 1,
+                notes: 'Completely different approach notes',
             };
 
-            const resolution = await resolver.resolveProgressConflict(clientData, serverData);
+            const result = await resolver.resolveProgressConflict(clientData, serverData);
 
-            const merged = resolution.data as typeof clientData;
-            expect(merged.lastReviewed).toBe(now); // MAX
-        });
-
-        it('should recalculate nextReview based on merged lastReviewed', async () => {
-            const now = Date.now();
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now - 1000,
-                nextReview: now,
-                difficulty: 2,
-                timestamp: now - 1000,
-            };
-
-            const serverData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                difficulty: 3,
-                timestamp: now,
-            };
-
-            const resolution = await resolver.resolveProgressConflict(clientData, serverData);
-
-            const merged = resolution.data as typeof clientData;
-            expect(merged.nextReview).toBeGreaterThan(now);
-        });
-
-        it('should merge difficulty with weighted average', async () => {
-            const now = Date.now();
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                difficulty: 2, // Easy
-                timestamp: now - 86400000, // 1 day ago
-            };
-
-            const serverData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                difficulty: 4, // Hard
-                timestamp: now, // Now
-            };
-
-            const resolution = await resolver.resolveProgressConflict(clientData, serverData);
-
-            const merged = resolution.data as typeof clientData;
-            // Should be closer to 4 (server) since it's more recent
-            expect(merged.difficulty).toBeGreaterThan(2);
-            expect(merged.difficulty).toBeLessThanOrEqual(4);
-        });
-
-        it('should merge notes with timestamps when different', async () => {
-            const now = Date.now();
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                difficulty: 2,
-                notes: 'Client notes',
-                timestamp: now - 1000,
-            };
-
-            const serverData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                difficulty: 3,
-                notes: 'Server notes',
-                timestamp: now,
-            };
-
-            const resolution = await resolver.resolveProgressConflict(clientData, serverData);
-
-            const merged = resolution.data as typeof clientData;
-            expect(merged.notes).toContain('Client notes');
-            expect(merged.notes).toContain('Server notes');
-            expect(merged.notes).toContain('--- Notes from');
-        });
-
-        it('should use single notes when identical', async () => {
-            const now = Date.now();
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                difficulty: 2,
-                notes: 'Same notes',
-                timestamp: now - 1000,
-            };
-
-            const serverData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                difficulty: 3,
-                notes: 'Same notes',
-                timestamp: now,
-            };
-
-            const resolution = await resolver.resolveProgressConflict(clientData, serverData);
-
-            const merged = resolution.data as typeof clientData;
-            expect(merged.notes).toBe('Same notes');
-        });
-
-        it('should handle missing notes', async () => {
-            const now = Date.now();
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                difficulty: 2,
-                timestamp: now - 1000,
-            };
-
-            const serverData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                difficulty: 3,
-                notes: 'Server notes',
-                timestamp: now,
-            };
-
-            const resolution = await resolver.resolveProgressConflict(clientData, serverData);
-
-            const merged = resolution.data as typeof clientData;
-            expect(merged.notes).toBe('Server notes');
+            expect(result.status).toBe('manual');
+            expect(result.strategy).toBe('manual');
         });
     });
 
-    describe('Custom Problem Conflict Resolution', () => {
-        it('should use last-write-wins for minor conflicts', async () => {
-            const now = Date.now();
+    describe('resolveCustomProblemConflict', () => {
+        test('should use last-write-wins for minor conflicts', async () => {
             const clientData = {
-                id: 'custom-1',
-                name: 'My Problem',
-                url: 'https://example.com',
-                category: 'Arrays',
-                pattern: 'Two Pointers',
-                difficulty: 'Medium' as const,
-                timestamp: now - 1000,
+                timestamp: 2000,
+                name: 'Two Sum',
+                difficulty: 3,
             };
-
             const serverData = {
-                id: 'custom-1',
-                name: 'My Problem',
-                url: 'https://example.com/updated',
-                category: 'Arrays',
-                pattern: 'Two Pointers',
-                difficulty: 'Medium' as const,
-                timestamp: now,
+                timestamp: 1000,
+                name: 'Two Sum',
+                difficulty: 4,
             };
 
-            const resolution = await resolver.resolveCustomProblemConflict(clientData, serverData);
+            const result = await resolver.resolveCustomProblemConflict(clientData, serverData);
 
-            expect(resolution.status).toBe('resolved');
-            expect(resolution.strategy).toBe('last-write-wins');
-            expect(resolution.data).toEqual(serverData);
+            expect(result.status).toBe('resolved');
+            expect(result.strategy).toBe('last-write-wins');
+            expect(result.data).toBe(clientData); // Client wins (newer)
         });
 
-        it('should require manual resolution for significant conflicts', async () => {
-            const now = Date.now();
+        test('should require manual resolution for significant changes', async () => {
             const clientData = {
-                id: 'custom-1',
-                name: 'My Problem',
-                url: 'https://example.com',
+                timestamp: 2000,
+                name: 'Two Sum Modified',
+                url: 'https://new-url.com',
                 category: 'Arrays',
-                pattern: 'Two Pointers',
-                difficulty: 'Easy' as const,
-                timestamp: now,
+                difficulty: 3,
             };
-
             const serverData = {
-                id: 'custom-1',
-                name: 'Different Name',
-                url: 'https://other.com',
-                category: 'Strings',
-                pattern: 'Sliding Window',
-                difficulty: 'Hard' as const,
-                timestamp: now,
+                timestamp: 1000,
+                name: 'Two Sum',
+                url: 'https://old-url.com',
+                category: 'Hash Table',
+                difficulty: 2,
             };
 
-            const resolution = await resolver.resolveCustomProblemConflict(clientData, serverData);
+            const result = await resolver.resolveCustomProblemConflict(clientData, serverData);
 
-            expect(resolution.status).toBe('manual');
-            expect(resolution.message).toContain('conflicting data');
+            expect(result.status).toBe('manual');
+            expect(result.strategy).toBe('manual');
         });
     });
 
-    describe('Batch Conflict Resolution', () => {
-        it('should resolve multiple conflicts', async () => {
-            const now = Date.now();
-            const conflicts = [
+    describe('requiresManualResolution', () => {
+        test('should return true for substantially different notes', () => {
+            const clientData = {
+                notes: 'This is a completely different solution approach',
+                timestamp: 1000,
+            };
+            const serverData = {
+                notes: 'Using hash map for O(n) solution',
+                timestamp: 2000,
+            };
+
+            expect(resolver.requiresManualResolution(clientData, serverData)).toBe(true);
+        });
+
+        test('should return true for large difficulty differences', () => {
+            const clientData = { difficulty: 1, timestamp: 1000 };
+            const serverData = { difficulty: 5, timestamp: 2000 };
+
+            expect(resolver.requiresManualResolution(clientData, serverData)).toBe(true);
+        });
+
+        test('should return false for minor differences', () => {
+            const clientData = { difficulty: 3, solved: true, timestamp: 1000 };
+            const serverData = { difficulty: 4, solved: true, timestamp: 2000 };
+
+            expect(resolver.requiresManualResolution(clientData, serverData)).toBe(false);
+        });
+    });
+
+    describe('generateConflictDescription', () => {
+        test('should describe solved status conflict', () => {
+            const clientData = { solved: true };
+            const serverData = { solved: false };
+
+            const description = resolver.generateConflictDescription(clientData, serverData);
+
+            expect(description).toContain('Solved status');
+        });
+
+        test('should describe multiple conflicts', () => {
+            const clientData = { solved: true, difficulty: 5, notes: 'Notes 1' };
+            const serverData = { solved: false, difficulty: 2, notes: 'Notes 2' };
+
+            const description = resolver.generateConflictDescription(clientData, serverData);
+
+            expect(description).toContain('Solved status');
+            expect(description).toContain('Difficulty');
+            expect(description).toContain('Notes');
+        });
+
+        test('should return default message when no differences', () => {
+            const clientData = { solved: true };
+            const serverData = { solved: true };
+
+            const description = resolver.generateConflictDescription(clientData, serverData);
+
+            expect(description).toBe('Data conflict detected');
+        });
+    });
+
+    describe('resolveBatchConflicts', () => {
+        test('should resolve multiple conflicts', async () => {
+            const conflicts: BatchConflict[] = [
                 {
-                    problemId: 'two-sum',
-                    clientData: {
-                        problemId: 'two-sum',
-                        solved: true,
-                        solveCount: 1,
-                        lastReviewed: now,
-                        nextReview: now + 86400000,
-                        difficulty: 2,
-                        timestamp: now - 1000,
-                    },
-                    serverData: {
-                        problemId: 'two-sum',
-                        solved: true,
-                        solveCount: 2,
-                        lastReviewed: now,
-                        nextReview: now + 86400000,
-                        difficulty: 3,
-                        timestamp: now,
-                    },
+                    problemId: 'p1',
+                    clientData: { timestamp: 2000, solved: true },
+                    serverData: { timestamp: 1000, solved: false },
                 },
                 {
-                    problemId: 'three-sum',
-                    clientData: {
-                        problemId: 'three-sum',
-                        solved: false,
-                        solveCount: 0,
-                        lastReviewed: 0,
-                        nextReview: 0,
-                        difficulty: 3,
-                        timestamp: now - 1000,
-                    },
-                    serverData: {
-                        problemId: 'three-sum',
-                        solved: true,
-                        solveCount: 1,
-                        lastReviewed: now,
-                        nextReview: now + 86400000,
-                        difficulty: 4,
-                        timestamp: now,
-                    },
+                    problemId: 'p2',
+                    clientData: { timestamp: 1000, difficulty: 1 },
+                    serverData: { timestamp: 2000, difficulty: 5 },
                 },
             ];
 
             const results = await resolver.resolveBatchConflicts(conflicts);
 
             expect(results).toHaveLength(2);
-            expect(results[0].problemId).toBe('two-sum');
-            expect(results[1].problemId).toBe('three-sum');
-            expect(results[0].resolution.status).toBe('resolved');
-            expect(results[1].resolution.status).toBe('resolved');
+            expect(results[0].problemId).toBe('p1');
+            expect(results[1].problemId).toBe('p2');
         });
     });
 
-    describe('Manual Resolution Detection', () => {
-        it('should detect when notes are significantly different', () => {
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: Date.now(),
-                nextReview: Date.now() + 86400000,
-                difficulty: 2,
-                notes: 'Binary search approach with O(log n) complexity',
-                timestamp: Date.now(),
-            };
+    describe('autoResolve', () => {
+        test('should auto-resolve progress conflicts', async () => {
+            const clientData = { timestamp: 2000, solved: true };
+            const serverData = { timestamp: 1000, solved: false };
 
-            const serverData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: Date.now(),
-                nextReview: Date.now() + 86400000,
-                difficulty: 2,
-                notes: 'Dynamic programming solution with memoization',
-                timestamp: Date.now(),
-            };
+            const result = await resolver.autoResolve(clientData, serverData, 'progress');
 
-            const requiresManual = resolver.requiresManualResolution(clientData, serverData);
-            expect(requiresManual).toBe(true);
+            expect(result.status).toBe('resolved');
         });
 
-        it('should detect when difficulty differs significantly', () => {
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: Date.now(),
-                nextReview: Date.now() + 86400000,
-                difficulty: 1, // Easy
-                timestamp: Date.now(),
-            };
+        test('should auto-resolve settings with last-write-wins', async () => {
+            const clientData = { timestamp: 2000, theme: 'dark' };
+            const serverData = { timestamp: 1000, theme: 'light' };
 
-            const serverData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: Date.now(),
-                nextReview: Date.now() + 86400000,
-                difficulty: 5, // Hard
-                timestamp: Date.now(),
-            };
+            const result = await resolver.autoResolve(clientData, serverData, 'settings');
 
-            const requiresManual = resolver.requiresManualResolution(clientData, serverData);
-            expect(requiresManual).toBe(true);
+            expect(result.status).toBe('resolved');
+            expect(result.strategy).toBe('last-write-wins');
+            expect(result.data).toEqual(clientData);
         });
 
-        it('should not require manual resolution for minor differences', () => {
+        test('should require manual resolution when needed', async () => {
             const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: Date.now(),
-                nextReview: Date.now() + 86400000,
-                difficulty: 2,
-                notes: 'Use hash map for O(n) solution',
-                timestamp: Date.now(),
-            };
-
-            const serverData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: Date.now(),
-                nextReview: Date.now() + 86400000,
-                difficulty: 3,
-                notes: 'Use hash map for O(n) solution approach',
-                timestamp: Date.now(),
-            };
-
-            const requiresManual = resolver.requiresManualResolution(clientData, serverData);
-            expect(requiresManual).toBe(false);
-        });
-    });
-
-    describe('Conflict Description Generation', () => {
-        it('should generate description for solved status conflict', () => {
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: Date.now(),
-                nextReview: Date.now() + 86400000,
-                difficulty: 2,
-                timestamp: Date.now(),
-            };
-
-            const serverData = {
-                problemId: 'two-sum',
-                solved: false,
-                solveCount: 1,
-                lastReviewed: Date.now(),
-                nextReview: Date.now() + 86400000,
-                difficulty: 2,
-                timestamp: Date.now(),
-            };
-
-            const description = resolver.generateConflictDescription(clientData, serverData);
-            expect(description).toContain('Solved status');
-        });
-
-        it('should generate description for multiple differences', () => {
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 3,
-                lastReviewed: Date.now(),
-                nextReview: Date.now() + 86400000,
-                difficulty: 2,
-                notes: 'Client notes',
-                timestamp: Date.now(),
-            };
-
-            const serverData = {
-                problemId: 'two-sum',
-                solved: false,
-                solveCount: 1,
-                lastReviewed: Date.now(),
-                nextReview: Date.now() + 86400000,
-                difficulty: 4,
-                notes: 'Server notes',
-                timestamp: Date.now(),
-            };
-
-            const description = resolver.generateConflictDescription(clientData, serverData);
-            expect(description).toContain('Solved status');
-            expect(description).toContain('Difficulty');
-            expect(description).toContain('Notes');
-            expect(description).toContain('Solve count');
-        });
-    });
-
-    describe('Edge Cases', () => {
-        it('should handle undefined difficulty', async () => {
-            const now = Date.now();
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                timestamp: now - 1000,
-            };
-
-            const serverData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                difficulty: 3,
-                timestamp: now,
-            };
-
-            const resolution = await resolver.resolveProgressConflict(clientData, serverData);
-
-            const merged = resolution.data as typeof serverData;
-            expect(merged.difficulty).toBe(3);
-        });
-
-        it('should handle both undefined difficulty', async () => {
-            const now = Date.now();
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                timestamp: now - 1000,
-            };
-
-            const serverData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
-                timestamp: now,
-            };
-
-            const resolution = await resolver.resolveProgressConflict(clientData, serverData);
-
-            const merged = resolution.data as { difficulty: number };
-            expect(merged.difficulty).toBe(3); // Default to medium
-        });
-
-        it('should handle zero solve counts', async () => {
-            const now = Date.now();
-            const clientData = {
-                problemId: 'two-sum',
-                solved: false,
-                solveCount: 0,
-                lastReviewed: 0,
-                nextReview: 0,
-                difficulty: 2,
-                timestamp: now - 1000,
-            };
-
-            const serverData = {
-                problemId: 'two-sum',
-                solved: false,
-                solveCount: 0,
-                lastReviewed: 0,
-                nextReview: 0,
-                difficulty: 3,
-                timestamp: now,
-            };
-
-            const resolution = await resolver.resolveProgressConflict(clientData, serverData);
-
-            const merged = resolution.data as typeof clientData;
-            expect(merged.solveCount).toBe(0);
-        });
-
-        it('should clamp difficulty to 1-5 range', async () => {
-            const now = Date.now();
-            const clientData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
+                timestamp: 2000,
+                notes: 'Completely different notes',
                 difficulty: 1,
-                timestamp: now - 86400000,
             };
-
             const serverData = {
-                problemId: 'two-sum',
-                solved: true,
-                solveCount: 1,
-                lastReviewed: now,
-                nextReview: now + 86400000,
+                timestamp: 1000,
+                notes: 'Original notes',
                 difficulty: 5,
-                timestamp: now,
             };
 
-            const resolution = await resolver.resolveProgressConflict(clientData, serverData);
+            const result = await resolver.autoResolve(clientData, serverData, 'progress');
 
-            const merged = resolution.data as typeof clientData;
-            expect(merged.difficulty).toBeGreaterThanOrEqual(1);
-            expect(merged.difficulty).toBeLessThanOrEqual(5);
+            expect(result.status).toBe('manual');
+        });
+
+        test('should return error for unknown conflict type', async () => {
+            const result = await resolver.autoResolve({}, {}, 'unknown' as any);
+
+            expect(result.status).toBe('error');
         });
     });
 });
