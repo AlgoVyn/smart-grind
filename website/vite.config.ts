@@ -17,11 +17,22 @@ export default defineConfig({
                 sw: './src/sw/service-worker.ts',
             },
             output: {
-                manualChunks: {
-                    // Feature-based chunks
-                    'auth': ['./src/ui/ui-auth.ts', './src/init.ts'],
-                    'renderers': ['./src/renderers.ts'],
-                    'api': ['./src/api.ts'],
+                manualChunks: (id, { getModuleInfo }) => {
+                    // Don't split the service worker - inline all dependencies
+                    if (id.includes('/sw/') || getModuleInfo(id)?.isEntry) {
+                        return undefined;
+                    }
+                    // Feature-based chunks for main app only
+                    if (id.includes('/ui/ui-auth') || id.includes('/init.ts')) {
+                        return 'auth';
+                    }
+                    if (id.includes('/renderers.ts')) {
+                        return 'renderers';
+                    }
+                    if (id.includes('/api.ts') && !id.includes('/sw/')) {
+                        return 'api';
+                    }
+                    return undefined;
                 },
                 // Ensure consistent chunk naming
                 chunkFileNames: 'assets/js/[name]-[hash].js',
@@ -39,6 +50,8 @@ export default defineConfig({
                     }
                     return 'assets/[name]-[hash][extname]';
                 },
+                // Inline all imports for the service worker entry
+                inlineDynamicImports: false,
             },
         },
         // Optimize chunk size warnings
@@ -82,6 +95,37 @@ export default defineConfig({
                 
                 if (fs.existsSync(targetPath)) {
                     console.log('[vite] Service worker built successfully at dist/smartgrind/sw.js');
+                }
+            },
+        },
+        {
+            name: 'fix-sw-imports',
+            closeBundle() {
+                // Fix relative imports in service worker to use absolute paths
+                // The SW is at /smartgrind/sw.js but imports chunks with ../assets/js/
+                // which resolves to /assets/js/ instead of /smartgrind/assets/js/
+                const distPath = path.resolve(__dirname, 'dist');
+                const swFile = path.join(distPath, 'smartgrind', 'sw.js');
+                
+                if (!fs.existsSync(swFile)) {
+                    return;
+                }
+                
+                try {
+                    let swContent = fs.readFileSync(swFile, 'utf-8');
+                    
+                    // Replace ALL relative imports with absolute imports
+                    // Handle both: from"../assets/js/... and import"../assets/js/...
+                    swContent = swContent.replace(
+                        /(from"|import")\.\.\/assets\/js\//g,
+                        '$1/smartgrind/assets/js/'
+                    );
+                    
+                    fs.writeFileSync(swFile, swContent);
+                    console.log('[vite] Service worker imports fixed to use absolute paths');
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    console.warn('[vite] Failed to fix SW imports:', errorMessage);
                 }
             },
         },
@@ -144,7 +188,7 @@ export default defineConfig({
                     console.warn('[vite] Failed to inject SW version:', errorMessage);
                 }
             },
-        },
+        }
     ],
     server: {
         port: 3000,
