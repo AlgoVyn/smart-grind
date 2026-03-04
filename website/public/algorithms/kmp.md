@@ -745,8 +745,10 @@ The key insight is that:
 
 Instead of collecting all matches, return immediately when first match is found:
 
+````carousel
 ```python
 def kmp_first_occurrence(text: str, pattern: str) -> int:
+    """Find first occurrence of pattern in text using KMP."""
     n, m = len(text), len(pattern)
     if m == 0: return 0
     if n == 0 or m > n: return -1
@@ -767,11 +769,94 @@ def kmp_first_occurrence(text: str, pattern: str) -> int:
     
     return -1
 ```
+<!-- slide -->
+```cpp
+int kmpFirstOccurrence(const string& text, const string& pattern) {
+    int n = text.length();
+    int m = pattern.length();
+    if (m == 0) return 0;
+    if (n == 0 || m > n) return -1;
+    
+    vector<int> lps = computeLPS(pattern);
+    int i = 0, j = 0;
+    
+    while (i < n) {
+        if (text[i] == pattern[j]) {
+            i++;
+            j++;
+            if (j == m) {
+                return i - j;
+            }
+        } else {
+            j = (j != 0) ? lps[j - 1] : 0;
+            if (j == 0) i++;
+        }
+    }
+    return -1;
+}
+```
+<!-- slide -->
+```java
+public int kmpFirstOccurrence(String text, String pattern) {
+    int n = text.length();
+    int m = pattern.length();
+    if (m == 0) return 0;
+    if (n == 0 || m > n) return -1;
+    
+    int[] lps = computeLPS(pattern);
+    int i = 0, j = 0;
+    
+    while (i < n) {
+        if (text.charAt(i) == pattern.charAt(j)) {
+            i++;
+            j++;
+            if (j == m) {
+                return i - j;
+            }
+        } else {
+            j = (j != 0) ? lps[j - 1] : 0;
+            if (j == 0) i++;
+        }
+    }
+    return -1;
+}
+```
+<!-- slide -->
+```javascript
+function kmpFirstOccurrence(text, pattern) {
+    const n = text.length;
+    const m = pattern.length;
+    if (m === 0) return 0;
+    if (n === 0 || m > n) return -1;
+    
+    const lps = computeLPS(pattern);
+    let i = 0, j = 0;
+    
+    while (i < n) {
+        if (text[i] === pattern[j]) {
+            i++;
+            j++;
+            if (j === m) {
+                return i - j;
+            }
+        } else {
+            j = (j !== 0) ? lps[j - 1] : 0;
+            if (j === 0) i++;
+        }
+    }
+    return -1;
+}
+```
+````
 
 ### 2. Count Total Occurrences
 
+Count all occurrences of pattern in text without storing positions:
+
+````carousel
 ```python
 def kmp_count_occurrences(text: str, pattern: str) -> int:
+    """Count total occurrences of pattern in text."""
     n, m = len(text), len(pattern)
     if m == 0: return n + 1
     if n == 0 or m > n: return 0
@@ -794,15 +879,103 @@ def kmp_count_occurrences(text: str, pattern: str) -> int:
     
     return count
 ```
+<!-- slide -->
+```cpp
+int kmpCountOccurrences(const string& text, const string& pattern) {
+    int n = text.length();
+    int m = pattern.length();
+    if (m == 0) return n + 1;
+    if (n == 0 || m > n) return 0;
+    
+    vector<int> lps = computeLPS(pattern);
+    int count = 0, i = 0, j = 0;
+    
+    while (i < n) {
+        if (text[i] == pattern[j]) {
+            i++;
+            j++;
+            if (j == m) {
+                count++;
+                j = lps[j - 1];
+            }
+        } else {
+            j = (j != 0) ? lps[j - 1] : 0;
+            if (j == 0) i++;
+        }
+    }
+    return count;
+}
+```
+<!-- slide -->
+```java
+public int kmpCountOccurrences(String text, String pattern) {
+    int n = text.length();
+    int m = pattern.length();
+    if (m == 0) return n + 1;
+    if (n == 0 || m > n) return 0;
+    
+    int[] lps = computeLPS(pattern);
+    int count = 0, i = 0, j = 0;
+    
+    while (i < n) {
+        if (text.charAt(i) == pattern.charAt(j)) {
+            i++;
+            j++;
+            if (j == m) {
+                count++;
+                j = lps[j - 1];
+            }
+        } else {
+            j = (j != 0) ? lps[j - 1] : 0;
+            if (j == 0) i++;
+        }
+    }
+    return count;
+}
+```
+<!-- slide -->
+```javascript
+function kmpCountOccurrences(text, pattern) {
+    const n = text.length;
+    const m = pattern.length;
+    if (m === 0) return n + 1;
+    if (n === 0 || m > n) return 0;
+    
+    const lps = computeLPS(pattern);
+    let count = 0, i = 0, j = 0;
+    
+    while (i < n) {
+        if (text[i] === pattern[j]) {
+            i++;
+            j++;
+            if (j === m) {
+                count++;
+                j = lps[j - 1];
+            }
+        } else {
+            j = (j !== 0) ? lps[j - 1] : 0;
+            if (j === 0) i++;
+        }
+    }
+    return count;
+}
+```
+````
 
 ### 3. Z-Algorithm Alternative
 
-The Z-algorithm computes similar information but on a combined string:
+The Z-algorithm computes similar information but on a combined string. It achieves the same O(n + m) complexity with a different approach:
 
+````carousel
 ```python
 def z_algorithm(s: str) -> list[int]:
-    """Compute Z-array: Z[i] = length of longest substring starting at i 
-    that is also a prefix of s."""
+    """
+    Compute Z-array: Z[i] = length of longest substring starting at i 
+    that is also a prefix of s.
+    
+    Time: O(n)
+    Space: O(n)
+    """
     n = len(s)
     z = [0] * n
     l = r = 0
@@ -820,19 +993,594 @@ def z_algorithm(s: str) -> list[int]:
     
     z[0] = n
     return z
+
+def z_algorithm_search(text: str, pattern: str) -> list[int]:
+    """Search pattern in text using Z-algorithm."""
+    combined = pattern + "$" + text
+    z = z_algorithm(combined)
+    m = len(pattern)
+    result = []
+    
+    for i in range(m + 1, len(combined)):
+        if z[i] == m:
+            result.append(i - m - 1)
+    
+    return result
 ```
+<!-- slide -->
+```cpp
+vector<int> zAlgorithm(const string& s) {
+    int n = s.length();
+    vector<int> z(n);
+    int l = 0, r = 0;
+    
+    for (int i = 1; i < n; i++) {
+        if (i <= r) {
+            z[i] = min(r - i + 1, z[i - l]);
+        }
+        while (i + z[i] < n && s[z[i]] == s[i + z[i]]) {
+            z[i]++;
+        }
+        if (i + z[i] - 1 > r) {
+            l = i;
+            r = i + z[i] - 1;
+        }
+    }
+    z[0] = n;
+    return z;
+}
 
-### 4. Pattern Matching with Wildcards
+vector<int> zAlgorithmSearch(const string& text, const string& pattern) {
+    string combined = pattern + "$" + text;
+    vector<int> z = zAlgorithm(combined);
+    int m = pattern.length();
+    vector<int> result;
+    
+    for (int i = m + 1; i < combined.length(); i++) {
+        if (z[i] == m) {
+            result.push_back(i - m - 1);
+        }
+    }
+    return result;
+}
+```
+<!-- slide -->
+```java
+public int[] zAlgorithm(String s) {
+    int n = s.length();
+    int[] z = new int[n];
+    int l = 0, r = 0;
+    
+    for (int i = 1; i < n; i++) {
+        if (i <= r) {
+            z[i] = Math.min(r - i + 1, z[i - l]);
+        }
+        while (i + z[i] < n && s.charAt(z[i]) == s.charAt(i + z[i])) {
+            z[i]++;
+        }
+        if (i + z[i] - 1 > r) {
+            l = i;
+            r = i + z[i] - 1;
+        }
+    }
+    z[0] = n;
+    return z;
+}
 
-KMP can be extended to handle wildcard characters:
+public List<Integer> zAlgorithmSearch(String text, String pattern) {
+    String combined = pattern + "$" + text;
+    int[] z = zAlgorithm(combined);
+    int m = pattern.length();
+    List<Integer> result = new ArrayList<>();
+    
+    for (int i = m + 1; i < combined.length(); i++) {
+        if (z[i] == m) {
+            result.add(i - m - 1);
+        }
+    }
+    return result;
+}
+```
+<!-- slide -->
+```javascript
+function zAlgorithm(s) {
+    const n = s.length;
+    const z = new Array(n).fill(0);
+    let l = 0, r = 0;
+    
+    for (let i = 1; i < n; i++) {
+        if (i <= r) {
+            z[i] = Math.min(r - i + 1, z[i - l]);
+        }
+        while (i + z[i] < n && s[z[i]] === s[i + z[i]]) {
+            z[i]++;
+        }
+        if (i + z[i] - 1 > r) {
+            l = i;
+            r = i + z[i] - 1;
+        }
+    }
+    z[0] = n;
+    return z;
+}
 
+function zAlgorithmSearch(text, pattern) {
+    const combined = pattern + "$" + text;
+    const z = zAlgorithm(combined);
+    const m = pattern.length;
+    const result = [];
+    
+    for (let i = m + 1; i < combined.length; i++) {
+        if (z[i] === m) {
+            result.push(i - m - 1);
+        }
+    }
+    return result;
+}
+```
+````
+
+### 4. Pattern Matching with Overlapping
+
+Handle cases where patterns can overlap (already default in KMP):
+
+````carousel
 ```python
-def kmp_with_wildcards(text: str, pattern: str) -> list[int]:
-    """KMP with wildcard support: '?' matches any single character."""
-    # Convert pattern to handle wildcards
-    # This is a simplified version
-    pass  # Implementation complexity varies
+def kmp_find_overlapping(text: str, pattern: str) -> list[int]:
+    """
+    Find all occurrences including overlapping ones.
+    KMP naturally handles overlapping patterns.
+    Example: pattern 'AA' in 'AAAA' finds matches at [0, 1, 2]
+    """
+    return kmp_search(text, pattern)  # Default KMP handles overlaps
+
+# Non-overlapping version (skip past matched pattern)
+def kmp_find_non_overlapping(text: str, pattern: str) -> list[int]:
+    """Find non-overlapping occurrences only."""
+    n, m = len(text), len(pattern)
+    if m == 0: return list(range(n + 1))
+    if n == 0 or m > n: return []
+    
+    lps = compute_lps(pattern)
+    result = []
+    i = j = 0
+    
+    while i < n:
+        if text[i] == pattern[j]:
+            i += 1
+            j += 1
+            if j == m:
+                result.append(i - j)
+                j = 0  # Reset to find non-overlapping
+        else:
+            j = lps[j - 1] if j != 0 else 0
+            if j == 0:
+                i += 1
+    
+    return result
 ```
+<!-- slide -->
+```cpp
+vector<int> kmpFindNonOverlapping(const string& text, const string& pattern) {
+    int n = text.length();
+    int m = pattern.length();
+    if (m == 0) {
+        vector<int> res;
+        for (int i = 0; i <= n; i++) res.push_back(i);
+        return res;
+    }
+    if (n == 0 || m > n) return {};
+    
+    vector<int> lps = computeLPS(pattern);
+    vector<int> result;
+    int i = 0, j = 0;
+    
+    while (i < n) {
+        if (text[i] == pattern[j]) {
+            i++;
+            j++;
+            if (j == m) {
+                result.push_back(i - j);
+                j = 0;  // Reset for non-overlapping
+            }
+        } else {
+            j = (j != 0) ? lps[j - 1] : 0;
+            if (j == 0) i++;
+        }
+    }
+    return result;
+}
+```
+<!-- slide -->
+```java
+public List<Integer> kmpFindNonOverlapping(String text, String pattern) {
+    int n = text.length();
+    int m = pattern.length();
+    List<Integer> result = new ArrayList<>();
+    if (m == 0) {
+        for (int i = 0; i <= n; i++) result.add(i);
+        return result;
+    }
+    if (n == 0 || m > n) return result;
+    
+    int[] lps = computeLPS(pattern);
+    int i = 0, j = 0;
+    
+    while (i < n) {
+        if (text.charAt(i) == pattern.charAt(j)) {
+            i++;
+            j++;
+            if (j == m) {
+                result.add(i - j);
+                j = 0;  // Reset for non-overlapping
+            }
+        } else {
+            j = (j != 0) ? lps[j - 1] : 0;
+            if (j == 0) i++;
+        }
+    }
+    return result;
+}
+```
+<!-- slide -->
+```javascript
+function kmpFindNonOverlapping(text, pattern) {
+    const n = text.length;
+    const m = pattern.length;
+    const result = [];
+    if (m === 0) {
+        for (let i = 0; i <= n; i++) result.push(i);
+        return result;
+    }
+    if (n === 0 || m > n) return result;
+    
+    const lps = computeLPS(pattern);
+    let i = 0, j = 0;
+    
+    while (i < n) {
+        if (text[i] === pattern[j]) {
+            i++;
+            j++;
+            if (j === m) {
+                result.push(i - j);
+                j = 0;  // Reset for non-overlapping
+            }
+        } else {
+            j = (j !== 0) ? lps[j - 1] : 0;
+            if (j === 0) i++;
+        }
+    }
+    return result;
+}
+```
+````
+
+### 5. KMP with Multiple Patterns (Aho-Corasick Preview)
+
+For searching multiple patterns simultaneously, use a Trie with KMP-like failure links:
+
+````carousel
+```python
+class TrieNode:
+    """Node for Aho-Corasick automaton."""
+    def __init__(self):
+        self.children = {}
+        self.fail = None
+        self.output = []
+        self.is_end = False
+
+def build_aho_corasick(patterns: list[str]):
+    """
+    Build Aho-Corasick automaton for multiple pattern matching.
+    Time: O(total pattern length)
+    """
+    root = TrieNode()
+    
+    # Build trie
+    for pattern in patterns:
+        node = root
+        for char in pattern:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_end = True
+        node.output.append(pattern)
+    
+    # Build failure links using BFS
+    from collections import deque
+    queue = deque()
+    
+    for child in root.children.values():
+        child.fail = root
+        queue.append(child)
+    
+    while queue:
+        current = queue.popleft()
+        
+        for char, child in current.children.items():
+            fail_node = current.fail
+            while fail_node and char not in fail_node.children:
+                fail_node = fail_node.fail
+            
+            child.fail = fail_node.children[char] if fail_node else root
+            child.output.extend(child.fail.output)
+            queue.append(child)
+    
+    return root
+```
+<!-- slide -->
+```cpp
+struct TrieNode {
+    unordered_map<char, TrieNode*> children;
+    TrieNode* fail = nullptr;
+    vector<string> output;
+    bool isEnd = false;
+};
+
+class AhoCorasick {
+public:
+    TrieNode* build(const vector<string>& patterns) {
+        TrieNode* root = new TrieNode();
+        
+        // Build trie
+        for (const string& pattern : patterns) {
+            TrieNode* node = root;
+            for (char c : pattern) {
+                if (!node->children.count(c)) {
+                    node->children[c] = new TrieNode();
+                }
+                node = node->children[c];
+            }
+            node->isEnd = true;
+            node->output.push_back(pattern);
+        }
+        
+        // Build failure links
+        queue<TrieNode*> q;
+        for (auto& [c, child] : root->children) {
+            child->fail = root;
+            q.push(child);
+        }
+        
+        while (!q.empty()) {
+            TrieNode* current = q.front(); q.pop();
+            
+            for (auto& [c, child] : current->children) {
+                TrieNode* failNode = current->fail;
+                while (failNode && !failNode->children.count(c)) {
+                    failNode = failNode->fail;
+                }
+                child->fail = failNode ? failNode->children[c] : root;
+                child->output.insert(child->output.end(), 
+                                     child->fail->output.begin(), 
+                                     child->fail->output.end());
+                q.push(child);
+            }
+        }
+        return root;
+    }
+};
+```
+<!-- slide -->
+```java
+class TrieNode {
+    Map<Character, TrieNode> children = new HashMap<>();
+    TrieNode fail;
+    List<String> output = new ArrayList<>();
+    boolean isEnd = false;
+}
+
+public class AhoCorasick {
+    public TrieNode build(String[] patterns) {
+        TrieNode root = new TrieNode();
+        
+        // Build trie
+        for (String pattern : patterns) {
+            TrieNode node = root;
+            for (char c : pattern.toCharArray()) {
+                node.children.putIfAbsent(c, new TrieNode());
+                node = node.children.get(c);
+            }
+            node.isEnd = true;
+            node.output.add(pattern);
+        }
+        
+        // Build failure links
+        Queue<TrieNode> queue = new LinkedList<>();
+        for (TrieNode child : root.children.values()) {
+            child.fail = root;
+            queue.add(child);
+        }
+        
+        while (!queue.isEmpty()) {
+            TrieNode current = queue.poll();
+            
+            for (Map.Entry<Character, TrieNode> entry : current.children.entrySet()) {
+                char c = entry.getKey();
+                TrieNode child = entry.getValue();
+                
+                TrieNode failNode = current.fail;
+                while (failNode != null && !failNode.children.containsKey(c)) {
+                    failNode = failNode.fail;
+                }
+                
+                child.fail = (failNode != null) ? failNode.children.get(c) : root;
+                child.output.addAll(child.fail.output);
+                queue.add(child);
+            }
+        }
+        return root;
+    }
+}
+```
+<!-- slide -->
+```javascript
+class TrieNode {
+    constructor() {
+        this.children = new Map();
+        this.fail = null;
+        this.output = [];
+        this.isEnd = false;
+    }
+}
+
+class AhoCorasick {
+    build(patterns) {
+        const root = new TrieNode();
+        
+        // Build trie
+        for (const pattern of patterns) {
+            let node = root;
+            for (const char of pattern) {
+                if (!node.children.has(char)) {
+                    node.children.set(char, new TrieNode());
+                }
+                node = node.children.get(char);
+            }
+            node.isEnd = true;
+            node.output.push(pattern);
+        }
+        
+        // Build failure links
+        const queue = [];
+        for (const child of root.children.values()) {
+            child.fail = root;
+            queue.push(child);
+        }
+        
+        while (queue.length > 0) {
+            const current = queue.shift();
+            
+            for (const [char, child] of current.children) {
+                let failNode = current.fail;
+                while (failNode && !failNode.children.has(char)) {
+                    failNode = failNode.fail;
+                }
+                
+                child.fail = failNode ? failNode.children.get(char) : root;
+                child.output.push(...child.fail.output);
+                queue.push(child);
+            }
+        }
+        return root;
+    }
+}
+```
+````
+
+### 6. KMP for Circular/String Rotation Problems
+
+Use KMP to check if a string is a rotation of another:
+
+````carousel
+```python
+def is_rotation(s1: str, s2: str) -> bool:
+    """
+    Check if s2 is a rotation of s1 using KMP.
+    Example: 'erbottlewat' is rotation of 'waterbottle'
+    """
+    if len(s1) != len(s2):
+        return False
+    if len(s1) == 0:
+        return True
+    
+    # s2 is rotation of s1 iff s2 is substring of s1+s1
+    return len(kmp_search(s1 + s1, s2)) > 0
+
+def find_rotation_point(s: str) -> int:
+    """
+    Find the index where a sorted rotated array was rotated.
+    Uses modified KMP approach.
+    """
+    if len(s) <= 1:
+        return 0
+    
+    # Concatenate with itself and find pattern
+    doubled = s + s
+    matches = kmp_search(doubled, s)
+    
+    # First match at non-zero index indicates rotation point
+    for match in matches:
+        if match > 0 and match < len(s):
+            return match
+    return 0
+```
+<!-- slide -->
+```cpp
+bool isRotation(const string& s1, const string& s2) {
+    if (s1.length() != s2.length()) return false;
+    if (s1.empty()) return true;
+    
+    string doubled = s1 + s1;
+    vector<int> matches = kmpSearch(doubled, s2);
+    return !matches.empty();
+}
+
+int findRotationPoint(const string& s) {
+    if (s.length() <= 1) return 0;
+    
+    string doubled = s + s;
+    vector<int> matches = kmpSearch(doubled, s);
+    
+    for (int match : matches) {
+        if (match > 0 && match < s.length()) {
+            return match;
+        }
+    }
+    return 0;
+}
+```
+<!-- slide -->
+```java
+public boolean isRotation(String s1, String s2) {
+    if (s1.length() != s2.length()) return false;
+    if (s1.isEmpty()) return true;
+    
+    String doubled = s1 + s1;
+    List<Integer> matches = kmpSearch(doubled, s2);
+    return !matches.isEmpty();
+}
+
+public int findRotationPoint(String s) {
+    if (s.length() <= 1) return 0;
+    
+    String doubled = s + s;
+    List<Integer> matches = kmpSearch(doubled, s);
+    
+    for (int match : matches) {
+        if (match > 0 && match < s.length()) {
+            return match;
+        }
+    }
+    return 0;
+}
+```
+<!-- slide -->
+```javascript
+function isRotation(s1, s2) {
+    if (s1.length !== s2.length) return false;
+    if (s1.length === 0) return true;
+    
+    const doubled = s1 + s1;
+    const matches = kmpSearch(doubled, s2);
+    return matches.length > 0;
+}
+
+function findRotationPoint(s) {
+    if (s.length <= 1) return 0;
+    
+    const doubled = s + s;
+    const matches = kmpSearch(doubled, s);
+    
+    for (const match of matches) {
+        if (match > 0 && match < s.length) {
+            return match;
+        }
+    }
+    return 0;
+}
+```
+````
 
 ---
 
@@ -977,3 +1725,14 @@ The Knuth-Morris-Pratt (KMP) algorithm is a fundamental string matching algorith
 - Problems involving borders, prefixes, and suffixes
 
 KMP is an essential algorithm for any programmer's toolkit and frequently appears in technical interviews at major tech companies.
+
+---
+
+## Related Algorithms
+
+- [Z-Algorithm](./z-algorithm.md) - Alternative linear-time string matching algorithm
+- [Rabin-Karp](./rabin-karp.md) - Hash-based string matching for multiple patterns
+- [Aho-Corasick](./aho-corasick.md) - Multi-pattern string matching with automaton
+- [Manacher's Algorithm](./manachers-algorithm.md) - Finding palindromes in linear time
+- [Suffix Array](./suffix-array.md) - Efficient substring queries and pattern matching
+- [Trie](./trie.md) - Tree-based string storage for prefix matching

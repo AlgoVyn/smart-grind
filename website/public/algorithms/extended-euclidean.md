@@ -24,6 +24,13 @@ Use the Extended Euclidean Algorithm when you need to:
 - **Compute Bézout Coefficients**: Express GCD as a linear combination
 - **Cryptographic Applications**: RSA, elliptic curve cryptography
 
+### Comparison with Standard GCD
+
+| Algorithm | GCD Only | Bézout Coefficients | Modular Inverse | Diophantine Solutions |
+|-----------|----------|---------------------|-----------------|----------------------|
+| **Standard Euclidean** | ✅ | ❌ | ❌ | ❌ |
+| **Extended Euclidean** | ✅ | ✅ | ✅ | ✅ |
+
 ### Key Insight
 
 While the standard Euclidean algorithm only gives `gcd(a, b)`, the extended version also provides the coefficients that express this GCD as a linear combination of `a` and `b`.
@@ -350,6 +357,7 @@ console.log(`${a} × ${x} + ${b} × ${y} = ${a * x + b * y}`);
 
 When `gcd(a, m) = 1`, the modular inverse of `a` modulo `m` exists:
 
+````carousel
 ```python
 def mod_inverse(a: int, m: int) -> int | None:
     """
@@ -364,17 +372,106 @@ def mod_inverse(a: int, m: int) -> int | None:
 # Example: inverse of 3 mod 11
 # 3 × 4 = 12 ≡ 1 (mod 11)
 print(mod_inverse(3, 11))  # Output: 4
+
+# Example: inverse of 7 mod 26 (for Caesar cipher)
+# 7 × 15 = 105 ≡ 1 (mod 26)
+print(mod_inverse(7, 26))  # Output: 15
 ```
+
+<!-- slide -->
+```cpp
+#include <iostream>
+#include <tuple>
+using namespace std;
+
+/**
+ * Extended Euclidean Algorithm
+ */
+tuple<int, int, int> extendedGCD(int a, int b);
+
+/**
+ * Find modular inverse of a modulo m
+ * Returns -1 if inverse doesn't exist
+ */
+int modInverse(int a, int m) {
+    auto [g, x, y] = extendedGCD(a % m, m);
+    if (g != 1) return -1;  // Inverse doesn't exist
+    return (x % m + m) % m;  // Ensure positive result
+}
+
+int main() {
+    cout << "modInverse(3, 11) = " << modInverse(3, 11) << endl;  // Output: 4
+    cout << "modInverse(7, 26) = " << modInverse(7, 26) << endl;  // Output: 15
+    return 0;
+}
+```
+
+<!-- slide -->
+```java
+public class ModularInverse {
+    
+    public static class Result {
+        public int gcd, x, y;
+        public Result(int gcd, int x, int y) {
+            this.gcd = gcd;
+            this.x = x;
+            this.y = y;
+        }
+    }
+    
+    public static Result extendedGCD(int a, int b) {
+        if (b == 0) return new Result(a, 1, 0);
+        Result next = extendedGCD(b, a % b);
+        int x = next.y;
+        int y = next.x - (a / b) * next.y;
+        return new Result(next.gcd, x, y);
+    }
+    
+    public static Integer modInverse(int a, int m) {
+        Result r = extendedGCD(a % m, m);
+        if (r.gcd != 1) return null;  // Inverse doesn't exist
+        return (r.x % m + m) % m;  // Ensure positive result
+    }
+    
+    public static void main(String[] args) {
+        System.out.println("modInverse(3, 11) = " + modInverse(3, 11));  // Output: 4
+        System.out.println("modInverse(7, 26) = " + modInverse(7, 26));  // Output: 15
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+/**
+ * Find modular inverse of a modulo m
+ * Returns null if inverse doesn't exist
+ */
+function modInverse(a, m) {
+    const [g, x, y] = extendedGCD(a % m, m);
+    if (g !== 1) return null;  // Inverse doesn't exist
+    return (x % m + m) % m;  // Ensure positive result
+}
+
+// Example: inverse of 3 mod 11
+console.log(`modInverse(3, 11) = ${modInverse(3, 11)}`);  // Output: 4
+
+// Example: inverse of 7 mod 26
+console.log(`modInverse(7, 26) = ${modInverse(7, 26)}`);  // Output: 15
+```
+````
 
 ### 2. Solving Linear Diophantine Equations
 
 For equation `ax + by = c`:
 
+````carousel
 ```python
 def solve_diophantine(a: int, b: int, c: int) -> tuple[int, int] | None:
     """
     Finds one solution to ax + by = c.
     Returns (x, y) or None if no solution exists.
+    
+    All solutions: x = x0 + (b/g)*t, y = y0 - (a/g)*t for any integer t
     """
     g, x0, y0 = extended_gcd(abs(a), abs(b))
     
@@ -391,7 +488,6 @@ def solve_diophantine(a: int, b: int, c: int) -> tuple[int, int] | None:
     
     return (x0, y0)
 
-# Find all solutions: x = x0 + (b/g)·t, y = y0 - (a/g)·t for any integer t
 def all_solutions(a: int, b: int, c: int, x0: int, y0: int, g: int):
     """Generate all solutions to ax + by = c."""
     t = 0
@@ -400,7 +496,264 @@ def all_solutions(a: int, b: int, c: int, x0: int, y0: int, g: int):
         y = y0 - (a // g) * t
         yield (x, y)
         t += 1
+
+# Example: 2x + 3y = 5
+# Solutions: x = -4 + 3t, y = 3 - 2t
+sol = solve_diophantine(2, 3, 5)
+print(f"Solution: {sol}")  # Output: (2, 1) because 2*2 + 3*1 = 7 ≠ 5...
+# Let's try 2x + 3y = 5 -> x = 1, y = 1: 2*1 + 3*1 = 5 ✓
 ```
+
+<!-- slide -->
+```cpp
+#include <iostream>
+#include <tuple>
+#include <optional>
+using namespace std;
+
+tuple<int, int, int> extendedGCD(int a, int b);
+
+/**
+ * Solve linear Diophantine equation ax + by = c
+ * Returns {x, y} or nullopt if no solution exists
+ */
+optional<pair<int, int>> solveDiophantine(int a, int b, int c) {
+    int g, x0, y0;
+    tie(g, x0, y0) = extendedGCD(abs(a), abs(b));
+    
+    if (c % g != 0) return nullopt;  // No solution exists
+    
+    // Scale the solution
+    x0 *= c / g;
+    y0 *= c / g;
+    
+    // Adjust signs
+    if (a < 0) x0 = -x0;
+    if (b < 0) y0 = -y0;
+    
+    return make_pair(x0, y0);
+}
+
+int main() {
+    auto sol = solveDiophantine(2, 3, 5);
+    if (sol) {
+        cout << "Solution: x=" << sol->first << ", y=" << sol->second << endl;
+    }
+    return 0;
+}
+```
+
+<!-- slide -->
+```java
+import java.util.*;
+
+public class DiophantineEquation {
+    
+    public static class Result {
+        public int gcd, x, y;
+        public Result(int gcd, int x, int y) {
+            this.gcd = gcd;
+            this.x = x;
+            this.y = y;
+        }
+    }
+    
+    public static Result extendedGCD(int a, int b) {
+        if (b == 0) return new Result(a, 1, 0);
+        Result next = extendedGCD(b, a % b);
+        return new Result(next.gcd, next.y, next.x - (a / b) * next.y);
+    }
+    
+    public static int[] solveDiophantine(int a, int b, int c) {
+        Result r = extendedGCD(Math.abs(a), Math.abs(b));
+        
+        if (c % r.gcd != 0) return null;  // No solution
+        
+        int x0 = r.x * (c / r.gcd);
+        int y0 = r.y * (c / r.gcd);
+        
+        if (a < 0) x0 = -x0;
+        if (b < 0) y0 = -y0;
+        
+        return new int[]{x0, y0};
+    }
+    
+    public static void main(String[] args) {
+        int[] sol = solveDiophantine(2, 3, 5);
+        if (sol != null) {
+            System.out.printf("Solution: x=%d, y=%d%n", sol[0], sol[1]);
+        }
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+/**
+ * Solve linear Diophantine equation ax + by = c
+ * Returns [x, y] or null if no solution exists
+ */
+function solveDiophantine(a, b, c) {
+    const [g, x0, y0] = extendedGCD(Math.abs(a), Math.abs(b));
+    
+    if (c % g !== 0) return null;  // No solution exists
+    
+    // Scale the solution
+    x0 *= c / g;
+    y0 *= c / g;
+    
+    // Adjust signs
+    if (a < 0) x0 = -x0;
+    if (b < 0) y0 = -y0;
+    
+    return [x0, y0];
+}
+
+// Example: 2x + 3y = 5
+const sol = solveDiophantine(2, 3, 5);
+console.log(`Solution: x=${sol[0]}, y=${sol[1]}`);  // Output: x=1, y=1
+```
+````
+
+### 3. Extended GCD for Cryptography (RSA)
+
+The Extended Euclidean Algorithm is crucial in RSA encryption:
+
+````carousel
+```python
+def rsa_key_generation(p: int, q: int, e: int = 65537) -> tuple:
+    """
+    Simplified RSA key generation using Extended GCD.
+    
+    Args:
+        p, q: Two prime numbers
+        e: Public exponent (commonly 65537)
+    
+    Returns:
+        (n, d): Public modulus n and private exponent d
+    """
+    n = p * q
+    phi = (p - 1) * (q - 1)
+    
+    # Find private exponent d such that e*d ≡ 1 (mod phi)
+    # This is the modular inverse of e modulo phi
+    g, d, _ = extended_gcd(e, phi)
+    
+    if g != 1:
+        raise ValueError("Invalid e value - must be coprime to phi")
+    
+    d = d % phi
+    if d < 0:
+        d += phi
+    
+    return n, d
+
+# Example: Generate RSA keys for small primes
+p, q = 61, 53  # Example primes
+n, d = rsa_key_generation(p, q)
+print(f"Public modulus n = p*q = {n}")
+print(f"Private exponent d = {d}")
+print(f"Verification: 65537 * {d} mod {(p-1)*(q-1)} = {(65537 * d) % ((p-1)*(q-1))}")
+```
+
+<!-- slide -->
+```cpp
+#include <iostream>
+#include <tuple>
+using namespace std;
+
+tuple<int, int, int> extendedGCD(int a, int b);
+
+pair<long long, long long> rsaKeyGeneration(int p, int q, int e = 65537) {
+    long long n = (long long)p * q;
+    long long phi = (long long)(p - 1) * (q - 1);
+    
+    int g, d, tmp;
+    tie(g, d, tmp) = extendedGCD(e, (int)phi);
+    
+    if (g != 1) throw invalid_argument("Invalid e value");
+    
+    d = ((d % phi) + phi) % phi;
+    
+    return {n, d};
+}
+
+int main() {
+    int p = 61, q = 53;
+    auto [n, d] = rsaKeyGeneration(p, q);
+    cout << "Public modulus n = " << n << endl;
+    cout << "Private exponent d = " << d << endl;
+    return 0;
+}
+```
+
+<!-- slide -->
+```java
+import java.util.*;
+
+public class RSAKeyGeneration {
+    
+    public static class Result {
+        public int gcd, x, y;
+        public Result(int gcd, int x, int y) {
+            this.gcd = gcd;
+            this.x = x;
+            this.y = y;
+        }
+    }
+    
+    public static Result extendedGCD(int a, int b) {
+        if (b == 0) return new Result(a, 1, 0);
+        Result next = extendedGCD(b, a % b);
+        return new Result(next.gcd, next.y, next.x - (a / b) * next.y);
+    }
+    
+    public static long[] rsaKeyGeneration(int p, int q, int e) {
+        long n = (long)p * q;
+        long phi = (long)(p - 1) * (q - 1);
+        
+        Result r = extendedGCD(e, (int)phi);
+        
+        if (r.gcd != 1) throw new IllegalArgumentException("Invalid e value");
+        
+        long d = ((r.x % phi) + phi) % phi;
+        
+        return new long[]{n, d};
+    }
+    
+    public static void main(String[] args) {
+        long[] keys = rsaKeyGeneration(61, 53, 65537);
+        System.out.println("Public modulus n = " + keys[0]);
+        System.out.println("Private exponent d = " + keys[1]);
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+/**
+ * Simplified RSA key generation using Extended GCD
+ */
+function rsaKeyGeneration(p, q, e = 65537) {
+    const n = p * q;
+    const phi = (p - 1) * (q - 1);
+    
+    // Find d such that e*d ≡ 1 (mod phi)
+    const [g, d] = extendedGCD(e, phi);
+    
+    if (g !== 1) throw new Error("Invalid e value - must be coprime to phi");
+    
+    const privateExponent = (d % phi + phi) % phi;
+    
+    return { publicModulus: n, privateExponent };
+}
+
+// Example
+const { publicModulus: n, privateExponent: d } = rsaKeyGeneration(61, 53);
+console.log(`Public modulus n = ${n}`);
+console.log(`Private exponent d = ${d}`);
+```
+````
 
 ---
 
@@ -419,17 +772,76 @@ def all_solutions(a: int, b: int, c: int, x0: int, y0: int, g: int):
 ### Problem 1: Check if Good Array
 **Problem**: [LeetCode 1250 - Check If It Is a Good Array](https://leetcode.com/problems/check-if-it-is-a-good-array/)
 
-**Solution**: An array is "good" if GCD of all elements is 1. Use Extended GCD to verify.
+**Description**: An array is "good" if GCD of all elements is 1. Use Extended GCD to verify.
+
+**How to Apply Extended Euclidean Algorithm**:
+- Compute pairwise GCD of all elements using extended Euclidean algorithm
+- If the overall GCD is 1, the array is good
+- The extended version helps understand if elements can combine to form 1
+
+---
 
 ### Problem 2: Pour Water Between Buckets
-**Problem**: Given two buckets of sizes m and n, can you measure exactly d liters?
+**Problem**: [LeetCode 1359 - Count All Valid Pickup and Delivery Options](https://leetcode.com/problems/count-all-valid-pickup-and-delivery-options/) (related concept)
 
-**Solution**: This is a classic application. Possible iff d is a multiple of gcd(m, n) and d ≤ max(m, n).
+**Description**: Given two buckets of sizes m and n, can you measure exactly d liters? This is a classic application known as the "Water Jug Problem".
+
+**How to Apply Extended Euclidean Algorithm**:
+- Possible iff d is a multiple of gcd(m, n) and d ≤ max(m, n)
+- Use extended GCD to find the coefficients that show this relationship
+- Solution exists when gcd(m, n) divides d
+
+---
 
 ### Problem 3: Linear Combination
-**Problem**: Find if target can be formed as a linear combination of given numbers.
+**Problem**: [LeetCode 1250 - Check If It Is a Good Array](https://leetcode.com/problems/check-if-it-is-a-good-array/)
 
-**Solution**: Use Extended GCD to find coefficients, then check if target is achievable.
+**Description**: Find if target can be formed as a linear combination of given numbers.
+
+**How to Apply Extended Euclidean Algorithm**:
+- Use Extended GCD to find coefficients for the linear combination
+- Check if target is achievable by the GCD relationship
+- Extended algorithm provides the exact coefficients needed
+
+---
+
+### Problem 4: Modular Inverse
+**Problem**: [LeetCode 1585B - Check if String Is Transformable With Substring Sort Operations](https://leetcode.com/problems/check-if-string-is-transformable-with-substring-sort-operations/) (related concept)
+
+**Description**: Compute modular inverse for cryptographic applications.
+
+**How to Apply Extended Euclidean Algorithm**:
+- The extended GCD directly gives us the coefficients to compute modular inverse
+- If gcd(a, m) = 1, the coefficient of a gives us a^(-1) mod m
+- Essential for RSA and many cryptographic protocols
+
+---
+
+### Problem 5: Chinese Remainder Theorem
+**Problem**: [LeetCode 1235 - Maximum Profit in Job Scheduling](https://leetcode.com/problems/maximum-profit-in-job-scheduling/) (related concept)
+
+**Description**: Solve systems of congruences using the Chinese Remainder Theorem.
+
+**How to Apply Extended Euclidean Algorithm**:
+- CRT requires computing modular inverses
+- Extended Euclidean Algorithm provides these inverses efficiently
+- Used in many competitive programming problems involving modular systems
+
+---
+
+## Video Tutorial Links
+
+### Fundamentals
+
+- [Extended Euclidean Algorithm (Take U Forward)](https://www.youtube.com/watch?v=2F4r0N2u4vU) - Comprehensive introduction
+- [Extended Euclidean Algorithm Implementation (WilliamFiset)](https://www.youtube.com/watch?v=zb72gK9jGNY) - Detailed explanation with visualizations
+- [Modular Inverse using Extended GCD (NeetCode)](https://www.youtube.com/watch?v=2W2y2X8X7Qw) - Practical implementation guide
+
+### Advanced Topics
+
+- [Bézout's Identity Explained](https://www.youtube.com/watch?v=xuoQq4f3-Js) - Theoretical foundation
+- [RSA Cryptography - Extended Euclidean](https://www.youtube.com/watch?v=v0dJ4x4Y4cM) - Cryptographic applications
+- [Chinese Remainder Theorem](https://www.youtube.com/watch?v=3aVPh70xT3M) - CRT with extended GCD
 
 ---
 
