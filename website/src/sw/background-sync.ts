@@ -161,20 +161,26 @@ export class BackgroundSyncManager {
         if (!this.retryDB) await this.initRetryDB();
         if (!this.retryDB) return;
 
-        const store = this.retryDB
-            .transaction(RETRY_STORE_NAME, 'readwrite')
-            .objectStore(RETRY_STORE_NAME);
-        const index = store.index('scheduledFor');
-        const retries = await promisifyRequest<PersistedRetry[]>(
-            index.getAll(IDBKeyRange.upperBound(Date.now()))
-        );
+        try {
+            const transaction = this.retryDB.transaction(RETRY_STORE_NAME, 'readwrite');
+            const store = transaction.objectStore(RETRY_STORE_NAME);
+            const index = store.index('scheduledFor');
+            const retries = await promisifyRequest<PersistedRetry[]>(
+                index.getAll(IDBKeyRange.upperBound(Date.now()))
+            );
 
-        for (const retry of retries) {
-            try {
-                await this.syncUserProgress();
-                await this.removePersistedRetry(retry.id);
-            } catch {
-                // Individual retry failed, will be retried
+            for (const retry of retries) {
+                try {
+                    await this.syncUserProgress();
+                    await this.removePersistedRetry(retry.id);
+                } catch {
+                    // Individual retry failed, will be retried
+                }
+            }
+        } catch (error) {
+            // Database connection may be closing, ignore and retry later
+            if (error instanceof Error && error.name === 'InvalidStateError') {
+                this.retryDB = null; // Reset to reinitialize on next attempt
             }
         }
     }
