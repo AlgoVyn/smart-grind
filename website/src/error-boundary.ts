@@ -76,8 +76,14 @@ function getUI(): { showAlert: (_msg: string) => void } | undefined {
 
 /**
  * Global error handler for uncaught errors
+ * Guards against service worker context where window is not available
  */
 export const setupGlobalErrorHandlers = (): void => {
+    // Skip if window is not available (e.g., in service worker context)
+    if (typeof window === 'undefined') {
+        return;
+    }
+
     // Handle uncaught errors
     window.addEventListener('error', (event) => {
         console.error('Global error handler:', event.error);

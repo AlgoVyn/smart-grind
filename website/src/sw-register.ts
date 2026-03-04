@@ -67,6 +67,7 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
         const registration = await navigator.serviceWorker.register(swUrl, {
             updateViaCache: 'none',
             scope: '/smartgrind/',
+            type: 'module',
         });
 
         // Verify registration was successful
@@ -832,25 +833,27 @@ export async function downloadBundle(): Promise<boolean> {
 
 /**
  * Scan for dynamic assets (scripts, styles) and send to SW for caching
+ * Only same-origin assets are cached to avoid CSP restrictions on external CDNs
  */
 function cacheDynamicAssets(registration: ServiceWorkerRegistration): void {
     if (!registration.active) return;
 
     try {
         const assetsToCache: string[] = [];
+        const currentOrigin = window.location.origin;
 
-        // Scan for scripts
+        // Scan for scripts - only include same-origin assets
         document.querySelectorAll('script[src]').forEach((script) => {
             const src = (script as HTMLScriptElement).src;
-            if (src && !src.startsWith('chrome-extension:') && !src.startsWith('data:')) {
+            if (src && src.startsWith(currentOrigin)) {
                 assetsToCache.push(src);
             }
         });
 
-        // Scan for stylesheets
+        // Scan for stylesheets - only include same-origin assets
         document.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
             const href = (link as HTMLLinkElement).href;
-            if (href && !href.startsWith('chrome-extension:') && !href.startsWith('data:')) {
+            if (href && href.startsWith(currentOrigin)) {
                 assetsToCache.push(href);
             }
         });

@@ -2,24 +2,47 @@
 // Shared utilities for API operations
 
 /**
- * Allowed origins for API response validation
+ * Gets the allowed origins for API response validation
+ * Lazy evaluation to support service worker context where window is not available
  */
-const ALLOWED_ORIGINS = [window.location.origin];
+const getAllowedOrigins = (): string[] => {
+    if (typeof window !== 'undefined') {
+        return [window.location.origin];
+    }
+    // In service worker context, allow common origins
+    return ['http://localhost:8788', 'https://algovyn.com'];
+};
+
+/**
+ * Gets the current origin
+ * Works in both browser and service worker contexts
+ */
+const getCurrentOrigin = (): string => {
+    if (typeof window !== 'undefined') {
+        return window.location.origin;
+    }
+    // In service worker, use self.location
+    if (typeof self !== 'undefined' && self.location) {
+        return self.location.origin;
+    }
+    return '';
+};
 
 /**
  * Validates that the API response originates from an expected origin
  * @param response - The fetch response to validate
  */
 export const validateResponseOrigin = (response: Response): void => {
+    const currentOrigin = getCurrentOrigin();
     // For same-origin requests, no additional validation needed
-    if (response.url.startsWith(window.location.origin)) {
+    if (currentOrigin && response.url.startsWith(currentOrigin)) {
         return;
     }
 
     const responseOrigin = response.headers.get('Origin') || response.url;
 
     // Validate cross-origin responses
-    if (!ALLOWED_ORIGINS.some((origin) => responseOrigin.includes(origin))) {
+    if (!getAllowedOrigins().some((origin) => responseOrigin.includes(origin))) {
         // Unexpected origin - response will be handled by error handling
     }
 };

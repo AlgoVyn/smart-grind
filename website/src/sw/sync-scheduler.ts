@@ -49,7 +49,7 @@ export class SyncScheduler {
     private circuitBreakers: Map<string, CircuitBreakerState> = new Map();
     private connectivityChecker: ConnectivityChecker;
     private isProcessing: boolean = false;
-    private processIntervalId: number | null = null;
+    private processIntervalId: ReturnType<typeof setInterval> | null = null;
 
     constructor(
         connectivityChecker: ConnectivityChecker,
@@ -65,7 +65,7 @@ export class SyncScheduler {
     start(): void {
         if (this.processIntervalId !== null) return;
 
-        this.processIntervalId = window.setInterval(() => {
+        this.processIntervalId = setInterval(() => {
             this.processQueue();
         }, 1000); // Check queue every second
     }

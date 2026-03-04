@@ -243,6 +243,7 @@ describe('Service Worker Registration Module', () => {
                 expect.objectContaining({
                     updateViaCache: 'none',
                     scope: '/smartgrind/',
+                    type: 'module',
                 })
             );
         });

@@ -24,7 +24,7 @@ export const state = {
         activeAlgorithmCategoryId: null as string | null,
         currentFilter: 'all',
         searchQuery: '',
-        preferredAI: localStorage.getItem('preferred-ai') || null,
+        preferredAI: null as string | null,
         reviewDateFilter: null as string | null,
     },
 
@@ -51,6 +51,9 @@ export const state = {
         if (storedUserType === 'signed-in' || storedUserType === 'local') {
             this.user.type = storedUserType;
         }
+
+        // Load preferred AI from storage (lazy initialization for SW compatibility)
+        this.ui.preferredAI = localStorage.getItem('preferred-ai') || null;
 
         this.loadFromStorage();
         this.cacheElements();

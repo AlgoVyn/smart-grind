@@ -25,7 +25,7 @@ const DEFAULT_OPTIONS: ConnectivityOptions = {
 export class ConnectivityChecker {
     private state: ConnectivityState;
     private options: ConnectivityOptions;
-    private checkIntervalId: number | null = null;
+    private checkIntervalId: ReturnType<typeof setInterval> | null = null;
     private listeners: Set<(_online: boolean) => void> = new Set();
     private abortController: AbortController | null = null;
 
@@ -49,7 +49,7 @@ export class ConnectivityChecker {
         this.checkConnectivity();
 
         // Set up periodic checks
-        this.checkIntervalId = window.setInterval(() => {
+        this.checkIntervalId = setInterval(() => {
             this.checkConnectivity();
         }, this.options.checkInterval);
     }
