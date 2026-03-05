@@ -1,93 +1,50 @@
 # Binary Search - Find First/Last Occurrence
 
-## Overview
-
-Finding the first or last occurrence of a target value in a sorted array is one of the most fundamental and frequently asked problems in technical interviews. This pattern leverages the power of binary search to achieve O(log n) time complexity, even when dealing with duplicate elements.
-
-The key challenge is that standard binary search returns **any** matching position, but we need the **extreme** positions (leftmost for first occurrence, rightmost for last occurrence). This requires a modified binary search approach that continues searching even after finding a match.
-
----
-
 ## Problem Description
 
-Given a sorted array of integers `nums` in non-decreasing order, find the starting and ending position of a given `target` value. If `target` is not found in the array, return `[-1, -1]`.
+The Binary Search - Find First/Last Occurrence pattern is used to locate the starting and ending positions of a target value in a sorted array that may contain duplicates. While standard binary search returns any matching position, this pattern finds the extreme positions (leftmost for first occurrence, rightmost for last occurrence) in O(log n) time complexity.
 
-You must write an algorithm with O(log n) runtime complexity.
+### Key Characteristics
 
-**LeetCode Problem:** [34. Find First and Last Position of Element in Sorted Array](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
+| Characteristic | Description |
+|----------------|-------------|
+| Time Complexity | O(log n) - Two binary searches, each O(log n) |
+| Space Complexity | O(1) - Constant extra space |
+| Input | Sorted array of integers in non-decreasing order |
+| Output | Range [first_position, last_position] or [-1, -1] if not found |
+| Approach | Modified binary search that continues after finding a match |
 
----
+### When to Use
 
-## Examples
-
-### Example 1
-**Input:** `nums = [5,7,7,8,8,10], target = 8`  
-**Output:** `[3,4]`  
-**Explanation:** The target 8 is found at indices 3 and 4.
-
-### Example 2
-**Input:** `nums = [5,7,7,8,8,10], target = 6`  
-**Output:** `[-1,-1]`  
-**Explanation:** 6 is not found in the array.
-
-### Example 3
-**Input:** `nums = [], target = 0`  
-**Output:** `[-1,-1]`  
-**Explanation:** Empty array, target not found.
-
-### Example 4
-**Input:** `nums = [1,2,3,4,5], target = 5`  
-**Output:** `[4,4]`  
-**Explanation:** Single occurrence at index 4.
-
-### Example 5
-**Input:** `nums = [1,2,2,2,3,4,5], target = 2`  
-**Output:** `[1,3]`  
-**Explanation:** Target 2 appears at indices 1, 2, and 3.
-
-### Example 6
-**Input:** `nums = [2,2,2,2,2], target = 2`  
-**Output:** `[0,4]`  
-**Explanation:** All elements are the target.
-
----
-
-## Constraints
-
-| Constraint | Description |
-|------------|-------------|
-| `0 ≤ nums.length ≤ 10^5` | Array size can be zero |
-| `-10^9 ≤ nums[i] ≤ 10^9` | Integer range |
-| `nums` is sorted | Non-decreasing order |
-| `-10^9 ≤ target ≤ 10^9` | Target value range |
-
----
+- Finding the starting and ending position of a target in a sorted array with duplicates
+- Counting the number of occurrences of a target value
+- Problems requiring boundary positions where elements start or end
+- Finding insertion positions while maintaining sorted order
+- Problems involving range queries on sorted data
 
 ## Intuition
 
-The key insight is recognizing that we need to find **boundary positions** where the target element starts and ends in the sorted array. Since the array is sorted, all occurrences of the target will be contiguous.
+The key insight is that we need to find **boundary positions** where the target element starts and ends in the sorted array. Since the array is sorted, all occurrences of the target will be contiguous.
 
-For O(log n) complexity, we use a modified binary search that:
+The "aha!" moments:
+1. **For First Occurrence**: When `nums[mid] >= target`, update answer and continue searching left to find an earlier occurrence
+2. **For Last Occurrence**: When `nums[mid] <= target`, update answer and continue searching right to find a later occurrence
+3. **Two Binary Searches**: We need separate searches for first and last positions
+4. **Early Termination**: If first occurrence not found, no need to search for last
+5. **Edge Cases**: Empty arrays, single elements, and targets outside range need careful handling
 
-1. **For First Occurrence**: When `nums[mid] >= target`, we update our answer and continue searching in the left half to find an earlier occurrence.
+## Solution Approaches
 
-2. **For Last Occurrence**: When `nums[mid] <= target`, we update our answer and continue searching in the right half to find a later occurrence.
+### Approach 1: Two Binary Searches (Optimal) ✅ Recommended
 
-This approach ensures we find the exact boundaries without scanning the entire array.
+#### Algorithm
+1. Check if array is empty, return [-1, -1] if so
+2. **Find First Occurrence**: Use binary search where when `nums[mid] >= target`, record position and search left half
+3. **Find Last Occurrence**: Use binary search where when `nums[mid] <= target`, record position and search right half
+4. If first occurrence not found, return [-1, -1]
+5. Return [first, last] as the result
 
----
-
-## Approach 1: Two Binary Searches (Optimal) ⭐
-
-This is the most efficient and commonly used approach. We perform two separate binary searches: one to find the first occurrence and another to find the last occurrence.
-
-### Algorithm
-
-1. Use binary search to find the first (leftmost) occurrence of target
-2. Use binary search to find the last (rightmost) occurrence of target
-3. Return `[-1, -1]` if target is not found
-
-### Code
+#### Implementation
 
 ````carousel
 ```python
@@ -97,13 +54,9 @@ class Solution:
     def searchRange(self, nums: List[int], target: int) -> List[int]:
         """
         Find the first and last position of target in sorted array.
+        LeetCode 34 - Find First and Last Position of Element in Sorted Array
         
-        Args:
-            nums: Sorted list of integers
-            target: Target value to find
-            
-        Returns:
-            List containing [first_position, last_position] or [-1, -1]
+        Time: O(log n), Space: O(1)
         """
         def find_first_occurrence() -> int:
             """Find the leftmost index where target appears."""
@@ -197,8 +150,6 @@ public:
 ```
 <!-- slide -->
 ```java
-import java.util.*;
-
 class Solution {
     public int[] searchRange(int[] nums, int target) {
         int[] result = {-1, -1};
@@ -288,25 +239,24 @@ var searchRange = function(nums, target) {
 ```
 ````
 
-### Time Complexity
-**O(log n)** - Two binary searches, each O(log n)
+#### Time and Space Complexity
 
-### Space Complexity
-**O(1)** - Constant extra space
+| Aspect | Complexity |
+|--------|------------|
+| Time | O(log n) - Two binary searches, each O(log n) |
+| Space | O(1) - Constant extra space |
 
----
+### Approach 2: Built-in Functions (Pythonic)
 
-## Approach 2: Built-in Functions (Pythonic)
+This approach leverages built-in binary search functions available in most languages.
 
-This approach leverages Python's built-in `bisect` module, which provides efficient binary search implementations.
+#### Algorithm
+1. Use lower_bound/bisect_left to find the first position where target could be inserted
+2. Use upper_bound/bisect_right to find the position after the last occurrence
+3. Verify target actually exists at the found position
+4. Return positions or [-1, -1]
 
-### Algorithm
-
-1. Use `bisect_left()` to find the first position where target could be inserted
-2. Use `bisect_right()` to find the position after the last occurrence
-3. Return positions if target actually exists
-
-### Code
+#### Implementation
 
 ````carousel
 ```python
@@ -317,8 +267,9 @@ class Solution:
     def searchRange(self, nums: List[int], target: int) -> List[int]:
         """
         Pythonic solution using bisect module.
-        bisect_left: first position where target could be inserted
-        bisect_right: position after the last occurrence
+        LeetCode 34 - Find First and Last Position
+        
+        Time: O(log n), Space: O(1)
         """
         if not nums:
             return [-1, -1]
@@ -366,7 +317,7 @@ class Solution {
         int[] result = {-1, -1};
         if (nums.length == 0) return result;
         
-        // Find first occurrence using binarySearch for range
+        // Find first occurrence
         int first = Arrays.binarySearch(nums, target);
         if (first < 0) return result;
         
@@ -433,25 +384,24 @@ var searchRange = function(nums, target) {
 ```
 ````
 
-### Time Complexity
-**O(log n)** - bisect operations are binary searches
+#### Time and Space Complexity
 
-### Space Complexity
-**O(1)** - No extra space used
+| Aspect | Complexity |
+|--------|------------|
+| Time | O(log n) - Built-in binary search operations |
+| Space | O(1) - No extra space used |
 
----
+### Approach 3: Single Binary Search with Linear Scan
 
-## Approach 3: Single Binary Search with Tracking
+This approach uses a single binary search pass but with linear scan when target is found. Less efficient but demonstrates the concept.
 
-This approach uses a single binary search pass while tracking potential first and last positions. Less efficient but demonstrates the concept clearly.
+#### Algorithm
+1. Perform binary search for target
+2. When found, scan left to find first occurrence
+3. Scan right to find last occurrence
+4. Return the range
 
-### Algorithm
-
-1. Perform binary search while tracking potential first and last positions
-2. When target is found, record the position and continue searching both directions
-3. Update first and last positions as we find more occurrences
-
-### Code
+#### Implementation
 
 ````carousel
 ```python
@@ -460,8 +410,11 @@ from typing import List
 class Solution:
     def searchRange(self, nums: List[int], target: int) -> List[int]:
         """
-        Find first and last position using a single binary search pass.
-        Less efficient but demonstrates the concept clearly.
+        Find first and last position using single binary search with linear scan.
+        LeetCode 34 - Less efficient but demonstrates concept
+        
+        Time: O(log n + k) where k is number of occurrences
+        Space: O(1)
         """
         if not nums:
             return [-1, -1]
@@ -642,149 +595,74 @@ var searchRange = function(nums, target) {
 ```
 ````
 
-### Time Complexity
-**O(log n + k)** where k is the number of occurrences
+#### Time and Space Complexity
 
-### Space Complexity
-**O(1)** - Constant extra space
+| Aspect | Complexity |
+|--------|------------|
+| Time | O(log n + k) where k is the number of occurrences |
+| Space | O(1) - Constant extra space |
 
-**Note:** This approach is less efficient when there are many duplicates. Approach 1 is preferred.
+## Complexity Analysis
 
----
+| Approach | Time | Space | When to Use |
+|----------|------|-------|-------------|
+| Two Binary Searches | O(log n) | O(1) | **Recommended** - Optimal and clean |
+| Built-in Functions | O(log n) | O(1) | When available, quick implementation |
+| Single BS with Linear | O(log n + k) | O(1) | Less efficient with many duplicates |
 
-## Step-by-Step Example
+## Related Problems
 
-Let's trace through `nums = [5,7,7,8,8,10], target = 8`:
+| Problem | LeetCode # | Difficulty | Description |
+|---------|------------|------------|-------------|
+| [Find First and Last Position of Element in Sorted Array](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/) | 34 | Medium | Find first and last position of target |
+| [Search Insert Position](https://leetcode.com/problems/search-insert-position/) | 35 | Easy | Find where to insert target |
+| [Find Smallest Letter Greater Than Target](https://leetcode.com/problems/find-smallest-letter-greater-than-target/) | 744 | Easy | Find next greater element |
+| [First Bad Version](https://leetcode.com/problems/first-bad-version/) | 278 | Easy | Find first bad version |
+| [Find Peak Element](https://leetcode.com/problems/find-peak-element/) | 162 | Medium | Find any peak element |
+| [Search in Rotated Sorted Array](https://leetcode.com/problems/search-in-rotated-sorted-array/) | 33 | Medium | Find element in rotated array |
+| [Search a 2D Matrix](https://leetcode.com/problems/search-a-2d-matrix/) | 74 | Medium | Search in 2D sorted matrix |
+| [Find Median of Two Sorted Arrays](https://leetcode.com/problems/median-of-two-sorted-arrays/) | 4 | Hard | Find median of two arrays |
 
-### First Occurrence Search
+## Video Tutorial Links
 
-| Step | low | high | mid | nums[mid] | Action | first |
-|------|-----|------|-----|-----------|--------|-------|
-| 1 | 0 | 5 | 3 | 8 >= 8, nums[3] == 8 | first = 3, high = 2 | 3 |
-| 2 | 0 | 2 | 1 | 7 < 8 | low = 2 | 3 |
-| 3 | 2 | 2 | 2 | 7 < 8 | low = 3 | 3 |
+1. **[NeetCode - Find First and Last Position](https://www.youtube.com/watch?v=4sQL7R5E5sM)** - Binary search explanation
+2. **[Back to Back SWE - First and Last Position](https://www.youtube.com/watch?v=OEaJ4Dx4KcI)** - Detailed walkthrough
+3. **[LeetCode Official Solution](https://www.youtube.com/watch?v=OEaJ4Dx4KcI)** - Clean implementation
+4. **[Abdul Bari - Binary Search Variations](https://www.youtube.com/watch?v=j5uXy3PI0yM)** - Pattern explanation
+5. **[Binary Search Masterclass](https://www.youtube.com/watch?v=WjJdaDXN5Jw)** - Comprehensive tutorial
 
-**Result: first = 3** ✓
+## Summary
 
-### Last Occurrence Search
+### Key Takeaways
+- **Two binary searches** is the optimal approach: O(log n) time, O(1) space
+- **First occurrence search**: When `nums[mid] >= target`, search left half
+- **Last occurrence search**: When `nums[mid] <= target`, search right half
+- **Count occurrences**: `count = last_position - first_position + 1`
+- **Edge cases**: Handle empty arrays and targets not in array
 
-| Step | low | high | mid | nums[mid] | Action | last |
-|------|-----|------|-----|-----------|--------|------|
-| 1 | 0 | 5 | 3 | 8 <= 8, nums[3] == 8 | last = 3, low = 4 | 3 |
-| 2 | 4 | 5 | 4 | 8 <= 8, nums[4] == 8 | last = 4, low = 5 | 4 |
-| 3 | 5 | 5 | 5 | 10 > 8 | high = 4 | 4 |
+### Common Pitfalls
+- Not handling empty arrays - Always check for empty input first
+- Integer overflow - Use `mid = low + (high - low) // 2` instead of `(low + high) // 2`
+- Off-by-one errors - Be careful with `<=` vs `<` in loop conditions
+- Not checking if target exists - Verify first position before searching for last
+- Returning wrong values - Should return [-1, -1], not [0, -1] when not found
 
-**Result: last = 4** ✓
+### Follow-up Questions
+1. **How would you count the number of occurrences of target?**
+   - Answer: `count = last_position - first_position + 1`
 
-**Final Answer: [3, 4]** ✓
+2. **What if you need to find all occurrences in O(log n + k) time?**
+   - Answer: Use binary search to find first position, then scan forward k times
 
----
+3. **How would you handle a rotated sorted array?**
+   - Answer: Modify binary search to handle rotation point by checking which half is sorted
 
-## Key Patterns and Insights
+4. **What if duplicates can exist in a rotated array?**
+   - Answer: More complex, need to skip duplicates carefully and handle edge cases
 
-### Pattern 1: Binary Search for First Position
+5. **How would you find the first element greater than target?**
+   - Answer: Similar to first occurrence, but use `>` instead of `>=` in the condition
 
-When searching for the first occurrence:
-- If `nums[mid] < target`: search right (`low = mid + 1`)
-- If `nums[mid] >= target`: update answer and search left (`high = mid - 1`)
+## Pattern Source
 
-### Pattern 2: Binary Search for Last Position
-
-When searching for the last occurrence:
-- If `nums[mid] > target`: search left (`high = mid - 1`)
-- If `nums[mid] <= target`: update answer and search right (`low = mid + 1`)
-
-### Pattern 3: Common Edge Cases
-
-| Edge Case | Handling |
-|-----------|----------|
-| Empty array | Return `[-1, -1]` |
-| Single element | Check if it equals target |
-| All duplicates | first = 0, last = n-1 |
-| Target smaller than all | Return `[-1, -1]` |
-| Target larger than all | Return `[-1, -1]` |
-
----
-
-## Time Complexity Comparison
-
-| Approach | Time Complexity | Space Complexity | Notes |
-|----------|-----------------|------------------|-------|
-| Two Binary Searches | O(log n) | O(1) | **Optimal** - preferred solution |
-| Single BS with Linear Scan | O(log n + k) | O(1) | Less efficient with many duplicates |
-| Built-in Functions | O(log n) | O(1) | Clean, Pythonic solution |
-
----
-
-## Related LeetCode Problems
-
-| Problem | Difficulty | Description | Link |
-|---------|------------|-------------|------|
-| Find First and Last Position of Element in Sorted Array | Medium | Find first and last position of target | [Link](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/) |
-| Search Insert Position | Easy | Find where to insert target | [Link](https://leetcode.com/problems/search-insert-position/) |
-| Find Smallest Letter Greater Than Target | Easy | Find next greater element | [Link](https://leetcode.com/problems/find-smallest-letter-greater-than-target/) |
-| Count of Range Sum | Hard | Count range sum within range | [Link](https://leetcode.com/problems/count-of-range-sum/) |
-| First Bad Version | Easy | Find first bad version | [Link](https://leetcode.com/problems/first-bad-version/) |
-| Find Peak Element | Medium | Find any peak element | [Link](https://leetcode.com/problems/find-peak-element/) |
-| Search in Rotated Sorted Array | Medium | Find element in rotated array | [Link](https://leetcode.com/problems/search-in-rotated-sorted-array/) |
-| Search a 2D Matrix | Medium | Search in 2D sorted matrix | [Link](https://leetcode.com/problems/search-a-2d-matrix/) |
-| Find Median of Two Sorted Arrays | Hard | Find median of two arrays | [Link](https://leetcode.com/problems/median-of-two-sorted-arrays/) |
-
----
-
-## Video Tutorials
-
-| Tutorial | Platform | Link |
-|----------|----------|------|
-| NeetCode - Find First and Last Position | YouTube | [Watch](https://www.youtube.com/watch?v=4sQL7R5E5sM) |
-| Back to Back SWE - First and Last Position | YouTube | [Watch](https://www.youtube.com/watch?v=OEaJ4Dx4KcI) |
-| LeetCode Official Solution | YouTube | [Watch](https://www.youtube.com/watch?v=OEaJ4Dx4KcI) |
-| Abdul Bari - Binary Search Variations | YouTube | [Watch](https://www.youtube.com/watch?v=j5uXy3PI0yM) |
-| Binary Search Masterclass | YouTube | [Watch](https://www.youtube.com/watch?v=WjJdaDXN5Jw) |
-| First and Last Position Explained | YouTube | [Watch](https://www.youtube.com/watch?v=n9A7G9J1Z5I) |
-
----
-
-## Follow-up Questions
-
-### 1. How would you count the number of occurrences of target?
-**Answer:** `count = last_position - first_position + 1`
-
-### 2. What if you need to find all occurrences in O(log n + k) time?
-**Answer:** Use binary search to find first position, then scan forward k times to get all occurrences.
-
-### 3. How would you handle a rotated sorted array?
-**Answer:** Modify binary search to handle rotation point by checking which half is sorted.
-
-### 4. What if duplicates can exist in a rotated array?
-**Answer:** More complex, need to skip duplicates carefully and handle edge cases.
-
-### 5. How would you find the first element greater than target?
-**Answer:** Similar to first occurrence, but use `>` instead of `>=` in the condition.
-
-### 6. What if you need to find the k-th occurrence of target?
-**Answer:** `position = first_position + k - 1` if it exists within bounds.
-
-### 7. How would you modify the solution for a 2D sorted matrix?
-**Answer:** Use binary search on rows and columns, or use divide and conquer approach.
-
----
-
-## Common Mistakes to Avoid
-
-1. **Not handling empty arrays** - Always check for `len(nums) == 0` or `nums.length == 0`
-2. **Infinite loops** - Ensure pointers are updated correctly (avoid `low = mid` or `high = mid`)
-3. **Integer overflow** - Use `mid = low + (high - low) // 2` instead of `(low + high) // 2`
-4. **Off-by-one errors** - Be careful with `<=` vs `<` and `+1` vs `-1`
-5. **Not checking if target exists** - Verify first position contains target before searching for last
-6. **Confusing first and last search logic** - First searches left when found, last searches right
-7. **Returning wrong values when target not found** - Should return `[-1, -1]`, not `[0, -1]`
-
----
-
-## References
-
-- [LeetCode 34 - Find First and Last Position of Element in Sorted Array](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
-- Binary Search Algorithm: Classic algorithm for sorted arrays
-- bisect Module: Python's built-in binary search utilities
-- Two Pointers Pattern: Related technique for array problems
+[Find First/Last Occurrence Pattern](patterns/binary-search-find-first-last-occurrence.md)

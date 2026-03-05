@@ -1350,3 +1350,8 @@ The pattern's O(N log K) complexity makes it optimal when K is small relative to
 - Performance monitoring (top N slowest operations)
 
 Master this pattern, and you'll be able to efficiently solve a wide variety of selection and ranking problems!
+
+
+## Pattern Source
+
+[Heap - Top K Elements (Selection/Frequency)](patterns/heap-top-k-elements-selection-frequency.md)

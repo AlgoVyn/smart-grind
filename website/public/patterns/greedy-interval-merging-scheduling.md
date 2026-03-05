@@ -1190,3 +1190,8 @@ For more detailed explanations and variations, see related patterns:
 - [Greedy - Jump Game](/patterns/greedy-jump-game-reachability-minimization)
 - [Greedy - Buy and Sell Stock](/patterns/greedy-buy-sell-stock)
 - [Heap - K Way Merge](/patterns/heap-k-way-merge)
+
+
+## Pattern Source
+
+[Greedy - Interval Merging/Scheduling](patterns/greedy-interval-merging-scheduling.md)

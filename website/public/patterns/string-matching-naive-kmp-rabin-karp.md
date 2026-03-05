@@ -1,40 +1,58 @@
-# String Matching - Naive / KMP / Rabin-Karp
+# String - Matching (Naive / KMP / Rabin-Karp)
 
-## Overview
+## Problem Description
 
-The String Matching pattern is used to find occurrences of a substring (pattern) within a larger string (text). This is one of the most fundamental problems in computer science with applications in text editors, search engines, bioinformatics, and data mining.
+The **String Matching** pattern is used to find occurrences of a substring (pattern) within a larger string (text). This is one of the most fundamental problems in computer science with applications in text editors, search engines, bioinformatics, and data mining.
 
-Three common approaches exist, each with different time complexity trade-offs:
+### Key Characteristics
 
-| Approach | Time Complexity | Space Complexity | Best Use Case |
-|----------|-----------------|-------------------|---------------|
-| **Naive** | O(n × m) | O(1) | Small strings, simple implementation |
-| **KMP** | O(n + m) | O(m) | Large strings, guaranteed optimal |
-| **Rabin-Karp** | O(n + m) avg | O(1) | Multiple pattern matching, simple hashing |
+| Characteristic | Description |
+|----------------|-------------|
+| **Input** | A text string and a pattern string to search for |
+| **Output** | Starting indices of all occurrences of pattern in text |
+| **Key Insight** | When mismatch occurs, use information from previous comparisons to skip redundant checks |
+| **Time Complexity** | O(n × m) naive, O(n + m) for KMP/Rabin-Karp |
+| **Space Complexity** | O(1) naive, O(m) for KMP preprocessing |
+
+### When to Use
+
+- **Text searching**: Finding substrings in documents, editors, or search engines
+- **Pattern recognition**: Locating specific sequences in data streams
+- **Bioinformatics**: DNA/protein sequence matching
+- **Data mining**: Finding patterns in large datasets
+- **Multiple pattern search**: Using Rabin-Karp for simultaneous pattern matching
 
 ---
 
 ## Intuition
 
-### Why Multiple Approaches?
+The key insights behind efficient string matching:
 
-Consider searching for "ABAB" in "ABABABABABAB":
+1. **Naive Approach Limitation**: The naive approach checks each position independently, wasting comparisons when partial matches fail. It doesn't learn from previous mismatch information.
 
-1. **Naive approach** would check each position, wasting comparisons when partial matches fail
-2. **KMP** uses previously computed information to skip unnecessary comparisons
-3. **Rabin-Karp** uses hashing to quickly filter out non-matching positions
+2. **KMP's LPS Array**: The Knuth-Morris-Pratt algorithm uses a Longest Prefix Suffix (LPS) array to remember the longest proper prefix that is also a suffix. When a mismatch occurs, instead of restarting from the beginning, KMP knows exactly how much of the pattern still matches.
 
-The key insight is that when a mismatch occurs, we can use information from previous comparisons to avoid rechecking characters we already know match.
+3. **Rabin-Karp Rolling Hash**: Instead of character-by-character comparison, we compute a hash for the pattern and rolling hashes for text windows. If hashes match, we verify with character comparison.
+
+4. **Trade-offs**: Each algorithm balances preprocessing time, space usage, and search efficiency differently.
 
 ---
 
-## 1. Naive Approach
+## Solution Approaches
 
-### Intuition
+### Approach 1: Naive String Matching
 
 The naive approach is the most straightforward method: check every possible starting position in the text and compare the pattern character by character.
 
-### When to Use
+#### Algorithm
+
+1. Iterate through each possible starting position in the text (from 0 to n-m)
+2. For each position, compare characters of pattern with corresponding text characters
+3. If all characters match, record the starting index as a match
+4. If any character mismatches, move to the next starting position
+5. Return all found match indices
+
+#### When to Use
 
 - Pattern and text are small (length < 1000)
 - When simplicity is preferred over performance
@@ -213,26 +231,34 @@ console.log(`Pattern found at indices: ${result}`);  // [10]
 
 ---
 
-## 2. KMP Algorithm (Knuth-Morris-Pratt)
-
-### Intuition
+### Approach 2: KMP Algorithm (Knuth-Morris-Pratt) ⭐ Optimal
 
 KMP uses a **preprocessed LPS (Longest Prefix Suffix) array** that tells us how much to skip when a mismatch occurs. This prevents backtracking in the text.
 
+#### Algorithm
+
+1. Preprocess the pattern to compute the LPS (Longest Prefix Suffix) array
+2. Initialize two pointers: i for text, j for pattern
+3. Compare characters at text[i] and pattern[j]
+4. If match: increment both pointers
+5. If mismatch and j > 0: set j = lps[j-1] (don't advance i)
+6. If mismatch and j == 0: advance i only
+7. When j == m, record match and continue with j = lps[j-1]
+
 **Key Insight**: When we have a partial match like "ABAB" and the next character doesn't match, we already know the last two characters "AB" are also the beginning of our pattern. We can shift the pattern to align these known matches.
 
-### LPS Array Explanation
+#### LPS Array Explanation
 
 For pattern "ABABC":
 - `lps[0]` = 0 (no proper prefix that's also suffix)
 - `lps[1]` = 0 ("B" has no prefix=suffix)
-- `lps[2]` = 1 ("AB" prefix matches suffix "AB")
+- `lps[2]` = 1 ("A" prefix matches suffix "A")
 - `lps[3]` = 2 ("AB" prefix matches suffix "AB")
 - `lps[4]` = 0 ("C" has no prefix=suffix)
 
 **Result**: `lps = [0, 0, 1, 2, 0]`
 
-### When to Use
+#### When to Use
 
 - Large texts and patterns
 - When guaranteed O(n + m) performance is required
@@ -620,18 +646,27 @@ console.log(strStr("leetcode", "leeto"));  // -1
 
 ---
 
-## 3. Rabin-Karp Algorithm (Rolling Hash)
-
-### Intuition
+### Approach 3: Rabin-Karp Algorithm (Rolling Hash)
 
 Rabin-Karp uses **rolling hash** to compute a hash value for substrings. If the hash of a window matches the pattern's hash, we verify character by character (to handle hash collisions).
+
+#### Algorithm
+
+1. Choose a base (e.g., 256) and a prime modulus
+2. Compute hash for the pattern and first window of text
+3. Slide window across text:
+   - Remove leftmost character's contribution
+   - Add rightmost character's contribution
+   - Normalize with modulus
+4. If hash matches, verify character by character
+5. Record match if verification succeeds
 
 **Rolling Hash Formula**:
 ```
 H(s[i..i+m-1]) = (s[i] * base^(m-1) + s[i+1] * base^(m-2) + ... + s[i+m-1]) % prime
 ```
 
-### When to Use
+#### When to Use
 
 - Searching for multiple patterns simultaneously
 - When pattern length is fixed and relatively short
@@ -1089,3 +1124,8 @@ String matching algorithms are fundamental tools in a programmer's toolkit. The 
 - Rabin-Karp's rolling hash enables O(1) window updates
 - Always handle edge cases (empty strings, single characters)
 - Verify hash matches in Rabin-Karp to prevent false positives
+
+
+## Pattern Source
+
+[String - Matching (Naive, KMP, Rabin-Karp)](patterns/string-matching-naive-kmp-rabin-karp.md)

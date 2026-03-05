@@ -932,3 +932,8 @@ For more details on Two Pointers patterns and their variations, see:
 - [Dynamic Programming - GeeksforGeeks](https://www.geeksforgeeks.org/dynamic-programming/) - DP concepts
 - [Manacher's Algorithm - Wikipedia](https://en.wikipedia.org/wiki/Longest_palindromic_substring#Manacher's_algorithm) - Algorithm details
 - [Palindrome Algorithms - HackerRank](https://www.youtube.com/watch?v=7X7X7X7X7X7) - Video explanation
+
+
+## Pattern Source
+
+[Two Pointers - Expanding From Center (Palindromes)](patterns/two-pointers-expanding-from-center-palindromes.md)

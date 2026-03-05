@@ -708,3 +708,8 @@ Key takeaways:
 - [Stack Data Structure - GeeksforGeeks](https://www.geeksforgeeks.org/stack-data-structure/) - Understanding stacks
 - [String Processing Algorithms - Wikipedia](https://en.wikipedia.org/wiki/String_algorithms) - Learn about string algorithms
 - [LeetCode Discuss](https://leetcode.com/problems/backspace-string-compare/discuss/) - Community solutions and insights
+
+
+## Pattern Source
+
+[Two Pointers - String Comparison with Backspaces](patterns/two-pointers-string-comparison-with-backspaces.md)

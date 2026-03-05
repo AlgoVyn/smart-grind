@@ -1023,3 +1023,7 @@ This pattern is essential for solving a variety of LeetCode problems and is freq
 - [Single Number III](https://leetcode.com/problems/single-number-iii/)
 - [Set Mismatch](https://leetcode.com/problems/set-mismatch/)
 - [Find the Difference](https://leetcode.com/problems/find-the-difference/)
+
+## Pattern Source
+
+[Bitwise XOR - Finding Single/Missing Number](patterns/bitwise-xor-finding-single-missing-number.md)

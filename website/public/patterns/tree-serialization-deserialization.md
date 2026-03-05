@@ -1852,3 +1852,8 @@ Understanding serialization/deserialization is crucial for any developer working
 - [GeeksforGeeks - Serialize and Deserialize a Binary Tree](https://www.geeksforgeeks.org/serialize-deserialize-binary-tree/)
 - [GeeksforGeeks - Tree Traversals](https://www.geeksforgeeks.org/tree-traversals-inorder-preorder-postorder/)
 - [Visualization - Binary Tree Serialization](https://visualgo.net/en/bt serialization)
+
+
+## Pattern Source
+
+[Tree - Serialization and Deserialization](patterns/tree-serialization-deserialization.md)

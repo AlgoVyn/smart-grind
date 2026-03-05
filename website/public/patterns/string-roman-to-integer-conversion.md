@@ -1106,3 +1106,8 @@ All approaches are O(n) with O(1) space, making them highly efficient for batch 
 - [LeetCode 13 - Roman to Integer](https://leetcode.com/problems/roman-to-integer/)
 - [Roman Numerals - Wikipedia](https://en.wikipedia.org/wiki/Roman_numerals)
 - [Subtractive Notation in Roman Numerals](https://en.wikipedia.org/wiki/Roman_numerals#Additive_notation)
+
+
+## Pattern Source
+
+[String - Roman to Integer Conversion](patterns/string-roman-to-integer-conversion.md)

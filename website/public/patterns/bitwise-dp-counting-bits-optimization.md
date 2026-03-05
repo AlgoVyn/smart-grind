@@ -945,3 +945,7 @@ This pattern is essential for any developer preparing for technical interviews o
 ## LeetCode Link
 
 [Counting Bits - LeetCode](https://leetcode.com/problems/counting-bits/)
+
+## Pattern Source
+
+[Bitwise DP - Counting Bits Optimization](patterns/bitwise-dp-counting-bits-optimization.md)

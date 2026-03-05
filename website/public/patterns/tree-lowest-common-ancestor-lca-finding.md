@@ -1908,3 +1908,8 @@ This pattern is essential for tree-related interview questions and appears in ma
 - [Binary Lifting - CP-Algorithms](https://cp-algorithms.com/graph/lca_binary_lifting.html)
 - [Euler Tour RMQ - Stanford ACM](https://cp-algorithms.com/graph/lca.html)
 - [Tree Data Structure - LeetCode](https://leetcode.com/explore/learn/card/data-structure-tree/)
+
+
+## Pattern Source
+
+[Tree - Lowest Common Ancestor (LCA) Finding](patterns/tree-lowest-common-ancestor-lca-finding.md)

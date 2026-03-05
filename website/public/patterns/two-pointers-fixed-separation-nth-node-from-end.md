@@ -559,3 +559,8 @@ The Fixed Separation pattern is one of the most elegant techniques for linked li
 - **Elegant Edge Handling**: Dummy node simplifies head removal and other edge cases
 
 Master this pattern to efficiently solve nth node from end problems and build a foundation for more complex linked list algorithms.
+
+
+## Pattern Source
+
+[Two Pointers - Fixed Separation (Nth Node from End)](patterns/two-pointers-fixed-separation-nth-node-from-end.md)

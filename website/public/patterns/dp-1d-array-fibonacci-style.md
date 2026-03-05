@@ -1235,3 +1235,7 @@ This pattern is fundamental to dynamic programming and appears in numerous LeetC
 - [Dynamic Programming - GeeksforGeeks](https://www.geeksforgeeks.org/dynamic-programming/) - Detailed explanations
 - [DP Cheat Sheet](https://github.com/halfrost/LeetCode-Go/blob/master/Notes/12.dp.md) - Quick reference
 - [Pattern: TDP - 1D Array (Fibonacci Style)](dp-1d-array-fibonacci-style) - Back to top
+
+## Pattern Source
+
+[TDP - 1D Array (Fibonacci Style)](patterns/dp-1d-array-fibonacci-style.md)

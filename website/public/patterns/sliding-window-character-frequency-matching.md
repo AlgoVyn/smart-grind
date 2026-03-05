@@ -801,3 +801,8 @@ Choose the appropriate template based on your specific use case:
 ---
 
 **Pattern Tags:** `Sliding Window` `Frequency Matching` `String Matching` `Anagram Detection` `Minimum Window Substring`
+
+
+## Pattern Source
+
+[Sliding Window - Character Frequency Matching](patterns/sliding-window-character-frequency-matching.md)

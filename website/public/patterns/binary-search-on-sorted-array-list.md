@@ -725,3 +725,7 @@ def searchInsert(nums, target):
 - [LeetCode 35 - Search Insert Position](https://leetcode.com/problems/search-insert-position/)
 - Cormen, Leiserson, Rivest, Stein - Introduction to Algorithms (CLRS)
 - Knuth, Donald - The Art of Computer Programming, Volume 3: Sorting and Searching
+
+## Pattern Source
+
+[Binary Search - On Sorted Array/List](patterns/binary-search-on-sorted-array-list.md)

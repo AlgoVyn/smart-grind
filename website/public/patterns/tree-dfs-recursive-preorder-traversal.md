@@ -1083,3 +1083,8 @@ This pattern is frequently asked in interviews and forms the foundation for many
 - [Tree Traversals - GeeksforGeeks](https://www.geeksforgeeks.org/tree-traversals-inorder-preorder-and-postorder/) - Comprehensive traversal guide
 - [Morris Traversal](https://www.geeksforgeeks.org/morris-traversal-linear-time-tree-traversal/) - O(1) space traversal
 - [Binary Tree Data Structure](https://www.geeksforgeeks.org/binary-tree-data-structure/) - Binary tree fundamentals
+
+
+## Pattern Source
+
+[Tree DFS - Recursive Preorder Traversal](patterns/tree-dfs-recursive-preorder-traversal.md)

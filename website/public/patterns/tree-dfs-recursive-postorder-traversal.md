@@ -1207,3 +1207,8 @@ This pattern is frequently asked in interviews and forms the foundation for many
 - [Postorder Traversal - InterviewBit](https://www.interviewbit.com/tutorial/postorder-traversal/) - Interview-focused explanation
 - [Binary Tree Problems - LeetCode](https://leetcode.com/explore/learn/card/data-structure-tree/) - Tree data structure exploration
 - [Expression Trees - GeeksforGeeks](https://www.geeksforgeeks.org/expression-tree/) - Expression tree applications
+
+
+## Pattern Source
+
+[Tree DFS - Recursive Postorder Traversal](patterns/tree-dfs-recursive-postorder-traversal.md)

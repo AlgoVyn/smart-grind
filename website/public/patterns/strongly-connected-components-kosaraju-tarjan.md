@@ -1234,3 +1234,7 @@ def tarjan_scc(graph):
 ## Summary
 
 Kosaraju's and Tarjan's algorithms are fundamental tools for finding Strongly Connected Components in directed graphs. Kosaraju's two-pass approach with graph reversal offers conceptual simplicity, while Tarjan's single-pass algorithm with low-link values provides optimal efficiency. Understanding both approaches enables you to choose the right tool for each situation and solve a wide range of graph problems involving cycles, reachability, and component analysis.
+
+## Pattern Source
+
+[Strongly Connected Components (Kosaraju / Tarjan)](patterns/strongly-connected-components-kosaraju-tarjan.md)

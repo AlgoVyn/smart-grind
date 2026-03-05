@@ -748,3 +748,8 @@ This pattern forms the foundation for many advanced array manipulation technique
 - [GeeksforGeeks - Two Pointers](https://www.geeksforgeeks.org/two-pointers-technique/) - Theory and examples
 - [Wikipedia - In-place Algorithm](https://en.wikipedia.org/wiki/In-place_algorithm) - Algorithm design principles
 - [LeetCode Discuss](https://leetcode.com/discuss/) - Community solutions and insights
+
+
+## Pattern Source
+
+[Two Pointers - In-place Array Modification](patterns/two-pointers-in-place-array-modification.md)

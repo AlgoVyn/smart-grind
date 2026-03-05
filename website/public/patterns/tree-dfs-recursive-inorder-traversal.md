@@ -1137,3 +1137,8 @@ This pattern is frequently asked in interviews and forms the foundation for many
 - [Morris Traversal](https://www.geeksforgeeks.org/morris-traversal-linear-time-tree-traversal/) - O(1) space traversal
 - [Binary Search Tree Data Structure](https://www.geeksforgeeks.org/binary-search-tree-data-structure/) - BST fundamentals
 - [Validate BST - LeetCode Solutions](https://leetcode.com/problems/validate-binary-search-tree/solutions/) - Various approaches for BST validation
+
+
+## Pattern Source
+
+[Tree DFS - Recursive Inorder Traversal](patterns/tree-dfs-recursive-inorder-traversal.md)

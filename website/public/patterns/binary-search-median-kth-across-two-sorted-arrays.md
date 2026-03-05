@@ -1,90 +1,58 @@
 # Binary Search - Median / Kth across Two Sorted Arrays
 
-## Overview
+## Problem Description
 
-This advanced binary search pattern is used to find the median or the kth smallest element across two sorted arrays. It leverages binary search to partition one array and find the correct split point, ensuring elements on the left are smaller than those on the right across both arrays. This approach achieves **O(log min(n,m))** time complexity, making it highly efficient for large arrays.
+The Binary Search - Median / Kth across Two Sorted Arrays pattern is used to find the median or the kth smallest element across two sorted arrays without fully merging them. This advanced binary search technique achieves **O(log min(m,n))** time complexity by partitioning one array and finding the correct split point.
 
 This pattern is particularly useful for:
 - Finding the median in statistics when dealing with two sorted datasets
 - Selecting kth elements in merged datasets without fully merging
 - Solving problems that require order statistics across multiple sorted sources
 
-## Problem Definition
+### Key Characteristics
 
-Given two sorted arrays `nums1` and `nums2`, find:
-1. **Median of Two Sorted Arrays**: The middle value of the combined sorted arrays
-2. **Kth Smallest Element**: The kth smallest element in the combined sorted arrays
+| Characteristic | Description |
+|----------------|-------------|
+| Time Complexity | O(log min(m,n)) - Binary search on smaller array |
+| Space Complexity | O(1) - Constant extra space |
+| Input | Two sorted arrays of integers |
+| Output | Median value or kth smallest element |
+| Approach | Virtual partitioning with binary search |
 
-### Example: Median
+### When to Use
 
-**Input:** `nums1 = [1,3]`, `nums2 = [2]`
-**Output:** `2.0`
-
-**Input:** `nums1 = [1,2]`, `nums2 = [3,4]`
-**Output:** `2.5`
-
-### Example: Kth Element
-
-**Input:** `nums1 = [2,3,6]`, `nums2 = [1,4,5,7,8]`, `k = 4`
-**Output:** `5` (the 4th smallest element in [1,2,3,4,5,6,7,8])
-
----
+- Finding median of two sorted arrays without merging
+- Finding kth smallest element across multiple sorted sources
+- Problems requiring order statistics on combined datasets
+- When merging would be too expensive (large arrays)
+- Distributed computing scenarios with sorted partitions
 
 ## Intuition
 
-The key insight is to **avoid merging the arrays** entirely. Instead, we find a "virtual partition" that splits both arrays such that:
+The key insight is to **avoid merging the arrays** entirely. Instead, we find a "virtual partition" that splits both arrays such that all elements in the left partition are ≤ all elements in the right partition.
 
-1. **All elements in the left partition are ≤ all elements in the right partition**
-2. **The total number of elements on the left equals (or is one more than) the right** (for median calculation)
+The "aha!" moments:
+1. **Virtual Partition**: Divide one array at a point, the other partition is determined mathematically
+2. **Balance Condition**: Left partition should have (m+n+1)/2 elements for median
+3. **Binary Search on Smaller Array**: Always binary search on the smaller array for efficiency
+4. **Boundary Values**: Use -∞ and +∞ to handle edge cases at array boundaries
+5. **Correct Partition**: `max(left) ≤ min(right)` ensures correct partition
 
-### The Partition Concept
+## Solution Approaches
 
-Imagine we could merge the two arrays into one sorted array. The median would be at position `(m+n+1)/2`. Instead of actually merging:
+### Approach 1: Binary Search for Median (Optimal) ✅ Recommended
 
-```
-nums1 = [1, 3, 5, 7]
-nums2 = [2, 4, 6, 8]
+#### Algorithm
+1. Ensure `nums1` is the smaller array (swap if needed)
+2. Calculate `half = (m + n + 1) // 2` (elements in left partition)
+3. Binary search on `nums1`:
+   - Partition `nums1` at `i`, then `j = half - i` for `nums2`
+   - Get boundary values (use -∞/+∞ for out-of-bounds)
+   - Check if `nums1_left ≤ nums2_right` and `nums2_left ≤ nums1_right`
+   - If valid: calculate median based on odd/even total
+   - If not: adjust binary search range
 
-Virtual Partition (i=2, j=3):
-nums1:  [1, 3 | 5, 7]
-              ↑    ↑
-            i-1   i
-
-nums2:  [2, 4, 6 | 8]
-                  ↑    ↑
-                j-1   j
-
-Left partition:  [1, 3, 2, 4, 6]  (5 elements)
-Right partition: [5, 7, 8]       (3 elements)
-
-All left ≤ All right ✓
-```
-
-### Why Binary Search Works
-
-- We binary search on the **smaller array** to find the partition point
-- Once we find the correct partition in one array, the partition in the other is determined mathematically
-- We only need O(log min(m,n)) iterations
-
----
-
-## Key Concepts
-
-| Concept | Description |
-|---------|-------------|
-| **Partitioning** | Divide one array at a point and find the corresponding partition in the second array |
-| **Balance Condition** | Ensure all elements in the left partitions are ≤ all elements in the right partitions |
-| **Median Calculation** | For median, the partition should balance the total elements (left has (m+n+1)/2 elements) |
-| **Kth Element** | Adjust the partition to ensure exactly k-1 elements are on the left |
-| **Boundary Values** | Use -∞ and +∞ to handle edge cases where partitions are at array boundaries |
-
----
-
-## Approach 1: Binary Search for Median (Optimal)
-
-This is the most efficient approach with **O(log min(m,n))** time complexity.
-
-### Python Solution
+#### Implementation
 
 ````carousel
 ```python
@@ -92,6 +60,12 @@ from typing import List
 
 class Solution:
     def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:
+        """
+        Find median of two sorted arrays using binary search.
+        LeetCode 4 - Median of Two Sorted Arrays
+        
+        Time: O(log min(m,n)), Space: O(1)
+        """
         # Ensure nums1 is the smaller array for efficiency
         if len(nums1) > len(nums2):
             nums1, nums2 = nums2, nums1
@@ -118,7 +92,7 @@ class Solution:
                 if total % 2 == 1:
                     return max(nums1_left, nums2_left)  # Odd: max of left
                 else:
-                    return (max(nums1_left, nums2_left) + min(nums1_right, nums2_right)) / 2  # Even: avg
+                    return (max(nums1_left, nums2_left) + min(nums1_right, nums2_right)) / 2
             elif nums1_left > nums2_right:
                 right = i - 1  # Move left in nums1
             else:
@@ -265,20 +239,22 @@ var findMedianSortedArrays = function(nums1, nums2) {
 ```
 ````
 
-### Complexity Analysis
+#### Time and Space Complexity
 
-| Metric | Complexity |
-|--------|-------------|
-| **Time Complexity** | O(log min(m,n)) |
-| **Space Complexity** | O(1) |
+| Aspect | Complexity |
+|--------|------------|
+| Time | O(log min(m,n)) - Binary search on smaller array |
+| Space | O(1) - Constant extra space |
 
----
+### Approach 2: Binary Search for Kth Element
 
-## Approach 2: Binary Search for Kth Element
+#### Algorithm
+1. Ensure `nums1` is the smaller array
+2. Binary search on partition points
+3. Adjust partition to ensure exactly k-1 elements on the left
+4. Return `max(left partition values)`
 
-This approach finds the kth smallest element across two sorted arrays in **O(log min(m,n))** time.
-
-### Python Solution
+#### Implementation
 
 ````carousel
 ```python
@@ -288,13 +264,7 @@ def find_kth_element(nums1: List[int], nums2: List[int], k: int) -> int:
     """
     Finds the kth smallest element in two sorted arrays.
     
-    Args:
-        nums1: First sorted list
-        nums2: Second sorted list
-        k: The kth position (1-based)
-    
-    Returns:
-        The kth smallest element
+    Time: O(log min(m,n)), Space: O(1)
     """
     if len(nums1) > len(nums2):
         nums1, nums2 = nums2, nums1
@@ -438,164 +408,21 @@ function findKthElement(nums1, nums2, k) {
 ```
 ````
 
-### Complexity Analysis
+#### Time and Space Complexity
 
-| Metric | Complexity |
-|--------|-------------|
-| **Time Complexity** | O(log min(m,n)) |
-| **Space Complexity** | O(1) |
+| Aspect | Complexity |
+|--------|------------|
+| Time | O(log min(m,n)) - Binary search on smaller array |
+| Space | O(1) - Constant extra space |
 
----
+### Approach 3: Two Pointers Without Full Merge
 
-## Approach 3: Brute Force Merge (Educational)
+#### Algorithm
+1. Use two pointers to traverse both arrays
+2. Track values at mid positions without storing merged array
+3. Return median based on odd/even total length
 
-This approach merges both arrays and then finds the median. Simple but not optimal for large arrays.
-
-### Python Solution
-
-````carousel
-```python
-from typing import List
-
-def merge_and_find_median(nums1: List[int], nums2: List[int]) -> float:
-    """
-    Merge two sorted arrays and find the median.
-    Time: O(m+n), Space: O(m+n)
-    """
-    merged = []
-    i = j = 0
-    m, n = len(nums1), len(nums2)
-    
-    # Merge
-    while i < m and j < n:
-        if nums1[i] < nums2[j]:
-            merged.append(nums1[i])
-            i += 1
-        else:
-            merged.append(nums2[j])
-            j += 1
-    
-    while i < m:
-        merged.append(nums1[i])
-        i += 1
-    
-    while j < n:
-        merged.append(nums2[j])
-        j += 1
-    
-    # Find median
-    total = m + n
-    if total % 2 == 1:
-        return merged[total // 2]
-    else:
-        return (merged[total // 2 - 1] + merged[total // 2]) / 2
-```
-<!-- slide -->
-```cpp
-#include <vector>
-using namespace std;
-
-double merge_and_find_median(vector<int>& nums1, vector<int>& nums2) {
-    vector<int> merged;
-    merged.reserve(nums1.size() + nums2.size());
-    
-    int i = 0, j = 0;
-    
-    // Merge
-    while (i < nums1.size() && j < nums2.size()) {
-        if (nums1[i] < nums2[j]) {
-            merged.push_back(nums1[i++]);
-        } else {
-            merged.push_back(nums2[j++]);
-        }
-    }
-    
-    while (i < nums1.size()) merged.push_back(nums1[i++]);
-    while (j < nums2.size()) merged.push_back(nums2[j++]);
-    
-    // Find median
-    int total = merged.size();
-    if (total % 2 == 1) {
-        return merged[total / 2];
-    } else {
-        return (merged[total / 2 - 1] + merged[total / 2]) / 2.0;
-    }
-}
-```
-<!-- slide -->
-```java
-import java.util.*;
-
-class Solution {
-    public double mergeAndFindMedian(int[] nums1, int[] nums2) {
-        List<Integer> merged = new ArrayList<>();
-        int i = 0, j = 0;
-        
-        // Merge
-        while (i < nums1.length && j < nums2.length) {
-            if (nums1[i] < nums2[j]) {
-                merged.add(nums1[i++]);
-            } else {
-                merged.add(nums2[j++]);
-            }
-        }
-        
-        while (i < nums1.length) merged.add(nums1[i++]);
-        while (j < nums2.length) merged.add(nums2[j++]);
-        
-        // Find median
-        int total = merged.size();
-        if (total % 2 == 1) {
-            return merged.get(total / 2);
-        } else {
-            return (merged.get(total / 2 - 1) + merged.get(total / 2)) / 2.0;
-        }
-    }
-}
-```
-<!-- slide -->
-```javascript
-function mergeAndFindMedian(nums1, nums2) {
-    const merged = [];
-    let i = 0, j = 0;
-    
-    // Merge
-    while (i < nums1.length && j < nums2.length) {
-        if (nums1[i] < nums2[j]) {
-            merged.push(nums1[i++]);
-        } else {
-            merged.push(nums2[j++]);
-        }
-    }
-    
-    while (i < nums1.length) merged.push(nums1[i++]);
-    while (j < nums2.length) merged.push(nums2[j++]);
-    
-    // Find median
-    const total = merged.length;
-    if (total % 2 === 1) {
-        return merged[Math.floor(total / 2)];
-    } else {
-        return (merged[total / 2 - 1] + merged[total / 2]) / 2;
-    }
-}
-```
-````
-
-### Complexity Analysis
-
-| Metric | Complexity |
-|--------|-------------|
-| **Time Complexity** | O(m + n) |
-| **Space Complexity** | O(m + n) |
-
----
-
-## Approach 4: Two Pointers Without Full Merge
-
-This optimized approach finds the middle elements without storing the entire merged array.
-
-### Python Solution
+#### Implementation
 
 ````carousel
 ```python
@@ -769,85 +596,70 @@ function twoPointersMedian(nums1, nums2) {
 ```
 ````
 
-### Complexity Analysis
+#### Time and Space Complexity
 
-| Metric | Complexity |
-|--------|-------------|
-| **Time Complexity** | O(m + n) |
-| **Space Complexity** | O(1) |
+| Aspect | Complexity |
+|--------|------------|
+| Time | O(m + n) - Linear scan through arrays |
+| Space | O(1) - No extra space for merging |
 
----
-
-## Complexity Comparison
+## Complexity Analysis
 
 | Approach | Time | Space | Notes |
 |----------|------|-------|-------|
-| **Binary Search (Median)** | O(log min(m,n)) | O(1) | Optimal for median |
-| **Binary Search (Kth)** | O(log min(m,n)) | O(1) | Optimal for kth element |
-| **Brute Force Merge** | O(m + n) | O(m + n) | Simple but uses extra space |
-| **Two Pointers** | O(m + n) | O(1) | No extra space, but still linear |
-
----
-
-## Common Pitfalls
-
-1. **Not swapping arrays**: Always binary search on the smaller array for O(log min(m,n)) complexity
-
-2. **Incorrect partition calculation**: 
-   ```python
-   # Correct: half includes the middle for odd totals
-   half = (total + 1) // 2
-   
-   # Wrong: Would give wrong partition for odd totals
-   half = total // 2
-   ```
-
-3. **Boundary value errors**: Use -∞ and +∞ correctly for edge cases
-   - When partition is at start (i=0): use -∞ for left boundary
-   - When partition is at end (i=m): use +∞ for right boundary
-
-4. **Off-by-one in kth element**: Remember k is 1-based, not 0-based
-
-5. **Integer vs float division**: Use `/2` not `//2` for median calculation
-
----
+| **Binary Search (Median)** | O(log min(m,n)) | O(1) | **Optimal** - Recommended |
+| **Binary Search (Kth)** | O(log min(m,n)) | O(1) | **Optimal** for kth element |
+| **Two Pointers** | O(m + n) | O(1) | Simple but linear time |
 
 ## Related Problems
 
-| Problem | LeetCode Link | Difficulty | Description |
-|---------|---------------|------------|-------------|
-| **Median of Two Sorted Arrays** | [4. Median of Two Sorted Arrays](https://leetcode.com/problems/median-of-two-sorted-arrays/) | Hard | Find median of two sorted arrays |
-| **Kth Smallest Element in a Sorted Matrix** | [378. Kth Smallest Element in a Sorted Matrix](https://leetcode.com/problems/kth-smallest-element-in-a-sorted-matrix/) | Medium | Find kth smallest in 2D sorted matrix |
-| **Find Median from Data Stream** | [295. Find Median from Data Stream](https://leetcode.com/problems/find-median-from-data-stream/) | Hard | Median of a dynamic data stream |
-| **Kth Smallest Element in a BST** | [230. Kth Smallest Element in a BST](https://leetcode.com/problems/kth-smallest-element-in-a-bst/) | Medium | Find kth smallest in BST |
-| **Kth Largest Element in an Array** | [215. Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/) | Medium | Find kth largest using heap/quickselect |
-| **Find K Pairs with Smallest Sums** | [373. Find K Pairs with Smallest Sums](https://leetcode.com/problems/find-k-pairs-with-smallest-sums/) | Medium | Find k pairs with smallest sums |
-| **Merge k Sorted Lists** | [23. Merge k Sorted Lists](https://leetcode.com/problems/merge-k-sorted-lists/) | Hard | Merge k sorted linked lists |
-| **Smallest Range Covering Elements from k Lists](https://leetcode.com/problems/smallest-range-covering-elements-from-k-lists/) | Hard | Find smallest range covering all lists |
+| Problem | LeetCode # | Difficulty | Description |
+|---------|------------|------------|-------------|
+| [Median of Two Sorted Arrays](https://leetcode.com/problems/median-of-two-sorted-arrays/) | 4 | Hard | Find median of two sorted arrays |
+| [Kth Smallest Element in a Sorted Matrix](https://leetcode.com/problems/kth-smallest-element-in-a-sorted-matrix/) | 378 | Medium | Find kth smallest in 2D sorted matrix |
+| [Find Median from Data Stream](https://leetcode.com/problems/find-median-from-data-stream/) | 295 | Hard | Median of a dynamic data stream |
+| [Kth Smallest Element in a BST](https://leetcode.com/problems/kth-smallest-element-in-a-bst/) | 230 | Medium | Find kth smallest in BST |
+| [Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/) | 215 | Medium | Find kth largest using heap/quickselect |
+| [Find K Pairs with Smallest Sums](https://leetcode.com/problems/find-k-pairs-with-smallest-sums/) | 373 | Medium | Find k pairs with smallest sums |
+| [Merge k Sorted Lists](https://leetcode.com/problems/merge-k-sorted-lists/) | 23 | Hard | Merge k sorted linked lists |
 
----
+## Video Tutorial Links
 
-## Video Tutorials
-
-1. **[LeetCode Median of Two Sorted Arrays - Binary Search Approach](https://www.youtube.com/watch?v=q6IEA26hvXc)** - Comprehensive walkthrough
+1. **[LeetCode Median of Two Sorted Arrays](https://www.youtube.com/watch?v=q6IEA26hvXc)** - Comprehensive walkthrough
 2. **[Median of Two Sorted Arrays Explained](https://www.youtube.com/watch?v=LPFhl65R7ww)** - Clear explanation
 3. **[Binary Search Solution for Median](https://www.youtube.com/watch?v=ScCg9v921ns)** - Step-by-step solution
 4. **[Kth Element in Two Sorted Arrays](https://www.youtube.com/watch?v=nvK2j7KBvF4)** - Kth element approach
 
----
-
 ## Summary
 
-The Binary Search approach for finding median/kth elements across two sorted arrays is an elegant solution that:
+### Key Takeaways
+- **Avoid merging** by using binary search on the smaller array
+- **Achieves O(log min(m,n))** time complexity - optimal for this problem
+- **Uses O(1)** extra space with boundary values (-∞, +∞)
+- **Partition must satisfy**: all left elements ≤ all right elements
+- **For median (odd)**: return max of left elements
+- **For median (even)**: return average of max(left) and min(right)
 
-1. **Avoids merging** by using binary search on the smaller array
-2. **Achieves O(log min(m,n))** time complexity - optimal for this problem
-3. **Uses O(1)** extra space
-4. **Handles edge cases** through boundary values
+### Common Pitfalls
+- **Not swapping arrays**: Always binary search on the smaller array
+- **Incorrect partition calculation**: Use `half = (total + 1) // 2`
+- **Boundary value errors**: Use -∞ and +∞ correctly for edge cases
+- **Off-by-one in kth element**: Remember k is 1-based, not 0-based
+- **Integer vs float division**: Use `/2` not `//2` for median calculation
 
-Key takeaways:
-- Always binary search on the smaller array
-- Use boundary values (-∞, +∞) for edge cases
-- The partition must satisfy: all left elements ≤ all right elements
-- For median (odd): return max of left elements
-- For median (even): return average of max(left) and min(right)
+### Follow-up Questions
+1. **How would you find the kth largest element?**
+   - Answer: Find (m+n-k+1)th smallest element
+
+2. **What if you have k sorted arrays instead of 2?**
+   - Answer: Use a min-heap or divide-and-conquer approach
+
+3. **How would you handle duplicate elements?**
+   - Answer: Same approach works fine with duplicates
+
+4. **Can you find the median without binary search?**
+   - Answer: Yes, using two pointers O(m+n) or merging O(m+n)
+
+## Pattern Source
+
+[Median/Kth Across Two Sorted Arrays Pattern](patterns/binary-search-median-kth-across-two-sorted-arrays.md)

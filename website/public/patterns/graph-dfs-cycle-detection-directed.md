@@ -1,4 +1,4 @@
-# Graph DFS - Cycle Detection (Directed Graph)
+# Graph - DFS Cycle Detection
 
 ## Overview
 
@@ -904,3 +904,7 @@ var hasCycleBFS = function(n, edges) {
 ### Q10: How would you detect if adding an edge would create a cycle?
 
 **Answer**: Temporarily add the edge and run cycle detection. Or more efficiently, check if the target node can reach the source node in the original graph (if yes, adding edge creates a cycle).
+
+## Pattern Source
+
+[Graph - DFS Cycle Detection](patterns/graph-dfs-cycle-detection-directed.md)

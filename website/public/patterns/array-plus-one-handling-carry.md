@@ -1,71 +1,57 @@
 # Array - Plus One (Handling Carry)
 
-## Overview
+## Problem Description
 
-The Array - Plus One pattern is used to increment a number represented as an array of digits by 1. This pattern handles carry-over from the least significant digit to more significant digits, and potentially adding a new digit if all digits are 9.
+The Array - Plus One pattern is used to increment a number represented as an array of digits by 1. This pattern handles carry-over from the least significant digit to more significant digits, and potentially adding a new digit if all digits are 9. The digits are stored such that the most significant digit is at the head of the list, meaning `digits[0]` is the thousands digit and `digits[-1]` is the ones digit.
 
-## Problem Statement
+### Key Characteristics
+| Characteristic | Description |
+|----------------|-------------|
+| Time Complexity | O(n) - single pass through digits in worst case |
+| Space Complexity | O(1) - modifies array in place, O(n) only when all digits are 9 |
+| Input | Non-empty array of decimal digits (0-9) |
+| Output | Array of digits representing the incremented number |
+| Constraint | No leading zeros except the number 0 itself |
 
-Given a non-empty array of decimal digits `digits` representing a non-negative integer, increment the integer by one and return the resulting array of digits.
-
-The digits are stored such that the most significant digit is at the head of the list, meaning `digits[0]` is the thousands digit and `digits[-1]` is the ones digit.
-
-### Examples
-
-- **Input:** `digits = [1, 2, 3]`<br>
-  **Output:** `[1, 2, 4]`<br>
-  **Explanation:** 123 + 1 = 124
-
-- **Input:** `digits = [4, 3, 2, 1]`<br>
-  **Output:** `[4, 3, 2, 2]`<br>
-  **Explanation:** 4321 + 1 = 4322
-
-- **Input:** `digits = [9, 9, 9]`<br>
-  **Output:** `[1, 0, 0, 0]`<br>
-  **Explanation:** 999 + 1 = 1000
-
-- **Input:** `digits = [0]`<br>
-  **Output:** `[1]`<br>
-  **Explanation:** 0 + 1 = 1
-
-- **Input:** `digits = [1, 9, 9]`<br>
-  **Output:** `[2, 0, 0]`<br>
-  **Explanation:** 199 + 1 = 200
-
-### Constraints
-
-- `1 <= digits.length <= 100`
-- `0 <= digits[i] <= 9`
-- The integer does not have leading zeros (except the number 0 itself)
+### When to Use
+- When incrementing a number represented as an array of digits
+- Problems requiring carry propagation through digits
+- Array arithmetic problems (addition, subtraction)
+- Big number arithmetic where standard types overflow
+- Problems involving digit manipulation with carry handling
 
 ## Intuition
 
-The key insight is to simulate the manual addition process we learned in school. When adding 1 to a number:
+The key insight is to simulate the manual addition process we learned in school. When adding 1 to a number, we start from the least significant digit (rightmost position) and propagate any carry to the left.
 
-1. We start from the least significant digit (rightmost position).
-2. If the digit is less than 9, we simply increment it and we're done.
-3. If the digit is 9, adding 1 makes it 10, so we set it to 0 and carry 1 to the next digit.
-4. This carry propagation continues until we either stop at a digit < 9 or exhaust all digits.
-5. If all digits are 9, we need to add a new leading 1 (e.g., 999 + 1 = 1000).
+The "aha!" moments:
+1. **Start from the right**: Process digits from least significant to most significant
+2. **Early termination**: Most numbers don't have trailing 9s, so we can often stop early
+3. **Carry propagation**: When a digit is 9, it becomes 0 and carry continues left
+4. **All 9s case**: If all digits are 9, we need a new leading 1 (e.g., 999 + 1 = 1000)
+5. **In-place modification**: We can modify the array directly without extra space
 
-The beauty of this approach is that we can often terminate early - most numbers don't have all trailing 9s, so we only need to process a few digits from the right.
+## Solution Approaches
 
----
+### Approach 1: Reverse Iteration with Early Termination (Optimal) ✅ Recommended
 
-## Approach 1: Reverse Iteration with Early Termination (Primary and Efficient)
+#### Algorithm
+1. Start from the last index (least significant digit)
+2. If current digit is less than 9, increment it and return immediately
+3. If digit is 9, set it to 0 (carry continues)
+4. Move to the next digit to the left
+5. If we exit the loop, all digits were 9 - prepend 1 to the array
 
-This approach iterates from right to left, handling carry propagation. If a digit is less than 9, we increment and return early. If it's 9, we set it to 0 and continue. If all digits are 9, we prepend 1.
-
-### Implementation
+#### Implementation
 
 ````carousel
 ```python
 def plus_one(digits):
     """
     Increment a number represented as an array of digits by one.
+    LeetCode 66 - Plus One
     
-    Time: O(n) - single pass through digits in worst case
-    Space: O(1) - modifies array in place, O(n) only when all digits are 9
+    Time: O(n), Space: O(1)
     """
     n = len(digits)
     
@@ -79,29 +65,7 @@ def plus_one(digits):
     # All digits were 9, need new leading 1
     return [1] + digits
 ```
-
-```java
-class Solution {
-    public int[] plusOne(int[] digits) {
-        int n = digits.length;
-        
-        // Process from right to left (least significant digit first)
-        for (int i = n - 1; i >= 0; i--) {
-            if (digits[i] < 9) {
-                digits[i]++;
-                return digits;  // Early return, no carry needed
-            }
-            digits[i] = 0;  // Handle carry, digit becomes 0
-        }
-        
-        // All digits were 9, need new leading 1
-        int[] result = new int[n + 1];
-        result[0] = 1;
-        return result;
-    }
-}
-```
-
+<!-- slide -->
 ```cpp
 #include <vector>
 
@@ -126,13 +90,31 @@ public:
     }
 };
 ```
-
+<!-- slide -->
+```java
+class Solution {
+    public int[] plusOne(int[] digits) {
+        int n = digits.length;
+        
+        // Process from right to left (least significant digit first)
+        for (int i = n - 1; i >= 0; i--) {
+            if (digits[i] < 9) {
+                digits[i]++;
+                return digits;  // Early return, no carry needed
+            }
+            digits[i] = 0;  // Handle carry, digit becomes 0
+        }
+        
+        // All digits were 9, need new leading 1
+        int[] result = new int[n + 1];
+        result[0] = 1;
+        return result;
+    }
+}
+```
+<!-- slide -->
 ```javascript
-/**
- * @param {number[]} digits
- * @return {number[]}
- */
-var plusOne = function(digits) {
+function plusOne(digits) {
     const n = digits.length;
     
     // Process from right to left (least significant digit first)
@@ -146,158 +128,154 @@ var plusOne = function(digits) {
     
     // All digits were 9, need new leading 1
     return [1, ...digits];
-};
+}
 ```
 ````
 
-### Explanation Step-by-Step
+#### Time and Space Complexity
+| Aspect | Complexity |
+|--------|------------|
+| Time | O(n) - single pass, often terminates early |
+| Space | O(1) - in-place, O(n) only for all-9s case |
 
-1. **Right-to-Left Iteration:** Start from the last element (least significant digit) and move left.
+### Approach 2: Explicit Carry Variable
 
-2. **Early Termination Check:** If the current digit is less than 9, simply increment it and return immediately. No carry propagation needed.
+This approach uses an explicit carry variable, making the carry logic more explicit and easier to extend for adding values other than 1.
 
-3. **Carry Handling:** If the digit is 9, set it to 0 (since 9 + 1 = 10) and continue to the next digit. The carry is implicit.
+#### Algorithm
+1. Initialize carry = 1 (the value we're adding)
+2. For each digit from right to left:
+   - Add carry to current digit
+   - Set digit to total % 10
+   - Update carry to total / 10
+   - If carry is 0, break early
+3. If carry remains, prepend it to the result
 
-4. **All-9s Case:** If we exit the loop without returning, all digits were 9. Create a new array with a leading 1 followed by zeros.
-
-### Complexity Analysis
-
-- **Time Complexity:** O(n) - In the worst case (all 9s), we process all n digits. In the best case (last digit < 9), it's O(1).
-- **Space Complexity:** O(1) - We modify the array in place. Only when all digits are 9 do we allocate O(n) space for the new array.
-
-This is the optimal approach for this problem, as any solution must at least examine the digits that need to be modified.
-
----
-
-## Approach 2: String Conversion (Simple but Less Efficient)
-
-Convert the digit array to a string, add 1 to the integer, then convert back to a digit array. This approach is simple but has limitations with very large numbers.
-
-### Implementation
+#### Implementation
 
 ````carousel
 ```python
-def plus_one(digits):
+def plus_one_carry(digits):
     """
-    Increment using string conversion.
+    Increment using explicit carry variable.
     
-    Time: O(n) - for join, conversion, and split
-    Space: O(n) - for string and new array
+    Time: O(n), Space: O(1)
     """
-    # Convert to string, then to integer, add 1
-    num = int(''.join(map(str, digits)))
-    num += 1
+    carry = 1  # We're adding 1
     
-    # Convert back to array of digits
-    return [int(d) for d in str(num)]
-```
-
-```java
-class Solution {
-    public int[] plusOne(int[] digits) {
-        StringBuilder sb = new StringBuilder();
-        for (int d : digits) {
-            sb.append(d);
-        }
+    for i in range(len(digits) - 1, -1, -1):
+        total = digits[i] + carry
+        digits[i] = total % 10
+        carry = total // 10
         
-        // Convert to long, add 1 (long handles up to 19 digits)
-        long num = Long.parseLong(sb.toString()) + 1;
-        String result = String.valueOf(num);
-        
-        // Convert back to array
-        int[] output = new int[result.length()];
-        for (int i = 0; i < result.length(); i++) {
-            output[i] = result.charAt(i) - '0';
-        }
-        return output;
-    }
-}
+        if carry == 0:
+            break  # Early termination
+    
+    if carry:
+        return [carry] + digits
+    return digits
 ```
-
+<!-- slide -->
 ```cpp
 #include <vector>
-#include <string>
 
 class Solution {
 public:
     std::vector<int> plusOne(std::vector<int>& digits) {
-        // Convert to string
-        std::string s;
-        for (int d : digits) {
-            s += std::to_string(d);
+        int carry = 1;  // We're adding 1
+        
+        for (int i = digits.size() - 1; i >= 0; i--) {
+            int total = digits[i] + carry;
+            digits[i] = total % 10;
+            carry = total / 10;
+            
+            if (carry == 0) {
+                break;  // Early termination
+            }
         }
         
-        // Add 1 with carry handling
-        int carry = 1;
-        for (int i = s.length() - 1; i >= 0 && carry; i--) {
-            int digit = (s[i] - '0') + carry;
-            s[i] = char('0' + (digit % 10));
-            carry = digit / 10;
+        if (carry > 0) {
+            std::vector<int> result(digits.size() + 1, 0);
+            result[0] = carry;
+            return result;
         }
-        
-        // Add leading 1 if carry remains
-        if (carry) {
-            s = '1' + s;
-        }
-        
-        // Convert back to vector
-        std::vector<int> result;
-        for (char c : s) {
-            result.push_back(c - '0');
-        }
-        return result;
+        return digits;
     }
 };
 ```
-
+<!-- slide -->
+```java
+class Solution {
+    public int[] plusOne(int[] digits) {
+        int carry = 1;  // We're adding 1
+        
+        for (int i = digits.length - 1; i >= 0; i--) {
+            int total = digits[i] + carry;
+            digits[i] = total % 10;
+            carry = total / 10;
+            
+            if (carry == 0) {
+                break;  // Early termination
+            }
+        }
+        
+        if (carry > 0) {
+            int[] result = new int[digits.length + 1];
+            result[0] = carry;
+            return result;
+        }
+        return digits;
+    }
+}
+```
+<!-- slide -->
 ```javascript
-/**
- * @param {number[]} digits
- * @return {number[]}
- */
-var plusOne = function(digits) {
-    // Use BigInt to handle arbitrarily large numbers
-    const num = BigInt(digits.join('')) + 1n;
+function plusOne(digits) {
+    let carry = 1;  // We're adding 1
     
-    // Convert back to array of digits
-    return num.toString().split('').map(Number);
-};
+    for (let i = digits.length - 1; i >= 0; i--) {
+        const total = digits[i] + carry;
+        digits[i] = total % 10;
+        carry = Math.floor(total / 10);
+        
+        if (carry === 0) {
+            break;  // Early termination
+        }
+    }
+    
+    if (carry > 0) {
+        return [carry, ...digits];
+    }
+    return digits;
+}
 ```
 ````
 
-### Explanation Step-by-Step
+#### Time and Space Complexity
+| Aspect | Complexity |
+|--------|------------|
+| Time | O(n) - single pass through digits |
+| Space | O(1) - in-place modification |
 
-1. **String Construction:** Join all digits into a single string representation of the number.
-
-2. **Numeric Conversion:** Convert the string to a numeric type (int, long, BigInt) and add 1.
-
-3. **Back to Digits:** Convert the result back to a string, then split into individual digit characters.
-
-4. **Type Conversion:** Convert each character back to a numeric digit.
-
-### Complexity Analysis
-
-- **Time Complexity:** O(n) - String operations and conversions are linear in the number of digits.
-- **Space Complexity:** O(n) - We create strings and a new array for the result.
-
-**Limitations:** This approach may fail for very large numbers that exceed the maximum value of standard integer types (though BigInt in JavaScript handles arbitrarily large numbers).
-
----
-
-## Approach 3: Recursive Solution (Educational)
+### Approach 3: Recursive Solution
 
 A recursive approach that handles the last digit and recursively processes the rest. This demonstrates the recursive nature of carry propagation.
 
-### Implementation
+#### Algorithm
+1. Define recursive helper with index parameter
+2. Base case: if index < 0, we need a new leading digit
+3. If current digit < 9, increment and return
+4. Otherwise, set to 0 and recurse on previous index
+
+#### Implementation
 
 ````carousel
 ```python
-def plus_one(digits):
+def plus_one_recursive(digits):
     """
     Increment using recursion.
     
-    Time: O(n) - may visit all digits in worst case
-    Space: O(n) - recursion stack depth
+    Time: O(n), Space: O(n) for recursion stack
     """
     def helper(index):
         # Base case: if index is negative, we need to add a new digit
@@ -315,34 +293,7 @@ def plus_one(digits):
     
     return helper(len(digits) - 1)
 ```
-
-```java
-class Solution {
-    public int[] plusOne(int[] digits) {
-        return plusOneRecursive(digits, digits.length - 1);
-    }
-    
-    private int[] plusOneRecursive(int[] digits, int index) {
-        // Base case: if index is negative, we need to add a new digit
-        if (index < 0) {
-            int[] result = new int[digits.length + 1];
-            result[0] = 1;
-            return result;
-        }
-        
-        // If current digit is less than 9, increment and return
-        if (digits[index] < 9) {
-            digits[index]++;
-            return digits;
-        }
-        
-        // Set current digit to 0 and recurse
-        digits[index] = 0;
-        return plusOneRecursive(digits, index - 1);
-    }
-}
-```
-
+<!-- slide -->
 ```cpp
 #include <vector>
 
@@ -373,13 +324,36 @@ private:
     }
 };
 ```
-
+<!-- slide -->
+```java
+class Solution {
+    public int[] plusOne(int[] digits) {
+        return plusOneRecursive(digits, digits.length - 1);
+    }
+    
+    private int[] plusOneRecursive(int[] digits, int index) {
+        // Base case: if index is negative, we need to add a new digit
+        if (index < 0) {
+            int[] result = new int[digits.length + 1];
+            result[0] = 1;
+            return result;
+        }
+        
+        // If current digit is less than 9, increment and return
+        if (digits[index] < 9) {
+            digits[index]++;
+            return digits;
+        }
+        
+        // Set current digit to 0 and recurse
+        digits[index] = 0;
+        return plusOneRecursive(digits, index - 1);
+    }
+}
+```
+<!-- slide -->
 ```javascript
-/**
- * @param {number[]} digits
- * @return {number[]}
- */
-var plusOne = function(digits) {
+function plusOne(digits) {
     function recursive(digits, index) {
         // Base case: if index is negative, we need to add a new digit
         if (index < 0) {
@@ -398,402 +372,171 @@ var plusOne = function(digits) {
     }
     
     return recursive(digits, digits.length - 1);
-};
+}
 ```
 ````
 
-### Explanation Step-by-Step
+#### Time and Space Complexity
+| Aspect | Complexity |
+|--------|------------|
+| Time | O(n) - may visit all digits in worst case |
+| Space | O(n) - recursion stack depth |
 
-1. **Recursive Function:** Define a helper function that takes the current index.
+### Approach 4: String Conversion (Not Recommended)
 
-2. **Base Case:** If index < 0, we've processed all digits and still have a carry. Create a new array with leading 1.
+Convert the digit array to a string, add 1 to the integer, then convert back. This approach is simple but has limitations with very large numbers.
 
-3. **Early Return:** If current digit < 9, increment it and return (no further carry).
-
-4. **Recursive Step:** Set current digit to 0 and recurse on the previous index.
-
-### Complexity Analysis
-
-- **Time Complexity:** O(n) - In the worst case, we visit all digits.
-- **Space Complexity:** O(n) - Recursion stack depth can be up to n in the worst case.
-
-This approach is educational but less efficient than the iterative approach due to stack overhead.
-
----
-
-## Approach 4: Explicit Carry Variable (Alternative Iterative)
-
-Use an explicit carry variable instead of relying on the implicit carry from setting digits to 0. This makes the carry logic more explicit.
-
-### Implementation
+#### Implementation
 
 ````carousel
 ```python
-def plus_one(digits):
+def plus_one_string(digits):
     """
-    Increment using explicit carry variable.
+    Increment using string conversion.
+    NOT RECOMMENDED - limited by integer size.
     
-    Time: O(n) - single pass through digits
-    Space: O(1) - modifies in place, O(n) only when all digits are 9
+    Time: O(n), Space: O(n)
     """
-    carry = 1  # We're adding 1
-    
-    for i in range(len(digits) - 1, -1, -1):
-        total = digits[i] + carry
-        digits[i] = total % 10
-        carry = total // 10
-        
-        if carry == 0:
-            break  # Early termination
-    
-    if carry:
-        return [carry] + digits
-    return digits
+    num = int(''.join(map(str, digits)))
+    num += 1
+    return [int(d) for d in str(num)]
 ```
-
-```java
-class Solution {
-    public int[] plusOne(int[] digits) {
-        int carry = 1;  // We're adding 1
-        
-        for (int i = digits.length - 1; i >= 0; i--) {
-            int total = digits[i] + carry;
-            digits[i] = total % 10;
-            carry = total / 10;
-            
-            if (carry == 0) {
-                break;  // Early termination
-            }
-        }
-        
-        if (carry > 0) {
-            int[] result = new int[digits.length + 1];
-            result[0] = carry;
-            return result;
-        }
-        return digits;
-    }
-}
-```
-
+<!-- slide -->
 ```cpp
 #include <vector>
+#include <string>
 
 class Solution {
 public:
     std::vector<int> plusOne(std::vector<int>& digits) {
-        int carry = 1;  // We're adding 1
-        
-        for (int i = digits.size() - 1; i >= 0; i--) {
-            int total = digits[i] + carry;
-            digits[i] = total % 10;
-            carry = total / 10;
-            
-            if (carry == 0) {
-                break;  // Early termination
-            }
-        }
-        
-        if (carry > 0) {
-            std::vector<int> result(digits.size() + 1, 0);
-            result[0] = carry;
-            return result;
-        }
-        return digits;
-    }
-};
-```
-
-```javascript
-/**
- * @param {number[]} digits
- * @return {number[]}
- */
-var plusOne = function(digits) {
-    let carry = 1;  // We're adding 1
-    
-    for (let i = digits.length - 1; i >= 0; i--) {
-        const total = digits[i] + carry;
-        digits[i] = total % 10;
-        carry = Math.floor(total / 10);
-        
-        if (carry === 0) {
-            break;  // Early termination
-        }
-    }
-    
-    if (carry > 0) {
-        return [carry, ...digits];
-    }
-    return digits;
-};
-```
-````
-
-### Explanation Step-by-Step
-
-1. **Initialize Carry:** Start with carry = 1 (the value we're adding).
-
-2. **Process Digits:** For each digit from right to left:
-   - Add the carry to the current digit.
-   - Set the digit to the result modulo 10 (the new digit value).
-   - Update carry to the result divided by 10 (the new carry value).
-
-3. **Early Termination:** If carry becomes 0, we can stop processing.
-
-4. **Handle Remaining Carry:** If we exit the loop with carry > 0, prepend it to the result.
-
-### Complexity Analysis
-
-- **Time Complexity:** O(n) - Single pass through digits in worst case.
-- **Space Complexity:** O(1) - In-place modification, O(n) only when all digits are 9.
-
-This approach is more explicit about the carry logic and can be easily extended to add values other than 1.
-
----
-
-## Approach 5: Separate Cases for All-9s (Clear but Verbose)
-
-Handle the general case and special all-9s case separately for clarity. This makes the code more readable but requires an extra pass to check for all 9s.
-
-### Implementation
-
-````carousel
-```python
-def plus_one(digits):
-    """
-    Increment with separate handling for all-9s case.
-    
-    Time: O(n) - two passes in worst case
-    Space: O(n) - new array for all-9s case
-    """
-    # Check if all digits are 9
-    if all(d == 9 for d in digits):
-        return [1] + [0] * len(digits)
-    
-    # General case: increment from right
-    for i in range(len(digits) - 1, -1, -1):
-        if digits[i] < 9:
-            digits[i] += 1
-            break
-        digits[i] = 0
-    
-    return digits
-```
-
-```java
-class Solution {
-    public int[] plusOne(int[] digits) {
-        // Check if all digits are 9
-        boolean allNines = true;
+        // Convert to string
+        std::string s;
         for (int d : digits) {
-            if (d != 9) {
-                allNines = false;
-                break;
-            }
+            s += std::to_string(d);
         }
         
-        if (allNines) {
-            int[] result = new int[digits.length + 1];
-            result[0] = 1;
-            return result;
+        // Add 1 with carry handling
+        int carry = 1;
+        for (int i = s.length() - 1; i >= 0 && carry; i--) {
+            int digit = (s[i] - '0') + carry;
+            s[i] = char('0' + (digit % 10));
+            carry = digit / 10;
         }
         
-        // General case: increment from right
-        for (int i = digits.length - 1; i >= 0; i--) {
-            if (digits[i] < 9) {
-                digits[i]++;
-                break;
-            }
-            digits[i] = 0;
+        if (carry) {
+            s = '1' + s;
         }
         
-        return digits;
+        // Convert back to vector
+        std::vector<int> result;
+        for (char c : s) {
+            result.push_back(c - '0');
+        }
+        return result;
+    }
+};
+```
+<!-- slide -->
+```java
+class Solution {
+    public int[] plusOne(int[] digits) {
+        StringBuilder sb = new StringBuilder();
+        for (int d : digits) {
+            sb.append(d);
+        }
+        
+        // Convert to BigInteger for arbitrary precision
+        java.math.BigInteger num = new java.math.BigInteger(sb.toString());
+        num = num.add(java.math.BigInteger.ONE);
+        String result = num.toString();
+        
+        // Convert back to array
+        int[] output = new int[result.length()];
+        for (int i = 0; i < result.length(); i++) {
+            output[i] = result.charAt(i) - '0';
+        }
+        return output;
     }
 }
 ```
-
-```cpp
-#include <vector>
-#include <algorithm>
-
-class Solution {
-public:
-    std::vector<int> plusOne(std::vector<int>& digits) {
-        // Check if all digits are 9
-        bool allNines = std::all_of(
-            digits.begin(), 
-            digits.end(), 
-            [](int d) { return d == 9; }
-        );
-        
-        if (allNines) {
-            std::vector<int> result(digits.size() + 1, 0);
-            result[0] = 1;
-            return result;
-        }
-        
-        // General case: increment from right
-        for (int i = digits.size() - 1; i >= 0; i--) {
-            if (digits[i] < 9) {
-                digits[i]++;
-                break;
-            }
-            digits[i] = 0;
-        }
-        
-        return digits;
-    }
-};
-```
-
+<!-- slide -->
 ```javascript
-/**
- * @param {number[]} digits
- * @return {number[]}
- */
-var plusOne = function(digits) {
-    // Check if all digits are 9
-    if (digits.every(d => d === 9)) {
-        return [1, ...digits.map(() => 0)];
-    }
-    
-    // General case: increment from right
-    for (let i = digits.length - 1; i >= 0; i--) {
-        if (digits[i] < 9) {
-            digits[i]++;
-            break;
-        }
-        digits[i] = 0;
-    }
-    
-    return digits;
-};
+function plusOne(digits) {
+    // Use BigInt to handle arbitrarily large numbers
+    const num = BigInt(digits.join('')) + 1n;
+    return num.toString().split('').map(Number);
+}
 ```
 ````
 
-### Explanation Step-by-Step
+#### Time and Space Complexity
+| Aspect | Complexity |
+|--------|------------|
+| Time | O(n) |
+| Space | O(n) |
+| Limitation | May overflow standard integer types |
 
-1. **All-9s Check:** First, check if all digits are 9. If so, return [1] followed by zeros.
+## Complexity Analysis
 
-2. **General Case:** If not all 9s, iterate from right to left:
-   - Find the first digit that's not 9.
-   - Increment it and break.
-   - Set all trailing 9s to 0.
-
-### Complexity Analysis
-
-- **Time Complexity:** O(n) - Two passes in worst case (one to check all 9s, one to increment).
-- **Space Complexity:** O(n) - New array only for all-9s case.
-
-This approach is very readable but slightly less efficient due to the extra pass.
-
----
-
-## Comparison of Approaches
-
-| Approach | Time Complexity | Space Complexity | Use Case |
-|----------|-----------------|------------------|----------|
-| Reverse Iteration (Early Termination) | O(n) worst, O(1) best | O(1) | **Recommended** - Most efficient and clean |
-| String Conversion | O(n) | O(n) | Simple but limited by integer overflow |
-| Recursive | O(n) | O(n) | Educational - demonstrates recursion |
+| Approach | Time | Space | When to Use |
+|----------|------|-------|-------------|
+| Reverse Iteration | O(n) | O(1) | **Recommended** - Most efficient and clean |
 | Explicit Carry | O(n) | O(1) | Good for extending to add other values |
-| Separate Cases | O(n) | O(n) | Very readable but extra pass |
-
----
-
-## Key Concepts
-
-- **Digit-wise Increment**: Start from the last digit (least significant) and increment.
-- **Carry Handling**: If a digit becomes 10 after increment, set to 0 and carry 1 to next digit.
-- **Leading Digit Carry**: If all digits are 9, add a new digit at the beginning.
-- **Early Termination**: Most numbers don't cause carry propagation through all digits.
-- **In-place Modification**: Only allocate new space when necessary (all 9s case).
-
-## Time and Space Complexity
-
-- **Time Complexity**: O(n), where n is the number of digits (worst case, all digits are 9).
-- **Space Complexity**: O(n) in the worst case (when a new digit is added), O(1) otherwise.
-
-## Common Pitfalls
-
-- **Not handling carry correctly**: Failing to propagate carry to higher digits leads to incorrect results.
-- **Forgetting the case where all digits are 9**: Can result in an incorrect length array.
-- **Incorrect loop direction**: Starting from the first digit instead of the last digit.
-- **Off-by-one errors**: Incorrect loop bounds can cause digits to be missed.
-- **Integer overflow**: Converting to integer types can fail for very large numbers.
-
-## Example Problems
-
-1. **Plus One (LeetCode 66)**: Increment a number represented as an array of digits.
-2. **Plus Two or Other Values**: Extend the pattern to add other single-digit values.
-3. **Add Two Numbers as Arrays**: Add two numbers represented as digit arrays.
-4. **Add to Array-Form of Integer (LeetCode 989)**: Add an integer to an array-form number.
+| Recursive | O(n) | O(n) | Educational - demonstrates recursion |
+| String Conversion | O(n) | O(n) | Simple but limited by integer overflow |
 
 ## Related Problems
 
-Here are some LeetCode problems that build on similar concepts (array arithmetic, carry handling, or digit manipulation):
-
-- [Add Two Numbers (Medium)](https://leetcode.com/problems/add-two-numbers/) - Add two numbers represented as linked lists.
-- [Add Binary (Easy)](https://leetcode.com/problems/add-binary/) - Add two binary strings.
-- [Add Strings (Easy)](https://leetcode.com/problems/add-strings/) - Add two non-negative integer strings.
-- [Plus One Linked List (Medium)](https://leetcode.com/problems/plus-one-linked-list/) - Same problem with linked list representation.
-- [Add to Array-Form of Integer (Easy)](https://leetcode.com/problems/add-to-array-form-of-integer/) - Add an integer to an array-form number.
-- [Multiply Strings (Medium)](https://leetcode.com/problems/multiply-strings/) - Multiply two numbers represented as strings.
-- [Add Two Numbers II (Medium)](https://leetcode.com/problems/add-two-numbers-ii/) - Add two numbers represented as linked lists without reversal.
+| Problem | LeetCode # | Difficulty | Description |
+|---------|------------|------------|-------------|
+| [Plus One](https://leetcode.com/problems/plus-one/) | 66 | Easy | Increment number represented as array |
+| [Add to Array-Form of Integer](https://leetcode.com/problems/add-to-array-form-of-integer/) | 989 | Easy | Add an integer to array-form number |
+| [Add Two Numbers](https://leetcode.com/problems/add-two-numbers/) | 2 | Medium | Add two numbers as linked lists |
+| [Add Binary](https://leetcode.com/problems/add-binary/) | 67 | Easy | Add two binary strings |
+| [Add Strings](https://leetcode.com/problems/add-strings/) | 415 | Easy | Add two non-negative integer strings |
+| [Multiply Strings](https://leetcode.com/problems/multiply-strings/) | 43 | Medium | Multiply two numbers as strings |
+| [Plus One Linked List](https://leetcode.com/problems/plus-one-linked-list/) | 369 | Medium | Plus one with linked list representation |
 
 ## Video Tutorial Links
 
-For visual explanations, here are some recommended YouTube tutorials:
+1. **[NeetCode - Plus One](https://www.youtube.com/watch?v=1L1N199hbFw)** - Clear explanation of reverse iteration
+2. **[Back To Back SWE - Plus One](https://www.youtube.com/watch?v=2J2-82tK6vw)** - Detailed walkthrough with examples
+3. **[Kevin Naughton Jr. - LeetCode 66](https://www.youtube.com/watch?v=IcK5QO7S5B0)** - Step-by-step explanation
+4. **[Nick White - Plus One](https://www.youtube.com/watch?v=JLdL2jQ6p2M)** - Quick solution explanation
+5. **[Techdose - Plus One](https://www.youtube.com/watch?v=IcK5QO7S5B0)** - Multiple approaches
 
-- [NeetCode - Plus One](https://www.youtube.com/watch?v=1L1N199hbFw) - Clear explanation of the reverse iteration approach.
-- [LeetCode Official Solution - Plus One](https://leetcode.com/problems/plus-one/solution/) - Official solution with multiple approaches.
-- [Back to Back SWE - Plus One](https://www.youtube.com/watch?v=2J2-82tK6vw) - Detailed walkthrough with examples.
-- [Techdose - Plus One LeetCode 66](https://www.youtube.com/watch?v=IcK5QO7S5B0) - Step-by-step explanation.
-- [Nick White - Plus One](https://www.youtube.com/watch?v=JLdL2jQ6p2M) - Quick solution explanation.
+## Summary
 
-## Follow-up Questions
+### Key Takeaways
+- **Start from the right** (least significant digit) when handling carry
+- **Early termination**: Return immediately when digit < 9 after incrementing
+- **All 9s case**: Return new array with leading 1 followed by zeros
+- **Carry propagation**: 9 becomes 0, carry continues to next digit
+- **When to apply**: Any digit array arithmetic with carry handling
 
+### Common Pitfalls
+- Processing digits from left to right (wrong order)
+- Forgetting to handle the all-9s case (array size increases)
+- Not propagating carry correctly through consecutive 9s
+- Integer overflow when converting to numeric types
+- Off-by-one errors in loop bounds
+
+### Follow-up Questions
 1. **How would you modify the solution to add K instead of 1?**
-
-   **Answer:** Add K to the last digit, then propagate any carry. The carry can be greater than 1, so use modulo and division by 10. For example, if adding K=7 to [9, 9], you get [9, 16] → [10, 6] → [1, 0, 6].
+   - Use explicit carry approach, add K to last digit, propagate carry
 
 2. **How would you solve this if the digits were stored in reverse order?**
-
-   **Answer:** Process from left to right instead of right to left. Since the least significant digit is at index 0, simply iterate forward and handle carry as you go. No reversal needed.
+   - Process from left to right instead, same carry logic applies
 
 3. **How would you implement this for a linked list representation?**
-
-   **Answer:** Reverse the linked list to process from least significant digit, add one, then reverse back. Or use recursion to traverse to the end and backtrack, adding one on the return path.
+   - Reverse the list, add one, then reverse back; or use recursion
 
 4. **How would you handle very large numbers that exceed standard integer limits?**
+   - Never convert to integer; use array operations throughout
 
-   **Answer:** Never convert the entire array to an integer. Use string/array operations throughout - the carry propagation algorithm works identically regardless of number size.
+5. **Can you generalize this to add two arrays of digits?**
+   - Yes, use same carry propagation with two pointers
 
-5. **Can you solve this in-place without modifying the original array?**
+## Pattern Source
 
-   **Answer:** Make a copy of the array first, then apply the standard algorithm to the copy. The all-9s case creates a new array anyway, so this is straightforward.
-
-6. **How would you optimize for the case where we have multiple additions?**
-
-   **Answer:** Batch all additions into a single carry value. Instead of adding 1 K times, add K once and handle the carry. This reduces O(K × n) to O(n + log K).
-
-7. **How would you modify the solution for base-B addition?**
-
-   **Answer:** Change the modulo and division base from 10 to B. For binary (base 2), this simplifies since 1 + 1 = 10, making carry propagation very efficient.
-
-8. **What if the input array could have leading zeros?**
-
-   **Answer:** First, strip leading zeros from the input array (except keep [0] if the number is zero). Then apply the standard algorithm. The result should also not have leading zeros.
-
-9. **How would you implement subtraction instead of addition?**
-
-   **Answer:** Similar approach but with borrowing instead of carrying. Start from the least significant digit, subtract 1. If the digit becomes negative, add 10 and borrow 1 from the next digit. Handle the case where we need to borrow from a non-existent digit (negative result).
-
-10. **Can you generalize this to add two arrays of digits?**
-
-    **Answer:** Yes, use the same carry propagation approach. Start from the rightmost digits of both arrays, add them along with the carry, store the result modulo 10, and propagate the carry. Handle arrays of different lengths by treating missing digits as 0.
-
-## LeetCode Link
-
-[Plus One - LeetCode 66](https://leetcode.com/problems/plus-one/)
+[Plus One Pattern](patterns/array-plus-one-handling-carry.md)

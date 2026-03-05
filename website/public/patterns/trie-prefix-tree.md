@@ -1637,3 +1637,8 @@ Use compressed tries (Patricia tries) to reduce memory footprint. Consider bit-p
 - [Trie - Wikipedia](https://en.wikipedia.org/wiki/Trie)
 - [Prefix Tree - GeeksforGeeks](https://www.geeksforgeeks.org/trie-insert-and-search/)
 - [Dictionary Implementation using Trie](https://www.geeksforgeeks.org/dictionary-implementation-using-trie/)
+
+
+## Pattern Source
+
+[Trie (Prefix Tree)](patterns/trie-prefix-tree.md)

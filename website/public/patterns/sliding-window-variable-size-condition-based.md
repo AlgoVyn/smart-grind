@@ -2929,3 +2929,8 @@ Key takeaways:
 - Space complexity is O(1) or O(k)
 
 Practice with the related problems to master this pattern!
+
+
+## Pattern Source
+
+[Sliding Window - Variable Size (Condition-Based)](patterns/sliding-window-variable-size-condition-based.md)

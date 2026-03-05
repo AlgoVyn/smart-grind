@@ -581,3 +581,8 @@ The Fast & Slow Pointer pattern is one of the most elegant techniques in algorit
 - **Mathematical Foundation**: Built on proven mathematical properties of relative speeds
 
 Master this pattern to efficiently solve cycle detection, middle finding, and duplicate detection problems.
+
+
+## Pattern Source
+
+[Two Pointers - Fast & Slow (Cycle Detection)](patterns/two-pointers-fast-slow-cycle-detection.md)

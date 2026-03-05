@@ -548,3 +548,8 @@ Final:   ["o", "l", "l", "e", "h"] ✓
 
 - [LeetCode - Reverse String](https://leetcode.com/problems/reverse-string/)
 - [Two Pointers Technique - GeeksforGeeks](https://www.geeksforgeeks.org/two-pointers-technique/)
+
+
+## Pattern Source
+
+[Two Pointers - String Reversal](patterns/two-pointers-string-reversal.md)

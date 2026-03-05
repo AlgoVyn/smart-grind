@@ -850,3 +850,8 @@ The **Two Pointers - Converging** pattern is essential for solving sorted array 
 5. **Intuitive Direction**: The converging movement is easy to visualize and implement
 
 This pattern is a must-know for technical interviews and demonstrates strong algorithmic thinking skills.
+
+
+## Pattern Source
+
+[Two Pointers - Converging (Sorted Array Target Sum)](patterns/two-pointers-converging-sorted-array-target-sum.md)
