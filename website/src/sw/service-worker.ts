@@ -1613,8 +1613,8 @@ interface TarFile {
     content: Uint8Array;
 }
 
-/** Maximum safe tar file size (10MB) */
-const MAX_TAR_SIZE = 10 * 1024 * 1024;
+/** Maximum safe tar file size (15MB) */
+const MAX_TAR_SIZE = 15 * 1024 * 1024;
 
 /** Maximum safe file count in tar archive */
 const MAX_TAR_FILES = 10000;
