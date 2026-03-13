@@ -15,8 +15,7 @@ An integer is a **palindrome** when it reads the same forward and backward. For 
 
 The key challenge is determining whether a number reads the same forwards and backwards **without converting it to a string**, which tests your understanding of number manipulation.
 
-### Key Constraints
-
+## Constraints
 | Constraint | Description | Importance |
 |------------|-------------|------------|
 | `-2^31 <= x <= 2^31 - 1` | 32-bit signed integer range | Negative numbers need special handling |
@@ -24,6 +23,31 @@ The key challenge is determining whether a number reads the same forwards and ba
 | No string conversion | Challenge constraint | Tests number manipulation skills |
 
 ---
+
+## Pattern:
+
+This problem follows the **Half Reversal** pattern for palindrome checking, a variant of the Two Pointers technique.
+
+### Core Concept
+
+- **Half Reversal**: Reverse only the second half of the number
+- **Compare Halves**: First half vs reversed second half
+- **Early Termination**: Stop when reversed exceeds original (for odd digits)
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Checking if a number is a palindrome without string conversion
+2. Problems requiring O(log₁₀(n)) time and O(1) space
+3. Number manipulation without overflow concerns
+
+### Related Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| Two Pointers | General symmetric comparison |
+| Reverse Half | Optimized for numbers |
+| String Conversion | Simpler but O(n) space |
 
 ## Examples
 
@@ -117,7 +141,7 @@ We only processed 2 digits instead of all 5!
 
 ## Solution Approaches
 
-### Approach 1: Reverse Half the Number (Optimal) ✅ Recommended
+## Approach 1: Reverse Half the Number (Optimal) ✅ Recommended
 
 This is the optimal solution that achieves O(log₁₀(x)) time complexity by reversing only half the digits.
 
@@ -311,7 +335,7 @@ Compare: x = 12, reversed = 12
 
 ---
 
-### Approach 2: Convert to String (Simpler but String-Based)
+## Approach 2: Convert to String (Simpler but String-Based)
 
 This approach converts the number to a string and checks if it's a palindrome. It's simpler but violates the "no string conversion" constraint that tests number manipulation skills.
 
@@ -427,7 +451,7 @@ var isPalindrome = function(x) {
 
 ---
 
-### Approach 3: Reverse the Entire Number
+## Approach 3: Reverse the Entire Number
 
 This approach reverses the entire number and compares it with the original. It's a valid solution but performs more operations than necessary.
 
@@ -551,7 +575,7 @@ The half-reversal approach avoids this because `reversed_num` never exceeds the 
 
 ---
 
-### Approach 4: Recursive Approach
+## Approach 4: Recursive Approach
 
 This approach uses recursion to check if the number is a palindrome. It's less efficient but demonstrates the concept clearly.
 
@@ -923,6 +947,35 @@ var isPalindrome = function(x) {
 12. **How would you optimize this for very large integers (>64-bit)?**
     - Use string-based manipulation
     - Implement arbitrary-precision arithmetic
+
+---
+
+## Common Pitfalls
+
+### 1. Forgetting Negative Numbers
+**Issue:** Not handling negative numbers - they can never be palindromes due to the negative sign.
+
+**Solution:** Add check `if x < 0: return False` at the start.
+
+### 2. Numbers Ending with Zero
+**Issue:** Numbers like 10, 100, 1000 are not palindromes but simple checks miss this.
+
+**Solution:** Add check `if x % 10 == 0 and x != 0: return False`.
+
+### 3. Integer Overflow in Full Reversal
+**Issue:** Reversing entire number can overflow for values near INT_MAX.
+
+**Solution:** Use half-reversal approach where reversed never exceeds original.
+
+### 4. Not Handling Odd Digit Count
+**Issue:** For odd-length numbers, the middle digit should be ignored in comparison.
+
+**Solution:** Use `x == reversed // 10` for odd, `x == reversed` for even.
+
+### 5. Using String Conversion
+**Issue:** While valid, this violates the "no string conversion" constraint.
+
+**Solution:** Use the half-reversal numeric approach for optimal solution.
 
 ---
 

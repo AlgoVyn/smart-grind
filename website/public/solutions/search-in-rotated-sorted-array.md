@@ -103,6 +103,34 @@ nums = [6,7,0,1,2,3,4,5], target = 2
 
 ---
 
+
+## Pattern:
+
+This problem follows the **Binary Search** pattern for rotated arrays.
+
+### Core Concept
+
+- **Two Sorted Parts**: Array is rotated, find which part is sorted
+- **Determine Side**: Check if left or right half is sorted
+- **Narrow Search**: Eliminate half based on target
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Searching in rotated sorted array
+2. Modified binary search
+3. Finding element in unsorted rotated array
+
+### Related Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| Binary Search | Standard approach |
+| Rotated Minimum | Find minimum |
+
+---
+
+
 ## Intuition
 
 The key insight is that even though the array is rotated, it still maintains a partial sorting property:
@@ -121,7 +149,7 @@ This allows us to reduce the search space by half at each step, achieving O(log 
 
 ## Multiple Approaches
 
-### Approach 1: Single-Pass Modified Binary Search (Recommended)
+## Approach 1: Single-Pass Modified Binary Search (Recommended)
 
 **Idea:** Perform binary search while determining which half is sorted at each step.
 
@@ -296,7 +324,7 @@ var search = function(nums, target) {
 
 ---
 
-### Approach 2: Find Pivot + Binary Search (Two-Pass)
+## Approach 2: Find Pivot + Binary Search (Two-Pass)
 
 **Idea:** First find the pivot (minimum element) index, then perform binary search on the appropriate half.
 
@@ -511,7 +539,7 @@ var search = function(nums, target) {
 
 ---
 
-### Approach 3: Linear Scan (Brute Force)
+## Approach 3: Linear Scan (Brute Force)
 
 **Idea:** Simply iterate through the array to find the target.
 
@@ -580,7 +608,7 @@ var search = function(nums, target) {
 
 ---
 
-### Approach 4: Recursive Binary Search
+## Approach 4: Recursive Binary Search
 
 **Idea:** Implement the modified binary search recursively.
 
@@ -735,7 +763,7 @@ var search = function(nums, target) {
 
 ---
 
-### Approach 5: Binary Search with Shift (Calculate Rotation Offset)
+## Approach 5: Binary Search with Shift (Calculate Rotation Offset)
 
 **Idea:** First calculate the shift amount (rotation count), then adjust indices to perform standard binary search. This approach transforms the problem into a regular binary search by accounting for the rotation.
 
@@ -1258,6 +1286,27 @@ The linear scan visits each element exactly once in the worst case (target not f
 
 12. **How would you modify the shift-based approach to find all occurrences of the target?**  
     **Answer:** After finding one occurrence using the shift-based binary search, you can expand outward to find all adjacent occurrences since the array contains unique elements, you only need to verify one occurrence. If duplicates were allowed, you would need to search left and right from the found index.
+
+---
+
+
+
+## Common Pitfalls
+
+### 1. Not Checking Both Sides
+**Issue:** Not determining which half is sorted.
+
+**Solution:** Check if nums[left] <= nums[mid] to determine sorted side.
+
+### 2. Wrong Comparison
+**Issue:** Using wrong bounds for target.
+
+**Solution:** Check if target in sorted range: nums[left] <= target < nums[mid].
+
+### 3. Edge Cases
+**Issue:** Not handling duplicate or equal values.
+
+**Solution:** Be careful when nums[left] == nums[mid].
 
 ---
 

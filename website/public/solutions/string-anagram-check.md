@@ -1,6 +1,21 @@
 # Valid Anagram
 
-## Problem Statement
+## Pattern:
+
+Frequency Counting
+
+This problem uses **frequency counting** to check if two strings are anagrams. The key insight is that two strings are anagrams if and only if they have identical character frequency counts. For lowercase English letters, we can use a fixed-size array of 26 elements for O(1) space.
+
+## Common Pitfalls
+
+- **Length check**: Always check if lengths are equal first - different lengths cannot be anagrams.
+- **Early exit**: During the second pass, exit early if any count becomes negative.
+- **Space complexity**: Using a fixed array gives O(1) space, but for Unicode characters, use a hash map.
+- **Character normalization**: For case-insensitive comparison, convert both strings to the same case first.
+
+---
+
+## Problem Description
 
 LeetCode Problem 242: Valid Anagram
 
@@ -8,7 +23,7 @@ Given two strings `s` and `t`, return `true` if `t` is an anagram of `s`, and `f
 
 An anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once. For example, "listen" and "silent" are anagrams because they contain the same letters in different orders.
 
-### Examples
+## Examples
 
 Here are some examples to illustrate the problem:
 
@@ -32,7 +47,7 @@ Here are some examples to illustrate the problem:
   **Output:** `false`<br>
   **Explanation:** While both strings have 5 characters, their character compositions differ significantly.
 
-### Constraints
+## Constraints
 
 - `1 <= s.length <= 10^5`
 - `1 <= t.length <= 10^5`
@@ -658,6 +673,31 @@ def isAnagramTwoPass(s: str, t: str) -> bool:
 **8. How would you optimize for cache performance with very large strings?**
 
 **Answer:** Process strings in cache-friendly chunks, or use SIMD instructions for character comparison. However, for the given constraints (100K characters), this is unnecessary optimization.
+
+---
+
+## Summary
+
+The **Valid Anagram** problem demonstrates the **Frequency Counting** pattern for string comparison.
+
+Key takeaways:
+1. **Character Frequency**: Two strings are anagrams if and only if they have identical character frequency counts
+2. **Fixed-Size Array**: For lowercase English letters, use a fixed-size array of 26 elements for O(1) space
+3. **Early Exit Optimization**: Check length first and exit early if counts go negative during comparison
+4. **Time Complexity**: O(n) - single pass through both strings
+5. **Space Complexity**: O(1) - fixed-size array regardless of input size
+
+This pattern is foundational for many string manipulation problems including anagram grouping and palindrome checking.
+
+### Pattern Summary
+
+This problem exemplifies the **Frequency Counting** pattern, characterized by:
+- Using an array or hash map to count occurrences of elements
+- O(1) space when the alphabet size is bounded (26 letters)
+- Single-pass counting with early exit possibilities
+- Foundation for more complex string algorithms
+
+For more details on this pattern, see the **[Frequency Counting](/patterns)** guide.
 
 ---
 

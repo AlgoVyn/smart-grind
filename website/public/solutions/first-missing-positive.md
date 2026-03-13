@@ -6,6 +6,38 @@ Given an unsorted integer array `nums`, find the smallest missing positive integ
 
 The algorithm should run in **O(n)** time complexity and use **O(1)** auxiliary space complexity.
 
+**LeetCode Link:** [First Missing Positive - LeetCode](https://leetcode.com/problems/first-missing-positive/)
+
+---
+
+## Pattern: Array Index as Hash Key - In-place Marking
+
+This problem demonstrates algorithmic problem-solving patterns.
+
+## Intuition
+
+The key insight for this problem is that we can use the array indices themselves as a hash table to track which positive integers are present, without using any extra space.
+
+### Key Observations
+
+1. **Range of Answer**: The smallest missing positive must be in the range [1, n+1] where n is the array length. This is because:
+   - If all numbers 1 to n are present, the answer is n+1
+   - Any number ≤ 0 or > n cannot be the answer
+
+2. **Index as Marker**: Since the answer must be in [1, n], we can use index i to store whether number (i+1) is present.
+
+3. **In-Place Swapping**: By swapping elements to their correct positions (value v goes to index v-1), we can place each number where it belongs.
+
+### Why This Works
+
+The key is recognizing that we only need to track numbers in the range [1, n]. By placing each valid number at its corresponding index, we can then scan the array to find the first position where the value doesn't match (i+1). This gives us the smallest missing positive.
+
+### Algorithm Overview
+
+1. **Swapping Phase**: For each element, if it's in range [1, n] and not already in correct position, swap it to its correct position.
+2. **Finding Phase**: Scan array to find first index where nums[i] != i+1
+3. **Edge Case**: If all positions are correct, return n+1
+
 ---
 
 ## Constraints
@@ -15,7 +47,9 @@ The algorithm should run in **O(n)** time complexity and use **O(1)** auxiliary 
 
 ---
 
-## Example 1
+## Examples
+
+### Example 1
 
 **Input:**
 ```python
@@ -31,7 +65,7 @@ nums = [1, 2, 0]
 
 ---
 
-## Example 2
+### Example 2
 
 **Input:**
 ```python
@@ -47,7 +81,7 @@ nums = [3, 4, -1, 1]
 
 ---
 
-## Example 3
+### Example 3
 
 **Input:**
 ```python
@@ -498,3 +532,56 @@ var firstMissingPositive = function(nums) {
 2. **In-Place Modification**: Solve with O(1) extra space by modifying the input.
 3. **Range Optimization**: Focus only on the relevant range [1, n].
 4. **Cycle Detection**: The swapping approach is similar to cycle detection in linked lists.
+
+---
+
+## Common Pitfalls
+
+### 1. Not Handling Negative Numbers
+**Issue**: Returning a large positive number instead of negative.
+
+**Solution**: After constructing the result, check if the sign bit is set and convert to negative using two's complement rules.
+
+### 2. Loop Order in State Machine
+**Issue**: Updating twos after ones loses information.
+
+**Solution**: Always update twos first, then ones. The order matters because twos depends on the previous state of ones.
+
+### 3. Integer Overflow in Bit Shifting
+**Issue**: Shifting 1 << 31 in Java/C++ causes overflow.
+
+**Solution**: Use 1L in Java or cast to long before shifting. For 32-bit, shift by i where i < 32.
+
+### 4. Wrong Modulo Operation
+**Issue**: Using count / 3 instead of count % 3.
+
+**Solution**: Use modulo (remainder) to get the single element's bit, not division.
+
+---
+
+## Summary
+
+The **First Missing Positive** problem demonstrates the power of in-place array manipulation:
+
+- **Index as Hash Key**: Use array indices to store information about presence/absence
+- **In-Place Modification**: Solve with O(1) extra space by modifying the input
+- **Range Optimization**: Focus only on the relevant range [1, n]
+- **Cycle Detection**: The swapping approach is similar to cycle detection in linked lists
+
+Key insights:
+1. The smallest missing positive must be in range [1, n+1]
+2. Use array indices as markers to track which numbers are present
+3. The in-place swapping approach achieves O(n) time with O(1) space
+4. Negative marking is an alternative approach that also works in-place
+
+This problem is essential for understanding space optimization and index-based hashing.
+
+### Pattern Summary
+
+This problem exemplifies the **In-Place Array Marking** pattern, characterized by:
+- Using array indices as hash keys
+- Modifying input in-place to achieve O(1) space
+- Focusing only on the relevant value range
+- Cycle detection in arrays
+
+For more details on similar patterns, see the **[In-Place Modification](/patterns/in-place-modification)** pattern.

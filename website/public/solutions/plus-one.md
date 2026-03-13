@@ -1,12 +1,16 @@
-# Plus One
+# 
 
-## Problem Statement
+## Pattern: Array Simulation - Digit Addition
+
+Plus One
+
+## Problem Description
 
 Given a non-empty array of decimal digits `digits` representing a non-negative integer, increment the integer by one and return the resulting array of digits.
 
 The digits are stored such that the most significant digit is at the head of the list, meaning `digits[0]` is the thousands digit and `digits[-1]` is the ones digit.
 
-**Constraints:**
+## Constraints
 - `1 <= digits.length <= 100`
 - `0 <= digits[i] <= 9`
 - The integer does not have leading zeros (except the number 0 itself)
@@ -45,7 +49,7 @@ The problem simulates adding 1 to a number represented as an array of digits. Ke
 
 ## Multiple Approaches
 
-### Approach 1: Reverse Iteration (Most Efficient)
+## Approach 1: Reverse Iteration (Most Efficient)
 
 The most efficient solution iterates from right to left, handling carry propagation. If a digit is less than 9, we increment and return early. If it's 9, we set it to 0 and continue. If all digits are 9, we prepend 1.
 
@@ -119,7 +123,7 @@ var plusOne = function(digits) {
 ```
 ````
 
-### Approach 2: String Conversion (Simple but Less Efficient)
+## Approach 2: String Conversion (Simple but Less Efficient)
 
 Convert the digit array to a string, add 1 to the integer, then convert back to a digit array.
 
@@ -175,7 +179,7 @@ var plusOne = function(digits) {
 ```
 ````
 
-### Approach 3: Recursive Solution
+## Approach 3: Recursive Solution
 
 A recursive approach that handles the last digit and recursively processes the rest.
 
@@ -251,7 +255,7 @@ var plusOne = function(digits) {
 ```
 ````
 
-### Approach 4: Using List Slice for All-9s Case
+## Approach 4: Using List Slice for All-9s Case
 
 Handle the general case and special all-9s case separately for clarity.
 
@@ -369,7 +373,7 @@ var plusOne = function(digits) {
 - [LeetCode Official Solution](https://leetcode.com/problems/plus-one/solution/)
 - [Back to Back SWE - Plus One](https://www.youtube.com/watch?v=2J2-82tK6vw)
 
-## Key Takeaways
+## Summary
 
 1. **Early termination**: Most numbers don't cause carry propagation through all digits
 

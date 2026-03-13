@@ -1,12 +1,16 @@
-# Two Sum II - Input Array Is Sorted
+# 
 
-## Problem Statement
+## Pattern: Two Pointers / Binary Search
+
+Two Sum II - Input Array Is Sorted
+
+## Problem Description
 
 Given a 1-indexed array `numbers` of length `n` sorted in non-decreasing order, find two numbers such that they add up to a specific target number `target`. Return the indices of the two numbers as 1-indexed values.
 
 **Link to problem:** [Two Sum II - Input Array Is Sorted](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/)
 
-**Constraints:**
+## Constraints
 - `2 <= numbers.length <= 3 * 10^4`
 - `-1000 <= numbers[i] <= 1000`
 - `-1000 <= target <= 1000`
@@ -18,7 +22,7 @@ Given a 1-indexed array `numbers` of length `n` sorted in non-decreasing order, 
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -561,7 +565,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: Can you modify the solution to handle multiple valid solutions?
 
@@ -626,6 +630,20 @@ For finding all pairs, continue searching after finding a match by moving both p
 1. After the while loop, check if `left >= right`
 2. Return an empty array or specific indicator like `[-1, -1]`
 3. Throw an exception (not recommended in interview settings)
+
+---
+
+## Common Pitfalls
+
+### Common Mistakes to Avoid
+
+1. **Using extra space unnecessarily**: The problem can be solved in O(1) extra space with two pointers
+
+2. **Index off-by-one errors**: Remember that indices in the problem are 1-indexed
+
+3. **Not handling all cases**: Make sure your solution works for duplicates and negative numbers
+
+4. **Integer overflow**: In some languages, be careful with adding large numbers
 
 ---
 

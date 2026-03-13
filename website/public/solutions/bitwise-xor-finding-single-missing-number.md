@@ -27,7 +27,34 @@ The XOR operation has four critical properties that make it ideal:
 
 ---
 
-## Detailed Intuition
+## Examples
+
+### Example 1: Single Number
+```
+Input: nums = [4, 1, 2, 1, 2]
+Output: 4
+Explanation: 4 appears once, all others appear twice.
+```
+
+### Example 2: Missing Number
+```
+Input: nums = [3, 0, 1]
+Output: 2
+Explanation: Numbers 0, 1, 2 are expected, but 2 is missing.
+```
+
+---
+
+## Constraints
+
+| Constraint | Description |
+|------------|-------------|
+| `1 <= nums.length <= 10^4` | Array length |
+| `-10^5 <= nums[i] <= 10^5` | Value range |
+
+---
+
+## Intuition
 
 ### The Cancellation Effect
 
@@ -79,9 +106,38 @@ Using algebraic grouping:
 
 ---
 
+## Pattern: Bitwise XOR - Pair Cancellation
+
+### Core Concept
+
+The **Bitwise XOR** pattern leverages four fundamental properties of the XOR operation to solve counting problems efficiently:
+
+1. **Identity**: `a ^ 0 = a` - XOR with 0 returns the same value
+2. **Self-Inverse**: `a ^ a = 0` - XOR with itself cancels to 0
+3. **Commutative**: `a ^ b = b ^ a` - Order doesn't matter
+4. **Associative**: `(a ^ b) ^ c = a ^ (b ^ c)` - Grouping doesn't matter
+
+### When to Use This Pattern
+
+This pattern applies when:
+- Finding elements that appear an odd number of times while others appear an even number of times
+- Finding missing or duplicate numbers in sequences
+- Problems requiring O(1) space solution
+- Situations where elements can be paired up and "cancelled out"
+
+### Alternative Patterns
+
+| Alternative Pattern | Use Case |
+|---------------------|----------|
+| **Hash Map Counting** | When you need frequency of all elements |
+| **Sorting** | When you can afford O(n log n) time |
+| **Sum/Difference** | For simple missing number (but can't handle duplicates) |
+
+---
+
 ## Solution Approaches
 
-### Approach 1: Single Number (Optimal) ✅
+## Approach 1: Single Number (Optimal) ✅
 
 Finding one element that appears once while all others appear twice.
 
@@ -162,7 +218,7 @@ var singleNumber = function(nums) {
 
 ---
 
-### Approach 2: Missing Number
+## Approach 2: Missing Number
 
 Finding the missing number in a sequence from 0 to n.
 
@@ -270,7 +326,7 @@ var missingNumber = function(nums) {
 
 ---
 
-### Approach 3: Find Both Duplicate and Missing
+## Approach 3: Find Both Duplicate and Missing
 
 Finding both a duplicated number and a missing number simultaneously.
 
@@ -459,7 +515,7 @@ var findErrorNums = function(nums) {
 
 ---
 
-### Approach 4: Two Single Numbers (Single Number III)
+## Approach 4: Two Single Numbers (Single Number III)
 
 Finding two elements that appear once while all others appear twice.
 
@@ -579,7 +635,7 @@ var singleNumber = function(nums) {
 
 ---
 
-### Approach 5: Element Appearing Thrice (Single Number II)
+## Approach 5: Element Appearing Thrice (Single Number II)
 
 Finding one element that appears once while all others appear three times.
 
@@ -696,7 +752,7 @@ var singleNumber = function(nums) {
 
 ---
 
-## Edge Cases and Common Pitfalls
+## Common Pitfalls
 
 ### Edge Cases to Consider
 

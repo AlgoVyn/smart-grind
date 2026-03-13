@@ -1,6 +1,10 @@
-# Remove Nth Node From End of List
+# 
 
-## Problem Statement
+## Pattern: Two Pointers / Dummy Node
+
+Remove Nth Node From End of List
+
+## Problem Description
 
 Given the head of a linked list and an integer `n`, remove the `n`th node from the end of the list and return its head.
 
@@ -8,7 +12,7 @@ The nth node from the end is the (length - n + 1)th node from the beginning, whe
 
 **Link to problem:** [Remove Nth Node From End of List](https://leetcode.com/problems/remove-nth-node-from-end-of-list/)
 
-**Constraints:**
+## Constraints
 - The number of nodes in the list is in the range `[1, 30]`
 - `1 <= n <= length of the linked list`
 - `1 <= Node.val <= 10^4`
@@ -17,7 +21,7 @@ The nth node from the end is the (length - n + 1)th node from the beginning, whe
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -85,7 +89,7 @@ head = [1,2,3], n = 3
 
 The key challenge is removing a node from the end of a linked list without knowing the length upfront. Several approaches can solve this problem:
 
-### Approach 1: Two Pointers (Optimal)
+## Approach 1: Two Pointers (Optimal)
 
 The most elegant solution uses the **two-pointer technique** with a dummy head:
 
@@ -99,7 +103,7 @@ The most elegant solution uses the **two-pointer technique** with a dummy head:
 
 By moving `fast` `n + 1` steps ahead, when `fast` reaches the end, `slow` will be positioned exactly before the node to remove. This allows us to easily bypass and remove the target node.
 
-### Approach 2: Calculate Length First
+## Approach 2: Calculate Length First
 
 A more straightforward approach:
 
@@ -107,7 +111,7 @@ A more straightforward approach:
 2. **Calculate Target Index:** The node to remove is at index `L - n` (0-indexed from head)
 3. **Remove Node:** Traverse to the node before the target and bypass it
 
-### Approach 3: Recursive (Stack-based)
+## Approach 3: Recursive (Stack-based)
 
 Use the call stack to implicitly store nodes:
 
@@ -746,7 +750,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How do you handle removing the head node?
 
@@ -811,6 +815,27 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 - Removing middle node
 - Large lists
 - Lists with duplicate values
+
+---
+
+
+
+## Common Pitfalls
+
+### 1. Gap Not Correct
+**Issue:** Wrong gap between fast and slow.
+
+**Solution:** Move fast n steps first, then both together.
+
+### 2. Removing First Node
+**Issue:** Can't handle removing first node.
+
+**Solution:** Use dummy node pointing to head.
+
+### 3. Off-by-One
+**Issue:** Wrong position calculation.
+
+**Solution:** n+1 gap for removing nth node.
 
 ---
 

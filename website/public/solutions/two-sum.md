@@ -1,12 +1,12 @@
 # Two Sum
 
-## Problem Statement
+## Problem Description
 
 Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`. You may assume that each input would have exactly one solution, and you may not use the same element twice. You can return the answer in any order.
 
 **Link to problem:** [Two Sum](https://leetcode.com/problems/two-sum/)
 
-**Constraints:**
+## Constraints
 - `2 <= nums.length <= 10^4`
 - `-10^9 <= nums[i] <= 10^9`
 - `-10^9 <= target <= 10^9`
@@ -22,7 +22,7 @@ Given an array of integers `nums` and an integer `target`, return indices of the
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -99,6 +99,34 @@ nums = [-1, -2, -3, -4, -5], target = -8
 ```
 
 **Explanation:** `nums[2] + nums[4] = -3 + (-5) = -8`, so we return `[2, 4]`.
+
+---
+
+## Pattern: Hash Map - Two Sum Complement Lookup
+
+This problem demonstrates the **Hash Map Complement Lookup** pattern. The core idea is to use a hash map to store elements you've seen so far, allowing O(1) lookup to find if the complement (target - current) exists.
+
+### Core Concept
+
+- **Complement Formula**: For each element `num`, we need `complement = target - num`
+- **One-Pass Lookup**: Store seen elements in hash map for instant complement retrieval
+- **Index Tracking**: Store indices, not values, since the problem asks for indices
+
+### When to Use This Pattern
+
+This pattern applies when:
+- Finding pairs that sum to a target value
+- Problems requiring O(n) time with hash table lookups
+- When you need to track elements with their positions
+- Two-sum variations (3Sum, 4Sum, etc.)
+
+### Alternative Patterns
+
+| Alternative Pattern | Use Case |
+|---------------------|----------|
+| **Two Pointers** | When array is sorted, O(1) space |
+| **Brute Force** | For learning, small n only |
+| **Sorting + Two Pointers** | When original indices not needed |
 
 ---
 
@@ -483,7 +511,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you handle duplicate values in the array?
 
@@ -548,6 +576,35 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 ### Q10: Can this be solved using sorting and two pointers?
 
 **Answer:** Yes, but you lose the original indices. Sort the array while keeping track of original indices, then use two pointers to find the pair. Finally, return the original indices. This approach has O(n log n) time due to sorting.
+
+---
+
+## Common Pitfalls
+
+### 1. Returning Values Instead of Indices
+**Issue**: Returning the actual numbers instead of their indices.
+
+**Solution**: Remember the problem asks for indices, not values. Use the hash map to store the index, not the value.
+
+### 2. Using the Same Element Twice
+**Issue**: Not checking that the complement is different from the current element.
+
+**Solution**: The hash map approach naturally handles this because we check for the complement before adding the current element to the map. However, be careful with duplicate values - if nums[i] + nums[i] == target, we need a previous occurrence.
+
+### 3. Wrong Order in Result
+**Issue**: Returning indices in wrong order (higher index first).
+
+**Solution**: The problem allows any order, but if you need sorted indices, sort the result before returning.
+
+### 4. Not Handling Empty Array or Single Element
+**Issue**: Assuming the array always has at least 2 elements.
+
+**Solution**: Add a check at the beginning: if len(nums) < 2, return empty array (though constraints guarantee at least 2 elements).
+
+### 5. Hash Map Collision Handling
+**Issue**: Worrying about hash collisions in the implementation.
+
+**Solution**: Modern hash map implementations handle collisions automatically. Focus on the logic rather than implementation details.
 
 ---
 

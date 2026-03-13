@@ -2,9 +2,63 @@
 
 ## Problem Description
 
+You are given a string `s`. You can flip any character at any position. You need to make `s` a palindrome by adding characters to the front of the string. Return the shortest palindrome you can find.
+
+A palindrome is a string that reads the same forward and backward.
+
+**Link to problem:** [Shortest Palindrome - LeetCode 214](https://leetcode.com/problems/shortest-palindrome/)
+
+---
+
+## Pattern: KMP (Longest Prefix Suffix)
+
+KMP (Longest Prefix Suffix)
+
+This problem uses **KMP Algorithm** to find longest palindromic prefix. Build s + '#' + rev(s), compute LPS array.
+
+---
+
+## Intuition
+
+The key insight for this problem is transforming the palindrome problem into a pattern matching problem using the KMP (Knuth-Morris-Pratt) algorithm.
+
+### Key Observations
+
+1. **Longest Palindromic Prefix**: We need to find how much of the string is already a palindrome from the start. This tells us what portion doesn't need to be modified.
+
+2. **KMP Application**: By combining the string with its reverse using a separator character, we can use KMP's LPS (Longest Prefix Suffix) array to find the longest palindromic prefix efficiently.
+
+3. **Minimum Characters to Add**: Once we know the longest palindromic prefix, we only need to add the reverse of the remaining non-palindromic suffix to create a palindrome.
+
+### Why KMP Works
+
+- The combined string `s + '#' + reverse(s)` allows us to find matching prefix-suffix
+- The LPS array gives us the length of the longest prefix that is also a suffix
+- This length represents the longest palindromic prefix of the original string
+
+### Algorithm Overview
+
+1. Reverse the string
+2. Combine with separator: `s + '#' + reverse(s)`
+3. Compute LPS array using KMP
+4. LPS[-1] gives the longest palindromic prefix length
+5. Add reverse of non-palindromic part to front
+
+---
+
+## Common Pitfalls
+
+- **Separator**: Use '#' (or any non-letter) to separate s from rev(s)
+- **LPS usage**: lps[-1] gives length of longest palindromic prefix
+- **Reversed substring**: Add rev(s)[0:n-lps[-1]] to front
+
+---
+
+## Problem Description
+
 You are given a string `s`. You can convert `s` to a palindrome by adding characters in front of it. Return the shortest palindrome you can find by performing this transformation.
 
-### Examples
+## Examples
 
 **Example 1:**
 - Input: `s = "aacecaaa"`
@@ -14,7 +68,7 @@ You are given a string `s`. You can convert `s` to a palindrome by adding charac
 - Input: `s = "abcd"`
 - Output: `"dcbabcd"`
 
-### Constraints
+## Constraints
 
 - `0 <= s.length <= 5 * 10^4`
 - `s` consists of lowercase English letters only.
@@ -25,7 +79,16 @@ You are given a string `s`. You can convert `s` to a palindrome by adding charac
 
 This problem requires making the shortest palindrome by adding characters in front of the string. The key insight is to find the longest palindromic prefix in the string, which tells us how much of the string is already a palindrome from the start. We then reverse the remaining suffix and prepend it to the original string.
 
-### Approach: KMP (Knuth-Morris-Pratt) Algorithm
+## Multiple Approaches with Code
+
+We'll cover two approaches:
+
+1. **KMP Algorithm (Optimal)** - O(n) time using LPS array
+2. **Two Pointers with Recursion** - O(n²) time using recursive approach
+
+---
+
+## Approach 1: KMP (Knuth-Morris-Pratt) Algorithm (Optimal)
 
 Use KMP algorithm to find the longest prefix of `s` that is also a suffix when combined with the reverse of `s`. This is an efficient O(n) solution compared to brute force approaches.
 
@@ -649,29 +712,222 @@ This makes sense! The original string starts with a 7-character palindrome, so w
 
 ---
 
-## Why This Works
+## Approach 2: Two Pointers with Recursion
 
-The KMP-based solution works because:
+### Algorithm Steps
 
-1. **Pattern Matching Interpretation**: We're essentially finding the longest prefix of `s` that matches a suffix of `reverse(s)`. This tells us how much of `s` is already a palindrome from the beginning.
+1. Use two pointers: one at start, one at end
+2. Expand inward checking for palindrome
+3. Find the longest palindromic prefix
+4. Reverse the remaining suffix and prepend to original string
 
-2. **Efficient Computation**: The LPS array in KMP gives us this information in O(n) time, whereas a naive approach would be O(n²).
+### Why It Works
 
-3. **Optimal Result**: By only adding the minimum necessary characters (the reverse of the non-palindromic suffix), we guarantee the shortest possible palindrome.
+This is a brute force approach that checks each position to find the longest palindromic prefix. It correctly finds the answer but is less efficient.
+
+### Code Implementation
+
+````carousel
+```python
+class Solution:
+    def shortestPalindrome(self, s: str) -> str:
+        """
+        Find shortest palindrome using two pointers.
+        
+        Time: O(n²)
+        Space: O(n)
+        """
+        if not s:
+            return s
+        
+        n = len(s)
+        
+        # Find longest palindromic prefix
+        for i in range(n):
+            # Check if s[0:n-i] is palindrome
+            if self.is_palindrome(s, 0, n - i - 1):
+                # Reverse the remaining part and prepend
+                remaining = s[n - i:][::-1]
+                return remaining + s
+        
+        return s
+    
+    def is_palindrome(self, s: str, left: int, right: int) -> bool:
+        while left < right:
+            if s[left] != s[right]:
+                return False
+            left += 1
+            right -= 1
+        return True
+```
+
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    string shortestPalindrome(string s) {
+        if (s.empty()) return s;
+        
+        int n = s.length();
+        
+        for (int i = 0; i < n; i++) {
+            if (isPalindrome(s, 0, n - i - 1)) {
+                string remaining = s.substr(n - i);
+                reverse(remaining.begin(), remaining.end());
+                return remaining + s;
+            }
+        }
+        
+        return s;
+    }
+    
+private:
+    bool isPalindrome(const string& s, int left, int right) {
+        while (left < right) {
+            if (s[left] != s[right]) return false;
+            left++;
+            right--;
+        }
+        return true;
+    }
+};
+```
+
+<!-- slide -->
+```java
+class Solution {
+    public String shortestPalindrome(String s) {
+        if (s == null || s.isEmpty()) return s;
+        
+        int n = s.length();
+        
+        for (int i = 0; i < n; i++) {
+            if (isPalindrome(s, 0, n - i - 1)) {
+                String remaining = new StringBuilder(s.substring(n - i)).reverse().toString();
+                return remaining + s;
+            }
+        }
+        
+        return s;
+    }
+    
+    private boolean isPalindrome(String s, int left, int right) {
+        while (left < right) {
+            if (s.charAt(left) != s.charAt(right)) return false;
+            left++;
+            right--;
+        }
+        return true;
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+var shortestPalindrome = function(s) {
+    if (!s || s.length === 0) return s;
+    
+    const n = s.length;
+    
+    const isPalindrome = (left, right) => {
+        while (left < right) {
+            if (s[left] !== s[right]) return false;
+            left++;
+            right--;
+        }
+        return true;
+    };
+    
+    for (let i = 0; i < n; i++) {
+        if (isPalindrome(0, n - i - 1)) {
+            const remaining = s.slice(n - i).split('').reverse().join('');
+            return remaining + s;
+        }
+    }
+    
+    return s;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(n²) - checking each prefix |
+| **Space** | O(n) - for substring operations |
+
+---
+
+## Comparison of Approaches
+
+| Aspect | KMP | Two Pointers |
+|--------|-----|---------------|
+| **Time Complexity** | O(n) | O(n²) |
+| **Space Complexity** | O(n) | O(n) |
+| **LeetCode Optimal** | ✅ Yes | ❌ No |
+
+---
+
+## Follow-up Questions
+
+### Q1: Why use KMP instead of simpler approaches?
+
+**Answer:** KMP provides O(n) time complexity compared to O(n²) for brute force approaches. For strings up to 50,000 characters, this is crucial for performance.
+
+---
+
+### Q2: What separator character should we use?
+
+**Answer:** Any character not appearing in the string works. '#' is commonly used because it's unlikely to appear in lowercase English strings.
+
+---
+
+### Q3: Can we solve this without extra space?
+
+**Answer:** The two-pointer recursive approach uses O(n) space for recursion stack. The KMP approach inherently needs O(n) space for the combined string and LPS array.
+
+---
+
+### Q4: How does this relate to finding the longest palindromic suffix?
+
+**Answer:** The problem asks to add characters to the front, so we find the longest palindromic prefix. This is equivalent to finding the longest palindromic suffix in the reversed string.
+
+---
+
+## Summary
+
+This problem demonstrates the **KMP (Knuth-Morris-Pratt) Algorithm** pattern for finding the longest palindromic prefix efficiently.
+
+**Key Takeaways:**
+- By combining the string with its reverse using a separator, we transform the palindrome problem into a pattern matching problem
+- The LPS (Longest Prefix Suffix) array from KMP gives us the longest palindromic prefix in O(n) time
+- The solution efficiently handles strings up to 50,000 characters
+- The key insight is that we only need to add the reverse of the non-palindromic suffix to make the string a palindrome
+
+**Pattern Summary:** This problem exemplifies KMP-based palindrome finding, characterized by:
+- Building a combined string `s + '#' + reverse(s)` to find matching prefix-suffix
+- Computing LPS array in O(n) time to find longest palindromic prefix
+- Prepending only the minimum characters needed to create the shortest palindrome
+- Time complexity O(n) and space complexity O(n)
 
 ---
 
 ## Related Problems
 
-This technique of using KMP for palindrome-related problems is also applicable to:
+Based on similar themes (palindrome, string manipulation):
 
-- [LeetCode 459: Repeated Substring Pattern](https://leetcode.com/problems/repeated-substring-pattern/) - Uses LPS to detect repeated patterns
-- [LeetCode 28: Implement strStr()](https://leetcode.com/problems/implement-strstr/) - Classic KMP pattern matching
-- [LeetCode 686: Repeated String Match](https://leetcode.com/problems/repeated-string-match/) - KMP for string repetition
+| Problem | LeetCode Link | Description |
+|---------|---------------|-------------|
+| Palindrome Pairs | [Link](https://leetcode.com/problems/palindrome-pairs/) | Find palindrome pairs |
+| Longest Palindromic Substring | [Link](https://leetcode.com/problems/longest-palindromic-substring/) | Find longest palindrome |
+| Valid Palindrome | [Link](https://leetcode.com/problems/valid-palindrome/) | Check if palindrome |
 
 ---
 
-## Video Tutorial
+## Video Tutorial Links
 
-- [Shortest Palindrome - KMP Approach](https://www.youtube.com/watch?v=8f1XP6r4fT4) - Clear explanation of the KMP approach
-- [KMP Algorithm Explained](https://www.youtube.com/watch?v=4jY57Ehc14Y) - Understanding KMP fundamentals
+Here are helpful YouTube tutorials explaining the problem and solutions:
+
+- [NeetCode - Shortest Palindrome](https://www.youtube.com/watch?v=7j-H64yXjrM) - Clear explanation
+- [KMP Algorithm Explanation](https://www.youtube.com/watch?v=KG44VoEtaA0) - Understanding LPS array

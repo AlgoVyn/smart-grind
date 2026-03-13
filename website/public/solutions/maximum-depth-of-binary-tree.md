@@ -1,5 +1,9 @@
 # Maximum Depth of Binary Tree
 
+## Pattern: Tree Traversal (DFS/BFS)
+
+This problem uses the **Tree Traversal** pattern, specifically DFS or BFS to traverse all nodes and calculate maximum depth.
+
 ## Problem Description
 
 Given the root of a binary tree, return its maximum depth (or height). The maximum depth is the number of nodes along the longest path from the root node down to the farthest leaf node.
@@ -15,7 +19,37 @@ A leaf node is a node with no children. The depth of a node is the number of edg
 
 ---
 
-## Example 1
+
+## Intuition
+
+This problem follows the **Tree DFS/BFS** pattern for tree traversal.
+
+### Core Concept
+
+- **DFS**: Recursively traverse depth-first
+- **BFS**: Level-by-level traversal
+- **Return Height**: Count edges from node to deepest leaf
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Finding maximum depth/height of tree
+2. Tree traversal problems
+3. Tree level calculations
+
+### Related Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| BFS | Level-order traversal |
+| DFS | Depth-first traversal |
+
+---
+
+
+## Examples
+
+### Example 1
 
 **Input:**
 ```python
@@ -46,7 +80,7 @@ root = [3,9,20,null,null,15,7]
 
 ---
 
-## Example 2
+### Example 2
 
 **Input:**
 ```python
@@ -71,7 +105,7 @@ root = [1,null,2]
 
 ---
 
-## Example 3
+### Example 3
 
 **Input:**
 ```python
@@ -88,7 +122,7 @@ root = []
 
 ---
 
-## Example 4
+### Example 4
 
 **Input:**
 ```python
@@ -733,7 +767,7 @@ This approach simulates recursion using an explicit stack:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you modify the recursive solution to return the minimum depth instead of maximum depth?
 
@@ -776,3 +810,40 @@ This approach simulates recursion using an explicit stack:
 - [Tree Traversals - Inorder, Preorder, Postorder](https://www.youtube.com/watch?v=gm8DUJJhmY4)
 - [BFS vs DFS for Binary Trees](https://www.youtube.com/watch?v=uWLrFijklUw)
 - [Binary Tree Algorithms - Common Patterns](https://www.youtube.com/watch?v=7jcn63Mh9E0)
+
+
+## Common Pitfalls
+
+### 1. Confusing Depth vs Height
+**Issue:** Depth is from root, height is from node to leaf.
+
+**Solution:** Use consistent definition - typically height (root = 1).
+
+### 2. Not Handling Empty Tree
+**Issue:** Empty tree (null root) should return 0.
+
+**Solution:** Add base case: if not root, return 0.
+
+---
+
+## Summary
+
+The **Maximum Depth of Binary Tree** problem demonstrates fundamental tree traversal techniques.
+
+### Key Takeaways
+
+1. **Recursive DFS**: Most elegant - depth = 1 + max(left_depth, right_depth)
+2. **Iterative BFS**: Level-by-level traversal using queue
+3. **Iterative DFS**: Using explicit stack for depth tracking
+4. **Time Complexity**: O(n) - visit each node once
+5. **Space Complexity**: O(h) for DFS, O(w) for BFS
+
+### Pattern Summary
+
+This problem exemplifies the **Tree Traversal** pattern, characterized by:
+- Systematic exploration of tree nodes
+- Recursive or iterative approaches
+- Using appropriate data structures (stack/queue)
+
+For more details on tree patterns, see the **[Tree DFS/BFS](/patterns/tree-traversal)** pattern.
+

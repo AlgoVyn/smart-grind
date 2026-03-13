@@ -6,7 +6,7 @@ Given a sorted array of distinct integers and a target value, return the index i
 
 You must write an algorithm that runs in `O(log n)` time complexity.
 
-### Examples
+## Examples
 
 **Example 1:**
 
@@ -32,7 +32,7 @@ You must write an algorithm that runs in `O(log n)` time complexity.
 |-------|--------|-------------|
 | `nums = [1,3,5,6]`, `target = 0` | `0` | Target would be inserted at index 0 (beginning of array) |
 
-### Constraints
+## Constraints
 
 | Constraint | Description |
 |------------|-------------|
@@ -40,6 +40,26 @@ You must write an algorithm that runs in `O(log n)` time complexity.
 | Value range | `-10^4 <= nums[i] <= 10^4` |
 | Array type | Sorted in non-decreasing order |
 | Element type | Distinct integers |
+
+---
+
+## Pattern:
+
+This problem follows the **Binary Search** pattern, specifically the lower bound variant.
+
+### Core Concept
+
+- **Sorted Array Property**: The array is sorted in non-decreasing order, enabling binary search
+- **Search Space Reduction**: Each iteration eliminates half of the search space
+- **Insertion Position**: When target is not found, `left` pointer marks the insertion point
+- **Two variants**: Standard binary search (inclusive right) vs. lower bound (exclusive right)
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Searching in sorted arrays with O(log n) requirement
+2. Finding insertion position for a target value
+3. Finding first occurrence of element >= target (lower bound)
 
 ---
 
@@ -419,6 +439,35 @@ Loop exits, return left=1 ✓
 **Q: What happens if the target is smaller than all elements?**
 
 **A:** The binary search will eventually set `right = -1` and `left = 0`, returning 0 as the insertion position.
+
+---
+
+## Common Pitfalls
+
+### 1. Integer Overflow in Mid Calculation
+**Issue:** Using `(left + right) // 2` can cause integer overflow for large arrays in some languages.
+
+**Solution:** Use `left + (right - left) // 2` to prevent overflow.
+
+### 2. Wrong Loop Condition
+**Issue:** Using `left < right` with inclusive right bound can miss the target.
+
+**Solution:** Ensure consistency between loop condition and boundary updates.
+
+### 3. Returning Wrong Pointer
+**Issue:** Returning `right` instead of `left` after loop termination gives incorrect insertion position.
+
+**Solution:** Always return `left` as it points to the insertion position when loop exits.
+
+### 4. Not Handling Empty Array
+**Issue:** Not checking for empty array leads to index errors.
+
+**Solution:** Add early return for empty array case.
+
+### 5. Confusing Lower Bound vs Upper Bound
+**Issue:** Using wrong condition returns wrong insertion position.
+
+**Solution:** For lower bound (first >= target), use `nums[mid] < target`. For upper bound (first > target), use `nums[mid] <= target`.
 
 ---
 

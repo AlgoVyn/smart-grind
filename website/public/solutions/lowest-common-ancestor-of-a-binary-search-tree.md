@@ -11,6 +11,10 @@ In a Binary Search Tree:
 
 This property makes finding the LCA more efficient compared to a regular binary tree, as we can use the values to guide our search direction.
 
+## Intuition
+
+The key insight is that in a BST, we can determine which subtree contains both nodes by comparing their values with the current node's value. If both values are less than the current node, both nodes are in the left subtree. If both are greater, they're in the right subtree. Otherwise, the current node is the LCA.
+
 ---
 
 ## Constraints
@@ -23,7 +27,9 @@ This property makes finding the LCA more efficient compared to a regular binary 
 
 ---
 
-## Example 1
+## Examples
+
+### Example 1
 
 **Input:**
 ```python
@@ -657,6 +663,21 @@ var lowestCommonAncestor = function(root, p, q) {
 
 ---
 
+## Pattern:
+
+BST Property-Based Search (Divide and Conquer)
+
+This problem uses the **BST Navigation** pattern where we leverage the binary search tree property to efficiently find the LCA. Since all left subtree values are smaller and right subtree values are larger, we can determine which subtree contains both nodes by comparing values.
+
+## Common Pitfalls
+
+- **Not handling ancestor case**: If root equals p or q, that node is the LCA (a node can be a descendant of itself).
+- **Confusing comparison directions**: If both p and q are less than root, go left; if both greater, go right; otherwise, root is LCA.
+- **Using node values vs node references**: In recursive approach, compare node values; in some implementations, you compare node references.
+- **Not handling empty tree**: Return null if root is null.
+
+---
+
 ## Explanation
 
 ### Why BST Properties Matter
@@ -691,7 +712,7 @@ Both approaches are functionally equivalent:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you find the LCA in a regular binary tree (not BST)?
 
@@ -765,3 +786,17 @@ Both approaches are functionally equivalent:
 - [Binary Search Tree Explained](https://www.youtube.com/watch?v=9p9kd0eKy0E)
 - [Tree Algorithms - Common Patterns](https://www.youtube.com/watch?v=7jcn63Mh9E0)
 - [Recursion vs Iteration](https://www.youtube.com/watch?v=8B2B3M6R5U8)
+
+---
+
+## Summary
+
+The **Lowest Common Ancestor in a BST** problem demonstrates the power of leveraging tree properties for efficient solutions:
+
+- **Recursive Approach**: O(h) time, O(h) space - intuitive and elegant
+- **Iterative Approach**: O(h) time, O(1) space - memory efficient
+- **Parent Pointer Approach**: O(h) time, O(h) space - useful for multiple queries
+
+The key insight is using the BST property to eliminate half the search space at each step. By comparing node values, we can immediately determine which subtree contains both target nodes.
+
+This problem is essential for understanding tree navigation and BST properties.

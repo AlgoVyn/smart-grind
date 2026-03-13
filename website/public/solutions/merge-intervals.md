@@ -1,6 +1,6 @@
 # Merge Intervals
 
-## Problem Statement
+## Problem Description
 
 Given an array of `intervals` where `intervals[i] = [start_i, end_i]`, merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all the intervals in the input.
 
@@ -8,7 +8,7 @@ This problem is a classic application of the **Greedy - Interval Merging/Schedul
 
 **Link to problem:** [Merge Intervals - LeetCode 56](https://leetcode.com/problems/merge-intervals/)
 
-**Constraints:**
+## Constraints
 - `1 <= intervals.length <= 10^4`
 - `intervals[i].length == 2`
 - `0 <= start_i <= end_i <= 10^4`
@@ -33,7 +33,7 @@ The greedy approach works because:
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -86,7 +86,7 @@ Two intervals `[a, b]` and `[c, d]` overlap if and only if:
 
 ## Multiple Approaches
 
-### Approach 1: Standard Greedy Merge (Optimal)
+## Approach 1: Standard Greedy Merge (Optimal)
 
 This is the optimal approach with O(n log n) time complexity.
 
@@ -313,7 +313,7 @@ function merge(intervals) {
 
 ---
 
-### Approach 2: Using Index Tracking
+## Approach 2: Using Index Tracking
 
 An alternative implementation that tracks indices instead of modifying in place.
 
@@ -445,7 +445,7 @@ function mergeByIndex(intervals) {
 ```
 ````
 
-### Approach 3: Connected Components (DFS)
+## Approach 3: Connected Components (DFS)
 
 This approach treats intervals as nodes in a graph and finds connected components using Depth First Search.
 
@@ -624,7 +624,7 @@ function mergeDFS(intervals) {
 
 ---
 
-### Approach 4: Union Find (Disjoint Set Union)
+## Approach 4: Union Find (Disjoint Set Union)
 
 Uses DSU to group overlapping intervals into connected components.
 

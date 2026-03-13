@@ -2,6 +2,10 @@
 
 ## Problem Description
 
+## Pattern: Dynamic Programming / Interval DP
+
+This problem demonstrates algorithmic problem-solving patterns.
+
 There are `n` piles of stones arranged in a row. The piles are given as an integer array `stones` where `stones[i]` represents the number of stones in the `i-th` pile.
 
 In one operation, you can merge **adjacent** piles into one pile. The cost of merging two piles of sizes `x` and `y` is `x + y`. After merging, the new pile has size `x + y`.
@@ -16,8 +20,7 @@ You are given `n` piles of stones arranged in a row. Each pile `i` has `stones[i
 
 Your goal is to merge all piles into a single pile with minimum total cost. If it's impossible to merge all piles into one pile (because `(n-1) % (K-1) != 0` where K is the number of piles merged at once), return -1.
 
-### Key Constraints
-
+## Constraints
 | Constraint | Description | Importance |
 |------------|-------------|------------|
 | `1 <= stones.length <= 30` | Number of piles | Small n, exponential backtracking possible |
@@ -127,7 +130,7 @@ dp[i][j] = min over splits of dp[i][k] + dp[k+1][j] + sum(i, j)
 
 ## Solution Approaches
 
-### Approach 1: Interval DP with Prefix Sum (Optimal) ✅ Recommended
+## Approach 1: Interval DP with Prefix Sum (Optimal) ✅ Recommended
 
 This is the optimal solution that achieves O(n³) time complexity using dynamic programming over intervals.
 
@@ -578,7 +581,7 @@ I think there might be a different optimal sequence or the example is different.
 
 ---
 
-### Approach 2: Memoized Recursion (Top-Down DP)
+## Approach 2: Memoized Recursion (Top-Down DP)
 
 This approach uses recursion with memoization to avoid recalculating subproblems.
 
@@ -858,7 +861,7 @@ var mergeStones = function(stones, K) {
 
 ---
 
-## Edge Cases and Common Pitfalls
+## Common Pitfalls
 
 ### Edge Cases to Consider
 

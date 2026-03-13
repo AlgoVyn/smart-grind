@@ -1,17 +1,33 @@
+## Pattern:
+
+Monotonic Stack (Greedy)
+
+This problem uses **Greedy with Monotonic Stack**. Maintain increasing stack, pop larger digits when smaller digit follows. Remove remaining from end if k remains.
+
+---
+
+## Common Pitfalls
+
+- **Leading zeros**: Strip leading zeros after processing with lstrip('0') or replace
+- **Remaining k**: After processing all digits, if k > 0, remove from end
+- **Empty result**: Return '0' if result is empty after stripping zeros
+
+---
+
 ## Remove K Digits
 
-### Problem Statement
+### Problem Description
 
 LeetCode Problem 402: Remove K Digits
 
 Given a string `num` representing a non-negative integer and an integer `k`, return the smallest possible integer after removing exactly `k` digits from `num`. The resulting number should not have leading zeros, except if the result is `0` itself. The digits must remain in their original relative order; rearrangement is not allowed.
 
-**Constraints:**
+## Constraints
 - `1 <= k <= num.length <= 10^5`
 - `num` consists only of digits ('0'-'9').
 - `num` does not have leading zeros, except if `num` is "0".
 
-### Examples
+## Examples
 
 - **Input:** `num = "1432219"`, `k = 3`  
   **Output:** `"1219"`  
@@ -25,9 +41,7 @@ Given a string `num` representing a non-negative integer and an integer `k`, ret
   **Output:** `"0"`  
   **Explanation:** Remove both digits, resulting in `0`.
 
-### Intuition
-
-The goal is to form the smallest number by strategically removing `k` digits. To minimize the number, prioritize removing larger digits that appear earlier (higher place values), but only if doing so allows a smaller digit to take their place. This is like eliminating "peaks" where a digit is larger than the one following it.
+## Intuition To minimize the number, prioritize removing larger digits that appear earlier (higher place values), but only if doing so allows a smaller digit to take their place. This is like eliminating "peaks" where a digit is larger than the one following it.
 
 A greedy approach works well: Traverse the digits and maintain a monotonically increasing sequence (from left to right) by removing larger digits when possible, using a stack. After processing, if removals remain, trim from the end (as trailing digits have lower impact). Finally, strip leading zeros to get the valid smallest number.
 
@@ -399,8 +413,7 @@ This approach is for educational purposes and works for small inputs. For large 
 
 This approach uses recursion with memoization to avoid recomputing overlapping subproblems. It's more intuitive than bottom-up DP and naturally handles the "skip or keep" decision.
 
-### Intuition
-
+## Intuition
 - Use a recursive function that takes the current position `pos` (how many digits we've processed) and `remaining` (how many digits we still need to keep).
 - At each step, we can either skip the current digit or keep it.
 - Use memoization to store results for each `(pos, remaining)` pair.
@@ -701,6 +714,32 @@ Here are some helpful video explanations:
 7. **How would you adapt this solution for a streaming input (digits arriving one at a time)?**
 
    **Answer:** The greedy stack approach works naturally with streaming. Each new digit can be processed against the current stack using the same logic. You can maintain a sliding window or periodically output intermediate results. However, once digits are removed from the stack, they cannot be recovered, so careful consideration is needed for backtracking scenarios.
+
+---
+
+## Summary
+
+The **Remove K Digits** problem demonstrates the **Monotonic Stack** greedy pattern for digit manipulation.
+
+Key takeaways:
+1. **Monotonic Stack**: Maintain an increasing stack - pop larger digits when a smaller digit follows
+2. **Greedy Choice**: Removing digits that create "peaks" (larger before smaller) minimizes the number
+3. **Remaining k Handling**: After processing all digits, if k remains, remove from the end (lower place values)
+4. **Leading Zeros**: Always strip leading zeros after processing to get valid smallest number
+5. **Time Complexity**: O(n) - each digit pushed and popped at most once
+6. **Space Complexity**: O(n) for the stack
+
+This pattern extends to many problems including Remove Duplicate Letters, Create Maximum Number, and Monotone Increasing Digits.
+
+### Pattern Summary
+
+This problem exemplifies the **Monotonic Stack (Greedy)** pattern, characterized by:
+- Maintaining a monotonic (increasing or decreasing) sequence in a stack
+- Greedy decisions based on current element vs stack top
+- O(n) time complexity with single pass
+- Effective for problems requiring digit/string minimization or maximization
+
+For more details on this pattern, see the **[Monotonic Queue](/patterns/sliding-window-monotonic-queue-for-max-min)** guide.
 
 ---
 

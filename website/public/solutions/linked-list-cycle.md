@@ -1,6 +1,10 @@
 # Linked List Cycle
 
-## Problem Statement
+## Problem Description
+
+## Pattern: Fast and Slow Pointers - Cycle Detection
+
+This problem demonstrates algorithmic problem-solving patterns.
 
 Given the head of a linked list, determine if the linked list has a cycle in it.
 
@@ -8,7 +12,7 @@ A **cycle** exists in a linked list if some node can be reached again by continu
 
 **Link to problem:** [Linked List Cycle](https://leetcode.com/problems/linked-list-cycle/)
 
-**Constraints:**
+## Constraints
 - The number of nodes in the list is in the range `[0, 10^4]`
 - `-10^5 <= Node.val <= 10^5`
 - `pos` is `-1` or a valid index in the linked list
@@ -17,7 +21,7 @@ A **cycle** exists in a linked list if some node can be reached again by continu
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -603,7 +607,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you find the starting node of the cycle?
 
@@ -680,6 +684,27 @@ Alternatively, use two pointers to measure the circumference.
 ### Q10: Can you use this algorithm for detecting cycles in graphs?
 
 **Answer:** Floyd's algorithm can be adapted for cycle detection in certain directed graphs (like detecting cycles in a functional graph where each node has exactly one outgoing edge). However, for general graphs, you need DFS with visited markers or other graph cycle detection algorithms.
+
+---
+
+
+
+## Common Pitfalls
+
+### 1. Wrong Speeds
+**Issue:** Using wrong speed ratio.
+
+**Solution:** Use 2x and 1x speed.
+
+### 2. No Meeting Point
+**Issue:** Not detecting cycle properly.
+
+**Solution:** Both pointers must move in loop.
+
+### 3. Finding Start
+**Issue:** Not knowing how to find cycle start.
+
+**Solution:** Reset slow to head, move both 1 step until meet.
 
 ---
 

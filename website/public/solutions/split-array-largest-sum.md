@@ -1,5 +1,20 @@
 # Split Array Largest Sum
 
+## Pattern:
+
+Binary Search on Answer
+
+This problem uses **binary search on the answer** space. The key insight is the monotonic relationship between the candidate maximum sum and the number of subarrays needed. If we can split with max sum X, we can also split with any Y >= X.
+
+## Common Pitfalls
+
+- **Binary search boundaries**: Lower bound is max(nums), upper bound is sum(nums).
+- **Feasibility check**: The greedy check must determine if we can split into ≤ k subarrays with each sum ≤ mid.
+- **Monotonicity**: If splitting with max sum X is possible, then it's also possible with any Y > X.
+- **Early termination**: The binary search continues until low == high.
+
+---
+
 ## Problem Description
 
 Given an integer array `nums` and an integer `k`, split `nums` into `k` non-empty subarrays such that the largest sum of any subarray is minimized.
@@ -8,7 +23,7 @@ Return the minimized largest sum of the split.
 
 A subarray is a contiguous part of the array.
 
-### Examples
+## Examples
 
 **Example 1:**
 ```python
@@ -48,7 +63,7 @@ Output: 4
 We must split into 3 subarrays (each element becomes its own subarray):
 - `[1]`, `[4]`, `[4]` → sums are 1, 4, 4 → max = 4
 
-### Constraints
+## Constraints
 
 - `1 <= nums.length <= 1000`
 - `0 <= nums[i] <= 10^6`
@@ -74,7 +89,7 @@ This monotonicity allows us to use binary search on the answer space.
 
 ## Solution Approaches
 
-### Approach 1: Binary Search on Answer (Optimal)
+## Approach 1: Binary Search on Answer (Optimal)
 
 This is the most efficient approach that leverages binary search on the possible values of the largest subarray sum.
 
@@ -273,7 +288,7 @@ For `nums = [7,2,5,10,8]` and `k = 2`:
   - Since not possible, `low = 18`
 - Result: `low = 18` (answer found)
 
-### Approach 2: Dynamic Programming (Naive)
+## Approach 2: Dynamic Programming (Naive)
 
 This approach uses DP to explore all possible ways to split the array, but is less efficient for large inputs.
 
@@ -421,7 +436,7 @@ var splitArray = function(nums, k) {
 ```
 ````
 
-### Approach 3: Dynamic Programming - Top-Down with Memoization
+## Approach 3: Dynamic Programming - Top-Down with Memoization
 
 This approach uses recursion with memoization to explore all possible ways to split the array. It has the same time complexity as bottom-up DP but can be more intuitive to implement.
 

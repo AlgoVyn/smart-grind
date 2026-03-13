@@ -6,14 +6,9 @@ Given the root of a binary tree, return the inorder traversal of its nodes' valu
 
 ---
 
-## Constraints
+## Examples
 
-- The number of nodes in the tree is in the range [1, 100].
-- -100 <= Node.val <= 100
-
----
-
-## Example 1
+### Example
 
 **Input:**
 ```python
@@ -36,7 +31,7 @@ root = [1,null,2,3]
 
 ---
 
-## Example 2
+### Example 2
 
 **Input:**
 ```python
@@ -50,7 +45,7 @@ root = []
 
 ---
 
-## Example 3
+### Example 3
 
 **Input:**
 ```python
@@ -64,13 +59,73 @@ root = [1]
 
 ---
 
-## Solution
+## Constraints
 
-We use three approaches to solve this problem:
+- The number of nodes in the tree is in the range [1, 100].
+- -100 <= Node.val <= 100
 
-1. **Recursive Inorder Traversal** - Most intuitive and commonly used
-2. **Iterative Inorder with Stack** - Uses explicit stack to avoid recursion
-3. **Morris Inorder Traversal** - O(1) space using thread creation
+---
+
+## Intuition
+
+### Why Inorder Traversal Works
+
+Inorder traversal follows the natural structure of binary trees:
+- **Left subtree first**: All left children are visited before the root
+- **Root second**: The parent is processed after its left subtree
+- **Right subtree last**: All right children are visited after the root
+
+This order is particularly useful for:
+- **Binary Search Trees**: Produces sorted order
+- **Expression trees**: Produces infix notation
+- **Tree validation**: Can detect BST properties
+
+### Visual Example
+
+For the tree `[1,null,2,3]`:
+```
+    1
+     \
+      2
+     /
+    3
+```
+
+Inorder traversal:
+1. Start at root (1)
+2. Has no left child → visit 1
+3. Go right to 2
+4. Has left child 3 → process 3 first
+5. Visit 3, then 2
+6. Result: [1, 3, 2]
+
+---
+
+## Pattern: Tree Traversal - Depth-First Search (DFS)
+
+### Core Concept
+
+The Binary Tree Inorder Traversal problem demonstrates the fundamental **Tree Depth-First Search** pattern. This pattern involves systematically visiting all nodes in a tree structure using a depth-first strategy:
+
+1. **Inorder Traversal Order**: Left → Root → Right (for binary trees)
+2. **Recursive Nature**: Naturally expresses the tree structure through recursive calls
+3. **Three Variations**: Inorder, Preorder, and Postorder traversals differ in when the root is visited
+
+### When to Use This Pattern
+
+This pattern applies when:
+- Need to visit all nodes in a binary tree
+- Problem involves BST validation, tree serialization, or path finding
+- Need nodes in sorted order (inorder for BST gives sorted sequence)
+- Tree problems that require processing children before parent (postorder)
+
+### Alternative Patterns
+
+| Alternative Pattern | Use Case |
+|---------------------|----------|
+| **Breadth-First Search (BFS)** | Level-by-level traversal, shortest path in unweighted tree |
+| **Iterative with Stack** | When recursion is not allowed (stack overflow concerns) |
+| **Morris Traversal** | When O(1) space is required |
 
 ---
 
@@ -767,3 +822,105 @@ Morris traversal is an advanced technique that achieves O(1) space:
 - [Binary Tree Inorder Traversal - LeetCode 94](https://www.youtube.com/watch?v=12CsU10u5jU)
 - [Tree Traversals - Inorder, Preorder, Postorder](https://www.youtube.com/watch?v=gm8DUJJhmY4)
 - [Morris Traversal - O(1) Space Tree Traversal](https://www.youtube.com/watch?v=wGXB8O1chGw)
+
+---
+
+## Common Pitfalls
+
+### 1. Stack Overflow with Deep Trees
+**Issue:** Recursive solution can cause stack overflow for very deep trees (worst case: O(n) recursion depth).
+
+**Solution:** Use iterative approach with explicit stack, or use Morris traversal for O(1) space.
+
+### 2. Incorrect Base Case Handling
+**Issue:** Not properly handling null/empty tree nodes.
+
+**Solution:** Always check for null node before accessing its properties. The recursive function should return immediately if node is null.
+
+### 3. Wrong Traversal Order
+**Issue:** Getting Inorder, Preorder, or Postorder confused.
+
+**Solution:** Remember the order: Inorder = Left-Root-Right, Preorder = Root-Left-Right, Postorder = Left-Right-Root
+
+### 4. Modifying Tree in Morris Traversal
+**Issue:** Forgetting to restore tree structure after Morris traversal.
+
+**Solution:** Always reset predecessor.right back to null after processing to restore original tree structure.
+
+### 5. Infinite Loop in Morris Traversal
+**Issue:** Incorrectly finding or setting the predecessor node causing infinite loop.
+
+**Solution:** Ensure the while loop correctly traverses to the rightmost node of the left subtree and properly checks for existing threads.
+
+---
+
+## Follow-up Questions
+
+### Q1: How would you modify this for preorder traversal?
+
+**Answer:** For preorder (Root-Left-Right), visit the node before processing the left subtree.
+
+---
+
+### Q2: Can you solve this without recursion or stack?
+
+**Answer:** Yes, using Morris Traversal which creates temporary threads to achieve O(1) space.
+
+---
+
+### Q3: What if you need zigzag level order instead?
+
+**Answer:** That requires a different problem (Binary Tree Zigzag Level Order Traversal). Use BFS with alternating direction.
+
+---
+
+### Q4: How does inorder traversal help with BST validation?
+
+**Answer:** Inorder traversal of a BST produces sorted values. You can check if the array is sorted to validate a BST.
+
+---
+
+### Q5: What edge cases should be tested?
+
+**Answer:**
+- Empty tree (root = None)
+- Single node
+- Left-skewed tree (only left children)
+- Right-skewed tree (only right children)
+- Complete binary tree
+- Balanced tree
+
+---
+
+## Summary
+
+The **Binary Tree Inorder Traversal** problem is a fundamental tree traversal problem that demonstrates multiple approaches:
+
+- **Recursive**: Most intuitive, O(h) space
+- **Iterative with Stack**: Avoids recursion, same O(h) space  
+- **Morris Traversal**: O(1) space, modifies tree temporarily
+
+Key takeaways:
+1. Inorder = Left → Root → Right
+2. For BSTs, inorder gives sorted order
+3. Choose approach based on space requirements
+4. Morris Traversal is optimal for O(1) space
+5. Each node visited exactly once → O(n) time
+
+This problem is essential for understanding tree traversals and forms the foundation for many more complex tree problems.
+
+### Pattern Summary
+
+This problem exemplifies the **Tree Depth-First Search** pattern:
+- Systematic node visitation
+- Three variations: inorder, preorder, postorder
+- Space-time tradeoffs between approaches
+- Foundation for BST, path sum, and tree reconstruction problems
+
+---
+
+## Additional Resources
+
+- [LeetCode Problem 94](https://leetcode.com/problems/binary-tree-inorder-traversal/) - Official problem page
+- [Tree Traversal - GeeksforGeeks](https://www.geeksforgeeks.org/tree-traversals/) - Detailed explanations
+- [Morris Traversal](https://www.geeksforgeeks.org/morris-traversal-for-inorder/) - O(1) space method

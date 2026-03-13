@@ -114,9 +114,37 @@ The two-pointer approach is optimal because:
 
 ---
 
+## Pattern: Two Pointers - Greedy Optimization
+
+### Core Concept
+
+The Container With Most Water problem demonstrates the **Two Pointers with Greedy Optimization** pattern. This pattern uses two pointers starting from opposite ends and makes greedy decisions to find the optimal solution:
+
+1. **Start Wide**: Begin with maximum width (first and last elements)
+2. **Greedy Move**: Always move the pointer with smaller height
+3. **Optimal Substructure**: Moving taller line can never improve solution
+
+### When to Use This Pattern
+
+This pattern applies when:
+- Problem involves finding maximum/minimum between two endpoints
+- Array represents some bounded region (heights, temperatures, etc.)
+- Brute force is O(n²) but optimal solution is O(n)
+- Moving one pointer deterministically leads to optimal solution
+
+### Alternative Patterns
+
+| Alternative Pattern | Use Case |
+|---------------------|----------|
+| **Brute Force O(n²)** | When n is small (< 100) |
+| **Binary Search** | Doesn't apply directly here |
+| **Dynamic Programming** | Not needed - greedy is optimal |
+
+---
+
 ## Multiple Approaches
 
-### Approach 1: Two Pointer (Optimal) ⭐⭐
+## Approach 1: Two Pointer (Optimal) ⭐⭐
 
 The optimal approach uses two pointers starting from both ends, moving inward strategically.
 
@@ -257,7 +285,7 @@ var maxArea = function(height) {
 
 ---
 
-### Approach 2: Brute Force ⭐
+## Approach 2: Brute Force ⭐
 
 Check all possible pairs to find maximum water.
 
@@ -370,7 +398,7 @@ var maxArea = function(height) {
 
 ---
 
-### Approach 3: Optimized Brute Force with Early Termination
+## Approach 3: Optimized Brute Force with Early Termination
 
 Optimize brute force by skipping pairs that can't beat current maximum.
 
@@ -500,7 +528,7 @@ var maxArea = function(height) {
 
 ---
 
-### Approach 4: Binary Search Variant (Alternative Perspective)
+## Approach 4: Binary Search Variant (Alternative Perspective)
 
 A variant using binary search-like approach.
 
@@ -704,7 +732,7 @@ Maximum = 49
 
 ---
 
-## Edge Cases and Common Pitfalls
+## Common Pitfalls
 
 ### Edge Cases to Consider
 

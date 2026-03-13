@@ -1,12 +1,17 @@
 # Binary Tree Level Order Traversal
 
-## Problem Statement
+## Problem Description
+
+## Pattern: Tree - Level Order Traversal (BFS)
+
+This problem uses the **Breadth-First Search (BFS)** pattern to traverse a tree level by level.
 
 Given the root of a binary tree, return the **level order traversal** of its nodes' values. (i.e., from left to right, level by level).
 
 **Link to problem:** [Binary Tree Level Order Traversal](https://leetcode.com/problems/binary-tree-level-order-traversal/)
 
-**Constraints:**
+## Constraints
+
 - The number of nodes in the tree is in the range `[0, 2000]`
 - `-1000 <= Node.val <= 1000`
 
@@ -21,7 +26,7 @@ Given the root of a binary tree, return the **level order traversal** of its nod
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -979,7 +984,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you modify the solution to return values in right-to-left order (reverse level order)?
 
@@ -1168,6 +1173,27 @@ This is complex and depends on the tree structure and communication overhead.
 8. **Deep tree**: Test recursion depth limits
 9. **Wide tree**: Test queue memory usage
 10. **Tree with negative values**: Ensure values are handled correctly
+
+---
+
+
+
+## Common Pitfalls
+
+### 1. Not Tracking Level
+**Issue:** Not separating levels in output.
+
+**Solution:** Process level size at a time, add new list per level.
+
+### 2. Empty Tree
+**Issue:** Not handling empty/null root.
+
+**Solution:** Return empty list for null root.
+
+### 3. Wrong Queue Usage
+**Issue:** Not processing all nodes.
+
+**Solution:** Process all nodes at current level before moving to next.
 
 ---
 

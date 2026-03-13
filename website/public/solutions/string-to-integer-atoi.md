@@ -1,6 +1,10 @@
-# String to Integer (atoi)
+# 
 
-## Problem Statement
+## Pattern: String Parsing / State Machine
+
+String to Integer (atoi)
+
+## Problem Description
 
 LeetCode Problem 8: [String to Integer (atoi)](https://leetcode.com/problems/string-to-integer-atoi/)
 
@@ -77,7 +81,7 @@ Checking before adding prevents incorrect intermediate values. If we add first a
 
 ## Approaches
 
-### Approach 1: Direct Parsing with Overflow Detection
+## Approach 1: Direct Parsing with Overflow Detection
 
 This is the most efficient and recommended approach. We parse the string character by character, maintaining the current result and checking for overflow conditions at each step.
 
@@ -153,6 +157,7 @@ class Solution:
         return result
 ```
 
+<!-- slide -->
 ```java
 class Solution {
     public int myAtoi(String s) {
@@ -347,7 +352,7 @@ This is the optimal approach for this problem, as we need to examine each charac
 
 ---
 
-### Approach 2: State Machine Parsing
+## Approach 2: State Machine Parsing
 
 This approach uses a state machine to handle different parsing states, making the code more modular and easier to extend for different parsing rules. While more verbose, it provides better structure for complex parsing scenarios.
 
@@ -651,7 +656,7 @@ This approach is more verbose but provides better structure for complex parsing 
 
 ---
 
-### Approach 3: Using Regular Expressions (Python/JavaScript Specific)
+## Approach 3: Using Regular Expressions (Python/JavaScript Specific)
 
 This approach uses regular expressions to match the valid pattern and then processes the captured groups. While concise, it may have regex overhead.
 
@@ -868,7 +873,7 @@ This approach is more concise but may be less efficient due to regex overhead. I
 
 ---
 
-### Approach 4: String Building with Clamping
+## Approach 4: String Building with Clamping
 
 This approach builds the complete number string first, then converts it to an integer with proper clamping. It's a simpler implementation that handles edge cases clearly.
 
@@ -1453,6 +1458,33 @@ function myAtoi(s) {
 }
 ```
 ````
+
+---
+
+## Summary
+
+The **String to Integer (atoi)** problem is a classic string parsing challenge that tests understanding of:
+
+- **Edge case handling**: Properly managing whitespace, signs, overflow, and invalid input
+- **State management**: Tracking parsing state through different character types
+- **Integer overflow**: Detecting potential overflow before it occurs
+
+### Key Takeaways
+
+1. **Process in order**: Always handle whitespace → sign → digits → stop
+2. **Check overflow proactively**: Use `result > (INT_MAX - digit) / 10` before adding each digit
+3. **Handle all edge cases**: Empty strings, signs without digits, overflow, non-digit characters
+4. **Choose the right approach**: Direct parsing is most efficient; state machine is most extensible
+
+### Pattern Summary
+
+This problem exemplifies the **String Parsing** pattern, characterized by:
+- Sequential character processing
+- State-based validation
+- Boundary condition handling
+- Overflow detection
+
+For more details on string manipulation patterns, see the **[String Manipulation](/patterns/string-manipulation)** pattern guide.
 
 ---
 

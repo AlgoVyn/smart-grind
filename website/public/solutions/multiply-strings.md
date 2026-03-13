@@ -1,6 +1,23 @@
 # Multiply Strings
 
-## Problem Statement
+## Pattern:
+
+Manual Multiplication Simulation
+
+This problem simulates the elementary school multiplication algorithm. The key insight is that multiplying digits at positions i and j contributes to result positions i+j and i+j+1 (with carry). We process from right to left and handle carry propagation.
+
+## Common Pitfalls
+
+- **Result array size**: Must be m+n (maximum possible digits), not m+n-1.
+- **Zero handling**: Check for "0" input early and return "0".
+- **Position indices**: product at (i, j) affects positions i+j (carry) and i+j+1 (result).
+- **Carry overflow**: When adding carry to result[i+j], it may exceed 9 and need further carry propagation.
+- **Leading zeros**: Strip leading zeros from final result, but handle case where result is "0".
+- **Char to int conversion**: Use `ord(char) - ord('0')` or `int(char)`.
+
+---
+
+## Problem Description
 
 LeetCode Problem 43: Multiply Strings
 
@@ -8,7 +25,7 @@ Given two non-negative integers `num1` and `num2` represented as strings, return
 
 You must not use any built-in big integer library or convert the inputs directly to integers. The solution should handle very large numbers that exceed the range of standard integer types.
 
-### Examples
+## Examples
 
 Here are some examples to illustrate the problem:
 
@@ -32,14 +49,14 @@ Here are some examples to illustrate the problem:
   **Output:** `"121932631112635269"`<br>
   **Explanation:** Very large numbers where built-in integer types would overflow.
 
-### Constraints
+## Constraints
 
 - `1 <= num1.length <= 110`
 - `1 <= num2.length <= 110`
 - Both `num1` and `num2` contain only digits ('0'-'9')
 - Neither `num1` nor `num2` has any leading zeros (except "0" itself)
 
-### Intuition
+## Intuition
 
 The key insight is to simulate the manual multiplication process we learned in school. When multiplying two numbers:
 
@@ -96,6 +113,7 @@ class Solution:
         return result_str if result_str else "0"
 ```
 
+<!-- slide -->
 ```java
 class Solution {
     public String multiply(String num1, String num2) {
@@ -895,3 +913,22 @@ For visual explanations, here are some recommended YouTube tutorials:
 ## LeetCode Link
 
 [Multiply Strings - LeetCode](https://leetcode.com/problems/multiply-strings/)
+
+---
+
+## Summary
+
+This problem demonstrates the **Manual Multiplication Simulation** pattern, where we simulate the elementary school multiplication algorithm to handle large numbers that exceed standard integer types.
+
+**Key Takeaways:**
+- The product of two m-digit and n-digit numbers has at most m+n digits
+- Each digit pair (i, j) contributes to positions i+j and i+j+1 in the result
+- Carry propagation is essential - each position can hold values 0-9 only
+- Early zero handling prevents unnecessary computation
+- The optimal approach achieves O(m × n) time complexity with O(m + n) space
+
+**Pattern Summary:** This problem exemplifies manual digit-by-digit multiplication simulation, characterized by:
+- Processing digits from least significant to most significant
+- Accumulating products at correct positional indices
+- Handling carry propagation between adjacent positions
+- Converting result array back to string with leading zero handling

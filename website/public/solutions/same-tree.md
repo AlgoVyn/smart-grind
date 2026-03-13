@@ -1,12 +1,16 @@
-# Same Tree
+# 
 
-## Problem Statement
+## Pattern: Tree Comparison - Recursive DFS
+
+Same Tree
+
+## Problem Description
 
 Given the roots of two binary trees `p` and `q`, write a function to check if they are the same or not. Two binary trees are considered the same if they are **structurally identical** and the corresponding nodes have the **same value**.
 
 **Link to problem:** [Same Tree](https://leetcode.com/problems/same-tree/)
 
-**Constraints:**
+## Constraints
 - The number of nodes in both trees is in the range `[0, 10^4]`
 - `-10^4 <= Node.val <= 10^4`
 
@@ -22,7 +26,7 @@ Given the roots of two binary trees `p` and `q`, write a function to check if th
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -905,7 +909,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you modify the solution to find the first differing node between two trees?
 
@@ -1018,6 +1022,20 @@ However, for typical interview scenarios, the overhead of parallelization usuall
 2. Each corresponding child pair is the same
 
 The iterative version would use a queue of (node1, node2) pairs and process all children of each node pair together.
+
+---
+
+## Common Pitfalls
+
+### Common Mistakes to Avoid
+
+1. **Not handling null nodes correctly**: Both null nodes should return true, but one null and one non-null should return false
+
+2. **Traversal order**: Make sure you're traversing both trees in the same order
+
+3. **Stack overflow**: For very deep trees, recursive solution may cause stack overflow - consider iterative approach
+
+4. **Early termination**: Ensure you stop comparing once a mismatch is found
 
 ---
 

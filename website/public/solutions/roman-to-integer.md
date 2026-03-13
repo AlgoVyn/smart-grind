@@ -46,6 +46,26 @@ This problem is a classic string parsing challenge that tests your ability to:
 
 ---
 
+## Pattern:
+
+This problem follows the **String Parsing with Lookup Table** pattern.
+
+### Core Concept
+
+- **Symbol-Value Mapping**: Use a hash map/dictionary to map Roman symbols to their integer values
+- **Subtractive Notation Handling**: When a smaller value precedes a larger value, it indicates subtraction
+- **Directional Processing**: Process either right-to-left (tracking previous value) or left-to-right (with lookahead)
+- **Fixed Space**: Use constant O(1) space with fixed-size lookup tables
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Converting between different numeral systems
+2. Parsing strings with specific rules or patterns
+3. Problems requiring efficient symbol-to-value mapping
+
+---
+
 ## Examples
 
 **Example 1:**
@@ -1105,6 +1125,35 @@ All approaches are O(n) with O(1) space, making them highly efficient for batch 
 
 ---
 
+## Common Pitfalls
+
+### 1. Incorrect Subtractive Notation Handling
+**Issue:** Not properly detecting when a smaller value precedes a larger value.
+
+**Solution:** Use right-to-left processing with previous value tracking, or check lookahead in left-to-right processing.
+
+### 2. Wrong Processing Direction
+**Issue:** Mixing up left-to-right and right-to-left logic leads to incorrect results.
+
+**Solution:** Choose one direction and maintain consistency throughout the implementation.
+
+### 3. Missing Boundary Checks
+**Issue:** Accessing s[i+1] without checking if i+1 is within bounds causes index errors.
+
+**Solution:** Always check `i + 1 < len(s)` before accessing the next character.
+
+### 4. Invalid Subtractive Pairs
+**Issue:** Not all smaller-before-larger combinations are valid (e.g., 'IL', 'IC' are invalid).
+
+**Solution:** Only handle the six valid subtractive pairs: IV, IX, XL, XC, CD, CM.
+
+### 5. Hardcoded Values Without Validation
+**Issue:** Using magic numbers without clear mapping makes code hard to maintain.
+
+**Solution:** Use a lookup table/dictionary for symbol values and subtractive patterns.
+
+---
+
 ## Common Mistakes to Avoid
 
 1. **❌ Not handling subtractive notation correctly**
@@ -1130,6 +1179,35 @@ All approaches are O(n) with O(1) space, making them highly efficient for batch 
 6. **❌ Not testing edge cases**
    - Test with "I", "IV", "IX", "XL", "XC", "CD", "CM"
    - Test with maximum value "MMMCMXCIX" = 3999
+
+---
+
+## Summary
+
+The **Roman to Integer** problem demonstrates efficient string parsing using lookup tables:
+
+- **Right-to-Left Processing**: Track previous value and compare
+- **Pattern Matching**: Handle subtractive pairs explicitly
+- **Time Complexity**: O(n) - single pass through the string
+- **Space Complexity**: O(1) - fixed-size lookup tables
+
+Key insights:
+1. Roman numerals follow specific subtractive rules
+2. Processing right-to-left elegantly handles subtractive notation
+3. Only 7 symbols need to be mapped (I, V, X, L, C, D, M)
+4. The six valid subtractive pairs: IV, IX, XL, XC, CD, CM
+
+This problem is an excellent example of how understanding specific domain rules can lead to elegant algorithmic solutions.
+
+### Pattern Summary
+
+This problem exemplifies the **String Parsing with Lookup Table** pattern, characterized by:
+- Using hash maps for symbol-to-value mapping
+- Processing strings efficiently with O(n) time
+- Handling special cases (subtractive notation)
+- O(1) space with fixed-size tables
+
+For more details on string processing patterns, see the **[String - Roman to Integer Conversion Pattern](/patterns/string-roman-to-integer-conversion.md)**.
 
 ---
 

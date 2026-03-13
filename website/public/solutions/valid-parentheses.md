@@ -1,6 +1,10 @@
-# Valid Parentheses
+# 
 
-## Problem Statement
+## Pattern: Stack / Expression Validation
+
+Valid Parentheses
+
+## Problem Description
 
 LeetCode Problem 20: Valid Parentheses
 
@@ -11,7 +15,7 @@ An input string is valid if:
 2. Open brackets must be closed in the correct order (last-in, first-out).
 3. Every close bracket has a corresponding open bracket of the same type.
 
-### Examples
+## Examples
 
 Here are some examples to illustrate the problem:
 
@@ -35,12 +39,12 @@ Here are some examples to illustrate the problem:
   **Output:** `false`<br>
   **Explanation:** The closing parenthesis attempts to close the opening bracket, violating the correct nesting order.
 
-### Constraints
+## Constraints
 
 - `1 <= s.length <= 10^4`
 - `s` consists only of the characters `'('`, `')'`, `'{'`, `'}'`, `'['`, and `']'`.
 
-### Intuition
+## Intuition
 
 The key insight is that brackets follow a "last opened, first closed" rule, which naturally aligns with a stack data structure (LIFO: Last In, First Out). As we iterate through the string:
 
@@ -631,7 +635,58 @@ For visual explanations, here are some recommended YouTube tutorials:
 
 ---
 
-## LeetCode Link
+## Common Pitfalls
+
+### 1. Not Checking Empty Stack
+**Issue**: Trying to pop from an empty stack when encountering a closing bracket.
+
+**Solution**: Always check if the stack is non-empty before popping. If empty when encountering a closing bracket, return false immediately.
+
+### 2. Wrong Bracket Type Matching
+**Issue**: Matching closing brackets with wrong opening brackets (e.g., matching `]` with `{`).
+
+**Solution**: Use a mapping dictionary or proper conditional checks to ensure the correct bracket type is matched.
+
+### 3. Forgetting to Check Final Stack State
+**Issue**: Returning true without checking if the stack is empty at the end.
+
+**Solution**: Always return `stack.empty()` (or equivalent) at the end to ensure all opening brackets were properly closed.
+
+### 4. Not Handling All Closing Bracket Types
+**Issue**: Only handling one type of closing bracket and missing others.
+
+**Solution**: Ensure all three closing bracket types (`, `, `) are handled in the conditional checks or mapping.
+
+### 5. Stack Contains Wrong Data Type
+**Issue**: Storing indices instead of characters or vice versa, causing comparison errors.
+
+**Solution**: Store the actual bracket characters in the stack for direct comparison with expected matches.
+
+---
+
+## Summary
+
+The **Valid Parentheses** problem is a classic application of the stack data structure:
+
+- **Stack Approach**: Push opening brackets, pop and match when encountering closing brackets
+- **Time Complexity**: O(n) - single pass through the string
+- **Space Complexity**: O(n) - worst case stack holds all opening brackets
+
+Key insights:
+1. Brackets follow LIFO (Last In, First Out) order
+2. The stack naturally handles nested brackets
+3. Empty stack at the end means all brackets were matched
+
+This problem is an excellent introduction to stack-based validation and is frequently asked in technical interviews.
+
+### Pattern Summary
+
+This problem exemplifies the **Stack - Bracket Matching** pattern, characterized by:
+- Using stack to track open elements
+- LIFO behavior for correct ordering
+- O(n) time with O(n) space
+
+For more details on stack-based patterns, see the **[Stack Data Structure](/algorithms/stack)** section.
 
 [Valid Parentheses - LeetCode](https://leetcode.com/problems/valid-parentheses/)
 

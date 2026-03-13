@@ -1,6 +1,6 @@
 # Group Anagrams
 
-## Problem Statement
+## Problem Description
 
 LeetCode Problem 49: Group Anagrams
 
@@ -8,7 +8,7 @@ Given an array of strings `strs`, group the anagrams together. You can return th
 
 An anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once. For example, "eat", "ate", and "tea" are all anagrams of each other.
 
-### Examples
+## Examples
 
 Here are some examples to illustrate the problem:
 
@@ -28,13 +28,49 @@ Here are some examples to illustrate the problem:
   **Output:** `[[""],["b"]]`<br>
   **Explanation:** The empty string and "b" have different character counts.
 
-### Constraints
+## Constraints
 
 - `1 <= strs.length <= 10^4`
 - `0 <= strs[i].length <= 100`
 - `strs[i]` consists of lowercase English letters ('a' to 'z')
 
-### Intuition
+---
+
+## Pattern:
+
+This problem follows the **Hash Map with Canonical Key** pattern, specifically using character frequency as the grouping key.
+
+### Core Concept
+
+- **Canonical representation**: All anagrams share the same character frequency signature
+- **Key generation**: Convert frequency array to hashable key (tuple, string, or product)
+- **Grouping**: Use hash map to group strings with same canonical key
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Grouping strings by character composition
+2. Anagram detection and grouping
+3. Problems requiring frequency-based string comparison
+
+### Related Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| Sliding Window | Window-based string problems |
+| Frequency Array | Character counting techniques |
+| Hash Map Grouping | Grouping by computed keys |
+
+### Pattern Summary
+
+This problem exemplifies **Frequency-Based String Grouping**, characterized by:
+- Character frequency array as canonical key
+- Hash map for O(1) grouping
+- Multiple key generation strategies (sorted, count tuple, prime product)
+
+---
+
+## Intuition
 
 The key insight is that two strings are anagrams if and only if they have identical character counts. This means:
 
@@ -85,6 +121,7 @@ class Solution:
         return list(groups.values())
 ```
 
+<!-- slide -->
 ```java
 import java.util.*;
 
@@ -164,6 +201,7 @@ public:
 };
 ```
 
+<!-- slide -->
 ```javascript
 /**
  * @param {string[]} strs
@@ -717,6 +755,36 @@ var groupAnagrams = function(strs) {
 | Counter-based | O(N × K) | O(N × K) | Pythonic and readable | Language-specific features |
 
 ---
+---
+
+## Common Pitfalls
+
+### 1. Using list as dictionary key
+**Issue:** Lists are not hashable in Python.
+
+**Solution:** Convert count list to tuple before using as dictionary key.
+
+### 2. Not handling empty strings
+**Issue:** Empty strings should form a valid group.
+
+**Solution:** Empty strings have empty count, which is a valid key.
+
+### 3. Sorted string vs frequency count
+**Issue:** Sorted string is simpler but slower (O(K log K) vs O(K)).
+
+**Solution:** Use frequency count approach for optimal performance.
+
+### 4. Prime multiplication overflow
+**Issue:** Large strings can cause integer overflow with prime multiplication.
+
+**Solution:** Use frequency count approach or use languages with arbitrary-precision integers.
+
+### 5. Case sensitivity
+**Issue:** Problem specifies lowercase; uppercase would need different handling.
+
+**Solution:** Ensure input is lowercase or expand count array for uppercase.
+
+---
 
 ## Related Problems
 
@@ -815,3 +883,20 @@ For visual explanations, here are some recommended YouTube tutorials:
 ## LeetCode Link
 
 [Group Anagrams - LeetCode](https://leetcode.com/problems/group-anagrams/)
+
+---
+
+## Summary
+
+This problem demonstrates the **Hash Map with Canonical Key** pattern, where we use character frequency as a grouping key to efficiently identify and group anagrams.
+
+**Key Takeaways:**
+- Strings are anagrams if and only if they have identical character counts
+- Converting character frequency to a hashable key (tuple, sorted string, or prime product) enables O(1) grouping
+- The optimal approach uses character frequency counting with O(N × K) time complexity
+- Multiple key generation strategies exist: sorted string (simpler), frequency tuple (optimal), prime multiplication (mathematical elegance)
+
+**Pattern Summary:** This problem exemplifies Frequency-Based String Grouping, characterized by:
+- Character frequency array as canonical key
+- Hash map for O(1) grouping operations
+- Scalability to handle large inputs efficiently

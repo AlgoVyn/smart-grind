@@ -1,6 +1,10 @@
 # Evaluate Reverse Polish Notation
 
-## Problem Statement
+## Problem Description
+
+## Pattern: Stack - Expression Evaluation
+
+This problem demonstrates using a **Stack** to evaluate postfix expressions.
 
 LeetCode Problem 150: Evaluate Reverse Polish Notation
 
@@ -14,7 +18,7 @@ You are given an array of strings `tokens` that represents an arithmetic express
 - The input is always a valid RPN expression
 - All intermediate calculations and the final answer fit in a 32-bit integer
 
-### Constraints:
+## Constraints
 - `1 ≤ tokens.length ≤ 10⁴`
 - `tokens[i]` is either an operator (`"+"`, `"-"`, `"*"`, `"/"`) or an integer in the range `[-200, 200]`
 
@@ -855,5 +859,30 @@ Here are some helpful video explanations:
 ## LeetCode Link
 
 [Evaluate Reverse Polish Notation - LeetCode 150](https://leetcode.com/problems/evaluate-reverse-polish-notation/)
+
+---
+
+## Summary
+
+The **Evaluate Reverse Polish Notation** problem demonstrates the power of using a **Stack** data structure for expression evaluation. 
+
+Key takeaways:
+1. **Stack-Based Processing**: RPN expressions can be elegantly evaluated by pushing operands onto a stack and applying operators when encountered
+2. **Operand Order Matters**: Always pop the right operand first (b), then the left operand (a) when performing operations
+3. **Division Truncation**: Be careful with integer division - use `int(a / b)` in Python, `Math.trunc(a / b)` in JavaScript to truncate toward zero
+4. **Time Complexity**: O(n) where n is the number of tokens - each token is processed exactly once
+5. **Space Complexity**: O(n) in the worst case when all tokens are operands
+
+This problem is fundamental to understanding how compilers and calculators evaluate expressions, and the stack-based approach extends to more complex expression evaluation problems like Basic Calculator.
+
+### Pattern Summary
+
+This problem exemplifies the **Stack - Expression Evaluation** pattern, characterized by:
+- Using a stack to process elements sequentially
+- LIFO behavior matching the evaluation order of postfix notation
+- Simple linear time complexity with linear space
+- Foundation for more complex problems (infix evaluation, expression trees)
+
+For more details on this pattern and its variations, see the **[Stack Pattern](/patterns/stack-simulation-backtracking-helper)**.
 
 

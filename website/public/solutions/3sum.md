@@ -18,7 +18,7 @@ This is one of the most classic and frequently asked interview problems. It test
 
 ## Examples
 
-### Example 1
+### Example
 **Input:** `nums = [-1,0,1,2,-1,-4]`
 
 **Output:** `[[-1,-1,2],[-1,0,1]]`
@@ -59,6 +59,33 @@ This is one of the most classic and frequently asked interview problems. It test
 
 - `0 <= nums.length <= 3000`
 - `-10^5 <= nums[i] <= 10^5`
+
+---
+
+## Pattern:
+
+This problem follows the **Two Pointer** pattern on sorted arrays, specifically the **K-Sum Reduction** pattern.
+
+### Core Concept
+
+- **Reduce 3Sum to 2Sum**: Fix one element and solve 2-sum on the remaining array
+- **Sorting enables two-pointer**: Sorted array allows directional movement to find target sums
+- **Duplicate handling**: Skip adjacent equal elements to avoid duplicate triplets
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Finding triplets/pairs that sum to a target in a sorted array
+2. Reducing n-sum to (n-1)-sum problems
+3. Problems requiring unique combinations without duplicates
+
+### Related Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| Sort + Two Pointers | Search for pairs summing to target |
+| Hash Set | Alternative approach with O(n) space |
+| Recursion | For generalized k-sum problems |
 
 ---
 
@@ -658,13 +685,58 @@ Let's trace through `nums = [-1, 0, 1, 2, -1, -4]`:
 
 ---
 
-## Common Mistakes to Avoid
+## Common Pitfalls
 
-1. **Forgetting to skip duplicates** - Results in duplicate triplets
-2. **Not sorting the array** - Two-pointer technique won't work
-3. **Index out of bounds** - Ensure `i < n-2` and proper pointer initialization
-4. **Not handling edge cases** - Empty arrays, arrays with less than 3 elements
-5. **Early termination logic** - Be careful with the break/continue conditions
+### 1. Forgetting to skip duplicates
+**Issue:** Results in duplicate triplets.
+
+**Solution:** Skip duplicate values at each iteration level by checking adjacent elements.
+
+### 2. Not sorting the array
+**Issue:** Two-pointer technique won't work.
+
+**Solution:** Always sort the array first.
+
+### 3. Index out of bounds
+**Issue:** Ensure `i < n-2` and proper pointer initialization.
+
+**Solution:** Initialize pointers carefully and check bounds.
+
+### 4. Not handling edge cases
+**Issue:** Empty arrays, arrays with less than 3 elements.
+
+**Solution:** Add checks for array length before processing.
+
+### 5. Early termination logic
+**Issue:** Be careful with the break/continue conditions.
+
+**Solution:** Understand when to break vs continue based on sum comparisons.
+
+---
+
+## Summary
+
+The **3Sum** problem is a classic algorithm challenge that tests your ability to optimize from brute force to efficient solutions:
+
+- **Two Pointers**: The optimal approach reduces 3Sum to 2Sum by sorting and using two pointers
+- **Avoid Duplicates**: Key challenge is systematically skipping duplicate values at each iteration
+- **Time Optimization**: From O(n³) brute force to O(n²) two-pointer solution
+
+Key insights:
+1. Sorting enables the two-pointer technique and easy duplicate detection
+2. Fix one element and solve 2-sum on the remaining array
+3. Skip duplicates at all three levels (first, second, third elements)
+4. Early termination optimizations can significantly improve performance
+
+This problem is fundamental to understanding the two-pointer pattern and is the basis for solving k-sum problems.
+
+### Pattern Summary
+
+This problem exemplifies the **Two Pointer** pattern on sorted arrays, characterized by:
+- Reducing n-sum to (n-1)-sum through recursion
+- Using sorted order to enable directional movement
+- Systematic duplicate handling through adjacent element comparison
+- Early termination based on sum bounds
 
 ---
 

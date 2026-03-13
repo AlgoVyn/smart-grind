@@ -1,6 +1,12 @@
 # Longest Subarray of 1's After Deleting One Element
 
 ## Problem Description
+
+[LeetCode Link](https://leetcode.com/problems/longest-subarray-of-1s-after-deleting-one-element/)
+
+## Pattern: Sliding Window / Count
+
+This problem demonstrates algorithmic problem-solving patterns.
 Given a binary array `nums`, you should delete one element from it. Return the size of the longest non-empty subarray containing only 1's in the resulting array. If there is no such subarray, return 0.
 
 This is **LeetCode Problem #1493** and is classified as a Medium difficulty problem. It tests your ability to work with sliding window techniques to find optimal subarray solutions.
@@ -12,7 +18,7 @@ This is **LeetCode Problem #1493** and is classified as a Medium difficulty prob
 - If all elements are 0s, return 0
 - If all elements are 1s, return n-1 (since you must delete one element)
 
-### Key Constraints
+## Constraints
 | Constraint | Description |
 |------------|-------------|
 | `1 <= nums.length <= 10^5` | Array size |
@@ -70,9 +76,10 @@ Key insight: We can have at most one 0 in our window, because we can delete it t
 
 ## Solution Approaches
 
-### Approach 1: Sliding Window (Optimal) ✅ Recommended
+## Approach 1: Sliding Window (Optimal) ✅ Recommended
 This approach uses a sliding window with two pointers to track the longest valid subarray.
 
+````carousel
 ```python
 from typing import List
 
@@ -100,6 +107,112 @@ class Solution:
         return max_length
 ```
 
+<!-- slide -->
+```cpp
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class Solution {
+public:
+    int longestSubarray(vector<int>& nums) {
+        int left = 0;
+        int zero_count = 0;
+        int max_length = 0;
+        
+        for (int right = 0; right < nums.size(); right++) {
+            // Count zeros in current window
+            if (nums[right] == 0) {
+                zero_count++;
+            }
+            
+            // If more than one zero, move left pointer
+            while (zero_count > 1) {
+                if (nums[left] == 0) {
+                    zero_count--;
+                }
+                left++;
+            }
+            
+            // Calculate current window length (subtract 1 to account for deletion)
+            int current_length = right - left + 1 - 1;
+            max_length = max(max_length, current_length);
+        }
+        
+        return max_length;
+    }
+};
+```
+
+<!-- slide -->
+```java
+import java.util.*;
+
+class Solution {
+    public int longestSubarray(int[] nums) {
+        int left = 0;
+        int zeroCount = 0;
+        int maxLength = 0;
+        
+        for (int right = 0; right < nums.length; right++) {
+            // Count zeros in current window
+            if (nums[right] == 0) {
+                zeroCount++;
+            }
+            
+            // If more than one zero, move left pointer
+            while (zeroCount > 1) {
+                if (nums[left] == 0) {
+                    zeroCount--;
+                }
+                left++;
+            }
+            
+            // Calculate current window length (subtract 1 to account for deletion)
+            int currentLength = right - left + 1 - 1;
+            maxLength = Math.max(maxLength, currentLength);
+        }
+        
+        return maxLength;
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var longestSubarray = function(nums) {
+    let left = 0;
+    let zeroCount = 0;
+    let maxLength = 0;
+    
+    for (let right = 0; right < nums.length; right++) {
+        // Count zeros in current window
+        if (nums[right] === 0) {
+            zeroCount++;
+        }
+        
+        // If more than one zero, move left pointer
+        while (zeroCount > 1) {
+            if (nums[left] === 0) {
+                zeroCount--;
+            }
+            left++;
+        }
+        
+        // Calculate current window length (subtract 1 to account for deletion)
+        const currentLength = right - left + 1 - 1;
+        maxLength = Math.max(maxLength, currentLength);
+    }
+    
+    return maxLength;
+};
+```
+````
+
 #### How It Works
 1. **Initialization**: Start with left pointer at 0, zero count at 0, and max length at 0
 2. **Expand Window**: Move right pointer to include new elements
@@ -110,9 +223,10 @@ class Solution:
 
 ---
 
-### Approach 2: Dynamic Programming
+## Approach 2: Dynamic Programming
 This approach uses dynamic programming to track consecutive 1s before and after each position.
 
+````carousel
 ```python
 from typing import List
 
@@ -138,6 +252,111 @@ class Solution:
         
         return max_length
 ```
+
+<!-- slide -->
+```cpp
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class Solution {
+public:
+    int longestSubarray(vector<int>& nums) {
+        int n = nums.size();
+        vector<int> left(n, 0), right(n, 0);
+        
+        // Calculate left consecutive 1s
+        for (int i = 1; i < n; i++) {
+            if (nums[i-1] == 1) {
+                left[i] = left[i-1] + 1;
+            }
+        }
+        
+        // Calculate right consecutive 1s
+        for (int i = n-2; i >= 0; i--) {
+            if (nums[i+1] == 1) {
+                right[i] = right[i+1] + 1;
+            }
+        }
+        
+        int maxLength = 0;
+        for (int i = 0; i < n; i++) {
+            maxLength = max(maxLength, left[i] + right[i]);
+        }
+        
+        return maxLength;
+    }
+};
+```
+
+<!-- slide -->
+```java
+import java.util.*;
+
+class Solution {
+    public int longestSubarray(int[] nums) {
+        int n = nums.length;
+        int[] left = new int[n];
+        int[] right = new int[n];
+        
+        // Calculate left consecutive 1s
+        for (int i = 1; i < n; i++) {
+            if (nums[i-1] == 1) {
+                left[i] = left[i-1] + 1;
+            }
+        }
+        
+        // Calculate right consecutive 1s
+        for (int i = n-2; i >= 0; i--) {
+            if (nums[i+1] == 1) {
+                right[i] = right[i+1] + 1;
+            }
+        }
+        
+        int maxLength = 0;
+        for (int i = 0; i < n; i++) {
+            maxLength = Math.max(maxLength, left[i] + right[i]);
+        }
+        
+        return maxLength;
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var longestSubarray = function(nums) {
+    const n = nums.length;
+    const left = new Array(n).fill(0);
+    const right = new Array(n).fill(0);
+    
+    // Calculate left consecutive 1s
+    for (let i = 1; i < n; i++) {
+        if (nums[i-1] === 1) {
+            left[i] = left[i-1] + 1;
+        }
+    }
+    
+    // Calculate right consecutive 1s
+    for (let i = n - 2; i >= 0; i--) {
+        if (nums[i+1] === 1) {
+            right[i] = right[i+1] + 1;
+        }
+    }
+    
+    let maxLength = 0;
+    for (let i = 0; i < n; i++) {
+        maxLength = Math.max(maxLength, left[i] + right[i]);
+    }
+    
+    return maxLength;
+};
+```
+````
 
 #### How It Works
 1. **Left Array**: For each position, stores number of consecutive 1s to the left
@@ -165,7 +384,7 @@ class Solution:
 
 ---
 
-## Edge Cases and Common Pitfalls
+## Common Pitfalls
 
 ### Edge Cases
 1. **All 1s Array**: `[1,1,1]` returns 2 (must delete one element)

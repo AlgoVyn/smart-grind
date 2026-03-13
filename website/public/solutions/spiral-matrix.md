@@ -124,6 +124,26 @@ matrix = [[1,2,3,4,5,6],[7,8,9,10,11,12],[13,14,15,16,17,18],[19,20,21,22,23,24]
 
 ---
 
+## Pattern:
+
+This problem follows the **Matrix Spiral Traversal** pattern.
+
+### Core Concept
+
+- **Layer-by-Layer Processing**: The matrix can be divided into concentric rectangular layers
+- **Boundary Tracking**: Four boundaries (top, bottom, left, right) define the current traversal region
+- **Direction Order**: Process edges in consistent clockwise order: top row → right column → bottom row → left column
+- **Boundary Shrinking**: After completing each layer, shrink boundaries to process the next inner layer
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Problems requiring clockwise or counterclockwise traversal of matrix elements
+2. Problems involving layer-by-layer processing of 2D grids
+3. Problems where elements can be processed in concentric rectangles
+
+---
+
 ## Follow up
 
 Can you do this in O(1) extra space (not counting the output list)?
@@ -933,6 +953,45 @@ Answer: Use BFS/DFS with spiral-like direction ordering, tracking visited cells 
 
 ---
 
+## Common Pitfalls
+
+### 1. Missing Boundary Checks for Bottom/Left Traversal
+**Issue:** Forgetting to check `top <= bottom` before traversing the bottom row can cause duplicate or incorrect elements in non-square matrices.
+
+**Solution:** Always check boundary conditions before processing bottom row and left column.
+
+### 2. Incorrect Loop Direction
+**Issue:** When traversing left and up, using the wrong comparison or direction leads to missed elements.
+
+**Solution:** Use `>=` comparison and decrement (not increment) when traversing left and up directions.
+
+### 3. Boundary Update Timing
+**Issue:** Updating boundaries before processing each edge causes elements to be skipped.
+
+**Solution:** Update boundaries AFTER processing each edge, not before.
+
+### 4. Empty Matrix Handling
+**Issue:** Not checking for empty matrix leads to IndexError.
+
+**Solution:** Always check for empty matrix at the beginning before any processing.
+
+### 5. Off-by-One Errors
+**Issue:** Incorrect range boundaries cause elements to be missed or duplicated.
+
+**Solution:** Be careful with range boundaries (inclusive vs. exclusive) in for loops.
+
+### 6. Single Row/Column Edge Cases
+**Issue:** Special cases require extra attention as some traversals may be skipped incorrectly.
+
+**Solution:** Test with single row, single column, and square matrices to ensure correctness.
+
+### 7. Not Checking Visited Cells (Direction Vector Approach)
+**Issue:** Without proper boundary/visited checking, infinite loops can occur.
+
+**Solution:** Use a visited matrix or check all boundary conditions before moving to next position.
+
+---
+
 ## Common Mistakes to Avoid
 
 1. **Missing boundary checks**: Forgetting to check `top <= bottom` before traversing the bottom row can cause duplicate or incorrect elements in non-square matrices.
@@ -948,6 +1007,32 @@ Answer: Use BFS/DFS with spiral-like direction ordering, tracking visited cells 
 6. **Single row/column edge cases**: These special cases require extra attention as some traversals may be skipped.
 
 7. **Not checking visited cells (in direction vector approach)**: Using a visited matrix or checking boundaries is essential to avoid infinite loops.
+
+---
+
+## Summary
+
+The **Spiral Matrix** problem demonstrates the power of boundary tracking for systematic matrix traversal:
+
+- **Boundary Tracking**: The optimal approach uses four boundaries (top, bottom, left, right) to track the current layer being processed
+- **Layer-by-Layer**: Each iteration processes one complete layer of the matrix in clockwise order
+- **O(1) Space**: The boundary tracking approach uses only four integer variables, making it optimal
+
+Key insights:
+1. Process each edge in order: top row → right column → bottom row → left column
+2. Check boundary conditions before processing bottom and left edges to handle non-square matrices
+3. Shrink boundaries after each complete layer
+4. The algorithm naturally handles edge cases like single row or single column matrices
+
+This pattern extends to many matrix traversal problems and is fundamental to understanding grid-based algorithms.
+
+### Pattern Summary
+
+This problem exemplifies the **Matrix Spiral Traversal** pattern, characterized by:
+- Using boundary variables to define the current traversal region
+- Processing edges in a consistent clockwise order
+- Handling non-square matrices with conditional checks
+- Achieving O(1) auxiliary space with boundary tracking
 
 ---
 

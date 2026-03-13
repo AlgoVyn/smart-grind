@@ -1,4 +1,8 @@
-# Power Of Two
+# 
+
+## Pattern: Bit Manipulation - Power of Two Check
+
+Power Of Two
 
 ## Problem Description
 
@@ -27,8 +31,7 @@ In binary representation, powers of two have exactly one bit set to '1' followed
 - 8 (2^3) = 0b1000
 - 16 (2^4) = 0b10000
 
-### Key Constraints
-
+## Constraints
 | Constraint | Description | Importance |
 |------------|-------------|------------|
 | `-2^31 <= n <= 2^31 - 1` | Input range | 32-bit signed integer |
@@ -107,7 +110,7 @@ Thus, `n` is a power of two if and only if `n > 0` AND `n & (n-1) == 0`.
 
 ## Multiple Approaches
 
-### Approach 1: Bit Manipulation (Recommended) ⭐
+## Approach 1: Bit Manipulation (Recommended) ⭐
 
 This is the most efficient and elegant approach using the `n & (n-1)` trick.
 
@@ -173,7 +176,7 @@ var isPowerOfTwo = function(n) {
 
 ---
 
-### Approach 2: Built-in bit_count() (Python 3.8+)
+## Approach 2: Built-in bit_count() (Python 3.8+)
 
 Uses Python's built-in method to count set bits.
 
@@ -243,7 +246,7 @@ var isPowerOfTwo = function(n) {
 
 ---
 
-### Approach 3: Logarithmic Method
+## Approach 3: Logarithmic Method
 
 Uses mathematical logarithm to check if n is a power of two.
 
@@ -324,7 +327,7 @@ var isPowerOfTwo = function(n) {
 
 ---
 
-### Approach 4: Loop Division
+## Approach 4: Loop Division
 
 Repeatedly divides by 2 until reaching 1.
 
@@ -407,7 +410,7 @@ var isPowerOfTwo = function(n) {
 
 ---
 
-### Approach 5: Recursion
+## Approach 5: Recursion
 
 Uses recursive approach to check if n is a power of two.
 
@@ -487,7 +490,7 @@ var isPowerOfTwo = function(n) {
 
 ---
 
-### Approach 6: Precomputed Lookup Table (Constant Time)
+## Approach 6: Precomputed Lookup Table (Constant Time)
 
 Uses a precomputed table to check if n is a power of two.
 
@@ -658,7 +661,7 @@ No additional data structures or variables are used beyond a few primitive types
 
 ---
 
-## Edge Cases and Common Pitfalls
+## Common Pitfalls
 
 ### Edge Cases to Consider
 

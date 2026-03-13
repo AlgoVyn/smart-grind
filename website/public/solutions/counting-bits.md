@@ -13,8 +13,7 @@ You are given a non-negative integer `n` and you need to:
 2. Count the number of 1-bits (set bits) in each representation
 3. Return an array where the index represents the number and the value represents the count of set bits
 
-### Key Constraints
-
+## Constraints
 | Constraint | Description | Importance |
 |------------|-------------|------------|
 | `0 <= n <= 10^5` | Input range | Ensures O(n) solution is feasible |
@@ -90,6 +89,12 @@ Binary representations:
 | 14 | 1110 | 3 | 3 |
 | 15 | 1111 | 4 | 4 |
 
+## Constraints
+
+| Constraint | Description |
+|------------|-------------|
+| `0 <= n <= 10^5` | Input range - ensures O(n) solution is feasible |
+
 ---
 
 ## Intuition
@@ -135,9 +140,37 @@ ans[7] = ans[3] + 1 = 3 ✓
 
 ---
 
+## Pattern: Dynamic Programming + Bit Manipulation
+
+### Core Concept
+
+The Counting Bits problem demonstrates the **Dynamic Programming with Bit Manipulation** pattern. This pattern leverages relationships between consecutive numbers in binary to build solutions efficiently:
+
+1. **State Relationship**: `ans[i]` depends on previously computed values
+2. **Bit Properties**: Use bit operations to find relationships between i and i//2
+3. **Optimal Substructure**: Smaller subproblems lead to larger solutions
+
+### When to Use This Pattern
+
+This pattern applies when:
+- Need to compute cumulative bit properties for all numbers 0 to n
+- Problem has recurrence relation based on i // 2 or i & (i-1)
+- Need O(n) solution with O(n) space for output
+- Problems involving set bits, parity, or bit counting
+
+### Alternative Patterns
+
+| Alternative Pattern | Use Case |
+|---------------------|----------|
+| **Built-in Functions** | Python's bit_count(), __builtin_popcount() |
+| **Lookup Table** | When repeatedly counting bits for many queries |
+| **Brian Kernighan's** | Counting bits for single number |
+
+---
+
 ## Solution Approaches
 
-### Approach 1: Dynamic Programming with i // 2 (Optimal) ✅ Recommended
+## Approach 1: Dynamic Programming with i // 2 (Optimal) ✅ Recommended
 
 This is the optimal solution that achieves O(n) time complexity by leveraging the relationship between `i` and `i // 2`.
 
@@ -248,7 +281,7 @@ Result: [0, 1, 1, 2, 1, 2] ✓
 
 ---
 
-### Approach 2: Dynamic Programming with Lowest Set Bit (i & (i-1))
+## Approach 2: Dynamic Programming with Lowest Set Bit (i & (i-1))
 
 This approach uses Brian Kernighan's insight that `i & (i-1)` removes the lowest set bit from `i`.
 
@@ -359,7 +392,7 @@ ans[5] = ans[4] + 1 = 1 + 1 = 2 ✓
 
 ---
 
-### Approach 3: Dynamic Programming with Lowest One Bit (i & -i)
+## Approach 3: Dynamic Programming with Lowest One Bit (i & -i)
 
 This approach isolates the lowest set bit using `i & -i` and adds 1 to the count of `i - lowest_bit`.
 
@@ -476,7 +509,7 @@ ans[7] = ans[6] + 1 = 2 + 1 = 3 ✓
 
 ---
 
-### Approach 4: Using Built-in bit_count() (Python 3.8+)
+## Approach 4: Using Built-in bit_count() (Python 3.8+)
 
 Python provides a built-in method `int.bit_count()` that directly counts set bits.
 
@@ -573,7 +606,7 @@ var countBits = function(n) {
 
 ---
 
-### Approach 5: Lookup Table (For Maximum Performance)
+## Approach 5: Lookup Table (For Maximum Performance)
 
 This approach precomputes a lookup table for 8-bit values and uses it to count bits quickly.
 
@@ -771,7 +804,7 @@ var countBits = function(n) {
 
 ---
 
-### Approach 6: Dynamic Programming with Most Significant Bit (MSB)
+## Approach 6: Dynamic Programming with Most Significant Bit (MSB)
 
 This approach uses the highest power of 2 (most significant bit) to compute the bit count.
 
@@ -923,7 +956,7 @@ This works because the MSB contributes exactly one set bit, and the remainder is
 
 ---
 
-### Approach 7: MSB Using bit_length() (Python Optimized)
+## Approach 7: MSB Using bit_length() (Python Optimized)
 
 This is an optimized version of the MSB approach using Python's built-in `bit_length()` method.
 
@@ -1077,7 +1110,7 @@ i = 8: bit_length() = 4, msb = 1 << 3 = 8
 
 ---
 
-## Edge Cases and Common Pitfalls
+## Common Pitfalls
 
 ### Edge Cases to Consider
 

@@ -1,6 +1,6 @@
 # Backspace String Compare
 
-## Problem Statement
+## Problem Description
 
 Given two strings `s` and `t`, return `true` if they are equal when both are typed into empty text editors. The character `#` represents a backspace character.
 
@@ -13,7 +13,8 @@ This problem simulates the behavior of a text editor with backspace functionalit
 
 **Link to problem:** [Backspace String Compare - LeetCode 844](https://leetcode.com/problems/backspace-string-compare/)
 
-**Constraints:**
+## Constraints
+
 - `1 <= s.length, t.length <= 200`
 - `s` and `t` only contain lowercase letters and `#` characters
 - The backspace `#` will only appear in the input strings
@@ -35,7 +36,7 @@ The fundamental idea is processing strings **from right to left**:
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```

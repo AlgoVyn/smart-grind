@@ -1,12 +1,16 @@
 # Longest Palindromic Substring
 
-## Problem Statement
+## Problem Description
+
+## Pattern: Dynamic Programming / Expand Around Center
+
+This problem demonstrates algorithmic problem-solving patterns.
 
 Given a string `s`, find the **longest palindromic substring** in `s`. A palindrome is a string that reads the same forward and backward.
 
 **Link to problem:** [Longest Palindromic Substring](https://leetcode.com/problems/longest-palindromic-substring/)
 
-**Constraints:**
+## Constraints
 - `1 <= s.length <= 1000`
 - `s` consists of only lowercase English letters
 
@@ -21,7 +25,7 @@ Given a string `s`, find the **longest palindromic substring** in `s`. A palindr
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -1000,7 +1004,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: What if we need to find ALL longest palindromic substrings (not just one)?
 
@@ -1151,6 +1155,27 @@ This is useful when you need to check many substrings quickly, though Manacher's
 3. Process string in chunks if it's too large to fit in memory
 4. For Manacher's, you could potentially compute P values on-the-fly, though complex
 5. Consider streaming approaches that don't require the entire string in memory
+
+---
+
+
+
+## Common Pitfalls
+
+### 1. Not Checking Both Centers
+**Issue:** Missing even or odd length palindromes.
+
+**Solution:** Expand from both odd and even centers.
+
+### 2. Wrong Boundaries
+**Issue:** Out of bounds during expansion.
+
+**Solution:** Check left >= 0 and right < len(s).
+
+### 3. Time Complexity
+**Issue:** O(n³) from naive approach.
+
+**Solution:** Use expand around center: O(n²).
 
 ---
 

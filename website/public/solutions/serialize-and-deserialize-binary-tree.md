@@ -22,6 +22,31 @@ The challenge is to design an encoding scheme that:
 
 ---
 
+## Examples
+
+**Example 1:**
+
+**Input:** `root = [1,2,3,null,null,4,5]`
+
+**Visual:**
+```
+       1
+     /   \
+    2     3
+         / \
+        4   5
+```
+
+**Output:** `[1,2,3,null,null,4,5]`
+
+**Example 2:** `root = []` → **Output:** `[]`
+
+**Example 3:** `root = [1]` → **Output:** `[1]`
+
+**Example 4:** `root = [1,2,3,4,5]` → **Output:** `[1,2,3,4,5,null,null,null,null]`
+
+---
+
 ## Constraints
 
 - The number of nodes in the tree is in the range `[0, 10^4]`
@@ -31,7 +56,44 @@ The challenge is to design an encoding scheme that:
 
 ---
 
-## Example 1
+
+## Pattern:
+
+This problem follows the **Tree Serialization** pattern.
+
+### Core Concept
+
+- **Preorder Traversal**: Serialize with preorder + markers
+- **BFS Level Order**: Serialize with level order
+- **Reconstruct**: Build tree from serialized data
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Serializing/deserializing trees
+2. Tree to string conversion
+3. Tree reconstruction
+
+### Related Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| Preorder | Serialization method |
+| BFS | Level order method |
+
+---
+
+## Intuition
+
+The key insight is using tree traversal to create a string representation:
+
+1. **Preorder Traversal**: Visit root first, then left subtree, then right - this gives us a unique representation that can be reconstructed
+
+2. **Null Markers**: Use special markers (like "null" or "#") to indicate missing nodes, preserving tree structure information
+
+3. **Reconstruction**: The preorder sequence is self-describing - we know exactly where each node belongs based on the null markers
+
+4. **Alternative BFS**: Level-order traversal preserves level information but may have larger output for sparse trees
 
 **Input:**
 ```python
@@ -1517,7 +1579,7 @@ For the tree:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you optimize the serialization for memory-constrained environments?
 
@@ -1580,6 +1642,27 @@ This is more verbose but easier to debug and read.
 - [Binary Tree Serialization Explained](https://www.youtube.com/watch?v=6B-0mXoKf6I)
 - [Preorder Traversal for Serialization](https://www.youtube.com/watch?v=n6Qwn7W4O-4)
 - [BFS vs DFS for Tree Serialization](https://www.youtube.com/watch?v=-564zP-Io8k)
+
+---
+
+
+
+## Common Pitfalls
+
+### 1. Not Handling Nulls
+**Issue:** Missing markers for null nodes.
+
+**Solution:** Use special marker (e.g., 'X' or 'null').
+
+### 2. String Overflow
+**Issue:** Very long serialized strings.
+
+**Solution:** Use efficient delimiters or Base64.
+
+### 3. Performance
+**Issue:** Inefficient parsing.
+
+**Solution:** Use StringBuilder or appropriate data structure.
 
 ---
 

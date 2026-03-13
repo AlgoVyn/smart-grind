@@ -2,6 +2,10 @@
 
 ## Problem Description
 
+## Pattern: QuickSelect / Heap - Kth Largest Element
+
+This problem demonstrates algorithmic problem-solving patterns.
+
 Given an integer array `nums` and an integer `k`, return the `kth` largest element in the array.
 
 Note that it is the `kth` largest element in the sorted order, not the `kth` distinct element.
@@ -104,7 +108,7 @@ While sorting gives us the answer, it's inefficient because:
 
 ## Multiple Approaches
 
-### Approach 1: Sorting (Simple) ⭐
+## Approach 1: Sorting (Simple) ⭐
 
 The simplest approach is to sort the array and return the kth element.
 
@@ -182,7 +186,7 @@ var findKthLargest = function(nums, k) {
 
 ---
 
-### Approach 2: Quickselect (Average O(n)) ⭐⭐
+## Approach 2: Quickselect (Average O(n)) ⭐⭐
 
 Quickselect is a divide-and-conquer algorithm that selects the kth largest by partitioning the array.
 
@@ -403,7 +407,7 @@ var findKthLargest = function(nums, k) {
 
 ---
 
-### Approach 3: Min-Heap (O(n + k log n)) ⭐⭐
+## Approach 3: Min-Heap (O(n + k log n)) ⭐⭐
 
 Use a min-heap of size k to track the k largest elements.
 
@@ -583,7 +587,7 @@ class MinHeap {
 
 ---
 
-### Approach 4: Max-Heap (O(n log n))
+## Approach 4: Max-Heap (O(n log n))
 
 Insert all elements into a max-heap and extract k times.
 
@@ -752,7 +756,7 @@ class MaxHeap {
 
 ---
 
-### Approach 5: Sorting + Index (Simplest)
+## Approach 5: Sorting + Index (Simplest)
 
 A simple variation that sorts in ascending order and uses index calculation.
 
@@ -900,7 +904,7 @@ The worst case occurs when we always pick the smallest or largest element as piv
 
 ---
 
-## Edge Cases and Common Pitfalls
+## Common Pitfalls
 
 ### Edge Cases to Consider
 

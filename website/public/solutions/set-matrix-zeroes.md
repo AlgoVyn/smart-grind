@@ -33,6 +33,26 @@ Output: [[0,0,0,0],[0,4,5,0],[0,3,1,0]]
 
 ---
 
+## Pattern:
+
+This problem follows the **In-Place Matrix Marking** pattern.
+
+### Core Concept
+
+- **Marker Storage**: Use the first row and column of the matrix itself as markers
+- **Two-Pass Approach**: First pass marks zeros, second pass zeroes out the matrix
+- **Overlap Handling**: First row and column require special handling since they overlap with markers
+- **Space Optimization**: Achieve O(1) space by using matrix cells as storage
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Problems requiring in-place modification of matrix elements
+2. Problems needing to track row/column information without extra space
+3. Problems with overlapping regions that need separate handling
+
+---
+
 ## Intuition
 
 The key insight is to mark which rows and columns contain zeros, then zero them out in a second pass. The challenge is doing this **in-place** without using O(m+n) extra space for tracking rows and columns.
@@ -810,12 +830,67 @@ Final result:
 
 ---
 
+## Common Pitfalls
+
+### 1. First Row/Column Overlap
+**Issue:** Forgetting to handle first row/column separately leads to incorrect zeroing of the markers themselves.
+
+**Solution:** Use separate boolean variables to track if first row/column has zeros before marking.
+
+### 2. Premature Marker Overwrite
+**Issue:** Overwriting markers before using them causes incorrect zeroing.
+
+**Solution:** Follow the correct order: check first row/col → mark zeros → zero out → handle first row/col.
+
+### 3. Missing Initial Zero Check
+**Issue:** Not checking for zeros in first row/column initially loses critical information.
+
+**Solution:** Always check first row and column for zeros before starting the marking process.
+
+### 4. Index Out of Bounds
+**Issue:** Starting marking from (0,0) instead of (1,1) causes incorrect marker usage.
+
+**Solution:** Start marking from row 1 and column 1 to preserve first row/column markers.
+
+### 5. Wrong Order of Operations
+**Issue:** Zeroing cells before checking markers leads to loss of information.
+
+**Solution:** Always mark first, then zero out, then handle first row/column last.
+
+---
+
 ## Common Mistakes to Avoid
 
 1. **Forgetting to handle first row/column separately** - This leads to incorrect zeroing of the markers themselves
 2. **Overwriting markers before using them** - Process must be: mark → zero → handle first row/column
 3. **Not checking for zeros in first row/column initially** - Critical for preserving this information
 4. **Index out of bounds** - Remember to start marking from (1,1), not (0,0)
+
+---
+
+## Summary
+
+The **Set Matrix Zeroes** problem demonstrates in-place matrix manipulation using marker variables:
+
+- **In-Place Marking**: The optimal O(1) space solution uses the first row and column as markers
+- **Two-Pass Approach**: Mark zeros in first pass, zero out in second pass
+- **Handle Overlap**: Special handling for first row/column since they overlap with markers
+
+Key insights:
+1. Use first row and column to track which rows/columns need zeroing
+2. Handle first row/column separately to avoid overwriting markers prematurely
+3. The order of operations matters: mark → zero → handle first row/column
+4. This pattern extends to other in-place matrix problems
+
+This problem is essential for understanding space optimization in matrix operations.
+
+### Pattern Summary
+
+This problem exemplifies the **In-Place Matrix Marking** pattern, characterized by:
+- Using matrix borders as marker storage
+- Two-pass approach: detect in first pass, modify in second
+- Careful handling of overlapping regions
+- Achieving O(1) auxiliary space
 
 ---
 

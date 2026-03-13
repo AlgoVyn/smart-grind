@@ -1,6 +1,6 @@
 # Course Schedule
 
-## Problem Statement
+## Problem Description
 
 There are a total of `numCourses` courses you have to take, labeled from `0` to `numCourses - 1`. You are given an array `prerequisites` where `prerequisites[i] = [a_i, b_i]` indicates that you must take course `b_i` first if you want to take course `a_i`.
 
@@ -19,7 +19,7 @@ Return `true` if it is possible to finish all courses, otherwise return `false`.
 
 - `bool`: `true` if all courses can be finished, `false` otherwise.
 
-### Constraints
+## Constraints
 
 - `1 <= numCourses <= 2000`
 - `0 <= prerequisites.length <= numCourses * (numCourses - 1) / 2`
@@ -32,7 +32,7 @@ Return `true` if it is possible to finish all courses, otherwise return `false`.
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```python
@@ -117,6 +117,34 @@ The key insight is that **if the graph contains a cycle, it's impossible to comp
 
 ---
 
+## Pattern: Graph - Cycle Detection / Topological Sort
+
+### Core Concept
+
+The Course Schedule problem demonstrates the **Graph Cycle Detection** pattern. This pattern determines if a directed graph contains cycles:
+
+1. **Model as DAG**: Each course is a node, prerequisites form directed edges
+2. **Cycle = Impossible**: If cycle exists, no valid ordering exists
+3. **Two Main Approaches**: DFS (three-state coloring) or BFS (Kahn's algorithm)
+
+### When to Use This Pattern
+
+This pattern applies when:
+- Problem involves dependencies that must be fulfilled in order
+- Need to detect circular dependencies
+- Problems requiring topological sorting
+- Build systems, task scheduling, course prerequisites
+
+### Alternative Patterns
+
+| Alternative Pattern | Use Case |
+|---------------------|----------|
+| **Union-Find** | For undirected cycle detection |
+| **DFS with recursion stack** | Alternative to three-state method |
+| **Kosaraju's Algorithm** | For strongly connected components |
+
+---
+
 ## Multiple Approaches with Code
 
 We'll cover three standard approaches:
@@ -127,7 +155,7 @@ We'll cover three standard approaches:
 
 ---
 
-### Approach 1: DFS with Three States (Color Method)
+## Approach 1: DFS with Three States (Color Method)
 
 #### Algorithm Steps
 
@@ -505,7 +533,7 @@ var canFinishAlt = function(numCourses, prerequisites) {
 
 ---
 
-### Approach 2: BFS (Kahn's Algorithm)
+## Approach 2: BFS (Kahn's Algorithm)
 
 #### Algorithm Steps
 
@@ -702,7 +730,7 @@ var canFinish = function(numCourses, prerequisites) {
 
 ---
 
-### Approach 3: Union-Find (Disjoint Set Union)
+## Approach 3: Union-Find (Disjoint Set Union)
 
 #### Algorithm Steps
 
@@ -995,7 +1023,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you return a valid course order along with cycle detection?
 
@@ -1063,3 +1091,19 @@ A gray-to-gray edge indicates a cycle.
 ### Q10: How would you verify that a given ordering is valid without recomputing?
 
 **Answer**: For each course (except the first) in the ordering, check that all its prerequisites appear earlier. Build a position map for O(1) lookups, then verify each edge `prereq → course` has `position[prereq] < position[course]`.
+
+---
+
+## Summary
+
+The **Course Schedule** problem (detecting cycle in directed graph) is a fundamental topological sorting problem. Key insights:
+
+1. **Graph Representation**: Model courses as nodes and prerequisites as directed edges
+2. **Cycle Detection**: If all courses can be completed, the graph is a DAG (no cycles)
+3. **Two Main Approaches**: 
+   - Kahn's Algorithm (BFS with indegree tracking)
+   - DFS with visit states (white/gray/black)
+4. **Time Complexity**: O(V + E) where V = courses, E = prerequisites
+5. **Space Complexity**: O(V + E) for adjacency list storage
+
+This problem appears frequently in interviews and forms the foundation for many graph-related problems.

@@ -1,6 +1,22 @@
 # Moving Average from Data Stream
 
-## Problem Statement
+## Pattern:
+
+Sliding Window with Running Statistics
+
+This problem uses **Sliding Window** pattern with a running sum. Maintain a queue and running sum for O(1) operations.
+
+---
+
+## Common Pitfalls
+
+- **Window size less than stream**: When fewer than size elements exist, divide by current count, not size
+- **Running sum update**: Subtract removed element before adding new one when window is full
+- **Float precision**: Use float division (/), not integer division
+
+---
+
+## Problem Description
 
 Given a stream of integers and a window size `size`, calculate the moving average of all integers in the sliding window.
 
@@ -20,7 +36,7 @@ Implement the `MovingAverage` class:
 
 - `double`: The moving average value after adding the new element.
 
-### Constraints
+## Constraints
 
 - `1 <= size <= 100`
 - `1 <= val <= 1000`
@@ -30,7 +46,7 @@ Implement the `MovingAverage` class:
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```python
@@ -137,7 +153,7 @@ We'll cover three approaches:
 
 ---
 
-### Approach 1: Simple Queue with Running Sum
+## Approach 1: Simple Queue with Running Sum
 
 #### Algorithm Steps
 
@@ -261,7 +277,7 @@ class MovingAverage {
 
 ---
 
-### Approach 2: Circular Buffer (Optimized)
+## Approach 2: Circular Buffer (Optimized)
 
 #### Algorithm Steps
 
@@ -418,7 +434,7 @@ class MovingAverage {
 
 ---
 
-### Approach 3: Double-ended Queue (Deque)
+## Approach 3: Double-ended Queue (Deque)
 
 #### Algorithm Steps
 
@@ -585,7 +601,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you calculate the moving average if you needed to support weighted elements (more recent values have higher weight)?
 
@@ -676,3 +692,28 @@ Then use the formula: `std = sqrt(sum(x²)/n - (sum(x)/n)²)`, but be careful ab
 - Minimize function calls and use inline functions
 - Use lock-free data structures for concurrent access
 - Batch multiple updates and compute averages periodically
+
+---
+
+## Summary
+
+The **Moving Average from Data Stream** problem demonstrates the **Sliding Window** pattern with running statistics.
+
+Key takeaways:
+1. **Running Sum Optimization**: Maintain a running sum and update it incrementally instead of recalculating for each window - achieves O(1) per operation
+2. **Window Size Handling**: When fewer than size elements exist, divide by current count, not the fixed window size
+3. **Data Structure Choices**: Use deque for O(1) push/pop operations; circular buffer for best memory efficiency
+4. **Time Complexity**: O(1) per next() call - constant time operations
+5. **Space Complexity**: O(size) - storing at most size elements in the window
+
+This pattern extends to various streaming and sliding window problems including moving median, weighted moving average, and sliding window maximum.
+
+### Pattern Summary
+
+This problem exemplifies the **Sliding Window with Running Statistics** pattern, characterized by:
+- Maintaining a fixed or variable-size window of recent elements
+- Incremental updates as the window slides
+- O(1) time per operation with proper data structure choice
+- Common variations: max, min, median, weighted average, standard deviation
+
+For more details on sliding window patterns, see the **[Sliding Window](/patterns/sliding-window-monotonic-queue-for-max-min)** guide.

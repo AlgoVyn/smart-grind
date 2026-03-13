@@ -1,6 +1,6 @@
 # Reverse Linked List
 
-## Problem Statement
+## Problem Description
 
 Given the head of a singly linked list, reverse the list, and return the reversed list.
 
@@ -14,7 +14,7 @@ Given the head of a singly linked list, reverse the list, and return the reverse
 
 - A reference to the head of the reversed linked list
 
-### Constraints
+## Constraints
 
 - The number of nodes in the list is in the range `[0, 5000]`
 - `-5000 <= Node.val <= 5000`
@@ -23,9 +23,37 @@ Given the head of a singly linked list, reverse the list, and return the reverse
 
 ---
 
+
+## Pattern:
+
+This problem follows the **Linked List Reversal** pattern using iterative pointer manipulation.
+
+### Core Concept
+
+- **Three Pointers**: Previous, Current, Next
+- **In-Place**: No extra memory needed
+- **Direction Change**: Reverse links by pointing backward
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Reversing linked lists in-place
+2. Problems requiring pointer manipulation
+3. Detecting cycles (can use reversal)
+
+### Related Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| Two Pointers | Similar technique |
+| In-Place Swap | Array reversal |
+
+---
+
+
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -111,7 +139,7 @@ We'll cover three approaches:
 
 ---
 
-### Approach 1: Iterative (Three-Pointer Technique)
+## Approach 1: Iterative (Three-Pointer Technique)
 
 This is the most common and interview-preferred approach. We use three pointers — `prev`, `current`, and `next_node` — to walk through the list and flip each link.
 
@@ -280,7 +308,7 @@ var reverseList = function(head) {
 
 ---
 
-### Approach 2: Recursive
+## Approach 2: Recursive
 
 The recursive approach leverages the call stack to reach the end of the list first, then rewires pointers on the way back up. It's elegant but uses O(n) stack space.
 
@@ -429,7 +457,7 @@ var reverseList = function(head) {
 
 ---
 
-### Approach 3: Stack-Based
+## Approach 3: Stack-Based
 
 This approach uses an explicit stack to collect all nodes, then pops them to build the reversed list. While it uses O(n) space, it's useful for understanding the concept and can be adapted for problems where you need random access to nodes.
 
@@ -717,3 +745,50 @@ return prev
 ### Q8: What is the relationship between reversing a linked list and a stack?
 
 **Answer:** Reversing a linked list is conceptually equivalent to pushing all elements onto a stack and popping them. The stack's LIFO (Last-In-First-Out) property naturally produces the reversed order. The iterative three-pointer approach achieves the same result without the O(n) space overhead of an actual stack.
+
+
+## Common Pitfalls
+
+### 1. Losing Reference to Next
+**Issue:** Not saving next node before changing current.next causes lost links.
+
+**Solution:** Always store next = curr.next before modifying.
+
+### 2. Null Pointer Exception
+**Issue:** Not checking for null before accessing properties.
+
+**Solution:** Add null checks in loop condition and within loop.
+
+### 3. Wrong Final State
+**Issue:** Head not pointing to new first node after reversal.
+
+**Solution:** Set head = prev after loop completes.
+
+---
+
+## Summary
+
+The **Reverse Linked List** problem demonstrates the fundamental technique of **in-place pointer manipulation** using the three-pointer approach.
+
+Key takeaways:
+1. **Three-Pointer Technique**: Use prev, current, and next_node to reverse links without losing access to the rest of the list
+2. **Save Before Overwriting**: Always save next_node before changing current.next to avoid losing the remaining list
+3. **Iterative vs Recursive**: Iterative approach uses O(1) space while recursive uses O(n) stack space
+4. **Base Cases**: Handle empty lists and single-node lists as they are already "reversed"
+5. **Time Complexity**: O(n) - single pass through all nodes
+6. **Space Complexity**: O(1) for iterative - only three pointer variables used
+
+This technique is foundational for many linked list problems including palindrome checking, list reordering, and k-group reversal.
+
+### Pattern Summary
+
+This problem exemplifies the **Linked List Reversal** pattern, characterized by:
+- In-place pointer manipulation without extra data structures
+- Three-pointer (prev, current, next) technique for iterative reversal
+- Recursive approach leveraging the call stack
+- Foundation for more complex linked list transformations
+
+For more details on this pattern and related problems, see the **[Reverse Linked List](/algorithms/reverse-linked-list)** algorithm guide.
+
+---
+

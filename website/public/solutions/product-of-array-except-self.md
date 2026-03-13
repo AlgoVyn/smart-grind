@@ -69,6 +69,34 @@ Explanation:
 
 ---
 
+
+## Pattern:
+
+This problem follows the **Prefix Product** pattern for array manipulation.
+
+### Core Concept
+
+- **Left/Right Products**: Calculate prefix and suffix products
+- **O(n) Time**: Single pass with O(1) extra space
+- **No Division**: Avoids division by zero issues
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Product of array except self
+2. Prefix/suffix calculations
+3. Avoiding division or modulo
+
+### Related Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| Prefix Sum | Similar concept |
+| Two Arrays | Store left and right |
+
+---
+
+
 ## Intuition
 
 The key insight to solve this problem efficiently is to **decompose the product into prefix and suffix components**:
@@ -755,6 +783,53 @@ i = 0: result[0] = 1 * 0 = 0, suffix = 0 * -1 = 0
 4. **Integer overflow** when using 32-bit integers with large products
 5. **Modifying the input array** when you should use extra space
 6. **Using division** which is explicitly not allowed
+
+---
+
+
+
+## Common Pitfalls
+
+### 1. Using Division
+**Issue:** Division by zero when element is zero.
+
+**Solution:** Use prefix/suffix product approach instead.
+
+### 2. Not Handling Zeros
+**Issue:** Products become zero incorrectly.
+
+**Solution:** Count zeros and handle separately.
+
+### 3. Wrong Space Complexity
+**Issue:** Using O(n) space when O(1) is possible.
+
+**Solution:** Use output array for one side, constant for other.
+
+---
+
+## Summary
+
+The **Product of Array Except Self** problem is a classic example of prefix/suffix product decomposition:
+
+- **Prefix-Suffix Technique**: Decompose the problem into left products and right products
+- **Space Optimization**: Use output array to store intermediate results, achieving O(1) space
+- **No Division**: The constraint of not using division makes this problem interesting
+
+Key insights:
+1. For each element, product = prefix (left of it) × suffix (right of it)
+2. Two-pass approach: left-to-right for prefixes, right-to-left for suffixes
+3. Handle zeros specially - if more than one zero, all products are zero
+4. This pattern extends to other array transformation problems
+
+This problem is essential for understanding space optimization and prefix/suffix decomposition.
+
+### Pattern Summary
+
+This problem exemplifies the **Prefix-Suffix Decomposition** pattern, characterized by:
+- Breaking down array problems into left and right components
+- Two-pass traversal for comprehensive coverage
+- Using output array for intermediate storage
+- Handling edge cases like zeros explicitly
 
 ---
 

@@ -1,6 +1,6 @@
 # Course Schedule II
 
-## Problem Statement
+## Problem Description
 
 There are a total of `numCourses` courses you have to take, labeled from `0` to `numCourses - 1`. You are given an array `prerequisites` where `prerequisites[i] = [a_i, b_i]` indicates that you must take course `b_i` first if you want to take course `a_i`.
 
@@ -19,7 +19,7 @@ Return the ordering of courses you should take to finish all courses. If there a
 
 - `vector<int>`: A valid ordering of courses, or an empty vector if impossible.
 
-### Constraints
+## Constraints
 
 - `1 <= numCourses <= 2000`
 - `0 <= prerequisites.length <= numCourses * (numCourses - 1)`
@@ -32,7 +32,7 @@ Return the ordering of courses you should take to finish all courses. If there a
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```python
@@ -100,6 +100,40 @@ prerequisites = [[0, 1], [1, 0]]
 
 ---
 
+## Pattern:
+
+This problem follows the **Topological Sort** pattern, specifically for directed acyclic graph (DAG) ordering.
+
+### Core Concept
+
+- **Topological ordering**: Linear order where all prerequisites come before dependent courses
+- **Cycle detection**: A cycle means impossible to complete all courses
+- **Two main approaches**: BFS (Kahn's) using indegrees, or DFS with visit states
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Tasks with prerequisites dependencies
+2. Build systems, package managers, course scheduling
+3. Any problem requiring ordering with dependencies
+
+### Related Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| Kahn's Algorithm | BFS-based topological sort using indegrees |
+| DFS Topological Sort | Recursive with cycle detection |
+| Cycle Detection | Using 3-visit-state technique |
+
+### Pattern Summary
+
+This problem exemplifies **Topological Sort for Course Scheduling**, characterized by:
+- Building directed graph from prerequisites
+- Finding nodes with indegree 0 (no prerequisites)
+- Processing and reducing indegrees iteratively or using DFS
+
+---
+
 ## Intuition
 
 This problem models course prerequisites as a **directed graph**, where:
@@ -128,7 +162,7 @@ We'll cover two standard approaches:
 
 ---
 
-### Approach 1: BFS (Kahn's Algorithm)
+## Approach 1: BFS (Kahn's Algorithm)
 
 #### Algorithm Steps
 
@@ -312,7 +346,7 @@ var findOrder = function(numCourses, prerequisites) {
 
 ---
 
-### Approach 2: DFS with Cycle Detection
+## Approach 2: DFS with Cycle Detection
 
 #### Algorithm Steps
 
@@ -545,6 +579,35 @@ Both are optimal with O(V + E) time complexity. Choose based on preference and c
 
 ---
 
+## Common Pitfalls
+
+### 1. Reversing edges incorrectly
+**Issue:** Adding edges in wrong direction causes incorrect ordering.
+
+**Solution:** Remember: prerequisite b → a means "take b before a", so edge goes from b to a.
+
+### 2. Not handling all nodes in DFS
+**Issue:** DFS might miss nodes in disconnected components.
+
+**Solution:** Iterate through all nodes and start DFS from any unvisited node.
+
+### 3. Wrong cycle detection in DFS
+**Issue:** Using only boolean visited instead of 3 states causes false cycle detection.
+
+**Solution:** Use 3 states: 0 (unvisited), 1 (visiting/in recursion stack), 2 (visited).
+
+### 4. Forgetting to reverse DFS order
+**Issue:** DFS produces post-order, which is reverse of topological sort.
+
+**Solution:** Reverse the order list at the end or prepend during traversal.
+
+### 5. Incorrect cycle detection in BFS
+**Issue:** Not checking if all courses were processed.
+
+**Solution:** Verify result.length == numCourses; if not, cycle exists.
+
+---
+
 ## Related Problems
 
 Based on similar themes (topological sort, cycle detection in directed graphs):
@@ -570,7 +633,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: What if we want to find all possible valid orderings (not just one)?
 
@@ -629,3 +692,17 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 ### Q10: How would you modify the solution to return courses in reverse order (post-order instead of topological)?
 
 **Answer:** In Kahn's algorithm, you would prepend to the result list instead of appending, or simply reverse the final result. In DFS, you already have post-order in the `order` list before reversal, so you can return it directly without reversing. This gives a valid order where prerequisites come after dependent courses.
+
+---
+
+## Summary
+
+The **Course Schedule II** problem is a classic topological sorting problem that can be solved using either Kahn's algorithm (BFS) or DFS. Key takeaways:
+
+1. **Topological Sort**: Used to order vertices in a directed acyclic graph (DAG) such that for every edge `u → v`, `u` comes before `v`
+2. **Two Approaches**: Kahn's algorithm uses indegree tracking with BFS; DFS-based approach uses visit states
+3. **Cycle Detection**: If the order doesn't include all courses, a cycle exists
+4. **Time Complexity**: O(V + E) for both approaches
+5. **Space Complexity**: O(V + E) for graph storage, O(V) for auxiliary structures
+
+The problem demonstrates fundamental graph algorithms that are essential for interview success.

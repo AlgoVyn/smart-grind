@@ -1,4 +1,8 @@
-# Valid Palindrome
+# 
+
+## Pattern: Two Pointers - Palindrome Checking
+
+Valid Palindrome
 
 ## Problem Description
 
@@ -19,8 +23,7 @@ The key challenges are:
 2. **Ignoring non-alphanumeric characters** - Remove special characters, spaces, and punctuation
 3. **Two-pointer comparison** - Efficiently check symmetry
 
-### Key Constraints
-
+## Constraints
 | Constraint | Description | Importance |
 |------------|-------------|------------|
 | `1 <= s.length <= 2 * 10^5` | String length can be large | O(n) is optimal |
@@ -123,7 +126,7 @@ This saves O(n) space and is equally clear!
 
 ## Solution Approaches
 
-### Approach 1: Two Pointers with On-the-Fly Filtering (Optimal) ✅ Recommended
+## Approach 1: Two Pointers with On-the-Fly Filtering (Optimal) ✅ Recommended
 
 This is the optimal solution that achieves O(n) time complexity with O(1) space by filtering characters during comparison.
 
@@ -318,7 +321,7 @@ Actually, let me trace more carefully:
 
 ---
 
-### Approach 2: Pre-filter and Two Pointers (Simpler Code)
+## Approach 2: Pre-filter and Two Pointers (Simpler Code)
 
 This approach first creates a filtered string and then uses two pointers. It's simpler but uses O(n) extra space.
 
@@ -463,7 +466,7 @@ var isPalindrome = function(s) {
 
 ---
 
-### Approach 3: Pythonic One-Liner (Python Only)
+## Approach 3: Pythonic One-Liner (Python Only)
 
 Python's string slicing makes this approach remarkably concise.
 
@@ -525,7 +528,7 @@ var isPalindrome = function(s) {
 
 ---
 
-### Approach 4: Reverse Comparison (Alternative)
+## Approach 4: Reverse Comparison (Alternative)
 
 This approach compares the filtered string with its reverse.
 
@@ -653,7 +656,7 @@ var isPalindrome = function(s) {
 
 ---
 
-## Edge Cases and Common Pitfalls
+## Common Pitfalls
 
 ### Edge Cases to Consider
 

@@ -6,7 +6,9 @@ Given an integer array `nums` which is sorted in non-decreasing order, return th
 
 You must write an algorithm with **O(log n)** runtime complexity.
 
-### Examples
+**Link to problem:** [Find First and Last Position of Element in Sorted Array - LeetCode 34](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
+
+## Examples
 
 **Example 1:**
 ```python
@@ -35,12 +37,31 @@ Output: [-1,-1]
 **Explanation:**
 An empty array cannot contain any target value.
 
-### Constraints
+## Constraints
 
 - `0 <= nums.length <= 10^5`
 - `-10^9 <= nums[i] <= 10^9`
 - `nums` is sorted in non-decreasing order.
 - `-10^9 <= target <= 10^9`
+
+---
+
+## Pattern: Binary Search - Lower/Upper Bound
+
+This problem is a classic application of the **Binary Search** pattern with a focus on finding boundary positions. The key is using two separate binary searches to find the leftmost and rightmost positions of the target.
+
+### Core Concept
+
+- **Lower Bound**: Find first index where `nums[i] >= target`
+- **Upper Bound**: Find first index where `nums[i] > target`
+- **Boundary Calculation**: First position = lower_bound, Last position = upper_bound - 1
+- **O(log n)**: Achieves required logarithmic time complexity
+
+### Why Two Searches?
+
+Since the array is sorted and may contain duplicates, a single binary search only finds one occurrence. To find the range, we need:
+1. Left boundary (first occurrence)
+2. Right boundary (last occurrence)
 
 ---
 
@@ -66,7 +87,7 @@ The key insight for this problem is that we need to find both the **first occurr
 
 ## Solution Approaches
 
-### Approach 1: Binary Search for First and Last Position (Optimal)
+## Approach 1: Binary Search for First and Last Position (Optimal)
 
 This is the most efficient approach that uses two separate binary searches to find the leftmost and rightmost positions of the target.
 
@@ -323,7 +344,7 @@ For `nums = [5,7,7,8,8,10]` and `target = 8`:
 
 **Result:** `[3, 4]`
 
-### Approach 2: Binary Search with Lower and Upper Bound
+## Approach 2: Binary Search with Lower and Upper Bound
 
 This approach uses the classic lower bound and upper bound binary search patterns to find the first and last positions.
 
@@ -536,7 +557,7 @@ var searchRange = function(nums, target) {
 ```
 ````
 
-### Approach 3: Single Binary Search with Range Expansion
+## Approach 3: Single Binary Search with Range Expansion
 
 This approach finds one occurrence of the target and then expands left and right to find the boundaries.
 
@@ -734,7 +755,7 @@ var searchRange = function(nums, target) {
 
 ## Time and Space Complexity Analysis
 
-### Approach 1: Binary Search for First and Last Position
+## Approach 1: Binary Search for First and Last Position
 - **Time Complexity**: O(log n)
   - Two separate binary searches, each O(log n)
   - Total: 2 × O(log n) = O(log n)
@@ -742,7 +763,7 @@ var searchRange = function(nums, target) {
   - Only uses a constant number of variables
   - No additional data structures
 
-### Approach 2: Binary Search with Lower and Upper Bound
+## Approach 2: Binary Search with Lower and Upper Bound
 - **Time Complexity**: O(log n)
   - Lower bound: O(log n)
   - Upper bound: O(log n)
@@ -750,7 +771,7 @@ var searchRange = function(nums, target) {
 - **Space Complexity**: O(1)
   - Only uses a constant number of variables
 
-### Approach 3: Single Binary Search with Range Expansion
+## Approach 3: Single Binary Search with Range Expansion
 - **Time Complexity**: O(log n + k) where k is the number of occurrences
   - Binary search: O(log n)
   - Left expansion: O(k_left) where k_left is the distance to first occurrence
@@ -824,6 +845,35 @@ var searchRange = function(nums, target) {
 
 8. **How would you find the total count of occurrences efficiently?**
    - **Answer:** Use the first approach to find the first and last occurrence. The count is simply `last - first + 1`. This is O(log n) time complexity.
+
+---
+
+## Common Pitfalls
+
+### 1. Off-by-One Errors in Boundary Calculation
+**Issue:** Confusing when to use `<=` vs `<` in the binary search condition.
+
+**Solution:** For finding first position, continue searching left even when `nums[mid] == target`. For last position, continue searching right.
+
+### 2. Not Validating Target Existence
+**Issue:** Returning indices without checking if target actually exists at those positions.
+
+**Solution:** Always validate that `nums[left] == target` (for first position) and `nums[right] == target` (for last position).
+
+### 3. Integer Overflow in Mid Calculation
+**Issue:** Using `(left + right) // 2` can cause overflow with large arrays.
+
+**Solution:** Use `left + (right - left) // 2` to prevent overflow.
+
+### 4. Confusing Left and Right Boundary Variables
+**Issue:** Using the same variables for both searches without proper initialization.
+
+**Solution:** Reinitialize variables for each search or use separate functions for clarity.
+
+### 5. Handling Empty Array
+**Issue:** Not checking for empty array before accessing elements.
+
+**Solution:** Return `[-1, -1]` immediately if `nums` is empty.
 
 ---
 

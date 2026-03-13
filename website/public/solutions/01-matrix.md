@@ -14,7 +14,7 @@ This is a classic multi-source BFS problem. Instead of starting BFS from each ce
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -95,6 +95,34 @@ mat = [
 - `1 <= m, n <= 10^4`
 - `1 <= m * n <= 10^4`
 - `mat[i][j]` is either `0` or `1`
+
+---
+
+## Pattern:
+
+This problem follows the **Multi-Source Breadth-First Search (BFS)** pattern, also known as the **0-1 BFS** or **Multi-Source Shortest Path** pattern in grid-based problems.
+
+### Core Concept
+
+- Treat all cells containing `0` as **starting sources**
+- Expand BFS simultaneously from all sources
+- First wave to reach a cell gives the **shortest distance**
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Finding shortest distance from **multiple sources** to all cells
+2. Grid/graph problems with **uniform edge weights**
+3. Problems requiring **distance propagation** from multiple origins
+4. Matrix problems where you need nearest neighbor calculations
+
+### Alternative Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| Two-Pass DP | Top-left to bottom-right, then reverse |
+| DFS with Memoization | Recursive approach with caching |
+| Dijkstra's Algorithm | For weighted graphs |
 
 ---
 
@@ -642,21 +670,21 @@ var updateMatrix = function(mat) {
 
 ## Complexity Analysis
 
-### Approach 1: Multi-Source BFS
+## Approach 1: Multi-Source BFS
 
 | Complexity | Analysis |
 |------------|----------|
 | **Time** | O(m × n) - Each cell is visited exactly once |
 | **Space** | O(m × n) - Queue can contain up to all cells in worst case |
 
-### Approach 2: Two-Pass Dynamic Programming
+## Approach 2: Two-Pass Dynamic Programming
 
 | Complexity | Analysis |
 |------------|----------|
 | **Time** | O(m × n) - Two passes over the matrix |
 | **Space** | O(m × n) - Output matrix (in-place modification possible) |
 
-### Approach 3: DFS with Memoization
+## Approach 3: DFS with Memoization
 
 | Complexity | Analysis |
 |------------|----------|
@@ -722,3 +750,49 @@ var updateMatrix = function(mat) {
 ### Q6: Can this problem be solved in O(1) additional space (excluding the output)?
 
 **Answer:** Yes, using the two-pass DP approach. You can modify the input matrix in-place to store the distances. Initialize with large values, then perform the two passes updating distances based on neighbors. This achieves O(1) extra space (excluding input/output).
+
+---
+
+## Summary
+
+The **01 Matrix** problem demonstrates the **multi-source BFS** pattern:
+
+- **Multi-source BFS**: Start from all 0 cells simultaneously
+- **Distance propagation**: BFS layers represent increasing distances
+- **Two-pass DP**: Alternative approach with two passes
+- **Time complexity**: O(m × n) for all approaches
+
+Key insights:
+1. Treat all 0 cells as starting points for BFS
+2. First BFS wave reaching a cell gives shortest distance
+3. DP approach uses two passes in opposite directions
+4. All approaches have similar complexity
+
+This pattern extends to:
+- Rotting oranges
+- Shortest distance from all buildings
+- Any grid distance problem
+
+---
+
+## Common Pitfalls
+
+### 1. Not Initializing All Zeros First
+**Issue:** Starting BFS from a single zero instead of all zeros.
+
+**Solution:** Add ALL zero cells to the queue initially with distance 0.
+
+### 2. Not Marking Visited Cells
+**Issue:** Processing same cell multiple times, causing incorrect distances.
+
+**Solution:** Mark cells as visited by setting their distance (not -1) before adding to queue.
+
+### 3. Wrong Direction Order in DP
+**Issue:** Single pass doesn't capture all directions properly.
+
+**Solution:** Use two passes - first pass handles top/left, second handles bottom/right.
+
+### 4. Using Infinity for Unreachable
+**Issue:** Not handling cells that can't reach a zero.
+
+**Solution:** The problem guarantees all cells can reach a zero (connected matrix).

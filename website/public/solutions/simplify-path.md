@@ -1,5 +1,22 @@
 # Simplify Path
 
+## Pattern:
+
+Stack-based Path Parsing
+
+This problem uses a **Stack** to process path components. Split by '/', skip empty and '.', pop on '..', push valid names.
+
+---
+
+## Common Pitfalls
+
+- **Empty components**: Skip '' from split('') or consecutive slashes
+- **Root boundary**: Don't pop if stack is empty when processing '..'
+- **Result format**: Must start with '/', return '/' if stack empty
+- **Three dots**: '...' is valid name, only '.' and '..' are special
+
+---
+
 ## Problem Description
 
 Given a string `path`, which is an absolute path (starting with a slash '/') to a file or directory in a Unix-style file system, simplify it to its canonical form.
@@ -18,7 +35,7 @@ Your task is to process the path and return the simplified canonical absolute pa
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```python
@@ -921,6 +938,38 @@ Prepend '/': "/c"
 5. **Not handling the case where stack is empty** (should return "/")
 6. **Using the wrong split method** that doesn't handle consecutive delimiters
 7. **Modifying the stack while iterating** incorrectly
+
+---
+
+## Summary
+
+The **Simplify Path** problem demonstrates the **Stack-based Path Parsing** pattern, a classic application of the stack data structure for string processing and navigation problems.
+
+### Key Takeaways
+
+1. **Stack is Perfect for Directory Navigation**: The LIFO (Last In, First Out) nature of stacks perfectly matches how directory navigation works - when you go up with "..", you return to the most recently visited directory.
+
+2. **Single-Pass Efficiency**: All approaches achieve O(n) time complexity with a single pass through the input string, making them highly efficient.
+
+3. **Clean Separation of Concerns**: The algorithm cleanly separates parsing (splitting by '/'), processing (stack operations), and result building (joining).
+
+4. **Edge Case Handling**: The solution naturally handles all edge cases including: empty components from consecutive slashes, ".." at root level, and valid directory names containing dots.
+
+### Pattern Summary
+
+This problem exemplifies the **Stack-based String Processing** pattern, characterized by:
+- Using stack to track state and enable backtracking
+- Processing components sequentially with simple rules
+- Handling special cases ("." and "..") with stack operations
+- Building final result from remaining stack contents
+
+The stack pattern is fundamental for:
+- Path and file system operations
+- Expression evaluation
+- Undo/redo functionality
+- Nested structure parsing
+
+For more details on this pattern, see the **[Stack Pattern](/algorithms/stack)**.
 
 ---
 

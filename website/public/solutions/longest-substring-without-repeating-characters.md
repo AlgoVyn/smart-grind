@@ -1,12 +1,16 @@
 # Longest Substring Without Repeating Characters
 
-## Problem Statement
+## Problem Description
+
+## Pattern: Sliding Window / Hash Map
+
+This problem demonstrates algorithmic problem-solving patterns.
 
 Given a string `s`, find the length of the **longest substring** without repeating characters.
 
 **Link to problem:** [Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
 
-**Constraints:**
+## Constraints
 - `0 <= s.length <= 5 * 10^4`
 - `s` consists of English letters, digits, symbols, and spaces
 
@@ -20,7 +24,7 @@ Given a string `s`, find the length of the **longest substring** without repeati
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -735,7 +739,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you modify the solution to return the actual substring instead of just the length?
 
@@ -838,6 +842,35 @@ The Longest Substring Without Repeating Characters problem is a classic example 
 - Understanding this pattern helps solve many related sliding window problems
 
 This problem demonstrates the power of the two-pointer technique and is essential knowledge for coding interviews.
+
+---
+
+## Common Pitfalls
+
+### 1. Not Using Proper Hash Map Update Logic
+**Issue**: Not updating the left pointer correctly when a duplicate is found.
+
+**Solution**: Use `left = max(left, char_index[char] + 1)` to handle cases where the previous occurrence is outside the current window.
+
+### 2. Off-by-One Errors in Window Bounds
+**Issue**: Incorrect calculation of window size.
+
+**Solution**: Remember window size is `right - left + 1`, and the hash map stores the last seen index (0-based).
+
+### 3. Not Handling Unicode Characters
+**Issue**: Using fixed-size array (128 or 256) for non-ASCII characters.
+
+**Solution**: Use a hash map (dictionary) instead of an array for Unicode support.
+
+### 4. Forgetting to Update Maximum Length
+**Issue**: Only tracking current window, missing the global maximum.
+
+**Solution**: Update `max_len = max(max_len, right - left + 1)` at each iteration.
+
+### 5. Not Checking Empty String
+**Issue**: Edge case with empty input string.
+
+**Solution**: Handle empty string at the start - return 0.
 
 ---
 

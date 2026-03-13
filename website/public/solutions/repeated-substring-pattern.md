@@ -1,8 +1,26 @@
 # Repeated Substring Pattern
 
+## Pattern:
+
+String Period Detection (KMP/LPS)
+
+This problem uses **KMP Algorithm** (LPS array) or **Concatenation Trick**. Check if string has proper border using LPS, or if s appears in s+s[1:-1].
+
+---
+
+## Common Pitfalls
+
+- **Length 1 edge case**: Single character cannot be repeated pattern (k >= 2 required)
+- **Concatenation index**: Must check s in ss[1:-1], not ss, to avoid trivial match
+- **Divisibility check**: n % (n - lps[n-1]) == 0 ensures exact repetition
+
+---
+
 ## Problem Description
 
 Given a string `s`, check if it can be constructed by repeating a substring of it. In other words, determine if `s` can be formed by concatenating one or more copies of some substring of `s`.
+
+**LeetCode Link:** [LeetCode 459 - Repeated Substring Pattern](https://leetcode.com/problems/repeated-substring-pattern/)
 
 > **Related Pattern**: See [String - Repeated Substring Pattern Detection](/patterns/string-repeated-substring-pattern-detection.md) for comprehensive pattern documentation with multiple approaches, code templates, and related problems.
 
@@ -19,7 +37,7 @@ This problem is about detecting whether a string has a periodic structure where 
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```python
@@ -564,28 +582,28 @@ repeatedSubstringPattern_math(s) {
 
 ## Time and Space Complexity Analysis
 
-### Approach 1: Brute Force with Divisibility Check
+## Approach 1: Brute Force with Divisibility Check
 
 | Metric | Complexity | Explanation |
 |--------|------------|-------------|
 | **Time** | O(n²) worst case | For each divisor i, we create a string of length n/i and concatenate it n/i times. In worst case (e.g., "aaaaa..."), we check O(n) divisors and each check is O(n). |
 | **Space** | O(1) | Only uses a few integer variables and potentially the repeated string for comparison |
 
-### Approach 2: KMP (LPS Array)
+## Approach 2: KMP (LPS Array)
 
 | Metric | Complexity | Explanation |
 |--------|------------|-------------|
 | **Time** | O(n) | Building the LPS array is O(n), and the final check is O(1) |
 | **Space** | O(n) | The LPS array stores n integers |
 
-### Approach 3: Concatenation Trick
+## Approach 3: Concatenation Trick
 
 | Metric | Complexity | Explanation |
 |--------|------------|-------------|
 | **Time** | O(n) | Creating the concatenated string is O(n), and the substring search (using efficient algorithms like KMP internally) is O(n) |
 | **Space** | O(n) | The concatenated string has length 2n |
 
-### Approach 4: Mathematical Period Analysis
+## Approach 4: Mathematical Period Analysis
 
 | Metric | Complexity | Explanation |
 |--------|------------|-------------|

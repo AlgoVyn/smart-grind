@@ -2,7 +2,9 @@
 
 ## Problem Description
 
-You are climbing a staircase.` steps to reach It takes `n the top. Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?
+You are climbing a staircase. It takes `n` steps to reach the top. Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?
+
+**Note:** This is LeetCode Problem 70. You can find the original problem [here](https://leetcode.com/problems/climbing-stairs/).
 
 This is a classic dynamic programming problem that demonstrates the relationship between recursion and DP optimization through memoization.
 
@@ -28,7 +30,30 @@ So there are 3 distinct ways to climb 3 steps.
 
 ---
 
-## Example 1
+## Intuition
+
+The key insight is recognizing the recursive nature of the problem:
+
+1. **Think Step by Step**: To reach step `n`, you must first reach either step `n-1` (and take 1 step) or step `n-2` (and take 2 steps)
+
+2. **Recursive Relationship**: This gives us the recurrence: `ways(n) = ways(n-1) + ways(n-2)`
+
+3. **Connection to Fibonacci**: This is exactly the Fibonacci sequence, just offset by one position!
+
+4. **Base Cases**: 
+   - `ways(1) = 1` (only one way: take 1 step)
+   - `ways(2) = 2` (two ways: two 1-steps or one 2-step)
+
+### Why DP Works
+
+- **Optimal Substructure**: The solution to the whole problem depends on solutions to subproblems
+- **Overlapping Subproblems**: The naive recursive approach recalculates the same subproblems many times
+
+---
+
+## Examples
+
+### Example
 
 **Input:**
 ```python
@@ -55,7 +80,7 @@ Total: 2 ways
 
 ---
 
-## Example 2
+### Example 2
 
 **Input:**
 ```python
@@ -83,7 +108,7 @@ Total: 3 ways
 
 ---
 
-## Example 3
+### Example 3
 
 **Input:**
 ```python
@@ -109,7 +134,7 @@ There are 5 distinct ways to climb 4 steps.
 
 ---
 
-## Example 4
+### Example 4
 
 **Input:**
 ```python
@@ -135,6 +160,34 @@ This problem has multiple solutions ranging from simple recursion to mathematica
 3. **Tabulation (Bottom-up DP)** - Iterative with O(n) time
 4. **Space-optimized DP** - O(1) space
 5. **Matrix Exponentiation** - O(log n) time for large n
+
+---
+
+## Pattern: Dynamic Programming - Linear/1D DP
+
+### Core Concept
+
+The Climbing Stairs problem exemplifies the **1D Dynamic Programming** pattern where the solution to a problem depends only on the solutions to immediately preceding states. This is characterized by:
+
+1. **Linear State Progression**: Each state (stair number) only depends on previous 1-2 states
+2. **Optimal Substructure**: The optimal solution can be built from optimal solutions of subproblems
+3. **Overlapping Subproblems**: The same subproblems are solved multiple times in naive recursion
+
+### When to Use This Pattern
+
+This pattern applies when:
+- Problem asks for counting ways to reach a position with specific step sizes
+- Each state depends on a fixed number of previous states (constant transition)
+- There's a clear recurrence relation between states
+- The constraint `n` is relatively small (up to 10^5-10^6 for DP)
+
+### Alternative Patterns
+
+| Alternative Pattern | Use Case |
+|---------------------|----------|
+| **Memoization** | When recursion is natural and subproblem space is sparse |
+| **Matrix Exponentiation** | When n is extremely large (10^18) and O(log n) needed |
+| **Combinatorics** | When solution can be expressed as closed-form binomial coefficient |
 
 ---
 
@@ -880,7 +933,7 @@ Notice how `f(3)` is calculated twice, `f(2)` three times, and `f(1)` twice. Mem
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you modify the solution if you could climb 1, 2, or 3 steps?
 
@@ -967,7 +1020,7 @@ def climbStairs(n, k):
 
 ## Video Tutorials
 
-- [Climbing Stairs - LeetCode 70](.com/watch?v=Yhttps://www.youtube0lT9Fck2qI)
+- [Climbing Stairs - LeetCode 70](https://www.youtube.com/watch?v=0lT9Fck2qI)
 - [Dynamic Programming - Climbing Stairs Explained](https://www.youtube.com/watch?v=0bEN5i4kUu8)
 - [Fibonacci Sequence and Climbing Stairs](https://www.youtube.com/watch?v=qRnNdEExS2k)
 - [Matrix Exponentiation for Fibonacci](https://www.youtube.com/watch?v=EEbY9sE8WKo)
@@ -985,3 +1038,27 @@ The Climbing Stairs problem is a classic introduction to dynamic programming. Ke
 5. **Understand the math**: The recurrence emerges from the problem structure
 
 The space-optimized bottom-up DP is the recommended solution for interviews and production code.
+
+---
+
+## Common Pitfalls
+
+### 1. Using Naive Recursion
+**Issue:** Using recursive approach without memoization leads to exponential time complexity.
+
+**Solution:** Use memoization or switch to iterative DP approaches.
+
+### 2. Wrong Base Cases
+**Issue:** Not handling n=1 or n=2 correctly as they are the base cases.
+
+**Solution:** Return 1 for n=1 and 2 for n=2 before entering the loop.
+
+### 3. Integer Overflow
+**Issue:** For large n, the result may exceed 32-bit integer limit.
+
+**Solution:** Use 64-bit integers or BigInteger/BigInt for large n.
+
+### 4. Off-by-One in Loop
+**Issue:** Starting loop from wrong index causing incorrect results.
+
+**Solution:** For n≥3, start from i=3 and go to i<=n (inclusive).

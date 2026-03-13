@@ -1,5 +1,21 @@
 # Merge Sorted Array
 
+## Pattern:
+
+Three Pointer (Merge from End)
+
+This problem uses the **Two Pointer** pattern but merging from the **end** of the array. The key insight is that `nums1` has extra space at the end (initialized with zeros), so we can safely write from the end without overwriting unmerged elements.
+
+## Common Pitfalls
+
+- **Merging from the beginning**: This overwrites unmerged elements in nums1. Always merge from the end.
+- **Wrong pointer initialization**: Pointers should start at `m-1`, `n-1`, and `m+n-1` (the last valid positions).
+- **Off-by-one errors**: The loop condition `while j >= 0` handles all remaining nums2 elements correctly.
+- **Forgetting to copy remaining elements**: If nums2 has elements left after nums1 is exhausted, copy them explicitly.
+- **Not handling empty arrays**: The algorithm handles m=0 or n=0 naturally, but be careful with edge cases.
+
+---
+
 ## Problem Description
 
 You are given two integer arrays `nums1` and `nums2`, sorted in non-decreasing order, and two integers `m` and `n`, representing the number of elements in `nums1` and `nums2` respectively.
@@ -510,6 +526,35 @@ nums1 = [1, 2, 3, 4, 5, 6] ✓
 3. **Forgetting to copy remaining elements** - If nums2 has elements left after nums1 is exhausted
 4. **Incorrect loop condition** - Use `while j >= 0` to ensure all nums2 elements are processed
 5. **Not handling empty arrays** - m or n could be 0
+
+---
+
+## Summary
+
+The **Merge Sorted Array** problem demonstrates the **Three Pointer** pattern, a variation of the classic Two Pointer technique optimized for in-place array manipulation.
+
+### Key Takeaways
+
+1. **Merge from the End**: The key insight is to merge from the end of the array to avoid overwriting unmerged elements. This transforms what would be an O(m+n) space solution into an O(1) space solution.
+
+2. **Three Pointer Strategy**: Using three pointers (i for nums1, j for nums2, k for placement position) allows us to compare elements from both arrays and place the larger one at the correct position.
+
+3. **Optimal Time-Space Tradeoff**: The optimal approach achieves O(m+n) time complexity with O(1) space complexity, demonstrating that in-place modification doesn't have to sacrifice efficiency.
+
+### Pattern Summary
+
+This problem exemplifies the **Two Pointers / Three Pointers** pattern, characterized by:
+- Using multiple pointers to traverse data structures simultaneously
+- Processing elements from the end to avoid overwriting
+- Achieving in-place modification with optimal time complexity
+- Handling edge cases like empty arrays naturally
+
+The three-pointer technique is fundamental for:
+- Merging sorted arrays efficiently
+- In-place array manipulations
+- Problems requiring backward traversal
+
+For more details on this pattern, see the **[Two Pointers Pattern](/patterns/two-pointers-converging-sorted-array-target-sum)**.
 
 ---
 

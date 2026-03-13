@@ -16,7 +16,7 @@ The problem is also known as the "Maximum Sum Subarray Problem" or the "Kadane's
 
 ## Examples
 
-### Example 1
+### Example
 **Input:**
 ```python
 nums = [-2,1,-3,4,-1,2,1,-5,4]
@@ -78,6 +78,34 @@ nums = [-2,-3,-1,-4]
 
 ---
 
+
+## Pattern:
+
+This problem follows the **Kadane's Algorithm** pattern for finding maximum subarray sum.
+
+### Core Concept
+
+- **Running Sum**: Track cumulative sum, reset when negative
+- **Global Max**: Keep track of maximum seen so far
+- **Single Pass**: O(n) time complexity
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Finding maximum sum contiguous subarray
+2. Problems with positive/negative number arrays
+3. Optimization problems on arrays
+
+### Related Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| Divide and Conquer | Alternative O(n log n) approach |
+| Prefix Sum | For range sum queries |
+
+---
+
+
 ## Intuition
 
 The key insight is that we don't need to check all possible subarrays explicitly. For each position in the array, we can determine:
@@ -95,7 +123,7 @@ We choose the option that gives us a larger sum. This leads directly to Kadane's
 
 ## Multiple Approaches with Code
 
-### Approach 1: Brute Force (O(n²))
+## Approach 1: Brute Force (O(n²))
 
 This approach checks all possible subarrays and keeps track of the maximum sum. While simple, it's not efficient for large arrays.
 
@@ -193,7 +221,7 @@ var maxSubArray = function(nums) {
 
 ---
 
-### Approach 2: Kadane's Algorithm (Optimal) ⭐
+## Approach 2: Kadane's Algorithm (Optimal) ⭐
 
 This is the optimal solution with O(n) time complexity. The key idea is to keep track of the maximum subarray ending at each position and update the global maximum accordingly.
 
@@ -292,7 +320,7 @@ var maxSubArray = function(nums) {
 
 ---
 
-### Approach 3: Top-Down Dynamic Programming with Memoization
+## Approach 3: Top-Down Dynamic Programming with Memoization
 
 This approach uses recursion with memoization to solve the problem. It's less efficient than Kadane's but demonstrates the DP approach clearly.
 
@@ -458,7 +486,7 @@ var maxSubArray = function(nums) {
 
 ---
 
-### Approach 4: Divide and Conquer
+## Approach 4: Divide and Conquer
 
 This approach splits the array into two halves, solves each half recursively, and combines the results. It demonstrates the classic divide and conquer pattern.
 
@@ -678,7 +706,7 @@ The crossing sum is found by:
 
 ---
 
-### Approach 5: Bottom-Up Dynamic Programming (Tabulation)
+## Approach 5: Bottom-Up Dynamic Programming (Tabulation)
 
 This approach builds up the solution iteratively, using a DP table to store intermediate results.
 
@@ -920,6 +948,53 @@ For visual explanations and step-by-step tutorials, here are recommended YouTube
 3. **Forgetting to update both current and max sums**: Both need to be updated in each iteration
 4. **Off-by-one errors**: Be careful with loop boundaries and index calculations
 5. **Not considering edge cases**: Single element arrays, empty arrays (though constraints say at least 1 element)
+
+---
+
+
+
+## Common Pitfalls
+
+### 1. Not Resetting on Negative Sum
+**Issue:** Not resetting running sum when it becomes negative can give wrong results.
+
+**Solution:** If current sum < 0, reset to 0 and start fresh.
+
+### 2. Empty Subarray
+**Issue:** Some implementations may return 0 for empty array instead of handling edge case.
+
+**Solution:** Initialize max_sum to first element or handle empty array explicitly.
+
+### 3. All Negative Numbers
+**Issue:** Algorithm should still find the maximum (least negative) element.
+
+**Solution:** Initialize max_sum to negative infinity or handle in validation.
+
+---
+
+## Summary
+
+The **Maximum Subarray** problem (also known as Kadane's Algorithm) is one of the most fundamental problems in dynamic programming:
+
+- **Kadane's Algorithm**: The optimal O(n) solution that tracks maximum subarray ending at each position
+- **DP Foundation**: Demonstrates the core DP concept of optimal substructure
+- **Multiple Approaches**: From brute force O(n²) to optimal O(n)
+
+Key insights:
+1. At each position, decide: start new subarray or extend previous one
+2. The choice is determined by whether adding the current element increases or decreases the sum
+3. Handle all-negative arrays by initializing with first element
+4. This problem is the foundation for many variations (circular, with deletions, etc.)
+
+This problem is essential for understanding Kadane's Algorithm and forms the basis for solving more complex variations.
+
+### Pattern Summary
+
+This problem exemplifies the **Kadane's Algorithm** pattern (1D DP optimization), characterized by:
+- Single pass through the array with O(1) space
+- Tracking maximum subarray ending at each position
+- Making local decisions (start fresh or extend) that lead to global optimum
+- Foundation for many subarray-related problems
 
 ---
 

@@ -1,5 +1,23 @@
 # Min Stack
 
+## Pattern:
+
+Auxiliary Data Structure Design
+
+This problem uses the **auxiliary data structure** pattern where we store additional metadata with each element. Common approaches include:
+- **Pair storage**: Store `(value, current_min)` tuples
+- **Two-stack approach**: Maintain a separate min stack
+- **Lazy propagation**: Use offset encoding to store values compactly
+
+## Common Pitfalls
+
+- **Using `<` instead of `<=` when pushing to min stack**: When the new value equals the current minimum, it should be pushed to the min stack too (to handle duplicates correctly).
+- **Forgetting to pop from min stack**: When popping, if the popped value equals the min stack's top, pop from min stack as well.
+- **Empty stack handling**: Always check if the stack is empty before accessing elements.
+- **Integer overflow in lazy approach**: Use larger types (long long) to avoid overflow when computing `val - min_val`.
+
+---
+
 ## Problem Description
 
 Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.
@@ -90,7 +108,7 @@ The insight is to store additional information with each element that helps us t
 
 ## Approaches
 
-### Approach 1: Pair Storage (Tuple/Object Approach) ⭐
+## Approach 1: Pair Storage (Tuple/Object Approach) ⭐
 
 Store each element as a pair `(value, current_minimum)`. When pushing a new element, the `current_minimum` is the minimum of the new value and the previous minimum (if any).
 
@@ -200,7 +218,7 @@ MinStack.prototype.getMin = function() {
 
 ---
 
-### Approach 2: Two-Stack Approach ⭐
+## Approach 2: Two-Stack Approach ⭐
 
 Use two stacks: a main stack for all values and a separate min stack to track minimum values. The min stack's top always represents the current minimum.
 
@@ -332,7 +350,7 @@ MinStack.prototype.getMin = function() {
 
 ---
 
-### Approach 3: Lazy Propagation with Offset
+## Approach 3: Lazy Propagation with Offset
 
 Use a single stack storing actual values minus a running minimum offset. This is a space-optimized approach but more complex to understand.
 

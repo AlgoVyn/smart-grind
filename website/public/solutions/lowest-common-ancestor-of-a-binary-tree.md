@@ -11,6 +11,10 @@ In a binary tree:
 
 This problem differs from the BST version because we cannot use value comparisons to guide our search direction—we must explore both subtrees.
 
+## Intuition
+
+The key insight is that we need to search both left and right subtrees to find both nodes. If one node is found in the left subtree and another in the right subtree, the current node is the LCA. If both are found in one subtree, we return that result up the recursion chain.
+
 ---
 
 ## Constraints
@@ -23,7 +27,9 @@ This problem differs from the BST version because we cannot use value comparison
 
 ---
 
-## Example 1
+## Examples
+
+### Example 1
 
 **Input:**
 ```python
@@ -788,6 +794,21 @@ var lowestCommonAncestor = function(root, p, q) {
 
 ---
 
+## Pattern:
+
+Post-Order Tree Traversal (Bottom-Up)
+
+This problem uses the **Tree Post-Order Traversal** pattern where we search both subtrees first, then combine results at each node. The key insight is that a node is the LCA if p is found in one subtree and q is found in the other.
+
+## Common Pitfalls
+
+- **Not handling ancestor case**: If root equals p or q, return root (a node is a descendant of itself).
+- **Confusing left and right results**: When both left and right return non-null, current root is LCA.
+- **Not exploring both subtrees**: Unlike BST, must search both left and right subtrees.
+- **Stack overflow risk**: For very deep trees, consider iterative approach with parent pointers.
+
+---
+
 ## Explanation
 
 ### Why This Problem is Different from BST Version
@@ -823,7 +844,7 @@ Post-order (left → right → root) is ideal because:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you find the LCA if the tree had parent pointers?
 
@@ -905,3 +926,17 @@ Post-order (left → right → root) is ideal because:
 - [Binary Tree LCA Explained](https://www.youtube.com/watch?v=p1Kbkz1h6L4)
 - [Tree Algorithms - Common Patterns](https://www.youtube.com/watch?v=7jcn63Mh9E0)
 - [Recursion in Trees](https://www.youtube.com/watch?v=8B2B3M6R5U8)
+
+---
+
+## Summary
+
+The **Lowest Common Ancestor of a Binary Tree** problem demonstrates the power of post-order traversal for tree problems:
+
+- **Recursive Approach**: O(n) time, O(h) space - visits each node once
+- **Parent Pointer Approach**: O(n) time, O(n) space - good for multiple queries
+- **Path Comparison**: O(n) time, O(h) space - intuitive approach
+
+The key insight is using post-order traversal (left → right → root) to combine results from both subtrees. If both left and right return non-null, the current node is the LCA.
+
+This problem is essential for understanding tree traversal patterns and recursion in data structures.

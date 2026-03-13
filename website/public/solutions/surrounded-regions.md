@@ -4,6 +4,8 @@
 
 Given an m x n board containing `'X'` and `'O'` (or `'1'` and `'0'` in some variations), capture all regions surrounded by `'X'`. A region is captured by flipping all `'O'`s into `'X'`s in that region. A region is considered "surrounded" if it is completely enclosed by `'X'`s on all four sides - meaning none of the `'O'`s in the region are on the border of the board.
 
+**LeetCode Link:** [Surrounded Regions - LeetCode](https://leetcode.com/problems/surrounded-regions/)
+
 ### Key Insight
 
 The key observation is that any `'O'` on the border of the board cannot be surrounded (since it's already on the edge). Therefore, if an `'O'` is connected (via adjacent `'O'`s) to a border `'O'`, it is also not surrounded. The strategy is to:
@@ -16,7 +18,7 @@ The key observation is that any `'O'` on the border of the board cannot be surro
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:** 
 ```
@@ -115,6 +117,35 @@ The problem can be approached using graph traversal techniques (DFS/BFS) on the 
    - Then, iterate through the entire board and flip any unmarked `'O'` to `'X'`
 
 This approach is more efficient than checking each `'O'` individually to see if it's surrounded.
+
+---
+
+## Pattern: Graph Traversal from Border
+
+This problem uses the **reverse thinking** pattern: instead of finding surrounded regions directly, we identify all regions that are NOT surrounded (those connected to the border) and mark them. All remaining 'O' cells must be surrounded and can be flipped to 'X'. This is solved using BFS or DFS starting from border 'O' cells.
+
+### Core Concept
+
+- **Border Observation**: Any 'O' on the border cannot be surrounded
+- **Reverse Thinking**: Find what's NOT surrounded, then flip everything else
+- **Mark and Sweep**: Mark safe cells, then flip the rest
+
+### When to Use This Pattern
+
+This pattern applies when:
+- Problem involves finding enclosed/ surrounded regions in a grid
+- Need to identify cells connected to border
+- Grid traversal with boundary conditions
+
+---
+
+## Common Pitfalls
+
+- **Border cells are safe**: Any 'O' on the border cannot be surrounded and must remain 'O'.
+- **Marking strategy**: Use a special marker (like 'E' for escaped) to mark safe cells instead of a separate visited array.
+- **Marking before adding to queue**: Mark cells as visited when adding to queue to avoid duplicates.
+- **Two-pass approach**: First mark safe cells, then flip remaining 'O's to 'X', then restore safe cells back to 'O'.
+- **Stack overflow**: For large grids, use iterative BFS instead of recursive DFS to avoid stack overflow.
 
 ---
 
@@ -775,21 +806,21 @@ var solve = function(board) {
 
 ## Complexity Analysis
 
-### Approach 1: BFS from Border
+## Approach 1: BFS from Border
 
 | Complexity | Analysis |
 |------------|----------|
 | **Time** | O(m × n) - Each cell is visited at most once during BFS, and the final sweep visits all cells |
 | **Space** | O(m × n) - Queue can contain up to all cells in worst case (when all cells are 'O') |
 
-### Approach 2: DFS from Border
+## Approach 2: DFS from Border
 
 | Complexity | Analysis |
 |------------|----------|
 | **Time** | O(m × n) - Each cell is visited at most once during DFS |
 | **Space** | O(m × n) - Recursion stack can contain up to all cells in worst case (when all cells are 'O') |
 
-### Approach 3: Union-Find
+## Approach 3: Union-Find
 
 | Complexity | Analysis |
 |------------|----------|
@@ -847,3 +878,30 @@ var solve = function(board) {
 ### Q5: What is the minimum number of moves to capture a specific region?
 
 **Answer:** This becomes a different problem - finding the minimum path between the region and the border. You could use BFS from all border cells simultaneously (multi-source BFS) to find the shortest distance to any cell, then calculate the minimum for cells in the target region.
+
+---
+
+## Summary
+
+The **Surrounded Regions** problem demonstrates the power of reverse thinking in graph traversal problems:
+
+- **Key Insight**: Instead of finding surrounded regions directly, identify all regions that are NOT surrounded (those connected to the border) and mark them. All remaining 'O' cells must be surrounded.
+
+- **Three Main Approaches**:
+  1. **BFS from Border**: Start from all border 'O' cells and flood-fill to mark safe regions. Most recommended for large grids.
+  2. **DFS from Border**: Recursive approach that's simpler but risks stack overflow for large grids.
+  3. **Union-Find**: Use a dummy border node to group all border-connected cells together.
+
+- **Time Complexity**: O(m × n) for all approaches
+- **Space Complexity**: O(m × n) for all approaches
+
+This problem is essential for understanding border-based graph traversal and the "mark and sweep" pattern, which is useful in many grid-based problems.
+
+### Pattern Summary
+
+This problem exemplifies the **Graph Traversal from Border** pattern, characterized by:
+- Starting traversal from border cells
+- Using BFS/DFS to mark connected regions
+- A two-pass or multi-pass strategy
+
+For more details on this pattern and its variations, see the **[Graph Traversal Patterns](/patterns/graph-traversal)**.

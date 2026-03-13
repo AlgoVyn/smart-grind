@@ -1,6 +1,21 @@
 # Maximum Sum Subarray of Size K
 
-## Problem Statement
+## Pattern:
+
+Fixed Size Sliding Window
+
+This problem uses the **Sliding Window** pattern with a fixed window size of `k`. Instead of recalculating the sum for each window from scratch (O(n×k)), we maintain a running sum and update it by subtracting the element leaving the window and adding the element entering the window (O(n)).
+
+## Common Pitfalls
+
+- **Wrong window update formula**: Make sure to subtract `arr[i-k]` (element leaving) and add `arr[i]` (element entering).
+- **Not handling all negative arrays**: Initialize `max_sum` with the first window sum, not 0 or negative infinity, to handle arrays with all negative numbers.
+- **Off-by-one errors**: The loop should iterate from index `k` to `n-1` (inclusive) for sliding, or use the explicit condition `i >= k-1` to update the result.
+- **Integer overflow**: Use appropriate data types (long long in C++, long in Java) for large sums.
+
+---
+
+## Problem Description
 
 Given an array of integers `arr` and a positive integer `k`, find the maximum sum of any contiguous subarray of size exactly `k`.
 
@@ -17,7 +32,7 @@ This is a classic application of the Sliding Window - Fixed Size pattern, where 
 
 - A single integer representing the maximum sum of any subarray of size `k`
 
-### Constraints
+## Constraints
 
 - `1 ≤ len(arr) ≤ 10^5`
 - `1 ≤ k ≤ len(arr)`
@@ -28,7 +43,7 @@ This is a classic application of the Sliding Window - Fixed Size pattern, where 
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -137,7 +152,7 @@ We'll cover three approaches for this problem:
 
 ---
 
-### Approach 1: Basic Sliding Window
+## Approach 1: Basic Sliding Window
 
 This is the most straightforward and efficient approach for this specific problem.
 
@@ -524,7 +539,7 @@ console.log("Window sums:", MaximumSumSubarray.getAllWindowSums(arr1, k1));  // 
 
 ---
 
-### Approach 2: Prefix Sum Method
+## Approach 2: Prefix Sum Method
 
 For scenarios where you need to query multiple window sizes or perform various sum calculations, prefix sums provide flexibility.
 
@@ -806,7 +821,7 @@ console.log("Subarrays with sum 3:", PrefixSumSolution.countSubarraysWithSum(arr
 
 ---
 
-### Approach 3: Minimum Size Subarray Sum
+## Approach 3: Minimum Size Subarray Sum
 
 This is a variant where we find the minimum window size that meets a target sum.
 
@@ -1264,3 +1279,28 @@ for i in range(k, n):
     max_sum = max(max_sum, window_sum)
     min_sum = min(min_sum, window_sum)
 ```
+
+---
+
+## Summary
+
+The **Maximum Sum Subarray of Size K** problem is a classic application of the **Sliding Window** pattern with a fixed window size.
+
+Key takeaways:
+1. **Efficient Window Updates**: Instead of recalculating the sum for each window from scratch (O(n×k)), update the sum by subtracting the leaving element and adding the entering element (O(n))
+2. **Window Initialization**: Calculate the sum of the first k elements as the initial window
+3. **Edge Cases**: Handle arrays with all negative numbers by initializing max_sum with the first window sum, not 0
+4. **Time Complexity**: O(n) - single pass through the array
+5. **Space Complexity**: O(1) - constant extra space
+
+This pattern extends to many related problems including maximum average subarray, minimum size subarray sum, and sliding window maximum.
+
+### Pattern Summary
+
+This problem exemplifies the **Fixed Size Sliding Window** pattern, characterized by:
+- Maintaining a window of exactly k elements
+- Incremental updates as the window slides
+- Constant-time window sum calculation
+- Common variations: maximum, minimum, average, or custom aggregations
+
+For more details on this pattern and its variations, see the **[Sliding Window Pattern](/patterns/sliding-window-monotonic-queue-for-max-min)**.

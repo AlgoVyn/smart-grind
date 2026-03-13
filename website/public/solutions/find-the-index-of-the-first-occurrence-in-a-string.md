@@ -1,5 +1,26 @@
 # Find the Index of the First Occurrence in a String
 
+## Pattern:
+
+String Matching (Multiple Algorithms)
+
+This classic string matching problem can be solved using several algorithms:
+- **Brute Force**: O(m×n) - slide and compare
+- **KMP (Knuth-Morris-Pratt)**: O(m+n) - uses LPS (Longest Proper Prefix which is Suffix) array
+- **Rabin-Karp**: O(m+n) average - uses rolling hash
+- **Z-Algorithm**: O(m+n) - builds Z-array on combined string
+
+## Common Pitfalls
+
+- **Empty needle edge case**: Return 0 for empty needle (by convention).
+- **Needle longer than haystack**: Return -1 immediately.
+- **Hash collisions in Rabin-Karp**: Always verify with direct string comparison when hashes match.
+- **Wrong LPS value**: For position i, LPS[i] is the longest proper prefix that is also a suffix of pattern[0...i].
+- **Modulo arithmetic in rolling hash**: Handle negative values correctly when computing `(hash - old_char * power) % mod`.
+- **Character encoding**: The problem states lowercase English letters, but Unicode would require different handling.
+
+---
+
 ## Problem Description
 
 Given two strings `needle` and `haystack`, return the index of the first occurrence of `needle` in `haystack`, or `-1` if `needle` is not part of `haystack`.
@@ -15,9 +36,9 @@ The `strStr()` function returns the starting index of the first occurrence of a 
 - JavaScript's [`String.indexOf()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf)
 - C++'s [`string.find()`](https://en.cppreference.com/w/cpp/string/basic_string/find)
 
-### Example 1
+## Examples
 
-**Input:** `haystack = "sadbutsad"`, `needle = "sad"`
+### Example 1
 
 **Output:** `0`
 
@@ -55,7 +76,7 @@ The `strStr()` function returns the starting index of the first occurrence of a 
 
 **Explanation:** The substring "bba" does not appear in "aaaaa", so we return `-1`.
 
-### Constraints
+## Constraints
 
 - `1 <= haystack.length <= 10^4`
 - `1 <= needle.length <= 10^4`
@@ -1296,7 +1317,7 @@ Where:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### 1. How would you modify the algorithm to find all occurrences of the needle in the haystack?
 

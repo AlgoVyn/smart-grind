@@ -16,7 +16,7 @@ This is **LeetCode Problem #432** and is classified as a Hard difficulty problem
 - When dec(key) reduces value to 0, the key is removed
 - getMaxKey() and getMinKey() return any key with max/min value (if structure is empty, return "")
 
-### Key Constraints
+## Constraints
 | Constraint | Description |
 |------------|-------------|
 | `1 <= key.length <= 10` | Key length is small |
@@ -71,11 +71,49 @@ Key insight: Each bucket in the doubly linked list contains all keys with a spec
 
 ---
 
-## Solution Approaches
+## Pattern: Hash Map + Doubly Linked List (Bucket Design)
 
-### Approach 1: Doubly Linked List of Buckets + Hash Maps (Optimal) ✅ Recommended
+### Core Concept
+
+The All O`one Data Structure demonstrates the **Hash Map + Doubly Linked List** pattern, also known as the Bucket pattern. This pattern combines the fast lookup of hash maps with the ordered insertion/deletion of doubly linked lists:
+
+1. **Hash Maps**: O(1) key-value lookups for direct access
+2. **Buckets**: Group elements by value/count for efficient min/max operations
+3. **Doubly Linked List**: Maintains buckets in sorted order for O(1) access to extremes
+
+### When to Use This Pattern
+
+This pattern applies when:
+- Need O(1) operations for both lookup and ordered traversal
+- Problem involves tracking frequencies/counts with min/max queries
+- Design requires tracking LRU/LFU caches
+- Need to maintain elements in sorted order while supporting fast updates
+
+### Alternative Patterns
+
+| Alternative Pattern | Use Case |
+|---------------------|----------|
+| **Balanced BST (TreeMap)** | When you need ordered traversal with O(log n) operations |
+| **Heap/Priority Queue** | When only need min/max access (no O(1) for arbitrary keys) |
+| **Simple Hash Map + Sorted List** | When operations are infrequent (O(n) updates acceptable) |
+
+---
+
+## Multiple Approaches with Code
+
+We'll cover two approaches:
+
+1. **Doubly Linked List of Buckets + Hash Maps (Optimal)** - O(1) average time
+2. **Ordered Dictionary (TreeMap-based)** - Alternative approach using ordered maps
+
+---
+
+## Approach 1: Doubly Linked List of Buckets + Hash Maps (Optimal)
 This approach uses a bucket doubly linked list combined with two hash maps for O(1) average time operations.
 
+### Code Implementation
+
+````carousel
 ```python
 class Bucket:
     def __init__(self, count=0):
@@ -179,6 +217,390 @@ class AllOne:
         return next(iter(bucket.keys))
 ```
 
+<!-- slide -->
+```cpp
+#include <unordered_map>
+#include <unordered_set>
+#include <string>
+
+using namespace std;
+
+class Bucket {
+public:
+    int count;
+    unordered_set<string> keys;
+    Bucket* prev;
+    Bucket* next;
+    
+    Bucket(int c = 0) : count(c), prev(nullptr), next(nullptr) {}
+};
+
+class AllOne {
+private:
+    unordered_map<string, int> keyCount;
+    unordered_map<int, Bucket*> countBucket;
+    Bucket* head;
+    Bucket* tail;
+    
+    void addBucketAfter(Bucket* newBucket, Bucket* prevBucket) {
+        newBucket->next = prevBucket->next;
+        newBucket->prev = prevBucket;
+        prevBucket->next->prev = newBucket;
+        prevBucket->next = newBucket;
+    }
+    
+    void removeBucket(Bucket* bucket) {
+        bucket->prev->next = bucket->next;
+        bucket->next->prev = bucket->prev;
+    }
+    
+public:
+    AllOne() {
+        head = new Bucket();
+        tail = new Bucket();
+        head->next = tail;
+        tail->prev = head;
+    }
+    
+    ~AllOne() {
+        Bucket* current = head;
+        while (current) {
+            Bucket* next = current->next;
+            delete current;
+            current = next;
+        }
+    }
+    
+    void inc(string key) {
+        if (keyCount.find(key) != keyCount.end()) {
+            int oldCount = keyCount[key];
+            int newCount = oldCount + 1;
+            keyCount[key] = newCount;
+            
+            Bucket* oldBucket = countBucket[oldCount];
+            oldBucket->keys.erase(key);
+            
+            if (countBucket.find(newCount) == countBucket.end()) {
+                Bucket* newBucket = new Bucket(newCount);
+                countBucket[newCount] = newBucket;
+                addBucketAfter(newBucket, oldBucket);
+            }
+            
+            countBucket[newCount]->keys.insert(key);
+            
+            if (oldBucket->keys.empty()) {
+                countBucket.erase(oldCount);
+                removeBucket(oldBucket);
+                delete oldBucket;
+            }
+        } else {
+            keyCount[key] = 1;
+            if (countBucket.find(1) == countBucket.end()) {
+                Bucket* newBucket = new Bucket(1);
+                countBucket[1] = newBucket;
+                addBucketAfter(newBucket, head);
+            }
+            countBucket[1]->keys.insert(key);
+        }
+    }
+    
+    void dec(string key) {
+        if (keyCount.find(key) == keyCount.end()) {
+            return;
+        }
+        
+        int oldCount = keyCount[key];
+        int newCount = oldCount - 1;
+        
+        Bucket* oldBucket = countBucket[oldCount];
+        oldBucket->keys.erase(key);
+        
+        if (newCount == 0) {
+            keyCount.erase(key);
+        } else {
+            keyCount[key] = newCount;
+            if (countBucket.find(newCount) == countBucket.end()) {
+                Bucket* newBucket = new Bucket(newCount);
+                countBucket[newCount] = newBucket;
+                addBucketAfter(newBucket, oldBucket->prev);
+            }
+            countBucket[newCount]->keys.insert(key);
+        }
+        
+        if (oldBucket->keys.empty()) {
+            countBucket.erase(oldCount);
+            removeBucket(oldBucket);
+            delete oldBucket;
+        }
+    }
+    
+    string getMaxKey() {
+        if (tail->prev == head) {
+            return "";
+        }
+        Bucket* bucket = tail->prev;
+        return *bucket->keys.begin();
+    }
+    
+    string getMinKey() {
+        if (head->next == tail) {
+            return "";
+        }
+        Bucket* bucket = head->next;
+        return *bucket->keys.begin();
+    }
+};
+```
+
+<!-- slide -->
+```java
+import java.util.*;
+
+class Bucket {
+    int count;
+    Set<String> keys;
+    Bucket prev;
+    Bucket next;
+    
+    Bucket(int count) {
+        this.count = count;
+        this.keys = new HashSet<>();
+    }
+}
+
+class AllOne {
+    private Map<String, Integer> keyCount = new HashMap<>();
+    private Map<Integer, Bucket> countBucket = new HashMap<>();
+    private Bucket head;
+    private Bucket tail;
+    
+    public AllOne() {
+        head = new Bucket(0);
+        tail = new Bucket(0);
+        head.next = tail;
+        tail.prev = head;
+    }
+    
+    private void addBucketAfter(Bucket newBucket, Bucket prevBucket) {
+        newBucket.next = prevBucket.next;
+        newBucket.prev = prevBucket;
+        prevBucket.next.prev = newBucket;
+        prevBucket.next = newBucket;
+    }
+    
+    private void removeBucket(Bucket bucket) {
+        bucket.prev.next = bucket.next;
+        bucket.next.prev = bucket.prev;
+    }
+    
+    public void inc(String key) {
+        if (keyCount.containsKey(key)) {
+            int oldCount = keyCount.get(key);
+            int newCount = oldCount + 1;
+            keyCount.put(key, newCount);
+            
+            Bucket oldBucket = countBucket.get(oldCount);
+            oldBucket.keys.remove(key);
+            
+            if (!countBucket.containsKey(newCount)) {
+                Bucket newBucket = new Bucket(newCount);
+                countBucket.put(newCount, newBucket);
+                addBucketAfter(newBucket, oldBucket);
+            }
+            
+            countBucket.get(newCount).keys.add(key);
+            
+            if (oldBucket.keys.isEmpty()) {
+                countBucket.remove(oldCount);
+                removeBucket(oldBucket);
+            }
+        } else {
+            keyCount.put(key, 1);
+            if (!countBucket.containsKey(1)) {
+                Bucket newBucket = new Bucket(1);
+                countBucket.put(1, newBucket);
+                addBucketAfter(newBucket, head);
+            }
+            countBucket.get(1).keys.add(key);
+        }
+    }
+    
+    public void dec(String key) {
+        if (!keyCount.containsKey(key)) {
+            return;
+        }
+        
+        int oldCount = keyCount.get(key);
+        int newCount = oldCount - 1;
+        
+        Bucket oldBucket = countBucket.get(oldCount);
+        oldBucket.keys.remove(key);
+        
+        if (newCount == 0) {
+            keyCount.remove(key);
+        } else {
+            keyCount.put(key, newCount);
+            if (!countBucket.containsKey(newCount)) {
+                Bucket newBucket = new Bucket(newCount);
+                countBucket.put(newCount, newBucket);
+                addBucketAfter(newBucket, oldBucket.prev);
+            }
+            countBucket.get(newCount).keys.add(key);
+        }
+        
+        if (oldBucket.keys.isEmpty()) {
+            countBucket.remove(oldCount);
+            removeBucket(oldBucket);
+        }
+    }
+    
+    public String getMaxKey() {
+        if (tail.prev == head) {
+            return "";
+        }
+        Bucket bucket = tail.prev;
+        return bucket.keys.iterator().next();
+    }
+    
+    public String getMinKey() {
+        if (head.next == tail) {
+            return "";
+        }
+        Bucket bucket = head.next;
+        return bucket.keys.iterator().next();
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+class Bucket {
+    constructor(count = 0) {
+        this.count = count;
+        this.keys = new Set();
+        this.prev = null;
+        this.next = null;
+    }
+}
+
+var AllOne = function() {
+    this.keyCount = new Map();
+    this.countBucket = new Map();
+    this.head = new Bucket();
+    this.tail = new Bucket();
+    this.head.next = this.tail;
+    this.tail.prev = this.head;
+};
+
+AllOne.prototype.addBucketAfter = function(newBucket, prevBucket) {
+    newBucket.next = prevBucket.next;
+    newBucket.prev = prevBucket;
+    prevBucket.next.prev = newBucket;
+    prevBucket.next = newBucket;
+};
+
+AllOne.prototype.removeBucket = function(bucket) {
+    bucket.prev.next = bucket.next;
+    bucket.next.prev = bucket.prev;
+};
+
+/**
+ * Inserts a new key <key> with value 1. Or increments an existing key by 1.
+ * @param {string} key
+ * @return {void}
+ */
+AllOne.prototype.inc = function(key) {
+    if (this.keyCount.has(key)) {
+        const oldCount = this.keyCount.get(key);
+        const newCount = oldCount + 1;
+        this.keyCount.set(key, newCount);
+        
+        const oldBucket = this.countBucket.get(oldCount);
+        oldBucket.keys.delete(key);
+        
+        if (!this.countBucket.has(newCount)) {
+            const newBucket = new Bucket(newCount);
+            this.countBucket.set(newCount, newBucket);
+            this.addBucketAfter(newBucket, oldBucket);
+        }
+        
+        this.countBucket.get(newCount).keys.add(key);
+        
+        if (oldBucket.keys.size === 0) {
+            this.countBucket.delete(oldCount);
+            this.removeBucket(oldBucket);
+        }
+    } else {
+        this.keyCount.set(key, 1);
+        if (!this.countBucket.has(1)) {
+            const newBucket = new Bucket(1);
+            this.countBucket.set(1, newBucket);
+            this.addBucketAfter(newBucket, this.head);
+        }
+        this.countBucket.get(1).keys.add(key);
+    }
+};
+
+/**
+ * Decrements an existing key by 1. If key's value is 1, remove it from the data structure.
+ * @param {string} key
+ * @return {void}
+ */
+AllOne.prototype.dec = function(key) {
+    if (!this.keyCount.has(key)) {
+        return;
+    }
+    
+    const oldCount = this.keyCount.get(key);
+    const newCount = oldCount - 1;
+    
+    const oldBucket = this.countBucket.get(oldCount);
+    oldBucket.keys.delete(key);
+    
+    if (newCount === 0) {
+        this.keyCount.delete(key);
+    } else {
+        this.keyCount.set(key, newCount);
+        if (!this.countBucket.has(newCount)) {
+            const newBucket = new Bucket(newCount);
+            this.countBucket.set(newCount, newBucket);
+            this.addBucketAfter(newBucket, oldBucket.prev);
+        }
+        this.countBucket.get(newCount).keys.add(key);
+    }
+    
+    if (oldBucket.keys.size === 0) {
+        this.countBucket.delete(oldCount);
+        this.removeBucket(oldBucket);
+    }
+};
+
+/**
+ * Returns one of the keys with maximal value.
+ * @return {string}
+ */
+AllOne.prototype.getMaxKey = function() {
+    if (this.tail.prev === this.head) {
+        return "";
+    }
+    const bucket = this.tail.prev;
+    return bucket.keys.values().next().value;
+};
+
+/**
+ * Returns one of the keys with minimal value.
+ * @return {string}
+ */
+AllOne.prototype.getMinKey = function() {
+    if (this.head.next === this.tail) {
+        return "";
+    }
+    const bucket = this.head.next;
+    return bucket.keys.values().next().value;
+};
+```
+````
+
 #### How It Works
 1. **Bucket Class**: Represents keys with the same count, includes prev/next pointers
 2. **Key-Count Map**: Direct access to a key's count
@@ -192,7 +614,296 @@ class AllOne:
 
 ---
 
-## Complexity Analysis
+## Approach 2: Ordered Dictionary (TreeMap-based Alternative)
+
+### Algorithm
+This approach uses a TreeMap (or SortedDict in Python) to maintain keys in sorted order by their count. While this gives O(log n) operations, it's conceptually simpler.
+
+### Why It Works
+TreeMap maintains key-value pairs in sorted order by keys. By using count as the key in the TreeMap and storing sets of keys for each count, we can efficiently find max/min keys.
+
+### Code Implementation
+
+````carousel
+```python
+from sortedcontainers import SortedDict
+
+class AllOne:
+    def __init__(self):
+        self.key_count = {}
+        # count -> set of keys
+        self.count_keys = SortedDict()
+    
+    def inc(self, key: str) -> None:
+        if key in self.key_count:
+            old_count = self.key_count[key]
+            new_count = old_count + 1
+            self.key_count[key] = new_count
+            
+            self.count_keys[old_count].remove(key)
+            if not self.count_keys[old_count]:
+                del self.count_keys[old_count]
+            
+            if new_count not in self.count_keys:
+                self.count_keys[new_count] = set()
+            self.count_keys[new_count].add(key)
+        else:
+            self.key_count[key] = 1
+            if 1 not in self.count_keys:
+                self.count_keys[1] = set()
+            self.count_keys[1].add(key)
+    
+    def dec(self, key: str) -> None:
+        if key not in self.key_count:
+            return
+        
+        old_count = self.key_count[key]
+        new_count = old_count - 1
+        
+        self.count_keys[old_count].remove(key)
+        if not self.count_keys[old_count]:
+            del self.count_keys[old_count]
+        
+        if new_count == 0:
+            del self.key_count[key]
+        else:
+            self.key_count[key] = new_count
+            if new_count not in self.count_keys:
+                self.count_keys[new_count] = set()
+            self.count_keys[new_count].add(key)
+    
+    def getMaxKey(self) -> str:
+        if not self.count_keys:
+            return ""
+        return next(iter(self.count_keys.peekitem(-1)[1]))
+    
+    def getMinKey(self) -> str:
+        if not self.count_keys:
+            return ""
+        return next(iter(self.count_keys.peekitem(0)[1]))
+```
+
+<!-- slide -->
+```cpp
+#include <map>
+#include <unordered_set>
+#include <string>
+
+using namespace std;
+
+class AllOne {
+private:
+    unordered_map<string, int> keyCount;
+    map<int, unordered_set<string>> countKeys;
+    
+public:
+    void inc(string key) {
+        if (keyCount.find(key) != keyCount.end()) {
+            int oldCount = keyCount[key];
+            int newCount = oldCount + 1;
+            keyCount[key] = newCount;
+            
+            countKeys[oldCount].erase(key);
+            if (countKeys[oldCount].empty()) {
+                countKeys.erase(oldCount);
+            }
+            
+            countKeys[newCount].insert(key);
+        } else {
+            keyCount[key] = 1;
+            countKeys[1].insert(key);
+        }
+    }
+    
+    void dec(string key) {
+        if (keyCount.find(key) == keyCount.end()) {
+            return;
+        }
+        
+        int oldCount = keyCount[key];
+        int newCount = oldCount - 1;
+        
+        countKeys[oldCount].erase(key);
+        if (countKeys[oldCount].empty()) {
+            countKeys.erase(oldCount);
+        }
+        
+        if (newCount == 0) {
+            keyCount.erase(key);
+        } else {
+            keyCount[key] = newCount;
+            countKeys[newCount].insert(key);
+        }
+    }
+    
+    string getMaxKey() {
+        if (countKeys.empty()) return "";
+        auto it = countKeys.rbegin();
+        return *it->second.begin();
+    }
+    
+    string getMinKey() {
+        if (countKeys.empty()) return "";
+        auto it = countKeys.begin();
+        return *it->second.begin();
+    }
+};
+```
+
+<!-- slide -->
+```java
+import java.util.*;
+
+class AllOne {
+    private Map<String, Integer> keyCount = new HashMap<>();
+    private TreeMap<Integer, Set<String>> countKeys = new TreeMap<>();
+    
+    public void inc(String key) {
+        if (keyCount.containsKey(key)) {
+            int oldCount = keyCount.get(key);
+            int newCount = oldCount + 1;
+            keyCount.put(key, newCount);
+            
+            countKeys.get(oldCount).remove(key);
+            if (countKeys.get(oldCount).isEmpty()) {
+                countKeys.remove(oldCount);
+            }
+            
+            countKeys.computeIfAbsent(newCount, k -> new HashSet<>()).add(key);
+        } else {
+            keyCount.put(key, 1);
+            countKeys.computeIfAbsent(1, k -> new HashSet<>()).add(key);
+        }
+    }
+    
+    public void dec(String key) {
+        if (!keyCount.containsKey(key)) {
+            return;
+        }
+        
+        int oldCount = keyCount.get(key);
+        int newCount = oldCount - 1;
+        
+        countKeys.get(oldCount).remove(key);
+        if (countKeys.get(oldCount).isEmpty()) {
+            countKeys.remove(oldCount);
+        }
+        
+        if (newCount == 0) {
+            keyCount.remove(key);
+        } else {
+            keyCount.put(key, newCount);
+            countKeys.computeIfAbsent(newCount, k -> new HashSet<>()).add(key);
+        }
+    }
+    
+    public String getMaxKey() {
+        if (countKeys.isEmpty()) return "";
+        Map.Entry<Integer, Set<String>> last = countKeys.lastEntry();
+        return last.getValue().iterator().next();
+    }
+    
+    public String getMinKey() {
+        if (countKeys.isEmpty()) return "";
+        Map.Entry<Integer, Set<String>> first = countKeys.firstEntry();
+        return first.getValue().iterator().next();
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+var AllOne = function() {
+    this.keyCount = new Map();
+    this.countKeys = new Map(); // count -> Set of keys
+};
+
+AllOne.prototype.inc = function(key) {
+    if (this.keyCount.has(key)) {
+        const oldCount = this.keyCount.get(key);
+        const newCount = oldCount + 1;
+        this.keyCount.set(key, newCount);
+        
+        const oldSet = this.countKeys.get(oldCount);
+        oldSet.delete(key);
+        if (oldSet.size === 0) {
+            this.countKeys.delete(oldCount);
+        }
+        
+        if (!this.countKeys.has(newCount)) {
+            this.countKeys.set(newCount, new Set());
+        }
+        this.countKeys.get(newCount).add(key);
+    } else {
+        this.keyCount.set(key, 1);
+        if (!this.countKeys.has(1)) {
+            this.countKeys.set(1, new Set());
+        }
+        this.countKeys.get(1).add(key);
+    }
+};
+
+AllOne.prototype.dec = function(key) {
+    if (!this.keyCount.has(key)) {
+        return;
+    }
+    
+    const oldCount = this.keyCount.get(key);
+    const newCount = oldCount - 1;
+    
+    const oldSet = this.countKeys.get(oldCount);
+    oldSet.delete(key);
+    if (oldSet.size === 0) {
+        this.countKeys.delete(oldCount);
+    }
+    
+    if (newCount === 0) {
+        this.keyCount.delete(key);
+    } else {
+        this.keyCount.set(key, newCount);
+        if (!this.countKeys.has(newCount)) {
+            this.countKeys.set(newCount, new Set());
+        }
+        this.countKeys.get(newCount).add(key);
+    }
+};
+
+AllOne.prototype.getMaxKey = function() {
+    if (this.countKeys.size === 0) return "";
+    const counts = Array.from(this.countKeys.keys());
+    const maxCount = Math.max(...counts);
+    return this.countKeys.get(maxCount).values().next().value;
+};
+
+AllOne.prototype.getMinKey = function() {
+    if (this.countKeys.size === 0) return "";
+    const counts = Array.from(this.countKeys.keys());
+    const minCount = Math.min(...counts);
+    return this.countKeys.get(minCount).values().next().value;
+};
+```
+````
+
+### Complexity Analysis
+
+| Operation | Time Complexity |
+|-----------|------------------|
+| `inc` | O(log n) |
+| `dec` | O(log n) |
+| `getMaxKey` | O(1) |
+| `getMinKey` | O(1) |
+
+### Comparison
+
+| Aspect | Bucket + HashMap | TreeMap-based |
+|--------|------------------|---------------|
+| Time Complexity | O(1) average | O(log n) |
+| Implementation | More complex | Simpler |
+| Memory | O(n) | O(n) |
+
+---
+
+## Complexity Analysis (Approach 1)
 
 ### Time Complexity
 | Operation | Time Complexity |
@@ -212,7 +923,7 @@ class AllOne:
 
 ---
 
-## Edge Cases and Common Pitfalls
+## Common Pitfalls
 
 ### Edge Cases
 1. **Decrementing a key with count 1**: Should remove the key from the structure

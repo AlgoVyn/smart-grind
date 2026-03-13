@@ -1,4 +1,8 @@
-# Number of 1 Bits
+# 
+
+## Pattern: Bit Manipulation - Population Count
+
+Number of 1 Bits
 
 ## Problem Description
 
@@ -13,8 +17,7 @@ You are given an unsigned integer `n` where:
 - The binary representation is in the form of a 32-bit unsigned integer
 - The task is to return the count of set bits (1s)
 
-### Key Constraints
-
+## Constraints
 | Constraint | Description | Importance |
 |------------|-------------|------------|
 | `0 <= n < 2^32` | Input range | 32-bit unsigned integer |
@@ -89,7 +92,7 @@ Every integer can be represented in binary as a sequence of bits. For example:
 
 ## Solution Approaches
 
-### Approach 1: Right Shift and Check (Basic) ✅ Recommended
+## Approach 1: Right Shift and Check (Basic) ✅ Recommended
 
 This is the most straightforward approach that checks each bit individually.
 
@@ -215,7 +218,7 @@ Result: 3 ✓
 
 ---
 
-### Approach 2: Brian Kernighan's Algorithm (Optimal) ⭐
+## Approach 2: Brian Kernighan's Algorithm (Optimal) ⭐
 
 This is the most efficient approach that minimizes the number of operations.
 
@@ -329,7 +332,7 @@ Result: 3 ✓
 
 ---
 
-### Approach 3: Built-in Functions (Language-Specific)
+## Approach 3: Built-in Functions (Language-Specific)
 
 Many languages provide built-in functions for counting set bits.
 
@@ -389,7 +392,7 @@ var hammingWeight = function(n) {
 
 ---
 
-### Approach 4: Lookup Table (Precomputation)
+## Approach 4: Lookup Table (Precomputation)
 
 For maximum performance when called frequently, use a precomputed lookup table.
 
@@ -558,7 +561,7 @@ var hammingWeight = function(n) {
 
 ---
 
-## Edge Cases and Common Pitfalls
+## Common Pitfalls
 
 ### Edge Cases to Consider
 

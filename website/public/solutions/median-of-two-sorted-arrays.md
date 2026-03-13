@@ -8,7 +8,9 @@ The overall run time complexity should be `O(log (m+n))`.
 
 The **median** is the middle value in a sorted list. If the list has an even number of elements, the median is the average of the two middle values.
 
-### Example 1
+## Examples
+
+### Example
 
 **Input:** `nums1 = [1,3]`, `nums2 = [2]`
 
@@ -32,7 +34,7 @@ The **median** is the middle value in a sorted list. If the list has an even num
 
 **Explanation:** Merged array = `[1,2,3,4,5,6,7,8]` and median is `(4 + 5) / 2 = 4.5`.
 
-### Constraints
+## Constraints
 
 - `nums1.length == m`
 - `nums2.length == n`
@@ -42,6 +44,34 @@ The **median** is the middle value in a sorted list. If the list has an even num
 - `-10^6 <= nums1[i], nums2[i] <= 10^6`
 
 ---
+
+
+## Pattern:
+
+This problem follows the **Binary Search on Binary Search** pattern for median finding.
+
+### Core Concept
+
+- **Binary Search**: Use binary search on smaller array
+- **Partition**: Partition both arrays to find median
+- **O(log n)**: Optimized binary search approach
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Finding median of two sorted arrays
+2. K-th element problems
+3. Binary search with partition
+
+### Related Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| Binary Search | Standard binary search |
+| Partition | Array partitioning |
+
+---
+
 
 ## Intuition
 
@@ -1029,7 +1059,7 @@ var findMedianSortedArrays = function(nums1, nums2) {
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### 1. How would you handle the case where one of the arrays is empty?
 
@@ -1077,6 +1107,20 @@ For weighted median, we need to track cumulative weights instead of element coun
 | **Binary Search (Recursive)** | O(log(min(m,n))) | O(log(min(m,n))) | Same logic as iterative, uses recursion stack |
 | **Merge and Find** | O(m + n) | O(m + n) | Simple to implement, uses extra space |
 | **Two Pointers Without Merging** | O(m + n) | O(1) | Optimized brute force, no extra space |
+
+---
+
+## Common Pitfalls
+
+### Common Mistakes to Avoid
+
+1. **Binary search implementation errors**: The binary search logic can be tricky; off-by-one errors are common
+
+2. **Not handling unequal array lengths**: Make sure your solution works when arrays have different sizes
+
+3. **Edge cases with single elements**: Pay attention to boundary conditions
+
+4. **Time complexity**: O(log(min(n,m))) is required - avoid O(log(n+m)) or linear solutions
 
 ---
 

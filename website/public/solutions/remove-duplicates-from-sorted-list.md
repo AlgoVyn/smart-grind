@@ -1,6 +1,22 @@
 # Remove Duplicates from Sorted List
 
-## Problem Statement
+## Pattern:
+
+Linked List Traversal (In-place)
+
+This problem uses **Single Pointer** traversal on a sorted linked list. Compare current.val with current.next.val and skip duplicates.
+
+---
+
+## Common Pitfalls
+
+- **Sorted list property**: Duplicates are always consecutive in a sorted list
+- **Pointer advancement**: Only move forward when no duplicate found
+- **Null check**: Always check current and current.next before accessing values
+
+---
+
+## Problem Description
 
 Given the head of a sorted linked list, delete all duplicates such that each element appears only once. Return the sorted linked list as well.
 
@@ -8,9 +24,17 @@ Given the head of a sorted linked list, delete all duplicates such that each ele
 
 ---
 
+## Constraints
+
+- The number of nodes in the list is in the range [0, 300].
+- The list is guaranteed to be sorted in non-decreasing order.
+- The value of each node ranges from -100 to 100.
+
+---
+
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -577,7 +601,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you modify the solution to remove all duplicates, not just consecutive ones?
 

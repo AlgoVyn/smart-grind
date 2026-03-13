@@ -1,4 +1,8 @@
-# Single Number
+# 
+
+## Pattern: Bitwise XOR - Pair Cancellation
+
+Single Number
 
 ## Problem Description
 
@@ -15,8 +19,7 @@ You are given an integer array `nums` where:
 - The algorithm must run in **O(n)** time complexity
 - The algorithm must use **O(1)** extra space (constant space)
 
-### Key Constraints
-
+## Constraints
 | Constraint | Description | Importance |
 |------------|-------------|------------|
 | `1 <= nums.length <= 3 * 10^4` | Array size | Limits input size, ensures algorithm must be efficient |
@@ -96,7 +99,7 @@ This is why XOR is the perfect tool for this problem!
 
 ## Solution Approaches
 
-### Approach 1: Bitwise XOR (Optimal) ✅ Recommended
+## Approach 1: Bitwise XOR (Optimal) ✅ Recommended
 
 This is the optimal solution that achieves both O(n) time and O(1) space complexity.
 
@@ -200,7 +203,7 @@ Using the algebraic approach:
 
 ---
 
-### Approach 2: Hash Set (O(n) Time, O(n) Space)
+## Approach 2: Hash Set (O(n) Time, O(n) Space)
 
 This is a simpler approach using a hash set to track seen numbers.
 
@@ -316,7 +319,7 @@ var singleNumber = function(nums) {
 
 ---
 
-### Approach 3: Mathematical Formula (Sum Approach)
+## Approach 3: Mathematical Formula (Sum Approach)
 
 This approach uses basic arithmetic to find the single element.
 
@@ -441,7 +444,7 @@ var singleNumber = function(nums) {
 
 ---
 
-### Approach 4: Sorting (O(n log n) Time, O(1) Space)
+## Approach 4: Sorting (O(n log n) Time, O(1) Space)
 
 A straightforward approach that sorts the array and finds the single element.
 
@@ -596,7 +599,7 @@ var singleNumber = function(nums) {
 
 ---
 
-## Edge Cases and Common Pitfalls
+## Common Pitfalls
 
 ### Edge Cases to Consider
 

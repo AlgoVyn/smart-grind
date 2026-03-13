@@ -10,12 +10,9 @@ Implement a Trie class that supports the following operations:
 2. **`search(word)`** - Returns `true` if the string `word` is in the trie (i.e., inserted previously).
 3. **`startsWith(prefix)`** - Returns `true` if there is any string in the trie that has the `prefix`.
 
-### Example 1
+## Examples
 
-**Input:**
-```
-Trie obj = new Trie();
-obj.insert("apple");
+### Example 1
 obj.search("apple");   // returns true
 obj.search("app");     // returns false
 obj.startsWith("app"); // returns true
@@ -39,7 +36,7 @@ obj.search("ca");      // returns true
 
 **Output:** Operations complete successfully with expected results.
 
-### Constraints
+## Constraints
 
 - `word` and `prefix` consist only of lowercase English letters (`a` to `z`)
 - `1 <= word.length, prefix.length <= 2000`
@@ -47,6 +44,34 @@ obj.search("ca");      // returns true
 - All operations are called with valid inputs
 
 ---
+
+
+## Pattern:
+
+This problem follows the **Trie** pattern for prefix tree implementation.
+
+### Core Concept
+
+- **Trie Node**: Each node has children map and isEnd flag
+- **Prefix Search**: Efficient prefix matching
+- **Insert/Search**: O(m) where m is word length
+
+### When to Use This Pattern
+
+This pattern is applicable when:
+1. Implementing prefix tree
+2. Autocomplete systems
+3. Prefix matching problems
+
+### Related Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| Hash Map | For children storage |
+| Tree | Similar data structure |
+
+---
+
 
 ## Intuition
 
@@ -1182,7 +1207,7 @@ class Trie {
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### 1. How would you implement delete/remove functionality in the trie?
 
@@ -1230,6 +1255,27 @@ For words with extensive shared prefixes, the basic trie structure is already op
 | **HashMap-Based** | O(L) avg | O(L) avg | O(P) avg | O(N×L) | Dynamic alphabets, memory efficiency |
 | **Count-Based** | O(L) | O(L) | O(P) | O(N×L) | Prefix counting, autocomplete |
 | **Node Pool** | O(L) | O(L) | O(P) | O(M) | Memory-constrained systems |
+
+---
+
+
+
+## Common Pitfalls
+
+### 1. Not Handling End of Word
+**Issue:** Not marking end of word correctly.
+
+**Solution:** Use isEnd flag to mark word ends.
+
+### 2. Wrong Prefix Search
+**Issue:** Returning true for prefix instead of full word.
+
+**Solution:** Check isEnd flag for exact word search.
+
+### 3. Memory Usage
+**Issue:** Too much memory for large datasets.
+
+**Solution:** Consider compression or alternatives.
 
 ---
 

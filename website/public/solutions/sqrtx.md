@@ -1,6 +1,7 @@
 # Sqrt(x)
 
 ## Problem Description
+
 Given a non-negative integer `x`, compute and return the square root of `x`. Since the return type is an integer, the decimal digits are truncated, and only the integer part of the result is returned.
 
 Note: You are not allowed to use any built-in exponent function or operator, such as `pow(x, 0.5)` in Python or `x ** 0.5`.
@@ -13,7 +14,7 @@ This is **LeetCode Problem #69** and is classified as an Easy difficulty problem
 - No built-in square root functions allowed
 - Must handle large values of x efficiently
 
-### Key Constraints
+## Constraints
 | Constraint | Description |
 |------------|-------------|
 | `0 <= x <= 2^31 - 1` | Very large possible values |
@@ -59,26 +60,73 @@ Explanation: The square root of 2^31 - 1 is approximately 46340.95..., so we ret
 
 ---
 
+## Pattern: Binary Search - Integer Square Root
+
+This problem is a classic example of the **Binary Search** pattern for finding floor values. The key insight is that the square function is monotonically increasing for non-negative numbers, making binary search applicable.
+
+### Core Concept
+
+- **Monotonic Property**: For x ≥ 0, if a < b then a² < b²
+- **Search Space**: sqrt(x) is in range [0, x] for x ≥ 1, or [0, x/2] for x ≥ 4
+- **Goal**: Find the largest integer mid where mid² ≤ x
+
+---
+
 ## Intuition
+
 The problem can be efficiently solved using **binary search** to find the largest integer `mid` such that `mid * mid <= x`. This approach works because the square function is monotonically increasing.
 
 Key insight: For x in [0, n], we can search in the range [0, n] to find the maximum mid where mid² ≤ x.
 
 ---
 
-## Solution Approaches
+## Multiple Approaches with Code
 
-### Approach 1: Binary Search (Optimal) ✅ Recommended
-This is the most efficient approach with O(log n) time complexity.
+We'll cover three approaches:
 
+1. **Binary Search (Optimal)** - O(log n) time, O(1) space ✅ Recommended
+2. **Newton-Raphson Method** - O(log n) time, O(1) space
+3. **Brute Force** - O(√n) time, O(1) space (Not Recommended)
+
+---
+
+## Approach 1: Binary Search (Optimal) ✅
+
+This is the most efficient approach with O(log n) time complexity. By using binary search, we find the largest integer mid where mid² ≤ x.
+
+### Algorithm Steps
+
+1. **Handle Base Cases**: Return x directly for x = 0 or x = 1
+2. **Set Search Range**: For x ≥ 4, sqrt(x) ≤ x/2, so search in [1, x//2]
+3. **Binary Search**: Find the largest mid where mid² ≤ x
+4. **Track Result**: Keep track of the last valid mid as potential answer
+5. **Avoid Overflow**: Use `left + (right - left) // 2` instead of `(left + right) // 2`
+
+### Why It Works
+
+The square function is monotonically increasing for non-negative numbers. Binary search efficiently narrows down the search space by half with each iteration, guaranteeing we find the maximum integer whose square is less than or equal to x.
+
+### Code Implementation
+
+````carousel
 ```python
 class Solution:
     def mySqrt(self, x: int) -> int:
+        """
+        Compute the integer square root of a non-negative integer.
+        
+        Args:
+            x: Non-negative integer
+            
+        Returns:
+            Floor of square root (largest integer where square <= x)
+        """
         if x == 0 or x == 1:
             return x
         
         left = 1
-        right = x // 2  # sqrt(x) <= x/2 for x >=4
+        right = x // 2  # sqrt(x) <= x/2 for x >= 4
+        result = 0
         
         while left <= right:
             mid = left + (right - left) // 2  # Avoid overflow
@@ -87,29 +135,170 @@ class Solution:
             if mid_squared == x:
                 return mid
             elif mid_squared < x:
-                left = mid + 1
                 result = mid  # Potential candidate
+                left = mid + 1
             else:
                 right = mid - 1
         
         return result
 ```
 
-#### How It Works
-1. **Base Cases**: Handle x=0 and x=1 directly
-2. **Search Range**: For x ≥4, sqrt(x) ≤ x/2
-3. **Binary Search**: Find the largest mid where mid² ≤ x
-4. **Overflow Protection**: Use `left + (right - left) // 2` instead of `(left + right) // 2`
-5. **Result Tracking**: Keep track of the last valid mid
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    int mySqrt(int x) {
+        /**
+         * Compute the integer square root of a non-negative integer.
+         * 
+         * Args:
+         *     x: Non-negative integer
+         * 
+         * Returns:
+         *     Floor of square root (largest integer where square <= x)
+         */
+        if (x == 0 || x == 1) {
+            return x;
+        }
+        
+        int left = 1;
+        int right = x / 2;  // sqrt(x) <= x/2 for x >= 4
+        int result = 0;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;  // Avoid overflow
+            long long midSquared = 1LL * mid * mid;  // Use long long
+            
+            if (midSquared == x) {
+                return mid;
+            } else if (midSquared < x) {
+                result = mid;  // Potential candidate
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return result;
+    }
+};
+```
+
+<!-- slide -->
+```java
+class Solution {
+    public int mySqrt(int x) {
+        /**
+         * Compute the integer square root of a non-negative integer.
+         * 
+         * Args:
+         *     x: Non-negative integer
+         * 
+         * Returns:
+         *     Floor of square root (largest integer where square <= x)
+         */
+        if (x == 0 || x == 1) {
+            return x;
+        }
+        
+        int left = 1;
+        int right = x / 2;  // sqrt(x) <= x/2 for x >= 4
+        int result = 0;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;  // Avoid overflow
+            long midSquared = (long) mid * mid;  // Use long to avoid overflow
+            
+            if (midSquared == x) {
+                return mid;
+            } else if (midSquared < x) {
+                result = mid;  // Potential candidate
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return result;
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+/**
+ * Compute the integer square root of a non-negative integer.
+ * 
+ * @param {number} x - Non-negative integer
+ * @return {number} - Floor of square root
+ */
+var mySqrt = function(x) {
+    if (x === 0 || x === 1) {
+        return x;
+    }
+    
+    let left = 1;
+    let right = Math.floor(x / 2);  // sqrt(x) <= x/2 for x >= 4
+    let result = 0;
+    
+    while (left <= right) {
+        let mid = left + Math.floor((right - left) / 2);  // Avoid overflow
+        let midSquared = mid * mid;
+        
+        if (midSquared === x) {
+            return mid;
+        } else if (midSquared < x) {
+            result = mid;  // Potential candidate
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    
+    return result;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(log n) - Each iteration halves the search space |
+| **Space** | O(1) - Only a few integer variables used |
 
 ---
 
-### Approach 2: Newton-Raphson Method
-A mathematical approximation method that converges quadratically.
+## Approach 2: Newton-Raphson Method
 
+A mathematical approximation method that converges quadratically to the square root.
+
+### Algorithm Steps
+
+1. **Initial Guess**: Start with guess = x
+2. **Iterative Formula**: Use `new_guess = (guess + x/guess) / 2`
+3. **Convergence**: Stop when the guess stops improving
+4. **Integer Result**: Return the integer part
+
+### Why It Works
+
+The Newton-Raphson method finds roots of equations. For sqrt(x), we find the root of f(y) = y² - x = 0. The iterative formula converges quadratically (error decreases exponentially).
+
+### Code Implementation
+
+````carousel
 ```python
 class Solution:
     def mySqrt(self, x: int) -> int:
+        """
+        Compute square root using Newton-Raphson method.
+        
+        Args:
+            x: Non-negative integer
+            
+        Returns:
+            Floor of square root
+        """
         if x == 0:
             return 0
         
@@ -121,20 +310,107 @@ class Solution:
             guess = new_guess
 ```
 
-#### How It Works
-1. **Initial Guess**: Start with guess = x
-2. **Iterative Improvement**: Use formula `new_guess = (guess + x/guess)/2`
-3. **Convergence Check**: Stop when improvement is negligible
-4. **Integer Division**: Use integer division for efficiency
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    int mySqrt(int x) {
+        /**
+         * Compute square root using Newton-Raphson method.
+         */
+        if (x == 0) {
+            return 0;
+        }
+        
+        long long guess = x;
+        while (true) {
+            long long new_guess = (guess + x / guess) / 2;
+            if (new_guess >= guess) {
+                return (int)guess;
+            }
+            guess = new_guess;
+        }
+    }
+};
+```
+
+<!-- slide -->
+```java
+class Solution {
+    public int mySqrt(int x) {
+        /**
+         * Compute square root using Newton-Raphson method.
+         */
+        if (x == 0) {
+            return 0;
+        }
+        
+        long guess = x;
+        while (true) {
+            long newGuess = (guess + x / guess) / 2;
+            if (newGuess >= guess) {
+                return (int)guess;
+            }
+            guess = newGuess;
+        }
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+/**
+ * Compute square root using Newton-Raphson method.
+ * 
+ * @param {number} x - Non-negative integer
+ * @return {number} - Floor of square root
+ */
+var mySqrt = function(x) {
+    if (x === 0) {
+        return 0;
+    }
+    
+    let guess = x;
+    while (true) {
+        let newGuess = Math.floor((guess + Math.floor(x / guess)) / 2);
+        if (newGuess >= guess) {
+            return guess;
+        }
+        guess = newGuess;
+    }
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(log n) - Quadratic convergence |
+| **Space** | O(1) - Constant extra space |
 
 ---
 
-### Approach 3: Brute Force (Not Recommended)
-A simple but inefficient approach for comparison.
+## Approach 3: Brute Force (Not Recommended)
 
+A simple but inefficient approach for comparison purposes.
+
+### Algorithm Steps
+
+1. **Start from 1**: Initialize counter from 1
+2. **Increment**: Check each i until i² > x
+3. **Return Result**: i-1 is the floor of sqrt(x)
+
+### Code Implementation
+
+````carousel
 ```python
 class Solution:
     def mySqrt(self, x: int) -> int:
+        """
+        Compute square root using brute force.
+        NOT RECOMMENDED - Very slow for large x
+        """
         if x == 0:
             return 0
         
@@ -144,33 +420,92 @@ class Solution:
         return i - 1
 ```
 
-#### How It Works
-1. **Incremental Check**: Start from 1 and check each i
-2. **Stop Condition**: When i² exceeds x
-3. **Return Result**: i-1 is the floor of sqrt(x)
+<!-- slide -->
+```cpp
+class Solution {
+public:
+    int mySqrt(int x) {
+        // NOT RECOMMENDED - Very slow for large x
+        if (x == 0) return 0;
+        
+        int i = 1;
+        while (1LL * i * i <= x) {
+            i++;
+        }
+        return i - 1;
+    }
+};
+```
+
+<!-- slide -->
+```java
+class Solution {
+    public int mySqrt(int x) {
+        // NOT RECOMMENDED - Very slow for large x
+        if (x == 0) return 0;
+        
+        int i = 1;
+        while ((long) i * i <= x) {
+            i++;
+        }
+        return i - 1;
+    }
+}
+```
+
+<!-- slide -->
+```javascript
+/**
+ * Compute square root using brute force.
+ * NOT RECOMMENDED - Very slow for large x
+ * 
+ * @param {number} x - Non-negative integer
+ * @return {number} - Floor of square root
+ */
+var mySqrt = function(x) {
+    if (x === 0) return 0;
+    
+    let i = 1;
+    while (i * i <= x) {
+        i++;
+    }
+    return i - 1;
+};
+```
+````
+
+### Complexity Analysis
+
+| Complexity | Description |
+|------------|-------------|
+| **Time** | O(√n) - For x=2^31-1, ~46340 iterations |
+| **Space** | O(1) - Constant extra space |
 
 ---
 
-## Complexity Analysis
+## Comparison of Approaches
 
-### Comparison of Approaches
-| Approach | Time Complexity | Space Complexity | Status |
-|----------|-----------------|------------------|--------|
-| **Binary Search** | O(log n) | O(1) | ✅ **Optimal** |
-| **Newton-Raphson** | O(log n) | O(1) | ✅ Efficient |
-| **Brute Force** | O(sqrt(n)) | O(1) | ❌ Inefficient |
+| Aspect | Binary Search | Newton-Raphson | Brute Force |
+|--------|---------------|---------------|-------------|
+| **Time Complexity** | O(log n) | O(log n) | O(√n) |
+| **Space Complexity** | O(1) | O(1) | O(1) |
+| **Implementation** | Moderate | Moderate | Simple |
+| **Convergence** | Linear | Quadratic | N/A |
+| **LeetCode Optimal** | ✅ Yes | ✅ Yes | ❌ No |
+| **Best For** | General use | Fast convergence | Learning only |
 
-### Binary Search Complexity
-- **Time**: O(log n) - Each iteration halves the search space
-- **Space**: O(1) - Constant extra space
+**Best Approach:** Binary search is recommended for its simplicity, efficiency, and guaranteed O(log n) performance. Newton-Raphson is also excellent but may be less intuitive.
 
-### Newton-Raphson Complexity
-- **Time**: O(log n) - Quadratic convergence
-- **Space**: O(1) - Constant extra space
+---
 
-### Brute Force Complexity
-- **Time**: O(sqrt(n)) - For x=2^31-1, this would take ~46340 steps
-- **Space**: O(1) - Constant extra space
+## Why Binary Search is Optimal for This Problem
+
+1. **Guaranteed Performance**: O(log n) time complexity is guaranteed
+2. **No Overflow Issues**: Using mid = left + (right - left) / 2 prevents overflow
+3. **Simple Implementation**: Easy to understand and implement correctly
+4. **Space Efficient**: O(1) space complexity
+5. **Handles Edge Cases**: Naturally handles x=0, x=1, and large values
+6. **Industry Standard**: Most commonly used approach in interviews
 
 ---
 
@@ -184,10 +519,11 @@ class Solution:
 5. **Maximum Value (2^31-1)**: Returns 46340
 
 ### Common Mistakes
-1. **Integer Overflow**: When calculating mid*mid for large x
-2. **Incorrect Search Range**: Not considering x/2 as upper bound for x ≥4
-3. **Off-by-one Errors**: Forgetting to return mid-1 or similar
-4. **Not Handling Base Cases**: Forgetting x=0 and x=1
+1. **Integer Overflow**: When calculating mid*mid for large x - use long types
+2. **Incorrect Search Range**: Not considering x/2 as upper bound for x ≥ 4
+3. **Off-by-one Errors**: Forgetting to return result after loop ends
+4. **Not Handling Base Cases**: Forgetting x=0 and x=1 return themselves
+5. **Mid Calculation**: Using (left + right) / 2 can overflow for large numbers
 
 ---
 
@@ -210,24 +546,32 @@ class Solution:
 ## Related Problems
 
 ### Same Pattern (Binary Search)
-| Problem | LeetCode # | Difficulty | Description |
-|---------|------------|------------|-------------|
-| [Search Insert Position](/solutions/search-insert-position.md) | 35 | Easy | Find insertion point in sorted array |
-| [First Bad Version](/solutions/first-bad-version.md) | 278 | Easy | Binary search in API-based scenario |
-| [Find Minimum in Rotated Sorted Array](/solutions/find-minimum-in-rotated-sorted-array.md) | 153 | Medium | Modified binary search |
+
+| Problem | LeetCode Link | Difficulty | Description |
+|---------|---------------|------------|-------------|
+| Search Insert Position | [Link](https://leetcode.com/problems/search-insert-position/) | Easy | Find insertion point in sorted array |
+| First Bad Version | [Link](https://leetcode.com/problems/first-bad-version/) | Easy | Binary search in API-based scenario |
+| Find Minimum in Rotated Sorted Array | [Link](https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/) | Medium | Modified binary search |
 
 ### Similar Concepts
-| Problem | LeetCode # | Difficulty | Description |
-|---------|------------|------------|-------------|
-| [Sqrt(x) with Precision](/solutions/sqrtx-precision.md) | - | Medium | Return square root with decimal precision |
-| [Pow(x, n)](/solutions/powx-n.md) | 50 | Medium | Implement exponentiation |
-| [Valid Perfect Square](/solutions/valid-perfect-square.md) | 367 | Easy | Check if number is perfect square |
+
+| Problem | LeetCode Link | Difficulty | Description |
+|---------|---------------|------------|-------------|
+| Valid Perfect Square | [Link](https://leetcode.com/problems/valid-perfect-square/) | Easy | Check if number is perfect square |
+| Pow(x, n) | [Link](https://leetcode.com/problems/powx-n/) | Medium | Implement exponentiation |
+| Cube Root | [Link](https://leetcode.com/problems/find-sqrtx-lcci/) | Medium | Implement cube root |
+
+### Pattern Reference
+
+For more detailed explanations of the Binary Search pattern and its variations, see:
+- **[Binary Search Pattern](/patterns/binary-search)** - Comprehensive pattern guide
 
 ---
 
 ## Video Tutorial Links
 
-### Recommended Tutorials
+### Binary Search Solutions
+
 1. **[Sqrt(x) - Binary Search Solution - NeetCode](https://www.youtube.com/watch?v=j2HSd3HCpDs)**
    - Clear binary search explanation
    - Step-by-step walkthrough
@@ -238,12 +582,13 @@ class Solution:
    - Time and space complexity analysis
    - Code implementation in Python
 
-3. **[Binary Search Explained - Khan Academy](https://www.youtube.com/watch?v=JQhciTuD3E8)**
+3. **[Binary Search Explained](https://www.youtube.com/watch?v=JQhciTuD3E8)**
    - General binary search concepts
    - Visual explanations
    - Beginner-friendly
 
 ### Additional Resources
+
 - **[Binary Search Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/binary-search/)** - Comprehensive guide
 - **[Newton-Raphson Method - Wikipedia](https://en.wikipedia.org/wiki/Newton%27s_method)** - Mathematical background
 - **[LeetCode Discuss](https://leetcode.com/problems/sqrtx/discuss/)** - Community solutions and tips
@@ -252,49 +597,109 @@ class Solution:
 
 ## Follow-up Questions
 
-### Basic Level
-1. **What's the time complexity of binary search approach?**
-   - O(log n)
+### Q1: What's the time complexity of binary search approach?
 
-2. **Why do we use mid = left + (right - left) // 2 instead of (left + right) // 2?**
-   - To avoid integer overflow
+**Answer:** O(log n) - Each iteration halves the search space, so we need at most log₂(x) iterations.
 
-3. **What's the square root of 0?**
-   - 0
+---
 
-### Intermediate Level
-4. **How would you modify the solution to return square root with decimal precision?**
-   - After finding integer part, perform binary search for decimal places
+### Q2: Why do we use mid = left + (right - left) // 2 instead of (left + right) // 2?
 
-5. **How does Newton-Raphson method work for this problem?**
-   - Uses iterative approximation to find square root
+**Answer:** To avoid integer overflow. In languages like Java and C++, adding two large integers can exceed the maximum value. The formula `left + (right - left) // 2` is mathematically equivalent but safer.
 
-6. **What's the maximum x the solution can handle?**
-   - Up to 2^31 - 1 (Python handles big integers, but in other languages might need long)
+---
 
-### Advanced Level
-7. **How would you handle negative numbers?**
-   - The problem states x is non-negative, so we don't need to handle it
+### Q3: What's the square root of 0?
 
-8. **What if you need to compute cube roots instead of square roots?**
-   - Modify the condition to mid^3 <= x
+**Answer:** 0. This is handled as a base case at the beginning of the solution.
 
-9. **How does this relate to finding perfect squares?**
-   - If mid^2 == x, then x is a perfect square
+---
 
-### Practical Implementation Questions
-10. **How would you test this solution?**
-    - Test all edge cases, perfect squares, and large numbers
+### Q4: How would you modify the solution to return square root with decimal precision?
 
-11. **What if x is given as a very large integer (1000+ digits)?**
-    - Use string-based or arbitrary precision arithmetic
+**Answer:** After finding the integer part, perform another binary search for decimal places. For example, to get 2 decimal places, search for the value that when squared gives x * 100.
 
-12. **How would you optimize for very large inputs?**
-    - Binary search is already optimal for this problem
+---
+
+### Q5: How does Newton-Raphson method work for this problem?
+
+**Answer:** It uses iterative approximation. Starting with guess = x, each iteration uses the formula: new_guess = (guess + x/guess) / 2. This converges quadratically to the square root.
+
+---
+
+### Q6: What's the maximum x the solution can handle?
+
+**Answer:** Up to 2^31 - 1 (2147483647). In Python, big integers are handled automatically. In Java/C++, use long types to avoid overflow when calculating mid*mid.
+
+---
+
+### Q7: How would you handle negative numbers?
+
+**Answer:** The problem states x is non-negative, so we don't need to handle negatives. For negative inputs, we'd need to return NaN or throw an error.
+
+---
+
+### Q8: What if you need to compute cube roots instead of square roots?
+
+**Answer:** Modify the condition to check mid³ <= x instead of mid² <= x. The search range would be [0, x] for positive x.
+
+---
+
+### Q9: How does this relate to finding perfect squares?
+
+**Answer:** If mid² == x during the search, then x is a perfect square. You can add a check to return mid immediately when found.
+
+---
+
+### Q10: How would you test this solution?
+
+**Answer:** Test with edge cases: 0, 1, 2, 3, 4, 8, 16, 100, 2147483647. Also test perfect squares and non-perfect squares to verify correct truncation behavior.
+
+---
+
+### Q11: What if x is given as a very large integer (1000+ digits)?
+
+**Answer:** For extremely large numbers, use string-based arithmetic or arbitrary precision libraries. The binary search still works but requires custom big integer operations.
+
+---
+
+### Q12: How would you optimize for very large inputs?
+
+**Answer:** Binary search is already optimal for this problem with O(log n) time. For practical purposes, the maximum 32-bit integer only needs about 31 iterations.
+
+---
+
+## Common Pitfalls
+
+### 1. Integer Overflow
+**Issue**: When calculating mid*mid for large x, the result can overflow 32-bit integer.
+
+**Solution**: Use long/long long types in Java/C++ or use the formula `mid <= x / mid` instead of `mid * mid <= x`.
+
+### 2. Wrong Search Range
+**Issue**: Using [0, x] as search range is correct but inefficient for large x.
+
+**Solution**: For x ≥ 4, sqrt(x) ≤ x/2, so use [1, x//2] as the search range.
+
+### 3. Off-by-one Errors
+**Issue**: Returning wrong value when loop ends.
+
+**Solution**: Keep track of result during the search and return it after the loop completes.
+
+### 4. Base Cases Not Handled
+**Issue**: Forgetting to handle x = 0 and x = 1.
+
+**Solution**: Add base case checks at the beginning of the function.
+
+### 5. Mid Calculation Overflow
+**Issue**: Using (left + right) / 2 can overflow.
+
+**Solution**: Use left + (right - left) / 2.
 
 ---
 
 ## Summary
+
 The **Sqrt(x)** problem is a classic binary search problem that requires:
 
 1. **Binary Search Application**: Use binary search to find square roots efficiently
@@ -303,3 +708,22 @@ The **Sqrt(x)** problem is a classic binary search problem that requires:
 4. **Overflow Protection**: Prevent integer overflow in calculations
 
 The binary search approach is the most efficient solution with O(log n) time complexity, making it suitable for very large values of x up to 2^31 - 1. The Newton-Raphson method is also efficient and converges very quickly, though it may be less intuitive for beginners.
+
+### Pattern Summary
+
+This problem exemplifies the **Binary Search** pattern for finding floor values, which is characterized by:
+- Monotonically increasing search space
+- Halving the search space in each iteration
+- O(log n) time complexity
+- O(1) space complexity
+
+For more details on this pattern and its variations, see the **[Binary Search Pattern](/patterns/binary-search)**.
+
+---
+
+## Additional Resources
+
+- [LeetCode Problem 69](https://leetcode.com/problems/sqrtx/) - Official problem page
+- [Binary Search - GeeksforGeeks](https://www.geeksforgeeks.org/binary-search/) - Detailed explanation
+- [Newton's Method - Wikipedia](https://en.wikipedia.org/wiki/Newton%27s_method) - Mathematical background
+- [Pattern: Binary Search](/patterns/binary-search) - Comprehensive pattern guide

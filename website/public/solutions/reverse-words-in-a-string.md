@@ -1,12 +1,16 @@
-# Reverse Words in a String
+# 
 
-## Problem Statement
+## Pattern: Two Pointers / String Manipulation
+
+Reverse Words in a String
+
+## Problem Description
 
 Given an input string `s`, reverse the order of the words. A word is defined as a sequence of non-space characters. The input string may contain leading or trailing spaces, and there may be multiple spaces between words. The output string should have a single space between each word and no leading or trailing spaces.
 
 **Link to problem:** [Reverse Words in a String](https://leetcode.com/problems/reverse-words-in-a-string/)
 
-**Constraints:**
+## Constraints
 - `1 <= s.length <= 10^4`
 - `s` consists of English letters (both uppercase and lowercase), digits, and spaces `' '`
 - `s` may contain leading or trailing spaces, or multiple consecutive spaces
@@ -20,7 +24,7 @@ Given an input string `s`, reverse the order of the words. A word is defined as 
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -102,22 +106,22 @@ s = "Alice"
 
 The problem requires reversing the order of words in a string while also handling extra spaces. There are several intuitive approaches:
 
-### Approach 1: Built-in Split and Join (Most Straightforward)
+## Approach 1: Built-in Split and Join (Most Straightforward)
 
 The simplest approach uses the programming language's built-in string manipulation functions to split the string into words, reverse the list, and join them back with single spaces.
 
-### Approach 2: Two-pointer In-place Reversal
+## Approach 2: Two-pointer In-place Reversal
 
 A more algorithmic approach that:
 1. Removes extra spaces by shifting characters
 2. Reverses the entire string
 3. Reverses each individual word back to correct orientation
 
-### Approach 3: Stack-based Approach
+## Approach 3: Stack-based Approach
 
 Uses a stack (or similar data structure) to collect words and then reverses the order by popping them off.
 
-### Approach 4: Manual Word Extraction
+## Approach 4: Manual Word Extraction
 
 Manually parses the string character by character, extracting words and building the result in reverse order.
 
@@ -998,7 +1002,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you reverse words in-place if the string is stored as a mutable array?
 
@@ -1074,6 +1078,20 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 - Time: O(n)
 - Space: O(n) for the character array (required for in-place operations in most languages)
 - Additional space: O(1) for pointers/indices
+
+---
+
+## Common Pitfalls
+
+### Common Mistakes to Avoid
+
+1. **Not handling multiple spaces**: The input may have extra spaces that need to be trimmed
+
+2. **In-place vs new string**: Understand whether you need to modify in-place or return a new string
+
+3. **Word boundary detection**: Be careful when identifying where words start and end
+
+4. **Language-specific methods**: Some languages have built-in methods that make this trivial
 
 ---
 

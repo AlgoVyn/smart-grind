@@ -1,12 +1,12 @@
 # Sliding Window Maximum
 
-## Problem Statement
+## Problem Description
 
 Given an integer array `nums` and an integer `k`, return the maximum value in each sliding window of size `k` as the window slides from left to right across the array.
 
 **Link to problem:** [Sliding Window Maximum](https://leetcode.com/problems/sliding-window-maximum/)
 
-**Constraints:**
+## Constraints
 - `1 <= nums.length <= 10^5`
 - `-10^4 <= nums[i] <= 10^4`
 - `1 <= k <= nums.length`
@@ -21,7 +21,7 @@ Given an integer array `nums` and an integer `k`, return the maximum value in ea
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -123,6 +123,28 @@ nums = [1, -1], k = 1
 ```
 
 **Explanation:** Each window has size 1, so maximum is the element itself.
+
+---
+
+## Pattern: Monotonic Deque - Sliding Window Maximum
+
+This problem demonstrates the **Monotonic Deque** pattern (also known as sliding window maximum/minimum). The pattern uses a deque to maintain elements in monotonic (increasing or decreasing) order.
+
+### Core Concept
+
+- **Monotonic Decreasing Deque**: Elements are maintained in decreasing order, so the front always contains the maximum
+- **Two Key Operations**:
+  1. Remove elements smaller than current (they can never be maximums)
+  2. Remove elements outside the current window
+- **O(n) Time**: Each element is added and removed at most once
+
+### When to Use This Pattern
+
+This pattern applies when:
+- Finding maximum/minimum in each sliding window
+- Problems requiring monotonic queue maintenance
+- Time series analysis with moving averages
+- Problems with "next greater/smaller element" patterns
 
 ---
 
@@ -860,7 +882,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: How would you modify the solution to find the minimum instead of maximum?
 
@@ -941,6 +963,25 @@ These operations ensure the front is always the maximum of the current window.
 ### Q12: What if we need to find the k-th largest element in each window?
 
 **Answer:** This is a harder problem requiring order statistic trees or specialized data structures like Fenwick trees with coordinate compression. The monotonic deque approach won't work directly. Solutions typically involve maintaining multiple deques or using segment trees.
+
+---
+
+## Common Pitfalls
+
+### 1. Using Values Instead of Indices in Deque
+A common mistake is storing values in the deque instead of indices. Always store indices so you can check if elements are outside the window.
+
+### 2. Not Handling Out-of-Window Elements
+When sliding the window, you must remove elements from the front whose indices are less than `i - k + 1`. Not doing this causes incorrect maximums.
+
+### 3. Wrong Comparison for Removal
+Using `<` instead of `<=` when removing smaller elements from the back can cause issues with duplicate values. Use `<=` to ensure proper handling of duplicates.
+
+### 4. Starting Results Too Early
+Make sure to only add results when `i >= k - 1`, i.e., when you have a complete window of size k.
+
+### 5. Not Clearing Deque for Edge Cases
+For empty arrays or k=0, return an empty result immediately without processing.
 
 ---
 

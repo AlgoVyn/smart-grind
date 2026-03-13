@@ -17,8 +17,7 @@ You are given `n` balloons, each with a number written on it. When you burst a b
 
 After bursting a balloon, the adjacent balloons become neighbors. You need to burst all balloons in some order to maximize your total coins.
 
-### Key Constraints
-
+## Constraints
 | Constraint | Description | Importance |
 |------------|-------------|------------|
 | `1 <= nums.length <= 500` | Number of balloons | DP must be O(n²) or better |
@@ -105,6 +104,13 @@ Step 4: Burst index 0 (value 8)
 Total = 120 + 24 + 24 + 8 = 167
 ```
 
+## Constraints
+
+| Constraint | Description |
+|------------|-------------|
+| `1 <= nums.length <= 500` | Number of balloons - ensures O(n²) solution is needed |
+| `-100 <= nums[i] <= 100` | Balloon values include negative numbers |
+
 ---
 
 ## Intuition
@@ -142,9 +148,37 @@ Where nums[i-1] and nums[j+1] are the neighbors when bursting k last
 
 ---
 
+## Pattern: Dynamic Programming - Interval/Range DP
+
+### Core Concept
+
+The Burst Balloons problem demonstrates the **Interval Dynamic Programming** pattern. This pattern solves optimization problems by considering subintervals:
+
+1. **Reverse Thinking**: Think about which balloon to burst LAST instead of first
+2. **Interval Division**: When bursting balloon k last, problem splits into left and right subintervals
+3. **Virtual Boundaries**: Add 1s at edges to handle boundary cases uniformly
+
+### When to Use This Pattern
+
+This pattern applies when:
+- Problem involves optimizing over ranges or intervals
+- Decision at one point affects subproblems on both sides
+- Need to find optimal ordering of operations
+- Problems like stone merging, matrix chain multiplication
+
+### Alternative Patterns
+
+| Alternative Pattern | Use Case |
+|---------------------|----------|
+| **1D DP** | When only sequential dependency exists |
+| **2D Grid DP** | When two dimensions need tracking |
+| **Memoized Recursion** | When top-down is more intuitive |
+
+---
+
 ## Solution Approaches
 
-### Approach 1: Interval Dynamic Programming (Optimal) ✅ Recommended
+## Approach 1: Interval Dynamic Programming (Optimal) ✅ Recommended
 
 This is the optimal solution that achieves O(n²) time complexity using dynamic programming over intervals.
 
@@ -345,7 +379,7 @@ Step 4: Final answer dp[1][4] = 167
 
 ---
 
-### Approach 2: Memoized Recursion (Top-Down DP)
+## Approach 2: Memoized Recursion (Top-Down DP)
 
 This approach uses recursion with memoization to avoid recalculating subproblems.
 
@@ -521,7 +555,7 @@ var maxCoins = function(nums) {
 
 ---
 
-### Approach 3: Optimized Space DP (1D DP)
+## Approach 3: Optimized Space DP (1D DP)
 
 This approach optimizes space by using a 1D array instead of 2D DP table.
 
@@ -711,7 +745,7 @@ var maxCoins = function(nums) {
 
 ---
 
-## Edge Cases and Common Pitfalls
+## Common Pitfalls
 
 ### Edge Cases to Consider
 

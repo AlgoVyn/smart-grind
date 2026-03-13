@@ -1,6 +1,10 @@
-# Remove Duplicates from Sorted Array
+# 
 
-## Problem Statement
+## Pattern: Two Pointers / In-place Modification
+
+Remove Duplicates from Sorted Array
+
+## Problem Description
 
 Given a sorted array `nums` in non-decreasing order, remove the duplicates in-place such that each unique element appears only once. The relative order of the elements should be preserved.
 
@@ -8,7 +12,7 @@ Return the new length of the array after removing duplicates.
 
 **Link to problem:** [Remove Duplicates from Sorted Array](https://leetcode.com/problems/remove-duplicates-from-sorted-array/)
 
-**Constraints:**
+## Constraints
 - `1 <= nums.length <= 10^4`
 - `-100 <= nums[i] <= 100`
 - `nums` is sorted in non-decreasing order
@@ -22,7 +26,7 @@ Return the new length of the array after removing duplicates.
 
 ## Examples
 
-### Example 1
+### Example
 
 **Input:**
 ```
@@ -90,7 +94,7 @@ nums = [1,2,3,4,5]
 
 The key insight is that since the array is already sorted, all duplicate elements will be adjacent to each other. This means we can use a two-pointer approach (or more precisely, a pointer to track the position where the next unique element should be placed) to solve this problem efficiently in a single pass.
 
-### Approach 1: Two Pointers (Fast and Slow)
+## Approach 1: Two Pointers (Fast and Slow)
 
 The most common and optimal solution uses two pointers:
 - **Slow pointer (`write_ptr`)**: Points to the position where the next unique element should be placed
@@ -104,11 +108,11 @@ The most common and optimal solution uses two pointers:
 5. Increment `write_ptr` and place the new element at that position
 6. Return `write_ptr + 1` (the count of unique elements)
 
-### Approach 2: Single Pass with Direct Placement
+## Approach 2: Single Pass with Direct Placement
 
 A slightly more direct approach where we simply skip duplicates and overwrite positions as we find unique elements.
 
-### Approach 3: Using Set (Not In-Place)
+## Approach 3: Using Set (Not In-Place)
 
 A straightforward approach using a hash set to track unique elements, then placing them back. This doesn't meet the O(1) extra space requirement but is easy to understand.
 
@@ -998,7 +1002,7 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 
 ---
 
-## Followup Questions
+## Follow-up Questions
 
 ### Q1: Why do we start the slow pointer at index 0 instead of 1?
 
@@ -1061,6 +1065,20 @@ Here are some helpful YouTube tutorials explaining the problem and solutions:
 ### Q10: How would you modify this to work with a doubly linked list instead of an array?
 
 **Answer:** For a doubly linked list, you would traverse from the head and compare each node with the previous unique node. When you find a new unique node, you would update the `next` pointer of the last unique node to skip duplicates. Since linked lists support dynamic insertion, you don't need to overwrite values like in arrays.
+
+---
+
+## Common Pitfalls
+
+### Common Mistakes to Avoid
+
+1. **Not returning the correct length**: The problem requires returning the new length, not modifying the input length
+
+2. **Using extra space**: The solution should be in-place without using extra data structures
+
+3. **Incorrect index tracking**: Keep track of where to write the next unique element
+
+4. **Not handling edge cases**: Empty arrays and single element arrays should work correctly
 
 ---
 

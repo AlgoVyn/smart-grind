@@ -21,9 +21,19 @@ class Node:
 
 ---
 
+## Constraints
+
+- `1 <= val <= 100` (node values are 1-indexed)
+- Node values are unique across the graph
+- Graph is connected (all nodes reachable from start)
+- Number of nodes is in the range [1, 100]
+- The graph may contain cycles
+
+---
+
 ## Examples
 
-### Example 1
+### Example
 
 **Input**: A graph with 4 nodes forming a cycle
 ```python
@@ -91,9 +101,37 @@ We can traverse the graph using either **DFS** (recursively or iteratively with 
 
 ---
 
+## Pattern: Graph Traversal - Deep Copy with Hash Map
+
+### Core Concept
+
+The Clone Graph problem demonstrates the **Graph Deep Copy with Hash Map** pattern. This pattern is essential for cloning data structures that contain cycles:
+
+1. **Hash Map Tracking**: Map original nodes to cloned nodes to handle cycles
+2. **Traversal**: Use DFS or BFS to visit each node exactly once
+3. **Two-phase Process**: First create all nodes, then establish all connections
+
+### When to Use This Pattern
+
+This pattern applies when:
+- Cloning graphs or trees with potential cycles
+- Need to create independent copy of graph structure
+- Problems involving linked list/tree cloning with random pointers
+- Any structure where nodes reference other nodes
+
+### Alternative Patterns
+
+| Alternative Pattern | Use Case |
+|---------------------|----------|
+| **Serialization** | When graph is acyclic (DAG) |
+| **In-place Modification** | When original can be modified temporarily |
+| **Reference Counting** | For directed acyclic graphs |
+
+---
+
 ## Multiple Approaches with Code
 
-### Approach 1: Recursive DFS (Depth-First Search)
+## Approach 1: Recursive DFS (Depth-First Search)
 
 This approach uses recursion to traverse the graph depth-first. For each node, we:
 1. Check if it's already cloned (return existing clone)
@@ -311,7 +349,7 @@ var cloneGraph = function(node) {
 
 ---
 
-### Approach 2: Iterative DFS (Using Stack)
+## Approach 2: Iterative DFS (Using Stack)
 
 This approach is similar to recursive DFS but uses an explicit stack instead of the call stack. It's useful when recursion depth might be a concern (though with n ≤ 100, this is rarely an issue).
 
@@ -543,7 +581,7 @@ var cloneGraph = function(node) {
 
 ---
 
-### Approach 3: BFS (Breadth-First Search)
+## Approach 3: BFS (Breadth-First Search)
 
 This approach uses a queue for breadth-first traversal. It processes nodes level by level, which can be more intuitive for some and ensures we clone nodes in order of their distance from the start.
 
@@ -868,4 +906,50 @@ For visual explanations and step-by-step tutorials, here are recommended YouTube
 ## LeetCode Link
 
 [Clone Graph - LeetCode 133](https://leetcode.com/problems/clone-graph/)
+
+---
+
+## Summary
+
+The **Clone Graph** problem demonstrates the **graph deep copy** pattern using hash maps:
+
+- **Hash map tracking**: Maps original nodes to cloned nodes to handle cycles
+- **DFS or BFS traversal**: Visit each node and its neighbors exactly once
+- **Time complexity**: O(V + E) - optimal since we must visit every node and edge
+- **Space complexity**: O(V) for the hash map plus recursion/stack queue
+
+Key insights:
+1. Use a hash map to track already-cloned nodes to avoid infinite loops in cyclic graphs
+2. Create clone before recursing to handle self-loops
+3. All three approaches (recursive DFS, iterative DFS, BFS) have the same complexity
+4. The hash map is essential - you cannot clone without it when cycles exist
+
+This pattern extends to:
+- Clone linked lists with random pointers
+- Clone trees with random pointers
+- Clone any graph structure with cycles
+
+---
+
+## Common Pitfalls
+
+### 1. Not Creating Clone Before Recursing
+**Issue:** Creating clone after recursive call can cause infinite loops with self-loops.
+
+**Solution:** Create the clone node and add to hash map BEFORE making recursive calls.
+
+### 2. Forgetting to Handle Null Input
+**Issue:** Not checking for null/None node at the start.
+
+**Solution:** Return null immediately if input node is None/null.
+
+### 3. Shallow Copy Instead of Deep Copy
+**Issue:** Creating new node objects but sharing neighbor lists.
+
+**Solution:** Ensure each cloned node has its own neighbors list populated with cloned neighbors.
+
+### 4. Not Adding Neighbor to Clone
+**Issue:** Forgetting to add cloned neighbor to current clone's neighbors list.
+
+**Solution:** Always append the cloned neighbor (from hash map) to the clone's neighbors.
 
