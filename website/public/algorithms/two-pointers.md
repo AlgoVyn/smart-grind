@@ -120,7 +120,7 @@ Continue until: [1, 2, 3, 4]
 - **Reduces space complexity** to O(1) for most problems
 - Both pointers only move forward or toward each other - never restart
 - Each element is visited at most once - optimal for linear scan
-```
+
 
 ### Works best on **sorted arrays** - monotonicity enables predictable pointer movement
 - **Eliminates nested loops** - reduces O(n²) to O(n)
@@ -1083,7 +1083,7 @@ const nums4 = [-1, 0, 1, 2, -1, -4];
 console.log('Three sum to 0:', threeSum(nums4, 0));
 // [[-1, -1, 2], [-1, 0, 1]]
 ```
-`````
+````
 
 ---
 
