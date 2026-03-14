@@ -28,6 +28,19 @@ export default {
 
     const response = await fetch(newRequest);
     
+    // Cache bypass for index.html - ensure always fresh
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+      const headers = new Headers(response.headers);
+      headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      headers.set('Pragma', 'no-cache');
+      headers.set('Expires', '0');
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: headers
+      });
+    }
+    
     return response;
   },
 };
