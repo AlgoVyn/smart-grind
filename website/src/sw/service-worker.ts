@@ -382,6 +382,15 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
                     // Bundle download failed, will retry later
                 });
 
+                // Clear any existing interval to prevent accumulation when SW updates
+                if (bundleCheckIntervalId !== null) {
+                    clearInterval(bundleCheckIntervalId);
+                    bundleCheckIntervalId = null;
+                }
+
+                // Schedule periodic bundle version checks
+                scheduleBundleChecks();
+
                 // Save current inventory
                 await saveCacheInventory({
                     version: SW_VERSION,
@@ -1297,10 +1306,37 @@ function getBundleRetryDelay(attempt: number): number {
 }
 
 /**
- * Check if bundle needs to be downloaded and download it in background
- * This is called automatically when SW activates
- * Implements exponential backoff for failed downloads
+ * Schedule periodic checks for bundle updates
+ * This ensures users get new bundles even without page refresh
  */
+let bundleCheckIntervalId: number | null = null;
+
+function scheduleBundleChecks(): void {
+    // Skip in development mode
+    if (isDev) {
+        console.log('[SW] Skipping periodic bundle checks in development mode');
+        return;
+    }
+
+    // Check for bundle updates every 15 minutes
+    const CHECK_INTERVAL = 15 * 60 * 1000;
+
+    // Clear any existing interval to prevent accumulation
+    if (bundleCheckIntervalId !== null) {
+        clearInterval(bundleCheckIntervalId);
+    }
+
+    bundleCheckIntervalId = self.setInterval(async () => {
+        try {
+            await checkAndDownloadBundle();
+        } catch (_error) {
+            // Silent failure - will retry next interval
+            console.log('[SW] Periodic bundle check failed, will retry');
+        }
+    }, CHECK_INTERVAL);
+
+    console.log('[SW] Periodic bundle checks scheduled (every 15 minutes)');
+}
 async function checkAndDownloadBundle(retryAttempt = 0): Promise<void> {
     // Skip in development mode
     if (isDev) {
@@ -1310,6 +1346,12 @@ async function checkAndDownloadBundle(retryAttempt = 0): Promise<void> {
     try {
         // Check if we already have a cached bundle
         const currentState = await getBundleStatus();
+
+        // Skip if download is already in progress (prevent race conditions)
+        if (currentState.status === 'downloading' || currentState.status === 'extracting') {
+            console.log('[SW] Bundle download already in progress, skipping');
+            return;
+        }
 
         // Fetch the manifest to check version
         const manifestResponse = await fetch(BUNDLE_MANIFEST_URL).catch((error) => {
@@ -1563,12 +1605,20 @@ async function downloadAndExtractBundle(): Promise<void> {
             `[SW] Compressed bundle downloaded and extracted successfully: ${state.extractedFiles} files (version: ${state.bundleVersion})`
         );
 
-        // Notify clients that bundle is ready
+        // Notify clients that new content is available - let user decide when to reload
         const clients = await self.clients.matchAll({ type: 'window' });
         clients.forEach((client) => {
             client.postMessage({
                 type: 'BUNDLE_READY',
                 state,
+            });
+            // Send CONTENT_UPDATE instead of FORCE_RELOAD to let user choose when to reload
+            client.postMessage({
+                type: 'CONTENT_UPDATE',
+                data: {
+                    version: state.bundleVersion,
+                    reason: 'New offline content available',
+                },
             });
         });
     } catch (error) {

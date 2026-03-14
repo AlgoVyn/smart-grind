@@ -415,6 +415,36 @@ function handleSWMessage(event: MessageEvent): void {
             emit('bundleReady', data);
             break;
 
+        case 'CONTENT_UPDATE':
+            // New offline content available - notify user but don't force reload
+            // This gives user a chance to save any unsaved work before reloading
+            console.log('[SW] New content available:', data.reason);
+            emit('contentUpdate', {
+                version: data.version,
+                reason: data.reason,
+            });
+            break;
+
+        case 'FORCE_RELOAD': {
+            // Check if we recently reloaded to prevent reload loops
+            const lastReload = sessionStorage.getItem('sw-last-reload');
+            const RELOAD_COOLDOWN = 60000; // 1 minute cooldown
+            if (lastReload && Date.now() - parseInt(lastReload, 10) < RELOAD_COOLDOWN) {
+                console.log('[SW] Skipping reload - recently reloaded');
+                emit('contentUpdate', {
+                    version: data.version,
+                    reason: 'Reload skipped - recently reloaded',
+                });
+                break;
+            }
+            // Mark reload timestamp before reloading
+            sessionStorage.setItem('sw-last-reload', Date.now().toString());
+            // New offline content available - force reload to get fresh content
+            console.log('[SW] New content available, reloading...');
+            window.location.reload();
+            break;
+        }
+
         case 'SYNC_AUTH_REQUIRED':
         case 'AUTH_REQUIRED':
             // Authentication failed in background sync - notify clients

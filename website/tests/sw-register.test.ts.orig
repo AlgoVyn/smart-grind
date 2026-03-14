@@ -1337,8 +1337,8 @@ describe('Service Worker Registration Module', () => {
             // Set sessionStorage to return null (no recent reload)
             mockSessionStorage.getItem.mockReturnValue(null);
 
-            // Note: Cannot spy on window.location.reload in jsdom due to read-only property
-            // Instead, verify the console output and sessionStorage.setItem were called
+            // Spy on window.location.reload
+            const locationReloadSpy = jest.spyOn(window.location, 'reload');
 
             // Get the message handler from navigator.serviceWorker.addEventListener
             const serviceWorkerAddEventListener = (navigator.serviceWorker as any).addEventListener;
@@ -1362,6 +1362,7 @@ describe('Service Worker Registration Module', () => {
 
             // Should trigger reload
             expect(consoleSpy).toHaveBeenCalledWith('[SW] New content available, reloading...');
+            expect(locationReloadSpy).toHaveBeenCalled();
             // Should have set the reload timestamp
             expect(mockSessionStorage.setItem).toHaveBeenCalledWith(
                 'sw-last-reload',
@@ -1369,6 +1370,7 @@ describe('Service Worker Registration Module', () => {
             );
 
             consoleSpy.mockRestore();
+            locationReloadSpy.mockRestore();
             unsubscribe();
         });
     });
