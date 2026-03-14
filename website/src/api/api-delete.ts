@@ -113,8 +113,9 @@ export const _restoreOriginalState = (originalState: {
     deletedProblemIds: Set<string>;
     activeTopicId: string;
 }) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data.topicsData = originalState.topicsData as unknown as typeof data.topicsData;
+    // Clear and repopulate to maintain reference (don't reassign data.topicsData)
+    data.topicsData.length = 0;
+    data.topicsData.push(...originalState.topicsData);
     state.problems = originalState.problems;
     state.deletedProblemIds = originalState.deletedProblemIds;
     state.ui.activeTopicId = originalState.activeTopicId;

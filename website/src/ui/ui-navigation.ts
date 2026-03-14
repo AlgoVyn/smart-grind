@@ -39,6 +39,24 @@ export const bindNavigationEvents = () => {
         });
     }
 
+    // Clear filters button (empty state)
+    const clearFiltersBtn = document.getElementById('clear-filters-btn');
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            const problemSearch = state.elements['problemSearch'] as HTMLInputElement | null;
+            if (problemSearch) {
+                problemSearch.value = '';
+            }
+            state.ui.currentFilter = 'all';
+            renderers.updateFilterBtns();
+            if (state.ui.activeAlgorithmCategoryId) {
+                renderers.renderAlgorithmsView(state.ui.activeAlgorithmCategoryId);
+            } else {
+                renderers.renderMainView(state.ui.activeTopicId);
+            }
+        });
+    }
+
     // Review date filter
     const reviewDateFilter = state.elements['reviewDateFilter'];
     if (reviewDateFilter) {

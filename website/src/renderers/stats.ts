@@ -153,7 +153,7 @@ export const statsRenderers = {
             const stats = topicId ? statsCache.get(topicId) : null;
             if (stats) {
                 const pct = stats.total > 0 ? Math.round((stats.solved / stats.total) * 100) : 0;
-                statsRenderers._updateButtonPercentage(htmlBtn, pct);
+                statsRenderers._updateButtonPercentage(htmlBtn, pct, stats.total);
             }
         });
 
@@ -162,14 +162,22 @@ export const statsRenderers = {
     },
 
     // Helper to update percentage span on a button
-    _updateButtonPercentage: (btn: HTMLElement, pct: number) => {
-        const pctSpan = btn.querySelector('span:last-child');
+    _updateButtonPercentage: (btn: HTMLElement, pct: number, total?: number) => {
+        // Find the percentage span using the specific class
+        const pctSpan = btn.querySelector('.sidebar-stat-pct');
         if (pctSpan) {
             pctSpan.textContent = `${pct}%`;
             pctSpan.className =
                 pct === 100
-                    ? 'text-[10px] text-green-400 font-mono min-w-[24px] text-right transition-colors'
-                    : 'text-[10px] text-theme-muted group-hover:text-theme-base font-mono min-w-[24px] text-right transition-colors';
+                    ? 'sidebar-stat-pct text-[10px] text-green-400 font-mono min-w-[24px] text-right transition-colors'
+                    : 'sidebar-stat-pct text-[10px] text-theme-muted group-hover:text-theme-base font-mono min-w-[24px] text-right transition-colors';
+        }
+        // Update total count if provided
+        if (total !== undefined) {
+            const totalSpan = btn.querySelector('.sidebar-stat-total');
+            if (totalSpan) {
+                totalSpan.textContent = `${total}`;
+            }
         }
     },
 
@@ -183,7 +191,7 @@ export const statsRenderers = {
 
             const stats = statsRenderers._getAlgorithmCategoryStats(categoryId);
             const pct = stats.total > 0 ? Math.round((stats.solved / stats.total) * 100) : 0;
-            statsRenderers._updateButtonPercentage(htmlBtn, pct);
+            statsRenderers._updateButtonPercentage(htmlBtn, pct, stats.total);
         });
     },
 

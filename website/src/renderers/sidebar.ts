@@ -6,6 +6,7 @@ import { state } from '../state';
 import { data } from '../data';
 import { updateUrlParameter, scrollToTop, getUniqueProblemsForTopic } from '../utils';
 import { AlgorithmCategory } from '../data/algorithms-data';
+import { ICONS } from './icons';
 
 export const sidebarRenderers = {
     // Render sidebar navigation (consolidated click handlers)
@@ -137,10 +138,16 @@ export const sidebarRenderers = {
         const pctClass = pct === 100 ? 'text-green-400' : 'text-theme-muted';
         return `
             <div class="flex items-center gap-3 shrink-0">
-                <span class="text-[10px] font-mono text-theme-muted bg-dark-800 px-2 py-0.5 rounded border border-transparent">${total}</span>
-                <span class="text-[10px] ${pctClass} font-mono min-w-[24px] text-right">${pct}%</span>
+                <span class="sidebar-stat-total text-[10px] font-mono text-theme-muted bg-dark-800 px-2 py-0.5 rounded border border-transparent">${total}</span>
+                <span class="sidebar-stat-pct text-[10px] ${pctClass} font-mono min-w-[24px] text-right">${pct}%</span>
             </div>
         `;
+    },
+
+    // Get icon for a topic
+    getTopicIcon: (topicId: string): string => {
+        const icon = ICONS.topicIcons[topicId as keyof typeof ICONS.topicIcons];
+        return icon || ICONS.topicIcons.default;
     },
 
     // Create a topic button for sidebar
@@ -149,12 +156,16 @@ export const sidebarRenderers = {
         btn.type = 'button';
         const isActive =
             state.ui.activeTopicId === topicId || (!state.ui.activeTopicId && topicId === 'all');
-        btn.className = `sidebar-link ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
+        btn.className = `sidebar-link ${isActive ? 'active' : ''} w-full text-left px-3 py-3 text-sm font-medium text-theme-base transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
         btn.dataset['topicId'] = topicId;
 
         const stats = getUniqueProblemsForTopic(topicId);
+        const icon = sidebarRenderers.getTopicIcon(topicId);
         btn.innerHTML = `
-            <span class="truncate mr-2">${title}</span>
+            <span class="flex items-center min-w-0 flex-1 overflow-hidden">
+                ${icon}
+                <span class="truncate ml-2 sidebar-btn-text">${title}</span>
+            </span>
             ${sidebarRenderers._generateProgressHTML(stats.total, stats.solved)}
         `;
 
@@ -166,7 +177,7 @@ export const sidebarRenderers = {
         const btn = document.createElement('button');
         btn.type = 'button';
         const isActive = state.ui.activeAlgorithmCategoryId === category.id;
-        btn.className = `sidebar-algorithm-category ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base transition-colors flex justify-between items-center group cursor-pointer`;
+        btn.className = `sidebar-algorithm-category ${isActive ? 'active' : ''} w-full text-left px-3 py-3 text-sm font-medium text-theme-base transition-colors flex justify-between items-center group cursor-pointer`;
         btn.dataset['categoryId'] = category.id;
 
         // Calculate progress for this category
@@ -174,8 +185,12 @@ export const sidebarRenderers = {
             (algo) => state.problems.get(algo.id)?.status === 'solved'
         ).length;
 
+        const icon = ICONS.getAlgorithmCategoryIcon(category.id);
         btn.innerHTML = `
-            <span class="truncate mr-2">${category.title}</span>
+            <span class="flex items-center min-w-0 flex-1 overflow-hidden">
+                ${icon}
+                <span class="truncate ml-2 sidebar-btn-text">${category.title}</span>
+            </span>
             ${sidebarRenderers._generateProgressHTML(category.algorithms.length, solved)}
         `;
 
@@ -187,7 +202,7 @@ export const sidebarRenderers = {
         const btn = document.createElement('button');
         btn.type = 'button';
         const isActive = state.ui.activeAlgorithmCategoryId === 'all';
-        btn.className = `sidebar-algorithm-category ${isActive ? 'active' : ''} w-full text-left px-5 py-3 text-sm font-medium text-theme-base transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
+        btn.className = `sidebar-algorithm-category ${isActive ? 'active' : ''} w-full text-left px-3 py-3 text-sm font-medium text-theme-base transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer`;
         btn.dataset['categoryId'] = 'all';
 
         // Calculate progress for all algorithms
@@ -204,8 +219,12 @@ export const sidebarRenderers = {
             { total: 0, solved: 0 }
         );
 
+        const icon = ICONS.topicIcons.algorithms;
         btn.innerHTML = `
-            <span class="truncate mr-2">All Algorithms</span>
+            <span class="flex items-center min-w-0 flex-1 overflow-hidden">
+                ${icon}
+                <span class="truncate ml-2 sidebar-btn-text">All Algorithms</span>
+            </span>
             ${sidebarRenderers._generateProgressHTML(total, solved)}
         `;
 

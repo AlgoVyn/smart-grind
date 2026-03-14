@@ -191,7 +191,7 @@ export const htmlGenerators = {
 
         const actionConfig = getActionConfig();
         const buttonText = p.loading ? htmlGenerators.getSpinner() : actionConfig.text;
-        return `<button class="action-btn px-4 py-2 rounded-lg text-xs font-bold transition-colors min-w-[70px] ${actionConfig.class}" ${p.loading ? 'disabled' : ''} data-action="${actionConfig.action}">${buttonText}</button>`;
+        return `<button class="action-btn btn-lift px-4 py-2 rounded-lg text-xs font-bold transition-all min-w-[70px] ${actionConfig.class}" ${p.loading ? 'disabled' : ''} data-action="${actionConfig.action}">${buttonText}</button>`;
     },
 
     // Helper to generate problem link HTML
@@ -267,7 +267,7 @@ export const htmlGenerators = {
     // Helper to generate problem card HTML
     generateProblemCardHTML: (p: Problem) => {
         const cardStyle = htmlGenerators.getCardStyle(p);
-        const className = `group p-4 rounded-xl border transition-all duration-200 overflow-hidden ${cardStyle}`;
+        const className = `group p-4 rounded-xl border transition-all duration-200 overflow-hidden problem-card-hover ${cardStyle}`;
 
         return {
             className,
