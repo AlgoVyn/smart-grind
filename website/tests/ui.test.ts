@@ -62,12 +62,19 @@ const mockElement = createMockElement();
 // Create mock elements for specific IDs
 const mockAppWrapper = createMockElement({ style: {} });
 const mockMainSidebar = createMockElement({ offsetWidth: 200, style: {} });
+const mockFlashcardCategory = {
+    ...createMockElement(),
+    appendChild: jest.fn((child) => child),
+    innerHTML: '',
+    value: '',
+};
 
 // Spy on document.getElementById
 const getElementByIdSpy = jest.spyOn(document, 'getElementById');
 getElementByIdSpy.mockImplementation((id) => {
     if (id === 'app-wrapper') return mockAppWrapper;
     if (id === 'main-sidebar') return mockMainSidebar;
+    if (id === 'flashcard-category') return mockFlashcardCategory;
     return mockElement;
 });
 
@@ -225,6 +232,7 @@ jest.mock('../src/utils', () => ({
     generateProblemUrl: jest.fn(),
     escapeHtml: jest.fn((str) => str),
     formatDate: jest.fn(),
+    getToday: jest.fn(() => '2024-01-15'),
     getTodayDate: jest.fn(() => '2024-01-01'),
     getNextReviewDate: jest.fn(),
     safeParseInt: jest.fn(),
@@ -272,6 +280,7 @@ describe('SmartGrind UI', () => {
         getElementByIdSpy.mockImplementation((id) => {
             if (id === 'app-wrapper') return mockAppWrapper;
             if (id === 'main-sidebar') return mockMainSidebar;
+            if (id === 'flashcard-category') return mockFlashcardCategory;
             return mockElement;
         });
 
@@ -338,6 +347,12 @@ describe('SmartGrind UI', () => {
             headerDisconnectBtn: mockElement,
             topicList: mockElement,
             problemsContainer: mockElement,
+            categorySelect: {
+                ...mockElement,
+                appendChild: jest.fn((child) => child),
+                innerHTML: '',
+                value: '',
+            },
         };
         state.problems = new Map();
         state.deletedProblemIds = new Set();

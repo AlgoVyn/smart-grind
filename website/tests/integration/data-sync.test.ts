@@ -85,6 +85,7 @@ describe('Integration: Data Synchronization', () => {
             (localStorage.getItem as jest.Mock)
                 .mockReturnValueOnce(JSON.stringify(savedProblems))
                 .mockReturnValueOnce(JSON.stringify(savedDeletedIds))
+                .mockReturnValueOnce(JSON.stringify({}))
                 .mockReturnValueOnce('Test User')
                 .mockReturnValueOnce('local');
             

@@ -377,6 +377,231 @@
         </div>
     </div>
 
+    <!-- FLASH CARDS STUDY MODAL -->
+    <div id="flashcards-modal" role="dialog" aria-modal="true" aria-labelledby="flashcards-title"
+        class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-dark-950/95 backdrop-blur-sm p-4">
+        
+        <!-- Setup Screen -->
+        <div id="flashcards-setup" class="bg-dark-800 rounded-2xl shadow-2xl w-full max-w-lg border border-slate-700/50 overflow-hidden">
+            <div class="p-6 border-b border-slate-700/50">
+                <h3 id="flashcards-title" class="text-xl font-bold text-theme-bold flex items-center gap-2">
+                    <svg class="w-6 h-6 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    Flash Cards
+                </h3>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <!-- Category Filter -->
+                <div>
+                    <label for="flashcard-category" class="block text-xs text-theme-muted uppercase font-semibold mb-2">
+                        Category
+                    </label>
+                    <select id="flashcard-category" name="flashcard-category"
+                        class="w-full bg-dark-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none">
+                        <option value="all">All Categories</option>
+                    </select>
+                </div>
+
+                <!-- Type Filter -->
+                <div>
+                    <label class="block text-xs text-theme-muted uppercase font-semibold mb-2">Card Type</label>
+                    <div class="flex gap-2">
+                        <button type="button" data-flashcard-type="all"
+                            class="flashcard-type-btn flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-brand-600 text-white transition-colors">
+                            All
+                        </button>
+                        <button type="button" data-flashcard-type="algorithm"
+                            class="flashcard-type-btn flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-dark-950 border border-slate-700 text-theme-muted hover:text-theme-bold transition-colors">
+                            Algorithms
+                        </button>
+                        <button type="button" data-flashcard-type="pattern"
+                            class="flashcard-type-btn flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-dark-950 border border-slate-700 text-theme-muted hover:text-theme-bold transition-colors">
+                            Patterns
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Study Mode -->
+                <div>
+                    <label class="block text-xs text-theme-muted uppercase font-semibold mb-2">Study Mode</label>
+                    <div class="flex gap-2">
+                        <button type="button" data-flashcard-mode="due"
+                            class="flashcard-mode-btn flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-brand-600 text-white transition-colors">
+                            Due for Review
+                        </button>
+                        <button type="button" data-flashcard-mode="all"
+                            class="flashcard-mode-btn flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-dark-950 border border-slate-700 text-theme-muted hover:text-theme-bold transition-colors">
+                            All Cards
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card Count Info -->
+                <div class="bg-dark-900/50 rounded-lg p-3 border border-slate-700/50">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-theme-muted">Cards in session:</span>
+                        <span id="flashcard-count" class="text-theme-bold font-bold">0</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-3 pt-2">
+                    <button id="flashcard-cancel-btn" type="button"
+                        class="flex-1 px-4 py-2.5 text-sm text-theme-muted hover:text-theme-bold transition-colors">
+                        Cancel
+                    </button>
+                    <button id="flashcard-start-btn" type="button"
+                        class="flex-1 px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl">
+                        Start Studying
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Study Session Screen -->
+        <div id="flashcards-study" class="hidden w-auto min-w-[320px] max-w-[95vw] mx-auto px-4 max-h-[85vh] flex flex-col">
+            <!-- Progress Bar -->
+            <div class="mb-4 flex items-center gap-4 flex-shrink-0">
+                <div class="flex-1 bg-dark-800 rounded-full h-2 overflow-hidden">
+                    <div id="flashcard-progress-bar" class="bg-brand-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <span id="flashcard-progress-text" class="text-sm text-theme-muted font-mono">1/20</span>
+                <button id="flashcard-close-study-btn" type="button" aria-label="End session"
+                    class="p-2 rounded-lg hover:bg-dark-800 text-theme-muted hover:text-theme-bold transition-colors">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Flash Card -->
+            <div class="bg-dark-800 rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden w-fit min-w-[320px] max-w-[95vw] mx-auto flex flex-col flex-1">
+                <!-- Card Header -->
+                <div class="p-4 border-b border-slate-700/50 flex justify-between items-center bg-dark-900/30 flex-shrink-0">
+                    <div class="flex items-center gap-2">
+                        <span id="flashcard-type-badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-500/20 text-blue-400">
+                            Algorithm
+                        </span>
+                        <span id="flashcard-category-badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300">
+                            Arrays
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="text-[10px] text-theme-muted uppercase">Difficulty:</span>
+                        <span id="flashcard-difficulty" class="text-[10px] font-bold text-green-400">Easy</span>
+                    </div>
+                </div>
+
+                <!-- Card Content -->
+                <div class="p-6 sm:p-8 overflow-y-auto flex-1" style="max-height: calc(85vh - 200px);">
+                    <div id="flashcard-content" class="w-auto min-w-[280px]">
+                        <!-- Front of card -->
+                        <div id="flashcard-front" class="space-y-4 text-center">
+                            <h4 id="flashcard-title" class="text-lg font-bold text-theme-bold">Two Pointers Pattern</h4>
+                            <div id="flashcard-question" class="text-theme-base leading-relaxed text-sm sm:text-base text-left prose prose-invert max-w-none"></div>
+                            <p class="text-sm text-theme-muted mt-6">Press <kbd class="px-2 py-1 bg-dark-900 rounded text-xs">Space</kbd> or click to flip</p>
+                        </div>
+
+                        <!-- Back of card (hidden initially) -->
+                        <div id="flashcard-back" class="hidden space-y-4">
+                            <div class="border-t border-slate-700/50 pt-4">
+                                <h5 class="text-sm font-bold text-brand-400 mb-3">Answer</h5>
+                                <div id="flashcard-answer" class="text-theme-base leading-relaxed text-sm sm:text-base text-left prose prose-invert max-w-none"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Footer - Rating Buttons -->
+                <div id="flashcard-rating" class="hidden p-4 border-t border-slate-700/50 bg-dark-900/30 flex-shrink-0">
+                    <p class="text-center text-xs text-theme-muted mb-3">How well did you know this?</p>
+                    <div class="flex gap-2 justify-center">
+                        <button type="button" data-rating="again" class="flashcard-rate-btn px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-xs font-medium text-red-400 transition-colors">
+                            <div class="font-bold">Again</div>
+                            <div class="text-[10px] opacity-70">&lt; 1m</div>
+                        </button>
+                        <button type="button" data-rating="hard" class="flashcard-rate-btn px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg text-xs font-medium text-orange-400 transition-colors">
+                            <div class="font-bold">Hard</div>
+                            <div class="text-[10px] opacity-70">2d</div>
+                        </button>
+                        <button type="button" data-rating="good" class="flashcard-rate-btn px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg text-xs font-medium text-blue-400 transition-colors">
+                            <div class="font-bold">Good</div>
+                            <div class="text-[10px] opacity-70">4d</div>
+                        </button>
+                        <button type="button" data-rating="easy" class="flashcard-rate-btn px-4 py-2 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-lg text-xs font-medium text-green-400 transition-colors">
+                            <div class="font-bold">Easy</div>
+                            <div class="text-[10px] opacity-70">7d</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Flip Button (shown when front is visible) -->
+                <div id="flashcard-flip-area" class="p-4 border-t border-slate-700/50 flex-shrink-0">
+                    <button id="flashcard-flip-btn" type="button"
+                        class="w-full py-3 bg-dark-900 hover:bg-dark-950 border border-slate-700 rounded-lg text-sm font-medium text-theme-muted hover:text-theme-bold transition-colors">
+                        Show Answer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Keyboard Shortcuts Hint -->
+            <div class="mt-4 text-center text-[10px] text-theme-muted flex-shrink-0">
+                <span class="hidden sm:inline">
+                    <kbd class="px-1.5 py-0.5 bg-dark-800 rounded">Space</kbd> Flip •
+                    <kbd class="px-1.5 py-0.5 bg-dark-800 rounded">1</kbd> Again •
+                    <kbd class="px-1.5 py-0.5 bg-dark-800 rounded">2</kbd> Hard •
+                    <kbd class="px-1.5 py-0.5 bg-dark-800 rounded">3</kbd> Good •
+                    <kbd class="px-1.5 py-0.5 bg-dark-800 rounded">4</kbd> Easy •
+                    <kbd class="px-1.5 py-0.5 bg-dark-800 rounded">Esc</kbd> Close
+                </span>
+            </div>
+        </div>
+
+        <!-- Session Complete Screen -->
+        <div id="flashcards-complete" class="hidden bg-dark-800 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/50 overflow-hidden text-center p-8">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
+                <svg class="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-theme-bold mb-2">Session Complete!</h3>
+            <p class="text-theme-muted text-sm mb-6">You reviewed <span id="flashcard-session-count" class="text-theme-bold">0</span> cards</p>
+            
+            <div class="grid grid-cols-4 gap-3 mb-6">
+                <div class="bg-red-500/10 rounded-lg p-2">
+                    <div id="flashcard-stats-again" class="text-lg font-bold text-red-400">0</div>
+                    <div class="text-[10px] text-theme-muted">Again</div>
+                </div>
+                <div class="bg-orange-500/10 rounded-lg p-2">
+                    <div id="flashcard-stats-hard" class="text-lg font-bold text-orange-400">0</div>
+                    <div class="text-[10px] text-theme-muted">Hard</div>
+                </div>
+                <div class="bg-blue-500/10 rounded-lg p-2">
+                    <div id="flashcard-stats-good" class="text-lg font-bold text-blue-400">0</div>
+                    <div class="text-[10px] text-theme-muted">Good</div>
+                </div>
+                <div class="bg-green-500/10 rounded-lg p-2">
+                    <div id="flashcard-stats-easy" class="text-lg font-bold text-green-400">0</div>
+                    <div class="text-[10px] text-theme-muted">Easy</div>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button id="flashcard-study-more-btn" type="button"
+                    class="flex-1 px-4 py-2.5 bg-dark-900 hover:bg-dark-950 border border-slate-700 rounded-lg text-sm font-medium text-theme-muted hover:text-theme-bold transition-colors">
+                    Study More
+                </button>
+                <button id="flashcard-finish-btn" type="button"
+                    class="flex-1 px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl">
+                    Finish
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- LOADING SCREEN -->
     <div id="loading-screen" class="fixed inset-0 z-[60] bg-dark-950 flex flex-col items-center justify-center" role="status" aria-live="polite" aria-label="Loading application">
         <div class="relative">
@@ -518,6 +743,15 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Add Problem
+                </button>
+
+                <button id="study-flashcards-btn"
+                    class="w-full mt-2 flex items-center justify-center gap-2 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded text-xs font-medium transition-colors shadow-md hover:shadow-lg">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    Flash Cards
                 </button>
 
             </div>

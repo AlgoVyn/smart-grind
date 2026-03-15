@@ -74,6 +74,7 @@ describe('SmartGrind State', () => {
             mockGetItem
                 .mockReturnValueOnce(JSON.stringify(mockProblems))
                 .mockReturnValueOnce(JSON.stringify(mockDeletedIds))
+                .mockReturnValueOnce(JSON.stringify({}))
                 .mockReturnValueOnce(mockDisplayName)
                 .mockReturnValueOnce(mockUserType);
 

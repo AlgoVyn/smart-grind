@@ -19,6 +19,7 @@ import { bindNavigationEvents } from './ui-navigation';
 import { bindProblemEvents } from './ui-problems';
 import { bindGlobalEvents } from './ui-global';
 import { closeSolutionModal, toggleTOC } from './ui-markdown';
+import { initFlashcards } from './ui-flashcards';
 
 // Initialize UI components (state is already initialized in ui.ts before this runs)
 export const init = async () => {
@@ -27,6 +28,7 @@ export const init = async () => {
     pullToRefresh.init();
     sidebarResizer.init();
     updateAuthUI();
+    initFlashcards();
     // Dynamically import renderers to avoid circular dependency
     const { renderers } = await import('../renderers');
     renderers.updateFilterBtns();

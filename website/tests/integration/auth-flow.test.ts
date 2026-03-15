@@ -117,6 +117,7 @@ describe('Integration: Authentication Flow', () => {
             mockGetItem
                 .mockReturnValueOnce(JSON.stringify(existingProblems))
                 .mockReturnValueOnce(JSON.stringify(['2']))
+                .mockReturnValueOnce(JSON.stringify({}))
                 .mockReturnValueOnce('Existing User')
                 .mockReturnValueOnce('local');
             
@@ -211,6 +212,7 @@ describe('Integration: Authentication Flow', () => {
                 .mockReturnValueOnce('Test User')  // displayName
                 .mockReturnValueOnce(null)  // SIGNED_IN_PROBLEMS
                 .mockReturnValueOnce(null)  // SIGNED_IN_DELETED_IDS
+                .mockReturnValueOnce(null)  // SIGNED_IN_FLASHCARD_PROGRESS
                 .mockReturnValueOnce('Test User')  // SIGNED_IN_DISPLAY_NAME
                 .mockReturnValueOnce('signed-in');  // smartgrind-user-type
             
@@ -278,6 +280,7 @@ describe('Integration: Authentication Flow', () => {
                 .mockReturnValueOnce('PWA User')  // displayName
                 .mockReturnValueOnce(null)  // SIGNED_IN_PROBLEMS
                 .mockReturnValueOnce(null)  // SIGNED_IN_DELETED_IDS
+                .mockReturnValueOnce(null)  // SIGNED_IN_FLASHCARD_PROGRESS
                 .mockReturnValueOnce('PWA User')  // SIGNED_IN_DISPLAY_NAME
                 .mockReturnValueOnce('signed-in');  // smartgrind-user-type
             
@@ -349,6 +352,7 @@ describe('Integration: Authentication Flow', () => {
                 .mockReturnValueOnce('New User')  // displayName
                 .mockReturnValueOnce(null)  // SIGNED_IN_PROBLEMS
                 .mockReturnValueOnce(null)  // SIGNED_IN_DELETED_IDS
+                .mockReturnValueOnce(null)  // SIGNED_IN_FLASHCARD_PROGRESS
                 .mockReturnValueOnce('New User')  // SIGNED_IN_DISPLAY_NAME
                 .mockReturnValueOnce('signed-in');  // smartgrind-user-type
             

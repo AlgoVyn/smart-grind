@@ -22,6 +22,11 @@
 
 /*.md
   Content-Type: text/markdown
+  Cache-Control: public, max-age=86400
+
+/flashcards/*.md
+  Content-Type: text/markdown
+  Cache-Control: public, max-age=86400, s-maxage=31536000
 
 # Service Worker headers - critical for SW to work properly
 # The SW is now at /smartgrind/sw.js with correct scope

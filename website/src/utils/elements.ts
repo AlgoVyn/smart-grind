@@ -118,6 +118,7 @@ const ELEMENT_IDS = {
         'alert-modal',
         'confirm-modal',
         'solution-modal',
+        'flashcards-modal',
         'alert-message',
         'confirm-message',
         'alert-title',

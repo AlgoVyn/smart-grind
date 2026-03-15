@@ -59,3 +59,33 @@ export interface SyncStatusUpdate {
     hasConflicts?: boolean;
     conflictMessage?: string | null;
 }
+
+// --- FLASH CARD TYPES ---
+
+export interface FlashCard {
+    id: string;
+    type: 'algorithm' | 'pattern';
+    category: string; // Algorithm category or Pattern topic ID
+    front: string;
+    back: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+    tags: string[];
+}
+
+export interface FlashCardProgress {
+    cardId: string;
+    reviewInterval: number; // Index into SPACED_REPETITION_INTERVALS
+    nextReviewDate: string | null; // ISO date string
+    timesReviewed: number;
+    timesCorrect: number;
+    lastReviewedAt: string | null;
+}
+
+export interface FlashCardSession {
+    cardIds: string[];
+    currentIndex: number;
+    categoryFilter: string | null;
+    typeFilter: 'all' | 'algorithm' | 'pattern';
+    modeFilter: 'all' | 'due';
+    startedAt: string;
+}

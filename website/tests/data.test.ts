@@ -52,9 +52,11 @@ describe('SmartGrind Data Module', () => {
             PROBLEMS: 'smartgrind-problems',
             DELETED_IDS: 'smartgrind-deleted-ids',
             DISPLAY_NAME: 'smartgrind-display-name',
+            FLASHCARD_PROGRESS: 'smartgrind-flashcard-progress',
             SIGNED_IN_PROBLEMS: 'SIGNED_IN_smartgrind-problems',
             SIGNED_IN_DELETED_IDS: 'SIGNED_IN_smartgrind-deleted-ids',
             SIGNED_IN_DISPLAY_NAME: 'SIGNED_IN_smartgrind-display-name',
+            SIGNED_IN_FLASHCARD_PROGRESS: 'SIGNED_IN_smartgrind-flashcard-progress',
         };
 
         expect(data.LOCAL_STORAGE_KEYS).toEqual(expectedKeys);

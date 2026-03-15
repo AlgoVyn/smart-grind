@@ -206,6 +206,12 @@ const PROBLEM_PATTERNS = [
 ];
 
 /**
+ * URL patterns for flashcard content files to cache
+ * These use the same cache-first strategy as problems for offline access
+ */
+const FLASHCARD_PATTERNS = [/\/flashcards\/.+\.md$/];
+
+/**
  * API route patterns that should use network-first strategy
  */
 const API_ROUTES = [/\/smartgrind\/api\//];
@@ -246,6 +252,11 @@ const getRequestHandler = (
         return pattern.test(requestUrl.pathname);
     });
 
+    // Check if this is a flashcard file request
+    const isFlashcardFile = FLASHCARD_PATTERNS.some((pattern) => {
+        return pattern.test(requestUrl.pathname);
+    });
+
     // Handle navigation requests (HTML pages) - critical for offline reload
     if (isNavigationRequest) {
         return handleNavigationRequest;
@@ -258,6 +269,11 @@ const getRequestHandler = (
 
     // Handle problem markdown files
     if (isProblemFile) {
+        return handleProblemRequest;
+    }
+
+    // Handle flashcard markdown files - same cache strategy as problems
+    if (isFlashcardFile) {
         return handleProblemRequest;
     }
 
@@ -1454,10 +1470,17 @@ async function clearBundleCache(): Promise<void> {
         const keys = await cache.keys();
 
         // Delete all cached problem files (patterns, solutions, algorithms)
+        // and flashcard files when bundle version changes
         const deletionPromises = keys
             .filter((request) => {
                 const url = new URL(request.url);
-                return PROBLEM_PATTERNS.some((pattern) => pattern.test(url.pathname));
+                const isProblemFile = PROBLEM_PATTERNS.some((pattern) =>
+                    pattern.test(url.pathname)
+                );
+                const isFlashcardFile = FLASHCARD_PATTERNS.some((pattern) =>
+                    pattern.test(url.pathname)
+                );
+                return isProblemFile || isFlashcardFile;
             })
             .map((request) => cache.delete(request));
 

@@ -1,7 +1,7 @@
 // --- STATE MANAGEMENT MODULE ---
 // Centralized state management for the application
 
-import { User, Problem, UIState, SyncStatusUpdate } from './types';
+import { User, Problem, UIState, SyncStatusUpdate, FlashCardProgress } from './types';
 import { data } from './data';
 import { cacheElements, ElementCache } from './utils/elements';
 import { safeGetItem, safeSetItem, getStringItem, setStringItem } from './utils/storage';
@@ -17,6 +17,9 @@ export const state = {
     // Problem data
     problems: new Map<string, Problem>(),
     deletedProblemIds: new Set<string>(),
+
+    // Flash card progress data
+    flashCardProgress: new Map<string, FlashCardProgress>(),
 
     // UI state
     ui: {
@@ -67,6 +70,9 @@ export const state = {
             problems: isSignedIn ? keys.SIGNED_IN_PROBLEMS : keys.PROBLEMS,
             deletedIds: isSignedIn ? keys.SIGNED_IN_DELETED_IDS : keys.DELETED_IDS,
             displayName: isSignedIn ? keys.SIGNED_IN_DISPLAY_NAME : keys.DISPLAY_NAME,
+            flashCardProgress: isSignedIn
+                ? keys.SIGNED_IN_FLASHCARD_PROGRESS
+                : keys.FLASHCARD_PROGRESS,
         };
     },
 
@@ -77,10 +83,15 @@ export const state = {
 
         const problemsObj = safeGetItem<Record<string, Problem>>(keys.problems, {});
         const deletedIdsArr = safeGetItem<string[]>(keys.deletedIds, []);
+        const flashCardProgressObj = safeGetItem<Record<string, FlashCardProgress>>(
+            keys.flashCardProgress,
+            {}
+        );
 
         this.problems = new Map(Object.entries(problemsObj));
         this.problems.forEach((p) => (p.loading = false));
         this.deletedProblemIds = new Set(deletedIdsArr);
+        this.flashCardProgress = new Map(Object.entries(flashCardProgressObj));
         this.user.displayName = getStringItem(keys.displayName, isSignedIn ? '' : 'Local User');
         this.user.type = getStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local') as
             | 'local'
@@ -103,6 +114,7 @@ export const state = {
 
         safeSetItem(keys.problems, problemsWithoutLoading);
         safeSetItem(keys.deletedIds, [...this.deletedProblemIds]);
+        safeSetItem(keys.flashCardProgress, Object.fromEntries(this.flashCardProgress));
         setStringItem(keys.displayName, this.user.displayName);
         setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
     },

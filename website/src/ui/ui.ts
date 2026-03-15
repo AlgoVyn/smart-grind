@@ -3,6 +3,7 @@
 
 export { pullToRefresh } from './ui-pull-to-refresh';
 export { sidebarResizer } from './ui-sidebar-resizer';
+export { flashcards } from './ui-flashcards';
 export * from './ui-modals';
 export * from './ui-auth';
 export * from './ui-navigation';
@@ -23,6 +24,7 @@ import * as uiMarkdown from './ui-markdown';
 import * as uiBindings from './ui-bindings';
 import { pullToRefresh } from './ui-pull-to-refresh';
 import { sidebarResizer } from './ui-sidebar-resizer';
+import { flashcards } from './ui-flashcards';
 import { state } from '../state';
 import { scrollToTop } from '../utils';
 import { GOOGLE_BUTTON_HTML } from './ui-constants';
@@ -39,6 +41,7 @@ export const ui = {
     ...uiBindings,
     pullToRefresh,
     sidebarResizer,
+    flashcards,
 };
 
 export const scrollToReview = () => {

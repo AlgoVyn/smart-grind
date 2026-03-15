@@ -104,6 +104,8 @@ export const STORAGE_KEYS = {
     PROBLEMS: (isSignedIn: boolean) => getStorageKey('smartgrind-problems', isSignedIn),
     DELETED_IDS: (isSignedIn: boolean) => getStorageKey('smartgrind-deleted-ids', isSignedIn),
     DISPLAY_NAME: (isSignedIn: boolean) => getStorageKey('smartgrind-display-name', isSignedIn),
+    FLASHCARD_PROGRESS: (isSignedIn: boolean) =>
+        getStorageKey('smartgrind-flashcard-progress', isSignedIn),
     PREFERRED_AI: 'preferred-ai',
     USER_ID: 'userId',
 } as const;
