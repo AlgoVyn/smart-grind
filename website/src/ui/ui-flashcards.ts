@@ -27,16 +27,60 @@ let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 const MAX_CACHE_SIZE = 50;
 const markdownContentCache = new Map<string, { front: string; back: string }>();
 
-// Load flashcard content from markdown file
+// Load flashcard content from markdown file with offline support
 const loadMarkdownContent = async (cardId: string): Promise<{ front: string; back: string }> => {
-    // Check cache first
+    // Check memory cache first
     const cached = markdownContentCache.get(cardId);
     if (cached) return cached;
 
+    const url = `/flashcards/${cardId}.md`;
+
     try {
-        const response = await fetch(`/flashcards/${cardId}.md`);
-        if (!response.ok) {
-            console.error(`Failed to load flashcard content for ${cardId}`);
+        // Try to get from browser cache first (works offline if previously cached)
+        // The service worker uses versioned cache names, so we need to find the right one
+        const cacheNames = await caches.keys();
+        let response: Response | undefined;
+
+        // Try to find the response in any problems cache
+        for (const cacheName of cacheNames) {
+            if (cacheName.includes('problems-cache')) {
+                const cache = await caches.open(cacheName);
+                response = await cache.match(url);
+                if (response) break;
+            }
+        }
+
+        // If not in cache, try network and cache the result in all relevant caches
+        if (!response) {
+            try {
+                const networkResponse = await fetch(url);
+                if (networkResponse.ok) {
+                    // Cache in all problems caches for offline use
+                    for (const cacheName of cacheNames) {
+                        if (cacheName.includes('problems-cache')) {
+                            const cache = await caches.open(cacheName);
+                            cache.put(url, networkResponse.clone()).catch(() => {});
+                        }
+                    }
+                    response = networkResponse;
+                }
+            } catch (networkError) {
+                // Network failed, try one more time with caches (might have been added by other code)
+                for (const cacheName of cacheNames) {
+                    if (cacheName.includes('problems-cache')) {
+                        const cache = await caches.open(cacheName);
+                        const cachedResp = await cache.match(url);
+                        if (cachedResp) {
+                            response = cachedResp;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!response || !response.ok) {
+            console.error(`Failed to load flashcard content for ${cardId}:`, response?.status);
             return { front: '', back: '' };
         }
 
