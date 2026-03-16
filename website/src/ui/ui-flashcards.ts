@@ -18,7 +18,7 @@ let currentSession: FlashCardSession | null = null;
 let sessionCards: FlashCard[] = [];
 let sessionStats = { again: 0, hard: 0, good: 0, easy: 0 };
 let isCardFlipped = false;
-let keyboardHandler: ((e: KeyboardEvent) => void) | null = null;
+let keyboardHandler: ((_e: KeyboardEvent) => void) | null = null;
 
 // Debounce timer for saving progress
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -33,7 +33,10 @@ const loadMarkdownContent = async (cardId: string): Promise<{ front: string; bac
     const cached = markdownContentCache.get(cardId);
     if (cached) return cached;
 
-    const url = `/flashcards/${cardId}.md`;
+    // Try multiple possible URLs - the bundle stores under /smartgrind/flashcards/
+    const urlNoScope = `/flashcards/${cardId}.md`;
+    const urlWithScope = `/smartgrind/flashcards/${cardId}.md`;
+    const urls = [urlNoScope, urlWithScope];
 
     try {
         // Try to get from browser cache first (works offline if previously cached)
@@ -41,40 +44,47 @@ const loadMarkdownContent = async (cardId: string): Promise<{ front: string; bac
         const cacheNames = await caches.keys();
         let response: Response | undefined;
 
-        // Try to find the response in any problems cache
-        for (const cacheName of cacheNames) {
-            if (cacheName.includes('problems-cache')) {
-                const cache = await caches.open(cacheName);
-                response = await cache.match(url);
-                if (response) break;
+        // Try each URL in each cache
+        for (const url of urls) {
+            for (const cacheName of cacheNames) {
+                if (cacheName.includes('problems-cache')) {
+                    const cache = await caches.open(cacheName);
+                    response = await cache.match(url);
+                    if (response) break;
+                }
             }
+            if (response) break;
         }
 
         // If not in cache, try network and cache the result in all relevant caches
         if (!response) {
             try {
-                const networkResponse = await fetch(url);
+                // Try the URL without scope first (most common for direct access)
+                const networkResponse = await fetch(urlNoScope);
                 if (networkResponse.ok) {
                     // Cache in all problems caches for offline use
                     for (const cacheName of cacheNames) {
                         if (cacheName.includes('problems-cache')) {
                             const cache = await caches.open(cacheName);
-                            cache.put(url, networkResponse.clone()).catch(() => {});
+                            cache.put(urlNoScope, networkResponse.clone()).catch(() => {});
                         }
                     }
                     response = networkResponse;
                 }
-            } catch (networkError) {
+            } catch (_networkError) {
                 // Network failed, try one more time with caches (might have been added by other code)
-                for (const cacheName of cacheNames) {
-                    if (cacheName.includes('problems-cache')) {
-                        const cache = await caches.open(cacheName);
-                        const cachedResp = await cache.match(url);
-                        if (cachedResp) {
-                            response = cachedResp;
-                            break;
+                for (const url of urls) {
+                    for (const cacheName of cacheNames) {
+                        if (cacheName.includes('problems-cache')) {
+                            const cache = await caches.open(cacheName);
+                            const cachedResp = await cache.match(url);
+                            if (cachedResp) {
+                                response = cachedResp;
+                                break;
+                            }
                         }
                     }
+                    if (response) break;
                 }
             }
         }
