@@ -1,24 +1,20 @@
-## Detect Cycle Entry Point (Floyd's Tortoise & Hare)
+## Detect Cycle in Linked List
 
-**Question:** How do you find the node where a cycle begins in a linked list?
+**Question:** How do you find the entry point of a cycle in a linked list?
 
 <!-- front -->
 
 ---
 
-## Answer: Floyd's Cycle Detection Algorithm
-
-### Two-Phase Approach
-1. **Detect cycle:** Use slow and fast pointers
-2. **Find entry:** Reset one pointer to head, move both one step at a time
+## Answer: Floyd's Tortoise and Hare
 
 ### Solution
 ```python
-def detect_cycle(head):
+def detectCycle(head):
     if not head or not head.next:
         return None
     
-    # Phase 1: Detect cycle
+    # Phase 1: Find intersection
     slow = fast = head
     while fast and fast.next:
         slow = slow.next
@@ -26,7 +22,7 @@ def detect_cycle(head):
         if slow == fast:
             break
     
-    # No cycle found
+    # No cycle
     if not fast or not fast.next:
         return None
     
@@ -39,30 +35,98 @@ def detect_cycle(head):
     return slow
 ```
 
-### Visual
+### Visual: Two-Phase Detection
 ```
-List: 1 → 2 → 3 → 4 → 5 → 6
-              ↑         ↓
-              └─────────┘
-              
-Step 1: Detect - they meet at node 6
-Step 2: Reset slow to head, move both
-        1→2→3→4→5→6→3→4...
-        They meet at node 3 (cycle entry!)
+List: 1 → 2 → 3 → 4 → 5 ↑
+           ↑___________|
+
+Phase 1: Find intersection
+- slow moves 1 step, fast moves 2 steps
+- They meet at node 3
+
+Phase 2: Move both 1 step from head and meeting point
+- Both meet at node 2 (cycle entry)
+
+Return: Node 2
 ```
 
-### Why It Works
-- Distance from head to cycle entry = x
-- Distance from entry to meeting point = y
-- Distance around cycle = z
-- Slow travels: x + y
-- Fast travels: x + y + k*z (for some k)
-- Since fast = 2*slow: x + y = k*z
-- Therefore: x = (k-1)*z + (z-y) = distance from meeting to entry
-- Resetting slow to head ensures meeting at entry
+### ⚠️ Tricky Parts
 
-### Complexity
-- **Time:** O(n)
-- **Space:** O(1)
+#### 1. Why Floyd's Algorithm Works
+```
+Let:
+- d = distance from head to cycle entry
+- c = cycle length
+- x = distance from entry to meeting point
+
+Meeting in phase 1:
+- slow: d + x
+- fast: d + x + n*c (n >= 1)
+
+Since fast = 2*slow:
+2(d + x) = d + x + n*c
+d + x = n*c
+d = n*c - x
+
+From meeting point to entry: c - x
+Moving slow from meeting point:
+- Position: x from entry
+- Need: d from entry
+- d = n*c - x = (n-1)*c + (c-x)
+
+So after d steps from meeting, we reach entry!
+```
+
+#### 2. Why Start Both from Head in Phase 2
+```python
+# Both move 1 step
+# After d steps from head → entry
+# After d steps from meeting → entry
+# Because d = n*c - x
+```
+
+#### 3. Handling Edge Cases
+```python
+# Empty list
+if not head:
+    return None
+
+# Single node pointing to itself
+# head.next == head → cycle
+# Correctly detected
+
+# No cycle
+# fast or fast.next becomes None → returns None
+```
+
+### Alternative: Hash Set
+```python
+def detectCycleHash(head):
+    seen = set()
+    current = head
+    
+    while current:
+        if current in seen:
+            return current
+        seen.add(current)
+        current = current.next
+    
+    return None
+```
+
+### Time & Space Complexity
+
+| Method | Time | Space |
+|--------|------|-------|
+| Floyd's | O(n) | O(1) |
+| Hash Set | O(n) | O(n) |
+
+### Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Not checking fast.next | Check both fast and fast.next |
+| Wrong phase 2 start | Start both from head |
+| Infinite loop | Ensure fast moves 2, slow moves 1 |
 
 <!-- back -->

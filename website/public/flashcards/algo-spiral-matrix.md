@@ -1,12 +1,12 @@
 ## Spiral Matrix
 
-**Question:** Return matrix elements in spiral order.
+**Question:** Return matrix elements in spiral order?
 
 <!-- front -->
 
 ---
 
-## Answer: Direction Simulation
+## Answer: Layer-by-Layer Traversal
 
 ### Solution
 ```python
@@ -15,62 +15,79 @@ def spiralOrder(matrix):
         return []
     
     result = []
-    rows, cols = len(matrix), len(matrix[0])
-    visited = [[False] * cols for _ in range(rows)]
+    rows = len(matrix)
+    cols = len(matrix[0])
     
-    # Directions: right, down, left, up
-    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-    d = 0  # Start going right
-    r, c = 0, 0
+    top, bottom = 0, rows - 1
+    left, right = 0, cols - 1
     
-    for _ in range(rows * cols):
-        result.append(matrix[r][c])
-        visited[r][c] = True
-        
-        nr, nc = r + directions[d][0], c + directions[d][1]
-        
-        if (0 <= nr < rows and 0 <= nc < cols and not visited[nr][nc]):
-            r, c = nr, nc
-        else:
-            d = (d + 1) % 4  # Turn right
-            r += directions[d][0]
-            c += directions[d][1]
-    
-    return result
-```
-
-### Visual
-```
-1 2 3
-4 5 6
-7 8 9
-
-Spiral: 1 → 2 → 3 → 6 → 9 → 8 → 7 → 4 → 5
-```
-
-### Alternative: Layer by Layer
-```python
-def spiral_layer(matrix):
-    result = []
-    while matrix:
+    while top <= bottom and left <= right:
         # Top row
-        result.extend(matrix.pop(0))
+        for col in range(left, right + 1):
+            result.append(matrix[top][col])
+        top += 1
+        
         # Right column
-        if matrix:
-            for row in matrix:
-                result.append(row.pop())
-        # Bottom row (reverse)
-        if matrix:
-            result.extend(matrix.pop()[::-1])
-        # Left column (reverse)
-        if matrix:
-            for row in matrix[::-1]:
-                result.append(row.pop(0))
+        for row in range(top, bottom + 1):
+            result.append(matrix[row][right])
+        right -= 1
+        
+        # Bottom row
+        if top <= bottom:
+            for col in range(right, left - 1, -1):
+                result.append(matrix[bottom][col])
+            bottom -= 1
+        
+        # Left column
+        if left <= right:
+            for row in range(bottom, top - 1, -1):
+                result.append(matrix[row][left])
+            left += 1
+    
     return result
 ```
 
-### Complexity
-- **Time:** O(n × m)
-- **Space:** O(1) or O(n × m) for visited
+### Visual: Spiral Traversal
+```
+1 → 2 → 3
+        ↓
+4 → 5   6
+↑       ↓
+7 ← 8 ← 9
+
+Order: 1,2,3,6,9,8,7,4,5
+```
+
+### ⚠️ Tricky Parts
+
+#### 1. Boundary Updates
+```python
+# After top row: top += 1
+# After right col: right -= 1
+# After bottom row: bottom -= 1
+# After left col: left += 1
+```
+
+#### 2. When to Skip Rows/Cols
+```python
+# Check bottom row: if top <= bottom
+# Check left col: if left <= right
+
+# Prevents duplicate elements in single row/col cases
+```
+
+### Time & Space Complexity
+
+| Method | Time | Space |
+|--------|------|-------|
+| Layer traversal | O(m × n) | O(1) |
+
+### Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Not updating boundaries | Update each direction |
+| Duplicate elements | Check bounds before bottom/left |
+| Wrong loop direction | Use correct ranges |
 
 <!-- back -->
