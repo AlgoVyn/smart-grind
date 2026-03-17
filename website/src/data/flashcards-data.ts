@@ -1060,7 +1060,7 @@ export const FLASH_CARDS_DATA: FlashCard[] = [
     {
         id: 'algo-hash-map-collision',
         type: 'algorithm',
-        category: 'hash-tables',
+        category: 'arrays-strings',
         front: '',
         back: '',
         difficulty: 'medium',
@@ -1393,7 +1393,7 @@ export const FLASH_CARDS_DATA: FlashCard[] = [
     {
         id: 'algo-rearrange-string',
         type: 'algorithm',
-        category: 'heap-priority-queue',
+        category: 'arrays-strings',
         front: '',
         back: '',
         difficulty: 'hard',
@@ -1638,7 +1638,7 @@ export const FLASH_CARDS_DATA: FlashCard[] = [
     {
         id: 'pattern-cyclic-sort',
         type: 'pattern',
-        category: 'cyclic-sort',
+        category: 'arrays-strings',
         front: '',
         back: '',
         difficulty: 'medium',
@@ -1692,7 +1692,7 @@ export const FLASH_CARDS_DATA: FlashCard[] = [
     {
         id: 'pattern-interval-merge',
         type: 'pattern',
-        category: 'intervals',
+        category: 'merge-intervals',
         front: '',
         back: '',
         difficulty: 'medium',
@@ -1701,7 +1701,7 @@ export const FLASH_CARDS_DATA: FlashCard[] = [
     {
         id: 'pattern-lru-cache',
         type: 'pattern',
-        category: 'design',
+        category: 'advanced',
         front: '',
         back: '',
         difficulty: 'hard',
@@ -1728,7 +1728,7 @@ export const FLASH_CARDS_DATA: FlashCard[] = [
     {
         id: 'pattern-recursion-base-case',
         type: 'pattern',
-        category: 'recursion',
+        category: 'backtracking',
         front: '',
         back: '',
         difficulty: 'medium',
