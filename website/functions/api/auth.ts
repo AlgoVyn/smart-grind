@@ -65,7 +65,7 @@ async function signJWT(payload, secret) {
     const secretKey = new TextEncoder().encode(secret);
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: 'HS256' })
-        .setExpirationTime(Math.floor(Date.now() / 1000) + 24 * 60 * 60) // 24 hours
+        .setExpirationTime(Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60) // 1 week
         .sign(secretKey);
 }
 
@@ -481,7 +481,7 @@ export async function onRequestGet({ request, env }) {
     </html>`;
 
         // Set httpOnly cookie with the JWT
-        const cookieHeader = `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${24 * 60 * 60}; Path=/smartgrind; Priority=High`;
+        const cookieHeader = `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}; Path=/smartgrind; Priority=High`;
 
         // Comprehensive CSP to prevent XSS and other injection attacks
         const cspHeader = [
@@ -548,7 +548,7 @@ export async function onRequestGet({ request, env }) {
                 token, 
                 userId: payload.userId,
                 displayName: payload.displayName,
-                expiresIn: 24 * 60 * 60 // 24 hours
+                expiresIn: 7 * 24 * 60 * 60 // 1 week
             }), {
                 headers: { 'Content-Type': 'application/json' },
             });

@@ -34,7 +34,7 @@ describe('SW Auth Storage', () => {
             // Verify expiry is a valid timestamp in the future
             const expiryTime = parseInt(expiryResult?.value as string, 10);
             expect(expiryTime).toBeGreaterThan(Date.now());
-            expect(expiryTime).toBeLessThan(Date.now() + 25 * 60 * 60 * 1000); // Less than 25 hours
+            expect(expiryTime).toBeLessThan(Date.now() + 8 * 24 * 60 * 60 * 1000); // Less than 8 days (1 week + buffer)
             
             db.close();
         });
