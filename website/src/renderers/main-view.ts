@@ -93,7 +93,7 @@ export const mainViewRenderers = {
         const visibleCount = { count: 0 };
 
         const topics =
-            state.ui.activeTopicId === 'all'
+            state.ui.activeTopicId === 'all' || state.ui.activeTopicId === ''
                 ? data.topicsData
                 : data.topicsData.filter((t: Topic) => t.id === state.ui.activeTopicId);
 

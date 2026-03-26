@@ -1788,6 +1788,98 @@ export const FLASH_CARDS_DATA: FlashCard[] = [
         difficulty: 'medium',
         tags: ['two-pointers', 'variations', 'technique'],
     },
+
+    // === SQL FLASHCARDS ===
+    {
+        id: 'sql-inner-vs-left-join',
+        type: 'sql',
+        category: 'sql-joins',
+        front: 'What is the difference between INNER JOIN and LEFT JOIN?',
+        back: 'INNER JOIN returns only matching rows from both tables. LEFT JOIN returns all rows from the left table and matching rows from the right table (NULL for non-matches).',
+        difficulty: 'easy',
+        tags: ['joins', 'inner-join', 'left-join'],
+    },
+    {
+        id: 'sql-where-vs-having',
+        type: 'sql',
+        category: 'sql-aggregation',
+        front: 'When should you use HAVING instead of WHERE?',
+        back: 'Use WHERE to filter rows BEFORE grouping. Use HAVING to filter groups AFTER aggregation. HAVING can reference aggregate functions (COUNT, SUM, etc.), WHERE cannot.',
+        difficulty: 'medium',
+        tags: ['aggregation', 'filtering', 'having'],
+    },
+    {
+        id: 'sql-window-functions-rank',
+        type: 'sql',
+        category: 'sql-window-functions',
+        front: 'What is the difference between ROW_NUMBER(), RANK(), and DENSE_RANK()?',
+        back: 'ROW_NUMBER(): Unique sequential numbers (1,2,3,4). RANK(): Same rank for ties, skips numbers (1,2,2,4). DENSE_RANK(): Same rank for ties, no gaps (1,2,2,3).',
+        difficulty: 'medium',
+        tags: ['window-functions', 'ranking', 'row-number'],
+    },
+    {
+        id: 'sql-correlated-subquery',
+        type: 'sql',
+        category: 'sql-subqueries',
+        front: 'What is a correlated subquery?',
+        back: 'A subquery that references columns from the outer query. It executes once for each row in the outer query, making it slower than non-correlated subqueries.',
+        difficulty: 'medium',
+        tags: ['subqueries', 'correlated', 'performance'],
+    },
+    {
+        id: 'sql-cte-benefits',
+        type: 'sql',
+        category: 'sql-cte',
+        front: 'What are the advantages of using CTEs (Common Table Expressions)?',
+        back: '1. Improves readability by naming subqueries. 2. Can be referenced multiple times. 3. Enables recursive queries. 4. Better query organization and maintenance.',
+        difficulty: 'easy',
+        tags: ['cte', 'readability', 'recursive'],
+    },
+    {
+        id: 'sql-self-join-use',
+        type: 'sql',
+        category: 'sql-joins',
+        front: 'What is a SELF JOIN and when would you use it?',
+        back: 'Joining a table to itself. Used when: 1. Comparing rows within the same table. 2. Hierarchical data (employees/managers). 3. Finding pairs or duplicates. 4. Sequential data analysis.',
+        difficulty: 'medium',
+        tags: ['joins', 'self-join', 'hierarchical'],
+    },
+    {
+        id: 'sql-last-30-days',
+        type: 'sql',
+        category: 'sql-datetime',
+        front: 'How do you find records from the last 30 days?',
+        back: "Use: WHERE date_column >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY) [MySQL] or WHERE date_column >= CURRENT_DATE - INTERVAL '30 days' [PostgreSQL] or similar date arithmetic.",
+        difficulty: 'easy',
+        tags: ['datetime', 'filtering', 'date-range'],
+    },
+    {
+        id: 'sql-like-vs-regexp',
+        type: 'sql',
+        category: 'sql-strings',
+        front: 'What is the difference between LIKE and REGEXP?',
+        back: 'LIKE: Simple pattern matching with % (wildcard) and _ (single char). REGEXP: Full regular expression support for complex patterns. REGEXP is more powerful but slower.',
+        difficulty: 'medium',
+        tags: ['strings', 'pattern-matching', 'regex'],
+    },
+    {
+        id: 'sql-gaps-islands',
+        type: 'sql',
+        category: 'sql-advanced',
+        front: 'What is the Gaps and Islands problem in SQL?',
+        back: 'Finding consecutive sequences in data (islands) or missing values in sequences (gaps). Solved using: ROW_NUMBER() - value difference, LAG/LEAD, or recursive CTEs.',
+        difficulty: 'hard',
+        tags: ['advanced', 'window-functions', 'sequences'],
+    },
+    {
+        id: 'sql-coalesce-vs-ifnull',
+        type: 'sql',
+        category: 'sql-conditional',
+        front: 'What is the difference between COALESCE and IFNULL?',
+        back: 'COALESCE: Standard SQL, accepts multiple arguments, returns first non-NULL value. IFNULL: MySQL-specific, accepts only 2 arguments. COALESCE is more portable and flexible.',
+        difficulty: 'easy',
+        tags: ['conditional', 'null-handling', 'coalesce'],
+    },
 ];
 
 // Helper to get cards by category
@@ -1811,10 +1903,12 @@ export const getDueFlashCards = (
     });
 };
 
-// Get unique categories
-export const getFlashCardCategories = (): { id: string; name: string }[] => {
-    const categories = new Map<string, string>();
-    categories.set('all', 'All Cards');
+// Get unique categories with type information
+export const getFlashCardCategories = (): { id: string; name: string; type: string }[] => {
+    const categories = new Map<string, { name: string; type: string }>();
+
+    // Add 'all' category first
+    categories.set('all', { name: 'All Cards', type: 'all' });
 
     FLASH_CARDS_DATA.forEach((card) => {
         if (!categories.has(card.category)) {
@@ -1823,9 +1917,24 @@ export const getFlashCardCategories = (): { id: string; name: string }[] => {
                 .split('-')
                 .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
                 .join(' ');
-            categories.set(card.category, name);
+            categories.set(card.category, { name, type: card.type });
         }
     });
 
-    return Array.from(categories.entries()).map(([id, name]) => ({ id, name }));
+    return Array.from(categories.entries())
+        .map(([id, { name, type }]) => ({ id, name, type }))
+        .sort((a, b) => {
+            // 'all' should always be first
+            if (a.id === 'all') return -1;
+            if (b.id === 'all') return 1;
+            // Sort by type first, then by name
+            if (a.type !== b.type) {
+                const typeOrder = { algorithm: 0, pattern: 1, sql: 2 };
+                return (
+                    (typeOrder[a.type as keyof typeof typeOrder] || 3) -
+                    (typeOrder[b.type as keyof typeof typeOrder] || 3)
+                );
+            }
+            return a.name.localeCompare(b.name);
+        });
 };

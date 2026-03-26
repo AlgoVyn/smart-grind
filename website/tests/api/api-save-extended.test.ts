@@ -11,7 +11,7 @@ jest.mock('../../src/state', () => ({
         user: { type: 'local', id: null, displayName: 'Test User' },
         problems: new Map(),
         deletedProblemIds: new Set(),
-        ui: { activeTopicId: 'all', activeAlgorithmCategoryId: null },
+        ui: { activeTopicId: '', activeAlgorithmCategoryId: null },
         saveToStorage: jest.fn(),
     },
 }));

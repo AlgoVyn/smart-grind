@@ -37,7 +37,7 @@ jest.mock('../src/state', () => ({
             displayName: 'Local User',
         },
         ui: {
-            activeTopicId: 'all',
+            activeTopicId: '',
             currentFilter: 'all',
             searchQuery: '',
             preferredAI: null,
@@ -80,6 +80,9 @@ jest.mock('../src/renderers', () => ({
     renderers: {
         renderSidebar: jest.fn(),
         renderMainView: jest.fn(),
+        renderCombinedView: jest.fn(),
+        renderAlgorithmsView: jest.fn(),
+        renderSQLView: jest.fn(),
         updateStats: jest.fn(),
         updateFilterBtns: jest.fn(),
     },
@@ -121,7 +124,7 @@ describe('App Module', () => {
             displayName: 'Local User',
         };
         state.ui = {
-            activeTopicId: 'all',
+            activeTopicId: '',
             currentFilter: 'all',
             searchQuery: '',
             preferredAI: null,
@@ -206,7 +209,7 @@ describe('App Module', () => {
             await initializeLocalUser();
 
             expect(renderers.renderSidebar).toHaveBeenCalled();
-            expect(renderers.renderMainView).toHaveBeenCalledWith('all');
+            expect(renderers.renderCombinedView).toHaveBeenCalled();
             expect(renderers.updateStats).toHaveBeenCalled();
         });
 
@@ -411,7 +414,7 @@ describe('App Module', () => {
             expect(api.syncPlan).toHaveBeenCalled();
             expect(api.mergeStructure).toHaveBeenCalled();
             expect(renderers.renderSidebar).toHaveBeenCalled();
-            expect(renderers.renderMainView).toHaveBeenCalledWith('all');
+            expect(renderers.renderCombinedView).toHaveBeenCalled();
             expect(renderers.updateStats).toHaveBeenCalled();
             expect(ui.initScrollButton).toHaveBeenCalled();
             expect(ui.updateAuthUI).toHaveBeenCalled();

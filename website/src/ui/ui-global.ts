@@ -49,11 +49,15 @@ export const handlePopState = () => {
         categoryParam &&
         (data.topicsData.some((t: Topic) => t.id === categoryParam) || categoryParam === 'all')
             ? categoryParam
-            : 'all';
+            : '';
 
     state.ui.activeTopicId = category;
     renderers.renderSidebar();
-    renderers.renderMainView(state.ui.activeTopicId);
+    if (category) {
+        renderers.renderMainView(state.ui.activeTopicId);
+    } else {
+        renderers.renderCombinedView();
+    }
     scrollToTop();
 };
 

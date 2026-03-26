@@ -8,6 +8,14 @@ import {
     TOTAL_UNIQUE_ALGORITHMS,
     AlgorithmCategory,
 } from './data/algorithms-data';
+import {
+    SQL_DATA,
+    TOTAL_UNIQUE_SQL_PROBLEMS,
+    getAllSQLProblems,
+    getSQLCategoryById,
+    flattenSQLData,
+    SQLCategory,
+} from './data/sql-data';
 import { STORAGE_KEYS } from './utils/storage';
 
 /**
@@ -30,6 +38,9 @@ const _topicsData: Topic[] = cloneData(PROBLEMS_DATA);
 
 // Algorithms data organized by category (imported from algorithms-data.ts)
 export const algorithmsData: AlgorithmCategory[] = ALGORITHMS_DATA;
+
+// SQL data organized by category (imported from sql-data.ts)
+export const sqlData: SQLCategory[] = SQL_DATA;
 
 // Cloudflare API base
 export const API_BASE = '/smartgrind/api';
@@ -58,6 +69,12 @@ export const TOTAL_UNIQUE_PROBLEMS_COUNT = TOTAL_UNIQUE_PROBLEMS;
  * This count represents the current total from algorithmsData structure.
  */
 export const TOTAL_UNIQUE_ALGORITHMS_COUNT = TOTAL_UNIQUE_ALGORITHMS;
+
+/**
+ * Total number of unique SQL problems in the dataset.
+ * This count represents the current total from sqlData structure.
+ */
+export const TOTAL_UNIQUE_SQL_COUNT = TOTAL_UNIQUE_SQL_PROBLEMS;
 
 // Local storage keys - re-exported from storage.ts for backward compatibility
 export const LOCAL_STORAGE_KEYS = {
@@ -108,6 +125,9 @@ export const data = {
     // Algorithms data organized by category
     algorithmsData,
 
+    // SQL data organized by category
+    sqlData,
+
     // Initialize data module
     init: ensureOriginalData,
 
@@ -123,6 +143,12 @@ export const data = {
     // Total counts
     TOTAL_UNIQUE_PROBLEMS: TOTAL_UNIQUE_PROBLEMS_COUNT,
     TOTAL_UNIQUE_ALGORITHMS: TOTAL_UNIQUE_ALGORITHMS_COUNT,
+    TOTAL_UNIQUE_SQL: TOTAL_UNIQUE_SQL_COUNT,
+
+    // SQL helper functions
+    getAllSQLProblems,
+    getSQLCategoryById,
+    flattenSQLData,
 
     // Local storage keys
     LOCAL_STORAGE_KEYS,

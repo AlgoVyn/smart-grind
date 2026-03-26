@@ -2300,6 +2300,38 @@ body.sidebar-resizing #main-sidebar {
     border-right: 3px solid #0085d0;
 }
 
+/* SQL Category Styles - Same color as patterns */
+.sidebar-sql-category {
+    border-left: 2px solid transparent;
+}
+
+.sidebar-sql-category:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--theme-text-bold);
+}
+
+.sidebar-sql-category.active {
+    background: rgba(0, 133, 208, 0.15);
+    color: #4da6ff;
+    border-right: 3px solid #0085d0;
+}
+
+/* All Content Button Styles - Same color as other categories */
+.sidebar-all-content {
+    border-left: 4px solid transparent;
+}
+
+.sidebar-all-content:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--theme-text-bold);
+}
+
+.sidebar-all-content.active {
+    background: rgba(0, 133, 208, 0.15);
+    color: #4da6ff;
+    border-left-color: #0085d0;
+}
+
 .sidebar-algorithm-category .category-chevron {
     transition: transform 0.2s ease;
 }

@@ -60,11 +60,37 @@ export interface SyncStatusUpdate {
     conflictMessage?: string | null;
 }
 
+// --- SQL TYPES ---
+
+export interface SQLCategory {
+    id: string;
+    title: string;
+    icon: string;
+    topics: SQLTopic[];
+}
+
+export interface SQLTopic {
+    id: string;
+    name: string;
+    patterns: SQLPattern[];
+}
+
+export interface SQLPattern {
+    name: string;
+    description?: string;
+    problems: ProblemDef[];
+}
+
+export interface SQLProblem extends Problem {
+    categoryId: string;
+    topicId: string;
+}
+
 // --- FLASH CARD TYPES ---
 
 export interface FlashCard {
     id: string;
-    type: 'algorithm' | 'pattern';
+    type: 'algorithm' | 'pattern' | 'sql';
     category: string; // Algorithm category or Pattern topic ID
     front: string;
     back: string;
@@ -85,7 +111,7 @@ export interface FlashCardSession {
     cardIds: string[];
     currentIndex: number;
     categoryFilter: string | null;
-    typeFilter: 'all' | 'algorithm' | 'pattern';
+    typeFilter: 'all' | 'algorithm' | 'pattern' | 'sql';
     modeFilter: 'all' | 'due';
     startedAt: string;
 }

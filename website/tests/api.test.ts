@@ -77,6 +77,7 @@ describe('SmartGrind API Module', () => {
         renderers.updateStats = mockUpdateStats;
         renderers.renderSidebar = mockRenderSidebar;
         renderers.renderMainView = mockRenderMainView;
+        renderers.renderCombinedView = jest.fn();
         renderers.updateFilterBtns = mockUpdateFilterBtns;
 
         // Mock state
@@ -92,7 +93,7 @@ describe('SmartGrind API Module', () => {
             appWrapper: { classList: { remove: jest.fn(), add: jest.fn() } },
         };
         state.ui = {
-            activeTopicId: 'all',
+            activeTopicId: '',
         };
 
         // Mock data
@@ -398,7 +399,7 @@ describe('SmartGrind API Module', () => {
             });
             expect(state.deletedProblemIds.has('2')).toBe(true);
             expect(mockRenderSidebar).toHaveBeenCalled();
-            expect(mockRenderMainView).toHaveBeenCalledWith('all');
+            expect(renderers.renderCombinedView).toHaveBeenCalled();
         });
 
         test('should handle auth error', async () => {
@@ -506,9 +507,9 @@ describe('SmartGrind API Module', () => {
             expect(data.topicsData).toHaveLength(0);
             expect(state.problems.has('1')).toBe(false);
             expect(state.deletedProblemIds.has('1')).toBe(true);
-            expect(state.ui.activeTopicId).toBe('all');
+            expect(state.ui.activeTopicId).toBe('');
             expect(mockRenderSidebar).toHaveBeenCalled();
-            expect(mockRenderMainView).toHaveBeenCalledWith('all');
+            expect(mockRenderMainView).toHaveBeenCalledWith('');
         });
 
         test('should not delete if not confirmed', async () => {
@@ -661,7 +662,7 @@ describe('SmartGrind API Module', () => {
             expect(performSaveSpy).toHaveBeenCalled();
             expect(mockUpdateFilterBtns).toHaveBeenCalled();
             expect(mockRenderSidebar).toHaveBeenCalled();
-            expect(mockRenderMainView).toHaveBeenCalledWith('all');
+            expect(mockRenderMainView).toHaveBeenCalledWith('');
             expect(showToast).toHaveBeenCalledWith('All problems reset and restored');
         });
 
@@ -785,7 +786,7 @@ describe('SmartGrind API Module', () => {
             expect(performSaveSpy).toHaveBeenCalled();
             expect(mockUpdateFilterBtns).toHaveBeenCalled();
             expect(mockRenderSidebar).toHaveBeenCalled();
-            expect(mockRenderMainView).toHaveBeenCalledWith('all');
+            expect(mockRenderMainView).toHaveBeenCalledWith('');
             expect(showToast).toHaveBeenCalledWith('Category problems reset and restored');
         });
 

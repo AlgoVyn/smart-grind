@@ -35,6 +35,7 @@ export const getBaseUrl = (): string => {
 const PATH_PREFIXES: Record<string, string> = {
     category: 'c',
     algorithms: 'a',
+    sql: 's',
 };
 
 /**

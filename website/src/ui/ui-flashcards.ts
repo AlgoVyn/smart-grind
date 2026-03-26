@@ -431,7 +431,8 @@ const renderCard = async (): Promise<void> => {
 
     // Update content - render markdown with syntax highlighting
     if (els.cardTitle) {
-        const typeText = card.type === 'algorithm' ? 'Algorithm' : 'Pattern';
+        const typeText =
+            card.type === 'algorithm' ? 'Algorithm' : card.type === 'sql' ? 'SQL' : 'Pattern';
         els.cardTitle.textContent = typeText;
     }
     if (els.cardQuestion) {
@@ -444,10 +445,13 @@ const renderCard = async (): Promise<void> => {
     // Update badges
     if (els.typeBadge) {
         els.typeBadge.textContent = card.type;
+        const typeClasses = {
+            algorithm: 'bg-blue-500/20 text-blue-400',
+            pattern: 'bg-purple-500/20 text-purple-400',
+            sql: 'bg-green-500/20 text-green-400',
+        };
         els.typeBadge.className = `px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-            card.type === 'algorithm'
-                ? 'bg-blue-500/20 text-blue-400'
-                : 'bg-purple-500/20 text-purple-400'
+            typeClasses[card.type] || typeClasses.pattern
         }`;
     }
     if (els.categoryBadge) {
@@ -602,8 +606,12 @@ const setupEventListeners = (): void => {
 
             // Update session
             if (currentSession) {
-                currentSession.typeFilter = type as 'all' | 'algorithm' | 'pattern';
+                currentSession.typeFilter = type as 'all' | 'algorithm' | 'pattern' | 'sql';
             }
+
+            // Update category dropdown based on type filter
+            populateCategoryDropdown(type || 'all');
+
             updateCardCount();
         });
     });
@@ -691,6 +699,68 @@ const handleKeyboard = (e: KeyboardEvent): void => {
 
 // --- PUBLIC API ---
 
+// Helper function to populate category dropdown based on type filter
+const populateCategoryDropdown = (typeFilter: string): void => {
+    const els = getElements();
+    if (!els.categorySelect) {
+        console.warn('Category select element not found');
+        return;
+    }
+
+    // Save current selection
+    const currentSelection = els.categorySelect.value;
+
+    // Clear and add "All Categories" option
+    els.categorySelect.innerHTML = '<option value="all">All Categories</option>';
+
+    // Get all categories and filter by type if needed
+    const allCategories = getFlashCardCategories();
+    const filteredCategories =
+        typeFilter === 'all'
+            ? allCategories
+            : allCategories.filter((cat) => cat.type === typeFilter);
+
+    // Group categories by type for better organization (exclude 'all')
+    const categoriesByType = new Map<string, { id: string; name: string }[]>();
+
+    filteredCategories.forEach((cat) => {
+        if (cat.id === 'all') return; // Skip 'all' category since it's already added
+        const typeLabel = cat.type.charAt(0).toUpperCase() + cat.type.slice(1);
+        if (!categoriesByType.has(typeLabel)) {
+            categoriesByType.set(typeLabel, []);
+        }
+        categoriesByType.get(typeLabel)!.push({ id: cat.id, name: cat.name });
+    });
+
+    // Add categories grouped by type
+    const typeOrder = ['Algorithm', 'Pattern', 'Sql'];
+    typeOrder.forEach((typeLabel) => {
+        const cats = categoriesByType.get(typeLabel);
+        if (cats && cats.length > 0) {
+            // Add optgroup for this type
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = typeLabel === 'Sql' ? 'SQL' : typeLabel + 's';
+
+            cats.forEach((cat) => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = cat.name;
+                optgroup.appendChild(option);
+            });
+
+            els.categorySelect!.appendChild(optgroup);
+        }
+    });
+
+    // Restore selection if it still exists in the new options
+    const optionExists = Array.from(els.categorySelect.options).some(
+        (opt) => opt.value === currentSelection
+    );
+    if (optionExists) {
+        els.categorySelect.value = currentSelection;
+    }
+};
+
 export const openFlashcardsModal = (): void => {
     const els = getElements();
     if (!els.modal) return;
@@ -698,18 +768,8 @@ export const openFlashcardsModal = (): void => {
     // Reset session stats
     sessionStats = { again: 0, hard: 0, good: 0, easy: 0 };
 
-    // Populate category dropdown
-    if (els.categorySelect) {
-        els.categorySelect.innerHTML = '<option value="all">All Categories</option>';
-        getFlashCardCategories().forEach((cat) => {
-            if (cat.id !== 'all') {
-                const option = document.createElement('option');
-                option.value = cat.id;
-                option.textContent = cat.name;
-                els.categorySelect!.appendChild(option);
-            }
-        });
-    }
+    // Populate category dropdown with all categories
+    populateCategoryDropdown('all');
 
     // Initialize session
     currentSession = {

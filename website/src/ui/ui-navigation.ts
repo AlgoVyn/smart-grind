@@ -170,12 +170,15 @@ export const toggleMobileMenu = () => {
     document.body.style.overflow = isOpen ? '' : 'hidden';
 };
 
-// Load default view (all problems)
+// Load default view (all content)
 export const loadDefaultView = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (renderers as any).setActiveTopic('all');
+    // Clear all active categories to show combined view
+    state.ui.activeTopicId = '';
+    state.ui.activeAlgorithmCategoryId = null;
+    state.ui.activeSQLCategoryId = null;
     updateUrlParameter('category', null);
-    renderers.renderMainView('all');
+    renderers.renderCombinedView();
+    renderers.updateStats();
     scrollToTop();
     // Close mobile menu if open
     const mainSidebar = state.elements['mainSidebar'];

@@ -38,7 +38,7 @@ describe('End-to-End User Flows', () => {
             displayName: 'Local User',
         };
         state.ui = {
-            activeTopicId: 'all',
+            activeTopicId: '',
             activeAlgorithmCategoryId: null,
             currentFilter: 'all',
             searchQuery: '',
@@ -439,7 +439,7 @@ describe('End-to-End User Flows', () => {
 
     describe('UI State Flow', () => {
         it('should update active topic', () => {
-            expect(state.ui.activeTopicId).toBe('all');
+            expect(state.ui.activeTopicId).toBe('');
             
             state.setUI({ activeTopicId: 'arrays' });
             expect(state.ui.activeTopicId).toBe('arrays');

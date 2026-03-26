@@ -5,6 +5,7 @@ import { Topic, Pattern, ProblemDef, Problem } from '../types';
 import { state } from '../state';
 import { data } from '../data';
 import { ALGORITHMS_DATA, AlgorithmCategory, AlgorithmDef } from '../data/algorithms-data';
+import { SQL_DATA, SQLCategory } from '../data/sql-data';
 import { ui } from '../ui/ui';
 import { renderers } from '../renderers';
 import { showToast } from '../utils';
@@ -326,6 +327,80 @@ export const resetAlgorithmCategory = async (categoryId: string): Promise<void> 
         state.deletedProblemIds = originalDeletedIds;
         const message = e instanceof Error ? e.message : String(e);
         ui.showAlert(`Failed to reset algorithm category: ${message}`);
+        throw e;
+    }
+};
+
+/**
+ * Gets all SQL problem IDs for a category.
+ * @param {string} categoryId - The ID of the SQL category.
+ * @returns {string[]} Array of SQL problem IDs.
+ */
+const _getSQLProblemIdsForCategory = (categoryId: string): string[] => {
+    const category = SQL_DATA.find((c: SQLCategory) => c.id === categoryId);
+    if (!category) return [];
+
+    const problemIds: string[] = [];
+    category.topics.forEach((topic) => {
+        topic.patterns.forEach((pattern) => {
+            pattern.problems.forEach((problem) => {
+                problemIds.push(problem.id);
+            });
+        });
+    });
+
+    return problemIds;
+};
+
+/**
+ * Resets all SQL problems in a category to unsolved state and restores deleted problems.
+ * @param {string} categoryId - The ID of the SQL category to reset.
+ * @throws {Error} Throws an error if the reset fails.
+ */
+export const resetSQLCategory = async (categoryId: string): Promise<void> => {
+    const category = SQL_DATA.find((c: SQLCategory) => c.id === categoryId);
+    const title = categoryId === 'all' ? 'All SQL' : category?.title || 'Unknown Category';
+
+    const confirmed = await ui.showConfirm(
+        `Are you sure you want to reset <b>${title}</b>?</br></br>This will mark all SQL problems as unsolved and restore any deleted SQL problems.`
+    );
+    if (!confirmed) return;
+
+    // Store original state for rollback
+    const originalProblems = createProblemsBackup();
+    const originalDeletedIds = new Set(state.deletedProblemIds);
+
+    try {
+        const sqlProblemIds = _getSQLProblemIdsForCategory(categoryId);
+
+        // Reset SQL problems
+        sqlProblemIds.forEach((problemId) => {
+            const problem = state.problems.get(problemId);
+            if (problem) {
+                problem.status = 'unsolved';
+                problem.reviewInterval = 0;
+                problem.nextReviewDate = null;
+            }
+        });
+
+        // Restore deleted SQL problems
+        sqlProblemIds.forEach((problemId) => {
+            state.deletedProblemIds.delete(problemId);
+        });
+
+        await saveData();
+
+        // Re-render
+        renderers.renderSidebar();
+        await renderers.renderSQLView(categoryId);
+
+        showToast(`${title} reset and restored successfully`);
+    } catch (e) {
+        // Restore original state on failure
+        state.problems = originalProblems;
+        state.deletedProblemIds = originalDeletedIds;
+        const message = e instanceof Error ? e.message : String(e);
+        ui.showAlert(`Failed to reset SQL category: ${message}`);
         throw e;
     }
 };

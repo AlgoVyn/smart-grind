@@ -43,7 +43,7 @@ const sharedMockState = {
         displayName: 'Local User',
     },
     ui: {
-        activeTopicId: 'all',
+        activeTopicId: '',
         currentFilter: 'all',
         searchQuery: '',
         preferredAI: null,
@@ -82,6 +82,7 @@ const sharedMockUI = {
 const sharedMockRenderers = {
     renderSidebar: jest.fn(),
     renderMainView: jest.fn(),
+    renderCombinedView: jest.fn(),
     updateStats: jest.fn(),
     updateFilterBtns: jest.fn(),
 };
@@ -198,7 +199,7 @@ describe('Initialization Module', () => {
             displayName: 'Local User',
         };
         sharedMockState.ui = {
-            activeTopicId: 'all',
+            activeTopicId: '',
             currentFilter: 'all',
             searchQuery: '',
             preferredAI: null,
@@ -245,7 +246,7 @@ describe('Initialization Module', () => {
             await checkAuth();
 
             // Should set category to 'all'
-            expect(sharedMockState.ui.activeTopicId).toBe('all');
+            expect(sharedMockState.ui.activeTopicId).toBe('');
         });
 
         test('should extract category from URL path /smartgrind/c/arrays', async () => {
@@ -258,7 +259,7 @@ describe('Initialization Module', () => {
 
             // Since we can't mock location, the category will be 'all' (default)
             // This test is skipped due to jsdom limitations
-            expect(sharedMockState.ui.activeTopicId).toBe('all');
+            expect(sharedMockState.ui.activeTopicId).toBe('');
         });
 
         test('should handle invalid category in URL', async () => {
@@ -271,7 +272,7 @@ describe('Initialization Module', () => {
             await checkAuth();
 
             // Should keep default 'all' category
-            expect(sharedMockState.ui.activeTopicId).toBe('all');
+            expect(sharedMockState.ui.activeTopicId).toBe('');
         });
 
         test('should handle PWA auth callback with valid token', async () => {

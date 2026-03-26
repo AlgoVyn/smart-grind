@@ -31,9 +31,9 @@ describe('Flash Cards Data Module', () => {
             });
         });
 
-        test('card type should be either algorithm or pattern', () => {
+        test('card type should be either algorithm, pattern, or sql', () => {
             FLASH_CARDS_DATA.forEach((card: FlashCard) => {
-                expect(['algorithm', 'pattern']).toContain(card.type);
+                expect(['algorithm', 'pattern', 'sql']).toContain(card.type);
             });
         });
 
@@ -181,7 +181,7 @@ describe('Flash Cards Content Validation', () => {
         FLASH_CARDS_DATA.forEach((card: FlashCard) => {
             // Verify card has ID and metadata
             expect(card.id).toBeDefined();
-            expect(card.id).toMatch(/^(algo|pattern)-/); // IDs should follow naming convention
+            expect(card.id).toMatch(/^(algo|pattern|sql)-/); // IDs should follow naming convention
             
             // Verify tags are non-empty
             expect(card.tags.length).toBeGreaterThan(0);
@@ -197,7 +197,11 @@ describe('Flash Cards Content Validation', () => {
             'dynamic-programming', 'greedy', 'backtracking', 'bit-manipulation',
             'heap-priority-queue', 'math-number-theory', 'advanced',
             'sliding-window', 'binary-search', 'tree-patterns', 'heap',
-            'two-pointers', 'fast-slow-pointers', 'merge-intervals', 'stack', 'matrix'
+            'two-pointers', 'fast-slow-pointers', 'merge-intervals', 'stack', 'matrix',
+            // SQL categories
+            'sql-basics', 'sql-joins', 'sql-aggregation', 'sql-subqueries',
+            'sql-window-functions', 'sql-cte', 'sql-conditional', 'sql-datetime',
+            'sql-strings', 'sql-advanced'
         ]);
         
         FLASH_CARDS_DATA.forEach((card: FlashCard) => {

@@ -53,8 +53,13 @@ export const initializeLocalUser = async (): Promise<void> => {
     // Merge dynamically added problems into topicsData structure
     api.mergeStructure();
 
+    // Set state to show all content (no specific category selected)
+    state.ui.activeTopicId = '';
+    state.ui.activeAlgorithmCategoryId = null;
+    state.ui.activeSQLCategoryId = null;
+
     renderers.renderSidebar();
-    renderers.renderMainView('all'); // Show all by default
+    renderers.renderCombinedView(); // Show all content by default
     renderers.updateStats();
 
     // Initialize scroll button after DOM is ready
@@ -119,7 +124,7 @@ export const exportProgress = (): void => {
 };
 
 /**
- * Get statistics for a specific category
+ * Get statistics for a specific category using unique problem IDs
  * @param categoryId - The category/topic ID
  * @returns Statistics object with total, solved, unsolved, due counts and progress percentage
  */
@@ -129,8 +134,8 @@ export const getCategoryStats = (
     // Get topic title for category matching
     const topicTitle = data.topicsData.find((t) => t.id === categoryId)?.title;
 
-    // Calculate stats by iterating Map directly (avoids unnecessary array copy for filtered categories)
-    let total = 0;
+    // Calculate stats using unique problem IDs
+    const uniqueProblemIds = new Set<string>();
     let solved = 0;
     let due = 0;
     const now = new Date().toISOString().split('T')[0] || '';
@@ -141,7 +146,12 @@ export const getCategoryStats = (
             continue;
         }
 
-        total++;
+        // Skip if already counted
+        if (uniqueProblemIds.has(p.id)) {
+            continue;
+        }
+
+        uniqueProblemIds.add(p.id);
         if (p.status === 'solved') {
             solved++;
             if (p.nextReviewDate && p.nextReviewDate <= now) {
@@ -149,6 +159,8 @@ export const getCategoryStats = (
             }
         }
     }
+
+    const total = uniqueProblemIds.size;
 
     return {
         total,

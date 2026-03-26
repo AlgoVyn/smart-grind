@@ -7,6 +7,7 @@ import { data } from '../data';
 import { getToday, getUniqueProblemsForTopic } from '../utils';
 import { renderers } from '../renderers';
 import { AlgorithmCategory } from '../data/algorithms-data';
+import { SQLCategory } from '../data/sql-data';
 
 export const statsRenderers = {
     // Helper to update main dashboard statistics
@@ -30,12 +31,25 @@ export const statsRenderers = {
         }
     },
 
-    // Helper to update sidebar statistics
+    // Helper to update sidebar statistics using unique problem IDs
     _updateSidebarStats: () => {
-        // Use only problems data (not including algorithms) for sidebar stats
-        const allProblems = Array.from(state.problems.values());
-        const total = allProblems.length;
-        const solved = allProblems.filter((p) => p.status === 'solved').length;
+        // Use only problems data (not including algorithms or SQL) for sidebar stats
+        const uniqueProblemIds = new Set<string>();
+        let solved = 0;
+
+        Array.from(state.problems.values()).forEach((p) => {
+            // Skip algorithms and SQL problems
+            if (p.pattern === 'Algorithms' || p.id.startsWith('sql-')) return;
+
+            if (!uniqueProblemIds.has(p.id)) {
+                uniqueProblemIds.add(p.id);
+                if (p.status === 'solved') {
+                    solved++;
+                }
+            }
+        });
+
+        const total = uniqueProblemIds.size;
         const percentage = total > 0 ? Math.round((solved / total) * 100) : 0;
 
         const sidebarTotalStat = state.elements['sidebarTotalStat'];
@@ -64,9 +78,9 @@ export const statsRenderers = {
         }
     },
 
-    // Get stats for algorithm category
+    // Get stats for algorithm category using unique problem IDs
     _getAlgorithmCategoryStats: (categoryId: string) => {
-        let total = 0;
+        const uniqueProblemIds = new Set<string>();
         let solved = 0;
         let due = 0;
         const today = getToday();
@@ -75,12 +89,14 @@ export const statsRenderers = {
             // All algorithms
             data.algorithmsData.forEach((category: AlgorithmCategory) => {
                 category.algorithms.forEach((algo) => {
-                    total++;
-                    const problem = state.problems.get(algo.id);
-                    if (problem && problem.status === 'solved') {
-                        solved++;
-                        if (problem.nextReviewDate && problem.nextReviewDate <= today) {
-                            due++;
+                    if (!uniqueProblemIds.has(algo.id)) {
+                        uniqueProblemIds.add(algo.id);
+                        const problem = state.problems.get(algo.id);
+                        if (problem && problem.status === 'solved') {
+                            solved++;
+                            if (problem.nextReviewDate && problem.nextReviewDate <= today) {
+                                due++;
+                            }
                         }
                     }
                 });
@@ -92,27 +108,156 @@ export const statsRenderers = {
             );
             if (category) {
                 category.algorithms.forEach((algo) => {
-                    total++;
-                    const problem = state.problems.get(algo.id);
-                    if (problem && problem.status === 'solved') {
-                        solved++;
-                        if (problem.nextReviewDate && problem.nextReviewDate <= today) {
-                            due++;
+                    if (!uniqueProblemIds.has(algo.id)) {
+                        uniqueProblemIds.add(algo.id);
+                        const problem = state.problems.get(algo.id);
+                        if (problem && problem.status === 'solved') {
+                            solved++;
+                            if (problem.nextReviewDate && problem.nextReviewDate <= today) {
+                                due++;
+                            }
                         }
                     }
                 });
             }
         }
 
-        return { total, solved, due };
+        return { total: uniqueProblemIds.size, solved, due };
+    },
+
+    // Get stats for SQL category using unique problem IDs
+    _getSQLCategoryStats: (categoryId: string) => {
+        const uniqueProblemIds = new Set<string>();
+        let solved = 0;
+        let due = 0;
+        const today = getToday();
+
+        if (categoryId === 'all') {
+            // All SQL
+            data.sqlData.forEach((category: SQLCategory) => {
+                category.topics.forEach((topic) => {
+                    topic.patterns.forEach((pattern) => {
+                        pattern.problems.forEach((problem) => {
+                            if (!uniqueProblemIds.has(problem.id)) {
+                                uniqueProblemIds.add(problem.id);
+                                const p = state.problems.get(problem.id);
+                                if (p && p.status === 'solved') {
+                                    solved++;
+                                    if (p.nextReviewDate && p.nextReviewDate <= today) {
+                                        due++;
+                                    }
+                                }
+                            }
+                        });
+                    });
+                });
+            });
+        } else {
+            // Specific category
+            const category = data.sqlData.find((c: SQLCategory) => c.id === categoryId);
+            if (category) {
+                category.topics.forEach((topic) => {
+                    topic.patterns.forEach((pattern) => {
+                        pattern.problems.forEach((problem) => {
+                            if (!uniqueProblemIds.has(problem.id)) {
+                                uniqueProblemIds.add(problem.id);
+                                const p = state.problems.get(problem.id);
+                                if (p && p.status === 'solved') {
+                                    solved++;
+                                    if (p.nextReviewDate && p.nextReviewDate <= today) {
+                                        due++;
+                                    }
+                                }
+                            }
+                        });
+                    });
+                });
+            }
+        }
+
+        return { total: uniqueProblemIds.size, solved, due };
+    },
+
+    // Get stats for all content (patterns + algorithms + SQL) using unique problem IDs
+    _getAllContentStats: () => {
+        const uniqueProblemIds = new Set<string>();
+        let solved = 0;
+        let due = 0;
+        const today = getToday();
+
+        // Count pattern problems
+        data.topicsData.forEach((topic) => {
+            topic.patterns.forEach((pattern) => {
+                pattern.problems.forEach((prob) => {
+                    const id = typeof prob === 'string' ? prob : prob.id;
+                    if (!uniqueProblemIds.has(id)) {
+                        uniqueProblemIds.add(id);
+                        const problem = state.problems.get(id);
+                        if (problem) {
+                            if (problem.status === 'solved') {
+                                solved++;
+                                if (problem.nextReviewDate && problem.nextReviewDate <= today) {
+                                    due++;
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        });
+
+        // Count algorithm problems
+        data.algorithmsData.forEach((category) => {
+            category.algorithms.forEach((algo) => {
+                if (!uniqueProblemIds.has(algo.id)) {
+                    uniqueProblemIds.add(algo.id);
+                    const problem = state.problems.get(algo.id);
+                    if (problem) {
+                        if (problem.status === 'solved') {
+                            solved++;
+                            if (problem.nextReviewDate && problem.nextReviewDate <= today) {
+                                due++;
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        // Count SQL problems
+        data.sqlData.forEach((category) => {
+            category.topics.forEach((topic) => {
+                topic.patterns.forEach((pattern) => {
+                    pattern.problems.forEach((problem) => {
+                        if (!uniqueProblemIds.has(problem.id)) {
+                            uniqueProblemIds.add(problem.id);
+                            const p = state.problems.get(problem.id);
+                            if (p) {
+                                if (p.status === 'solved') {
+                                    solved++;
+                                    if (p.nextReviewDate && p.nextReviewDate <= today) {
+                                        due++;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            });
+        });
+
+        return { total: uniqueProblemIds.size, solved, due };
     },
 
     // Update statistics display
     updateStats: () => {
-        // Check if we're viewing algorithms or patterns
+        // Check if we're viewing algorithms, patterns, or all content
         const isAlgorithmView =
             state.ui.activeAlgorithmCategoryId !== null &&
             state.ui.activeAlgorithmCategoryId !== '';
+        const isSQLView =
+            state.ui.activeSQLCategoryId !== null && state.ui.activeSQLCategoryId !== '';
+        const isAllContentView = !isAlgorithmView && !isSQLView && !state.ui.activeTopicId;
 
         let stats: { total: number; solved: number; due: number };
 
@@ -120,8 +265,14 @@ export const statsRenderers = {
             stats = statsRenderers._getAlgorithmCategoryStats(
                 state.ui.activeAlgorithmCategoryId || 'all'
             );
-        } else if (state.ui.activeTopicId === 'all') {
-            // For 'all' view, only count problems (not algorithms) to match sidebar stats
+        } else if (isSQLView) {
+            stats = statsRenderers._getSQLCategoryStats(state.ui.activeSQLCategoryId || 'all');
+        } else if (isAllContentView) {
+            // All content view - count everything
+            stats = statsRenderers._getAllContentStats();
+        } else if (state.ui.activeTopicId === 'all' || state.ui.activeTopicId === '') {
+            // For 'all' view in patterns, only count problems (not algorithms)
+            // Empty string also defaults to all problems when not in combined view
             stats = getUniqueProblemsForTopic('all');
         } else {
             stats = getUniqueProblemsForTopic(state.ui.activeTopicId);
@@ -159,6 +310,36 @@ export const statsRenderers = {
 
         // Update algorithm category buttons
         statsRenderers._updateAlgorithmSidebarStats();
+
+        // Update SQL category buttons
+        statsRenderers._updateSQLSidebarStats();
+
+        // Update All Content button
+        statsRenderers._updateAllContentSidebarStats();
+    },
+
+    // Update SQL category sidebar stats
+    _updateSQLSidebarStats: () => {
+        const sqlBtns = document.querySelectorAll('.sidebar-sql-category[data-sql-category-id]');
+        sqlBtns.forEach((btn) => {
+            const htmlBtn = btn as HTMLElement;
+            const categoryId = htmlBtn.dataset['sqlCategoryId'];
+            if (!categoryId) return;
+
+            const stats = statsRenderers._getSQLCategoryStats(categoryId);
+            const pct = stats.total > 0 ? Math.round((stats.solved / stats.total) * 100) : 0;
+            statsRenderers._updateButtonPercentage(htmlBtn, pct, stats.total);
+        });
+    },
+
+    // Update All Content button sidebar stats
+    _updateAllContentSidebarStats: () => {
+        const allContentBtn = document.querySelector('.sidebar-all-content');
+        if (!allContentBtn) return;
+
+        const stats = statsRenderers._getAllContentStats();
+        const pct = stats.total > 0 ? Math.round((stats.solved / stats.total) * 100) : 0;
+        statsRenderers._updateButtonPercentage(allContentBtn as HTMLElement, pct, stats.total);
     },
 
     // Helper to update percentage span on a button

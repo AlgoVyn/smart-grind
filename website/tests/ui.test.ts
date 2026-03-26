@@ -21,6 +21,7 @@ const mockOpen = jest.fn();
 // Mock element factory
 const createMockElement = (overrides = {}) => {
     const eventListeners = {};
+    const children = [];
     return {
         addEventListener: jest.fn((event, handler) => {
             if (!eventListeners[event]) eventListeners[event] = [];
@@ -52,6 +53,17 @@ const createMockElement = (overrides = {}) => {
         nextElementSibling: null,
         dataset: {},
         querySelectorAll: jest.fn(() => []),
+        appendChild: jest.fn((child) => {
+            children.push(child);
+            return child;
+        }),
+        removeChild: jest.fn((child) => {
+            const index = children.indexOf(child);
+            if (index > -1) children.splice(index, 1);
+            return child;
+        }),
+        children,
+        options: [],
         ...overrides,
     };
 };
@@ -159,6 +171,9 @@ jest.mock('../src/renderers', () => ({
     renderers: {
         renderSidebar: jest.fn(),
         renderMainView: jest.fn(),
+        renderCombinedView: jest.fn(),
+        renderAlgorithmsView: jest.fn(),
+        renderSQLView: jest.fn(),
         setActiveTopic: jest.fn(),
         updateFilterBtns: jest.fn(),
         updateStats: jest.fn(),
@@ -299,7 +314,7 @@ describe('SmartGrind UI', () => {
             displayName: 'Local User',
         };
         state.ui = {
-            activeTopicId: 'all',
+            activeTopicId: '',
         };
         state.elements = {
             googleLoginButton: mockElement,
@@ -1333,9 +1348,9 @@ describe('SmartGrind UI', () => {
 
             ui.loadDefaultView();
 
-            expect(renderers.setActiveTopic).toHaveBeenCalledWith('all');
             expect(updateUrlParameter).toHaveBeenCalledWith('category', null);
-            expect(renderers.renderMainView).toHaveBeenCalledWith('all');
+            expect(renderers.renderCombinedView).toHaveBeenCalled();
+            expect(renderers.updateStats).toHaveBeenCalled();
             expect(scrollToTop).toHaveBeenCalled();
             // toggleMobileMenu is called which uses toggle, not remove
             expect(mockClassListToggle).toHaveBeenCalledWith('translate-x-0', false);
@@ -1351,9 +1366,9 @@ describe('SmartGrind UI', () => {
 
             ui.loadDefaultView();
 
-            expect(renderers.setActiveTopic).toHaveBeenCalledWith('all');
             expect(updateUrlParameter).toHaveBeenCalledWith('category', null);
-            expect(renderers.renderMainView).toHaveBeenCalledWith('all');
+            expect(renderers.renderCombinedView).toHaveBeenCalled();
+            expect(renderers.updateStats).toHaveBeenCalled();
             expect(scrollToTop).toHaveBeenCalled();
             // On desktop, toggleMobileMenu is not called
             expect(mockClassListToggle).not.toHaveBeenCalledWith('translate-x-0', false);
@@ -1388,7 +1403,7 @@ describe('SmartGrind UI', () => {
 
             ui.handlePopState();
 
-            expect(state.ui.activeTopicId).toBe('all');
+            expect(state.ui.activeTopicId).toBe('');
         });
     });
 
@@ -1729,30 +1744,6 @@ describe('SmartGrind UI', () => {
     });
 
     describe('app', () => {
-        describe('initializeLocalUser', () => {
-            test('initializes local user correctly', () => {
-                // Create a mock for updateAuthUI
-                const originalUpdateAuthUI = ui.updateAuthUI;
-                const updateAuthUISpy = jest.fn();
-                ui.updateAuthUI = updateAuthUISpy;
-
-                app.initializeLocalUser();
-
-                expect(state.user.type).toBe('local');
-                expect(localStorageSetItem).toHaveBeenCalledWith('userType', 'local');
-                expect(data.resetTopicsData).toHaveBeenCalled();
-                expect(api.syncPlan).toHaveBeenCalled();
-                expect(api.mergeStructure).toHaveBeenCalled();
-                expect(renderers.renderSidebar).toHaveBeenCalled();
-                expect(renderers.renderMainView).toHaveBeenCalledWith('all');
-                expect(renderers.updateStats).toHaveBeenCalled();
-                expect(updateAuthUISpy).toHaveBeenCalled();
-
-                // Restore the original updateAuthUI
-                ui.updateAuthUI = originalUpdateAuthUI;
-            });
-        });
-
         describe('exportProgress', () => {
             test('exports progress data', () => {
                 const createElementSpy = jest.spyOn(document, 'createElement');

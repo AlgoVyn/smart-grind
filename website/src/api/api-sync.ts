@@ -90,6 +90,7 @@ export const syncPlan = async (): Promise<void> => {
 
 /**
  * Merges custom problems into the topicsData structure by adding them to appropriate topics and patterns.
+ * Excludes SQL problems and algorithm problems.
  */
 export const mergeStructure = (): void => {
     // Build a set of existing problem IDs in topicsData for quick lookup
@@ -103,8 +104,14 @@ export const mergeStructure = (): void => {
     });
 
     state.problems.forEach((p: Problem) => {
-        if (!existingIds.has(p.id) && p.topic && p.pattern !== 'Algorithms') {
-            // It's a custom problem, add to topicsData
+        // Skip if: already exists, no topic, is algorithm, or is SQL problem
+        if (
+            !existingIds.has(p.id) &&
+            p.topic &&
+            p.pattern !== 'Algorithms' &&
+            !p.id.startsWith('sql-')
+        ) {
+            // It's a custom pattern problem (not SQL), add to topicsData
             let topic = data.topicsData.find((t: Topic) => t.title === p.topic);
             if (!topic) {
                 // Create new topic if needed

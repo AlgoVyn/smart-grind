@@ -31,7 +31,7 @@ describe('Integration: Offline/Online Transitions', () => {
         state.problems.clear();
         state.deletedProblemIds.clear();
         state.user = { type: 'local', id: null, displayName: 'Local User' };
-        state.ui = { activeTopicId: 'all', currentFilter: 'all', searchQuery: '', preferredAI: null, reviewDateFilter: null };
+        state.ui = { activeTopicId: '', currentFilter: 'all', searchQuery: '', preferredAI: null, reviewDateFilter: null };
         state.sync = { isOnline: true, isSyncing: false, pendingCount: 0, lastSyncAt: null, hasConflicts: false, conflictMessage: null };
         
         // Reset localStorage mock

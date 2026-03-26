@@ -394,17 +394,6 @@
             </div>
             
             <div class="p-6 space-y-4">
-                <!-- Category Filter -->
-                <div>
-                    <label for="flashcard-category" class="block text-xs text-theme-muted uppercase font-semibold mb-2">
-                        Category
-                    </label>
-                    <select id="flashcard-category" name="flashcard-category"
-                        class="w-full bg-dark-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none">
-                        <option value="all">All Categories</option>
-                    </select>
-                </div>
-
                 <!-- Type Filter -->
                 <div>
                     <label class="block text-xs text-theme-muted uppercase font-semibold mb-2">Card Type</label>
@@ -421,7 +410,22 @@
                             class="flashcard-type-btn flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-dark-950 border border-slate-700 text-theme-muted hover:text-theme-bold transition-colors">
                             Patterns
                         </button>
+                        <button type="button" data-flashcard-type="sql"
+                            class="flashcard-type-btn flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-dark-950 border border-slate-700 text-theme-muted hover:text-theme-bold transition-colors">
+                            SQL
+                        </button>
                     </div>
+                </div>
+
+                <!-- Category Filter -->
+                <div>
+                    <label for="flashcard-category" class="block text-xs text-theme-muted uppercase font-semibold mb-2">
+                        Category
+                    </label>
+                    <select id="flashcard-category" name="flashcard-category"
+                        class="w-full bg-dark-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-theme-bold focus:border-brand-500 outline-none">
+                        <option value="all">All Categories</option>
+                    </select>
                 </div>
 
                 <!-- Study Mode -->

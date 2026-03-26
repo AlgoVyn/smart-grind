@@ -26,7 +26,7 @@ export const getUniqueProblemIdsForTopic = (topicId: string): Set<string> => {
     if (topicId === 'all') {
         return new Set(
             [...state.problems.entries()]
-                .filter(([, p]) => p.pattern !== 'Algorithms')
+                .filter(([, p]) => p.pattern !== 'Algorithms' && !p.id.startsWith('sql-'))
                 .map(([id]) => id)
         );
     }

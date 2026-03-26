@@ -5,6 +5,7 @@ import { Topic, Problem } from '../types';
 import { state } from '../state';
 import { data } from '../data';
 import { ALGORITHMS_DATA, AlgorithmCategory } from '../data/algorithms-data';
+import { SQL_DATA, SQLCategory } from '../data/sql-data';
 import { ui } from '../ui/ui';
 import { renderers } from '../renderers';
 import { updateUrlParameter, showToast } from '../utils';
@@ -89,12 +90,31 @@ export const _removeAlgorithmCategoryAndProblems = (categoryId: string, category
 };
 
 /**
+ * Helper to remove SQL category and associated SQL problems from the data structures.
+ * @param {string} categoryId - The ID of the SQL category to remove.
+ * @param {string} categoryTitle - The title of the SQL category.
+ */
+export const _removeSQLCategoryAndProblems = (categoryId: string, categoryTitle: string) => {
+    // Remove associated SQL problems (SQL problems have IDs starting with 'sql-')
+    const problemsToDelete: string[] = [];
+    state.problems.forEach((p: Problem, id: string) => {
+        if (p.id.startsWith('sql-') && (p.topic === categoryId || p.topic === categoryTitle)) {
+            problemsToDelete.push(id);
+        }
+    });
+    problemsToDelete.forEach((id) => {
+        state.problems.delete(id);
+        state.deletedProblemIds.add(id);
+    });
+};
+
+/**
  * Helper to handle active topic switching when a topic is deleted.
  * @param {string} topicId - The ID of the deleted topic.
  */
 export const _handleActiveTopicSwitch = (topicId: string) => {
     if (state.ui.activeTopicId === topicId) {
-        state.ui.activeTopicId = 'all';
+        state.ui.activeTopicId = '';
         updateUrlParameter('category', null);
     }
 };
@@ -188,6 +208,52 @@ export const deleteAlgorithmCategory = async (categoryId: string): Promise<void>
         _restoreOriginalState(originalState);
         const message = e instanceof Error ? e.message : String(e);
         ui.showAlert(`Failed to delete algorithm category: ${message}`);
+        throw e;
+    }
+};
+
+/**
+ * Deletes a SQL category and all its associated SQL problems.
+ * @param {string} categoryId - The ID of the SQL category to delete.
+ * @throws {Error} Throws an error if the deletion fails.
+ */
+export const deleteSQLCategory = async (categoryId: string): Promise<void> => {
+    const category = SQL_DATA.find((c: SQLCategory) => c.id === categoryId);
+    if (!category) {
+        ui.showAlert('SQL category not found.');
+        return;
+    }
+
+    const confirmed = await ui.showConfirm(
+        `Are you sure you want to delete the SQL category "<b>${category.title}</b>" and all its associated SQL problems? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    const originalState = _storeOriginalState();
+
+    try {
+        _removeSQLCategoryAndProblems(categoryId, category.title);
+
+        // Handle active SQL category switch
+        if (state.ui.activeSQLCategoryId === categoryId) {
+            state.ui.activeSQLCategoryId = '';
+            updateUrlParameter('sql', null);
+        }
+
+        // Save
+        await saveData();
+
+        // Re-render
+        renderers.renderSidebar();
+        // Re-render SQL view to show updated state
+        const { renderers: renderersModule } = await import('../renderers');
+        await renderersModule.renderSQLView(categoryId);
+        showToast('SQL category and associated SQL problems removed');
+    } catch (e) {
+        // Restore original state on failure
+        _restoreOriginalState(originalState);
+        const message = e instanceof Error ? e.message : String(e);
+        ui.showAlert(`Failed to delete SQL category: ${message}`);
         throw e;
     }
 };

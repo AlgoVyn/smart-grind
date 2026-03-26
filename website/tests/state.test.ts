@@ -36,7 +36,7 @@ describe('SmartGrind State', () => {
             displayName: 'Local User',
         };
         state.ui = {
-            activeTopicId: 'all',
+            activeTopicId: '',
             currentFilter: 'all',
             searchQuery: '',
             preferredAI: null,

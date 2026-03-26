@@ -34,6 +34,11 @@ const getAlgorithmsFromUrl = (): string | null => {
     return path.startsWith('/smartgrind/a/') ? path.split('/smartgrind/a/')[1] || null : null;
 };
 
+const getSQLFromUrl = (): string | null => {
+    const path = window.location.pathname;
+    return path.startsWith('/smartgrind/s/') ? path.split('/smartgrind/s/')[1] || null : null;
+};
+
 // ============================================================================
 // Auth Token Management
 // ============================================================================
@@ -123,8 +128,21 @@ const getStoredTokenForOffline = async (): Promise<string | null> => {
 // User Setup Functions
 // ============================================================================
 
-const applyCategory = async (categoryParam: string | null, algorithmsParam: string | null) => {
+const applyCategory = async (
+    categoryParam: string | null,
+    algorithmsParam: string | null,
+    sqlParam: string | null
+) => {
     const { renderers } = await import('./renderers');
+
+    // Handle SQL view
+    if (sqlParam && data.sqlData.some((c) => c.id === sqlParam)) {
+        state.ui.activeSQLCategoryId = sqlParam;
+        renderers.renderSidebar();
+        await renderers.renderSQLView(sqlParam);
+        scrollToTop();
+        return;
+    }
 
     // Handle algorithms view
     if (algorithmsParam && data.algorithmsData.some((c) => c.id === algorithmsParam)) {
@@ -141,10 +159,22 @@ const applyCategory = async (categoryParam: string | null, algorithmsParam: stri
         categoryParam !== 'all' &&
         data.topicsData.some((t: Topic) => t.id === categoryParam);
 
-    if (isValidCategory) state.ui.activeTopicId = categoryParam;
+    if (isValidCategory) {
+        state.ui.activeTopicId = categoryParam;
+        renderers.renderSidebar();
+        await renderers.renderMainView(categoryParam);
+        scrollToTop();
+        return;
+    }
 
+    // Default: Show combined view with all content
+    // Ensure no category is selected and "All Content" is shown as active
+    state.ui.activeTopicId = '';
+    state.ui.activeAlgorithmCategoryId = null;
+    state.ui.activeSQLCategoryId = null;
     renderers.renderSidebar();
-    await renderers.renderMainView(state.ui.activeTopicId);
+    await renderers.renderCombinedView();
+    renderers.updateStats();
     scrollToTop();
 };
 
@@ -180,6 +210,7 @@ const setupSignedInUser = async (
     displayName: string,
     categoryParam: string | null,
     algorithmsParam: string | null,
+    sqlParam: string | null,
     token?: string
 ) => {
     // Set user type FIRST before loading from storage
@@ -205,7 +236,7 @@ const setupSignedInUser = async (
     if (!navigator.onLine && state.hasValidData()) {
         console.log('[Init] Offline with valid local data - skipping API calls');
         await initializeUIAfterSetup();
-        await applyCategory(categoryParam, algorithmsParam);
+        await applyCategory(categoryParam, algorithmsParam, sqlParam);
         return;
     }
 
@@ -215,13 +246,17 @@ const setupSignedInUser = async (
     await loadData();
     const { ui } = await import('./ui/ui');
     ui.updateAuthUI();
-    await applyCategory(categoryParam, algorithmsParam);
+    await applyCategory(categoryParam, algorithmsParam, sqlParam);
 };
 
-const setupLocalUser = async (categoryParam: string | null, algorithmsParam: string | null) => {
+const setupLocalUser = async (
+    categoryParam: string | null,
+    algorithmsParam: string | null,
+    sqlParam: string | null
+) => {
     const { app } = await import('./app');
     app.initializeLocalUser();
-    await applyCategory(categoryParam, algorithmsParam);
+    await applyCategory(categoryParam, algorithmsParam, sqlParam);
 };
 
 // ============================================================================
@@ -232,7 +267,8 @@ const handlePwaAuthCallback = async (
     urlUserId: string,
     urlDisplayName: string,
     categoryParam: string | null,
-    algorithmsParam: string | null
+    algorithmsParam: string | null,
+    sqlParam: string | null
 ): Promise<boolean> => {
     const sanitizedDisplayName = sanitizeInput(urlDisplayName) || 'User';
     window.history.replaceState({}, document.title, window.location.pathname);
@@ -251,6 +287,7 @@ const handlePwaAuthCallback = async (
             sanitizedDisplayName,
             categoryParam,
             algorithmsParam,
+            sqlParam,
             authData.token
         );
     }, 'Failed to set up signed-in user');
@@ -265,10 +302,18 @@ const restoreSession = async (
     token: string,
     categoryParam: string | null,
     algorithmsParam: string | null,
+    sqlParam: string | null,
     errorMessage: string
 ): Promise<void> => {
     await withErrorHandling(async () => {
-        await setupSignedInUser(userId, displayName, categoryParam, algorithmsParam, token);
+        await setupSignedInUser(
+            userId,
+            displayName,
+            categoryParam,
+            algorithmsParam,
+            sqlParam,
+            token
+        );
     }, errorMessage);
     initOfflineDetection();
 };
@@ -276,7 +321,8 @@ const restoreSession = async (
 const handleExistingSession = async (
     userId: string,
     categoryParam: string | null,
-    algorithmsParam: string | null
+    algorithmsParam: string | null,
+    sqlParam: string | null
 ): Promise<boolean> => {
     // Try to get fresh auth token first
     const authData = await fetchAuthToken();
@@ -288,6 +334,7 @@ const handleExistingSession = async (
             authData.token,
             categoryParam,
             algorithmsParam,
+            sqlParam,
             'Failed to restore user session'
         );
         return true;
@@ -303,6 +350,7 @@ const handleExistingSession = async (
             storedToken,
             categoryParam,
             algorithmsParam,
+            sqlParam,
             'Failed to restore session with stored token'
         );
         return true;
@@ -348,6 +396,7 @@ const checkAuth = async () => {
 
     const categoryParam = getCategoryFromUrl();
     const algorithmsParam = getAlgorithmsFromUrl();
+    const sqlParam = getSQLFromUrl();
     const urlParams = new URLSearchParams(window.location.search);
     const urlUserId = urlParams.get('userId');
     const urlDisplayName = urlParams.get('displayName');
@@ -358,14 +407,15 @@ const checkAuth = async () => {
             urlUserId,
             urlDisplayName,
             categoryParam,
-            algorithmsParam
+            algorithmsParam,
+            sqlParam
         );
         if (success) return;
     }
 
     // Check for existing session
     const userId = localStorage.getItem('userId');
-    if (userId && (await handleExistingSession(userId, categoryParam, algorithmsParam))) {
+    if (userId && (await handleExistingSession(userId, categoryParam, algorithmsParam, sqlParam))) {
         return;
     }
 
@@ -374,7 +424,7 @@ const checkAuth = async () => {
 
     if (userType === 'local' || (!userId && !userType)) {
         await withErrorHandling(
-            () => setupLocalUser(categoryParam, algorithmsParam),
+            () => setupLocalUser(categoryParam, algorithmsParam, sqlParam),
             'Failed to initialize local user'
         );
     } else {

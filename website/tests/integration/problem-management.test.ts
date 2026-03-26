@@ -17,7 +17,7 @@ describe('Integration: Problem Management', () => {
         state.problems.clear();
         state.deletedProblemIds.clear();
         state.user = { type: 'local', id: null, displayName: 'Local User' };
-        state.ui = { activeTopicId: 'all', currentFilter: 'all', searchQuery: '', preferredAI: null, reviewDateFilter: null };
+        state.ui = { activeTopicId: '', currentFilter: 'all', searchQuery: '', preferredAI: null, reviewDateFilter: null };
         
         // Setup test data
         data.topicsData = [

@@ -4,8 +4,8 @@
 import { saveData, saveProblem, saveDeletedId, flushPendingSync } from './api/api-save';
 import { loadData } from './api/api-load';
 import { syncPlan, mergeStructure } from './api/api-sync';
-import { resetAll, resetCategory, resetAlgorithmCategory } from './api/api-reset';
-import { deleteCategory, deleteAlgorithmCategory } from './api/api-delete';
+import { resetAll, resetCategory, resetAlgorithmCategory, resetSQLCategory } from './api/api-reset';
+import { deleteCategory, deleteAlgorithmCategory, deleteSQLCategory } from './api/api-delete';
 import { state } from './state';
 import { getConnectivityChecker } from './sw/connectivity-checker';
 import { isBrowserOnline as checkBrowserOnline } from './api/api-utils';
@@ -368,8 +368,10 @@ export const api = {
     resetAll,
     resetCategory,
     resetAlgorithmCategory,
+    resetSQLCategory,
     deleteCategory,
     deleteAlgorithmCategory,
+    deleteSQLCategory,
     saveProblemWithSync,
     deleteProblemWithSync,
     queueOperation,

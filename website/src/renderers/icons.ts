@@ -56,6 +56,29 @@ export const ICONS = {
             '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>',
         default:
             '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>',
+        // SQL icons
+        sql: '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>',
+        database:
+            '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>',
+        'git-merge':
+            '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 4v10a2 2 0 002 2h4a2 2 0 002-2V4M6 4a2 2 0 00-2 2v4a2 2 0 002 2h4a2 2 0 002-2V4m-6 2h4m4 10v-4a2 2 0 012-2h4a2 2 0 012 2v4M18 12v-2a2 2 0 00-2-2h-4" /></svg>',
+        'bar-chart-2':
+            '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 20V10M12 20V4M6 20v-6" /></svg>',
+        layers: '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>',
+        'layout-grid':
+            '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>',
+        'git-branch':
+            '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11v8a2 2 0 002 2h4a2 2 0 002-2v-4a2 2 0 00-2-2h-4a2 2 0 00-2 2v4m0 0v-4m0 4h4m-4 0v-4m0 4h4M6 4v4a2 2 0 002 2h4a2 2 0 002-2V4M6 4a2 2 0 012-2h4a2 2 0 012 2v4M6 4h4" /></svg>',
+        type: '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>',
+        calendar:
+            '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>',
+        'git-pull-request':
+            '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 4v10a2 2 0 002 2h4a2 2 0 002-2V4M6 4a2 2 0 00-2 2v4a2 2 0 002 2h4a2 2 0 002-2V4m-6 2h4" /></svg>',
+        'edit-3':
+            '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>',
+        cpu: '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>',
+        zap: '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>',
+        box: '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>',
     },
 
     // Get algorithm category icon by category ID
@@ -75,4 +98,48 @@ export const ICONS = {
         };
         return icons[categoryId] || ICONS.topicIcons.algorithms;
     },
+
+    // Get SQL category icon by category ID
+    getSQLCategoryIcon: (categoryId: string): string => {
+        const icons: Record<string, string> = {
+            'sql-basics': ICONS.topicIcons.database,
+            'sql-joins': ICONS.topicIcons['git-merge'] || ICONS.topicIcons.default,
+            'sql-aggregation': ICONS.topicIcons['bar-chart-2'] || ICONS.topicIcons.default,
+            'sql-subqueries': ICONS.topicIcons.layers || ICONS.topicIcons.default,
+            'sql-window-functions': ICONS.topicIcons['layout-grid'] || ICONS.topicIcons.default,
+            'sql-cte': ICONS.topicIcons['git-branch'] || ICONS.topicIcons.default,
+            'sql-set-operations': ICONS.topicIcons.layers || ICONS.topicIcons.default,
+            'sql-strings': ICONS.topicIcons.type || ICONS.topicIcons.default,
+            'sql-datetime': ICONS.topicIcons.calendar || ICONS.topicIcons.default,
+            'sql-conditional': ICONS.topicIcons['git-pull-request'] || ICONS.topicIcons.default,
+            'sql-dml': ICONS.topicIcons['edit-3'] || ICONS.topicIcons.default,
+            'sql-advanced': ICONS.topicIcons.cpu || ICONS.topicIcons.default,
+            'sql-performance': ICONS.topicIcons.zap || ICONS.topicIcons.default,
+            'sql-design': ICONS.topicIcons.box || ICONS.topicIcons.default,
+        };
+        return icons[categoryId] || ICONS.topicIcons.database;
+    },
+
+    // Additional SQL-related icons
+    database:
+        '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>',
+    'git-merge':
+        '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 4v10a2 2 0 002 2h4a2 2 0 002-2V4M6 4a2 2 0 00-2 2v4a2 2 0 002 2h4a2 2 0 002-2V4m-6 2h4m4 10v-4a2 2 0 012-2h4a2 2 0 012 2v4M18 12v-2a2 2 0 00-2-2h-4" /></svg>',
+    'bar-chart-2':
+        '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 20V10M12 20V4M6 20v-6" /></svg>',
+    layers: '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>',
+    'layout-grid':
+        '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>',
+    'git-branch':
+        '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11v8a2 2 0 002 2h4a2 2 0 002-2v-4a2 2 0 00-2-2h-4a2 2 0 00-2 2v4m0 0v-4m0 4h4m-4 0v-4m0 4h4M6 4v4a2 2 0 002 2h4a2 2 0 002-2V4M6 4a2 2 0 012-2h4a2 2 0 012 2v4M6 4h4" /></svg>',
+    type: '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>',
+    calendar:
+        '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>',
+    'git-pull-request':
+        '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 4v10a2 2 0 002 2h4a2 2 0 002-2V4M6 4a2 2 0 00-2 2v4a2 2 0 002 2h4a2 2 0 002-2V4m-6 2h4" /></svg>',
+    'edit-3':
+        '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>',
+    cpu: '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>',
+    zap: '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>',
+    box: '<svg class="topic-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>',
 };

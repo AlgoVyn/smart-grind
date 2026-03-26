@@ -106,7 +106,16 @@ export const _initializeUI = async (): Promise<void> => {
     const { ui } = await import('../ui/ui');
     const { renderers } = await import('../renderers');
     renderers.renderSidebar();
-    renderers.renderMainView('all');
+    // Check if any specific category is selected, otherwise show combined view
+    const hasActiveCategory =
+        state.ui.activeTopicId ||
+        state.ui.activeAlgorithmCategoryId ||
+        state.ui.activeSQLCategoryId;
+    if (hasActiveCategory) {
+        renderers.renderMainView(state.ui.activeTopicId || 'all');
+    } else {
+        renderers.renderCombinedView();
+    }
     renderers.updateStats();
     ui.initScrollButton();
 

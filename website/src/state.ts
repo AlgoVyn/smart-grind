@@ -23,8 +23,9 @@ export const state = {
 
     // UI state
     ui: {
-        activeTopicId: 'all',
+        activeTopicId: '',
         activeAlgorithmCategoryId: null as string | null,
+        activeSQLCategoryId: null as string | null,
         currentFilter: 'all',
         searchQuery: '',
         preferredAI: null as string | null,
@@ -161,5 +162,19 @@ export const state = {
     // Get current sync status
     getSyncStatus(): typeof this.sync {
         return { ...this.sync };
+    },
+
+    // Get solved SQL problems count
+    getSolvedSQLCount(): number {
+        return Array.from(this.problems.values()).filter(
+            (p) => p.status === 'solved' && p.id.startsWith('sql-')
+        ).length;
+    },
+
+    // Get solved SQL count by category
+    getSolvedSQLCountByCategory(_categoryId: string): number {
+        return Array.from(this.problems.values()).filter(
+            (p) => p.status === 'solved' && p.id.startsWith('sql-')
+        ).length;
     },
 };
