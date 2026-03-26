@@ -57,6 +57,22 @@ export const sqlViewRenderers = {
 
                 // Remove any existing action buttons for 'all' view
                 sqlViewRenderers._removeActionContainer();
+
+                // Add reset button for All SQL
+                const actionContainer = document.createElement('div');
+                actionContainer.className = 'category-action-container ml-2 flex gap-1';
+                actionContainer.appendChild(
+                    sqlViewRenderers._createActionBtn(
+                        ICONS.reset,
+                        'Reset All SQL',
+                        'bg-blue-500/10',
+                        async () => {
+                            const { api } = await import('../api');
+                            api.resetSQLCategory('all');
+                        }
+                    )
+                );
+                viewTitle?.insertAdjacentElement('afterend', actionContainer);
             }
         }
 

@@ -10,6 +10,9 @@ import { getToday } from '../utils';
 import { htmlGenerators } from './html-generators';
 import { problemCardRenderers } from './problem-cards';
 import { sqlViewRenderers } from './sql-view';
+import { mainViewRenderers } from './main-view';
+import { ICONS } from './icons';
+import { api } from '../api';
 
 export const combinedViewRenderers = {
     // Render combined view with all content
@@ -20,11 +23,27 @@ export const combinedViewRenderers = {
         // Clear existing content
         container.innerHTML = '';
 
+        // Remove any existing action buttons from previous views
+        mainViewRenderers._removeActionContainer();
+
         // Update view title
         const viewTitle = document.getElementById('current-view-title');
         if (viewTitle) {
             viewTitle.textContent = 'All Content';
         }
+
+        // Add reset button for All Content
+        const actionContainer = document.createElement('div');
+        actionContainer.className = 'category-action-container ml-2 flex gap-1';
+        actionContainer.appendChild(
+            mainViewRenderers._createActionBtn(
+                ICONS.reset,
+                'Reset All Content',
+                'bg-blue-500/10',
+                () => api.resetAll()
+            )
+        );
+        viewTitle?.insertAdjacentElement('afterend', actionContainer);
 
         const today = getToday();
 
