@@ -33,14 +33,11 @@ export const statsRenderers = {
 
     // Helper to update sidebar statistics using unique problem IDs
     _updateSidebarStats: () => {
-        // Use only problems data (not including algorithms or SQL) for sidebar stats
+        // Use all problems data (patterns + algorithms + SQL) for sidebar stats
         const uniqueProblemIds = new Set<string>();
         let solved = 0;
 
         Array.from(state.problems.values()).forEach((p) => {
-            // Skip algorithms and SQL problems
-            if (p.pattern === 'Algorithms' || p.id.startsWith('sql-')) return;
-
             if (!uniqueProblemIds.has(p.id)) {
                 uniqueProblemIds.add(p.id);
                 if (p.status === 'solved') {
