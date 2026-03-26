@@ -2329,7 +2329,7 @@ body.sidebar-resizing #main-sidebar {
 .sidebar-all-content.active {
     background: rgba(0, 133, 208, 0.15);
     color: #4da6ff;
-    border-left-color: #0085d0;
+    border-right-color: #0085d0;
 }
 
 .sidebar-algorithm-category .category-chevron {

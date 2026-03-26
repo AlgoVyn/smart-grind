@@ -206,7 +206,7 @@ export const sidebarRenderers = {
         const pctClass = pct === 100 ? 'text-green-400' : 'text-theme-muted';
         return `
             <div class="flex items-center gap-3 shrink-0">
-                <span class="sidebar-stat-total text-[10px] font-mono text-theme-muted bg-dark-800 px-2 py-0.5 rounded border border-transparent">${total}</span>
+                <span class="sidebar-stat-total text-[10px] font-mono text-theme-muted">${total}</span>
                 <span class="sidebar-stat-pct text-[10px] ${pctClass} font-mono min-w-[24px] text-right">${pct}%</span>
             </div>
         `;
@@ -489,7 +489,7 @@ export const sidebarRenderers = {
             !state.ui.activeTopicId &&
             !state.ui.activeAlgorithmCategoryId &&
             !state.ui.activeSQLCategoryId;
-        btn.className = `sidebar-all-content ${isActive ? 'active' : ''} w-full text-left px-4 py-4 text-sm font-bold text-theme-base transition-colors border-l-4 border-transparent flex justify-between items-center group cursor-pointer mb-4 bg-dark-800/50 hover:bg-dark-800`;
+        btn.className = `sidebar-all-content ${isActive ? 'active' : ''} w-full text-left px-3 py-3 text-sm font-medium text-theme-base transition-colors border-r-2 border-transparent flex justify-between items-center group cursor-pointer mb-4`;
         btn.dataset['allContent'] = 'true';
 
         // Calculate total progress across all content using unique problem IDs
