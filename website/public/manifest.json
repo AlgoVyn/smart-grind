@@ -6,7 +6,7 @@
   "scope": "/smartgrind/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0f0f23",
+  "background_color": "#ffffff",
   "theme_color": "#0085d0",
   "categories": ["education", "productivity", "developer tools"],
   "icons": [
