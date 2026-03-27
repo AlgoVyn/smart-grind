@@ -8,6 +8,7 @@ import { updateUrlParameter, scrollToTop } from '../utils';
 import { AlgorithmCategory } from '../data/algorithms-data';
 import { SQLCategory } from '../data/sql-data';
 import { ICONS } from './icons';
+import { toggleMobileMenu } from '../ui/ui-navigation';
 
 export const sidebarRenderers = {
     // Render sidebar navigation (consolidated click handlers)
@@ -29,6 +30,10 @@ export const sidebarRenderers = {
                 await renderers.renderMainView(topicId);
                 renderers.updateStats();
                 scrollToTop();
+                // Close mobile menu when a category is selected
+                if (window.innerWidth < 768) {
+                    toggleMobileMenu();
+                }
             };
 
             // Helper for algorithm category navigation
@@ -43,6 +48,10 @@ export const sidebarRenderers = {
                 await renderers.renderAlgorithmsView(categoryId);
                 renderers.updateStats();
                 scrollToTop();
+                // Close mobile menu when a category is selected
+                if (window.innerWidth < 768) {
+                    toggleMobileMenu();
+                }
             };
 
             // Helper for SQL category navigation
@@ -57,6 +66,10 @@ export const sidebarRenderers = {
                 await renderers.renderSQLView(categoryId);
                 renderers.updateStats();
                 scrollToTop();
+                // Close mobile menu when a category is selected
+                if (window.innerWidth < 768) {
+                    toggleMobileMenu();
+                }
             };
 
             // Helper for combined view navigation
@@ -73,6 +86,10 @@ export const sidebarRenderers = {
                 await renderers.renderCombinedView();
                 renderers.updateStats();
                 scrollToTop();
+                // Close mobile menu when All Content is selected
+                if (window.innerWidth < 768) {
+                    toggleMobileMenu();
+                }
             };
 
             // Determine which sections should be expanded based on active view
