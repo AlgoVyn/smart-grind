@@ -126,7 +126,7 @@ describe('Service Worker Integration Tests', () => {
       await strategies.api.fetch(request);
 
       // Verify response was cached
-      const cache = await caches.open('api-cache-v2');
+      const cache = await caches.open('api-cache-v3');
       const cached = await cache.match(request);
       
       expect(cached).toBeDefined();
@@ -143,7 +143,7 @@ describe('Service Worker Integration Tests', () => {
           'sw-cached-time': (Date.now() - 10 * 60 * 1000).toString(), // 10 min old
         },
       });
-      const cache = await caches.open('api-cache-v2');
+      const cache = await caches.open('api-cache-v3');
       await cache.put(request, expiredResponse);
 
       // Network fails
@@ -160,7 +160,7 @@ describe('Service Worker Integration Tests', () => {
       
       // Pre-populate cache
       const cachedResponse = new Response('cached content', { status: 200 });
-      const cache = await caches.open('static-cache-v2');
+      const cache = await caches.open('static-cache-v3');
       await cache.put(request, cachedResponse);
 
       const response = await strategies.static.fetch(request);
@@ -210,7 +210,7 @@ describe('Service Worker Integration Tests', () => {
       await strategies.api.fetch(request);
 
       // Should not have cached the error response
-      const cache = await caches.open('api-cache-v2');
+      const cache = await caches.open('api-cache-v3');
       const cached = await cache.match(request);
       expect(cached).toBeUndefined();
     });
@@ -293,7 +293,7 @@ describe('Service Worker Integration Tests', () => {
           'sw-cached-time': Date.now().toString(),
         },
       });
-      const cache = await caches.open('api-cache-v2');
+      const cache = await caches.open('api-cache-v3');
       await cache.put(request, cachedResponse);
 
       // Network fails
@@ -325,7 +325,7 @@ describe('Service Worker Integration Tests', () => {
       const cachedResponse = new Response(JSON.stringify({ user: 'cached' }), {
         status: 200,
       });
-      const cache = await caches.open('user-cache-v2');
+      const cache = await caches.open('user-cache-v3');
       await cache.put(request, cachedResponse);
 
       // Network fails
@@ -1130,15 +1130,15 @@ describe('Service Worker Integration Tests', () => {
 
     it('should preserve current version caches', async () => {
       // Create current cache
-      await caches.open('static-cache-v2');
+      await caches.open('static-cache-v3');
       
       const cacheNames = await caches.keys();
-      expect(cacheNames).toContain('static-cache-v2');
+      expect(cacheNames).toContain('static-cache-v3');
     });
 
     it('should validate cache entries', async () => {
       const request = new Request('http://localhost/smartgrind/test');
-      const cache = await caches.open('api-cache-v2');
+      const cache = await caches.open('api-cache-v3');
       
       // Add entry with timestamp
       const response = new Response('test', {
@@ -1160,7 +1160,7 @@ describe('Service Worker Integration Tests', () => {
 
     it('should remove stale cache entries', async () => {
       const request = new Request('http://localhost/smartgrind/test');
-      const cache = await caches.open('api-cache-v2');
+      const cache = await caches.open('api-cache-v3');
       
       // Add stale entry (older than 30 minutes)
       const staleTime = Date.now() - 31 * 60 * 1000;

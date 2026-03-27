@@ -1,7 +1,7 @@
 // Offline Manager for SmartGrind Service Worker
 // Manages offline access to problem data and metadata
 
-import { CACHE_NAMES } from './cache-strategies';
+import { CACHE_NAMES, getVersionedCacheName } from './cache-strategies';
 
 interface ProblemMetadata {
     id: string;
@@ -90,7 +90,7 @@ export class OfflineManager {
      * Cache specific problem markdown files
      */
     async cacheProblems(problemUrls: string[]): Promise<void> {
-        const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+        const cache = await caches.open(getVersionedCacheName(CACHE_NAMES.PROBLEMS));
         await this.initDB();
 
         const promises = problemUrls.map(async (url) => {
@@ -131,7 +131,7 @@ export class OfflineManager {
      * Get cached problem content
      */
     async getProblemContent(url: string): Promise<Response | null> {
-        const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+        const cache = await caches.open(getVersionedCacheName(CACHE_NAMES.PROBLEMS));
         const response = await cache.match(url);
 
         if (response) {
@@ -146,7 +146,7 @@ export class OfflineManager {
      * Check if a problem is available offline
      */
     async isProblemAvailable(url: string): Promise<boolean> {
-        const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+        const cache = await caches.open(getVersionedCacheName(CACHE_NAMES.PROBLEMS));
         const response = await cache.match(url);
         return response !== null;
     }
@@ -225,7 +225,7 @@ export class OfflineManager {
             store.index('lastAccessed').getAll(range)
         );
 
-        const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+        const cache = await caches.open(getVersionedCacheName(CACHE_NAMES.PROBLEMS));
         let deletedCount = 0;
 
         for (const problem of oldProblems) {
@@ -265,7 +265,7 @@ export class OfflineManager {
         newestCache: number;
     }> {
         const store = await this.getStore('readonly');
-        const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+        const cache = await caches.open(getVersionedCacheName(CACHE_NAMES.PROBLEMS));
         const allProblems = await promisifyRequest<ProblemMetadata[]>(store.getAll());
 
         let totalSize = 0;

@@ -11,6 +11,7 @@ import {
     cleanupOldCaches,
     getCacheStats,
     CACHE_NAMES,
+    CACHE_VERSION,
 } from '../../src/sw/cache-strategies';
 
 describe('Cache Strategies - Comprehensive', () => {
@@ -70,13 +71,13 @@ describe('Cache Strategies - Comprehensive', () => {
                 headers: { 'sw-cached-time': String(Date.now() - 1000) }, // 1 second ago
             });
             
-            const cache = mockCacheStorage.get('api-cache-v2') || {
+            const cache = mockCacheStorage.get('api-cache-v3') || {
                 put: jest.fn().mockResolvedValue(undefined),
                 match: jest.fn().mockResolvedValue(mockResponse),
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('api-cache-v2', cache);
+            mockCacheStorage.set('api-cache-v3', cache);
 
             const request = new Request('https://example.com/api/data');
             const response = await strategies.api.fetch(request);
@@ -98,7 +99,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('api-cache-v2', cache);
+            mockCacheStorage.set('api-cache-v3', cache);
 
             const request = new Request('https://example.com/api/data');
             const response = await strategies.api.fetch(request);
@@ -119,7 +120,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('api-cache-v2', cache);
+            mockCacheStorage.set('api-cache-v3', cache);
 
             const request = new Request('https://example.com/api/data');
             const response = await strategies.api.fetch(request);
@@ -136,7 +137,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('api-cache-v2', cache);
+            mockCacheStorage.set('api-cache-v3', cache);
 
             const request = new Request('https://example.com/api/data');
             await expect(strategies.api.fetch(request)).rejects.toThrow('Network error');
@@ -154,7 +155,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('api-cache-v2', cache);
+            mockCacheStorage.set('api-cache-v3', cache);
 
             const request = new Request('https://example.com/api/data');
             const response = await strategies.api.fetch(request);
@@ -174,7 +175,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('user-cache-v2', cache);
+            mockCacheStorage.set('user-cache-v3', cache);
 
             const request = new Request('https://example.com/user');
             const response = await strategies.user.fetch(request);
@@ -193,7 +194,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('user-cache-v2', cache);
+            mockCacheStorage.set('user-cache-v3', cache);
 
             const request = new Request('https://example.com/user');
             const response = await strategies.user.fetch(request);
@@ -210,7 +211,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('user-cache-v2', cache);
+            mockCacheStorage.set('user-cache-v3', cache);
 
             const request = new Request('https://example.com/user');
             await expect(strategies.user.fetch(request)).rejects.toThrow('Network error');
@@ -227,7 +228,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('user-cache-v2', cache);
+            mockCacheStorage.set('user-cache-v3', cache);
 
             const request = new Request('https://example.com/user');
             const response = await strategies.user.fetch(request);
@@ -248,7 +249,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('static-cache-v2', cache);
+            mockCacheStorage.set('static-cache-v3', cache);
 
             const request = new Request('https://example.com/static.js');
             const response = await strategies.static.fetch(request);
@@ -267,7 +268,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('static-cache-v2', cache);
+            mockCacheStorage.set('static-cache-v3', cache);
 
             const request = new Request('https://example.com/static.js');
             const response = await strategies.static.fetch(request);
@@ -286,7 +287,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('static-cache-v2', cache);
+            mockCacheStorage.set('static-cache-v3', cache);
 
             const request = new Request('https://example.com/static.js');
             const response = await strategies.static.fetch(request);
@@ -308,7 +309,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('problems-cache-v2', cache);
+            mockCacheStorage.set('problems-cache-v3', cache);
 
             const request = new Request('https://example.com/problem.md');
             const response = await strategies.problems.fetch(request);
@@ -633,9 +634,9 @@ describe('Cache Strategies - Comprehensive', () => {
     describe('cleanupOldCaches', () => {
         it('should remove old versioned caches', async () => {
             const allCacheNames = [
-                'problems-cache-v2',
-                'api-cache-v2',
-                'static-cache-v2',
+                'problems-cache-v3',
+                'api-cache-v3',
+                'static-cache-v3',
                 'old-cache-v1',
                 'problems-cache-v1',
             ];
@@ -652,10 +653,10 @@ describe('Cache Strategies - Comprehensive', () => {
 
         it('should keep current versioned caches', async () => {
             const allCacheNames = [
-                'problems-cache-v2',
-                'api-cache-v2',
-                'static-cache-v2',
-                'user-cache-v2',
+                'problems-cache-v3',
+                'api-cache-v3',
+                'static-cache-v3',
+                'user-cache-v3',
             ];
 
             global.caches.keys = jest.fn().mockResolvedValue(allCacheNames);
@@ -664,8 +665,8 @@ describe('Cache Strategies - Comprehensive', () => {
             await cleanupOldCaches();
 
             // Should not delete current caches
-            expect(global.caches.delete).not.toHaveBeenCalledWith('problems-cache-v2');
-            expect(global.caches.delete).not.toHaveBeenCalledWith('api-cache-v2');
+            expect(global.caches.delete).not.toHaveBeenCalledWith('problems-cache-v3');
+            expect(global.caches.delete).not.toHaveBeenCalledWith('api-cache-v3');
         });
     });
 

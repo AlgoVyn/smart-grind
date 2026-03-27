@@ -127,17 +127,27 @@ class CacheFirst implements CacheStrategy {
     }
 }
 
-// Cache version for cache busting
-const CACHE_VERSION = 'v2';
+// Cache version for cache busting - increment when bundle format changes
+export const CACHE_VERSION = 'v3';
 
-// Cache names for external reference (base names without version for test compatibility)
+// Cache names for external reference (base names without version)
 export const CACHE_NAMES = {
     PROBLEMS: 'problems-cache',
     API: 'api-cache',
     STATIC: 'static-cache',
     USER: 'user-cache',
-    DYNAMIC: 'dynamic-cache', // For backward compatibility with tests
-};
+    DYNAMIC: 'dynamic-cache',
+} as const;
+
+/**
+ * Get full cache name with version suffix
+ * All cache operations should use this to ensure version consistency
+ * @param baseName - The base cache name (e.g., 'problems-cache')
+ * @param version - Optional version override. If not provided, uses CACHE_VERSION from cache-strategies
+ */
+export function getVersionedCacheName(baseName: string, version?: string): string {
+    return `${baseName}-${version || CACHE_VERSION}`;
+}
 
 // Strategy instances
 export const strategies = {

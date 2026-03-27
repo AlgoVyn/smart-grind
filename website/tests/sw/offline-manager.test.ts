@@ -4,14 +4,14 @@
  */
 
 import { OfflineManager } from '../../src/sw/offline-manager';
-import { CACHE_NAMES } from '../../src/sw/cache-strategies';
+import { CACHE_NAMES, getVersionedCacheName } from '../../src/sw/cache-strategies';
 
 describe('OfflineManager', () => {
     let manager: OfflineManager;
 
     beforeEach(async () => {
         // Clear global cache storage before each test
-        const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+        const cache = await caches.open(getVersionedCacheName(CACHE_NAMES.PROBLEMS));
         const keys = await cache.keys();
         for (const key of keys) {
             await cache.delete(key);
@@ -56,7 +56,7 @@ describe('OfflineManager', () => {
 
             await manager.cacheProblems(urls);
 
-            const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+            const cache = await caches.open(getVersionedCacheName(CACHE_NAMES.PROBLEMS));
             for (const url of urls) {
                 const cached = await cache.match(url);
                 expect(cached).toBeDefined();
@@ -99,7 +99,7 @@ describe('OfflineManager', () => {
 
             await manager.cacheProblems(urls);
 
-            const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+            const cache = await caches.open(getVersionedCacheName(CACHE_NAMES.PROBLEMS));
             const cached = await cache.match(urls[0]);
             expect(cached).toBeUndefined();
         });
@@ -120,7 +120,7 @@ describe('OfflineManager', () => {
 
             await manager.cacheCategory(categoryId, problemUrls);
 
-            const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+            const cache = await caches.open(getVersionedCacheName(CACHE_NAMES.PROBLEMS));
             for (const url of problemUrls) {
                 const cached = await cache.match(url);
                 expect(cached).toBeDefined();
@@ -134,7 +134,7 @@ describe('OfflineManager', () => {
             const content = '# Two Sum\n\nProblem description...';
 
             // Pre-cache
-            const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+            const cache = await caches.open(getVersionedCacheName(CACHE_NAMES.PROBLEMS));
             await cache.put(url, new Response(content));
 
             const response = await manager.getProblemContent(url);
@@ -155,7 +155,7 @@ describe('OfflineManager', () => {
             const url = 'https://example.com/smartgrind/patterns/two-sum.md';
 
             // Pre-cache
-            const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+            const cache = await caches.open(getVersionedCacheName(CACHE_NAMES.PROBLEMS));
             await cache.put(url, new Response('content'));
 
             await manager.getProblemContent(url);
@@ -170,7 +170,7 @@ describe('OfflineManager', () => {
         it('should return true for cached problems', async () => {
             const url = 'https://example.com/smartgrind/patterns/cached-test.md';
 
-            const cache = await caches.open(CACHE_NAMES.PROBLEMS);
+            const cache = await caches.open(getVersionedCacheName(CACHE_NAMES.PROBLEMS));
             await cache.put(url, new Response('content'));
 
             const isAvailable = await manager.isProblemAvailable(url);
