@@ -6,7 +6,6 @@ import { data } from '../data';
 import { getUrlParameter, scrollToTop } from '../utils';
 import { renderers } from '../renderers';
 import { app } from '../app';
-import { toggleMobileMenu } from './ui-navigation';
 
 // Keyboard shortcuts map
 const _keyboardShortcuts = {
@@ -68,15 +67,4 @@ export const bindGlobalEvents = () => {
 
     // Browser navigation
     window.addEventListener('popstate', handlePopState);
-
-    // Close sidebar on topic click (mobile)
-    state.elements['topicList']?.addEventListener('click', (e: MouseEvent) => {
-        if (
-            window.innerWidth < 768 &&
-            ((e.target as Element).closest('.sidebar-link') ||
-                (e.target as Element).closest('button'))
-        ) {
-            toggleMobileMenu();
-        }
-    });
 };
