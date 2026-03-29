@@ -1,6 +1,6 @@
 /**
  * Auth Manager Tests
- * Tests for authentication token management and refresh
+ * Tests for authentication token management using httpOnly cookie + token endpoint
  */
 
 // Mock fetch
@@ -66,9 +66,8 @@ describe('AuthManager', () => {
             expect(manager).toBeDefined();
             expect(manager.getState()).toEqual({
                 token: null,
-                refreshToken: null,
                 expiresAt: null,
-                isRefreshing: false,
+                isFetchingToken: false,
             });
         });
 
@@ -76,8 +75,6 @@ describe('AuthManager', () => {
             const onAuthFailure = jest.fn();
             const manager = new AuthManager({
                 tokenRefreshThreshold: 60000,
-                refreshRetryDelay: 10000,
-                maxRefreshRetries: 5,
                 onAuthFailure,
             });
             expect(manager).toBeDefined();
@@ -93,14 +90,12 @@ describe('AuthManager', () => {
     describe('token management', () => {
         test('should set tokens and save to storage', async () => {
             const token = 'test-token';
-            const refreshToken = 'test-refresh-token';
             const expiresIn = 3600;
 
-            await authManager.setTokens(token, refreshToken, expiresIn);
+            await authManager.setTokens(token, expiresIn);
 
             const state = authManager.getState();
             expect(state.token).toBe(token);
-            expect(state.refreshToken).toBe(refreshToken);
             expect(state.expiresAt).toBeGreaterThan(Date.now());
         });
 
@@ -108,20 +103,20 @@ describe('AuthManager', () => {
             const onAuthFailure = jest.fn();
             authManager.setOnAuthFailure(onAuthFailure);
 
-            await authManager.setTokens('token', 'refresh', 3600);
+            await authManager.setTokens('token', 3600);
             await authManager.clearTokens();
 
             const state = authManager.getState();
             expect(state.token).toBeNull();
-            expect(state.refreshToken).toBeNull();
             expect(state.expiresAt).toBeNull();
             expect(onAuthFailure).toHaveBeenCalled();
         });
 
-        test('should get token without refresh when not needed', async () => {
-            await authManager.setTokens('valid-token', 'refresh', 3600);
+        test('should get token without fetch when not needed and not expired', async () => {
+            await authManager.setTokens('valid-token', 3600);
             const token = await authManager.getToken();
             expect(token).toBe('valid-token');
+            expect(mockFetch).not.toHaveBeenCalled();
         });
 
         test('should return null when no token exists', async () => {
@@ -132,12 +127,12 @@ describe('AuthManager', () => {
 
     describe('token expiration', () => {
         test('should check if token is expired', async () => {
-            await authManager.setTokens('token', 'refresh', -1);
+            await authManager.setTokens('token', -1);
             expect(authManager.isTokenExpired()).toBe(true);
         });
 
         test('should check if token is not expired', async () => {
-            await authManager.setTokens('token', 'refresh', 3600);
+            await authManager.setTokens('token', 3600);
             expect(authManager.isTokenExpired()).toBe(false);
         });
 
@@ -147,64 +142,81 @@ describe('AuthManager', () => {
 
         test('should check authentication status', async () => {
             expect(authManager.isAuthenticated()).toBe(false);
-            await authManager.setTokens('token', 'refresh', 3600);
+            await authManager.setTokens('token', 3600);
             expect(authManager.isAuthenticated()).toBe(true);
-            await authManager.setTokens('token', 'refresh', -1);
+            await authManager.setTokens('token', -1);
             expect(authManager.isAuthenticated()).toBe(false);
         });
     });
 
-    describe('token refresh', () => {
-        test('should refresh token successfully', async () => {
+    describe('token fetch from server', () => {
+        test('should fetch fresh token when needed due to imminent expiration', async () => {
             mockFetch.mockResolvedValueOnce({
                 ok: true,
                 json: jest.fn().mockResolvedValue({
                     token: 'new-token',
-                    refreshToken: 'new-refresh',
+                    userId: 'user123',
+                    displayName: 'Test User',
                     expiresIn: 3600,
                 }),
             });
 
             // Set token that expires very soon (within 5 minute threshold)
-            await authManager.setTokens('old-token', 'old-refresh', 1); // 1 second = expires soon
+            await authManager.setTokens('old-token', 1); // 1 second = expires soon
 
-            await authManager.getToken();
+            const token = await authManager.getToken();
 
+            expect(token).toBe('new-token');
             expect(mockFetch).toHaveBeenCalledWith(
-                '/smartgrind/api/auth/refresh',
+                '/smartgrind/api/auth?action=token',
                 expect.objectContaining({
-                    method: 'POST',
-                    body: JSON.stringify({ refreshToken: 'old-refresh' }),
+                    method: 'GET',
+                    credentials: 'include',
                 })
             );
         });
 
-        test('should return null when refresh fails and max retries exceeded', async () => {
-            mockFetch.mockRejectedValue(new Error('Network error'));
+        test('should return existing token if fetch fails but token is still valid', async () => {
+            mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-            // Set token that expires very soon
-            await authManager.setTokens('token', 'refresh', 1); // 1 second = expires soon
+            // Set valid token that expires in the future
+            await authManager.setTokens('valid-token', 3600);
 
             const token = await authManager.getToken();
-            expect(token).toBeNull();
-        }, 120000);
+            // Should return existing token since it's still valid
+            expect(token).toBe('valid-token');
+        });
 
-        test('should handle 401/403 auth errors', async () => {
+        test('should return null when fetch fails and token is expired', async () => {
+            mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+            // Set expired token
+            await authManager.setTokens('expired-token', -1);
+
+            const token = await authManager.getToken();
+            // Should return null since token is expired and refresh failed
+            expect(token).toBeNull();
+        });
+
+        test('should handle 401/403 auth errors by fetching fresh token', async () => {
             mockFetch.mockResolvedValueOnce({
                 ok: true,
                 json: jest.fn().mockResolvedValue({
                     token: 'new-token',
+                    userId: 'user123',
+                    displayName: 'Test User',
                     expiresIn: 3600,
                 }),
             });
 
-            await authManager.setTokens('token', 'refresh', 3600);
+            await authManager.setTokens('token', 3600);
 
             const response = new Response(JSON.stringify({ error: 'Unauthorized' }), {
                 status: 401,
             });
 
-            await authManager.handleAuthError(response);
+            const handled = await authManager.handleAuthError(response);
+            expect(handled).toBe(true);
             expect(mockFetch).toHaveBeenCalled();
         });
 
@@ -219,47 +231,9 @@ describe('AuthManager', () => {
         });
     });
 
-    describe('retry with fresh token', () => {
-        test('should retry request with refreshed token', async () => {
-            mockFetch.mockResolvedValueOnce({
-                ok: true,
-                json: jest.fn().mockResolvedValue({
-                    token: 'refreshed-token',
-                    expiresIn: 3600,
-                }),
-            });
-
-            await authManager.setTokens('token', 'refresh', 3600);
-
-            const originalRequest = new Request('/api/test', {
-                headers: { 'Content-Type': 'application/json' },
-            });
-
-            const fetchFn = jest.fn().mockResolvedValue(
-                new Response(JSON.stringify({ success: true }))
-            );
-
-            const response = await authManager.retryWithFreshToken(originalRequest, fetchFn);
-            expect(response.status).toBe(200);
-        });
-
-        test('should return 401 when refresh fails', async () => {
-            mockFetch.mockRejectedValue(new Error('Refresh failed'));
-
-            // Set token that expires very soon
-            await authManager.setTokens('token', 'refresh', 1);
-
-            const originalRequest = new Request('/api/test');
-            const fetchFn = jest.fn();
-
-            const response = await authManager.retryWithFreshToken(originalRequest, fetchFn);
-            expect(response.status).toBe(401);
-        }, 120000);
-    });
-
     describe('auth headers', () => {
         test('should return auth headers with valid token', async () => {
-            await authManager.setTokens('test-token', 'refresh', 3600);
+            await authManager.setTokens('test-token', 3600);
             const headers = await authManager.getAuthHeaders();
             expect(headers).toEqual({
                 Authorization: 'Bearer test-token',
@@ -269,6 +243,24 @@ describe('AuthManager', () => {
         test('should return empty headers when no token', async () => {
             const headers = await authManager.getAuthHeaders();
             expect(headers).toEqual({});
+        });
+
+        test('should fetch token and return headers when token is about to expire', async () => {
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                json: jest.fn().mockResolvedValue({
+                    token: 'fresh-token',
+                    userId: 'user123',
+                    displayName: 'Test User',
+                    expiresIn: 3600,
+                }),
+            });
+
+            await authManager.setTokens('old-token', 1); // About to expire
+            const headers = await authManager.getAuthHeaders();
+            expect(headers).toEqual({
+                Authorization: 'Bearer fresh-token',
+            });
         });
     });
 

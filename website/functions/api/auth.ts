@@ -3,6 +3,42 @@ import { SignJWT } from 'jose';
 // Type declaration for Jest global (available in test environment)
 declare const jest: typeof import('@jest/globals') | undefined;
 
+// Environment variable type definition
+interface Env {
+    JWT_SECRET?: string;
+    GOOGLE_CLIENT_ID?: string;
+    GOOGLE_CLIENT_SECRET?: string;
+    KV: KVNamespace;
+    OAUTH_REDIRECT_URI?: string;
+    ALLOWED_ORIGINS?: string;
+}
+
+/**
+ * Validates that required environment variables are configured.
+ * Should be called at the start of each request handler.
+ * @param env - Environment bindings
+ * @throws {Error} If required environment variables are missing
+ */
+function validateEnvironment(env: Env): void {
+    const missingVars: string[] = [];
+
+    if (!env.JWT_SECRET) {
+        missingVars.push('JWT_SECRET');
+    }
+    if (!env.GOOGLE_CLIENT_ID) {
+        missingVars.push('GOOGLE_CLIENT_ID');
+    }
+    if (!env.GOOGLE_CLIENT_SECRET) {
+        missingVars.push('GOOGLE_CLIENT_SECRET');
+    }
+
+    if (missingVars.length > 0) {
+        const message = `Missing required environment variables: ${missingVars.join(', ')}`;
+        console.error(`[Auth] Configuration error: ${message}`);
+        throw new Error(message);
+}
+}
+
 /**
  * Implements sliding window rate limiting for OAuth endpoints using Cloudflare KV.
  * Tracks request timestamps per client IP to prevent brute force attacks on authentication.
@@ -185,6 +221,8 @@ function getOAuthRedirectUri(requestUrl: URL, env: {
  * // Returns: HTML with postMessage to opener, sets HttpOnly cookie with JWT
  */
 export async function onRequestGet({ request, env }) {
+    // Validate environment configuration at startup
+    validateEnvironment(env);
     // Rate limiting: 10 requests per minute (skip in tests)
     if (typeof jest === 'undefined' && (await checkRateLimit(request, env, 10, 60))) {
         return new Response('Rate limit exceeded', { status: 429 });

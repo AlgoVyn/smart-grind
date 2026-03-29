@@ -1,25 +1,24 @@
 // Auth Manager Module for SmartGrind Service Worker
-// Handles authentication token management and refresh
+// Handles authentication token management
 // Uses IndexedDB for storage (localStorage is not available in Service Workers)
+//
+// SECURITY: Tokens are stored in httpOnly cookies on the server side. This manager
+// stores tokens in IndexedDB for Service Worker access. Fresh tokens are obtained
+// via the /api/auth?action=token endpoint which reads the httpOnly cookie.
 
 interface AuthState {
     token: string | null;
-    refreshToken: string | null;
     expiresAt: number | null;
-    isRefreshing: boolean;
+    isFetchingToken: boolean;
 }
 
 interface AuthManagerOptions {
-    tokenRefreshThreshold: number; // Refresh token if expires within this time (ms)
-    refreshRetryDelay: number;
-    maxRefreshRetries: number;
+    tokenRefreshThreshold: number; // Fetch new token if expires within this time (ms)
     onAuthFailure?: () => void; // Callback when authentication fails completely
 }
 
 const DEFAULT_OPTIONS: AuthManagerOptions = {
-    tokenRefreshThreshold: 300000, // 5 minutes
-    refreshRetryDelay: 5000, // 5 seconds
-    maxRefreshRetries: 3,
+    tokenRefreshThreshold: 300000, // 5 minutes - refresh before expiry
 };
 
 // IndexedDB configuration for auth storage
@@ -129,17 +128,15 @@ class AuthStorage {
 export class AuthManager {
     private state: AuthState;
     private options: AuthManagerOptions;
-    private refreshPromise: Promise<string | null> | null = null;
-    private refreshRetries: number = 0;
+    private tokenFetchPromise: Promise<string | null> | null = null;
     private storage: AuthStorage;
 
     constructor(options: Partial<AuthManagerOptions> = {}) {
         this.options = { ...DEFAULT_OPTIONS, ...options };
         this.state = {
             token: null,
-            refreshToken: null,
             expiresAt: null,
-            isRefreshing: false,
+            isFetchingToken: false,
         };
         this.storage = new AuthStorage();
         // Load from storage asynchronously
@@ -160,14 +157,12 @@ export class AuthManager {
      */
     private async loadFromStorage(): Promise<void> {
         try {
-            const [token, refreshToken, expiresAt] = await Promise.all([
+            const [token, expiresAt] = await Promise.all([
                 this.storage.getItem('token'),
-                this.storage.getItem('refreshToken'),
                 this.storage.getItem('tokenExpiresAt'),
             ]);
 
             this.state.token = token;
-            this.state.refreshToken = refreshToken;
             this.state.expiresAt = expiresAt ? parseInt(expiresAt, 10) : null;
         } catch (error) {
             console.error('[AuthManager] Failed to load auth state from storage:', error);
@@ -187,12 +182,6 @@ export class AuthManager {
                 promises.push(this.storage.removeItem('token'));
             }
 
-            if (this.state.refreshToken) {
-                promises.push(this.storage.setItem('refreshToken', this.state.refreshToken));
-            } else {
-                promises.push(this.storage.removeItem('refreshToken'));
-            }
-
             if (this.state.expiresAt) {
                 promises.push(
                     this.storage.setItem('tokenExpiresAt', this.state.expiresAt.toString())
@@ -209,12 +198,12 @@ export class AuthManager {
 
     /**
      * Set authentication tokens
+     * @param token - The JWT token
+     * @param expiresIn - Token expiration time in seconds
      */
-    async setTokens(token: string, refreshToken: string, expiresIn: number): Promise<void> {
+    async setTokens(token: string, expiresIn: number): Promise<void> {
         this.state.token = token;
-        this.state.refreshToken = refreshToken;
         this.state.expiresAt = Date.now() + expiresIn * 1000;
-        this.refreshRetries = 0;
 
         await this.saveToStorage();
     }
@@ -224,10 +213,8 @@ export class AuthManager {
      */
     async clearTokens(): Promise<void> {
         this.state.token = null;
-        this.state.refreshToken = null;
         this.state.expiresAt = null;
-        this.refreshRetries = 0;
-        this.refreshPromise = null;
+        this.tokenFetchPromise = null;
 
         await this.saveToStorage();
 
@@ -236,41 +223,11 @@ export class AuthManager {
     }
 
     /**
-     * Update tokens after refresh
-     */
-    private async updateTokens(
-        newToken: string,
-        newRefreshToken?: string,
-        expiresIn?: number
-    ): Promise<void> {
-        this.state.token = newToken;
-        if (newRefreshToken) {
-            this.state.refreshToken = newRefreshToken;
-        }
-        this.state.expiresAt = Date.now() + (expiresIn || 3600) * 1000;
-        this.refreshRetries = 0;
-
-        await this.saveToStorage();
-    }
-
-    /**
-     * Get current token, refreshing if necessary
-     */
-    async getToken(): Promise<string | null> {
-        // Check if token needs refresh
-        if (this.needsRefresh()) {
-            return this.refreshToken();
-        }
-
-        return this.state.token;
-    }
-
-    /**
-     * Check if token needs refresh
+     * Check if token needs refresh (is expired or expiring soon)
      */
     private needsRefresh(): boolean {
         if (!this.state.token || !this.state.expiresAt) {
-            return false;
+            return true; // No token, need to fetch
         }
 
         const timeUntilExpiry = this.state.expiresAt - Date.now();
@@ -296,86 +253,88 @@ export class AuthManager {
     }
 
     /**
-     * Refresh the authentication token
+     * Fetch a fresh token from the server using the httpOnly cookie
+     * This endpoint reads the auth_token cookie set during OAuth login
      */
-    async refreshToken(): Promise<string | null> {
-        // If already refreshing, return the existing promise
-        if (this.refreshPromise) {
-            return this.refreshPromise;
+    private async fetchFreshToken(): Promise<string | null> {
+        // If already fetching, return the existing promise
+        if (this.tokenFetchPromise) {
+            return this.tokenFetchPromise;
         }
 
-        // If no refresh token available, can't refresh
-        if (!this.state.refreshToken) {
-            this.clearTokens();
-            return null;
-        }
-
-        // If exceeded max retries, give up
-        if (this.refreshRetries >= this.options.maxRefreshRetries) {
-            this.clearTokens();
-            return null;
-        }
-
-        this.refreshPromise = this.performRefresh();
-        return this.refreshPromise;
+        this.tokenFetchPromise = this.performTokenFetch();
+        return this.tokenFetchPromise;
     }
 
     /**
-     * Perform the actual token refresh
+     * Perform the actual token fetch from the server
      */
-    private async performRefresh(): Promise<string | null> {
+    private async performTokenFetch(): Promise<string | null> {
         try {
-            this.state.isRefreshing = true;
+            this.state.isFetchingToken = true;
 
-            const response = await fetch('/smartgrind/api/auth/refresh', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    refreshToken: this.state.refreshToken,
-                }),
-                credentials: 'include',
+            const response = await fetch('/smartgrind/api/auth?action=token', {
+                method: 'GET',
+                credentials: 'include', // Important: sends httpOnly cookies
             });
 
             if (!response.ok) {
-                throw new Error(`Token refresh failed: ${response.status}`);
+                console.error('[AuthManager] Token fetch failed:', response.status);
+                return null;
             }
 
             const data = (await response.json()) as {
                 token: string;
-                refreshToken?: string;
-                expiresIn?: number;
+                userId: string;
+                displayName: string;
+                expiresIn: number;
             };
 
-            await this.updateTokens(data.token, data.refreshToken, data.expiresIn);
-            return data.token;
-        } catch (error) {
-            console.error('[AuthManager] Token refresh failed:', error);
-            this.refreshRetries++;
-            if (this.refreshRetries < this.options.maxRefreshRetries) {
-                // Exponential backoff
-                await this.delay(
-                    this.options.refreshRetryDelay * Math.pow(2, this.refreshRetries - 1)
-                );
-                return this.performRefresh();
-            } else {
-                await this.clearTokens();
+            if (!data.token) {
+                console.error('[AuthManager] No token in response');
                 return null;
             }
+
+            // Store the new token
+            await this.setTokens(data.token, data.expiresIn);
+            return data.token;
+        } catch (error) {
+            console.error('[AuthManager] Token fetch error:', error);
+            return null;
         } finally {
-            this.state.isRefreshing = false;
-            this.refreshPromise = null;
+            this.state.isFetchingToken = false;
+            this.tokenFetchPromise = null;
         }
     }
 
     /**
-     * Handle 401/403 response by attempting token refresh
+     * Get current token, fetching a new one if needed or about to expire
+     * @returns The token or null if not authenticated
+     */
+    async getToken(): Promise<string | null> {
+        // If no token or about to expire, fetch a fresh one
+        if (this.needsRefresh()) {
+            const newToken = await this.fetchFreshToken();
+            if (newToken) {
+                return newToken;
+            }
+            // If fetch failed but we have a non-expired token, use it
+            if (this.state.token && !this.isTokenExpired()) {
+                return this.state.token;
+            }
+            return null;
+        }
+
+        return this.state.token;
+    }
+
+    /**
+     * Handle 401/403 response by fetching a fresh token
      */
     async handleAuthError(response: Response): Promise<boolean> {
         if (response.status === 401 || response.status === 403) {
-            // Try to refresh token
-            const newToken = await this.refreshToken();
+            // Try to fetch a fresh token
+            const newToken = await this.fetchFreshToken();
             return newToken !== null;
         }
 
@@ -387,35 +346,6 @@ export class AuthManager {
      */
     async waitForLoad(): Promise<void> {
         await this.loadFromStorage();
-    }
-
-    /**
-     * Retry a request with refreshed token
-     */
-    async retryWithFreshToken(
-        request: Request,
-        fetchFn: (_req: Request) => Promise<Response>
-    ): Promise<Response> {
-        // Get fresh token
-        const token = await this.refreshToken();
-
-        if (!token) {
-            // Can't refresh, return original error
-            return new Response(JSON.stringify({ error: 'Authentication failed' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-
-        // Clone request and add new token
-        const newHeaders = new Headers(request.headers);
-        newHeaders.set('Authorization', `Bearer ${token}`);
-
-        const newRequest = new Request(request, {
-            headers: newHeaders,
-        });
-
-        return fetchFn(newRequest);
     }
 
     /**
@@ -434,19 +364,12 @@ export class AuthManager {
     }
 
     /**
-     * Delay helper
-     */
-    private delay(ms: number): Promise<void> {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-    }
-
-    /**
      * Get current auth state (for debugging)
      */
     getState(): AuthState {
         return {
             ...this.state,
-            isRefreshing: this.state.isRefreshing,
+            isFetchingToken: this.state.isFetchingToken,
         };
     }
 }

@@ -170,11 +170,4 @@ export const state = {
             (p) => p.status === 'solved' && p.id.startsWith('sql-')
         ).length;
     },
-
-    // Get solved SQL count by category
-    getSolvedSQLCountByCategory(_categoryId: string): number {
-        return Array.from(this.problems.values()).filter(
-            (p) => p.status === 'solved' && p.id.startsWith('sql-')
-        ).length;
-    },
 };
