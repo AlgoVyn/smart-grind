@@ -549,6 +549,14 @@ export async function onRequestGet({ request, env }) {
     // Handle token fetch endpoint - allows client to get token for Service Worker
     // using the HttpOnly cookie set during OAuth
     if (action === 'token') {
+        // Rate limiting: 60 requests per minute for token fetches (skip in tests)
+        // Separate from OAuth login/callback rate limit to allow frequent syncs
+        if (typeof jest === 'undefined' && (await checkRateLimit(request, env, 60, 60))) {
+            return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+                status: 429,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
         // Extract token from cookie
         const cookieHeader = request.headers.get('Cookie');
         let token = null;

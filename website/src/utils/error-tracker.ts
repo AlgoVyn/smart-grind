@@ -106,20 +106,10 @@ class ErrorTracker {
     }
 
     private async sendToServer(errorInfo: ErrorInfo): Promise<void> {
-        // Only send in production or if explicitly enabled
-        if (process.env['NODE_ENV'] !== 'production') {
-            return;
-        }
-
-        const response = await fetch('/api/errors', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(errorInfo),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to send error to server');
-        }
+        // Errors are stored locally only - no server endpoint exists for error tracking
+        // The /api/errors endpoint is not implemented, so we skip network request
+        // This preserves errors locally for debugging purposes
+        this.storeLocally(errorInfo);
     }
 
     private storeLocally(errorInfo: ErrorInfo): void {

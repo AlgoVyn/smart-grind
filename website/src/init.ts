@@ -8,6 +8,7 @@ import { Topic } from './types';
 import { state } from './state';
 import { data } from './data';
 import { initOfflineDetection } from './api';
+import { getConnectivityChecker } from './sw/connectivity-checker';
 import { loadData } from './api/api-load';
 import { scrollToTop, sanitizeInput, showToast } from './utils';
 import { withErrorHandling, setupGlobalErrorHandlers } from './error-boundary';
@@ -233,7 +234,8 @@ const setupSignedInUser = async (
     }
 
     // If offline with valid local data, skip API calls
-    if (!navigator.onLine && state.hasValidData()) {
+    const isOnline = await getConnectivityChecker().isOnline();
+    if (!isOnline && state.hasValidData()) {
         console.log('[Init] Offline with valid local data - skipping API calls');
         await initializeUIAfterSetup();
         await applyCategory(categoryParam, algorithmsParam, sqlParam);

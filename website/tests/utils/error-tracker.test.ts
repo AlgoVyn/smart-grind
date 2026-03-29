@@ -319,12 +319,11 @@ describe('ErrorTracker', () => {
     });
 
     describe('sendToServer', () => {
-        it('should not send in non-production environment', async () => {
+        it('should store errors locally without making network requests', async () => {
             const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue(new Response());
             
-            // Ensure we're not in production
-            const originalNodeEnv = process.env['NODE_ENV'];
-            process.env['NODE_ENV'] = 'development';
+            // Clear any existing errors first
+            errorTracker.clearPendingErrors();
             
             const errorInfo = {
                 message: 'Test error',
@@ -338,25 +337,27 @@ describe('ErrorTracker', () => {
             // Call sendToServer directly
             await (errorTracker as unknown as { sendToServer: (_info: typeof errorInfo) => Promise<void> }).sendToServer(errorInfo);
             
-            // Should not call fetch in development
+            // Should NOT call fetch - errors are stored locally only since /api/errors endpoint doesn't exist
             expect(fetchSpy).not.toHaveBeenCalled();
             
-            // Restore
-            process.env['NODE_ENV'] = originalNodeEnv;
+            // Should store the error locally
+            const pendingErrors = errorTracker.getPendingErrors();
+            expect(pendingErrors.length).toBe(1);
+            expect(pendingErrors[0].message).toBe('Test error');
+            
+            // Cleanup
             fetchSpy.mockRestore();
+            errorTracker.clearPendingErrors();
         });
 
-        it('should send errors in production', async () => {
-            const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue(
-                new Response(JSON.stringify({ success: true }), { status: 200 })
-            );
+        it('should store errors regardless of NODE_ENV setting', async () => {
+            // Clear any existing errors first
+            errorTracker.clearPendingErrors();
             
-            // Set production environment
             const originalNodeEnv = process.env['NODE_ENV'];
-            process.env['NODE_ENV'] = 'production';
             
             const errorInfo = {
-                message: 'Test error',
+                message: 'Test error in production',
                 stack: undefined,
                 context: { type: 'test' },
                 timestamp: Date.now(),
@@ -364,45 +365,14 @@ describe('ErrorTracker', () => {
                 url: window.location.href,
             };
             
-            // Call sendToServer directly
+            // Test in production mode
+            process.env['NODE_ENV'] = 'production';
             await (errorTracker as unknown as { sendToServer: (_info: typeof errorInfo) => Promise<void> }).sendToServer(errorInfo);
+            expect(errorTracker.getPendingErrors().length).toBe(1);
             
-            // Should call fetch in production
-            expect(fetchSpy).toHaveBeenCalledWith('/api/errors', expect.objectContaining({
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            }));
-            
-            // Restore
+            // Cleanup
             process.env['NODE_ENV'] = originalNodeEnv;
-            fetchSpy.mockRestore();
-        });
-
-        it('should throw on failed server response', async () => {
-            jest.spyOn(global, 'fetch').mockResolvedValue(
-                new Response(JSON.stringify({ error: 'Server error' }), { status: 500 })
-            );
-            
-            // Set production environment
-            const originalNodeEnv = process.env['NODE_ENV'];
-            process.env['NODE_ENV'] = 'production';
-            
-            const errorInfo = {
-                message: 'Test error',
-                stack: undefined,
-                context: { type: 'test' },
-                timestamp: Date.now(),
-                userAgent: navigator.userAgent,
-                url: window.location.href,
-            };
-            
-            // Should throw on failed response
-            await expect(
-                (errorTracker as unknown as { sendToServer: (_info: typeof errorInfo) => Promise<void> }).sendToServer(errorInfo)
-            ).rejects.toThrow('Failed to send error to server');
-            
-            // Restore
-            process.env['NODE_ENV'] = originalNodeEnv;
+            errorTracker.clearPendingErrors();
         });
     });
 
