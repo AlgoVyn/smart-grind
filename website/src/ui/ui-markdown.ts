@@ -54,7 +54,6 @@ export const patterns = {
 
 // Helper to configure markdown renderer
 export const _configureMarkdownRenderer = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const marked = (
         window as unknown as {
             marked?: {
@@ -503,7 +502,7 @@ export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) =
     _renderTOC();
 
     // Apply syntax highlighting
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const prism = (
         window as unknown as { Prism?: { highlightAllUnder: (_element: HTMLElement) => void } }
     ).Prism;

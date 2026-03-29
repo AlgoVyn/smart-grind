@@ -1,12 +1,9 @@
 // --- ERROR BOUNDARY MODULE ---
-// Global error handling and error boundary utilities
+// Global error handling utilities
 
 import { ui } from './ui/ui';
-import { escapeHtml } from './utils/sanitization';
+import { escapeHtml } from './utils';
 
-/**
- * Error boundary class for catching and handling errors in component-like operations
- */
 export class ErrorBoundary {
     private errorContainer: HTMLElement | null = null;
 
@@ -14,11 +11,6 @@ export class ErrorBoundary {
         this.errorContainer = document.getElementById(containerId);
     }
 
-    /**
-     * Wraps a function execution with error handling
-     * @param fn The function to execute
-     * @param fallbackContent Optional fallback HTML content to display on error
-     */
     async execute<T>(fn: () => Promise<T> | T, fallbackContent?: string): Promise<T | null> {
         try {
             return await fn();
@@ -28,21 +20,11 @@ export class ErrorBoundary {
         }
     }
 
-    /**
-     * Handles errors by displaying user-friendly messages
-     * @param error The error to handle
-     * @param fallbackContent Optional fallback HTML content
-     */
     private handleError(error: unknown, fallbackContent?: string): void {
         const message = error instanceof Error ? error.message : String(error);
-
-        // Log error for debugging
         console.error('ErrorBoundary caught an error:', error);
-
-        // Show user-friendly alert
         ui.showAlert(`An error occurred: ${message}`);
 
-        // Display fallback UI if container exists
         if (this.errorContainer) {
             this.errorContainer.innerHTML =
                 fallbackContent ||
@@ -58,9 +40,6 @@ export class ErrorBoundary {
         }
     }
 
-    /**
-     * Resets the error boundary state
-     */
     reset(): void {
         if (this.errorContainer) {
             this.errorContainer.innerHTML = '';
@@ -68,47 +47,28 @@ export class ErrorBoundary {
     }
 }
 
-/** Get UI for alerts when available (avoids depending on ui before it's loaded) */
 function getUI(): { showAlert: (_msg: string) => void } | undefined {
     return (window as unknown as { SmartGrind?: { ui?: { showAlert: (_msg: string) => void } } })
         .SmartGrind?.ui;
 }
 
-/**
- * Global error handler for uncaught errors
- * Guards against service worker context where window is not available
- */
 export const setupGlobalErrorHandlers = (): void => {
-    // Skip if window is not available (e.g., in service worker context)
-    if (typeof window === 'undefined') {
-        return;
-    }
+    if (typeof window === 'undefined') return;
 
-    // Handle uncaught errors
     window.addEventListener('error', (event) => {
-        console.error('Global error handler:', event.error);
-        getUI()?.showAlert(`An unexpected error occurred: ${event.message}`);
-
-        // Prevent default browser error handling
+        console.error('Global error:', event.error);
+        getUI()?.showAlert(`An error occurred: ${event.message}`);
         event.preventDefault();
     });
 
-    // Handle unhandled promise rejections
     window.addEventListener('unhandledrejection', (event) => {
         const message = event.reason instanceof Error ? event.reason.message : String(event.reason);
-        console.error('Unhandled promise rejection:', event.reason);
-        getUI()?.showAlert(`An unexpected error occurred: ${message}`);
-
-        // Prevent default browser error handling
+        console.error('Unhandled rejection:', event.reason);
+        getUI()?.showAlert(`An error occurred: ${message}`);
         event.preventDefault();
     });
 };
 
-/**
- * Utility function to wrap async operations with error handling
- * @param operation The async operation to wrap
- * @param errorMessage Custom error message to display
- */
 export const withErrorHandling = async <T>(
     operation: () => Promise<T>,
     errorMessage: string = 'Operation failed'
@@ -123,11 +83,6 @@ export const withErrorHandling = async <T>(
     }
 };
 
-/**
- * Utility function to wrap synchronous operations with error handling
- * @param operation The synchronous operation to wrap
- * @param errorMessage Custom error message to display
- */
 export const withSyncErrorHandling = <T>(
     operation: () => T,
     errorMessage: string = 'Operation failed'
@@ -141,5 +96,3 @@ export const withSyncErrorHandling = <T>(
         return null;
     }
 };
-
-// Global error handlers are set up explicitly from init.ts after app is ready

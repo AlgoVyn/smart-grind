@@ -3,16 +3,19 @@
 
 import { User, Problem, UIState, SyncStatusUpdate, FlashCardProgress } from './types';
 import { data } from './data';
-import { cacheElements, ElementCache } from './utils/elements';
-import { safeGetItem, safeSetItem, getStringItem, setStringItem } from './utils/storage';
+import {
+    cacheElements,
+    safeGetItem,
+    safeSetItem,
+    getStringItem,
+    setStringItem,
+    type ElementCache,
+} from './utils-core';
 
-// --- DEBOUNCE UTILITY ---
-/** Debounce timer for localStorage writes */
+// Debounce timer for localStorage writes
 let storageSaveTimeout: ReturnType<typeof setTimeout> | null = null;
-/** Debounce delay in milliseconds */
 const STORAGE_SAVE_DELAY = 300;
 
-/** Debounced version of saveToStorage to prevent excessive writes */
 const debouncedSaveToStorage = (saveFn: () => void): void => {
     if (storageSaveTimeout) {
         clearTimeout(storageSaveTimeout);
@@ -24,21 +27,16 @@ const debouncedSaveToStorage = (saveFn: () => void): void => {
 };
 
 export const state = {
-    // User state
     user: {
         type: 'local' as 'local' | 'signed-in',
         id: null as string | null,
         displayName: 'Local User',
     },
 
-    // Problem data
     problems: new Map<string, Problem>(),
     deletedProblemIds: new Set<string>(),
-
-    // Flash card progress data
     flashCardProgress: new Map<string, FlashCardProgress>(),
 
-    // UI state
     ui: {
         activeTopicId: '',
         activeAlgorithmCategoryId: null as string | null,
@@ -49,7 +47,6 @@ export const state = {
         reviewDateFilter: null as string | null,
     },
 
-    // Sync state for offline/online tracking
     sync: {
         isOnline: true,
         isSyncing: false,
@@ -59,28 +56,19 @@ export const state = {
         conflictMessage: null as string | null,
     },
 
-    // DOM elements cache
     elements: {} as Partial<ElementCache>,
-
-    // Track if state has been loaded from storage
     hasLoadedFromStorage: false,
 
-    // Initialize state
     init() {
-        // Initialize user type from storage BEFORE loading other state
         const storedUserType = localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE);
         if (storedUserType === 'signed-in' || storedUserType === 'local') {
             this.user.type = storedUserType;
         }
-
-        // Load preferred AI from storage (lazy initialization for SW compatibility)
         this.ui.preferredAI = localStorage.getItem('preferred-ai') || null;
-
         this.loadFromStorage();
         this.cacheElements();
     },
 
-    // Helper to get storage keys based on user type
     getStorageKeys() {
         const keys = data.LOCAL_STORAGE_KEYS;
         const isSignedIn = this.user.type === 'signed-in';
@@ -94,7 +82,6 @@ export const state = {
         };
     },
 
-    // Load state from localStorage
     loadFromStorage(): void {
         const keys = this.getStorageKeys();
         const isSignedIn = this.user.type === 'signed-in';
@@ -118,11 +105,9 @@ export const state = {
         this.hasLoadedFromStorage = true;
     },
 
-    // Save state to localStorage
     saveToStorage(): void {
         const keys = this.getStorageKeys();
 
-        // Strip transient properties before saving
         const problemsWithoutLoading = Object.fromEntries(
             [...this.problems.entries()].map(([id, { loading: _l, noteVisible: _n, ...rest }]) => [
                 id,
@@ -137,61 +122,62 @@ export const state = {
         setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
     },
 
-    // Debounced version for automatic saves to prevent excessive writes
-    // Use this for frequent updates (problem status changes, note edits)
-    // Use saveToStorage() for critical updates (user auth, explicit user actions)
     saveToStorageDebounced(): void {
         debouncedSaveToStorage(() => this.saveToStorage());
     },
 
-    // Check if state has valid data (not empty)
     hasValidData(): boolean {
         return this.problems.size > 0 || this.deletedProblemIds.size > 0;
     },
 
-    // Cache DOM elements
     cacheElements(): void {
-        this.elements = cacheElements<ElementCache>();
+        this.elements = cacheElements();
     },
 
-    // Update user state
     setUser(userData: Partial<User>): void {
         this.user = { ...this.user, ...userData };
         this.saveToStorage();
     },
 
-    // Update UI state
     setUI(uiData: Partial<UIState>): void {
         this.ui = { ...this.ui, ...uiData };
     },
 
-    // Update sync status
     setSyncStatus(status: Partial<SyncStatusUpdate>): void {
         this.sync = { ...this.sync, ...status };
         this.emitSyncStatusChange();
     },
 
-    // Update online status
     setOnlineStatus(isOnline: boolean): void {
         this.sync.isOnline = isOnline;
         this.emitSyncStatusChange();
     },
 
-    // Emit sync status change event for UI updates
     emitSyncStatusChange(): void {
         if (typeof window === 'undefined') return;
         window.dispatchEvent(new CustomEvent('sync-status-change', { detail: { ...this.sync } }));
     },
 
-    // Get current sync status
     getSyncStatus(): typeof this.sync {
         return { ...this.sync };
     },
 
-    // Get solved SQL problems count
     getSolvedSQLCount(): number {
         return Array.from(this.problems.values()).filter(
             (p) => p.status === 'solved' && p.id.startsWith('sql-')
         ).length;
+    },
+
+    /**
+     * Get a typed DOM element from the cache
+     * @param key - The element key from ElementCache
+     * @returns The typed element or null if not found
+     *
+     * @example
+     * const modal = state.getEl('setupModal'); // HTMLElement | null
+     * const input = state.getEl('addProbName'); // HTMLInputElement | null
+     */
+    getEl<K extends keyof ElementCache>(key: K): ElementCache[K] {
+        return this.elements[key] as ElementCache[K];
     },
 };

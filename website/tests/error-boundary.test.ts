@@ -205,9 +205,9 @@ describe('Error Boundary Module', () => {
                 errorHandler(mockEvent);
             }
 
-            expect(console.error).toHaveBeenCalledWith('Global error handler:', mockEvent.error);
+            expect(console.error).toHaveBeenCalledWith('Global error:', mockEvent.error);
             expect(mockShowAlert).toHaveBeenCalledWith(
-                'An unexpected error occurred: Global error message'
+                'An error occurred: Global error message'
             );
             expect(mockEvent.preventDefault).toHaveBeenCalled();
         });
@@ -238,11 +238,11 @@ describe('Error Boundary Module', () => {
             }
 
             expect(console.error).toHaveBeenCalledWith(
-                'Unhandled promise rejection:',
+                'Unhandled rejection:',
                 mockEvent.reason
             );
             expect(mockShowAlert).toHaveBeenCalledWith(
-                'An unexpected error occurred: Promise rejection'
+                'An error occurred: Promise rejection'
             );
             expect(mockEvent.preventDefault).toHaveBeenCalled();
         });
@@ -269,7 +269,7 @@ describe('Error Boundary Module', () => {
             }
 
             expect(mockShowAlert).toHaveBeenCalledWith(
-                'An unexpected error occurred: String rejection'
+                'An error occurred: String rejection'
             );
         });
     });

@@ -21,7 +21,7 @@ import { bindGlobalEvents } from './ui-global';
 import { closeSolutionModal, toggleTOC } from './ui-markdown';
 import { initFlashcards } from './ui-flashcards';
 
-// Initialize UI components (state is already initialized in ui.ts before this runs)
+// Initialize UI components
 export const init = async () => {
     bindEvents();
     initScrollButton();
@@ -29,7 +29,6 @@ export const init = async () => {
     sidebarResizer.init();
     updateAuthUI();
     initFlashcards();
-    // Dynamically import renderers to avoid circular dependency
     const { renderers } = await import('../renderers');
     renderers.updateFilterBtns();
 };
@@ -43,55 +42,66 @@ export const bindEvents = () => {
     bindGlobalEvents();
 };
 
+// Helper to safely add event listener
+const on = (key: string, event: string, handler: EventListener) => {
+    const el = state.elements[key] as HTMLElement | null;
+    el?.addEventListener(event, handler);
+};
+
 // Bind authentication-related events
 export const bindAuthEvents = () => {
-    state.elements['googleLoginButton']?.addEventListener('click', handleGoogleLogin);
-    state.elements['modalGoogleLoginButton']?.addEventListener('click', handleGoogleLogin);
-    state.elements['disconnectBtn']?.addEventListener('click', handleLogout);
+    on('googleLoginButton', 'click', handleGoogleLogin);
+    on('modalGoogleLoginButton', 'click', handleGoogleLogin);
+    on('disconnectBtn', 'click', handleLogout);
 };
 
 // Bind modal-related events
 export const bindModalEvents = () => {
-    // Sign-in modal
-    state.elements['signinModal']?.addEventListener(
-        'click',
-        createModalHandler(
-            state.elements['signinModal']!,
-            state.elements['signinModalContent'] || undefined,
-            undefined
-        )
-    );
+    const signinModal = state.elements['signinModal'] as HTMLElement | null;
+    const signinModalContent = state.elements['signinModalContent'] as HTMLElement | null;
+    const alertModal = state.elements['alertModal'] as HTMLElement | null;
+    const confirmModal = state.elements['confirmModal'] as HTMLElement | null;
+    const solutionModal = state.elements['solutionModal'] as HTMLElement | null;
 
-    // Alert modal
-    state.elements['alertModal']?.addEventListener(
-        'click',
-        createModalHandler(state.elements['alertModal']!, undefined, undefined)
-    );
-    state.elements['alertOkBtn']?.addEventListener('click', closeAlertModal);
+    if (signinModal) {
+        signinModal.addEventListener(
+            'click',
+            createModalHandler(signinModal, signinModalContent || undefined, undefined)
+        );
+    }
 
-    // Confirm modal
-    state.elements['confirmModal']?.addEventListener(
-        'click',
-        createModalHandler(state.elements['confirmModal']!, undefined, () =>
-            closeConfirmModal(false)
-        )
-    );
-    state.elements['confirmOkBtn']?.addEventListener('click', () => closeConfirmModal(true));
-    state.elements['confirmCancelBtn']?.addEventListener('click', () => closeConfirmModal(false));
+    if (alertModal) {
+        alertModal.addEventListener('click', createModalHandler(alertModal, undefined, undefined));
+    }
+
+    on('alertOkBtn', 'click', closeAlertModal);
+
+    if (confirmModal) {
+        confirmModal.addEventListener(
+            'click',
+            createModalHandler(confirmModal, undefined, () => closeConfirmModal(false))
+        );
+    }
+
+    on('confirmOkBtn', 'click', () => closeConfirmModal(true));
+    on('confirmCancelBtn', 'click', () => closeConfirmModal(false));
 
     // Add problem modal
-    state.elements['openAddModalBtn']?.addEventListener('click', openAddModal);
-    state.elements['cancelAddBtn']?.addEventListener('click', closeAddModal);
-    state.elements['saveAddBtn']?.addEventListener('click', saveNewProblem);
-    state.elements['addProbCategory']?.addEventListener('change', handleCategoryChange);
-    state.elements['addProbPattern']?.addEventListener('change', handlePatternChange);
+    on('openAddModalBtn', 'click', openAddModal);
+    on('cancelAddBtn', 'click', closeAddModal);
+    on('saveAddBtn', 'click', saveNewProblem);
+    on('addProbCategory', 'change', handleCategoryChange);
+    on('addProbPattern', 'change', handlePatternChange);
 
     // Solution modal
-    state.elements['solutionCloseBtn']?.addEventListener('click', closeSolutionModal);
-    state.elements['solutionModal']?.addEventListener(
-        'click',
-        createModalHandler(state.elements['solutionModal']!, undefined, undefined)
-    );
+    on('solutionCloseBtn', 'click', closeSolutionModal);
+
+    if (solutionModal) {
+        solutionModal.addEventListener(
+            'click',
+            createModalHandler(solutionModal, undefined, undefined)
+        );
+    }
 
     // TOC Toggle
     document.getElementById('toc-toggle-btn')?.addEventListener('click', toggleTOC);

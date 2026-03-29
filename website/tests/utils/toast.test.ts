@@ -4,7 +4,7 @@
  * Tests for Toast Notification Module
  */
 
-import { showToast } from '../../src/utils/toast';
+import { showToast } from '../../src/utils';
 
 // Mock state module
 jest.mock('../../src/state', () => ({
@@ -27,7 +27,7 @@ describe('Toast Utility', () => {
         document.body.appendChild(toastContainer);
 
         // Update state reference
-        state.elements.toastContainer = toastContainer;
+        state.elements['toastContainer'] = toastContainer;
 
         // Clear any existing toasts
         toastContainer.innerHTML = '';

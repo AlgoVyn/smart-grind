@@ -10,10 +10,7 @@ import {
     safeRemoveItem,
     getStringItem,
     setStringItem,
-    getStorageKey,
-    STORAGE_PREFIXES,
-    STORAGE_KEYS,
-} from '../../src/utils/storage';
+} from '../../src/utils';
 
 describe('Storage Utility', () => {
     beforeEach(() => {
@@ -195,81 +192,6 @@ describe('Storage Utility', () => {
             const result = setStringItem('test-key', 'value');
 
             expect(result).toBe(false);
-        });
-    });
-
-    describe('STORAGE_PREFIXES', () => {
-        it('should have LOCAL prefix as empty string', () => {
-            expect(STORAGE_PREFIXES.LOCAL).toBe('');
-        });
-
-        it('should have SIGNED_IN prefix', () => {
-            expect(STORAGE_PREFIXES.SIGNED_IN).toBe('SIGNED_IN_');
-        });
-    });
-
-    describe('getStorageKey', () => {
-        it('should return base key for local user', () => {
-            const result = getStorageKey('problems', false);
-
-            expect(result).toBe('problems');
-        });
-
-        it('should add prefix for signed-in user', () => {
-            const result = getStorageKey('problems', true);
-
-            expect(result).toBe('SIGNED_IN_problems');
-        });
-
-        it('should work with different keys', () => {
-            expect(getStorageKey('user-data', false)).toBe('user-data');
-            expect(getStorageKey('user-data', true)).toBe('SIGNED_IN_user-data');
-            expect(getStorageKey('settings', false)).toBe('settings');
-            expect(getStorageKey('settings', true)).toBe('SIGNED_IN_settings');
-        });
-    });
-
-    describe('STORAGE_KEYS', () => {
-        it('should have USER_TYPE as string', () => {
-            expect(STORAGE_KEYS.USER_TYPE).toBe('smartgrind-user-type');
-        });
-
-        it('should generate PROBLEMS key for local user', () => {
-            const key = STORAGE_KEYS.PROBLEMS(false);
-            expect(key).toBe('smartgrind-problems');
-        });
-
-        it('should generate PROBLEMS key for signed-in user', () => {
-            const key = STORAGE_KEYS.PROBLEMS(true);
-            expect(key).toBe('SIGNED_IN_smartgrind-problems');
-        });
-
-        it('should generate DELETED_IDS key for local user', () => {
-            const key = STORAGE_KEYS.DELETED_IDS(false);
-            expect(key).toBe('smartgrind-deleted-ids');
-        });
-
-        it('should generate DELETED_IDS key for signed-in user', () => {
-            const key = STORAGE_KEYS.DELETED_IDS(true);
-            expect(key).toBe('SIGNED_IN_smartgrind-deleted-ids');
-        });
-
-        it('should generate DISPLAY_NAME key for local user', () => {
-            const key = STORAGE_KEYS.DISPLAY_NAME(false);
-            expect(key).toBe('smartgrind-display-name');
-        });
-
-        it('should generate DISPLAY_NAME key for signed-in user', () => {
-            const key = STORAGE_KEYS.DISPLAY_NAME(true);
-            expect(key).toBe('SIGNED_IN_smartgrind-display-name');
-        });
-
-        it('should have PREFERRED_AI as string', () => {
-            expect(STORAGE_KEYS.PREFERRED_AI).toBe('preferred-ai');
-        });
-
-        it('should have USER_ID as string', () => {
-            expect(STORAGE_KEYS.USER_ID).toBe('userId');
         });
     });
 

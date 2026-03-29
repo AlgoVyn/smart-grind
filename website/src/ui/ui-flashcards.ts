@@ -9,8 +9,7 @@ import {
     getDueFlashCards,
     getFlashCardCategories,
 } from '../data/flashcards-data';
-import { getToday, getNextReviewDate } from '../utils';
-import { showToast } from '../utils/toast';
+import { getToday, getNextReviewDate, showToast } from '../utils';
 
 // --- STATE ---
 
@@ -143,7 +142,6 @@ const RATING_INTERVALS: Record<string, [number, number]> = {
 
 // Configure markdown renderer with syntax highlighting
 const configureMarkdownRenderer = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const marked = (
         window as unknown as {
             marked?: {
@@ -262,7 +260,7 @@ const renderMarkdownContent = (markdown: string, element: HTMLElement): void => 
     element.innerHTML = sanitizedHtml;
 
     // Apply syntax highlighting with Prism
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const prism = (
         window as unknown as { Prism?: { highlightAllUnder: (_element: HTMLElement) => void } }
     ).Prism;

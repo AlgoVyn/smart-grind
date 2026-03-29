@@ -40,8 +40,11 @@ export const setButtonLoading = (
  * Helper to reset all login buttons to default state
  */
 const resetLoginButtons = () => {
-    ui.setButtonLoading(state.elements.googleLoginButton ?? null, false);
-    ui.setButtonLoading(state.elements.modalGoogleLoginButton ?? null, false);
+    ui.setButtonLoading((state.elements['googleLoginButton'] as HTMLElement | null) ?? null, false);
+    ui.setButtonLoading(
+        (state.elements['modalGoogleLoginButton'] as HTMLElement | null) ?? null,
+        false
+    );
 };
 
 /**
@@ -56,8 +59,11 @@ const resetLoginButtons = () => {
  */
 export const handleGoogleLogin = () => {
     showError(null);
-    ui.setButtonLoading(state.elements.googleLoginButton ?? null, true);
-    ui.setButtonLoading(state.elements.modalGoogleLoginButton ?? null, true);
+    ui.setButtonLoading((state.elements['googleLoginButton'] as HTMLElement | null) ?? null, true);
+    ui.setButtonLoading(
+        (state.elements['modalGoogleLoginButton'] as HTMLElement | null) ?? null,
+        true
+    );
 
     // Open popup for auth
     const popup = window.open('/smartgrind/api/auth?action=login', 'auth', 'width=500,height=600');
@@ -81,8 +87,9 @@ export const handleGoogleLogin = () => {
 
         state.user.id = userId;
         state.user.displayName = displayName;
-        if (state.elements.userDisplay) {
-            state.elements.userDisplay.innerText = displayName;
+        const userDisplayEl = state.elements['userDisplay'] as HTMLElement | null;
+        if (userDisplayEl) {
+            userDisplayEl.innerText = displayName;
         }
         state.user.type = 'signed-in';
         localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'signed-in');
@@ -110,8 +117,8 @@ export const handleGoogleLogin = () => {
         updateAuthUI();
 
         // Close any open sign-in modals
-        state.elements.setupModal?.classList.add('hidden');
-        state.elements.signinModal?.classList.add('hidden');
+        (state.elements['setupModal'] as HTMLElement | null)?.classList.add('hidden');
+        (state.elements['signinModal'] as HTMLElement | null)?.classList.add('hidden');
     };
 
     const handleAuthFailure = (data: { message: string }) => {
@@ -203,7 +210,7 @@ export const handleLogout = async () => {
  * the user is local (show sign-in) or signed-in (show sign-out).
  */
 export const updateAuthUI = () => {
-    const disconnectBtn = state.elements.disconnectBtn;
+    const disconnectBtn = state.elements['disconnectBtn'] as HTMLElement | null;
     const isLocal = state.user.type === 'local';
 
     const signInIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -216,7 +223,7 @@ export const updateAuthUI = () => {
 
     if (disconnectBtn) {
         disconnectBtn.innerHTML = isLocal ? `${signInIcon} Sign In` : `${signOutIcon} Sign Out`;
-        disconnectBtn.title = isLocal
+        (disconnectBtn as HTMLElement).title = isLocal
             ? 'Sign in to sync across devices'
             : 'Sign out and switch to local mode';
     }
@@ -228,7 +235,7 @@ export const updateAuthUI = () => {
  * @param {string|null} msg - The error message to display, or null to hide the error.
  */
 export const showError = (msg: string | null) => {
-    showAuthError(state.elements.setupError ?? null, msg);
+    showAuthError((state.elements['setupError'] as HTMLElement | null) ?? null, msg);
 };
 
 /**
@@ -244,5 +251,5 @@ export const showAuthError = (element: HTMLElement | null, msg: string | null) =
 };
 
 export const showSigninError = (msg: string | null) => {
-    showAuthError(state.elements.signinError ?? null, msg);
+    showAuthError((state.elements['signinError'] as HTMLElement | null) ?? null, msg);
 };

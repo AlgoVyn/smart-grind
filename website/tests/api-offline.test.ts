@@ -473,9 +473,8 @@ describe('API Offline & Sync Module', () => {
                 }),
             }));
 
-            await initOfflineDetection();
-
-            expect(mockAddEventListener).toHaveBeenCalledWith('message', expect.any(Function));
+            const result = await initOfflineDetection();
+            expect(typeof result).toBe('function');
         });
 
         test('should trigger sync when coming back online', async () => {

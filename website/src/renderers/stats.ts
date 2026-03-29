@@ -16,11 +16,11 @@ export const statsRenderers = {
         const percentage = total > 0 ? (solved / total) * 100 : 0;
 
         // Update main dashboard stats safely
-        const mainTotalText = state.elements['statTotal'];
-        const mainSolvedText = state.elements['statSolved'];
-        const mainDueText = state.elements['statDue'];
-        const mainSolvedBar = state.elements['progressBarSolved'];
-        const mainDueBadge = state.elements['statDueBadge'];
+        const mainTotalText = state.elements['statTotal'] as HTMLElement | null;
+        const mainSolvedText = state.elements['statSolved'] as HTMLElement | null;
+        const mainDueText = state.elements['statDue'] as HTMLElement | null;
+        const mainSolvedBar = state.elements['progressBarSolved'] as HTMLElement | null;
+        const mainDueBadge = state.elements['statDueBadge'] as HTMLElement | null;
 
         if (mainTotalText) mainTotalText.innerText = total.toString();
         if (mainSolvedText) mainSolvedText.innerText = solved.toString();
@@ -49,8 +49,8 @@ export const statsRenderers = {
         const total = uniqueProblemIds.size;
         const percentage = total > 0 ? Math.round((solved / total) * 100) : 0;
 
-        const sidebarTotalStat = state.elements['sidebarTotalStat'];
-        const sidebarTotalBar = state.elements['sidebarTotalBar'];
+        const sidebarTotalStat = state.elements['sidebarTotalStat'] as HTMLElement | null;
+        const sidebarTotalBar = state.elements['sidebarTotalBar'] as HTMLElement | null;
 
         if (sidebarTotalStat) {
             sidebarTotalStat.innerText = `${percentage}%`;
@@ -62,8 +62,8 @@ export const statsRenderers = {
 
     // Helper to update review banner
     _updateReviewBanner: (due: number) => {
-        const reviewBanner = state.elements['reviewBanner'];
-        const reviewCountBanner = state.elements['reviewCountBanner'];
+        const reviewBanner = state.elements['reviewBanner'] as HTMLElement | null;
+        const reviewCountBanner = state.elements['reviewCountBanner'] as HTMLElement | null;
 
         if (due > 0) {
             reviewBanner?.classList.remove('hidden');

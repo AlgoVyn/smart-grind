@@ -3,7 +3,7 @@
  * Comprehensive tests for date manipulation and formatting helpers
  */
 
-import { getToday, addDays, formatDate, getNextReviewDate } from '../../src/utils/date';
+import { getToday, addDays, formatDate, getNextReviewDate } from '../../src/utils';
 import { data } from '../../src/data';
 
 // Mock the data module

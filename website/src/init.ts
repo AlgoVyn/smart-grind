@@ -19,6 +19,37 @@ import { openSigninModal } from './ui/ui-modals';
 setupGlobalErrorHandlers();
 
 // ============================================================================
+// Cleanup Management
+// ============================================================================
+
+const cleanupFunctions: (() => void)[] = [];
+
+const registerCleanup = (cleanup: () => void) => {
+    cleanupFunctions.push(cleanup);
+};
+
+export const runCleanup = () => {
+    cleanupFunctions.forEach((fn) => {
+        try {
+            fn();
+        } catch (e) {
+            console.error('Cleanup function failed:', e);
+        }
+    });
+    cleanupFunctions.length = 0;
+};
+// Safely initialize offline detection with error handling
+const safeInitOfflineDetection = async (): Promise<void> => {
+    try {
+        const cleanup = await initOfflineDetection();
+        registerCleanup(cleanup);
+    } catch (error) {
+        console.error('[Init] Failed to initialize offline detection:', error);
+        // Continue without offline detection - app will work in online-only mode
+    }
+};
+
+// ============================================================================
 // URL Parameter Helpers
 // ============================================================================
 
@@ -201,9 +232,9 @@ const initializeUIAfterSetup = async () => {
     ui.initScrollButton();
     ui.updateAuthUI();
 
-    state.elements.setupModal?.classList.add('hidden');
-    state.elements.appWrapper?.classList.remove('hidden');
-    state.elements.loadingScreen?.classList.add('hidden');
+    (state.elements['setupModal'] as HTMLElement | null)?.classList.add('hidden');
+    (state.elements['appWrapper'] as HTMLElement | null)?.classList.remove('hidden');
+    (state.elements['loadingScreen'] as HTMLElement | null)?.classList.add('hidden');
 };
 
 const setupSignedInUser = async (
@@ -223,7 +254,7 @@ const setupSignedInUser = async (
 
     state.user.id = userId;
     state.user.displayName = displayName;
-    const userDisplayEl = state.elements['userDisplay'];
+    const userDisplayEl = state.elements['userDisplay'] as HTMLElement | null;
     if (userDisplayEl) userDisplayEl.innerText = displayName;
 
     state.loadFromStorage();
@@ -294,7 +325,7 @@ const handlePwaAuthCallback = async (
         );
     }, 'Failed to set up signed-in user');
 
-    await initOfflineDetection();
+    await safeInitOfflineDetection();
     return true;
 };
 
@@ -317,7 +348,7 @@ const restoreSession = async (
             token
         );
     }, errorMessage);
-    await initOfflineDetection();
+    await safeInitOfflineDetection();
 };
 
 const handleExistingSession = async (
@@ -368,14 +399,17 @@ const handleExistingSession = async (
 };
 
 const showSetupModal = async () => {
-    const { setupModal, appWrapper, loadingScreen, googleLoginButton } = state.elements;
+    const setupModal = state.elements['setupModal'] as HTMLElement | null;
+    const appWrapper = state.elements['appWrapper'] as HTMLElement | null;
+    const loadingScreen = state.elements['loadingScreen'] as HTMLElement | null;
+    const googleLoginButton = state.elements['googleLoginButton'] as HTMLButtonElement | null;
 
     setupModal?.classList.remove('hidden');
     appWrapper?.classList.add('hidden');
     loadingScreen?.classList.add('hidden');
 
     if (googleLoginButton) {
-        (googleLoginButton as HTMLButtonElement).disabled = false;
+        googleLoginButton.disabled = false;
         googleLoginButton.innerHTML = window.SmartGrind?.GOOGLE_BUTTON_HTML || '';
     }
 
@@ -433,7 +467,7 @@ const checkAuth = async () => {
         await showSetupModal();
     }
 
-    await initOfflineDetection();
+    await safeInitOfflineDetection();
 };
 
 export { checkAuth };

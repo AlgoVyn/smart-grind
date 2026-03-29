@@ -119,8 +119,8 @@ export const _initializeUI = async (): Promise<void> => {
     updateStats();
     initScrollButton();
 
-    state.elements.setupModal?.classList.add('hidden');
-    state.elements.appWrapper?.classList.remove('hidden');
+    (state.elements['setupModal'] as HTMLElement | null)?.classList.add('hidden');
+    (state.elements['appWrapper'] as HTMLElement | null)?.classList.remove('hidden');
 };
 
 /**
@@ -128,7 +128,8 @@ export const _initializeUI = async (): Promise<void> => {
  * Falls back to localStorage data when offline to preserve state.
  */
 export const loadData = async (): Promise<void> => {
-    const { loadingScreen, appWrapper } = state.elements;
+    const loadingScreen = state.elements['loadingScreen'] as HTMLElement | null;
+    const appWrapper = state.elements['appWrapper'] as HTMLElement | null;
     loadingScreen?.classList.remove('hidden');
 
     try {
@@ -166,10 +167,12 @@ export const loadData = async (): Promise<void> => {
         const isAuthError =
             message.includes('Authentication failed') ||
             message.includes('No authentication token');
-        const modalEl = state.elements[isAuthError ? 'signinModal' : 'setupModal'];
+        const modalEl = state.elements[
+            isAuthError ? 'signinModal' : 'setupModal'
+        ] as HTMLElement | null;
         modalEl?.classList.remove('hidden');
         appWrapper?.classList.add('hidden');
     } finally {
-        state.elements.loadingScreen?.classList.add('hidden');
+        (state.elements['loadingScreen'] as HTMLElement | null)?.classList.add('hidden');
     }
 };

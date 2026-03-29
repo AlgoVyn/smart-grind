@@ -6,18 +6,57 @@ import { data } from '../data';
 import { sanitizeInput, sanitizeUrl, showToast, escapeHtml } from '../utils';
 import { api } from '../api';
 import { errorTracker } from '../utils/error-tracker';
-import { createFocusTrap, FocusTrapInstance } from '../utils/focus-trap';
 
 // Configure DOMPurify to allow only specific tags for confirm messages
 const DOMPURIFY_CONFIG = {
     ALLOWED_TAGS: ['b', 'i', 'u', 'br'],
     ALLOWED_ATTR: [],
 };
-// Store focus trap instances for each modal
-const focusTraps = new Map<HTMLElement, FocusTrapInstance>();
 
 // Track the element that triggered the modal opening
 let lastFocusedElement: HTMLElement | null = null;
+
+// Simple focus management for modals
+const trapFocus = (modalEl: HTMLElement): (() => void) => {
+    // Check if element has querySelectorAll (may not exist in test mocks)
+    if (!modalEl.querySelectorAll) {
+        return () => {}; // Return no-op cleanup
+    }
+
+    const focusableElements = modalEl.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+
+    // If no focusable elements, return no-op
+    if (focusableElements.length === 0) {
+        return () => {};
+    }
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key !== 'Tab') return;
+
+        if (e.shiftKey && document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement?.focus();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement?.focus();
+        }
+    };
+
+    modalEl.addEventListener('keydown', handleKeyDown);
+    firstElement?.focus();
+
+    return () => {
+        modalEl.removeEventListener('keydown', handleKeyDown);
+    };
+};
+
+// Store cleanup functions for focus traps
+const focusTrapCleanups = new Map<HTMLElement, (() => void) | null>();
 
 // Modal helper functions
 const showModal = (modalEl: HTMLElement | null | undefined, setup?: () => void) => {
@@ -29,29 +68,23 @@ const showModal = (modalEl: HTMLElement | null | undefined, setup?: () => void) 
     setup?.();
     modalEl.classList.remove('hidden');
 
-    // Initialize and activate focus trap
-    if (!focusTraps.has(modalEl)) {
-        const trap = createFocusTrap({
-            container: modalEl,
-            returnFocusTo: lastFocusedElement,
-        });
-        focusTraps.set(modalEl, trap);
-    }
-
-    // Small delay to ensure modal is visible and focusable elements are available
-    setTimeout(() => {
-        focusTraps.get(modalEl)?.activate();
-    }, 10);
+    // Activate focus trap
+    const cleanup = trapFocus(modalEl);
+    focusTrapCleanups.set(modalEl, cleanup);
 };
 
 const hideModal = (modalEl: HTMLElement | null | undefined, cleanup?: () => void) => {
     if (!modalEl) return;
 
-    // Deactivate focus trap before hiding
-    focusTraps.get(modalEl)?.deactivate();
+    // Deactivate focus trap
+    focusTrapCleanups.get(modalEl)?.();
+    focusTrapCleanups.set(modalEl, null);
 
     modalEl.classList.add('hidden');
     cleanup?.();
+
+    // Return focus
+    lastFocusedElement?.focus();
 };
 
 // Generic modal handler factory
@@ -94,9 +127,9 @@ export const _setupAddModal = () => {
         if (el) el.value = '';
     });
 
-    state.elements['addProbCategoryNew']?.classList.remove('hidden');
+    (state.elements['addProbCategoryNew'] as HTMLElement | null)?.classList.remove('hidden');
     if (patternEl) patternEl.innerHTML = '<option value="">-- Select Category First --</option>';
-    state.elements['addProbPatternNew']?.classList.remove('hidden');
+    (state.elements['addProbPatternNew'] as HTMLElement | null)?.classList.remove('hidden');
 };
 
 export const openAddModal = () =>

@@ -33,7 +33,7 @@ export const initializeLocalUser = async (): Promise<void> => {
 
     state.loadFromStorage();
     const displayName = state.user.displayName;
-    const userDisplay = state.elements['userDisplay'];
+    const userDisplay = state.elements['userDisplay'] as HTMLElement | null;
     if (userDisplay) {
         userDisplay.innerText = displayName;
     }
@@ -66,9 +66,9 @@ export const initializeLocalUser = async (): Promise<void> => {
     ui.initScrollButton();
 
     // Toggle visibility of modal elements
-    state.elements['setupModal']?.classList.add('hidden');
-    state.elements['appWrapper']?.classList.remove('hidden');
-    state.elements['loadingScreen']?.classList.add('hidden');
+    (state.elements['setupModal'] as HTMLElement | null)?.classList.add('hidden');
+    (state.elements['appWrapper'] as HTMLElement | null)?.classList.remove('hidden');
+    (state.elements['loadingScreen'] as HTMLElement | null)?.classList.add('hidden');
 
     // Update auth UI
     ui.updateAuthUI();

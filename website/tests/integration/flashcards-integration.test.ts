@@ -30,11 +30,6 @@ jest.mock('../../src/state', () => ({
     },
 }));
 
-// Mock toast
-jest.mock('../../src/utils/toast', () => ({
-    showToast: jest.fn(),
-}));
-
 // Mock utils
 jest.mock('../../src/utils', () => ({
     getToday: jest.fn(() => '2024-01-15'),
@@ -43,6 +38,7 @@ jest.mock('../../src/utils', () => ({
         d.setDate(d.getDate() + days);
         return d.toISOString().split('T')[0];
     }),
+    showToast: jest.fn(),
 }));
 
 // Mock flashcards data

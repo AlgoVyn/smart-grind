@@ -43,7 +43,7 @@ export default [
         },
         rules: {
             // Core ESLint rules
-            'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+            'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
             'no-console': 'off', // Allow console in this codebase
             'prefer-const': 'error',
             'no-var': 'error',
@@ -54,7 +54,8 @@ export default [
             '@typescript-eslint/no-unused-vars': ['warn', { 
                 argsIgnorePattern: '^_', 
                 varsIgnorePattern: '^_',
-                caughtErrorsIgnorePattern: '^_'
+                caughtErrorsIgnorePattern: '^_',
+                destructuredArrayIgnorePattern: '^_',
             }],
             '@typescript-eslint/no-explicit-any': 'warn',
             '@typescript-eslint/explicit-function-return-type': 'off',

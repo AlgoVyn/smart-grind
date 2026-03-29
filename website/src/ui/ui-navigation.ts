@@ -22,7 +22,9 @@ export const bindNavigationEvents = (): void => {
                 if (newFilter === 'review' || newFilter === 'solved') {
                     state.ui.reviewDateFilter = null;
                     // Also reset the dropdown to "All Dates"
-                    const reviewDateFilterEl = state.elements['reviewDateFilter'];
+                    const reviewDateFilterEl = state.elements[
+                        'reviewDateFilter'
+                    ] as HTMLSelectElement | null;
                     if (reviewDateFilterEl) {
                         reviewDateFilterEl.value = '';
                     }
@@ -58,7 +60,7 @@ export const bindNavigationEvents = (): void => {
     }
 
     // Review date filter
-    const reviewDateFilter = state.elements['reviewDateFilter'];
+    const reviewDateFilter = state.elements['reviewDateFilter'] as HTMLSelectElement | null;
     if (reviewDateFilter) {
         reviewDateFilter.addEventListener('change', () => {
             state.ui.reviewDateFilter = reviewDateFilter.value || null;
@@ -108,7 +110,7 @@ export const toggleDateFilterVisibility = (show: boolean): void => {
 
 // Populate date filter dropdown with available dates
 export const populateDateFilter = (): void => {
-    const reviewDateFilter = state.elements['reviewDateFilter'];
+    const reviewDateFilter = state.elements['reviewDateFilter'] as HTMLSelectElement | null;
     if (!reviewDateFilter) return;
 
     const today = getToday();

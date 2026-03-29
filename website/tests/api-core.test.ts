@@ -13,9 +13,8 @@ const mockMergeStructure = jest.fn();
 const mockResetAll = jest.fn();
 const mockResetCategory = jest.fn();
 const mockDeleteCategory = jest.fn();
-const mockIsBrowserOnline = jest.fn();
+const mockIsBrowserOnline = jest.fn().mockReturnValue(true);
 const mockGetConnectivityChecker = jest.fn();
-const mockCleanupRegister = jest.fn();
 
 jest.mock('../src/api/api-save', () => ({
     saveData: mockSaveData,
@@ -48,13 +47,6 @@ jest.mock('../src/api/api-utils', () => ({
 
 jest.mock('../src/sw/connectivity-checker', () => ({
     getConnectivityChecker: mockGetConnectivityChecker,
-}));
-
-jest.mock('../src/utils/cleanup-manager', () => ({
-    cleanupManager: {
-        register: mockCleanupRegister,
-        cleanup: jest.fn(),
-    },
 }));
 
 jest.mock('../src/state', () => ({
@@ -411,7 +403,6 @@ describe('API Core', () => {
             const cleanup = await initOfflineDetection();
 
             expect(mockGetConnectivityChecker).toHaveBeenCalled();
-            expect(mockCleanupRegister).toHaveBeenCalled();
             expect(typeof cleanup).toBe('function');
         });
 
@@ -438,12 +429,12 @@ describe('API Core', () => {
             }
         });
 
-        test('should cleanup when called', async () => {
+        test('should return cleanup function', async () => {
             const cleanup = await initOfflineDetection();
-            cleanup();
-
-            // Cleanup should be registered
-            expect(mockCleanupRegister).toHaveBeenCalled();
+            expect(typeof cleanup).toBe('function');
+            
+            // Cleanup should run without errors
+            expect(() => cleanup()).not.toThrow();
         });
     });
 

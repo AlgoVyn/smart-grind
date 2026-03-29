@@ -172,8 +172,8 @@ export const sidebarRenderers = {
             });
 
             // Batch append all at once (single reflow)
-            topicList.innerHTML = '';
-            topicList.appendChild(fragment);
+            (topicList as HTMLElement).innerHTML = '';
+            (topicList as HTMLElement).appendChild(fragment);
         }
     },
 

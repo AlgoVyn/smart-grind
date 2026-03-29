@@ -9,7 +9,6 @@ import { deleteCategory, deleteAlgorithmCategory, deleteSQLCategory } from './ap
 import { state } from './state';
 import { getConnectivityChecker } from './sw/connectivity-checker';
 import { isBrowserOnline as checkBrowserOnline } from './api/api-utils';
-import { cleanupManager } from './utils/cleanup-manager';
 import { isSyncStatusResponse, type SyncStatus, type APIOperation } from './types/sync';
 import { sendMessageToSW, isServiceWorkerAvailable } from './sw/sw-messaging';
 import { SYNC_CONFIG } from './config/sync-config';
@@ -263,59 +262,70 @@ export async function initOfflineDetection(): Promise<() => void> {
     const online = await checker.isOnline();
     state.setOnlineStatus(online);
 
-    if (!isServiceWorkerAvailable()) {
-        return () => cleanupManager.cleanup('api');
-    }
-
-    const handleServiceWorkerMessage = (event: MessageEvent) => {
-        const { type, data } = event.data || {};
-        if (!type) return;
-
-        switch (type) {
-            case 'SYNC_COMPLETED':
-                state.setSyncStatus({
-                    isSyncing: false,
-                    lastSyncAt: Date.now(),
-                    pendingCount: data?.pending ?? 0,
-                });
-                break;
-            case 'SYNC_PROGRESS_SYNCED':
-                if (data?.pending !== undefined) {
-                    state.setSyncStatus({ pendingCount: data.pending });
-                }
-                break;
-            case 'SYNC_CONFLICT_REQUIRES_MANUAL':
-                state.setSyncStatus({
-                    hasConflicts: true,
-                    conflictMessage: data?.message,
-                });
-                break;
-            case 'SYNC_AUTH_REQUIRED':
-                state.setSyncStatus({
-                    isSyncing: false,
-                    pendingCount: data?.pendingCount ?? state.sync.pendingCount,
-                });
-                break;
-        }
-    };
-
-    navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+    // Track cleanup handlers for proper resource management
+    const cleanupHandlers: (() => void)[] = [];
+    cleanupHandlers.push(unsubscribe);
+    cleanupHandlers.push(() => checker.stopMonitoring());
 
     const intervalId = setInterval(
         () => updateSyncStatus().catch(() => {}),
         SYNC_CONFIG.INTERVALS.SYNC_STATUS_POLL
     );
+    cleanupHandlers.push(() => clearInterval(intervalId));
 
-    cleanupManager.register('api', () => {
-        unsubscribe();
-        checker.stopMonitoring();
-        clearInterval(intervalId);
-        if (isServiceWorkerAvailable()) {
-            navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
-        }
-    });
+    // Service Worker message handling for sync status updates
+    if (isServiceWorkerAvailable()) {
+        const handleServiceWorkerMessage = (event: MessageEvent) => {
+            const { type, data } = event.data || {};
+            if (!type) return;
 
-    return () => cleanupManager.cleanup('api');
+            switch (type) {
+                case 'SYNC_COMPLETED':
+                    state.setSyncStatus({
+                        isSyncing: false,
+                        lastSyncAt: Date.now(),
+                        pendingCount: data?.pending ?? 0,
+                    });
+                    break;
+                case 'SYNC_PROGRESS_SYNCED':
+                    if (data?.pending !== undefined) {
+                        state.setSyncStatus({ pendingCount: data.pending });
+                    }
+                    break;
+                case 'SYNC_CONFLICT_REQUIRES_MANUAL':
+                    state.setSyncStatus({
+                        hasConflicts: true,
+                        conflictMessage: data?.message,
+                    });
+                    break;
+                case 'SYNC_AUTH_REQUIRED':
+                    state.setSyncStatus({
+                        isSyncing: false,
+                        pendingCount: data?.pendingCount ?? state.sync.pendingCount,
+                    });
+                    break;
+            }
+        };
+
+        navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+        cleanupHandlers.push(() => {
+            if (typeof navigator.serviceWorker.removeEventListener === 'function') {
+                navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+            }
+        });
+    }
+
+    // Return cleanup function
+    const cleanup = () => {
+        cleanupHandlers.forEach((handler) => handler());
+    };
+
+    // Register for cleanup on page unload
+    const handleBeforeUnload = () => cleanup();
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    cleanupHandlers.push(() => window.removeEventListener('beforeunload', handleBeforeUnload));
+
+    return cleanup;
 }
 
 // API object - combines all API functions

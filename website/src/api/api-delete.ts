@@ -56,7 +56,7 @@ export const _storeOriginalState = (): {
  */
 export const _removeCategoryAndProblems = (topic: Topic): void => {
     // Remove from topicsData
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const index = (data.topicsData as unknown as Array<{ id: string }>).findIndex(
         (t) => t.id === topic.id
     );
