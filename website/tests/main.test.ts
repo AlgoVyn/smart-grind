@@ -51,6 +51,9 @@ jest.mock('../src/utils/performance-monitor', () => ({
     },
 }));
 
+jest.mock('../src/ui/ui-modals', () => ({
+    checkAndShowErrorTrackingConsent: jest.fn(),
+}));
 jest.mock('../src/utils/cleanup-manager', () => ({
     cleanupManager: {
         cleanupAll: mockCleanupAll,

@@ -11,7 +11,7 @@ import {
 } from '../utils';
 
 // Bind navigation-related events
-export const bindNavigationEvents = () => {
+export const bindNavigationEvents = (): void => {
     // Filter buttons
     const filterBtns = state.elements['filterBtns'];
     if (filterBtns) {
@@ -99,7 +99,7 @@ export const bindNavigationEvents = () => {
 };
 
 // Toggle date filter visibility based on current filter
-export const toggleDateFilterVisibility = (show: boolean) => {
+export const toggleDateFilterVisibility = (show: boolean): void => {
     const dateFilterContainer = state.elements['dateFilterContainer'];
     if (dateFilterContainer) {
         dateFilterContainer.classList.toggle('hidden', !show);
@@ -107,7 +107,7 @@ export const toggleDateFilterVisibility = (show: boolean) => {
 };
 
 // Populate date filter dropdown with available dates
-export const populateDateFilter = () => {
+export const populateDateFilter = (): void => {
     const reviewDateFilter = state.elements['reviewDateFilter'];
     if (!reviewDateFilter) return;
 
@@ -136,17 +136,17 @@ export const populateDateFilter = () => {
 };
 
 // Theme toggle
-export const toggleTheme = () => {
+export const toggleTheme = (): void => {
     const isDark = document.documentElement.classList.toggle('dark');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 };
 
-export const _toggleSidebarClasses = (sidebar: HTMLElement, isOpen: boolean) => {
+export const _toggleSidebarClasses = (sidebar: HTMLElement, isOpen: boolean): void => {
     sidebar.classList.toggle('translate-x-0', !isOpen);
     sidebar.classList.toggle('-translate-x-full', isOpen);
 };
 
-export const _toggleBackdrop = (backdrop: HTMLElement, show: boolean) => {
+export const _toggleBackdrop = (backdrop: HTMLElement, show: boolean): void => {
     backdrop.classList.toggle('hidden', !show);
     if (show) {
         setTimeout(() => backdrop.classList.add('opacity-100'), 10);
@@ -156,7 +156,7 @@ export const _toggleBackdrop = (backdrop: HTMLElement, show: boolean) => {
 };
 
 // Mobile menu toggle
-export const toggleMobileMenu = () => {
+export const toggleMobileMenu = (): void => {
     const sidebar = state.elements['mainSidebar'];
     const backdrop = state.elements['sidebarBackdrop'];
     if (!sidebar) return;
@@ -171,7 +171,7 @@ export const toggleMobileMenu = () => {
 };
 
 // Load default view (all content)
-export const loadDefaultView = () => {
+export const loadDefaultView = (): void => {
     // Clear all active categories to show combined view
     state.ui.activeTopicId = '';
     state.ui.activeAlgorithmCategoryId = null;

@@ -23,7 +23,7 @@ const _keyboardShortcuts = {
 };
 
 // Keyboard shortcuts
-export const handleKeyboard = (e: KeyboardEvent) => {
+export const handleKeyboard = (e: KeyboardEvent): void => {
     // Skip if typing in an input/textarea
     if ((e.target as Element).tagName === 'INPUT' || (e.target as Element).tagName === 'TEXTAREA') {
         // Allow Escape to close modals even when focused on input
@@ -42,7 +42,7 @@ export const handleKeyboard = (e: KeyboardEvent) => {
 };
 
 // Browser navigation
-export const handlePopState = () => {
+export const handlePopState = (): void => {
     const categoryParam = getUrlParameter('category');
     const category =
         categoryParam &&
@@ -61,7 +61,7 @@ export const handlePopState = () => {
 };
 
 // Bind global events
-export const bindGlobalEvents = () => {
+export const bindGlobalEvents = (): void => {
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboard);
 

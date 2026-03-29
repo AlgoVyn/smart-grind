@@ -34,7 +34,12 @@ export const _validateCategoryDeletion = async (topicId: string): Promise<Topic 
  * Helper to store original state for rollback in case of deletion failure.
  * @returns {Object} The original state object containing topicsData, problems, deletedProblemIds, and activeTopicId.
  */
-export const _storeOriginalState = () => ({
+export const _storeOriginalState = (): {
+    topicsData: Topic[];
+    problems: Map<string, Problem>;
+    deletedProblemIds: Set<string>;
+    activeTopicId: string;
+} => ({
     topicsData: [...data.topicsData],
     problems: new Map(
         Array.from(state.problems.entries() as IterableIterator<[string, Problem]>).map(
@@ -49,7 +54,7 @@ export const _storeOriginalState = () => ({
  * Helper to remove category and associated problems from the data structures.
  * @param {Topic} topic - The topic object to remove.
  */
-export const _removeCategoryAndProblems = (topic: Topic) => {
+export const _removeCategoryAndProblems = (topic: Topic): void => {
     // Remove from topicsData
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const index = (data.topicsData as unknown as Array<{ id: string }>).findIndex(
@@ -75,7 +80,10 @@ export const _removeCategoryAndProblems = (topic: Topic) => {
  * @param {string} categoryId - The ID of the algorithm category to remove.
  * @param {string} categoryTitle - The title of the algorithm category.
  */
-export const _removeAlgorithmCategoryAndProblems = (categoryId: string, categoryTitle: string) => {
+export const _removeAlgorithmCategoryAndProblems = (
+    categoryId: string,
+    categoryTitle: string
+): void => {
     // Remove associated algorithms (algorithms have pattern='Algorithms' and topic=categoryId)
     const problemsToDelete: string[] = [];
     state.problems.forEach((p: Problem, id: string) => {
@@ -94,7 +102,7 @@ export const _removeAlgorithmCategoryAndProblems = (categoryId: string, category
  * @param {string} categoryId - The ID of the SQL category to remove.
  * @param {string} categoryTitle - The title of the SQL category.
  */
-export const _removeSQLCategoryAndProblems = (categoryId: string, categoryTitle: string) => {
+export const _removeSQLCategoryAndProblems = (categoryId: string, categoryTitle: string): void => {
     // Remove associated SQL problems (SQL problems have IDs starting with 'sql-')
     const problemsToDelete: string[] = [];
     state.problems.forEach((p: Problem, id: string) => {
@@ -112,7 +120,7 @@ export const _removeSQLCategoryAndProblems = (categoryId: string, categoryTitle:
  * Helper to handle active topic switching when a topic is deleted.
  * @param {string} topicId - The ID of the deleted topic.
  */
-export const _handleActiveTopicSwitch = (topicId: string) => {
+export const _handleActiveTopicSwitch = (topicId: string): void => {
     if (state.ui.activeTopicId === topicId) {
         state.ui.activeTopicId = '';
         updateUrlParameter('category', null);
@@ -132,7 +140,7 @@ export const _restoreOriginalState = (originalState: {
     problems: Map<string, Problem>;
     deletedProblemIds: Set<string>;
     activeTopicId: string;
-}) => {
+}): void => {
     // Clear and repopulate to maintain reference (don't reassign data.topicsData)
     data.topicsData.length = 0;
     data.topicsData.push(...originalState.topicsData);

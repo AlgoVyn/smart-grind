@@ -30,9 +30,8 @@ declare const self: ServiceWorkerGlobalScope;
  * This is replaced at build time by the build process
  * Format: YYYYMMDD-HHMMSS-gitsha (e.g., 20240115-143022-a1b2c3d)
  */
-declare const __SW_VERSION__: string | undefined;
-const SW_VERSION: string =
-    typeof __SW_VERSION__ !== 'undefined' ? __SW_VERSION__ : 'dev-' + Date.now();
+/** Service Worker Version - replaced at build time */
+const SW_VERSION: string = '__SW_VERSION_PLACEHOLDER__';
 const CACHE_VERSION = `v${SW_VERSION}`;
 
 // Maximum age for cached API responses (30 minutes)

@@ -1,7 +1,13 @@
 /**
  * Error Tracker - Global error tracking and monitoring
  * Captures uncaught errors, unhandled rejections, and console errors
+ *
+ * Privacy: User consent is required before collecting error data with userAgent and URL.
+ * Users can opt-out at any time via settings.
  */
+
+// Consent storage key
+const CONSENT_KEY = 'error-tracking-consent';
 
 interface ErrorContext {
     type: string;
@@ -13,13 +19,62 @@ interface ErrorInfo {
     stack: string | undefined;
     context: ErrorContext;
     timestamp: number;
-    userAgent: string;
-    url: string;
+    userAgent?: string;
+    url?: string;
 }
 
 class ErrorTracker {
     private isInitialized = false;
     private originalConsoleError: typeof console.error | undefined;
+
+    /**
+     * Check if user has consented to error tracking
+     */
+    hasConsent(): boolean {
+        try {
+            return localStorage.getItem(CONSENT_KEY) === 'granted';
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Grant consent for error tracking
+     */
+    grantConsent(): void {
+        try {
+            localStorage.setItem(CONSENT_KEY, 'granted');
+        } catch {
+            // Ignore localStorage errors
+        }
+    }
+
+    /**
+     * Revoke consent for error tracking
+     */
+    revokeConsent(): void {
+        try {
+            localStorage.setItem(CONSENT_KEY, 'denied');
+            // Clear any stored errors when revoking consent
+            this.clearPendingErrors();
+        } catch {
+            // Ignore localStorage errors
+        }
+    }
+
+    /**
+     * Get current consent status
+     */
+    getConsentStatus(): 'granted' | 'denied' | 'unknown' {
+        try {
+            const value = localStorage.getItem(CONSENT_KEY);
+            if (value === 'granted') return 'granted';
+            if (value === 'denied') return 'denied';
+            return 'unknown';
+        } catch {
+            return 'unknown';
+        }
+    }
 
     init(): void {
         if (this.isInitialized) return;
@@ -56,8 +111,11 @@ class ErrorTracker {
 
     /**
      * Capture an exception with context
+     * Only includes userAgent and URL if user has consented
      */
     captureException(error: unknown, context: Record<string, unknown>): void {
+        const hasConsent = this.hasConsent();
+
         const errorInfo: ErrorInfo = {
             message: error instanceof Error ? error.message : String(error),
             stack: error instanceof Error ? error.stack : undefined,
@@ -66,9 +124,13 @@ class ErrorTracker {
                 ...context,
             },
             timestamp: Date.now(),
-            userAgent: navigator.userAgent,
-            url: window.location.href,
         };
+
+        // Only collect user data if consent has been granted
+        if (hasConsent) {
+            errorInfo.userAgent = navigator.userAgent;
+            errorInfo.url = window.location.href;
+        }
 
         // Send to error tracking endpoint
         this.sendToServer(errorInfo).catch(() => {
@@ -79,12 +141,15 @@ class ErrorTracker {
 
     /**
      * Capture console.error calls
+     * Only includes userAgent and URL if user has consented
      */
     private captureConsoleError(args: unknown[]): void {
         // Don't capture if it's just a string message
         if (args.length === 1 && typeof args[0] === 'string') {
             return;
         }
+
+        const hasConsent = this.hasConsent();
 
         const errorInfo: ErrorInfo = {
             message: args
@@ -96,9 +161,13 @@ class ErrorTracker {
                 args: args.map((arg) => (arg instanceof Error ? arg.message : String(arg))),
             },
             timestamp: Date.now(),
-            userAgent: navigator.userAgent,
-            url: window.location.href,
         };
+
+        // Only collect user data if consent has been granted
+        if (hasConsent) {
+            errorInfo.userAgent = navigator.userAgent;
+            errorInfo.url = window.location.href;
+        }
 
         this.sendToServer(errorInfo).catch(() => {
             this.storeLocally(errorInfo);

@@ -173,13 +173,17 @@ export default defineConfig({
                     // Read and update SW file
                     const swContent = fs.readFileSync(swFile, 'utf-8');
 
-                    // Replace the SW_VERSION declaration with the actual version
-                    // Handles both the dev fallback and any existing version
-                    // Use [\s\S] to match across multiple lines (dot doesn't match newlines)
-                    const updatedContent = swContent.replace(
-                        /const\s+SW_VERSION\s*=\s*[\s\S]+?;/,
-                        `const SW_VERSION = '${version}';`
-                    );
+                    // Replace the SW_VERSION placeholder with the actual version
+                    // Simple string replacement - more reliable than regex
+                    const placeholder = "__SW_VERSION_PLACEHOLDER__";
+                    const replacement = `'${version}'`;
+                    
+                    if (!swContent.includes(placeholder)) {
+                        console.warn("[vite] SW_VERSION placeholder not found in service worker");
+                        return;
+                    }
+                    
+                    const updatedContent = swContent.replace(placeholder, replacement);
                     
                     fs.writeFileSync(swFile, updatedContent);
                     console.log(`[vite] Service worker version injected: ${version}`);

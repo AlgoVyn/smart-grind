@@ -5,6 +5,7 @@ import { state } from '../state';
 import { data } from '../data';
 import { sanitizeInput, sanitizeUrl, showToast, escapeHtml } from '../utils';
 import { api } from '../api';
+import { errorTracker } from '../utils/error-tracker';
 
 // Configure DOMPurify to allow only specific tags for confirm messages
 const DOMPURIFY_CONFIG = {
@@ -252,4 +253,183 @@ export const saveNewProblem = async () => {
     api.mergeStructure();
     await api.saveProblem(newProb);
     await _updateUIAfterAddingProblem();
+};
+
+// Error tracking consent modal
+
+/**
+ * Shows the error tracking consent banner at the bottom of the screen
+ * Called during app initialization if consent status is unknown
+ */
+export const showErrorTrackingConsent = (): void => {
+    // Check if modal already exists
+    if (document.getElementById('error-tracking-consent-modal')) return;
+
+    const modal = document.createElement('div');
+    modal.id = 'error-tracking-consent-modal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-label', 'Error Tracking Consent');
+    // Fixed positioning at bottom with theme-compatible styling
+    modal.className = 'fixed';
+
+    // Use inline styles for the animation to ensure it works
+    modal.style.cssText = `
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9999;
+        animation: slide-up 0.3s ease-out;
+        padding: 1rem;
+    `;
+
+    modal.innerHTML = `
+        <div style="max-width: 56rem; margin: 0 auto;">
+            <div class="bg-dark-800 border border-slate-700/50 rounded-lg shadow-2xl p-3 sm:p-4" style="background-color: var(--theme-bg-card); border-color: var(--theme-border);">
+                <!-- Header: Title + Buttons on same row for desktop -->
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                    <div class="flex-1 min-w-0" style="min-width: 0;">
+                        <h2 class="text-sm sm:text-base font-semibold" style="color: var(--theme-text-bold); margin-bottom: 0.25rem;">
+                            Help Improve SmartGrind
+                        </h2>
+                        <p class="text-xs sm:text-sm" style="color: var(--theme-text-muted);">
+                            Share anonymous error reports to help us fix bugs faster. 
+                            <button type="button" id="error-tracking-learn-more" class="underline cursor-pointer bg-transparent border-none p-0 text-xs sm:text-sm" style="color: var(--brand-color, #4f46e5);">
+                                Learn more
+                            </button>
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                        <button type="button" id="decline-error-tracking" class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-md transition-colors" style="color: var(--theme-text-muted); background: transparent;">
+                            No Thanks
+                        </button>
+                        <button type="button" id="accept-error-tracking" class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm bg-brand-600 hover:bg-brand-500 text-white rounded-md font-medium transition-colors shadow-md whitespace-nowrap">
+                            Yes, Help Improve
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Expandable Details Section -->
+                <div id="error-tracking-details" class="hidden" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--theme-border);">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="rounded p-2.5" style="background-color: var(--theme-bg-main);">
+                            <p class="font-medium mb-1.5" style="color: var(--theme-text-bold);">What we collect:</p>
+                            <ul class="list-disc list-inside space-y-0.5" style="color: var(--theme-text-muted);">
+                                <li>Error messages and stack traces</li>
+                                <li>Browser type (for debugging)</li>
+                                <li>Page URL where error occurred</li>
+                            </ul>
+                        </div>
+                        <div class="rounded p-2.5" style="background-color: var(--theme-bg-main);">
+                            <p class="font-medium mb-1.5" style="color: var(--theme-text-bold);">We do NOT collect:</p>
+                            <ul class="list-disc list-inside space-y-0.5" style="color: var(--theme-text-muted);">
+                                <li>Personal information</li>
+                                <li>Problem notes or data</li>
+                                <li>Login credentials</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add animation styles if not present
+    if (!document.getElementById('error-tracking-styles')) {
+        const style = document.createElement('style');
+        style.id = 'error-tracking-styles';
+        style.textContent = `
+            @keyframes slide-up {
+                from {
+                    transform: translateY(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    document.body.appendChild(modal);
+
+    // Handle learn more toggle
+    const learnMoreBtn = modal.querySelector('#error-tracking-learn-more');
+    const details = modal.querySelector('#error-tracking-details');
+    learnMoreBtn?.addEventListener('click', () => {
+        const isHidden = details?.classList.contains('hidden');
+        details?.classList.toggle('hidden', !isHidden);
+        if (learnMoreBtn && isHidden) {
+            (learnMoreBtn as HTMLButtonElement).textContent = 'Show less';
+        } else if (learnMoreBtn) {
+            (learnMoreBtn as HTMLButtonElement).textContent = 'Learn more';
+        }
+    });
+
+    // Handle accept
+    const acceptBtn = modal.querySelector('#accept-error-tracking');
+    acceptBtn?.addEventListener('click', () => {
+        errorTracker.grantConsent();
+        modal.remove();
+        showToast('Thank you for helping improve SmartGrind!', 'success');
+    });
+
+    // Handle decline
+    const declineBtn = modal.querySelector('#decline-error-tracking');
+    declineBtn?.addEventListener('click', () => {
+        errorTracker.revokeConsent();
+        modal.remove();
+    });
+};
+
+/**
+ * Check if we should show the consent dialog
+ * Shows only if consent status is unknown (first visit)
+ */
+export const checkAndShowErrorTrackingConsent = (): void => {
+    const status = errorTracker.getConsentStatus();
+    if (status === 'unknown') {
+        // Small delay to not interrupt initial app load
+        setTimeout(() => {
+            showErrorTrackingConsent();
+        }, 2000);
+    }
+};
+
+/**
+ * Creates a settings toggle for error tracking consent
+ * Call this when rendering settings/preferences UI
+ */
+export const createErrorTrackingToggle = (): HTMLElement => {
+    const container = document.createElement('div');
+    container.className = 'flex items-center justify-between py-3';
+
+    const hasConsent = errorTracker.hasConsent();
+
+    container.innerHTML = `
+        <div>
+            <h3 class="font-medium" style="color: var(--theme-text-bold);">Anonymous Error Reports</h3>
+            <p class="text-sm" style="color: var(--theme-text-muted);">Help fix bugs by sharing error data</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="error-tracking-toggle" class="sr-only peer" ${hasConsent ? 'checked' : ''}>
+            <div class="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600" style="background-color: var(--theme-bg-sidebar);"></div>
+        </label>
+    `;
+
+    const toggle = container.querySelector('#error-tracking-toggle');
+    toggle?.addEventListener('change', (e) => {
+        const isChecked = (e.target as HTMLInputElement).checked;
+        if (isChecked) {
+            errorTracker.grantConsent();
+            showToast('Error reporting enabled', 'success');
+        } else {
+            errorTracker.revokeConsent();
+            showToast('Error reporting disabled');
+        }
+    });
+
+    return container;
 };

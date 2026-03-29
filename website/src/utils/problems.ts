@@ -67,7 +67,9 @@ const calculateStats = (ids: Set<string>): { total: number; solved: number; due:
  * @param topicId - The topic identifier to calculate stats for
  * @returns Statistics object with total, solved, and due counts
  */
-export const getUniqueProblemsForTopic = (topicId: string) =>
+export const getUniqueProblemsForTopic = (
+    topicId: string
+): { total: number; solved: number; due: number } =>
     calculateStats(getUniqueProblemIdsForTopic(topicId));
 
 /**
@@ -81,8 +83,11 @@ export const getAllUniqueProblemIdsIncludingAlgorithms = (): Set<string> =>
  * Calculates statistics for all problems including algorithms.
  * @returns Statistics object with total, solved, and due counts
  */
-export const getAllUniqueProblemsIncludingAlgorithms = () =>
-    calculateStats(getAllUniqueProblemIdsIncludingAlgorithms());
+export const getAllUniqueProblemsIncludingAlgorithms = (): {
+    total: number;
+    solved: number;
+    due: number;
+} => calculateStats(getAllUniqueProblemIdsIncludingAlgorithms());
 
 /**
  * Determines whether a problem should be displayed based on current filters.

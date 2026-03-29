@@ -2,6 +2,7 @@ import { state } from './state';
 import { checkAuth } from './init';
 import { initSyncIndicators } from './ui/ui-sync-indicators';
 import { ui } from './ui/ui';
+import { checkAndShowErrorTrackingConsent } from './ui/ui-modals';
 import { errorTracker } from './utils/error-tracker';
 import { performanceMonitor } from './utils/performance-monitor';
 import { cleanupManager } from './utils/cleanup-manager';
@@ -27,6 +28,8 @@ const initApp = async () => {
         // Final UI initialization
         await ui.init();
 
+        // Show error tracking consent dialog if needed
+        checkAndShowErrorTrackingConsent();
         // Record successful startup
         performanceMonitor.recordMetric('app_initialized', 1);
     } catch (error) {
