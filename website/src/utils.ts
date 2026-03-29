@@ -12,3 +12,5 @@ export * from './utils/ai';
 export * from './utils/problems';
 export * from './utils/elements';
 export * from './utils/storage';
+export * from './utils/focus-trap';
+export * from './utils/error-boundary';

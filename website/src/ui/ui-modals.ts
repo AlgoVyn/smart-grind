@@ -6,22 +6,50 @@ import { data } from '../data';
 import { sanitizeInput, sanitizeUrl, showToast, escapeHtml } from '../utils';
 import { api } from '../api';
 import { errorTracker } from '../utils/error-tracker';
+import { createFocusTrap, FocusTrapInstance } from '../utils/focus-trap';
 
 // Configure DOMPurify to allow only specific tags for confirm messages
 const DOMPURIFY_CONFIG = {
     ALLOWED_TAGS: ['b', 'i', 'u', 'br'],
     ALLOWED_ATTR: [],
 };
+// Store focus trap instances for each modal
+const focusTraps = new Map<HTMLElement, FocusTrapInstance>();
+
+// Track the element that triggered the modal opening
+let lastFocusedElement: HTMLElement | null = null;
 
 // Modal helper functions
 const showModal = (modalEl: HTMLElement | null | undefined, setup?: () => void) => {
     if (!modalEl) return;
+
+    // Store the currently focused element before opening modal
+    lastFocusedElement = document.activeElement as HTMLElement;
+
     setup?.();
     modalEl.classList.remove('hidden');
+
+    // Initialize and activate focus trap
+    if (!focusTraps.has(modalEl)) {
+        const trap = createFocusTrap({
+            container: modalEl,
+            returnFocusTo: lastFocusedElement,
+        });
+        focusTraps.set(modalEl, trap);
+    }
+
+    // Small delay to ensure modal is visible and focusable elements are available
+    setTimeout(() => {
+        focusTraps.get(modalEl)?.activate();
+    }, 10);
 };
 
 const hideModal = (modalEl: HTMLElement | null | undefined, cleanup?: () => void) => {
     if (!modalEl) return;
+
+    // Deactivate focus trap before hiding
+    focusTraps.get(modalEl)?.deactivate();
+
     modalEl.classList.add('hidden');
     cleanup?.();
 };

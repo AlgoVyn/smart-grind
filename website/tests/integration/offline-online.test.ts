@@ -166,7 +166,7 @@ describe('Integration: Offline/Online Transitions', () => {
                 });
             
             // Initialize offline detection
-            const cleanup = api.initOfflineDetection();
+            const cleanup = await api.initOfflineDetection();
             
             // Simulate coming online
             state.setOnlineStatus(true);
@@ -259,12 +259,12 @@ describe('Integration: Offline/Online Transitions', () => {
     });
 
     describe('Offline Detection Initialization', () => {
-        test('should initialize offline detection and return cleanup', () => {
+        test('should initialize offline detection and return cleanup', async () => {
             // initOfflineDetection may fail in test environment due to missing SW
             // but should not throw unhandled errors
             let cleanup: (() => void) | undefined;
             try {
-                cleanup = api.initOfflineDetection();
+                cleanup = await api.initOfflineDetection();
             } catch (e) {
                 // Expected in test environment
             }

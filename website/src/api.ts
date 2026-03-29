@@ -239,7 +239,7 @@ async function migrateLocalStorageOperations(): Promise<void> {
  * Initializes offline/online detection and sync status monitoring.
  * @returns Cleanup function to stop monitoring
  */
-export function initOfflineDetection(): () => void {
+export async function initOfflineDetection(): Promise<() => void> {
     const checker = getConnectivityChecker();
 
     const unsubscribe = checker.onConnectivityChange(async (online) => {
@@ -260,7 +260,8 @@ export function initOfflineDetection(): () => void {
     });
 
     checker.startMonitoring();
-    checker.isOnline().then((online) => state.setOnlineStatus(online));
+    const online = await checker.isOnline();
+    state.setOnlineStatus(online);
 
     if (!isServiceWorkerAvailable()) {
         return () => cleanupManager.cleanup('api');

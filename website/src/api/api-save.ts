@@ -134,7 +134,7 @@ const triggerBackgroundSync = (): void => {
  * Performs the save operation based on the user type (local or remote).
  */
 export const _performSave = async (): Promise<void> => {
-    await handleSaveOperation(async () => state.saveToStorage(), true);
+    await handleSaveOperation(async () => state.saveToStorageDebounced(), true);
     if (state.user.type === 'signed-in') triggerBackgroundSync();
 };
 
@@ -223,7 +223,7 @@ export const _resetDebounceState = (): void => {
  * Saves the current state data to local storage.
  */
 export const _saveLocally = async (): Promise<void> => {
-    state.saveToStorage();
+    state.saveToStorageDebounced();
 };
 
 /**

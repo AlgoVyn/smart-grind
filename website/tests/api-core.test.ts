@@ -407,15 +407,15 @@ describe('API Core', () => {
     });
 
     describe('initOfflineDetection', () => {
-        test('should initialize offline detection', () => {
-            const cleanup = initOfflineDetection();
+        test('should initialize offline detection', async () => {
+            const cleanup = await initOfflineDetection();
 
             expect(mockGetConnectivityChecker).toHaveBeenCalled();
             expect(mockCleanupRegister).toHaveBeenCalled();
             expect(typeof cleanup).toBe('function');
         });
 
-        test('should handle connectivity changes', () => {
+        test('should handle connectivity changes', async () => {
             let connectivityCallback: ((online: boolean) => void) | null = null;
 
             mockGetConnectivityChecker.mockReturnValue({
@@ -428,7 +428,7 @@ describe('API Core', () => {
                 }),
             });
 
-            const cleanup = initOfflineDetection();
+            const cleanup = await initOfflineDetection();
 
             expect(mockGetConnectivityChecker().onConnectivityChange).toHaveBeenCalled();
 
@@ -438,8 +438,8 @@ describe('API Core', () => {
             }
         });
 
-        test('should cleanup when called', () => {
-            const cleanup = initOfflineDetection();
+        test('should cleanup when called', async () => {
+            const cleanup = await initOfflineDetection();
             cleanup();
 
             // Cleanup should be registered

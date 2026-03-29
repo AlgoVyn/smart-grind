@@ -443,11 +443,14 @@ describe('UI Markdown - Comprehensive', () => {
             expect(modal?.classList.contains('hidden')).toBe(true);
         });
 
-        it('should reset progress bar', () => {
+        it('should remove scroll listener', () => {
+            const content = document.getElementById('solution-content') as HTMLElement;
+            const removeEventListenerSpy = jest.spyOn(content, 'removeEventListener');
+            
             closeSolutionModal();
             
-            const progressBar = document.getElementById('solution-scroll-progress') as HTMLElement;
-            expect(progressBar.style.width).toBe('0%');
+            expect(removeEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
+            removeEventListenerSpy.mockRestore();
         });
     });
 
@@ -471,13 +474,6 @@ describe('UI Markdown - Comprehensive', () => {
             Object.defineProperty(content, 'scrollTop', { value: 100, writable: true });
             Object.defineProperty(content, 'scrollHeight', { value: 1000, writable: true });
             Object.defineProperty(content, 'clientHeight', { value: 500, writable: true });
-        });
-
-        it('should update progress bar', () => {
-            updateSolutionScrollProgress();
-            
-            const progressBar = document.getElementById('solution-scroll-progress') as HTMLElement;
-            expect(progressBar.style.width).toBe('20%');
         });
 
         it('should update active TOC link', () => {

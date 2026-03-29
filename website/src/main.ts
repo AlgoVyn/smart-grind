@@ -6,10 +6,15 @@ import { checkAndShowErrorTrackingConsent } from './ui/ui-modals';
 import { errorTracker } from './utils/error-tracker';
 import { performanceMonitor } from './utils/performance-monitor';
 import { cleanupManager } from './utils/cleanup-manager';
+import { createGlobalErrorBoundary } from './utils/error-boundary';
 
 // Initialize the application
 const initApp = async () => {
     try {
+        // Setup global error handlers first
+        const globalErrorBoundary = createGlobalErrorBoundary();
+        globalErrorBoundary.setupGlobalHandlers();
+
         // Initialize error tracking
         errorTracker.init();
 

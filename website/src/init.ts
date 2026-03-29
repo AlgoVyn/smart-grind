@@ -294,7 +294,7 @@ const handlePwaAuthCallback = async (
         );
     }, 'Failed to set up signed-in user');
 
-    initOfflineDetection();
+    await initOfflineDetection();
     return true;
 };
 
@@ -317,7 +317,7 @@ const restoreSession = async (
             token
         );
     }, errorMessage);
-    initOfflineDetection();
+    await initOfflineDetection();
 };
 
 const handleExistingSession = async (
@@ -433,7 +433,7 @@ const checkAuth = async () => {
         await showSetupModal();
     }
 
-    initOfflineDetection();
+    await initOfflineDetection();
 };
 
 export { checkAuth };

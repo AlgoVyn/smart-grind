@@ -433,24 +433,24 @@ describe('API Offline & Sync Module', () => {
     });
 
     describe('initOfflineDetection', () => {
-        test('should start connectivity monitoring', () => {
+        test('should start connectivity monitoring', async () => {
             const { getConnectivityChecker } = jest.requireMock('../src/sw/connectivity-checker');
             const checker = getConnectivityChecker();
 
-            initOfflineDetection();
+            await initOfflineDetection();
 
             expect(checker.startMonitoring).toHaveBeenCalled();
         });
 
-        test('should set initial online status', () => {
+        test('should set initial online status', async () => {
             Object.defineProperty(navigator, 'onLine', { value: true });
 
-            initOfflineDetection();
+            await initOfflineDetection();
 
             expect(state.sync.isOnline).toBe(true);
         });
 
-        test('should set up service worker message listener when available', () => {
+        test('should set up service worker message listener when available', async () => {
             const mockAddEventListener = jest.fn();
             Object.defineProperty(navigator, 'serviceWorker', {
                 value: {
@@ -473,15 +473,15 @@ describe('API Offline & Sync Module', () => {
                 }),
             }));
 
-            initOfflineDetection();
+            await initOfflineDetection();
 
             expect(mockAddEventListener).toHaveBeenCalledWith('message', expect.any(Function));
         });
 
-        test('should trigger sync when coming back online', () => {
+        test('should trigger sync when coming back online', async () => {
             const forceSyncSpy = jest.spyOn(window, 'addEventListener');
 
-            initOfflineDetection();
+            await initOfflineDetection();
 
             // Get the online handler
             const onlineHandler = forceSyncSpy.mock.calls.find(

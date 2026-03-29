@@ -158,6 +158,7 @@ describe('SmartGrind API Module', () => {
         state.problems = new Map([['1', { id: '1', name: 'Test Problem', status: 'unsolved' }]]);
         state.deletedProblemIds = new Set(['2']);
         state.saveToStorage = mockSaveToStorage;
+        state.saveToStorageDebounced = mockSaveToStorage;
         state.elements = {
             loadingScreen: { classList: { remove: jest.fn(), add: jest.fn() } },
             setupModal: { classList: { remove: jest.fn(), add: jest.fn() } },

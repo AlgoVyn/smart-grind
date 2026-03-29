@@ -229,7 +229,7 @@ describe('Integration: Error Recovery Scenarios', () => {
                 json: () => Promise.resolve({ csrfToken: 'token' })
             });
 
-            const cleanup = api.initOfflineDetection();
+            const cleanup = await api.initOfflineDetection();
             cleanup();
         });
 

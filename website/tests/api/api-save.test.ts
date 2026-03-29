@@ -21,6 +21,7 @@ jest.mock('../../src/state', () => ({
         deletedProblemIds: new Set(),
         ui: { activeTopicId: '', activeAlgorithmCategoryId: null },
         saveToStorage: jest.fn(),
+        saveToStorageDebounced: jest.fn(),
     },
 }));
 
@@ -50,14 +51,15 @@ describe('API Save Module', () => {
         state.problems = new Map();
         state.deletedProblemIds = new Set();
         state.user = { type: 'local', id: null, displayName: 'Test User' };
-        // Reset saveToStorage to a fresh mock to clear any previous implementation
+        // Reset saveToStorage and saveToStorageDebounced to fresh mocks
         state.saveToStorage = jest.fn();
+        state.saveToStorageDebounced = jest.fn();
     });
 
     describe('saveProblem', () => {
         test('should save problem and update storage', async () => {
             await saveProblem();
-            expect(state.saveToStorage).toHaveBeenCalled();
+            expect(state.saveToStorageDebounced).toHaveBeenCalled();
         });
 
         test('should trigger background sync for signed-in users', async () => {
@@ -65,7 +67,7 @@ describe('API Save Module', () => {
             
             await saveProblem();
             
-            expect(state.saveToStorage).toHaveBeenCalled();
+            expect(state.saveToStorageDebounced).toHaveBeenCalled();
         });
     });
 
@@ -77,13 +79,13 @@ describe('API Save Module', () => {
             
             expect(state.problems.has('problem-1')).toBe(false);
             expect(state.deletedProblemIds.has('problem-1')).toBe(true);
-            expect(state.saveToStorage).toHaveBeenCalled();
+            expect(state.saveToStorageDebounced).toHaveBeenCalled();
         });
 
         test('should restore problem on save failure', async () => {
             const problemData = { id: 'problem-1', status: 'solved' as const };
             state.problems.set('problem-1', problemData);
-            state.saveToStorage = jest.fn().mockImplementation(() => {
+            state.saveToStorageDebounced = jest.fn().mockImplementation(() => {
                 throw new Error('Save failed');
             });
 
@@ -98,7 +100,7 @@ describe('API Save Module', () => {
     describe('saveData', () => {
         test('should save all data', async () => {
             await saveData();
-            expect(state.saveToStorage).toHaveBeenCalled();
+            expect(state.saveToStorageDebounced).toHaveBeenCalled();
         });
     });
 
@@ -112,7 +114,7 @@ describe('API Save Module', () => {
     describe('_saveLocally', () => {
         test('should save to local storage', async () => {
             await _saveLocally();
-            expect(state.saveToStorage).toHaveBeenCalled();
+            expect(state.saveToStorageDebounced).toHaveBeenCalled();
         });
     });
 });

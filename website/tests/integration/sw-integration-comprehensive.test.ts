@@ -1242,8 +1242,8 @@ describe('Service Worker Integration Tests', () => {
       expect(typeof isOnline).toBe('boolean');
     });
 
-    it('should initialize offline detection', () => {
-      const cleanup = api.initOfflineDetection();
+    it('should initialize offline detection', async () => {
+      const cleanup = await api.initOfflineDetection();
       
       expect(typeof cleanup).toBe('function');
       

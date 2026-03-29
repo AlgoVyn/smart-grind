@@ -342,7 +342,7 @@ const updateCardProgress = (cardId: string, rating: string): void => {
     // Debounce storage saves to avoid performance issues during rapid reviews
     if (saveTimeout) clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
-        state.saveToStorage();
+        state.saveToStorageDebounced();
     }, 300);
 };
 
@@ -562,7 +562,7 @@ const setupEventListeners = (): void => {
         const els = getElements();
         if (els.completeScreen) {
             // Save progress before closing
-            state.saveToStorage();
+            state.saveToStorageDebounced();
             closeFlashcardsModal();
         }
     });

@@ -6,6 +6,23 @@ import { data } from './data';
 import { cacheElements, ElementCache } from './utils/elements';
 import { safeGetItem, safeSetItem, getStringItem, setStringItem } from './utils/storage';
 
+// --- DEBOUNCE UTILITY ---
+/** Debounce timer for localStorage writes */
+let storageSaveTimeout: ReturnType<typeof setTimeout> | null = null;
+/** Debounce delay in milliseconds */
+const STORAGE_SAVE_DELAY = 300;
+
+/** Debounced version of saveToStorage to prevent excessive writes */
+const debouncedSaveToStorage = (saveFn: () => void): void => {
+    if (storageSaveTimeout) {
+        clearTimeout(storageSaveTimeout);
+    }
+    storageSaveTimeout = setTimeout(() => {
+        saveFn();
+        storageSaveTimeout = null;
+    }, STORAGE_SAVE_DELAY);
+};
+
 export const state = {
     // User state
     user: {
@@ -118,6 +135,13 @@ export const state = {
         safeSetItem(keys.flashCardProgress, Object.fromEntries(this.flashCardProgress));
         setStringItem(keys.displayName, this.user.displayName);
         setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
+    },
+
+    // Debounced version for automatic saves to prevent excessive writes
+    // Use this for frequent updates (problem status changes, note edits)
+    // Use saveToStorage() for critical updates (user auth, explicit user actions)
+    saveToStorageDebounced(): void {
+        debouncedSaveToStorage(() => this.saveToStorage());
     },
 
     // Check if state has valid data (not empty)

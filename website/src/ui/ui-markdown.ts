@@ -274,31 +274,30 @@ export const switchCarouselTab = (uniqueId: string, index: number) => {
 };
 
 // Copy code to clipboard
-export const copyCode = (btn: HTMLElement) => {
+export const copyCode = async (btn: HTMLElement) => {
     const pre = btn.closest('pre');
     if (!pre) return;
     const codeEl = pre.querySelector('code');
     if (!codeEl) return;
     const code = codeEl.innerText;
     const originalHTML = btn.innerHTML;
-    navigator.clipboard
-        .writeText(code)
-        .then(() => {
-            btn.classList.add('copied');
-            btn.style.color = '#4da6ff'; // Brand color for success
-            btn.style.opacity = '1';
-            btn.innerHTML =
-                '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#4da6ff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
-            setTimeout(() => {
-                btn.classList.remove('copied');
-                btn.style.color = '';
-                btn.style.opacity = '';
-                btn.innerHTML = originalHTML;
-            }, 2000);
-        })
-        .catch(() => {
-            showToast('Failed to copy code');
-        });
+
+    try {
+        await navigator.clipboard.writeText(code);
+        btn.classList.add('copied');
+        btn.style.color = '#4da6ff'; // Brand color for success
+        btn.style.opacity = '1';
+        btn.innerHTML =
+            '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#4da6ff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+        setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.style.color = '';
+            btn.style.opacity = '';
+            btn.innerHTML = originalHTML;
+        }, 2000);
+    } catch {
+        showToast('Failed to copy code');
+    }
 };
 
 /**
@@ -513,7 +512,7 @@ export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) =
     }
 };
 
-const _loadSolution = (
+const _loadSolution = async (
     solutionFile: string,
     loadingText: string,
     errorPrefix: string,
@@ -527,25 +526,20 @@ const _loadSolution = (
     content.innerHTML = `<div class="loading flex items-center justify-center min-h-[200px]"><div class="w-8 h-8 border-4 border-slate-800 border-t-brand-500 rounded-full animate-spin"></div><span class="ml-3 text-theme-muted">${loadingText}</span></div>`;
     modal.classList.remove('hidden');
 
-    fetch(solutionFile)
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error(`Failed to load ${errorPrefix} file (status: ${response.status})`);
-            }
-            return response.text();
-        })
-        .then((markdown) => {
-            _renderMarkdown(markdown, content);
-        })
-        .then(() => {
-            content.addEventListener('scroll', updateSolutionScrollProgress);
-            updateSolutionScrollProgress();
-        })
-        .catch((error) => {
-            content.innerHTML =
-                `<p>Error loading ${errorPrefix}: ${error.message}</p>` +
-                `<p>File: ${solutionFile}</p>${extraErrorText}`;
-        });
+    try {
+        const response = await fetch(solutionFile);
+        if (!response.ok) {
+            throw new Error(`Failed to load ${errorPrefix} file (status: ${response.status})`);
+        }
+        const markdown = await response.text();
+        _renderMarkdown(markdown, content);
+        content.addEventListener('scroll', updateSolutionScrollProgress);
+        updateSolutionScrollProgress();
+    } catch (error) {
+        content.innerHTML =
+            `<p>Error loading ${errorPrefix}: ${error instanceof Error ? error.message : String(error)}</p>` +
+            `<p>File: ${solutionFile}</p>${extraErrorText}`;
+    }
 };
 
 // Open solution modal
@@ -587,14 +581,10 @@ export const closeSolutionModal = () => {
         modal.classList.add('hidden');
     }
 
-    // Clean up scroll progress
+    // Clean up scroll listener
     const content = document.getElementById('solution-content');
     if (content) {
         content.removeEventListener('scroll', updateSolutionScrollProgress);
-    }
-    const progressBar = document.getElementById('solution-scroll-progress');
-    if (progressBar) {
-        progressBar.style.width = '0%';
     }
 };
 
@@ -604,16 +594,6 @@ export const updateSolutionScrollProgress = () => {
     if (!content) return;
 
     const scrollTop = content.scrollTop;
-    const scrollHeight = content.scrollHeight;
-    const clientHeight = content.clientHeight;
-    const maxScroll = scrollHeight - clientHeight;
-    const progress = maxScroll > 0 ? (scrollTop / maxScroll) * 100 : 0;
-
-    const progressBar = document.getElementById('solution-scroll-progress');
-    if (progressBar) {
-        progressBar.style.width = Math.min(100, Math.max(0, progress)) + '%';
-    }
-
     // TOC Scroll Spy
     // Find the current active header
     const headers = Array.from(content.querySelectorAll('h1, h2, h3'));

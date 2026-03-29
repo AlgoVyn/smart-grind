@@ -13,6 +13,7 @@ jest.mock('../../src/state', () => ({
         deletedProblemIds: new Set(),
         ui: { activeTopicId: '', activeAlgorithmCategoryId: null },
         saveToStorage: jest.fn(),
+        saveToStorageDebounced: jest.fn(),
     },
 }));
 
@@ -69,6 +70,7 @@ describe('API Save Module - Extended', () => {
         state.user = { type: 'local', id: null, displayName: 'Test User' };
         state.ui.activeAlgorithmCategoryId = null;
         state.saveToStorage = jest.fn();
+        state.saveToStorageDebounced = jest.fn();
         
         // Mock navigator.sendBeacon
         originalNavigator = navigator;
@@ -112,7 +114,7 @@ describe('API Save Module - Extended', () => {
             await saveProblem();
 
             // Should save locally
-            expect(state.saveToStorage).toHaveBeenCalled();
+            expect(state.saveToStorageDebounced).toHaveBeenCalled();
         });
     });
 
@@ -135,7 +137,7 @@ describe('API Save Module - Extended', () => {
             jest.advanceTimersByTime(1100);
 
             // Should have saved to storage multiple times
-            expect(state.saveToStorage).toHaveBeenCalledTimes(3);
+            expect(state.saveToStorageDebounced).toHaveBeenCalledTimes(3);
         });
 
         it('should execute background sync after debounce period', async () => {
@@ -170,7 +172,7 @@ describe('API Save Module - Extended', () => {
             await flushPendingSync();
 
             // Timer should be cleared
-            expect(state.saveToStorage).toHaveBeenCalled();
+            expect(state.saveToStorageDebounced).toHaveBeenCalled();
         });
 
         it('should handle flush with no pending data', async () => {
@@ -290,11 +292,11 @@ describe('API Save Module - Extended', () => {
             
             await saveProblem(problem as any);
 
-            expect(state.saveToStorage).toHaveBeenCalled();
+            expect(state.saveToStorageDebounced).toHaveBeenCalled();
         });
 
         it('should rethrow error after showing alert', async () => {
-            state.saveToStorage = jest.fn().mockImplementation(() => {
+            state.saveToStorageDebounced = jest.fn().mockImplementation(() => {
                 throw new Error('Test error');
             });
 
@@ -314,7 +316,7 @@ describe('API Save Module - Extended', () => {
 
             await _saveLocally();
 
-            expect(state.saveToStorage).toHaveBeenCalled();
+            expect(state.saveToStorageDebounced).toHaveBeenCalled();
         });
 
         it('should include deletedIds in saved data', async () => {
@@ -323,7 +325,7 @@ describe('API Save Module - Extended', () => {
 
             await _saveLocally();
 
-            expect(state.saveToStorage).toHaveBeenCalled();
+            expect(state.saveToStorageDebounced).toHaveBeenCalled();
         });
     });
 });

@@ -21,6 +21,7 @@ jest.mock('../../src/state', () => ({
     state: {
         flashCardProgress: mockFlashCardProgress,
         saveToStorage: mockSaveToStorage,
+        saveToStorageDebounced: mockSaveToStorage,
         user: {
             type: 'local',
             id: null,
