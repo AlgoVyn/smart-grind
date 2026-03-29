@@ -109,6 +109,14 @@ jest.mock('../../src/ui/ui', () => ({
     },
 }));
 
+// Mock ui-modals module (since api-delete imports directly from it)
+jest.mock('../../src/ui/ui-modals', () => ({
+    showAlert: mockShowAlert,
+    showConfirm: mockShowConfirm,
+    showSolutionModal: jest.fn(),
+    checkAndShowErrorTrackingConsent: jest.fn(),
+}));
+
 // Set up localStorage mock before importing modules
 const mockSetItem = jest.fn();
 const mockGetItem = jest.fn();

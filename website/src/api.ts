@@ -15,9 +15,46 @@ import { sendMessageToSW, isServiceWorkerAvailable } from './sw/sw-messaging';
 import { SYNC_CONFIG } from './config/sync-config';
 import { errorTracker } from './utils/error-tracker';
 
-// Import and re-export types for backward compatibility
-import type { APIOperationType } from './types/sync';
-export type { APIOperationType, APIOperation };
+// Re-export types
+export type { APIOperationType, APIOperation, SyncStatus } from './types/sync';
+
+/** Maximum number of pending operations to prevent localStorage quota exceeded */
+const MAX_PENDING_OPERATIONS = 1000;
+
+/** Key for storing pending operations in localStorage */
+const PENDING_OPS_KEY = 'pending-operations';
+
+/** Generates a unique operation ID */
+const generateOperationId = (): string =>
+    `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+
+/** Stores operations in localStorage fallback (when SW is unavailable) */
+const storeOperationsLocally = (operations: APIOperation[]): string[] => {
+    const pendingOps = JSON.parse(localStorage.getItem(PENDING_OPS_KEY) || '[]');
+
+    if (pendingOps.length + operations.length > MAX_PENDING_OPERATIONS) {
+        throw new Error(
+            `Pending operations limit exceeded (${MAX_PENDING_OPERATIONS}). Please sync your data.`
+        );
+    }
+
+    const opsWithIds = operations.map((op) => ({ ...op, id: generateOperationId() }));
+    pendingOps.push(...opsWithIds);
+
+    try {
+        localStorage.setItem(PENDING_OPS_KEY, JSON.stringify(pendingOps));
+    } catch (e) {
+        if (
+            e instanceof Error &&
+            (e.name === 'QuotaExceededError' || e.message.includes('quota'))
+        ) {
+            throw new Error('Storage quota exceeded. Please sync your data to free up space.');
+        }
+        throw e;
+    }
+
+    return opsWithIds.map((op) => op.id);
+};
 
 /**
  * Check if the browser is online with actual connectivity verification
@@ -33,57 +70,6 @@ export async function isOnline(): Promise<boolean> {
 export function isBrowserOnline(): boolean {
     return checkBrowserOnline();
 }
-
-/** Maximum number of pending operations to prevent localStorage quota exceeded */
-const MAX_PENDING_OPERATIONS = 1000;
-
-/** Key for storing pending operations in localStorage */
-const PENDING_OPS_KEY = 'pending-operations';
-
-/**
- * Generates a unique operation ID
- */
-const generateOperationId = (): string =>
-    `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-
-/**
- * Stores operations in localStorage fallback (when SW is unavailable)
- * @param operations - Array of operations to store
- * @returns Array of operation IDs
- * @throws Error if pending operations limit exceeded
- */
-const storeOperationsLocally = (operations: APIOperation[]): string[] => {
-    const pendingOps = JSON.parse(localStorage.getItem(PENDING_OPS_KEY) || '[]');
-
-    // Check if adding these operations would exceed the limit
-    if (pendingOps.length + operations.length > MAX_PENDING_OPERATIONS) {
-        console.error(
-            `[API] Pending operations limit exceeded: ${pendingOps.length + operations.length}/${MAX_PENDING_OPERATIONS}`
-        );
-        throw new Error(
-            `Pending operations limit exceeded (${MAX_PENDING_OPERATIONS}). Please sync your data.`
-        );
-    }
-
-    const opsWithIds = operations.map((op) => ({ ...op, id: generateOperationId() }));
-    pendingOps.push(...opsWithIds);
-
-    try {
-        localStorage.setItem(PENDING_OPS_KEY, JSON.stringify(pendingOps));
-    } catch (e) {
-        // Handle quota exceeded error
-        if (
-            e instanceof Error &&
-            (e.name === 'QuotaExceededError' || e.message.includes('quota'))
-        ) {
-            console.error('[API] localStorage quota exceeded');
-            throw new Error('Storage quota exceeded. Please sync your data to free up space.');
-        }
-        throw e;
-    }
-
-    return opsWithIds.map((op) => op.id);
-};
 
 /**
  * Queues API operations for background synchronization.
@@ -106,9 +92,7 @@ export async function queueOperation(
     }
 
     await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations });
-    updateSyncStatus().catch((error) => {
-        errorTracker.captureException(error, { type: 'sync_status_update_failed' });
-    });
+    updateSyncStatus().catch(() => {});
 
     const ids = operations.map(() => generateOperationId());
     return isSingle ? (ids[0] ?? null) : ids;
@@ -116,15 +100,12 @@ export async function queueOperation(
 
 /**
  * Queues multiple API operations for background synchronization in batch.
- * @param operations - Array of operations to queue
- * @returns Promise resolving to array of operation IDs
  */
 export const queueOperations = (operations: APIOperation[]): Promise<string[]> =>
     queueOperation(operations) as Promise<string[]>;
 
 /**
  * Retrieves the current synchronization status from the service worker.
- * @returns Current sync status or null if unavailable
  */
 export async function getSyncStatus(): Promise<SyncStatus | null> {
     if (!isServiceWorkerAvailable()) {
@@ -138,13 +119,7 @@ export async function getSyncStatus(): Promise<SyncStatus | null> {
     }
 
     const response = await sendMessageToSW({ type: 'GET_SYNC_STATUS' });
-
-    // Use type guard for validation
-    if (isSyncStatusResponse(response)) {
-        return response.status ?? null;
-    }
-
-    return null;
+    return isSyncStatusResponse(response) ? (response.status ?? null) : null;
 }
 
 /**
@@ -163,7 +138,6 @@ export async function updateSyncStatus(): Promise<void> {
 
 /**
  * Forces an immediate synchronization of all pending operations.
- * @returns Result of the sync operation
  */
 export async function forceSync(): Promise<{ success: boolean; synced: number; failed: number }> {
     if (!isServiceWorkerAvailable()) {
@@ -205,8 +179,6 @@ export async function clearPendingOperations(): Promise<void> {
 
 /**
  * Saves problem updates with automatic offline support.
- * @param problemId - ID of the problem to update
- * @param updates - Partial problem data to save
  */
 export async function saveProblemWithSync(
     problemId: string,
@@ -220,7 +192,7 @@ export async function saveProblemWithSync(
     await saveProblem();
 
     if (state.user.type === 'signed-in') {
-        let operationType: APIOperationType = 'MARK_SOLVED';
+        let operationType: import('./types/sync').APIOperationType = 'MARK_SOLVED';
         if (updates.note !== undefined) operationType = 'ADD_NOTE';
         else if (updates.nextReviewDate !== undefined) operationType = 'UPDATE_REVIEW_DATE';
 
@@ -236,7 +208,6 @@ export async function saveProblemWithSync(
 
 /**
  * Deletes a problem with automatic offline support.
- * @param problemId - ID of the problem to delete
  */
 export async function deleteProblemWithSync(problemId: string): Promise<void> {
     await saveDeletedId(problemId);
@@ -250,14 +221,10 @@ export async function deleteProblemWithSync(problemId: string): Promise<void> {
     }
 }
 
-/**
- * Migrates operations stored in localStorage to the service worker queue.
- * This handles the case where operations were queued before the service worker was available.
- */
+/** Migrates operations stored in localStorage to the service worker queue. */
 async function migrateLocalStorageOperations(): Promise<void> {
     const pendingOps = JSON.parse(localStorage.getItem(PENDING_OPS_KEY) || '[]');
     if (pendingOps.length === 0) return;
-
     if (!isServiceWorkerAvailable()) return;
 
     try {
@@ -299,7 +266,6 @@ export function initOfflineDetection(): () => void {
         return () => cleanupManager.cleanup('api');
     }
 
-    // Define message handler as named function for proper cleanup
     const handleServiceWorkerMessage = (event: MessageEvent) => {
         const { type, data } = event.data || {};
         if (!type) return;
@@ -335,12 +301,7 @@ export function initOfflineDetection(): () => void {
     navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
 
     const intervalId = setInterval(
-        () =>
-            updateSyncStatus().catch((error) => {
-                errorTracker.captureException(error, {
-                    type: 'periodic_sync_status_update_failed',
-                });
-            }),
+        () => updateSyncStatus().catch(() => {}),
         SYNC_CONFIG.INTERVALS.SYNC_STATUS_POLL
     );
 
@@ -348,7 +309,6 @@ export function initOfflineDetection(): () => void {
         unsubscribe();
         checker.stopMonitoring();
         clearInterval(intervalId);
-        // Remove service worker message listener to prevent memory leak
         if (isServiceWorkerAvailable()) {
             navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
         }
@@ -357,7 +317,7 @@ export function initOfflineDetection(): () => void {
     return () => cleanupManager.cleanup('api');
 }
 
-// Export all API functions
+// API object - combines all API functions
 export const api = {
     saveData,
     saveProblem,

@@ -1,10 +1,7 @@
 // --- ELEMENT CACHING UTILITY ---
 // Centralized DOM element caching for fast access throughout the app
 
-/**
- * Interface for DOM element cache
- * Elements are cached on init for fast access throughout the app
- */
+/** Element cache type */
 export interface ElementCache {
     // Modals
     setupModal: HTMLElement | null;
@@ -75,13 +72,110 @@ export interface ElementCache {
     toastContainer: HTMLElement | null;
     // Element collections
     filterBtns: NodeListOf<Element> | null;
-    /**
-     * Index signature for dynamic access.
-     * Note: Prefer using direct property access when possible for better type safety.
-     * Example: state.elements.userDisplay (typed) vs state.elements['userDisplay'] (less safe)
-     */
+    // Index signature for dynamic access
     [key: string]: HTMLElement | HTMLInputElement | HTMLSelectElement | NodeListOf<Element> | null;
 }
+
+/** Converts kebab-case string to camelCase */
+const toCamelCase = (str: string): string =>
+    str.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
+
+/** All element IDs to cache */
+const ELEMENT_IDS = [
+    // Modal elements
+    'setup-modal',
+    'add-problem-modal',
+    'signin-modal',
+    'signin-modal-content',
+    'alert-modal',
+    'confirm-modal',
+    'solution-modal',
+    'alert-message',
+    'confirm-message',
+    'alert-title',
+    'confirm-title',
+    'alert-ok-btn',
+    'confirm-ok-btn',
+    'confirm-cancel-btn',
+    'solution-close-btn',
+    // App structure
+    'app-wrapper',
+    'loading-screen',
+    'topic-list',
+    'problems-container',
+    'content-scroll',
+    'empty-state',
+    'current-view-title',
+    // Auth elements
+    'google-login-button',
+    'modal-google-login-button',
+    'setup-error',
+    'signin-error',
+    'user-display',
+    'disconnect-btn',
+    // Stats elements
+    'sidebar-total-stat',
+    'sidebar-total-bar',
+    'stat-total',
+    'stat-solved',
+    'progress-bar-solved',
+    'stat-due',
+    'stat-due-badge',
+    'review-banner',
+    'review-count-banner',
+    // Navigation & controls
+    'mobile-menu-btn',
+    'mobile-menu-btn-main',
+    'open-add-modal-btn',
+    'cancel-add-btn',
+    'save-add-btn',
+    'theme-toggle-btn',
+    'scroll-to-top-btn',
+    'sidebar-logo',
+    'mobile-logo',
+    'main-sidebar',
+    'sidebar-resizer',
+    'sidebar-backdrop',
+    'date-filter-container',
+    'toast-container',
+    // Form inputs
+    'add-prob-name',
+    'add-prob-url',
+    'add-prob-category-new',
+    'add-prob-pattern-new',
+    'problem-search',
+    // Select elements
+    'add-prob-category',
+    'add-prob-pattern',
+    'review-date-filter',
+];
+
+/** Cache all DOM elements and return the element cache object */
+export const cacheElements = <T>(): T => {
+    const elements = {} as Record<
+        string,
+        HTMLElement | HTMLInputElement | HTMLSelectElement | NodeListOf<Element> | null
+    >;
+
+    for (const id of ELEMENT_IDS) {
+        elements[toCamelCase(id)] = document.getElementById(id);
+    }
+
+    elements['filterBtns'] = document.querySelectorAll('.filter-btn');
+
+    return elements as T;
+};
+
+/** Get a single element by ID (kebab-case or camelCase) */
+export const getElement = <T extends HTMLElement>(id: string): T | null => {
+    const normalizedId = id.includes('-') ? id : id.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+    return document.getElementById(normalizedId) as T | null;
+};
+
+/** Get multiple elements by selector */
+export const getElements = (selector: string): NodeListOf<Element> => {
+    return document.querySelectorAll(selector);
+};
 
 /**
  * Type-safe element accessor that validates the element exists
@@ -96,160 +190,3 @@ export function getCachedElement<K extends keyof ElementCache>(
 ): ElementCache[K] {
     return cache[key] ?? null;
 }
-
-/**
- * Converts kebab-case string to camelCase
- * @example 'setup-modal' → 'setupModal'
- */
-const toCamelCase = (str: string): string =>
-    str.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
-
-/**
- * Element ID definitions organized by type
- * Grouped for easier maintenance
- */
-const ELEMENT_IDS = {
-    // Modal elements
-    elements: [
-        'setup-modal',
-        'add-problem-modal',
-        'signin-modal',
-        'signin-modal-content',
-        'alert-modal',
-        'confirm-modal',
-        'solution-modal',
-        'flashcards-modal',
-        'alert-message',
-        'confirm-message',
-        'alert-title',
-        'confirm-title',
-        'alert-ok-btn',
-        'confirm-ok-btn',
-        'confirm-cancel-btn',
-        'solution-close-btn',
-    ],
-    // App structure
-    elementsApp: [
-        'app-wrapper',
-        'loading-screen',
-        'topic-list',
-        'problems-container',
-        'content-scroll',
-        'empty-state',
-        'current-view-title',
-    ],
-    // Auth elements
-    elementsAuth: [
-        'google-login-button',
-        'modal-google-login-button',
-        'setup-error',
-        'signin-error',
-        'user-display',
-        'disconnect-btn',
-    ],
-    // Stats elements
-    elementsStats: [
-        'sidebar-total-stat',
-        'sidebar-total-bar',
-        'stat-total',
-        'stat-solved',
-        'progress-bar-solved',
-        'stat-due',
-        'stat-due-badge',
-        'review-banner',
-        'review-count-banner',
-    ],
-    // Navigation & controls
-    elementsNav: [
-        'mobile-menu-btn',
-        'mobile-menu-btn-main',
-        'open-add-modal-btn',
-        'cancel-add-btn',
-        'save-add-btn',
-        'theme-toggle-btn',
-        'scroll-to-top-btn',
-        'sidebar-logo',
-        'mobile-logo',
-        'main-sidebar',
-        'sidebar-resizer',
-        'sidebar-backdrop',
-        'date-filter-container',
-        'toast-container',
-    ],
-
-    // Form inputs
-    inputs: [
-        'add-prob-name',
-        'add-prob-url',
-        'add-prob-category-new',
-        'add-prob-pattern-new',
-        'problem-search',
-    ],
-
-    // Select elements
-    selects: ['add-prob-category', 'add-prob-pattern', 'review-date-filter'],
-};
-
-/**
- * Cached element collections
- */
-const COLLECTIONS = {
-    filterBtns: '.filter-btn',
-};
-
-/**
- * Cache all DOM elements and return the element cache object
- * @returns Object with cached elements keyed by camelCase IDs
- */
-export const cacheElements = <T>(): T => {
-    const elements = {} as Record<
-        string,
-        HTMLElement | HTMLInputElement | HTMLSelectElement | NodeListOf<Element> | null
-    >;
-
-    // Helper to cache elements by ID array
-    const cacheByIds = (ids: string[], type?: 'input' | 'select') => {
-        for (const id of ids) {
-            const el = document.getElementById(id);
-            elements[toCamelCase(id)] =
-                type === 'input'
-                    ? (el as HTMLInputElement | null)
-                    : type === 'select'
-                      ? (el as HTMLSelectElement | null)
-                      : el;
-        }
-    };
-
-    // Cache all element groups
-    cacheByIds(ELEMENT_IDS.elements);
-    cacheByIds(ELEMENT_IDS.elementsApp);
-    cacheByIds(ELEMENT_IDS.elementsAuth);
-    cacheByIds(ELEMENT_IDS.elementsStats);
-    cacheByIds(ELEMENT_IDS.elementsNav);
-    cacheByIds(ELEMENT_IDS.inputs, 'input');
-    cacheByIds(ELEMENT_IDS.selects, 'select');
-
-    // Cache filter buttons
-    elements['filterBtns'] = document.querySelectorAll(COLLECTIONS.filterBtns);
-
-    return elements as T;
-};
-
-/**
- * Get a single element by ID (convenience function)
- * @param id - The element ID (kebab-case or camelCase)
- * @returns The element or null if not found
- */
-export const getElement = <T extends HTMLElement>(id: string): T | null => {
-    const normalizedId = id.includes('-') ? id : id.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
-    return document.getElementById(normalizedId) as T | null;
-};
-
-/**
- * Get multiple elements by selector
- * @param selector - CSS selector
- * @returns NodeList of matching elements
- */
-export const getElements = (selector: string): NodeListOf<Element> => {
-    return document.querySelectorAll(selector);
-};

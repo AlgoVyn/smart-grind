@@ -6,8 +6,8 @@ import { state } from '../state';
 import { data } from '../data';
 import { ALGORITHMS_DATA, AlgorithmCategory } from '../data/algorithms-data';
 import { SQL_DATA, SQLCategory } from '../data/sql-data';
-import { ui } from '../ui/ui';
-import { renderers } from '../renderers';
+import { showAlert, showConfirm } from '../ui/ui-modals';
+import { renderSidebar, renderMainView, renderAlgorithmsView, renderSQLView } from '../renderers';
 import { updateUrlParameter, showToast } from '../utils';
 import { saveData } from './api-save';
 
@@ -19,11 +19,11 @@ import { saveData } from './api-save';
 export const _validateCategoryDeletion = async (topicId: string): Promise<Topic | null> => {
     const topic = data.topicsData.find((t: Topic) => t.id === topicId);
     if (!topic) {
-        ui.showAlert('Category not found.');
+        showAlert('Category not found.');
         return null;
     }
 
-    const confirmed = await ui.showConfirm(
+    const confirmed = await showConfirm(
         `Are you sure you want to delete the category "<b>${topic.title}</b>" and all its associated problems? This action cannot be undone.`
     );
 
@@ -168,14 +168,14 @@ export const deleteCategory = async (topicId: string): Promise<void> => {
         await saveData();
 
         // Re-render
-        renderers.renderSidebar();
-        renderers.renderMainView(state.ui.activeTopicId);
+        renderSidebar();
+        renderMainView(state.ui.activeTopicId);
         showToast('Category and associated problems removed');
     } catch (e) {
         // Restore original state on failure
         _restoreOriginalState(originalState);
         const message = e instanceof Error ? e.message : String(e);
-        ui.showAlert(`Failed to delete category: ${message}`);
+        showAlert(`Failed to delete category: ${message}`);
         throw e;
     }
 };
@@ -188,11 +188,11 @@ export const deleteCategory = async (topicId: string): Promise<void> => {
 export const deleteAlgorithmCategory = async (categoryId: string): Promise<void> => {
     const category = ALGORITHMS_DATA.find((c: AlgorithmCategory) => c.id === categoryId);
     if (!category) {
-        ui.showAlert('Algorithm category not found.');
+        showAlert('Algorithm category not found.');
         return;
     }
 
-    const confirmed = await ui.showConfirm(
+    const confirmed = await showConfirm(
         `Are you sure you want to delete the algorithm category "<b>${category.title}</b>" and all its associated algorithms? This action cannot be undone.`
     );
     if (!confirmed) return;
@@ -206,16 +206,15 @@ export const deleteAlgorithmCategory = async (categoryId: string): Promise<void>
         await saveData();
 
         // Re-render
-        renderers.renderSidebar();
+        renderSidebar();
         // Re-render algorithms view to show updated state
-        const { renderers: renderersModule } = await import('../renderers');
-        await renderersModule.renderAlgorithmsView(categoryId);
+        await renderAlgorithmsView(categoryId);
         showToast('Algorithm category and associated algorithms removed');
     } catch (e) {
         // Restore original state on failure
         _restoreOriginalState(originalState);
         const message = e instanceof Error ? e.message : String(e);
-        ui.showAlert(`Failed to delete algorithm category: ${message}`);
+        showAlert(`Failed to delete algorithm category: ${message}`);
         throw e;
     }
 };
@@ -228,11 +227,11 @@ export const deleteAlgorithmCategory = async (categoryId: string): Promise<void>
 export const deleteSQLCategory = async (categoryId: string): Promise<void> => {
     const category = SQL_DATA.find((c: SQLCategory) => c.id === categoryId);
     if (!category) {
-        ui.showAlert('SQL category not found.');
+        showAlert('SQL category not found.');
         return;
     }
 
-    const confirmed = await ui.showConfirm(
+    const confirmed = await showConfirm(
         `Are you sure you want to delete the SQL category "<b>${category.title}</b>" and all its associated SQL problems? This action cannot be undone.`
     );
     if (!confirmed) return;
@@ -252,16 +251,15 @@ export const deleteSQLCategory = async (categoryId: string): Promise<void> => {
         await saveData();
 
         // Re-render
-        renderers.renderSidebar();
+        renderSidebar();
         // Re-render SQL view to show updated state
-        const { renderers: renderersModule } = await import('../renderers');
-        await renderersModule.renderSQLView(categoryId);
+        await renderSQLView(categoryId);
         showToast('SQL category and associated SQL problems removed');
     } catch (e) {
         // Restore original state on failure
         _restoreOriginalState(originalState);
         const message = e instanceof Error ? e.message : String(e);
-        ui.showAlert(`Failed to delete SQL category: ${message}`);
+        showAlert(`Failed to delete SQL category: ${message}`);
         throw e;
     }
 };

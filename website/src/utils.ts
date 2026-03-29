@@ -1,36 +1,14 @@
 // --- UTILITIES MODULE ---
-// Clean re-exports from specialized utility modules
+// Direct re-exports from specialized utility modules
+// Usage: import { getToday, showToast } from './utils';
 
-export { getToday, addDays, formatDate, getNextReviewDate } from './utils/date';
-
-export { getUrlParameter, getBaseUrl, updateUrlParameter } from './utils/url';
-
-export { sanitizeInput, sanitizeUrl, escapeHtml } from './utils/sanitization';
-
-export { copyToClipboard } from './utils/clipboard';
-export { showToast } from './utils/toast';
-export { scrollToTop } from './utils/scroll';
-export { askAI } from './utils/ai';
-
-export {
-    countLines,
-    getUniqueProblemIdsForTopic,
-    getUniqueProblemsForTopic,
-    getAllUniqueProblemIdsIncludingAlgorithms,
-    getAllUniqueProblemsIncludingAlgorithms,
-    shouldShowProblem,
-    getAvailableReviewDates,
-} from './utils/problems';
-
-export { cacheElements, getElement, getElements, getCachedElement } from './utils/elements';
-
-export {
-    safeGetItem,
-    safeSetItem,
-    safeRemoveItem,
-    getStringItem,
-    setStringItem,
-    STORAGE_PREFIXES,
-    getStorageKey,
-    STORAGE_KEYS,
-} from './utils/storage';
+export * from './utils/date';
+export * from './utils/url';
+export * from './utils/sanitization';
+export * from './utils/clipboard';
+export * from './utils/toast';
+export * from './utils/scroll';
+export * from './utils/ai';
+export * from './utils/problems';
+export * from './utils/elements';
+export * from './utils/storage';

@@ -4,9 +4,11 @@
 import { UserData, Problem } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-// renderers import removed to break cycle
 import { syncPlan, mergeStructure } from './api-sync';
 import { validateResponseOrigin, getErrorMessage } from './api-utils';
+import { showAlert } from '../ui/ui-modals';
+import { renderSidebar, renderMainView, renderCombinedView, updateStats } from '../renderers';
+import { initScrollButton } from '../ui/ui-scroll';
 
 /**
  * Gets response text with automatic decompression handling.
@@ -103,21 +105,19 @@ export const _processUserData = (userData: UserData, isOfflineFallback = false):
  * Initializes the UI components after data has been loaded.
  */
 export const _initializeUI = async (): Promise<void> => {
-    const { ui } = await import('../ui/ui');
-    const { renderers } = await import('../renderers');
-    renderers.renderSidebar();
+    renderSidebar();
     // Check if any specific category is selected, otherwise show combined view
     const hasActiveCategory =
         state.ui.activeTopicId ||
         state.ui.activeAlgorithmCategoryId ||
         state.ui.activeSQLCategoryId;
     if (hasActiveCategory) {
-        renderers.renderMainView(state.ui.activeTopicId || 'all');
+        renderMainView(state.ui.activeTopicId || 'all');
     } else {
-        renderers.renderCombinedView();
+        renderCombinedView();
     }
-    renderers.updateStats();
-    ui.initScrollButton();
+    updateStats();
+    initScrollButton();
 
     state.elements.setupModal?.classList.add('hidden');
     state.elements.appWrapper?.classList.remove('hidden');
@@ -161,8 +161,7 @@ export const loadData = async (): Promise<void> => {
             return;
         }
 
-        const { ui } = await import('../ui/ui');
-        ui.showAlert(`Failed to load data: ${message}`);
+        showAlert(`Failed to load data: ${message}`);
 
         const isAuthError =
             message.includes('Authentication failed') ||

@@ -8,6 +8,63 @@ import { updateUrlParameter, showToast } from '../src/utils';
 // Import the api-save module
 import * as apiSave from '../src/api/api-save';
 
+// Mock the ui-modals module (since api-delete imports directly from it)
+jest.mock('../src/ui/ui-modals', () => ({
+    showAlert: jest.fn(),
+    showConfirm: jest.fn().mockResolvedValue(true),
+    showSolutionModal: jest.fn(),
+    checkAndShowErrorTrackingConsent: jest.fn(),
+}));
+
+// Import the mocked module for test access
+import * as uiModals from '../src/ui/ui-modals';
+
+// Mock the renderers module (since api-delete imports directly from it)
+jest.mock('../src/renderers', () => {
+    const mockRenderSidebar = jest.fn();
+    const mockRenderMainView = jest.fn();
+    const mockRenderAlgorithmsView = jest.fn();
+    const mockRenderSQLView = jest.fn();
+    const mockRenderCombinedView = jest.fn();
+    const mockUpdateStats = jest.fn();
+    const mockUpdateFilterBtns = jest.fn();
+    
+    return {
+        renderSidebar: mockRenderSidebar,
+        renderMainView: mockRenderMainView,
+        renderAlgorithmsView: mockRenderAlgorithmsView,
+        renderSQLView: mockRenderSQLView,
+        renderCombinedView: mockRenderCombinedView,
+        updateStats: mockUpdateStats,
+        updateFilterBtns: mockUpdateFilterBtns,
+        // Keep backward compatible renderers object
+        renderers: {
+            renderSidebar: mockRenderSidebar,
+            renderMainView: mockRenderMainView,
+            renderCombinedView: mockRenderCombinedView,
+            updateStats: mockUpdateStats,
+            updateFilterBtns: mockUpdateFilterBtns,
+        },
+        // Individual setters for tests
+        setActiveTopic: jest.fn(),
+        setActiveAlgorithmCategory: jest.fn(),
+        setActiveSQLCategory: jest.fn(),
+        setActiveAllButton: jest.fn(),
+        createAllContentButton: jest.fn(),
+        ICONS: {},
+        mainViewRenderers: {},
+        problemCardRenderers: {},
+        htmlGenerators: {},
+        sidebarRenderers: {},
+        statsRenderers: {},
+        sqlViewRenderers: {},
+        combinedViewRenderers: {},
+    };
+});
+
+// Import the mocked module for test access
+import * as renderersMod from '../src/renderers';
+
 // Mock the utils module
 jest.mock('../src/utils', () => ({
     updateUrlParameter: jest.fn(),
@@ -20,7 +77,13 @@ jest.mock('../src/utils', () => ({
     generateProblemUrl: jest.fn(),
     escapeHtml: jest.fn((str) => str),
     formatDate: jest.fn(),
+    getToday: jest.fn(() => '2024-01-15'),
     getTodayDate: jest.fn(() => '2024-01-01'),
+    addDays: jest.fn((date, days) => {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result.toISOString().split('T')[0];
+    }),
     getNextReviewDate: jest.fn(),
     safeParseInt: jest.fn(),
     safeParseFloat: jest.fn(),
@@ -63,13 +126,17 @@ describe('SmartGrind API Module', () => {
         mockFetch = jest.fn();
         global.fetch = mockFetch;
 
-        // Mock UI functions
+        // Mock UI functions - both from ui object and ui-modals module
         mockShowAlert = jest.fn();
         ui.showAlert = mockShowAlert;
         ui.showConfirm = jest.fn().mockResolvedValue(true);
         ui.initScrollButton = jest.fn();
+        
+        // Reset ui-modals mocks
+        uiModals.showAlert.mockClear();
+        uiModals.showConfirm.mockClear().mockResolvedValue(true);
 
-        // Mock renderers
+        // Mock renderers - both module exports and object
         mockUpdateStats = jest.fn();
         mockRenderSidebar = jest.fn();
         mockRenderMainView = jest.fn();
@@ -79,8 +146,13 @@ describe('SmartGrind API Module', () => {
         renderers.renderMainView = mockRenderMainView;
         renderers.renderCombinedView = jest.fn();
         renderers.updateFilterBtns = mockUpdateFilterBtns;
-
-        // Mock state
+        
+        // Reset renderers module mocks
+        renderersMod.renderSidebar.mockClear();
+        renderersMod.renderMainView.mockClear();
+        renderersMod.renderCombinedView.mockClear();
+        renderersMod.updateStats.mockClear();
+        renderersMod.updateFilterBtns.mockClear();
         mockSaveToStorage = jest.fn();
         state.user = { type: 'local' };
         state.problems = new Map([['1', { id: '1', name: 'Test Problem', status: 'unsolved' }]]);
@@ -398,8 +470,8 @@ describe('SmartGrind API Module', () => {
                 noteVisible: false,
             });
             expect(state.deletedProblemIds.has('2')).toBe(true);
-            expect(mockRenderSidebar).toHaveBeenCalled();
-            expect(renderers.renderCombinedView).toHaveBeenCalled();
+            expect(renderersMod.renderSidebar).toHaveBeenCalled();
+            expect(renderersMod.renderCombinedView).toHaveBeenCalled();
         });
 
         test('should handle auth error', async () => {
@@ -408,7 +480,7 @@ describe('SmartGrind API Module', () => {
             await api.loadData();
 
             expect(state.elements.signinModal.classList.remove).toHaveBeenCalledWith('hidden');
-            expect(mockShowAlert).toHaveBeenCalledWith(
+            expect(uiModals.showAlert).toHaveBeenCalledWith(
                 'Failed to load data: Authentication failed. Please sign in again.'
             );
         });
@@ -418,7 +490,7 @@ describe('SmartGrind API Module', () => {
 
             await api.loadData();
 
-            expect(mockShowAlert).toHaveBeenCalledWith(
+            expect(uiModals.showAlert).toHaveBeenCalledWith(
                 'Failed to load data: User data not found. Starting with fresh data.'
             );
         });
@@ -497,7 +569,7 @@ describe('SmartGrind API Module', () => {
             data.topicsData = [{ id: 'test-topic', title: 'Test Topic', patterns: [] }];
             state.problems.set('1', { id: '1', topic: 'Test Topic' });
             state.ui.activeTopicId = 'test-topic';
-            const confirmSpy = jest.spyOn(ui, 'showConfirm');
+            const confirmSpy = jest.spyOn(uiModals, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
             const performSaveSpy = jest.spyOn(apiSave, '_performSave');
             performSaveSpy.mockResolvedValue(undefined);
@@ -508,13 +580,13 @@ describe('SmartGrind API Module', () => {
             expect(state.problems.has('1')).toBe(false);
             expect(state.deletedProblemIds.has('1')).toBe(true);
             expect(state.ui.activeTopicId).toBe('');
-            expect(mockRenderSidebar).toHaveBeenCalled();
-            expect(mockRenderMainView).toHaveBeenCalledWith('');
+            expect(renderersMod.renderSidebar).toHaveBeenCalled();
+            expect(renderersMod.renderMainView).toHaveBeenCalledWith('');
         });
 
         test('should not delete if not confirmed', async () => {
             data.topicsData = [{ id: 'test-topic', title: 'Test Topic', patterns: [] }];
-            const confirmSpy = jest.spyOn(ui, 'showConfirm');
+            const confirmSpy = jest.spyOn(uiModals, 'showConfirm');
             confirmSpy.mockResolvedValue(false);
 
             await api.deleteCategory('test-topic');
@@ -525,14 +597,14 @@ describe('SmartGrind API Module', () => {
         test('should show alert if category not found', async () => {
             await api.deleteCategory('nonexistent');
 
-            expect(mockShowAlert).toHaveBeenCalledWith('Category not found.');
+            expect(uiModals.showAlert).toHaveBeenCalledWith('Category not found.');
         });
 
         test('should restore state on save failure', async () => {
             data.topicsData = [{ id: 'test-topic', title: 'Test Topic', patterns: [] }];
             state.problems.set('1', { id: '1', topic: 'Test Topic' });
             state.ui.activeTopicId = 'test-topic';
-            const confirmSpy = jest.spyOn(ui, 'showConfirm');
+            const confirmSpy = jest.spyOn(uiModals, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
             const _performSaveSpy = jest
                 .spyOn(apiSave, '_performSave')
@@ -544,7 +616,7 @@ describe('SmartGrind API Module', () => {
             expect(data.topicsData).toHaveLength(1);
             expect(state.problems.has('1')).toBe(true);
             expect(state.ui.activeTopicId).toBe('test-topic');
-            expect(mockShowAlert).toHaveBeenCalledWith('Failed to delete category: Save failed');
+            expect(uiModals.showAlert).toHaveBeenCalledWith('Failed to delete category: Save failed');
         });
     });
 

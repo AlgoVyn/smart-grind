@@ -1,5 +1,5 @@
 // --- RENDERERS MODULE ---
-// UI rendering functions - clean barrel exports
+// UI rendering functions - re-exports from sub-modules
 
 export { ICONS } from './renderers/icons';
 export { mainViewRenderers } from './renderers/main-view';
@@ -10,16 +10,29 @@ export { statsRenderers } from './renderers/stats';
 export { sqlViewRenderers } from './renderers/sql-view';
 export { combinedViewRenderers } from './renderers/combined-view';
 
-// Import all renderer modules to create combined renderers object
-import { mainViewRenderers } from './renderers/main-view';
-import { problemCardRenderers } from './renderers/problem-cards';
-import { htmlGenerators } from './renderers/html-generators';
+// Re-import for direct function exports and wrapper object
 import { sidebarRenderers } from './renderers/sidebar';
+import { mainViewRenderers } from './renderers/main-view';
 import { statsRenderers } from './renderers/stats';
-import { sqlViewRenderers } from './renderers/sql-view';
 import { combinedViewRenderers } from './renderers/combined-view';
+import { sqlViewRenderers } from './renderers/sql-view';
+import { htmlGenerators } from './renderers/html-generators';
+import { problemCardRenderers } from './renderers/problem-cards';
 
-// Backward-compatible renderers object - combines all renderer modules
+// Direct exports of commonly used functions for convenience
+export const renderSidebar = sidebarRenderers.renderSidebar;
+export const setActiveTopic = sidebarRenderers.setActiveTopic;
+export const setActiveAlgorithmCategory = sidebarRenderers.setActiveAlgorithmCategory;
+export const setActiveSQLCategory = sidebarRenderers.setActiveSQLCategory;
+export const setActiveAllButton = sidebarRenderers.setActiveAllButton;
+export const createAllContentButton = sidebarRenderers.createAllContentButton;
+export const renderMainView = mainViewRenderers.renderMainView;
+export const renderAlgorithmsView = mainViewRenderers.renderAlgorithmsView;
+export const updateStats = statsRenderers.updateStats;
+export const renderCombinedView = combinedViewRenderers.renderCombinedView;
+export const renderSQLView = sqlViewRenderers.renderSQLView;
+
+// Backward-compatible renderers object for dynamic imports
 export const renderers = {
     ...mainViewRenderers,
     ...problemCardRenderers,
