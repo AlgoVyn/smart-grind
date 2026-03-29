@@ -13,6 +13,16 @@ interface Env {
     ALLOWED_ORIGINS?: string;
 }
 
+// KVNamespace type definition for Cloudflare Workers environment
+interface KVNamespace {
+    get(key: string): Promise<string | null>;
+    get(key: string, type: 'text'): Promise<string | null>;
+    get(key: string, type: 'arrayBuffer'): Promise<ArrayBuffer | null>;
+    getWithMetadata(key: string, type?: 'text' | 'arrayBuffer', options?: { cacheTtl?: number }): Promise<{ value: string | ArrayBuffer | null; metadata: Record<string, string> | null }>;
+    put(key: string, value: string | ArrayBuffer, options?: { expirationTtl?: number; metadata?: Record<string, string> }): Promise<void>;
+    delete(key: string): Promise<void>;
+}
+
 /**
  * Validates that required environment variables are configured.
  * Should be called at the start of each request handler.
@@ -36,18 +46,18 @@ function validateEnvironment(env: Env): void {
         const message = `Missing required environment variables: ${missingVars.join(', ')}`;
         console.error(`[Auth] Configuration error: ${message}`);
         throw new Error(message);
-}
+    }
 }
 
 /**
  * Implements sliding window rate limiting for OAuth endpoints using Cloudflare KV.
  * Tracks request timestamps per client IP to prevent brute force attacks on authentication.
  * Automatically cleans expired entries and maintains atomic updates.
- * @param {Request} request - The HTTP request to check
- * @param {Object} env - Environment with KV namespace binding
- * @param {number} [maxRequests=10] - Maximum allowed requests in the time window
- * @param {number} [windowSeconds=60] - Time window duration in seconds
- * @returns {Promise<boolean>} True if request should be rate limited (blocked)
+ * @param request - The HTTP request to check
+ * @param env - Environment with KV namespace binding
+ * @param maxRequests - Maximum allowed requests in the time window (default: 10)
+ * @param windowSeconds - Time window duration in seconds (default: 60)
+ * @returns True if request should be rate limited (blocked)
  * @example
  * // Check OAuth initiation rate (10 requests per minute)
  * const isLimited = await checkRateLimit(request, env, 10, 60);
@@ -55,7 +65,12 @@ function validateEnvironment(env: Env): void {
  *   return new Response('Rate limit exceeded', { status: 429 });
  * }
  */
-export async function checkRateLimit(request, env, maxRequests = 10, windowSeconds = 60) {
+export async function checkRateLimit(
+    request: Request,
+    env: { KV: KVNamespace },
+    maxRequests: number = 10,
+    windowSeconds: number = 60
+): Promise<boolean> {
     const clientIP =
         request.headers.get('CF-Connecting-IP') ||
         request.headers.get('X-Forwarded-For') ||
@@ -84,11 +99,11 @@ export async function checkRateLimit(request, env, maxRequests = 10, windowSecon
 
 /**
  * Signs a JWT token using HS256 algorithm with the given payload.
- * Creates a token valid for 24 hours from issuance time.
+ * Creates a token valid for 7 days from issuance time.
  * Used to maintain authenticated sessions after OAuth completion.
- * @param {Object} payload - The data to encode in the JWT (userId, displayName)
- * @param {string} secret - The HMAC secret key for signing
- * @returns {Promise<string>} The signed JWT token string
+ * @param payload - The data to encode in the JWT (userId, displayName)
+ * @param secret - The HMAC secret key for signing
+ * @returns The signed JWT token string
  * @throws {Error} If JWT_SECRET is not configured
  * @example
  * const token = await signJWT(
@@ -97,7 +112,10 @@ export async function checkRateLimit(request, env, maxRequests = 10, windowSecon
  * );
  * // Returns: "eyJhbGciOiJIUzI1NiIs..."
  */
-async function signJWT(payload, secret) {
+async function signJWT(
+    payload: { userId: string; displayName: string },
+    secret: string
+): Promise<string> {
     const secretKey = new TextEncoder().encode(secret);
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: 'HS256' })
@@ -109,15 +127,17 @@ async function signJWT(payload, secret) {
  * Validates the authorization code received from Google OAuth callback.
  * Ensures code exists, is a string, and is within reasonable length limits.
  * Prevents injection attacks by validating format before token exchange.
- * @param {URLSearchParams} params - URL search parameters from callback
- * @returns {string | null} The authorization code if valid, null otherwise
+ * @param params - URL search parameters from callback
+ * @returns The authorization code if valid, null otherwise
  * @example
  * const code = validateOAuthCode(url.searchParams);
  * if (!code) {
  *   return new Response('Invalid authorization code', { status: 400 });
  * }
  */
-function validateOAuthCode(params) {
+function validateOAuthCode(
+    params: URLSearchParams
+): string | null {
     const code = params.get('code');
     if (!code || typeof code !== 'string' || code.length > 1000) {
         return null;
@@ -128,9 +148,9 @@ function validateOAuthCode(params) {
 /**
  * Validates the OAuth redirect URI against allowed origins.
  * Prevents open redirect attacks by ensuring the redirect URI is whitelisted.
- * @param {string} redirectUri - The redirect URI to validate
- * @param {Object} env - Environment with ALLOWED_ORIGINS or OAUTH_REDIRECT_URI
- * @returns {boolean} True if the redirect URI is allowed
+ * @param redirectUri - The redirect URI to validate
+ * @param env - Environment with ALLOWED_ORIGINS or OAUTH_REDIRECT_URI
+ * @returns True if the redirect URI is allowed
  */
 function isValidRedirectUri(redirectUri: string, env: { 
     OAUTH_REDIRECT_URI?: string; 
@@ -166,9 +186,9 @@ function isValidRedirectUri(redirectUri: string, env: {
 /**
  * Gets the OAuth redirect URI from environment or constructs it from the request.
  * Validates the URI against allowed origins for security.
- * @param {URL} requestUrl - The request URL
- * @param {Object} env - Environment variables
- * @returns {string} The validated redirect URI
+ * @param requestUrl - The request URL
+ * @param env - Environment variables
+ * @returns The validated redirect URI
  */
 function getOAuthRedirectUri(requestUrl: URL, env: { 
     OAUTH_REDIRECT_URI?: string; 
@@ -199,6 +219,14 @@ function getOAuthRedirectUri(requestUrl: URL, env: {
 }
 
 /**
+ * Context for Cloudflare Pages Function requests
+ */
+interface RequestContext {
+    request: Request;
+    env: Env;
+}
+
+/**
  * Handles Google OAuth authentication flow including login initiation and callback.
  * Two modes: 'login' action initiates OAuth, callback mode completes authentication.
  * Implements CSRF protection via state parameter, rate limiting, and secure token handling.
@@ -207,10 +235,10 @@ function getOAuthRedirectUri(requestUrl: URL, env: {
  * SECURITY: Token is no longer exposed in HTML/URL. Client must fetch token via 
  * /api/auth/token endpoint after successful authentication using the HttpOnly cookie.
  * 
- * @param {Object} context - Cloudflare Pages Function context
- * @param {Request} context.request - The HTTP request (login initiation or callback)
- * @param {Object} context.env - Environment with GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET, KV, OAUTH_REDIRECT_URI
- * @returns {Promise<Response>} Redirect to Google (login), HTML response (callback), or error
+ * @param context - Cloudflare Pages Function context
+ * @param context.request - The HTTP request (login initiation or callback)
+ * @param context.env - Environment with GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET, KV, OAUTH_REDIRECT_URI
+ * @returns Redirect to Google (login), HTML response (callback), or error
  * @example
  * // Initiate login
  * GET /api/auth?action=login
@@ -220,7 +248,7 @@ function getOAuthRedirectUri(requestUrl: URL, env: {
  * GET /api/auth?code=...&state=...
  * // Returns: HTML with postMessage to opener, sets HttpOnly cookie with JWT
  */
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env }: RequestContext): Promise<Response> {
     // Validate environment configuration at startup
     validateEnvironment(env);
     // Rate limiting: 10 requests per minute (skip in tests)
@@ -293,15 +321,15 @@ export async function onRequestGet({ request, env }) {
             return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 400 });
         }
 
-        let tokenData;
+        let tokenData: { access_token?: string };
         try {
             // Exchange code for token
             const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({
-                    client_id: env.GOOGLE_CLIENT_ID,
-                    client_secret: env.GOOGLE_CLIENT_SECRET,
+                    client_id: env.GOOGLE_CLIENT_ID!,
+                    client_secret: env.GOOGLE_CLIENT_SECRET!,
                     code,
                     grant_type: 'authorization_code',
                     redirect_uri: redirectUri,
@@ -334,7 +362,7 @@ export async function onRequestGet({ request, env }) {
                 });
             }
 
-            tokenData = await tokenResponse.json();
+            tokenData = await tokenResponse.json() as { access_token?: string };
             if (!tokenData.access_token) {
                 console.error('No access token in response:', tokenData);
                 const html = `
@@ -377,7 +405,7 @@ export async function onRequestGet({ request, env }) {
 
         const accessToken = tokenData.access_token;
 
-        let user;
+        let user: { id?: string; name?: string; email?: string };
         try {
             // Get user info
             const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -410,7 +438,7 @@ export async function onRequestGet({ request, env }) {
                 });
             }
 
-            user = await userResponse.json();
+            user = await userResponse.json() as { id?: string; name?: string; email?: string };
             if (!user.id) {
                 console.error('Invalid user data:', user);
                 const html = `
@@ -559,7 +587,7 @@ export async function onRequestGet({ request, env }) {
         }
         // Extract token from cookie
         const cookieHeader = request.headers.get('Cookie');
-        let token = null;
+        let token: string | null = null;
         
         if (cookieHeader) {
             const cookies = cookieHeader.split(';').map((c: string) => c.trim());

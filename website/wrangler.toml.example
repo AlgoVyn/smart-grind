@@ -1,13 +1,26 @@
 name = "smart-grind"
 compatibility_date = "2023-01-01"
-pages_build_output_dir = "public"
+pages_build_output_dir = "dist"
 
 [[kv_namespaces]]
 binding = "KV"
-id = "your-kv-namespace-id"  # Replace with actual KV namespace ID
+id = "your-kv-namespace-id"  # Replace with actual KV namespace ID from Cloudflare dashboard
 
 [vars]
-GOOGLE_CLIENT_ID = "your-google-client-id"
-GOOGLE_CLIENT_SECRET = "your-google-client-secret"
-JWT_SECRET = "your-jwt-secret-key-change-this"
-OAUTH_REDIRECT_URI="https://algovyn.com/smartgrind/api/auth"
+# Public variables - these are safe to include in version control
+# Google OAuth Client ID (from Google Cloud Console)
+GOOGLE_CLIENT_ID = "your-google-client-id.apps.googleusercontent.com"
+
+# Optional: Explicit OAuth redirect URI
+# If not set, the app will construct it from the request origin
+# OAUTH_REDIRECT_URI = "https://yourdomain.com/smartgrind/api/auth"
+
+# Secrets - DO NOT add these here!
+# Use 'wrangler secret put <NAME>' to set these securely:
+#
+#   wrangler secret put GOOGLE_CLIENT_SECRET
+#   wrangler secret put JWT_SECRET
+#
+# Required secrets:
+# - GOOGLE_CLIENT_SECRET: From Google Cloud Console OAuth credentials
+# - JWT_SECRET: Generate a strong random string (e.g., openssl rand -base64 32)
