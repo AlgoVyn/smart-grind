@@ -35,8 +35,8 @@ export const mainViewRenderers = {
     // Helper to set view title and action buttons
     _setViewTitle: (topicId: string) => {
         const title =
-            topicId === 'all'
-                ? 'All Problems'
+            topicId === 'all' || !topicId
+                ? 'All Content'
                 : data.topicsData.find((t: Topic) => t.id === topicId)?.title || 'Unknown Topic';
 
         const viewTitle = state.elements['currentViewTitle'] as HTMLElement | null;
@@ -47,10 +47,13 @@ export const mainViewRenderers = {
         const container = document.createElement('div');
         container.className = 'category-action-container ml-2 flex gap-1';
 
-        if (topicId === 'all') {
+        if (topicId === 'all' || !topicId) {
             container.appendChild(
-                mainViewRenderers._createActionBtn(ICONS.reset, 'Reset All', 'bg-blue-500/10', () =>
-                    api.resetAll()
+                mainViewRenderers._createActionBtn(
+                    ICONS.reset,
+                    'Reset All Content',
+                    'bg-blue-500/10',
+                    () => api.resetAll()
                 )
             );
         } else {

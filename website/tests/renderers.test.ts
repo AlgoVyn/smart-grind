@@ -407,7 +407,7 @@ describe('SmartGrind Renderers', () => {
         test('renders main view for all topics', () => {
             renderers.renderMainView('all');
 
-            expect(state.elements.currentViewTitle.innerText).toBe('All Problems');
+            expect(state.elements.currentViewTitle.innerText).toBe('All Content');
             expect(state.ui.activeTopicId).toBe('all');
         });
 
