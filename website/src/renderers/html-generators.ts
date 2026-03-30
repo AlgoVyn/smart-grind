@@ -222,12 +222,14 @@ export const htmlGenerators = {
     // Helper to generate action buttons HTML
     generateActionButtons: (p: Problem) => {
         const actionButton = htmlGenerators.generateActionButton(p);
-        const isCustomProblem = htmlGenerators.isCustomProblem(p.id);
-        // Show solution button for non-custom problems OR for algorithms (check if ID exists in algorithms data)
+        const isCustomProblem = htmlGenerators.isCustomItem('problem', p.id);
+        // Show solution button for non-custom problems OR for algorithms OR for SQL problems
         const isAlgorithm = data.algorithmsData.some((cat) =>
             cat.algorithms.some((algo) => algo.id === p.id)
         );
-        const showSolutionButton = !isCustomProblem || isAlgorithm;
+        // Check if problem is an SQL problem (starts with 'sql-')
+        const isSQLProblem = p.id.startsWith('sql-');
+        const showSolutionButton = !isCustomProblem || isAlgorithm || isSQLProblem;
 
         return `
             <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes">

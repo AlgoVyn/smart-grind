@@ -9,6 +9,7 @@ import { sidebarRenderers } from './sidebar';
 import { renderers } from '../renderers';
 import { htmlGenerators } from './html-generators';
 import { ICONS } from './icons';
+import { openSQLSolutionModal, openProblemSQLSolutionModal } from '../ui/ui-markdown';
 
 export const sqlViewRenderers = {
     // Initialize SQL problem data in state if not exists
@@ -89,12 +90,23 @@ export const sqlViewRenderers = {
         sqlViewRenderers.attachProblemCardListeners();
     },
 
-    // Attach event listeners to problem cards
+    // Attach event listeners to problem cards and pattern buttons
     attachProblemCardListeners: () => {
         document.querySelectorAll('.action-btn[data-action]').forEach((btn) => {
             btn.addEventListener('click', (e) => {
                 const button = e.currentTarget as HTMLElement;
                 const action = button.dataset['action'];
+
+                // Handle pattern-level actions (sql-solution)
+                if (action === 'sql-solution') {
+                    const patternName = button.dataset['pattern'];
+                    if (patternName) {
+                        openSQLSolutionModal(patternName);
+                    }
+                    return;
+                }
+
+                // Handle problem-level actions
                 const problemId = button
                     .closest('[data-problem-id]')
                     ?.getAttribute('data-problem-id');
@@ -107,6 +119,8 @@ export const sqlViewRenderers = {
                     sqlViewRenderers.handleSolve(button, problem);
                 } else if (action === 'toggle-note') {
                     sqlViewRenderers.handleToggleNote(button, problem);
+                } else if (action === 'problem-solution') {
+                    openProblemSQLSolutionModal(problem.name);
                 }
             });
         });
@@ -240,7 +254,7 @@ export const sqlViewRenderers = {
         const section = document.createElement('div');
         section.className = 'mb-6';
 
-        // Pattern header - same style as regular patterns
+        // Pattern header - same style as regular patterns with solution button
         const patternHeader = document.createElement('div');
         patternHeader.className = 'flex items-center justify-between mb-3 mt-6';
 
@@ -248,6 +262,24 @@ export const sqlViewRenderers = {
         patternTitle.className = 'text-sm font-bold text-brand-400 uppercase tracking-wider';
         patternTitle.textContent = pattern.name;
         patternHeader.appendChild(patternTitle);
+
+        // Add SQL solution button
+        const patternSolutionButton = document.createElement('button');
+        patternSolutionButton.className =
+            'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
+        patternSolutionButton.dataset['action'] = 'sql-solution';
+        patternSolutionButton.dataset['pattern'] = pattern.name;
+        patternSolutionButton.title = 'View SQL Pattern Solution';
+        patternSolutionButton.innerHTML = `
+            <svg fill="currentColor" class="w-4 h-4" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10,9 9,9 8,9"/>
+            </svg>
+        `;
+        patternHeader.appendChild(patternSolutionButton);
 
         section.appendChild(patternHeader);
 
@@ -337,7 +369,7 @@ export const sqlViewRenderers = {
         const section = document.createElement('div');
         section.className = 'mb-4';
 
-        // Pattern header
+        // Pattern header with solution button
         const patternHeader = document.createElement('div');
         patternHeader.className = 'flex items-center justify-between mb-2 mt-4';
 
@@ -345,6 +377,24 @@ export const sqlViewRenderers = {
         patternTitle.className = 'text-sm font-bold text-brand-400 uppercase tracking-wider';
         patternTitle.textContent = pattern.name;
         patternHeader.appendChild(patternTitle);
+
+        // Add SQL solution button
+        const patternSolutionButton = document.createElement('button');
+        patternSolutionButton.className =
+            'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
+        patternSolutionButton.dataset['action'] = 'sql-solution';
+        patternSolutionButton.dataset['pattern'] = pattern.name;
+        patternSolutionButton.title = 'View SQL Pattern Solution';
+        patternSolutionButton.innerHTML = `
+            <svg fill="currentColor" class="w-4 h-4" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10,9 9,9 8,9"/>
+            </svg>
+        `;
+        patternHeader.appendChild(patternSolutionButton);
 
         section.appendChild(patternHeader);
 

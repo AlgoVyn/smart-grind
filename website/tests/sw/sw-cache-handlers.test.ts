@@ -84,6 +84,31 @@ describe('SW Cache Handlers', () => {
             const url = new URL('https://example.com/smartgrind/api/user');
             expect(shouldHandleRequest(url)).toBe(true);
         });
+
+        it('should not handle cdn.jsdelivr.net requests', () => {
+            const url = new URL('https://cdn.jsdelivr.net/npm/marked/marked.min.js');
+            expect(shouldHandleRequest(url)).toBe(false);
+        });
+
+        it('should not handle cdnjs.cloudflare.com requests', () => {
+            const url = new URL('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js');
+            expect(shouldHandleRequest(url)).toBe(false);
+        });
+
+        it('should not handle fonts.googleapis.com requests', () => {
+            const url = new URL('https://fonts.googleapis.com/css2?family=Inter');
+            expect(shouldHandleRequest(url)).toBe(false);
+        });
+
+        it('should not handle fonts.gstatic.com requests', () => {
+            const url = new URL('https://fonts.gstatic.com/s/inter/font.woff2');
+            expect(shouldHandleRequest(url)).toBe(false);
+        });
+
+        it('should handle local font files', () => {
+            const url = new URL('https://example.com/smartgrind/fonts/custom.woff2');
+            expect(shouldHandleRequest(url)).toBe(true);
+        });
     });
 
     describe('getRequestHandler', () => {
@@ -113,6 +138,22 @@ describe('SW Cache Handlers', () => {
 
         it('should return handler for algorithm files', () => {
             const request = new Request('https://example.com/smartgrind/algorithms/binary-search.md');
+            const url = new URL(request.url);
+
+            const handler = getRequestHandler(url, request);
+            expect(handler).toBeDefined();
+        });
+
+        it('should return handler for SQL pattern files', () => {
+            const request = new Request('https://example.com/smartgrind/sql/patterns/basic-select-with-where.md');
+            const url = new URL(request.url);
+
+            const handler = getRequestHandler(url, request);
+            expect(handler).toBeDefined();
+        });
+
+        it('should return handler for SQL solution files', () => {
+            const request = new Request('https://example.com/smartgrind/sql/solutions/combine-two-tables.md');
             const url = new URL(request.url);
 
             const handler = getRequestHandler(url, request);

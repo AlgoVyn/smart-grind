@@ -6,6 +6,8 @@
 /smartgrind/patterns/* /patterns/:splat 200
 /smartgrind/algorithms/* /algorithms/:splat 200
 /smartgrind/flashcards/* /flashcards/:splat 200
+/smartgrind/sql/solutions/* /sql/solutions/:splat 200
+/smartgrind/sql/patterns/* /sql/patterns/:splat 200
 
 # Service Worker - explicit rule to prevent wildcard catch
 # This ensures sw.js is served as a static file, not redirected to index.html
@@ -16,6 +18,8 @@
 /smartgrind/patterns /patterns/ 200
 /smartgrind/algorithms /algorithms/ 200
 /smartgrind/flashcards /flashcards/ 200
+/smartgrind/sql/solutions /sql/solutions/ 200
+/smartgrind/sql/patterns /sql/patterns/ 200
 
 # SPA fallback: all other /smartgrind/ paths → index.html
 /smartgrind/* /index.html 200

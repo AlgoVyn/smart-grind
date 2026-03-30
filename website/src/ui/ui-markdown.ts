@@ -52,6 +52,44 @@ export const patterns = {
     },
 };
 
+export const sqlSolutions = {
+    // Function to get the correct filename for a SQL pattern
+    getSQLFilename(patternName: string) {
+        return this._convertPatternNameToFilename(patternName);
+    },
+
+    // Internal function for automatic pattern name to filename conversion
+    _convertPatternNameToFilename(patternName: string) {
+        // Convert to lowercase and replace special characters with hyphens
+        let cleaned = patternName
+            .toLowerCase()
+            .replace(/[\s/()&`'+-]+/g, '-') // Replace spaces and special chars with hyphens
+            .replace(/-+/g, '-') // Collapse multiple hyphens
+            .replace(/^-+|-+$/g, ''); // Trim hyphens from start/end
+
+        // Remove common suffix patterns that don't add value
+        cleaned = cleaned
+            .replace(/-pattern$/, '')
+            .replace(/-sql$/, '')
+            .replace(/-solution$/, '');
+
+        return cleaned;
+    },
+
+    // Function to check if a SQL solution file exists
+    async checkSQLSolutionExists(patternName: string) {
+        const filename = this.getSQLFilename(patternName);
+        const solutionFile = `${getBaseUrl()}sql/patterns/${filename}.md`;
+
+        try {
+            const response = await fetch(solutionFile, { method: 'HEAD' });
+            return response.ok;
+        } catch (_error) {
+            return false;
+        }
+    },
+};
+
 // Helper to configure markdown renderer
 export const _configureMarkdownRenderer = () => {
     const marked = (
@@ -502,7 +540,6 @@ export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) =
     _renderTOC();
 
     // Apply syntax highlighting
-
     const prism = (
         window as unknown as { Prism?: { highlightAllUnder: (_element: HTMLElement) => void } }
     ).Prism;
@@ -570,6 +607,35 @@ export const openPatternSolutionModal = (patternName: string) => {
         'Loading pattern solution...',
         'pattern solution',
         '<p>This pattern may not have a dedicated solution file yet.</p>'
+    );
+};
+
+// Open SQL solution modal
+export const openSQLSolutionModal = (patternName: string) => {
+    const sqlFilename = sqlSolutions.getSQLFilename(patternName);
+    const solutionFile = `${getBaseUrl()}sql/patterns/${sqlFilename}.md`;
+    _loadSolution(
+        solutionFile,
+        'Loading SQL solution...',
+        'SQL solution',
+        '<p>This SQL pattern may not have a dedicated solution file yet.</p>'
+    );
+};
+
+// Open individual SQL problem solution modal
+export const openProblemSQLSolutionModal = (problemName: string) => {
+    // Convert problem name to filename (same conversion as patterns)
+    const fileName = problemName
+        .toLowerCase()
+        .replace(/[\s/()&`'+-]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    const solutionFile = `${getBaseUrl()}sql/solutions/${fileName}.md`;
+    _loadSolution(
+        solutionFile,
+        'Loading SQL problem solution...',
+        'SQL problem solution',
+        '<p>This SQL problem may not have a dedicated solution file yet.</p>'
     );
 };
 

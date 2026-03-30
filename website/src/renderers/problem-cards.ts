@@ -244,8 +244,15 @@ const handleSolutionActions = async (
     action: string
 ): Promise<void> => {
     const { ui } = await import('../ui/ui');
+    const { openProblemSQLSolutionModal } = await import('../ui/ui-markdown');
+
     if (action === 'solution') {
-        ui.openSolutionModal(p.id);
+        // Check if this is an SQL problem
+        if (p.id.startsWith('sql-')) {
+            openProblemSQLSolutionModal(p.name);
+        } else {
+            ui.openSolutionModal(p.id);
+        }
     } else if (action === 'pattern-solution') {
         const patternName = button.dataset['pattern'];
         if (patternName) {

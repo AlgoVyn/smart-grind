@@ -24,6 +24,10 @@
   Content-Type: text/markdown
   Cache-Control: public, max-age=86400
 
+/sql/**/*.md
+  Content-Type: text/markdown
+  Cache-Control: public, max-age=86400
+
 /flashcards/*.md
   Content-Type: text/markdown
   Cache-Control: public, max-age=86400, s-maxage=31536000

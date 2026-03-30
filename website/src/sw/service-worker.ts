@@ -221,6 +221,16 @@ const API_ROUTES = [/\/smartgrind\/api\//];
 const AUTH_ROUTES = [/\/smartgrind\/api\/auth/];
 
 /**
+ * CDN domains - bypass service worker for these
+ */
+const CDN_DOMAINS = [
+    'cdn.jsdelivr.net',
+    'cdnjs.cloudflare.com',
+    'fonts.googleapis.com',
+    'fonts.gstatic.com',
+];
+
+/**
  * Validates if a request should be handled by the service worker
  * @param requestUrl - URL of the incoming request
  * @returns True if the request should be handled
@@ -230,7 +240,8 @@ const shouldHandleRequest = (requestUrl: URL): boolean => {
     // Skip auth routes - let browser handle OAuth redirects naturally
     const isHttpScheme = requestUrl.protocol === 'http:' || requestUrl.protocol === 'https:';
     const isAuthRoute = AUTH_ROUTES.some((pattern) => pattern.test(requestUrl.pathname));
-    return isHttpScheme && !isAuthRoute;
+    const isCDN = CDN_DOMAINS.some((domain) => requestUrl.hostname === domain);
+    return isHttpScheme && !isAuthRoute && !isCDN;
 };
 
 /**

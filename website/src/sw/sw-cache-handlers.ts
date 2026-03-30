@@ -23,6 +23,14 @@ const PROBLEM_PATTERNS = [
 const API_ROUTES = [/\/smartgrind\/api\//];
 const AUTH_ROUTES = [/\/smartgrind\/api\/auth/];
 
+// CDN domains - bypass service worker for these
+const CDN_DOMAINS = [
+    'cdn.jsdelivr.net',
+    'cdnjs.cloudflare.com',
+    'fonts.googleapis.com',
+    'fonts.gstatic.com',
+];
+
 /**
  * Adds cache timestamp headers to a response before storing
  */
@@ -43,7 +51,8 @@ export function addCacheHeaders(response: Response): Response {
 export function shouldHandleRequest(requestUrl: URL): boolean {
     const isHttpScheme = requestUrl.protocol === 'http:' || requestUrl.protocol === 'https:';
     const isAuthRoute = AUTH_ROUTES.some((pattern) => pattern.test(requestUrl.pathname));
-    return isHttpScheme && !isAuthRoute;
+    const isCDN = CDN_DOMAINS.some((domain) => requestUrl.hostname === domain);
+    return isHttpScheme && !isAuthRoute && !isCDN;
 }
 
 /**
