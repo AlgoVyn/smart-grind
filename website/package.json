@@ -1,7 +1,7 @@
 {
-  "name": "website",
+  "name": "smart-grind-website",
   "version": "1.0.0",
-  "description": "",
+  "description": "Smart Grind - Pattern Practice Web App with spaced repetition for mastering coding interviews",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
@@ -20,10 +20,29 @@
     "test:e2e:ui": "playwright test --ui",
     "clean": "rm -rf dist"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "leetcode",
+    "algorithms",
+    "coding-interviews",
+    "spaced-repetition",
+    "pattern-practice",
+    "study-tracker",
+    "pwa",
+    "typescript",
+    "cloudflare-workers"
+  ],
+  "author": "AlgoVyn Team",
+  "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AlgoVyn/smart-grind.git",
+    "directory": "website"
+  },
+  "bugs": {
+    "url": "https://github.com/AlgoVyn/smart-grind/issues"
+  },
+  "homepage": "https://algovyn.com/smartgrind",
   "devDependencies": {
     "@babel/core": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
