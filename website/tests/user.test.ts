@@ -79,8 +79,93 @@ describe('User API', () => {
             const response = await onRequestGet({ request, env: mockEnv });
 
             expect(response.status).toBe(204);
-            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://algovyn.com');
             expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
+        });
+
+        test('should reject unauthorized origins with wildcard CORS', async () => {
+            const request = new Request('https://example.com/user', {
+                headers: {
+                    Authorization: 'Bearer header.payload.signature',
+                    Origin: 'https://malicious-site.com',
+                },
+            });
+
+            const response = await onRequestGet({ request, env: mockEnv });
+
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+            expect(response.headers.get('Access-Control-Allow-Credentials')).toBeFalsy();
+        });
+
+        test('should allow origins from ALLOWED_ORIGINS env variable', async () => {
+            const envWithCustomOrigin = {
+                ...mockEnv,
+                ALLOWED_ORIGINS: 'https://custom.example.com,https://another.example.com',
+            };
+
+            const request = new Request('https://example.com/user', {
+                headers: {
+                    Authorization: 'Bearer header.payload.signature',
+                    Origin: 'https://custom.example.com',
+                },
+            });
+
+            const response = await onRequestGet({ request, env: envWithCustomOrigin });
+
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://custom.example.com');
+            expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
+        });
+
+        test('should allow subdomain origins matching allowed origins', async () => {
+            const request = new Request('https://example.com/user', {
+                headers: {
+                    Authorization: 'Bearer header.payload.signature',
+                    Origin: 'https://app.algovyn.com',
+                },
+            });
+
+            const response = await onRequestGet({ request, env: mockEnv });
+
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://app.algovyn.com');
+            expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
+        });
+
+        test('should allow localhost origins in development mode', async () => {
+            const devEnv = {
+                ...mockEnv,
+                NODE_ENV: 'development',
+            };
+
+            const request = new Request('https://example.com/user', {
+                headers: {
+                    Authorization: 'Bearer header.payload.signature',
+                    Origin: 'http://localhost:3000',
+                },
+            });
+
+            const response = await onRequestGet({ request, env: devEnv });
+
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:3000');
+            expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
+        });
+
+        test('should reject localhost origins outside development mode', async () => {
+            const prodEnv = {
+                ...mockEnv,
+                NODE_ENV: 'production',
+            };
+
+            const request = new Request('https://example.com/user', {
+                headers: {
+                    Authorization: 'Bearer header.payload.signature',
+                    Origin: 'http://localhost:3000',
+                },
+            });
+
+            const response = await onRequestGet({ request, env: prodEnv });
+
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+            expect(response.headers.get('Access-Control-Allow-Credentials')).toBeFalsy();
         });
 
         test('should return 401 for missing authorization header', async () => {
@@ -319,7 +404,7 @@ describe('User API', () => {
             const response = await onRequestPost({ request, env: mockEnv });
 
             expect(response.status).toBe(204);
-            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://algovyn.com');
             expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
         });
 

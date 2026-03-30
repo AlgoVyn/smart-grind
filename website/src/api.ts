@@ -27,6 +27,75 @@ const PENDING_OPS_KEY = 'pending-operations';
 const generateOperationId = (): string =>
     `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
+// ============================================================================
+// REQUEST DEDUPLICATION
+// Prevents redundant API calls for the same operation in flight
+// Only used when Service Worker is available (for sync operations)
+// ============================================================================
+
+/** In-flight request deduplication map */
+const inFlightRequests = new Map<string, Promise<unknown>>();
+
+/** Deduplication window in milliseconds */
+const DEDUP_WINDOW_MS = 100;
+
+/** Type for operation data with problemId */
+interface OperationData {
+    problemId?: string;
+    [key: string]: unknown;
+}
+
+/**
+ * Generates a deduplication key for an operation
+ * Combines operation type and relevant data fields
+ */
+const generateDedupKey = (operation: APIOperation): string => {
+    const { type, data } = operation;
+    // Create a key based on operation type and problem ID
+    const opData = data as OperationData;
+    const problemId = opData?.problemId || 'none';
+    const timestamp = Math.floor(Date.now() / DEDUP_WINDOW_MS) * DEDUP_WINDOW_MS;
+    return `${type}:${problemId}:${timestamp}`;
+};
+
+/**
+ * Executes a function with request deduplication
+ * If the same operation is already in flight, returns the existing promise
+ * @param key - Deduplication key
+ * @param fn - Async function to execute
+ * @returns Promise resolving to the function result
+ */
+async function withDedup<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    // Check if there's already an in-flight request with this key
+    const existing = inFlightRequests.get(key);
+    if (existing) {
+        console.log(`[API] Deduplicating request: ${key}`);
+        return existing as Promise<T>;
+    }
+
+    // Create new request
+    const promise = fn().finally(() => {
+        // Clean up after completion (success or failure)
+        setTimeout(() => {
+            inFlightRequests.delete(key);
+        }, DEDUP_WINDOW_MS);
+    });
+
+    // Store the in-flight request
+    inFlightRequests.set(key, promise);
+
+    return promise;
+}
+
+/**
+ * Clears all in-flight request deduplication entries
+ * Useful for testing or when forcing fresh requests
+ */
+export function clearDedupCache(): void {
+    inFlightRequests.clear();
+    console.log('[API] Deduplication cache cleared');
+}
+
 /** Stores operations in localStorage fallback (when SW is unavailable) */
 const storeOperationsLocally = (operations: APIOperation[]): string[] => {
     const pendingOps = JSON.parse(localStorage.getItem(PENDING_OPS_KEY) || '[]');
@@ -72,6 +141,8 @@ export function isBrowserOnline(): boolean {
 
 /**
  * Queues API operations for background synchronization.
+ * Implements deduplication for SW operations to prevent redundant syncs.
+ * Falls back to localStorage when SW is unavailable.
  * @param operation - Single operation or array of operations to queue
  * @returns Operation ID(s) or null if user is not signed in
  */
@@ -80,16 +151,30 @@ export async function queueOperation(
 ): Promise<string | string[] | null> {
     if (state.user.type !== 'signed-in') return null;
 
-    const operations = Array.isArray(operationOrOperations)
-        ? operationOrOperations
-        : [operationOrOperations];
     const isSingle = !Array.isArray(operationOrOperations);
+    const operations: APIOperation[] = isSingle
+        ? [operationOrOperations as APIOperation]
+        : (operationOrOperations as APIOperation[]);
 
+    // When Service Worker is unavailable, store locally without dedup
     if (!isServiceWorkerAvailable()) {
         const ids = storeOperationsLocally(operations);
         return isSingle ? (ids[0] ?? null) : ids;
     }
 
+    // Use deduplication for single operations when SW is available
+    if (isSingle && operations.length === 1) {
+        const op = operations[0]!;
+        const dedupKey = generateDedupKey(op);
+
+        return withDedup(dedupKey, async () => {
+            await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations: [op] });
+            updateSyncStatus().catch(() => {});
+            return generateOperationId();
+        });
+    }
+
+    // For multiple operations with SW, send without dedup
     await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations });
     updateSyncStatus().catch(() => {});
 
@@ -178,6 +263,7 @@ export async function clearPendingOperations(): Promise<void> {
 
 /**
  * Saves problem updates with automatic offline support.
+ * Implements deduplication to prevent redundant save operations.
  */
 export async function saveProblemWithSync(
     problemId: string,
@@ -353,4 +439,5 @@ export const api = {
     isOnline,
     initOfflineDetection,
     flushPendingSync,
+    clearDedupCache,
 };

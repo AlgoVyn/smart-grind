@@ -15,16 +15,76 @@ interface KVNamespace {
 }
 
 /**
+ * Environment interface with CORS configuration
+ */
+interface Env {
+    NODE_ENV?: string;
+    JWT_SECRET: string;
+    KV: KVNamespace;
+    ALLOWED_ORIGINS?: string;
+}
+
+/**
+ * Default allowed origins for production
+ */
+const DEFAULT_ALLOWED_ORIGINS = [
+    'https://algovyn.com',
+    'https://www.algovyn.com',
+];
+
+/**
+ * Validates if an origin is in the allowed list
+ * @param origin - The origin to validate
+ * @param allowedOriginsEnv - Comma-separated list of allowed origins from env
+ * @returns True if origin is allowed
+ */
+function isValidOrigin(origin: string | null, allowedOriginsEnv?: string): boolean {
+    if (!origin) return false;
+    
+    // Parse allowed origins from env or use defaults
+    const allowedOrigins = allowedOriginsEnv 
+        ? allowedOriginsEnv.split(',').map(o => o.trim()).filter(Boolean)
+        : DEFAULT_ALLOWED_ORIGINS;
+    
+    try {
+        const originUrl = new URL(origin);
+        
+        // Check for exact match or subdomain match
+        return allowedOrigins.some(allowed => {
+            try {
+                const allowedUrl = new URL(allowed);
+                // Exact match
+                if (originUrl.origin === allowedUrl.origin) return true;
+                // Subdomain match (e.g., https://app.algovyn.com matches https://algovyn.com)
+                const originHostname = originUrl.hostname;
+                const allowedHostname = allowedUrl.hostname;
+                return originHostname === allowedHostname || 
+                       originHostname.endsWith(`.${allowedHostname}`);
+            } catch {
+                return false;
+            }
+        });
+    } catch {
+        // Invalid URL format
+        return false;
+    }
+}
+
+/**
  * Creates a Response with CORS headers to allow credentials
+ * SECURITY: Validates origin against allowlist for actual requests
+ * For preflight/OPTIONS requests, allows any origin since preflight doesn't include credentials
  * @param body - Response body
  * @param init - Response init options
  * @param request - The request to get the origin from
+ * @param env - Environment with ALLOWED_ORIGINS for validation
  * @returns Response with CORS headers
  */
 function createCorsResponse(
     body: BodyInit | null,
-    init?: ResponseInit,
-    request?: Request
+    init: ResponseInit | undefined,
+    request: Request | undefined,
+    env: Env | undefined
 ): Response {
     // Build headers object from init.headers
     const headersObj: Record<string, string> = {};
@@ -37,12 +97,49 @@ function createCorsResponse(
         });
     }
 
-    // When using credentials, we must specify the exact origin, not '*'
-    const origin = request?.headers.get('Origin') || '*';
-    headersObj['Access-Control-Allow-Origin'] = origin;
-    headersObj['Access-Control-Allow-Credentials'] = 'true';
-    headersObj['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS';
-    headersObj['Access-Control-Allow-Headers'] = 'Content-Type, X-CSRF-Token, Authorization';
+    // Determine if this is a preflight request
+    const isPreflight = request?.method === 'OPTIONS';
+    
+    // Get the Origin header
+    const origin = request?.headers.get('Origin');
+    
+    // For preflight requests, always allow (preflight doesn't include credentials)
+    // Use the request's Origin if provided, otherwise wildcard
+    if (isPreflight) {
+        // SECURITY: Never use wildcard with credentials
+        // Use request origin or first default origin
+        const allowOrigin = origin || DEFAULT_ALLOWED_ORIGINS[0]!;
+        headersObj['Access-Control-Allow-Origin'] = allowOrigin;
+        headersObj['Access-Control-Allow-Credentials'] = 'true';
+        headersObj['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS';
+        headersObj['Access-Control-Allow-Headers'] = 'Content-Type, X-CSRF-Token, Authorization';
+        headersObj['Vary'] = 'Origin';
+    } else {
+        // For actual requests, validate the origin
+        let corsOrigin = '*';
+        
+        if (origin) {
+            // Check for localhost in development/test
+            if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+                if (env?.NODE_ENV === 'development' && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))) {
+                    corsOrigin = origin;
+                }
+            } else if (env && isValidOrigin(origin, env.ALLOWED_ORIGINS)) {
+                corsOrigin = origin;
+            }
+        }
+        
+        headersObj['Access-Control-Allow-Origin'] = corsOrigin;
+        
+        // Only allow credentials for specific origins (not wildcard)
+        if (corsOrigin !== '*') {
+            headersObj['Access-Control-Allow-Credentials'] = 'true';
+        }
+        
+        headersObj['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS';
+        headersObj['Access-Control-Allow-Headers'] = 'Content-Type, X-CSRF-Token, Authorization';
+        headersObj['Vary'] = 'Origin';
+    }
 
     // Create response without headers in init to avoid conflicts
     const { headers: _ignored, ...restInit } = init || {};
@@ -259,7 +356,7 @@ async function verifyJWT(token: string, secret: string) {
  * }
  * const { userId, displayName } = payload;
  */
-async function authenticate(request: Request, env: { JWT_SECRET: string; KV: KVNamespace }) {
+async function authenticate(request: Request, env: Env) {
     let token = null;
 
     // Try cookie first
@@ -325,7 +422,7 @@ async function validateCsrfToken(request: Request, env: { KV: KVNamespace }, use
  * Implements rate limiting and CORS for cross-origin requests.
  * @param {Object} context - Cloudflare Pages Function context
  * @param {Request} context.request - The incoming HTTP request
- * @param {Object} context.env - Environment bindings (JWT_SECRET, KV)
+ * @param {Object} context.env - Environment bindings (JWT_SECRET, KV, ALLOWED_ORIGINS)
  * @returns {Promise<Response>} JSON response with user data or CSRF token, or error response
  * @example
  * // Get user data
@@ -343,19 +440,20 @@ export async function onRequestGet({
     env,
 }: {
     request: Request;
-    env: { JWT_SECRET: string; KV: KVNamespace };
+    env: Env;
 }) {
     // Handle CORS preflight requests
     if (request.method === 'OPTIONS') {
-        return createCorsResponse(null, { status: 204 }, request);
+        return createCorsResponse(null, { status: 204 }, request, env);
     }
 
     // Rate limiting: 30 requests per minute for data access (skip in tests)
-    if (typeof jest === 'undefined' && (await checkRateLimit(request, env, 30, 60))) {
+    if (env.NODE_ENV !== 'test' && (await checkRateLimit(request, env, 30, 60))) {
         return createCorsResponse(
             JSON.stringify({ error: 'Rate limit exceeded' }),
             { status: 429 },
-            request
+            request,
+            env
         );
     }
 
@@ -369,7 +467,8 @@ export async function onRequestGet({
             return createCorsResponse(
                 JSON.stringify({ error: 'Unauthorized' }),
                 { status: 401 },
-                request
+                request,
+                env
             );
         }
 
@@ -379,7 +478,8 @@ export async function onRequestGet({
             return createCorsResponse(
                 JSON.stringify({ error: 'Invalid userId' }),
                 { status: 400 },
-                request
+                request,
+                env
             );
         }
 
@@ -390,7 +490,8 @@ export async function onRequestGet({
             {
                 headers: { 'Content-Type': 'application/json' },
             },
-            request
+            request,
+            env
         );
     }
 
@@ -400,7 +501,8 @@ export async function onRequestGet({
         return createCorsResponse(
             JSON.stringify({ error: 'Unauthorized' }),
             { status: 401 },
-            request
+            request,
+            env
         );
     }
 
@@ -410,7 +512,8 @@ export async function onRequestGet({
         return createCorsResponse(
             JSON.stringify({ error: 'Invalid userId' }),
             { status: 400 },
-            request
+            request,
+            env
         );
     }
 
@@ -444,7 +547,8 @@ export async function onRequestGet({
                 {
                     headers: { 'Content-Type': 'application/json' },
                 },
-                request
+                request,
+                env
             );
         }
         return createCorsResponse(
@@ -452,14 +556,16 @@ export async function onRequestGet({
             {
                 headers: { 'Content-Type': 'application/json' },
             },
-            request
+            request,
+            env
         );
     } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Unknown error';
         return createCorsResponse(
             JSON.stringify({ error: errorMessage }),
             { status: 500 },
-            request
+            request,
+            env
         );
     }
 }
@@ -471,7 +577,7 @@ export async function onRequestGet({
  * Implements rate limiting to prevent abuse.
  * @param {Object} context - Cloudflare Pages Function context
  * @param {Request} context.request - The incoming HTTP request with JSON body
- * @param {Object} context.env - Environment bindings (JWT_SECRET, KV)
+ * @param {Object} context.env - Environment bindings (JWT_SECRET, KV, ALLOWED_ORIGINS)
  * @returns {Promise<Response>} Success response or error with appropriate status code
  * @example
  * POST /api/user
@@ -487,19 +593,20 @@ export async function onRequestPost({
     env,
 }: {
     request: Request;
-    env: { JWT_SECRET: string; KV: KVNamespace };
+    env: Env;
 }) {
     // Handle CORS preflight requests
     if (request.method === 'OPTIONS') {
-        return createCorsResponse(null, { status: 204 }, request);
+        return createCorsResponse(null, { status: 204 }, request, env);
     }
 
     // Rate limiting: 30 requests per minute for data access (skip in tests)
-    if (typeof jest === 'undefined' && (await checkRateLimit(request, env, 30, 60))) {
+    if (env.NODE_ENV !== 'test' && (await checkRateLimit(request, env, 30, 60))) {
         return createCorsResponse(
             JSON.stringify({ error: 'Rate limit exceeded' }),
             { status: 429 },
-            request
+            request,
+            env
         );
     }
 
@@ -508,7 +615,8 @@ export async function onRequestPost({
         return createCorsResponse(
             JSON.stringify({ error: 'Unauthorized' }),
             { status: 401 },
-            request
+            request,
+            env
         );
     }
 
@@ -518,7 +626,8 @@ export async function onRequestPost({
         return createCorsResponse(
             JSON.stringify({ error: 'Invalid userId' }),
             { status: 400 },
-            request
+            request,
+            env
         );
     }
 
@@ -528,7 +637,8 @@ export async function onRequestPost({
         return createCorsResponse(
             JSON.stringify({ error: 'Invalid CSRF token' }),
             { status: 403 },
-            request
+            request,
+            env
         );
     }
 
@@ -539,7 +649,8 @@ export async function onRequestPost({
         return createCorsResponse(
             JSON.stringify({ error: 'Invalid JSON' }),
             { status: 400 },
-            request
+            request,
+            env
         );
     }
 
@@ -548,7 +659,8 @@ export async function onRequestPost({
         return createCorsResponse(
             JSON.stringify({ error: 'Invalid data' }),
             { status: 400 },
-            request
+            request,
+            env
         );
     }
 
@@ -577,13 +689,14 @@ export async function onRequestPost({
             });
         }
 
-        return createCorsResponse('OK', undefined, request);
+        return createCorsResponse('OK', undefined, request, env);
     } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Unknown error';
         return createCorsResponse(
             JSON.stringify({ error: errorMessage }),
             { status: 500 },
-            request
+            request,
+            env
         );
     }
 }
