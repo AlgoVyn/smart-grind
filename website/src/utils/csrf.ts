@@ -93,3 +93,13 @@ export const getCachedCsrfToken = (): string | null => {
 export const clearCsrfToken = (): void => {
     csrfToken = null;
 };
+
+/**
+ * Resets the internal state for testing purposes.
+ * Clears both the cached token and any pending fetch.
+ * @internal - Do not use in production code
+ */
+export const __resetCsrfState = (): void => {
+    csrfToken = null;
+    pendingFetch = null;
+};

@@ -13,7 +13,7 @@ import { initScrollButton } from '../ui/ui-scroll';
 /**
  * Gets response text with automatic decompression handling.
  */
-async function getResponseText(response: Response): Promise<string> {
+export async function _getResponseText(response: Response): Promise<string> {
     const contentEncoding = response.headers.get('Content-Encoding');
 
     if (!contentEncoding || contentEncoding === 'identity') {
@@ -137,7 +137,7 @@ export const loadData = async (): Promise<void> => {
         validateResponseOrigin(response);
         if (!response.ok) _handleApiError(response);
 
-        const responseText = await getResponseText(response);
+        const responseText = await _getResponseText(response);
         const userData: UserData = JSON.parse(responseText);
         _processUserData(userData, false);
 

@@ -26,8 +26,10 @@ let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 const MAX_CACHE_SIZE = 50;
 const markdownContentCache = new Map<string, { front: string; back: string }>();
 
-// Load flashcard content from markdown file with offline support
-const loadMarkdownContent = async (cardId: string): Promise<{ front: string; back: string }> => {
+// Export internal functions for testing
+export const loadMarkdownContent = async (
+    cardId: string
+): Promise<{ front: string; back: string }> => {
     // Check memory cache first
     const cached = markdownContentCache.get(cardId);
     if (cached) return cached;
@@ -195,7 +197,7 @@ const configureMarkdownRenderer = () => {
 };
 
 // Render markdown content with syntax highlighting
-const renderMarkdownContent = (markdown: string, element: HTMLElement): void => {
+export const renderMarkdownContent = (markdown: string, element: HTMLElement): void => {
     const marked = configureMarkdownRenderer();
     if (!marked) {
         element.textContent = markdown;
@@ -271,7 +273,7 @@ const renderMarkdownContent = (markdown: string, element: HTMLElement): void => 
 
 // --- DOM ELEMENTS ---
 
-const getElements = () => ({
+export const getElements = () => ({
     modal: document.getElementById('flashcards-modal') as HTMLElement | null,
     setupScreen: document.getElementById('flashcards-setup') as HTMLElement | null,
     studyScreen: document.getElementById('flashcards-study') as HTMLElement | null,
@@ -294,7 +296,7 @@ const getElements = () => ({
 
 // --- SESSION MANAGEMENT ---
 
-const calculateNextInterval = (
+export const calculateNextInterval = (
     _currentInterval: number,
     rating: string
 ): { nextReviewDate: string | null; newInterval: number } => {
@@ -319,7 +321,7 @@ const calculateNextInterval = (
     return { nextReviewDate, newInterval: days };
 };
 
-const updateCardProgress = (cardId: string, rating: string): void => {
+export const updateCardProgress = (cardId: string, rating: string): void => {
     const existingProgress = state.flashCardProgress.get(cardId);
     const { nextReviewDate, newInterval } = calculateNextInterval(
         existingProgress?.reviewInterval || 0,
@@ -344,7 +346,7 @@ const updateCardProgress = (cardId: string, rating: string): void => {
     }, 300);
 };
 
-const loadSessionCards = (): FlashCard[] => {
+export const loadSessionCards = (): FlashCard[] => {
     const category = currentSession?.categoryFilter ?? null;
     const typeFilter = currentSession?.typeFilter || 'all';
 
@@ -382,7 +384,7 @@ const updateCardCount = (): void => {
 
 // --- UI UPDATES ---
 
-const showScreen = (screen: 'setup' | 'study' | 'complete'): void => {
+export const showScreen = (screen: 'setup' | 'study' | 'complete'): void => {
     const els = getElements();
     if (!els.setupScreen || !els.studyScreen || !els.completeScreen) return;
 
@@ -391,7 +393,7 @@ const showScreen = (screen: 'setup' | 'study' | 'complete'): void => {
     els.completeScreen.classList.toggle('hidden', screen !== 'complete');
 };
 
-const renderCard = async (): Promise<void> => {
+export const renderCard = async (): Promise<void> => {
     const els = getElements();
     if (!currentSession || !els.cardFront || !els.cardBack) return;
 
@@ -477,7 +479,7 @@ const renderCard = async (): Promise<void> => {
     }
 };
 
-const flipCard = (): void => {
+export const flipCard = (): void => {
     const els = getElements();
     if (!els.cardFront || !els.cardBack || !els.ratingSection || !els.flipArea) return;
 
@@ -496,7 +498,7 @@ const flipCard = (): void => {
     }
 };
 
-const rateCard = async (rating: string): Promise<void> => {
+export const rateCard = async (rating: string): Promise<void> => {
     if (!currentSession) return;
 
     const card = sessionCards[currentSession.currentIndex];
@@ -518,7 +520,7 @@ const rateCard = async (rating: string): Promise<void> => {
     }
 };
 
-const showCompleteScreen = (): void => {
+export const showCompleteScreen = (): void => {
     const els = getElements();
     if (!els.completeScreen) return;
 
@@ -660,11 +662,11 @@ const setupEventListeners = (): void => {
         ?.addEventListener('click', closeFlashcardsModal);
 
     // Keyboard shortcuts
-    keyboardHandler = handleKeyboard;
+    keyboardHandler = handleFlashcardsKeyboard;
     document.addEventListener('keydown', keyboardHandler);
 };
 
-const handleKeyboard = (e: KeyboardEvent): void => {
+export const handleFlashcardsKeyboard = (e: KeyboardEvent): void => {
     const modal = document.getElementById('flashcards-modal');
     if (!modal || modal.classList.contains('hidden')) return;
 
@@ -698,7 +700,7 @@ const handleKeyboard = (e: KeyboardEvent): void => {
 // --- PUBLIC API ---
 
 // Helper function to populate category dropdown based on type filter
-const populateCategoryDropdown = (typeFilter: string): void => {
+export const populateCategoryDropdown = (typeFilter: string): void => {
     const els = getElements();
     if (!els.categorySelect) {
         console.warn('Category select element not found');
@@ -837,7 +839,11 @@ export const initFlashcards = (): void => {
     setupEventListeners();
 };
 
-// --- EXPORTS ---
+// --- EXPORTS FOR TESTING ---
+
+// Export internal functions for unit testing (already exported above)
+
+// --- PUBLIC API EXPORTS ---
 
 export const flashcards = {
     open: openFlashcardsModal,
