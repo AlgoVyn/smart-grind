@@ -2,6 +2,57 @@
 // Handles SW registration, updates, and communication
 
 import { getConnectivityChecker } from './sw/connectivity-checker';
+// Type-only import for reference - not used directly
+// import type { SWBaseResponse, SWResponseType } from './types/sw-messages';
+
+// Typed event emitter for SW events
+type SWEventMap = {
+    'authRequired': { message?: string };
+    'updateAvailable': { worker?: ServiceWorker | null; reason?: string };
+    'bundleReady': { version?: string; downloadedAt?: number };
+    'swActivated': { version?: string; controlling: boolean };
+    'activated': { version?: string; controlling: boolean };
+    'syncStatus': { pendingCount: number; isSyncing: boolean; lastSyncAt: number | null };
+    'syncCompleted': { timestamp?: number };
+    'syncFailed': { error?: string; timestamp?: number };
+    'progressSynced': { count?: number };
+    'conflictResolved': { operationId?: string };
+    'conflictRequiresManual': { operationId?: string; details?: unknown };
+    'assetUpdated': { url?: string };
+    'offlineReady': null;
+    'offlineStatus': { 
+        canReload: boolean; 
+        pageCached: boolean; 
+        assetsCached: boolean; 
+        bundleReady: boolean;
+        cachedItemsCount: number;
+    };
+    'offlineReloadStatus': {
+        canReload: boolean;
+        pageCached: boolean;
+        assetsCached: boolean;
+        bundleReady: boolean;
+        cachedItemsCount: number;
+    };
+    'offlineCapability': {
+        isOffline: boolean;
+        canFunctionOffline: boolean;
+        cacheStatus: {
+            staticAssets: number;
+            problems: number;
+            apiResponses: number;
+            bundleFiles: number;
+        };
+        lastBundleDownload?: number;
+        bundleVersion?: string;
+    };
+    'bundleProgress': { progress?: number; total?: number };
+    'bundleComplete': { version?: string; downloadedAt?: number };
+    'bundleError': { error?: string };
+    'contentUpdate': { type?: string; data?: unknown };
+};
+
+// SWEventCallback type is inlined in function signatures for better type inference
 
 // Service Worker configuration
 // Using default scope (script location /smartgrind/)
@@ -47,8 +98,8 @@ const state: SWState = {
     lastSyncAt: null,
 };
 
-// Event listeners
-const listeners: Map<string, Set<(_: unknown) => void>> = new Map();
+// Typed event listeners - using Map for flexibility while maintaining type safety
+const listeners = new Map<keyof SWEventMap, Set<(data: unknown) => void>>();
 
 /**
  * Show update notification toast instead of auto-reloading
@@ -110,7 +161,7 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
         // Listen for controller changes (SW activated)
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             state.active = true;
-            emit('activated', null);
+            emit('activated', { controlling: true });
 
             // If this is the first install and we're not controlled yet,
             // show a toast notification instead of auto-reloading to prevent data loss
@@ -328,7 +379,7 @@ function handleInstallingWorker(worker: ServiceWorker): void {
             case 'activated':
                 state.active = true;
                 state.installing = false;
-                emit('activated', null);
+                emit('activated', { controlling: true });
                 break;
 
             case 'redundant':
@@ -434,8 +485,8 @@ function handleSWMessage(event: MessageEvent): void {
             // This gives user a chance to save any unsaved work before reloading
             console.log('[SW] New content available:', data.reason);
             emit('contentUpdate', {
-                version: data.version,
-                reason: data.reason,
+                type: 'content-update',
+                data: { version: data.version, reason: data.reason },
             });
             break;
 
@@ -446,8 +497,8 @@ function handleSWMessage(event: MessageEvent): void {
             if (lastReload && Date.now() - parseInt(lastReload, 10) < RELOAD_COOLDOWN) {
                 console.log('[SW] Skipping reload - recently reloaded');
                 emit('contentUpdate', {
-                    version: data.version,
-                    reason: 'Reload skipped - recently reloaded',
+                    type: 'reload-skipped',
+                    data: { reason: 'Reload skipped - recently reloaded' },
                 });
                 break;
             }
@@ -741,29 +792,37 @@ export function listenForConnectivityChanges(callback: (_online: boolean) => voi
 }
 
 /**
- * Subscribe to service worker events
+ * Subscribe to service worker events with type safety
+ * @param event - Event name from SWEventMap
+ * @param callback - Typed callback function
+ * @returns Unsubscribe function
  */
-export function on(event: string, callback: (_data: unknown) => void): () => void {
+export function on<T extends keyof SWEventMap>(
+    event: T, 
+    callback: (data: SWEventMap[T]) => void
+): () => void {
     if (!listeners.has(event)) {
         listeners.set(event, new Set());
     }
-    listeners.get(event)!.add(callback);
+    listeners.get(event)!.add(callback as (data: unknown) => void);
 
     // Return unsubscribe function
     return () => {
-        listeners.get(event)?.delete(callback);
+        listeners.get(event)?.delete(callback as (data: unknown) => void);
     };
 }
 
 /**
- * Emit event to listeners
+ * Emit event to listeners with type safety
+ * @param event - Event name from SWEventMap
+ * @param data - Typed event data
  */
-function emit(event: string, data: unknown): void {
+function emit<T extends keyof SWEventMap>(event: T, data: SWEventMap[T]): void {
     const eventListeners = listeners.get(event);
     if (eventListeners) {
         eventListeners.forEach((callback) => {
             try {
-                callback(data);
+                (callback as (data: SWEventMap[T]) => void)(data);
             } catch (e) {
                 console.error(`[SW-Register] Error in listener for event ${event}:`, e);
                 // Callback error ignored

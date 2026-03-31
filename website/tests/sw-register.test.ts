@@ -1243,8 +1243,8 @@ describe('Service Worker Registration Module', () => {
             }
 
             expect(callback).toHaveBeenCalledWith({
-                version: '1.2.3',
-                reason: 'New offline content available',
+                type: 'content-update',
+                data: { version: '1.2.3', reason: 'New offline content available' },
             });
 
             expect(consoleSpy).toHaveBeenCalledWith('[SW] New content available:', 'New offline content available');
@@ -1317,8 +1317,8 @@ describe('Service Worker Registration Module', () => {
 
             // Should skip reload and emit event
             expect(callback).toHaveBeenCalledWith({
-                version: '1.0.0',
-                reason: 'Reload skipped - recently reloaded',
+                type: 'reload-skipped',
+                data: { reason: 'Reload skipped - recently reloaded' },
             });
             expect(consoleSpy).toHaveBeenCalledWith('[SW] Skipping reload - recently reloaded');
 
