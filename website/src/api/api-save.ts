@@ -31,27 +31,34 @@ const prepareDataForSave = (): UserData => ({
 });
 
 /**
- * Fetches a CSRF token from the API.
+ * Gets cached CSRF token or fetches new one if needed.
+ * Uses caching to avoid fetching before every request.
  */
-const fetchCsrfToken = async (): Promise<string> => {
+const getCsrfTokenCached = async (): Promise<string> => {
     if (!isBrowserOnline()) {
         throw new Error('OFFLINE: Cannot fetch CSRF token while offline');
     }
-    const response = await fetch(`${data.API_BASE}/user?action=csrf`, { credentials: 'include' });
-    validateResponseOrigin(response);
-    if (!response.ok) throw new Error('Failed to fetch CSRF token');
-    const responseData: { csrfToken: string } = await response.json();
-    return responseData.csrfToken;
+    
+    // Import from utils/csrf which has proper caching
+    const { getCsrfToken } = await import('../utils/csrf');
+    const token = await getCsrfToken();
+    
+    if (!token) {
+        throw new Error('Failed to fetch CSRF token');
+    }
+    
+    return token;
 };
 
 /**
  * Saves the provided data to the remote API.
+ * Uses cached CSRF token to avoid fetching before every request.
  */
 const saveRemotelyWithData = async (dataToSave: UserData | null): Promise<void> => {
     if (!isBrowserOnline()) throw new Error('OFFLINE: Cannot save remotely while offline');
 
     const dataToUse = dataToSave || prepareDataForSave();
-    const csrfToken = await fetchCsrfToken();
+    const csrfToken = await getCsrfTokenCached();
     const response = await fetch(`${data.API_BASE}/user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },

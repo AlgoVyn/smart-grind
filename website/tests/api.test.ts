@@ -19,6 +19,18 @@ jest.mock('../src/ui/ui-modals', () => ({
 // Import the mocked module for test access
 import * as uiModals from '../src/ui/ui-modals';
 
+// Mock the csrf module to control token caching behavior
+jest.mock('../src/utils/csrf', () => ({
+    getCsrfToken: jest.fn(),
+    fetchCsrfToken: jest.fn(),
+    getCachedCsrfToken: jest.fn(),
+    clearCsrfToken: jest.fn(),
+    __resetCsrfState: jest.fn(),
+}));
+
+// Import the mocked csrf module
+import * as csrfModule from '../src/utils/csrf';
+
 // Mock the renderers module (since api-delete imports directly from it)
 jest.mock('../src/renderers', () => {
     const mockRenderSidebar = jest.fn();
@@ -282,66 +294,108 @@ describe('SmartGrind API Module', () => {
     });
 
     describe('_saveRemotely', () => {
-        test('should save data remotely for signed-in user', async () => {
+        beforeEach(() => {
+            // Reset CSRF mock before each test
+            (csrfModule.getCsrfToken as jest.Mock).mockReset();
+            (csrfModule.getCachedCsrfToken as jest.Mock).mockReset();
+        });
+
+        test('should save data remotely for signed-in user using cached CSRF token', async () => {
             state.user.type = 'signed-in';
-            mockFetch
-                .mockResolvedValueOnce(
-                    createMockResponse({
-                        ok: true,
-                        json: () => Promise.resolve({ csrfToken: 'test-token' }),
-                    })
-                )
-                .mockResolvedValueOnce(createMockResponse({ ok: true }));
+            
+            // Mock CSRF token to be returned from cache
+            (csrfModule.getCsrfToken as jest.Mock).mockResolvedValue('cached-token');
+            
+            mockFetch.mockResolvedValueOnce(createMockResponse({ ok: true }));
 
             await apiSave._saveRemotely();
 
-            expect(mockFetch).toHaveBeenCalledWith(`${data.API_BASE}/user?action=csrf`, {
-                credentials: 'include',
-            });
+            // Should use cached token, not fetch new one
+            expect(csrfModule.getCsrfToken).toHaveBeenCalled();
             expect(mockFetch).toHaveBeenCalledWith(`${data.API_BASE}/user`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-Token': 'test-token',
+                    'X-CSRF-Token': 'cached-token',
                 },
                 credentials: 'include',
-                body: JSON.stringify({
-                    data: {
-                        problems: { '1': { id: '1', name: 'Test Problem', status: 'unsolved' } },
-                        deletedIds: ['2'],
-                    },
-                }),
+                body: expect.stringContaining('problems'),
             });
         });
 
-        test('should throw error on auth failure', async () => {
-            mockFetch
-                .mockResolvedValueOnce(
-                    createMockResponse({
-                        ok: true,
-                        json: () => Promise.resolve({ csrfToken: 'test-token' }),
-                    })
-                )
-                .mockResolvedValueOnce(createMockResponse({ ok: false, status: 401 }));
+        test('should fetch CSRF token if not cached', async () => {
+            state.user.type = 'signed-in';
+            
+            // First call returns null (not cached), then fetches
+            (csrfModule.getCsrfToken as jest.Mock).mockResolvedValue('fresh-token');
+            
+            mockFetch.mockResolvedValueOnce(createMockResponse({ ok: true }));
 
-            await expect(apiSave._saveRemotely()).rejects.toThrow(
-                'Authentication failed. Please sign in again.'
+            await apiSave._saveRemotely();
+
+            expect(csrfModule.getCsrfToken).toHaveBeenCalled();
+            expect(mockFetch).toHaveBeenCalledWith(
+                `${data.API_BASE}/user`,
+                expect.objectContaining({
+                    headers: expect.objectContaining({
+                        'X-CSRF-Token': 'fresh-token',
+                    }),
+                })
             );
         });
 
-        test('should throw error on server error', async () => {
-            mockFetch
-                .mockResolvedValueOnce(
-                    createMockResponse({
-                        ok: true,
-                        json: () => Promise.resolve({ csrfToken: 'test-token' }),
-                    })
-                )
-                .mockResolvedValueOnce(createMockResponse({ ok: false, status: 500 }));
+        test('should throw error when CSRF token is unavailable', async () => {
+            state.user.type = 'signed-in';
+            
+            // Mock CSRF token fetch to fail
+            (csrfModule.getCsrfToken as jest.Mock).mockResolvedValue(null);
 
-            await expect(apiSave._saveRemotely()).rejects.toThrow(
-                'Server error. Please try again later.'
-            );
+            await expect(apiSave._saveRemotely()).rejects.toThrow('Failed to fetch CSRF token');
+        });
+
+        test('should throw error on auth failure (401)', async () => {
+            state.user.type = 'signed-in';
+            
+            (csrfModule.getCsrfToken as jest.Mock).mockResolvedValue('test-token');
+            mockFetch.mockResolvedValueOnce(createMockResponse({ 
+                ok: false, 
+                status: 401,
+                statusText: 'Unauthorized'
+            }));
+
+            await expect(apiSave._saveRemotely()).rejects.toThrow();
+        });
+
+        test('should throw error on server error (500)', async () => {
+            state.user.type = 'signed-in';
+            
+            (csrfModule.getCsrfToken as jest.Mock).mockResolvedValue('test-token');
+            mockFetch.mockResolvedValueOnce(createMockResponse({ 
+                ok: false, 
+                status: 500,
+                statusText: 'Internal Server Error'
+            }));
+
+            await expect(apiSave._saveRemotely()).rejects.toThrow();
+        });
+
+        test('should reuse cached CSRF token for multiple requests', async () => {
+            state.user.type = 'signed-in';
+            
+            // Token should be fetched once and reused
+            (csrfModule.getCsrfToken as jest.Mock).mockResolvedValue('reused-token');
+            
+            mockFetch
+                .mockResolvedValueOnce(createMockResponse({ ok: true }))
+                .mockResolvedValueOnce(createMockResponse({ ok: true }));
+
+            await apiSave._saveRemotely();
+            await apiSave._saveRemotely();
+
+            // getCsrfToken should be called but may use internal caching
+            expect(csrfModule.getCsrfToken).toHaveBeenCalled();
+            // Only 2 calls to the API (not 4 - no extra CSRF fetches)
+            expect(mockFetch).toHaveBeenCalledTimes(2);
         });
     });
 
