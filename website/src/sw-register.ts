@@ -99,7 +99,7 @@ const state: SWState = {
 };
 
 // Typed event listeners - using Map for flexibility while maintaining type safety
-const listeners = new Map<keyof SWEventMap, Set<(data: unknown) => void>>();
+const listeners = new Map<keyof SWEventMap, Set<(_data: unknown) => void>>();
 
 /**
  * Show update notification toast instead of auto-reloading
@@ -799,16 +799,16 @@ export function listenForConnectivityChanges(callback: (_online: boolean) => voi
  */
 export function on<T extends keyof SWEventMap>(
     event: T,
-    callback: (data: SWEventMap[T]) => void
+    callback: (_data: SWEventMap[T]) => void
 ): () => void {
     if (!listeners.has(event)) {
         listeners.set(event, new Set());
     }
-    listeners.get(event)!.add(callback as (data: unknown) => void);
+    listeners.get(event)!.add(callback as (_data: unknown) => void);
 
     // Return unsubscribe function
     return () => {
-        listeners.get(event)?.delete(callback as (data: unknown) => void);
+        listeners.get(event)?.delete(callback as (_data: unknown) => void);
     };
 }
 
@@ -822,7 +822,7 @@ function emit<T extends keyof SWEventMap>(event: T, data: SWEventMap[T]): void {
     if (eventListeners) {
         eventListeners.forEach((callback) => {
             try {
-                (callback as (data: SWEventMap[T]) => void)(data);
+                (callback as (_data: SWEventMap[T]) => void)(data);
             } catch (e) {
                 console.error(`[SW-Register] Error in listener for event ${event}:`, e);
                 // Callback error ignored

@@ -239,7 +239,7 @@ async function fetchProblemFromNetwork(request: Request, cache: Cache): Promise<
             cache.put(request, networkResponse.clone()).catch(console.warn);
         }
         return networkResponse;
-    } catch (error) {
+    } catch (_error) {
         return new Response(
             '# Offline\n\nThis problem is not available offline. Please connect to the internet.',
             { status: 503, headers: { 'Content-Type': 'text/markdown', 'X-SW-Offline': 'true' } }
@@ -296,7 +296,7 @@ async function handleNavigationRequest(request: Request): Promise<Response> {
             cache.put(request, addCacheHeaders(networkResponse.clone())).catch(console.warn);
         }
         return networkResponse;
-    } catch (error) {
+    } catch (_error) {
         const cache = await caches.open(`${CACHE_NAMES.STATIC}-${CACHE_VERSION}`);
         let cachedResponse = await cache.match(request);
 

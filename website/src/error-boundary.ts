@@ -56,8 +56,10 @@ export const setupGlobalErrorHandlers = (): void => {
     if (typeof window === 'undefined') return;
 
     window.addEventListener('error', (event) => {
-        console.error('Global error:', event.error);
-        getUI()?.showAlert(`An error occurred: ${event.message}`);
+        const error = event.error;
+        const message = event.message || (error ? error.message : 'Unknown error');
+        console.error('Global error:', error || message);
+        getUI()?.showAlert(`An error occurred: ${message}`);
         event.preventDefault();
     });
 

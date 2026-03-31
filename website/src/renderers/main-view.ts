@@ -11,6 +11,7 @@ import { ICONS } from './icons';
 import { htmlGenerators } from './html-generators';
 import { problemCardRenderers } from './problem-cards';
 import { AlgorithmCategory, AlgorithmDef } from '../data/algorithms-data';
+import { virtualProblemList } from './virtual-problem-list';
 
 export const mainViewRenderers = {
     // Helper to create an action button
@@ -100,6 +101,48 @@ export const mainViewRenderers = {
                 ? data.topicsData
                 : data.topicsData.filter((t: Topic) => t.id === state.ui.activeTopicId);
 
+        // Collect all visible problems for virtual scrolling
+        const allVisibleProblems: Problem[] = [];
+        topics.forEach((topic: Topic) => {
+            topic.patterns.forEach((pattern) => {
+                pattern.problems.forEach((probDef) => {
+                    const id = typeof probDef === 'string' ? probDef : probDef.id;
+                    const p = state.problems.get(id);
+                    if (p) {
+                        const searchQuery =
+                            (state.elements['problemSearch'] as HTMLInputElement | null)?.value
+                                .toLowerCase()
+                                .trim() || '';
+                        if (shouldShowProblem(p, state.ui.currentFilter, searchQuery, today)) {
+                            allVisibleProblems.push(p);
+                            visibleCount.count++;
+                        }
+                    }
+                });
+            });
+        });
+
+        // Try to use virtual scrolling for large lists
+        if (container && allVisibleProblems.length > 50) {
+            // Clean up any previous virtual scroller
+            virtualProblemList.cleanup();
+
+            // Use virtual rendering
+            const useVirtual = virtualProblemList.init(container, allVisibleProblems);
+            if (useVirtual) {
+                // Virtual scrolling initialized successfully
+                // Show empty state only in review filter with no visible problems
+                const showEmpty = visibleCount.count === 0 && state.ui.currentFilter === 'review';
+                (state.elements['emptyState'] as HTMLElement | null)?.classList.toggle(
+                    'hidden',
+                    !showEmpty
+                );
+                import('../renderers').then(({ renderers }) => renderers.updateStats());
+                return;
+            }
+        }
+
+        // Fallback to standard rendering for smaller lists
         topics.forEach((topic: Topic) => {
             const section = htmlGenerators.renderTopicSection(
                 topic,

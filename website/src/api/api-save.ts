@@ -10,7 +10,7 @@ import { showToast } from '../utils';
 
 // Event callbacks for UI updates (prevents circular dependency with renderers/ui)
 let onStatsUpdate: (() => void) | null = null;
-let onSaveError: ((message: string) => void) | null = null;
+let onSaveError: ((_message: string) => void) | null = null;
 let onViewUpdate: (() => void) | null = null;
 
 /**
@@ -19,7 +19,7 @@ let onViewUpdate: (() => void) | null = null;
  */
 export const registerSaveCallbacks = (callbacks: {
     onStatsUpdate?: () => void;
-    onSaveError?: (message: string) => void;
+    onSaveError?: (_message: string) => void;
     onViewUpdate?: () => void;
 }): void => {
     if (callbacks.onStatsUpdate) onStatsUpdate = callbacks.onStatsUpdate;
@@ -174,8 +174,8 @@ const processRateLimitQueue = async (): Promise<void> => {
         if (nextSync) {
             try {
                 await nextSync();
-            } catch (error) {
-                console.error('[Rate Limit] Queued sync failed:', error);
+            } catch (_error) {
+                console.error('[Rate Limit] Queued sync failed:', _error);
             }
         }
     }
@@ -246,7 +246,7 @@ const executeActualSync = async (
             try {
                 await saveRemotelyWithData(dataToSync);
                 return;
-            } catch (error) {
+            } catch (_error) {
                 // Direct remote save failed, retry with backoff if under max attempts
                 if (attempt < RETRY_CONFIG.MAX_ATTEMPTS && isBrowserOnline()) {
                     const delay = calculateRetryDelay(attempt);
@@ -267,8 +267,8 @@ const executeActualSync = async (
         });
 
         if (isBrowserOnline()) await forceSync();
-    } catch (error) {
-        console.error('[Sync] Background sync trigger failed:', error);
+    } catch (_error) {
+        console.error('[Sync] Background sync trigger failed:', _error);
         // Don't throw - let the operation queue handle retries via SW
     }
 };
@@ -412,9 +412,9 @@ if (typeof window !== 'undefined') {
                                 '[API Save] sendBeacon returned false, sync may have failed'
                             );
                         }
-                    } catch (error) {
+                    } catch (_error) {
                         // sendBeacon failed - data will remain in localStorage for next session
-                        console.error('[API Save] sendBeacon failed:', error);
+                        console.error('[API Save] sendBeacon failed:', _error);
                     }
                 } else {
                     // No CSRF token available - data will be synced on next session
