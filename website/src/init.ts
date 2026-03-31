@@ -422,6 +422,9 @@ const showSetupModal = async () => {
 // ============================================================================
 
 const checkAuth = async () => {
+    // Track if update toast has already been shown (prevents duplicates)
+    let updateToastShown = false;
+
     // Listen for auth required events from Service Worker
     swRegister.on('authRequired', (data: unknown) => {
         const { message } = (data || {}) as { message?: string };
@@ -435,11 +438,12 @@ const checkAuth = async () => {
         const { reason } = (data || {}) as { reason?: string };
         console.log('[Init] Update available:', reason);
         
-        // For updates (not first install), show immediate notification
-        if (reason !== 'first-install') {
-            showUpdateNotification('New version available. Reload to update.');
+        // For updates (not first install), show notification
+        // For first install, bundleReady event will handle it
+        if (reason !== 'first-install' && !updateToastShown) {
+            updateToastShown = true;
+            showToast('New version is ready, reload', 'success', 15000);
         }
-        // For first install, wait for bundleReady event below
     });
 
     // Listen for bundle ready - show toast after offline bundle is fully extracted
@@ -447,16 +451,12 @@ const checkAuth = async () => {
         const { version, downloadedAt } = (data || {}) as { version?: string; downloadedAt?: number };
         console.log('[Init] Bundle ready:', version, new Date(downloadedAt || 0).toLocaleString());
         
-        // Show toast with reload option only after bundle is extracted
-        showUpdateNotification('SmartGrind is ready for offline use! Click reload to enable.');
+        // Show toast only once (prevents duplicates from multiple events)
+        if (!updateToastShown) {
+            updateToastShown = true;
+            showToast('New version is ready, reload', 'success', 15000);
+        }
     });
-
-    // Helper function to show update/reload notification
-    function showUpdateNotification(_message: string): void {
-        // Show only toast notification with increased duration (15 seconds)
-        // User can reload manually when ready
-        showToast('New version is ready, reload', 'success', 15000);
-    }
 
     const categoryParam = getCategoryFromUrl();
     const algorithmsParam = getAlgorithmsFromUrl();
