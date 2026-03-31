@@ -452,27 +452,10 @@ const checkAuth = async () => {
     });
 
     // Helper function to show update/reload notification
-    function showUpdateNotification(message: string): void {
-        // Show toast with reload option - prevents data loss from auto-reload
-        const reloadToast = document.createElement('div');
-        reloadToast.className = 'fixed bottom-4 right-4 bg-dark-800 border border-brand-500/30 rounded-lg shadow-lg p-4 z-[100] flex items-center gap-3 max-w-sm';
-        reloadToast.innerHTML = `
-            <div class="flex-1">
-                <p class="text-sm font-medium text-theme-bold">SmartGrind Ready</p>
-                <p class="text-xs text-theme-muted">${message}</p>
-            </div>
-            <button id="reload-btn" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded transition-colors">
-                Reload
-            </button>
-        `;
-        document.body.appendChild(reloadToast);
-        
-        reloadToast.querySelector('#reload-btn')?.addEventListener('click', () => {
-            window.location.reload();
-        });
-        
-        // Also show a regular toast notification
-        showToast(message, 'success');
+    function showUpdateNotification(_message: string): void {
+        // Show only toast notification with increased duration (15 seconds)
+        // User can reload manually when ready
+        showToast('New version is ready, reload', 'success', 15000);
     }
 
     const categoryParam = getCategoryFromUrl();

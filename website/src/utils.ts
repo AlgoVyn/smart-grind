@@ -41,7 +41,7 @@ export const getNextReviewDate = (today: string, intervalIndex: number): string 
 // TOAST NOTIFICATIONS (state-dependent)
 // ============================================================================
 
-export const showToast = (msg: string, type: 'success' | 'error' | 'warning' = 'success'): void => {
+export const showToast = (msg: string, type: 'success' | 'error' | 'warning' = 'success', duration: number = 3000): void => {
     const getBgColor = () => {
         switch (type) {
             case 'success':
@@ -66,7 +66,7 @@ export const showToast = (msg: string, type: 'success' | 'error' | 'warning' = '
             el.style.opacity = '0';
             el.style.transform = 'translateY(10px)';
             setTimeout(() => el.remove(), 300);
-        }, 3000);
+        }, duration);
     }
 };
 
