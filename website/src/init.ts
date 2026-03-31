@@ -430,6 +430,37 @@ const checkAuth = async () => {
         showToast('Session expired. Please sign in again.', 'error');
     });
 
+    // Listen for update available events (first install or new version)
+    swRegister.on('updateAvailable', (data: unknown) => {
+        const { reason } = (data || {}) as { reason?: string };
+        console.log('[Init] Update available:', reason);
+        
+        // Show toast with reload option - prevents data loss from auto-reload
+        const reloadToast = document.createElement('div');
+        reloadToast.className = 'fixed bottom-4 right-4 bg-dark-800 border border-brand-500/30 rounded-lg shadow-lg p-4 z-[100] flex items-center gap-3 max-w-sm';
+        reloadToast.innerHTML = `
+            <div class="flex-1">
+                <p class="text-sm font-medium text-theme-bold">SmartGrind Ready</p>
+                <p class="text-xs text-theme-muted">Reload to enable offline mode</p>
+            </div>
+            <button id="reload-btn" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded transition-colors">
+                Reload
+            </button>
+        `;
+        document.body.appendChild(reloadToast);
+        
+        reloadToast.querySelector('#reload-btn')?.addEventListener('click', () => {
+            window.location.reload();
+        });
+        
+        // Also show a regular toast notification
+        if (reason === 'first-install') {
+            showToast('SmartGrind is ready for offline use! Click reload to enable.', 'success');
+        } else {
+            showToast('New version available. Reload to update.', 'warning');
+        }
+    });
+
     const categoryParam = getCategoryFromUrl();
     const algorithmsParam = getAlgorithmsFromUrl();
     const sqlParam = getSQLFromUrl();
