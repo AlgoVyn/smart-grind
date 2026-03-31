@@ -55,17 +55,8 @@ const listeners: Map<string, Set<(_: unknown) => void>> = new Map();
  * This prevents data loss by letting the user choose when to update
  */
 function showUpdateNotification(): void {
-    // Create a custom event to show a toast via the UI
-    emit('showUpdateToast', {
-        message: 'SmartGrind is ready for offline use. Reload to enable?',
-        action: 'Reload',
-        onAction: () => {
-            window.location.reload();
-        },
-        duration: 0, // Don't auto-dismiss
-    });
-    
-    // Also emit a standard update available event for backwards compatibility
+    // Emit a standard update available event - the UI layer will handle showing the toast
+    // after the bundle is fully extracted (bundleReady event)
     emit('updateAvailable', { 
         worker: navigator.serviceWorker.controller,
         reason: 'first-install' 

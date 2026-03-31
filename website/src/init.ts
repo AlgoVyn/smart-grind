@@ -435,13 +435,31 @@ const checkAuth = async () => {
         const { reason } = (data || {}) as { reason?: string };
         console.log('[Init] Update available:', reason);
         
+        // For updates (not first install), show immediate notification
+        if (reason !== 'first-install') {
+            showUpdateNotification('New version available. Reload to update.');
+        }
+        // For first install, wait for bundleReady event below
+    });
+
+    // Listen for bundle ready - show toast after offline bundle is fully extracted
+    swRegister.on('bundleReady', (data: unknown) => {
+        const { version, downloadedAt } = (data || {}) as { version?: string; downloadedAt?: number };
+        console.log('[Init] Bundle ready:', version, new Date(downloadedAt || 0).toLocaleString());
+        
+        // Show toast with reload option only after bundle is extracted
+        showUpdateNotification('SmartGrind is ready for offline use! Click reload to enable.');
+    });
+
+    // Helper function to show update/reload notification
+    function showUpdateNotification(message: string): void {
         // Show toast with reload option - prevents data loss from auto-reload
         const reloadToast = document.createElement('div');
         reloadToast.className = 'fixed bottom-4 right-4 bg-dark-800 border border-brand-500/30 rounded-lg shadow-lg p-4 z-[100] flex items-center gap-3 max-w-sm';
         reloadToast.innerHTML = `
             <div class="flex-1">
                 <p class="text-sm font-medium text-theme-bold">SmartGrind Ready</p>
-                <p class="text-xs text-theme-muted">Reload to enable offline mode</p>
+                <p class="text-xs text-theme-muted">${message}</p>
             </div>
             <button id="reload-btn" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded transition-colors">
                 Reload
@@ -454,12 +472,8 @@ const checkAuth = async () => {
         });
         
         // Also show a regular toast notification
-        if (reason === 'first-install') {
-            showToast('SmartGrind is ready for offline use! Click reload to enable.', 'success');
-        } else {
-            showToast('New version available. Reload to update.', 'warning');
-        }
-    });
+        showToast(message, 'success');
+    }
 
     const categoryParam = getCategoryFromUrl();
     const algorithmsParam = getAlgorithmsFromUrl();
