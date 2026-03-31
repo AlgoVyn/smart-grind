@@ -7,34 +7,34 @@ import { getConnectivityChecker } from './sw/connectivity-checker';
 
 // Typed event emitter for SW events
 type SWEventMap = {
-    'authRequired': { message?: string };
-    'updateAvailable': { worker?: ServiceWorker | null; reason?: string };
-    'bundleReady': { version?: string; downloadedAt?: number };
-    'swActivated': { version?: string; controlling: boolean };
-    'activated': { version?: string; controlling: boolean };
-    'syncStatus': { pendingCount: number; isSyncing: boolean; lastSyncAt: number | null };
-    'syncCompleted': { timestamp?: number };
-    'syncFailed': { error?: string; timestamp?: number };
-    'progressSynced': { count?: number };
-    'conflictResolved': { operationId?: string };
-    'conflictRequiresManual': { operationId?: string; details?: unknown };
-    'assetUpdated': { url?: string };
-    'offlineReady': null;
-    'offlineStatus': { 
-        canReload: boolean; 
-        pageCached: boolean; 
-        assetsCached: boolean; 
-        bundleReady: boolean;
-        cachedItemsCount: number;
-    };
-    'offlineReloadStatus': {
+    authRequired: { message?: string };
+    updateAvailable: { worker?: ServiceWorker | null; reason?: string };
+    bundleReady: { version?: string; downloadedAt?: number };
+    swActivated: { version?: string; controlling: boolean };
+    activated: { version?: string; controlling: boolean };
+    syncStatus: { pendingCount: number; isSyncing: boolean; lastSyncAt: number | null };
+    syncCompleted: { timestamp?: number };
+    syncFailed: { error?: string; timestamp?: number };
+    progressSynced: { count?: number };
+    conflictResolved: { operationId?: string };
+    conflictRequiresManual: { operationId?: string; details?: unknown };
+    assetUpdated: { url?: string };
+    offlineReady: null;
+    offlineStatus: {
         canReload: boolean;
         pageCached: boolean;
         assetsCached: boolean;
         bundleReady: boolean;
         cachedItemsCount: number;
     };
-    'offlineCapability': {
+    offlineReloadStatus: {
+        canReload: boolean;
+        pageCached: boolean;
+        assetsCached: boolean;
+        bundleReady: boolean;
+        cachedItemsCount: number;
+    };
+    offlineCapability: {
         isOffline: boolean;
         canFunctionOffline: boolean;
         cacheStatus: {
@@ -46,10 +46,10 @@ type SWEventMap = {
         lastBundleDownload?: number;
         bundleVersion?: string;
     };
-    'bundleProgress': { progress?: number; total?: number };
-    'bundleComplete': { version?: string; downloadedAt?: number };
-    'bundleError': { error?: string };
-    'contentUpdate': { type?: string; data?: unknown };
+    bundleProgress: { progress?: number; total?: number };
+    bundleComplete: { version?: string; downloadedAt?: number };
+    bundleError: { error?: string };
+    contentUpdate: { type?: string; data?: unknown };
 };
 
 // SWEventCallback type is inlined in function signatures for better type inference
@@ -108,9 +108,9 @@ const listeners = new Map<keyof SWEventMap, Set<(data: unknown) => void>>();
 function showUpdateNotification(): void {
     // Emit a standard update available event - the UI layer will handle showing the toast
     // after the bundle is fully extracted (bundleReady event)
-    emit('updateAvailable', { 
+    emit('updateAvailable', {
         worker: navigator.serviceWorker.controller,
-        reason: 'first-install' 
+        reason: 'first-install',
     });
 }
 
@@ -798,7 +798,7 @@ export function listenForConnectivityChanges(callback: (_online: boolean) => voi
  * @returns Unsubscribe function
  */
 export function on<T extends keyof SWEventMap>(
-    event: T, 
+    event: T,
     callback: (data: SWEventMap[T]) => void
 ): () => void {
     if (!listeners.has(event)) {

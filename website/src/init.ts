@@ -437,7 +437,7 @@ const checkAuth = async () => {
     swRegister.on('updateAvailable', (data: unknown) => {
         const { reason } = (data || {}) as { reason?: string };
         console.log('[Init] Update available:', reason);
-        
+
         // For updates (not first install), show notification
         // For first install, bundleReady event will handle it
         if (reason !== 'first-install' && !updateToastShown) {
@@ -448,9 +448,12 @@ const checkAuth = async () => {
 
     // Listen for bundle ready - show toast after offline bundle is fully extracted
     swRegister.on('bundleReady', (data: unknown) => {
-        const { version, downloadedAt } = (data || {}) as { version?: string; downloadedAt?: number };
+        const { version, downloadedAt } = (data || {}) as {
+            version?: string;
+            downloadedAt?: number;
+        };
         console.log('[Init] Bundle ready:', version, new Date(downloadedAt || 0).toLocaleString());
-        
+
         // Show toast only once (prevents duplicates from multiple events)
         if (!updateToastShown) {
             updateToastShown = true;

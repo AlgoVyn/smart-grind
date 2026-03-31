@@ -10,6 +10,7 @@ export default {
   moduleNameMapper: {
     '^/smartgrind/(.*)$': '<rootDir>/public/$1',
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   transform: {
     '^.+\\.ts$': ['ts-jest', { useESM: true }],

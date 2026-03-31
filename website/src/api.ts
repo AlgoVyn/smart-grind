@@ -9,7 +9,12 @@ import { deleteCategory, deleteAlgorithmCategory, deleteSQLCategory } from './ap
 import { state } from './state';
 import { getConnectivityChecker } from './sw/connectivity-checker';
 import { isBrowserOnline as checkBrowserOnline } from './api/api-utils';
-import { isSyncStatusResponse, type SyncStatus, type APIOperation } from './types/sync';
+import {
+    isSyncStatusResponse,
+    isForceSyncResponse,
+    type SyncStatus,
+    type APIOperation,
+} from './types/sync';
 import { sendMessageToSW, isServiceWorkerAvailable } from './sw/sw-messaging';
 import { SYNC_CONFIG } from './config/sync-config';
 import { errorTracker } from './utils/error-tracker';
@@ -244,9 +249,13 @@ export async function forceSync(): Promise<{ success: boolean; synced: number; f
     }
 
     const response = await sendMessageToSW({ type: 'FORCE_SYNC' });
-    const result = response as { success: boolean; synced: number; failed: number } | null;
+    if (!isForceSyncResponse(response)) {
+        console.error('[API] Invalid force sync response', response);
+        return { success: false, synced: 0, failed: 0 };
+    }
+
     await updateSyncStatus();
-    return result || { success: false, synced: 0, failed: 0 };
+    return response;
 }
 
 /**

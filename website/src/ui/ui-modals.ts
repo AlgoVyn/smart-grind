@@ -289,7 +289,7 @@ const checkProblemIdExists = (id: string): boolean => {
     if (state.problems.has(id)) {
         return true;
     }
-    
+
     // Check in topicsData (LeetCode problems)
     for (const topic of data.topicsData) {
         // Skip if topic has no patterns (handles test mocks)
@@ -309,7 +309,7 @@ const checkProblemIdExists = (id: string): boolean => {
             }
         }
     }
-    
+
     return false;
 };
 
@@ -347,13 +347,13 @@ export const saveNewProblem = async () => {
     let newProb = _createNewProblem(inputs.name, inputs.url, inputs.category, inputs.pattern);
     let attempts = 0;
     const MAX_ATTEMPTS = 5;
-    
+
     while (checkProblemIdExists(newProb.id) && attempts < MAX_ATTEMPTS) {
         console.warn(`[Problem ID] Collision detected for ${newProb.id}, regenerating...`);
         newProb = _createNewProblem(inputs.name, inputs.url, inputs.category, inputs.pattern);
         attempts++;
     }
-    
+
     if (checkProblemIdExists(newProb.id)) {
         showAlert('Failed to generate unique problem ID. Please try again.');
         return;

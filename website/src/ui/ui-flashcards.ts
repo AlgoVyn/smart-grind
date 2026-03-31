@@ -51,13 +51,13 @@ export const setInCache = (key: string, value: { front: string; back: string }):
     if (markdownContentCache.has(key)) {
         markdownContentCache.delete(key);
     }
-    
+
     // Evict oldest (least recently used) if cache is full
     if (markdownContentCache.size >= MAX_CACHE_SIZE) {
         const firstKey = markdownContentCache.keys().next().value;
         if (firstKey) markdownContentCache.delete(firstKey);
     }
-    
+
     markdownContentCache.set(key, value);
 };
 

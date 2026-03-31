@@ -71,15 +71,15 @@ const getCsrfTokenCached = async (): Promise<string> => {
     if (!isBrowserOnline()) {
         throw new Error('OFFLINE: Cannot fetch CSRF token while offline');
     }
-    
+
     // Import from utils/csrf which has proper caching
     const { getCsrfToken } = await import('../utils/csrf');
     const token = await getCsrfToken();
-    
+
     if (!token) {
         throw new Error('Failed to fetch CSRF token');
     }
-    
+
     return token;
 };
 
@@ -141,12 +141,12 @@ const handleSaveOperation = async (
 const checkRateLimit = (): boolean => {
     const now = Date.now();
     const timeSinceLastSync = now - lastSyncTime;
-    
+
     if (timeSinceLastSync < RATE_LIMIT.MIN_INTERVAL_MS) {
         // Rate limited - queue for later
         return false;
     }
-    
+
     return true;
 };
 
@@ -157,17 +157,17 @@ const processRateLimitQueue = async (): Promise<void> => {
     if (isRateLimitProcessing || rateLimitQueue.length === 0) {
         return;
     }
-    
+
     isRateLimitProcessing = true;
-    
+
     // Wait for rate limit window
     const timeSinceLastSync = Date.now() - lastSyncTime;
     const waitTime = Math.max(0, RATE_LIMIT.MIN_INTERVAL_MS - timeSinceLastSync);
-    
+
     if (waitTime > 0) {
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
     }
-    
+
     // Process all queued operations
     while (rateLimitQueue.length > 0) {
         const nextSync = rateLimitQueue.shift();
@@ -179,7 +179,7 @@ const processRateLimitQueue = async (): Promise<void> => {
             }
         }
     }
-    
+
     isRateLimitProcessing = false;
 };
 
@@ -198,7 +198,7 @@ const executeBackgroundSync = async (): Promise<void> => {
         rateLimitQueue.push(async () => {
             await executeActualSync(dataToSync);
         });
-        
+
         // Start processing queue if not already
         processRateLimitQueue();
         return;
@@ -212,9 +212,9 @@ const executeBackgroundSync = async (): Promise<void> => {
  */
 const RETRY_CONFIG = {
     MAX_ATTEMPTS: 3,
-    BASE_DELAY_MS: 1000,    // Start with 1 second
-    MAX_DELAY_MS: 30000,   // Cap at 30 seconds
-    JITTER_FACTOR: 0.3,    // Add up to 30% jitter
+    BASE_DELAY_MS: 1000, // Start with 1 second
+    MAX_DELAY_MS: 30000, // Cap at 30 seconds
+    JITTER_FACTOR: 0.3, // Add up to 30% jitter
 };
 
 /**
@@ -224,7 +224,7 @@ const calculateRetryDelay = (attempt: number): number => {
     // Exponential backoff: 1s, 2s, 4s, 8s, etc.
     const exponentialDelay = RETRY_CONFIG.BASE_DELAY_MS * Math.pow(2, attempt - 1);
     const cappedDelay = Math.min(exponentialDelay, RETRY_CONFIG.MAX_DELAY_MS);
-    
+
     // Add jitter (random factor to prevent thundering herd)
     const jitter = cappedDelay * RETRY_CONFIG.JITTER_FACTOR * (Math.random() - 0.5);
     return Math.max(100, Math.floor(cappedDelay + jitter)); // Minimum 100ms
@@ -234,7 +234,10 @@ const calculateRetryDelay = (attempt: number): number => {
  * Performs the actual sync operation (without rate limiting check)
  * Includes retry logic with exponential backoff for failed attempts
  */
-const executeActualSync = async (dataToSync: UserData | null, attempt: number = 1): Promise<void> => {
+const executeActualSync = async (
+    dataToSync: UserData | null,
+    attempt: number = 1
+): Promise<void> => {
     // Update last sync time
     lastSyncTime = Date.now();
 
@@ -248,7 +251,7 @@ const executeActualSync = async (dataToSync: UserData | null, attempt: number = 
                 if (attempt < RETRY_CONFIG.MAX_ATTEMPTS && isBrowserOnline()) {
                     const delay = calculateRetryDelay(attempt);
                     console.log(`[Sync] Attempt ${attempt} failed, retrying in ${delay}ms...`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
+                    await new Promise((resolve) => setTimeout(resolve, delay));
                     return executeActualSync(dataToSync, attempt + 1);
                 }
                 // Max retries reached, fall through to SW queue

@@ -147,3 +147,174 @@ export interface ServerConflict {
     /** Server's version of the data */
     serverData: unknown;
 }
+
+/**
+ * Force sync response from service worker
+ */
+export interface ForceSyncResponse {
+    /** Whether the sync was successful */
+    success: boolean;
+    /** Number of operations successfully synced */
+    synced: number;
+    /** Number of operations that failed */
+    failed: number;
+}
+
+/**
+ * Type guard to validate ForceSyncResponse
+ * @param data - Unknown data to validate
+ * @returns True if data is a valid ForceSyncResponse
+ */
+export const isForceSyncResponse = (data: unknown): data is ForceSyncResponse => {
+    if (!data || typeof data !== 'object') return false;
+    const response = data as Record<string, unknown>;
+    return (
+        typeof response['success'] === 'boolean' &&
+        typeof response['synced'] === 'number' &&
+        typeof response['failed'] === 'number'
+    );
+};
+
+/**
+ * Bundle status response from service worker
+ */
+export interface BundleStatusResponse {
+    /** Message type identifier */
+    type: 'BUNDLE_STATUS';
+    /** The bundle status data */
+    status: {
+        status: 'idle' | 'downloading' | 'extracting' | 'complete' | 'error';
+        progress: number;
+        totalFiles: number;
+        extractedFiles: number;
+        error?: string;
+        bundleVersion?: string;
+        downloadedAt?: number;
+    };
+}
+
+/**
+ * Type guard to validate BundleStatusResponse
+ * @param data - Unknown data to validate
+ * @returns True if data is a valid BundleStatusResponse
+ */
+export const isBundleStatusResponse = (data: unknown): data is BundleStatusResponse => {
+    if (!data || typeof data !== 'object') return false;
+    const response = data as Record<string, unknown>;
+    if (response['type'] !== 'BUNDLE_STATUS') return false;
+
+    const status = response['status'] as Record<string, unknown> | undefined;
+    if (!status || typeof status !== 'object') return false;
+
+    const validStatuses = ['idle', 'downloading', 'extracting', 'complete', 'error'];
+    return (
+        typeof status['status'] === 'string' &&
+        validStatuses.includes(status['status']) &&
+        typeof status['progress'] === 'number' &&
+        typeof status['totalFiles'] === 'number' &&
+        typeof status['extractedFiles'] === 'number'
+    );
+};
+
+/**
+ * Offline reload status response
+ */
+export interface OfflineReloadStatusResponse {
+    /** Whether the page can be reloaded while offline */
+    canReload: boolean;
+    /** Whether the page is cached */
+    pageCached: boolean;
+    /** Whether assets are cached */
+    assetsCached: boolean;
+    /** Whether the bundle is ready */
+    bundleReady: boolean;
+    /** Total number of cached items */
+    cachedItemsCount: number;
+}
+
+/**
+ * Type guard to validate OfflineReloadStatusResponse
+ * @param data - Unknown data to validate
+ * @returns True if data is a valid OfflineReloadStatusResponse
+ */
+export const isOfflineReloadStatusResponse = (
+    data: unknown
+): data is OfflineReloadStatusResponse => {
+    if (!data || typeof data !== 'object') return false;
+    const response = data as Record<string, unknown>;
+    return (
+        typeof response['canReload'] === 'boolean' &&
+        typeof response['pageCached'] === 'boolean' &&
+        typeof response['assetsCached'] === 'boolean' &&
+        typeof response['bundleReady'] === 'boolean' &&
+        typeof response['cachedItemsCount'] === 'number'
+    );
+};
+
+/**
+ * Offline capability status response
+ */
+export interface OfflineCapabilityResponse {
+    /** Whether the device is currently offline */
+    isOffline: boolean;
+    /** Whether the app can function offline */
+    canFunctionOffline: boolean;
+    /** Cache statistics */
+    cacheStatus: {
+        staticAssets: number;
+        problems: number;
+        apiResponses: number;
+        bundleFiles: number;
+    };
+    /** Timestamp of last bundle download */
+    lastBundleDownload?: number;
+    /** Version of downloaded bundle */
+    bundleVersion?: string;
+}
+
+/**
+ * Type guard to validate OfflineCapabilityResponse
+ * @param data - Unknown data to validate
+ * @returns True if data is a valid OfflineCapabilityResponse
+ */
+export const isOfflineCapabilityResponse = (data: unknown): data is OfflineCapabilityResponse => {
+    if (!data || typeof data !== 'object') return false;
+    const response = data as Record<string, unknown>;
+
+    if (!response['cacheStatus'] || typeof response['cacheStatus'] !== 'object') return false;
+    const cacheStatus = response['cacheStatus'] as Record<string, unknown>;
+
+    return (
+        typeof response['isOffline'] === 'boolean' &&
+        typeof response['canFunctionOffline'] === 'boolean' &&
+        typeof cacheStatus['staticAssets'] === 'number' &&
+        typeof cacheStatus['problems'] === 'number' &&
+        typeof cacheStatus['apiResponses'] === 'number' &&
+        typeof cacheStatus['bundleFiles'] === 'number'
+    );
+};
+
+/**
+ * Union type for all service worker responses
+ */
+export type SWResponse =
+    | SyncStatusResponse
+    | ForceSyncResponse
+    | BundleStatusResponse
+    | OfflineReloadStatusResponse
+    | OfflineCapabilityResponse;
+
+/**
+ * Central type guard to validate any service worker response
+ * @param data - Unknown data to validate
+ * @returns True if data is a valid SWResponse
+ */
+export const isSWResponse = (data: unknown): data is SWResponse => {
+    return (
+        isSyncStatusResponse(data) ||
+        isForceSyncResponse(data) ||
+        isBundleStatusResponse(data) ||
+        isOfflineReloadStatusResponse(data) ||
+        isOfflineCapabilityResponse(data)
+    );
+};
