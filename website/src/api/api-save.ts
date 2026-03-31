@@ -4,10 +4,28 @@
 import { UserData, Problem } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-import { renderers } from '../renderers';
-import { ui } from '../ui/ui';
 import { validateResponseOrigin, isBrowserOnline, getErrorMessage } from './api-utils';
 import { getCachedCsrfToken } from '../app';
+import { showToast } from '../utils';
+
+// Event callbacks for UI updates (prevents circular dependency with renderers/ui)
+let onStatsUpdate: (() => void) | null = null;
+let onSaveError: ((message: string) => void) | null = null;
+let onViewUpdate: (() => void) | null = null;
+
+/**
+ * Register callbacks for UI updates
+ * This breaks the circular dependency between api-save and renderers/ui
+ */
+export const registerSaveCallbacks = (callbacks: {
+    onStatsUpdate?: () => void;
+    onSaveError?: (message: string) => void;
+    onViewUpdate?: () => void;
+}): void => {
+    if (callbacks.onStatsUpdate) onStatsUpdate = callbacks.onStatsUpdate;
+    if (callbacks.onSaveError) onSaveError = callbacks.onSaveError;
+    if (callbacks.onViewUpdate) onViewUpdate = callbacks.onViewUpdate;
+};
 
 /**
  * Debounce configuration for remote sync
@@ -89,6 +107,7 @@ const saveRemotelyWithData = async (dataToSave: UserData | null): Promise<void> 
 
 /**
  * Handles the save operation with error handling and UI updates.
+ * Uses callbacks to prevent circular dependency with renderers/ui
  */
 const handleSaveOperation = async (
     saveFn: () => Promise<void>,
@@ -96,7 +115,8 @@ const handleSaveOperation = async (
 ): Promise<void> => {
     try {
         await saveFn();
-        renderers.updateStats();
+        // Use callback instead of direct renderers import (prevents circular dependency)
+        onStatsUpdate?.();
     } catch (e) {
         if (isOfflineMode) throw e;
 
@@ -107,7 +127,9 @@ const handleSaveOperation = async (
                   ? e.message
                   : String(e);
 
-        ui.showAlert(`Failed to save data: ${errorMessage}`);
+        // Use callback instead of direct ui import (prevents circular dependency)
+        onSaveError?.(`Failed to save data: ${errorMessage}`);
+        showToast(`Failed to save data: ${errorMessage}`, 'error');
         throw e;
     }
 };
@@ -281,16 +303,12 @@ export const saveDeletedId = async (id: string): Promise<void> => {
         state.problems.delete(id);
         state.deletedProblemIds.add(id);
         await _performSave();
-        // Check if we're in algorithms view and render appropriately
-        if (state.ui.activeAlgorithmCategoryId) {
-            const { renderers: renderersModule } = await import('../renderers');
-            await renderersModule.renderAlgorithmsView(state.ui.activeAlgorithmCategoryId);
-        } else {
-            renderers.renderMainView(state.ui.activeTopicId);
-        }
+        // Use callback instead of direct renderers import (prevents circular dependency)
+        onViewUpdate?.();
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
-        ui.showAlert(`Failed to delete problem: ${message}`);
+        onSaveError?.(`Failed to delete problem: ${message}`);
+        showToast(`Failed to delete problem: ${message}`, 'error');
         if (problem) {
             state.problems.set(id, problem);
             state.deletedProblemIds.delete(id);

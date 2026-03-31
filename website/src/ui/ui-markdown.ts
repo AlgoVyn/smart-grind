@@ -1,94 +1,16 @@
 // --- MARKDOWN RENDERING AND SOLUTION MODAL ---
-// Includes pattern to markdown file mapping functionality
+// Markdown rendering, syntax highlighting, and solution modal functionality
 
 import { getBaseUrl, showToast } from '../utils';
 import { data } from '../data';
+import { patterns, sqlSolutions } from './pattern-solutions';
 import DOMPurify from 'dompurify';
 
-// --- PATTERN TO MARKDOWN FILE MAPPING SYSTEM ---
-// Handles naming inconsistencies between pattern names and solution filenames
+// Re-export pattern functions for backward compatibility
+export { patterns, sqlSolutions };
 
+// --- TABLE OF CONTENTS ---
 let currentTOC: { id: string; text: string; level: number }[] = [];
-
-export const patterns = {
-    // Function to get the correct filename for a pattern
-    getPatternFilename(patternName: string) {
-        // Use the automatic conversion for all patterns
-        return this._convertPatternNameToFilename(patternName);
-    },
-
-    // Internal function for automatic pattern name to filename conversion
-    _convertPatternNameToFilename(patternName: string) {
-        // Convert to lowercase and replace special characters with hyphens
-        let cleaned = patternName
-            .toLowerCase()
-            .replace(/[\s/()&`'+-]+/g, '-') // Replace spaces and special chars with hyphens
-            .replace(/-+/g, '-') // Collapse multiple hyphens
-            .replace(/^-+|-+$/g, ''); // Trim hyphens from start/end
-
-        // Remove common suffix patterns that don't add value
-        cleaned = cleaned
-            .replace(/-pattern$/, '')
-            .replace(/-algorithm$/, '')
-            .replace(/-approach$/, '')
-            .replace(/-method$/, '')
-            .replace(/-technique$/, '')
-            .replace(/-style$/, '');
-
-        return cleaned;
-    },
-
-    // Function to check if a pattern solution file exists
-    async checkPatternSolutionExists(patternName: string) {
-        const filename = this.getPatternFilename(patternName);
-        const solutionFile = `${getBaseUrl()}patterns/${filename}.md`;
-
-        try {
-            const response = await fetch(solutionFile, { method: 'HEAD' });
-            return response.ok;
-        } catch (_error) {
-            return false;
-        }
-    },
-};
-
-export const sqlSolutions = {
-    // Function to get the correct filename for a SQL pattern
-    getSQLFilename(patternName: string) {
-        return this._convertPatternNameToFilename(patternName);
-    },
-
-    // Internal function for automatic pattern name to filename conversion
-    _convertPatternNameToFilename(patternName: string) {
-        // Convert to lowercase and replace special characters with hyphens
-        let cleaned = patternName
-            .toLowerCase()
-            .replace(/[\s/()&`'+-]+/g, '-') // Replace spaces and special chars with hyphens
-            .replace(/-+/g, '-') // Collapse multiple hyphens
-            .replace(/^-+|-+$/g, ''); // Trim hyphens from start/end
-
-        // Remove common suffix patterns that don't add value
-        cleaned = cleaned
-            .replace(/-pattern$/, '')
-            .replace(/-sql$/, '')
-            .replace(/-solution$/, '');
-
-        return cleaned;
-    },
-
-    // Function to check if a SQL solution file exists
-    async checkSQLSolutionExists(patternName: string) {
-        const filename = this.getSQLFilename(patternName);
-        const solutionFile = `${getBaseUrl()}sql/patterns/${filename}.md`;
-
-        try {
-            const response = await fetch(solutionFile, { method: 'HEAD' });
-            return response.ok;
-        } catch (_error) {
-            return false;
-        }
-    },
-};
 
 // Helper to configure markdown renderer
 export const _configureMarkdownRenderer = () => {
