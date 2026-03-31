@@ -51,6 +51,28 @@ const state: SWState = {
 const listeners: Map<string, Set<(_: unknown) => void>> = new Map();
 
 /**
+ * Show update notification toast instead of auto-reloading
+ * This prevents data loss by letting the user choose when to update
+ */
+function showUpdateNotification(): void {
+    // Create a custom event to show a toast via the UI
+    emit('showUpdateToast', {
+        message: 'SmartGrind is ready for offline use. Reload to enable?',
+        action: 'Reload',
+        onAction: () => {
+            window.location.reload();
+        },
+        duration: 0, // Don't auto-dismiss
+    });
+    
+    // Also emit a standard update available event for backwards compatibility
+    emit('updateAvailable', { 
+        worker: navigator.serviceWorker.controller,
+        reason: 'first-install' 
+    });
+}
+
+/**
  * Register the service worker with retry logic
  */
 export async function registerServiceWorker(attempt: number = 1): Promise<boolean> {
@@ -100,10 +122,11 @@ export async function registerServiceWorker(attempt: number = 1): Promise<boolea
             emit('activated', null);
 
             // If this is the first install and we're not controlled yet,
-            // a reload might be necessary to start intercepting requests immediately.
+            // show a toast notification instead of auto-reloading to prevent data loss
             if (!sessionStorage.getItem('sw-first-install-reloaded')) {
                 sessionStorage.setItem('sw-first-install-reloaded', 'true');
-                window.location.reload();
+                // Show update notification instead of auto-reload
+                showUpdateNotification();
             }
         });
 
