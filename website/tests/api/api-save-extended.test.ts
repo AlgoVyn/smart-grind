@@ -168,12 +168,15 @@ describe('API Save Module - Extended', () => {
             // Set up a pending sync
             await saveProblem();
             
+            // Advance timers to handle rate limiting
+            jest.advanceTimersByTime(6000);
+            
             // Flush before debounce completes
             await flushPendingSync();
 
             // Timer should be cleared
             expect(state.saveToStorageDebounced).toHaveBeenCalled();
-        });
+        }, 10000);
 
         it('should handle flush with no pending data', async () => {
             // Should complete without errors
@@ -197,9 +200,12 @@ describe('API Save Module - Extended', () => {
             // Trigger a save to queue data
             await saveProblem();
             
+            // Advance timers to handle rate limiting
+            jest.advanceTimersByTime(6000);
+            
             // Flush pending sync
             await flushPendingSync();
-        });
+        }, 10000);
     });
 
     describe('sendBeacon on beforeunload', () => {

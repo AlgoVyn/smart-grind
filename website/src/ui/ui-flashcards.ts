@@ -22,16 +22,51 @@ let keyboardHandler: ((_e: KeyboardEvent) => void) | null = null;
 // Debounce timer for saving progress
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
-// Cache for loaded markdown content (with size limit)
+// Cache for loaded markdown content (LRU cache with size limit)
 const MAX_CACHE_SIZE = 50;
 const markdownContentCache = new Map<string, { front: string; back: string }>();
+
+/**
+ * Get item from cache with LRU tracking
+ * Moves accessed item to end (most recently used)
+ * @internal Exported for testing
+ */
+export const getFromCache = (key: string): { front: string; back: string } | undefined => {
+    const value = markdownContentCache.get(key);
+    if (value !== undefined) {
+        // Move to end (most recently used)
+        markdownContentCache.delete(key);
+        markdownContentCache.set(key, value);
+    }
+    return value;
+};
+
+/**
+ * Set item in cache with LRU eviction
+ * Evicts least recently used item when cache is full
+ * @internal Exported for testing
+ */
+export const setInCache = (key: string, value: { front: string; back: string }): void => {
+    // If key exists, delete it first (to update insertion order)
+    if (markdownContentCache.has(key)) {
+        markdownContentCache.delete(key);
+    }
+    
+    // Evict oldest (least recently used) if cache is full
+    if (markdownContentCache.size >= MAX_CACHE_SIZE) {
+        const firstKey = markdownContentCache.keys().next().value;
+        if (firstKey) markdownContentCache.delete(firstKey);
+    }
+    
+    markdownContentCache.set(key, value);
+};
 
 // Export internal functions for testing
 export const loadMarkdownContent = async (
     cardId: string
 ): Promise<{ front: string; back: string }> => {
-    // Check memory cache first
-    const cached = markdownContentCache.get(cardId);
+    // Check memory cache first (with LRU tracking)
+    const cached = getFromCache(cardId);
     if (cached) return cached;
 
     // Try multiple possible URLs - the bundle stores under /smartgrind/flashcards/
@@ -119,14 +154,9 @@ export const loadMarkdownContent = async (
             }
         }
 
-        // Evict oldest entries if cache is full
-        if (markdownContentCache.size >= MAX_CACHE_SIZE) {
-            const firstKey = markdownContentCache.keys().next().value;
-            if (firstKey) markdownContentCache.delete(firstKey);
-        }
-
+        // Store in cache with LRU eviction
         const content = { front, back };
-        markdownContentCache.set(cardId, content);
+        setInCache(cardId, content);
         return content;
     } catch (error) {
         console.error(`Error loading flashcard content for ${cardId}:`, error);

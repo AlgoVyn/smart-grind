@@ -272,11 +272,45 @@ export const _validateInputs = (
 /**
  * Generates a unique problem ID using timestamp and random component
  * Format: custom-{timestamp}-{random} to avoid collisions
+ * This prevents conflicts with LeetCode problem IDs which are kebab-case strings
  */
 const generateProblemId = (): string => {
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 11);
     return `custom-${timestamp}-${random}`;
+};
+
+/**
+ * Check if a problem ID already exists (either in state or topicsData)
+ * This prevents accidental overwrites of existing problems
+ */
+const checkProblemIdExists = (id: string): boolean => {
+    // Check in current state
+    if (state.problems.has(id)) {
+        return true;
+    }
+    
+    // Check in topicsData (LeetCode problems)
+    for (const topic of data.topicsData) {
+        // Skip if topic has no patterns (handles test mocks)
+        if (!topic.patterns || !Array.isArray(topic.patterns)) {
+            continue;
+        }
+        for (const pattern of topic.patterns) {
+            // Skip if pattern has no problems
+            if (!pattern.problems || !Array.isArray(pattern.problems)) {
+                continue;
+            }
+            for (const prob of pattern.problems) {
+                const probId = typeof prob === 'string' ? prob : prob.id;
+                if (probId === id) {
+                    return true;
+                }
+            }
+        }
+    }
+    
+    return false;
 };
 
 export const _createNewProblem = (
@@ -309,7 +343,22 @@ export const saveNewProblem = async () => {
     const inputs = _getSanitizedInputs();
     if (!_validateInputs(inputs)) return;
 
-    const newProb = _createNewProblem(inputs.name, inputs.url, inputs.category, inputs.pattern);
+    // Generate unique ID with collision check (retry up to 5 times)
+    let newProb = _createNewProblem(inputs.name, inputs.url, inputs.category, inputs.pattern);
+    let attempts = 0;
+    const MAX_ATTEMPTS = 5;
+    
+    while (checkProblemIdExists(newProb.id) && attempts < MAX_ATTEMPTS) {
+        console.warn(`[Problem ID] Collision detected for ${newProb.id}, regenerating...`);
+        newProb = _createNewProblem(inputs.name, inputs.url, inputs.category, inputs.pattern);
+        attempts++;
+    }
+    
+    if (checkProblemIdExists(newProb.id)) {
+        showAlert('Failed to generate unique problem ID. Please try again.');
+        return;
+    }
+
     state.problems.set(newProb.id, newProb);
     api.mergeStructure();
     await api.saveProblem(newProb);

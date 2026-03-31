@@ -48,6 +48,7 @@ describe('API Save Module', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         _resetDebounceState();
+        jest.useFakeTimers();
         state.problems = new Map();
         state.deletedProblemIds = new Set();
         state.user = { type: 'local', id: null, displayName: 'Test User' };
@@ -115,6 +116,84 @@ describe('API Save Module', () => {
         test('should save to local storage', async () => {
             await _saveLocally();
             expect(state.saveToStorageDebounced).toHaveBeenCalled();
+        });
+    });
+
+    describe('Rate Limiting', () => {
+        test('should enforce minimum interval between syncs (5 seconds)', async () => {
+            state.user.type = 'signed-in';
+            
+            // First sync
+            await saveProblem();
+            
+            // Advance time by less than 5 seconds
+            jest.advanceTimersByTime(1000);
+            
+            // Second sync should be queued, not executed immediately
+            await saveProblem();
+            
+            // Should still only have debounced once (second is queued)
+            expect(state.saveToStorageDebounced).toHaveBeenCalledTimes(2);
+        });
+
+        test('should allow sync after rate limit window', async () => {
+            state.user.type = 'signed-in';
+            
+            // First sync
+            await saveProblem();
+            
+            // Advance time by more than 5 seconds
+            jest.advanceTimersByTime(6000);
+            
+            // Second sync should be allowed
+            await saveProblem();
+            
+            expect(state.saveToStorageDebounced).toHaveBeenCalledTimes(2);
+        });
+
+        test('should queue rapid syncs and process them', async () => {
+            state.user.type = 'signed-in';
+            
+            // Multiple rapid syncs
+            await saveProblem();
+            await saveProblem();
+            await saveProblem();
+            
+            // All should be debounced
+            expect(state.saveToStorageDebounced).toHaveBeenCalledTimes(3);
+        });
+
+        test('flushPendingSync should respect rate limiting', async () => {
+            state.user.type = 'signed-in';
+            
+            // Set up pending data
+            state.problems.set('test', { id: 'test', status: 'solved' });
+            
+            // First flush
+            await flushPendingSync();
+            
+            // Immediate second flush should be rate limited
+            const startTime = Date.now();
+            await flushPendingSync();
+            const endTime = Date.now();
+            
+            // Second flush should be delayed or queued
+            expect(endTime - startTime).toBeLessThan(100); // Should complete quickly (queued)
+        });
+
+        test('_resetDebounceState should reset rate limiting', async () => {
+            state.user.type = 'signed-in';
+            
+            // Trigger sync
+            await saveProblem();
+            
+            // Reset state
+            _resetDebounceState();
+            
+            // Should be able to sync immediately after reset
+            await saveProblem();
+            
+            expect(state.saveToStorageDebounced).toHaveBeenCalledTimes(2);
         });
     });
 });

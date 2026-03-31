@@ -18,6 +18,21 @@ let syncDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingSyncData: UserData | null = null;
 
 /**
+ * Rate limiting configuration
+ * Prevents hammering the server with too many sync requests
+ */
+const RATE_LIMIT = {
+    MIN_INTERVAL_MS: 5000, // Minimum 5 seconds between syncs
+    MAX_RETRIES: 3,
+    RETRY_DELAY_MS: 1000,
+};
+
+// Track last sync time for rate limiting
+let lastSyncTime: number = 0;
+let rateLimitQueue: (() => void)[] = [];
+let isRateLimitProcessing: boolean = false;
+
+/**
  * Prepares the current problem data for saving by serializing the problems map and deleted IDs.
  */
 const prepareDataForSave = (): UserData => ({
@@ -98,20 +113,124 @@ const handleSaveOperation = async (
 };
 
 /**
+ * Check if we can execute a sync based on rate limiting
+ * @returns true if sync is allowed, false if rate limited
+ */
+const checkRateLimit = (): boolean => {
+    const now = Date.now();
+    const timeSinceLastSync = now - lastSyncTime;
+    
+    if (timeSinceLastSync < RATE_LIMIT.MIN_INTERVAL_MS) {
+        // Rate limited - queue for later
+        return false;
+    }
+    
+    return true;
+};
+
+/**
+ * Process queued sync operations after rate limit window
+ */
+const processRateLimitQueue = async (): Promise<void> => {
+    if (isRateLimitProcessing || rateLimitQueue.length === 0) {
+        return;
+    }
+    
+    isRateLimitProcessing = true;
+    
+    // Wait for rate limit window
+    const timeSinceLastSync = Date.now() - lastSyncTime;
+    const waitTime = Math.max(0, RATE_LIMIT.MIN_INTERVAL_MS - timeSinceLastSync);
+    
+    if (waitTime > 0) {
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
+    // Process all queued operations
+    while (rateLimitQueue.length > 0) {
+        const nextSync = rateLimitQueue.shift();
+        if (nextSync) {
+            try {
+                await nextSync();
+            } catch (error) {
+                console.error('[Rate Limit] Queued sync failed:', error);
+            }
+        }
+    }
+    
+    isRateLimitProcessing = false;
+};
+
+/**
  * Executes the actual background sync after debounce period.
+ * Includes rate limiting to prevent server hammering.
  */
 const executeBackgroundSync = async (): Promise<void> => {
     syncDebounceTimer = null;
     const dataToSync = pendingSyncData;
     pendingSyncData = null;
 
+    // Check rate limit
+    if (!checkRateLimit()) {
+        // Queue the sync for later
+        rateLimitQueue.push(async () => {
+            await executeActualSync(dataToSync);
+        });
+        
+        // Start processing queue if not already
+        processRateLimitQueue();
+        return;
+    }
+
+    await executeActualSync(dataToSync);
+};
+
+/**
+ * Retry configuration with exponential backoff
+ */
+const RETRY_CONFIG = {
+    MAX_ATTEMPTS: 3,
+    BASE_DELAY_MS: 1000,    // Start with 1 second
+    MAX_DELAY_MS: 30000,   // Cap at 30 seconds
+    JITTER_FACTOR: 0.3,    // Add up to 30% jitter
+};
+
+/**
+ * Calculate delay with exponential backoff and jitter
+ */
+const calculateRetryDelay = (attempt: number): number => {
+    // Exponential backoff: 1s, 2s, 4s, 8s, etc.
+    const exponentialDelay = RETRY_CONFIG.BASE_DELAY_MS * Math.pow(2, attempt - 1);
+    const cappedDelay = Math.min(exponentialDelay, RETRY_CONFIG.MAX_DELAY_MS);
+    
+    // Add jitter (random factor to prevent thundering herd)
+    const jitter = cappedDelay * RETRY_CONFIG.JITTER_FACTOR * (Math.random() - 0.5);
+    return Math.max(100, Math.floor(cappedDelay + jitter)); // Minimum 100ms
+};
+
+/**
+ * Performs the actual sync operation (without rate limiting check)
+ * Includes retry logic with exponential backoff for failed attempts
+ */
+const executeActualSync = async (dataToSync: UserData | null, attempt: number = 1): Promise<void> => {
+    // Update last sync time
+    lastSyncTime = Date.now();
+
     try {
         if (isBrowserOnline()) {
             try {
                 await saveRemotelyWithData(dataToSync);
                 return;
-            } catch (_error) {
-                // Direct remote save failed, falling back to SW queue
+            } catch (error) {
+                // Direct remote save failed, retry with backoff if under max attempts
+                if (attempt < RETRY_CONFIG.MAX_ATTEMPTS && isBrowserOnline()) {
+                    const delay = calculateRetryDelay(attempt);
+                    console.log(`[Sync] Attempt ${attempt} failed, retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return executeActualSync(dataToSync, attempt + 1);
+                }
+                // Max retries reached, fall through to SW queue
+                console.warn('[Sync] Max retries reached, falling back to SW queue');
             }
         }
 
@@ -123,8 +242,9 @@ const executeBackgroundSync = async (): Promise<void> => {
         });
 
         if (isBrowserOnline()) await forceSync();
-    } catch (_error) {
-        // Background sync trigger failed
+    } catch (error) {
+        console.error('[Sync] Background sync trigger failed:', error);
+        // Don't throw - let the operation queue handle retries via SW
     }
 };
 
@@ -188,6 +308,7 @@ export const saveData = async (): Promise<void> => {
 
 /**
  * Forces an immediate sync, bypassing the debounce timer.
+ * Still respects rate limiting to prevent server hammering.
  */
 export const flushPendingSync = async (): Promise<void> => {
     if (syncDebounceTimer) {
@@ -199,24 +320,21 @@ export const flushPendingSync = async (): Promise<void> => {
         const dataToSync = pendingSyncData;
         pendingSyncData = null;
 
-        try {
-            if (isBrowserOnline()) {
-                await saveRemotelyWithData(dataToSync);
-            }
-        } catch (_error) {
-            const { queueOperation, forceSync } = await import('../api');
-            await queueOperation({
-                type: 'UPDATE_SETTINGS',
-                data: dataToSync,
-                timestamp: Date.now(),
+        // Check rate limit even for forced syncs
+        if (!checkRateLimit()) {
+            rateLimitQueue.push(async () => {
+                await executeActualSync(dataToSync);
             });
-            if (isBrowserOnline()) await forceSync();
+            await processRateLimitQueue();
+            return;
         }
+
+        await executeActualSync(dataToSync);
     }
 };
 
 /**
- * Resets the debounce state. Used for testing.
+ * Resets the debounce and rate limiting state. Used for testing.
  */
 export const _resetDebounceState = (): void => {
     if (syncDebounceTimer) {
@@ -224,6 +342,9 @@ export const _resetDebounceState = (): void => {
         syncDebounceTimer = null;
     }
     pendingSyncData = null;
+    lastSyncTime = 0;
+    rateLimitQueue = [];
+    isRateLimitProcessing = false;
 };
 
 /**
