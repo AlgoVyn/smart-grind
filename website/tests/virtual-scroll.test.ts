@@ -323,3 +323,182 @@ describe('Virtual Scrolling', () => {
         });
     });
 });
+
+    describe('ResizeObserver loop prevention', () => {
+        let mockContainer: HTMLElement;
+        let mockScrollContainer: HTMLElement;
+        let renderCallback: jest.Mock;
+        let scroller: VirtualScroller;
+        let rafCallbacks: Array<() => void> = [];
+        let rafMock: jest.SpyInstance;
+
+        beforeEach(() => {
+            mockContainer = document.createElement('div');
+            mockContainer.style.position = 'relative';
+            mockContainer.style.height = '500px';
+            
+            mockScrollContainer = document.createElement('div');
+            mockScrollContainer.style.overflow = 'auto';
+            mockScrollContainer.style.height = '500px';
+            mockScrollContainer.appendChild(mockContainer);
+
+            Object.defineProperty(mockScrollContainer, 'scrollTop', {
+                writable: true,
+                value: 0,
+            });
+
+            Object.defineProperty(mockScrollContainer, 'clientHeight', {
+                writable: true,
+                value: 500,
+            });
+
+            renderCallback = jest.fn((_index: number, element: HTMLElement) => {
+                element.textContent = `Item ${_index}`;
+            });
+
+            // Mock requestAnimationFrame to capture callbacks
+            rafCallbacks = [];
+            rafMock = jest.spyOn(window, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
+                rafCallbacks.push(callback as () => void);
+                return rafCallbacks.length;
+            });
+
+            scroller = new VirtualScroller(
+                100,
+                { itemHeight: 100, overscan: 2, containerHeight: 500 },
+                renderCallback
+            );
+        });
+
+        afterEach(() => {
+            if (scroller) {
+                scroller.detach();
+            }
+            rafMock.mockRestore();
+        });
+
+        it('should have isResizing flag initialized to false', () => {
+            expect(scroller['isResizing']).toBe(false);
+        });
+
+        it('should set isResizing to true during resize callback', () => {
+            scroller.attach(mockContainer, mockScrollContainer);
+            
+            const resizeObserver = scroller['resizeObserver'];
+            if (resizeObserver) {
+                const entries = [{ contentRect: { height: 600 } } as ResizeObserverEntry];
+                
+                // Trigger resize - should queue RAF but isResizing is set immediately
+                resizeObserver['callback'](entries);
+                
+                // After triggering callback, RAF should be queued
+                expect(rafCallbacks.length).toBeGreaterThan(0);
+                expect(scroller['isResizing']).toBe(true);
+            }
+        });
+
+        it('should prevent recursive calls when isResizing is true', () => {
+            scroller.attach(mockContainer, mockScrollContainer);
+            
+            const resizeObserver = scroller['resizeObserver'];
+            if (resizeObserver) {
+                const entries = [{ contentRect: { height: 600 } } as ResizeObserverEntry];
+                
+                // First call sets isResizing = true
+                resizeObserver['callback'](entries);
+                expect(scroller['isResizing']).toBe(true);
+                const rafCountAfterFirst = rafCallbacks.length;
+                
+                // Second call should be ignored
+                resizeObserver['callback'](entries);
+                
+                // RAF count should not increase for recursive call
+                expect(rafCallbacks.length).toBe(rafCountAfterFirst);
+            }
+        });
+
+        it('should reset isResizing flag after RAF callback completes', () => {
+            scroller.attach(mockContainer, mockScrollContainer);
+            
+            const resizeObserver = scroller['resizeObserver'];
+            if (resizeObserver) {
+                const entries = [{ contentRect: { height: 600 } } as ResizeObserverEntry];
+                
+                // Trigger resize
+                resizeObserver['callback'](entries);
+                expect(scroller['isResizing']).toBe(true);
+                
+                // Execute the RAF callback
+                const lastCallback = rafCallbacks[rafCallbacks.length - 1];
+                lastCallback();
+                
+                // After execution, isResizing should be reset to false
+                expect(scroller['isResizing']).toBe(false);
+            }
+        });
+
+        it('should handle errors and reset isResizing flag', () => {
+            // Create a scroller with a render callback that works initially but throws on resize
+            let shouldThrow = false;
+            const conditionalRenderCallback = jest.fn((_index: number, element: HTMLElement) => {
+                if (shouldThrow) {
+                    throw new Error('Render error');
+                }
+                element.textContent = `Item ${_index}`;
+            });
+
+            const errorScroller = new VirtualScroller(
+                100,
+                { itemHeight: 100, overscan: 2, containerHeight: 500 },
+                conditionalRenderCallback
+            );
+
+            // Clear RAF callbacks for this test
+            rafCallbacks = [];
+            
+            errorScroller.attach(mockContainer, mockScrollContainer);
+            
+            const resizeObserver = errorScroller['resizeObserver'];
+            if (resizeObserver) {
+                // Now enable throwing for the resize-triggered render
+                shouldThrow = true;
+                
+                const entries = [{ contentRect: { height: 600 } } as ResizeObserverEntry];
+                
+                // Trigger resize
+                resizeObserver['callback'](entries);
+                expect(errorScroller['isResizing']).toBe(true);
+                
+                // Execute RAF callback - should throw but finally should reset flag
+                const lastCallback = rafCallbacks[rafCallbacks.length - 1];
+                expect(() => lastCallback()).toThrow('Render error');
+                
+                // Even after error, isResizing should be reset to false due to finally block
+                expect(errorScroller['isResizing']).toBe(false);
+            }
+
+            errorScroller.detach();
+        });
+
+        it('should allow new resize after previous completes', () => {
+            scroller.attach(mockContainer, mockScrollContainer);
+            
+            const resizeObserver = scroller['resizeObserver'];
+            if (resizeObserver) {
+                const entries = [{ contentRect: { height: 600 } } as ResizeObserverEntry];
+                
+                // First resize
+                resizeObserver['callback'](entries);
+                const firstCallback = rafCallbacks[rafCallbacks.length - 1];
+                
+                // Complete first resize
+                firstCallback();
+                expect(scroller['isResizing']).toBe(false);
+                
+                // Second resize should work
+                resizeObserver['callback'](entries);
+                expect(scroller['isResizing']).toBe(true);
+                expect(rafCallbacks.length).toBeGreaterThanOrEqual(2);
+            }
+        });
+    });

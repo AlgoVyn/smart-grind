@@ -36,6 +36,7 @@ export class VirtualScroller {
     };
     private rafId: number | null = null;
     private resizeObserver: ResizeObserver | null = null;
+    private isResizing = false; // Flag to prevent recursive ResizeObserver loops
 
     constructor(
         totalItems: number,
@@ -67,11 +68,21 @@ export class VirtualScroller {
         // Set up resize observer for container
         if ('ResizeObserver' in window) {
             this.resizeObserver = new ResizeObserver((entries) => {
-                for (const entry of entries) {
-                    this.config.containerHeight = entry.contentRect.height;
-                    this.updateState();
-                    this.render();
-                }
+                // Prevent recursive ResizeObserver loops
+                if (this.isResizing) return;
+                this.isResizing = true;
+
+                requestAnimationFrame(() => {
+                    try {
+                        for (const entry of entries) {
+                            this.config.containerHeight = entry.contentRect.height;
+                            this.updateState();
+                            this.render();
+                        }
+                    } finally {
+                        this.isResizing = false;
+                    }
+                });
             });
             this.resizeObserver.observe(this.container);
         }
