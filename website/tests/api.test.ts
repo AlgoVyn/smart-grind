@@ -7,6 +7,7 @@ import { updateUrlParameter, showToast } from '../src/utils';
 
 // Import the api-save module
 import * as apiSave from '../src/api/api-save';
+import { registerSaveCallbacks } from '../src/api/api-save';
 
 // Mock the ui-modals module (since api-delete imports directly from it)
 jest.mock('../src/ui/ui-modals', () => ({
@@ -402,15 +403,19 @@ describe('SmartGrind API Module', () => {
     describe('_performSave', () => {
         test('should call _saveLocally for local user', async () => {
             state.user.type = 'local';
+            const onStatsUpdateMock = jest.fn();
+            registerSaveCallbacks({ onStatsUpdate: onStatsUpdateMock });
 
             await apiSave._performSave();
 
             expect(mockSaveToStorage).toHaveBeenCalled();
-            expect(mockUpdateStats).toHaveBeenCalled();
+            expect(onStatsUpdateMock).toHaveBeenCalled();
         });
 
         test('should save locally and trigger background sync for signed-in user', async () => {
             state.user.type = 'signed-in';
+            const onStatsUpdateMock = jest.fn();
+            registerSaveCallbacks({ onStatsUpdate: onStatsUpdateMock });
 
             // Mock the dynamic import of api module
             jest.mock('../src/api', () => ({
@@ -422,7 +427,7 @@ describe('SmartGrind API Module', () => {
 
             // Should save locally first
             expect(mockSaveToStorage).toHaveBeenCalled();
-            expect(mockUpdateStats).toHaveBeenCalled();
+            expect(onStatsUpdateMock).toHaveBeenCalled();
         });
 
         test('should handle background sync trigger failure gracefully', async () => {
@@ -483,11 +488,13 @@ describe('SmartGrind API Module', () => {
             const _performSaveSpy = jest
                 .spyOn(apiSave, '_performSave')
                 .mockRejectedValue(new Error('Save failed'));
+            const onSaveErrorMock = jest.fn();
+            registerSaveCallbacks({ onSaveError: onSaveErrorMock });
 
             await expect(api.saveDeletedId('1')).rejects.toThrow('Save failed');
 
             expect(state.problems.has('1')).toBe(true);
-            expect(mockShowAlert).toHaveBeenCalledWith('Failed to delete problem: Save failed');
+            expect(onSaveErrorMock).toHaveBeenCalledWith('Failed to delete problem: Save failed');
             _performSaveSpy.mockRestore();
         });
     });

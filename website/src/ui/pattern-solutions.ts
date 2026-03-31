@@ -6,8 +6,9 @@ import { getBaseUrl } from '../utils';
 /**
  * Convert pattern name to filename
  * Handles special characters and common suffixes
+ * @internal Exported for testing
  */
-const convertPatternNameToFilename = (patternName: string): string => {
+export const _convertPatternNameToFilename = (patternName: string): string => {
     let cleaned = patternName
         .toLowerCase()
         .replace(/[\s/()&`'+-]+/g, '-') // Replace spaces and special chars with hyphens
@@ -34,8 +35,14 @@ export const patterns = {
      * Get the correct filename for a pattern
      */
     getPatternFilename(patternName: string): string {
-        return convertPatternNameToFilename(patternName);
+        return _convertPatternNameToFilename(patternName);
     },
+
+    /**
+     * Internal conversion function (exposed for testing)
+     * @internal
+     */
+    _convertPatternNameToFilename,
 
     /**
      * Check if a pattern solution file exists

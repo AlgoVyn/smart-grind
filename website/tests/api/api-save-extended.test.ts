@@ -48,6 +48,7 @@ import {
     _resetDebounceState,
     _saveLocally,
     _saveRemotely,
+    registerSaveCallbacks,
     _triggerBackgroundSync,
 } from '../../src/api/api-save';
 import { state } from '../../src/state';
@@ -268,27 +269,38 @@ describe('API Save Module - Extended', () => {
     });
 
     describe('saveDeletedId - Algorithm View', () => {
-        it('should render algorithms view after deletion when in algorithm mode', async () => {
-            const { renderers } = jest.requireMock('../../src/renderers');
-            renderers.renderAlgorithmsView = jest.fn().mockResolvedValue(undefined);
+        it('should trigger view update callback after deletion', async () => {
+            const onViewUpdateMock = jest.fn();
+            
+            // Register the callback before the operation
+            registerSaveCallbacks({
+                onViewUpdate: onViewUpdateMock
+            });
 
             state.problems.set('algo-1', { id: 'algo-1', status: 'solved' });
             state.ui.activeAlgorithmCategoryId = 'sorting';
 
             await saveDeletedId('algo-1');
 
-            expect(renderers.renderAlgorithmsView).toHaveBeenCalledWith('sorting');
+            // Verify the callback was triggered
+            expect(onViewUpdateMock).toHaveBeenCalled();
         });
 
-        it('should render main view after deletion when not in algorithm mode', async () => {
-            const { renderers } = jest.requireMock('../../src/renderers');
+        it('should trigger view update callback after deletion when not in algorithm mode', async () => {
+            const onViewUpdateMock = jest.fn();
+            
+            // Register the callback before the operation
+            registerSaveCallbacks({
+                onViewUpdate: onViewUpdateMock
+            });
             
             state.problems.set('problem-1', { id: 'problem-1', status: 'solved' });
             state.ui.activeAlgorithmCategoryId = null;
 
             await saveDeletedId('problem-1');
 
-            expect(renderers.renderMainView).toHaveBeenCalled();
+            // Verify the callback was triggered
+            expect(onViewUpdateMock).toHaveBeenCalled();
         });
     });
 

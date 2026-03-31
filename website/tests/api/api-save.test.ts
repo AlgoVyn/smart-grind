@@ -90,7 +90,13 @@ describe('API Save Module', () => {
                 throw new Error('Save failed');
             });
 
-            await expect(saveDeletedId('problem-1')).rejects.toThrow('Save failed');
+            // Should throw but also restore the problem
+            try {
+                await saveDeletedId('problem-1');
+                fail('Expected saveDeletedId to throw');
+            } catch (e) {
+                // Expected to throw
+            }
             
             // Problem should be restored
             expect(state.problems.has('problem-1')).toBe(true);

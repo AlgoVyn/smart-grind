@@ -59,7 +59,8 @@ export const showToast = (msg: string, type: 'success' | 'error' | 'warning' = '
     const span = document.createElement('span');
     span.textContent = msg;
     el.appendChild(span);
-    const toastContainer = state.elements.toastContainer;
+    // Check if state.elements exists and has toastContainer (handles test environment)
+    const toastContainer = state.elements?.toastContainer;
     if (toastContainer) {
         toastContainer.appendChild(el);
         setTimeout(() => {
