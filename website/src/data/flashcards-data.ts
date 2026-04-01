@@ -3661,188 +3661,35 @@ export const FLASH_CARDS_DATA: FlashCard[] = [
         tags: ['xor-trick', 'tactics', 'bit-manipulation'],
     },
     // === ALGORITHMS: ARRAYS & STRINGS ===
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 
     // === ALGORITHMS: LINKED LIST ===
-    
-    
-    
-    
 
     // === ALGORITHMS: TREES & BST ===
-    
-    
-    
-    
-    
-    
-    
 
     // === ALGORITHMS: GRAPHS ===
-    
-    
-    
-    
-    
-    
-    
-    
-    
 
     // === ALGORITHMS: DYNAMIC PROGRAMMING ===
-    
-    
-    
-    
-    
-    
-    
-    
 
     // === ALGORITHMS: GREEDY ===
-    
-    
 
     // === ALGORITHMS: BACKTRACKING ===
-    
-    
 
     // === ALGORITHMS: BIT MANIPULATION ===
-    
-    
+
     // === ALGORITHMS: HEAP ===
-    
 
     // === ALGORITHMS: MATH & NUMBER THEORY ===
-    
-    
-    
-    
 
     // === ALGORITHMS: ADVANCED ===
-    
-    
-    
-    
-    
-    
-    
-    
 
     // === PATTERNS ===
-    
-    
-    
-    
-    
-    
-    
-    
+
     // === NEW ALGORITHMS ===
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     // === NEW PATTERNS ===
-    
-    
-    
-    
-    
 
     // === MISSING ALGORITHMS: ARRAYS & STRINGS ===
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     {
         id: 'algo-sorting-comparison',
         type: 'algorithm',
@@ -3852,57 +3699,10 @@ export const FLASH_CARDS_DATA: FlashCard[] = [
         difficulty: 'medium',
         tags: ['sorting', 'comparison', 'algorithms'],
     },
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 
     // === MISSING PATTERNS ===
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 
     // === SQL FLASHCARDS ===
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 ];
 
 // Helper to get cards by category
