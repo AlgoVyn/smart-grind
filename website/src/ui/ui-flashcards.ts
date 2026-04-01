@@ -1,6 +1,18 @@
 // --- FLASH CARDS UI MODULE ---
 // Handles flash card study sessions and spaced repetition
 
+// SECURITY FIX: Disable PrismJS worker message handler before importing
+// to prevent "[object Object] is not valid JSON" errors when other code
+// posts objects to web workers
+if (typeof window !== 'undefined') {
+    window.Prism = window.Prism || {};
+    window.Prism.disableWorkerMessageHandler = true;
+}
+if (typeof self !== 'undefined') {
+    self.Prism = self.Prism || {};
+    self.Prism.disableWorkerMessageHandler = true;
+}
+
 import DOMPurify from 'dompurify';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-c';

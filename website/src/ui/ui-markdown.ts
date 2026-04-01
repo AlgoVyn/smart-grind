@@ -2,6 +2,18 @@
 // Markdown rendering, syntax highlighting, and solution modal functionality
 // NOW USING BUNDLED NPM PACKAGES for offline support
 
+// SECURITY FIX: Disable PrismJS worker message handler before importing
+// to prevent "[object Object] is not valid JSON" errors when other code
+// posts objects to web workers
+if (typeof window !== 'undefined') {
+    window.Prism = window.Prism || {};
+    window.Prism.disableWorkerMessageHandler = true;
+}
+if (typeof self !== 'undefined') {
+    self.Prism = self.Prism || {};
+    self.Prism.disableWorkerMessageHandler = true;
+}
+
 import { getBaseUrl, showToast } from '../utils';
 import { data } from '../data';
 import { patterns, sqlSolutions } from './pattern-solutions';

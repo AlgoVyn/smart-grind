@@ -75,6 +75,7 @@ interface PrismStatic {
     highlight: (_code: string, _grammar: PrismGrammar, _language: string) => string;
     highlightAllUnder: (_element: Element) => void;
     languages: Record<string, PrismGrammar>;
+    disableWorkerMessageHandler?: boolean;
 }
 
 // Import types from application modules

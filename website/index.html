@@ -53,6 +53,21 @@
     <meta name="theme-color" content="#0085d0">
     <link href="/src/styles.css" rel="stylesheet">
 
+    <!-- PrismJS Worker Fix: Disable worker message handler to prevent JSON parse errors -->
+    <script>
+        // SECURITY FIX: PrismJS has a worker feature that listens to all messages and tries to JSON.parse them.
+        // When other code posts objects (not strings) to workers, this causes "[object Object] is not valid JSON" errors.
+        // This must be set BEFORE any PrismJS code loads.
+        if (typeof window !== 'undefined') {
+            window.Prism = window.Prism || {};
+            window.Prism.disableWorkerMessageHandler = true;
+        }
+        if (typeof self !== 'undefined') {
+            self.Prism = self.Prism || {};
+            self.Prism.disableWorkerMessageHandler = true;
+        }
+    </script>
+
     <!-- Theme Initialization and Trailing Slash Redirect -->
     <script>
         (function () {
