@@ -2,6 +2,15 @@
 // Handles flash card study sessions and spaced repetition
 
 import DOMPurify from 'dompurify';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-c';
+import 'prismjs/components/prism-cpp';
+import 'prismjs/components/prism-java';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-sql';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-typescript';
+import { marked, type Tokens } from 'marked';
 import { state } from '../state';
 import { FlashCard, FlashCardProgress, FlashCardSession } from '../types';
 import {
@@ -172,70 +181,33 @@ const RATING_INTERVALS: Record<string, [number, number]> = {
     easy: [7, 14], // 7-14 days
 };
 
-// Configure markdown renderer with syntax highlighting
-const configureMarkdownRenderer = () => {
-    const marked = (
-        window as unknown as {
-            marked?: {
-                setOptions: (_opts: { breaks: boolean; gfm: boolean; headerIds: boolean }) => void;
-                Renderer: new () => {
-                    code: (
-                        _code: string | { lang: string; text: string },
-                        _language: string
-                    ) => string;
-                };
-            };
-        }
-    ).marked;
-    if (!marked) return null;
-
-    marked.setOptions({
-        breaks: true,
-        gfm: true,
-        headerIds: false,
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const renderer = new (window as any).marked.Renderer();
-
-    // Helper to escape HTML in code blocks
-    const escapeHtml = (unsafe: string) => {
-        return unsafe
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    };
-
-    renderer.code = (code: string | { lang: string; text: string }, language: string) => {
-        // Handle both object and string parameters
-        if (typeof code === 'object') {
-            language = code.lang;
-            code = code.text;
-        }
-
-        const escapedCode = escapeHtml(code);
-        const langClass = language ? `language-${language}` : '';
-
-        return `<pre class="${langClass}"><code class="${langClass}">${escapedCode}</code></pre>`;
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (marked as any).use({ renderer });
-    return marked;
+// Configure markdown renderer with syntax highlighting - runs once at module load
+// Helper to escape HTML in code blocks
+const escapeHtml = (unsafe: string) => {
+    return unsafe
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 };
+
+// Custom renderer for code blocks
+const customRenderer = {
+    code(token: Tokens.Code): string {
+        const { text, lang } = token;
+        const escapedCode = escapeHtml(text);
+        const langClass = lang ? `language-${lang}` : '';
+        return `<pre class="${langClass}"><code class="${langClass}">${escapedCode}</code></pre>`;
+    },
+};
+
+// Configure marked once at module load
+marked.use({ renderer: customRenderer });
 
 // Render markdown content with syntax highlighting
 export const renderMarkdownContent = (markdown: string, element: HTMLElement): void => {
-    const marked = configureMarkdownRenderer();
-    if (!marked) {
-        element.textContent = markdown;
-        return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const html = (marked as any).parse(markdown);
+    const html = marked.parse(markdown) as string;
 
     // Sanitize HTML before inserting
     const sanitizedHtml = DOMPurify.sanitize(html, {
@@ -292,13 +264,7 @@ export const renderMarkdownContent = (markdown: string, element: HTMLElement): v
     element.innerHTML = sanitizedHtml;
 
     // Apply syntax highlighting with Prism
-
-    const prism = (
-        window as unknown as { Prism?: { highlightAllUnder: (_element: HTMLElement) => void } }
-    ).Prism;
-    if (prism) {
-        prism.highlightAllUnder(element);
-    }
+    Prism.highlightAllUnder(element);
 };
 
 // --- DOM ELEMENTS ---
