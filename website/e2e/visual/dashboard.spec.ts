@@ -16,9 +16,16 @@ test.describe('Dashboard Visual Tests', () => {
         await page.waitForSelector('#app-wrapper', { state: 'visible', timeout: 30000 });
         // Wait for loading screen to disappear
         await page.waitForSelector('#loading-screen', { state: 'hidden', timeout: 30000 });
-        // Small delay for any animations to complete
+        
+        // Close signin modal if present
+        const signinModal = page.locator('#signin-modal');
+        if (await signinModal.isVisible().catch(() => false)) {
+            await page.keyboard.press('Escape');
+            await signinModal.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+        }
+        
         // Wait for any animations to complete
-      await page.waitForLoadState('networkidle').catch(() => {});
+        await page.waitForLoadState('networkidle').catch(() => {});
     });
 
     test('dashboard initial state', async ({ page }) => {
@@ -59,8 +66,16 @@ test.describe('Dashboard Responsive Visual Tests', () => {
         await page.goto('/');
         await page.waitForSelector('#app-wrapper', { state: 'visible', timeout: 30000 });
         await page.waitForSelector('#loading-screen', { state: 'hidden', timeout: 30000 });
+        
+        // Close signin modal if present
+        const signinModal = page.locator('#signin-modal');
+        if (await signinModal.isVisible().catch(() => false)) {
+            await page.keyboard.press('Escape');
+            await signinModal.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+        }
+        
         // Wait for layout to settle after viewport change
-      await page.waitForLoadState('domcontentloaded').catch(() => {});
+        await page.waitForLoadState('domcontentloaded').catch(() => {});
       
       await expect(page).toHaveScreenshot('dashboard-mobile.png', {
             fullPage: true,
@@ -75,8 +90,16 @@ test.describe('Dashboard Responsive Visual Tests', () => {
         await page.goto('/');
         await page.waitForSelector('#app-wrapper', { state: 'visible', timeout: 30000 });
         await page.waitForSelector('#loading-screen', { state: 'hidden', timeout: 30000 });
+        
+        // Close signin modal if present
+        const signinModal = page.locator('#signin-modal');
+        if (await signinModal.isVisible().catch(() => false)) {
+            await page.keyboard.press('Escape');
+            await signinModal.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+        }
+        
         // Wait for layout to settle after viewport change
-      await page.waitForLoadState('domcontentloaded').catch(() => {});
+        await page.waitForLoadState('domcontentloaded').catch(() => {});
       
       await expect(page).toHaveScreenshot('dashboard-tablet.png', {
             fullPage: true,

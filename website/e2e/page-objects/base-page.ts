@@ -12,7 +12,7 @@ import { waitForAppReady, SHORT_TIMEOUT, DEFAULT_TIMEOUT } from '../utils/test-h
 const BASE_URL = 'http://localhost:3000/smartgrind/';
 
 export abstract class BasePage {
-  constructor(protected page: Page) {}
+  constructor(public page: Page) {}
 
   /**
    * Navigate to the base URL

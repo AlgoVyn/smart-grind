@@ -110,25 +110,8 @@ test.describe('SmartGrind Basic Functionality', () => {
       await setupAuthStateBeforeLoad(page);
       await appPage.gotoAndWait();
 
-      // Get initial theme
-      const initialClasses = await appPage.page.locator('html').getAttribute('class');
-      const initialDark = initialClasses?.includes('dark') || false;
-
-      // Click the theme toggle button
+      // Toggle theme - this method verifies the theme actually changes
       await appPage.toggleTheme();
-
-      // Verify theme changed with polling
-      await expect.poll(
-        async () => {
-          const classes = await appPage.page.locator('html').getAttribute('class');
-          return classes?.includes('dark') || false;
-        },
-        {
-          message: 'Theme did not change after toggle',
-          timeout: 10000,
-          intervals: [100, 200, 500],
-        }
-      ).toBe(!initialDark);
     });
 
     test('should persist theme preference', async ({ page }) => {
@@ -142,25 +125,16 @@ test.describe('SmartGrind Basic Functionality', () => {
       // Toggle theme
       await appPage.toggleTheme();
 
-      // Wait for localStorage to be updated
-      await page.waitForTimeout(500);
-
       // Reload page
       await appPage.reload();
       await appPage.waitForReady();
 
-      // Verify theme persisted with polling
-      await expect.poll(
-        async () => {
-          const classes = await appPage.page.locator('html').getAttribute('class');
-          return classes?.includes('dark') || false;
-        },
-        {
-          message: 'Theme did not persist after reload',
-          timeout: 10000,
-          intervals: [100, 200, 500],
-        }
-      ).toBe(!initialIsDark);
+      // Wait a moment for theme script to execute
+      await page.waitForTimeout(500);
+
+      // Verify theme persisted
+      const classes = await appPage.page.locator('html').getAttribute('class');
+      expect(classes?.includes('dark') || false).toBe(!initialIsDark);
     });
   });
 

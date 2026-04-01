@@ -5,7 +5,7 @@
  * All data follows the same structure as real API responses.
  */
 
-import type { Problem, Flashcard } from '../../../src/types';
+import type { Problem, FlashCard } from '../../../src/types';
 
 // Mock user data
 export const mockUser = {
@@ -188,7 +188,7 @@ export const testScenarios = {
     displayName: 'New User',
     problems: {},
     deletedIds: [],
-    settings: { theme: 'light' },
+    settings: { theme: 'light', notifications: true },
   },
   
   // User with all problems solved
@@ -199,7 +199,7 @@ export const testScenarios = {
       mockProblems.map(p => [p.id, { ...p, status: 'solved' as const, reviewCount: 5, confidence: 0.95 }])
     ),
     deletedIds: [],
-    settings: { theme: 'dark' },
+    settings: { theme: 'dark', notifications: true },
   },
   
   // User with many due problems
@@ -217,7 +217,7 @@ export const testScenarios = {
       ])
     ),
     deletedIds: [],
-    settings: { theme: 'light' },
+    settings: { theme: 'light', notifications: true },
   },
   
   // User with offline changes pending
@@ -226,7 +226,7 @@ export const testScenarios = {
     displayName: 'Offline User',
     problems: Object.fromEntries(mockProblems.map(p => [p.id, p])),
     deletedIds: [],
-    settings: { theme: 'light' },
+    settings: { theme: 'light', notifications: true },
     pendingOperations: [
       { type: 'solve', problemId: 'two-sum', timestamp: Date.now() },
       { type: 'reset', problemId: 'three-sum', timestamp: Date.now() },

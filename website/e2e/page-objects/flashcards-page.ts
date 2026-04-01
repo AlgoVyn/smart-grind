@@ -335,7 +335,7 @@ export class FlashcardsPage extends BasePage {
    */
   async skipIfNoFlashcards(test: import('@playwright/test').TestType<unknown, unknown>): Promise<boolean> {
     if (!await this.hasFlashcardsAvailable()) {
-      test.skip('No flashcards available for testing - test data may be empty');
+      test.skip(true, 'No flashcards available for testing - test data may be empty');
       return true;
     }
     return false;
