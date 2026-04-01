@@ -103,6 +103,41 @@ export default defineConfig({
             },
         },
         {
+            name: 'fix-prism-worker-handler',
+            closeBundle() {
+                // Inject prism config at the TOP of the markdown chunk to prevent worker errors
+                // The prism.js patch gets wrapped in functions during bundling, so we need to add
+                // the fix at the very beginning of the chunk (outside any functions)
+                const distPath = path.resolve(__dirname, 'dist');
+                const assetsPath = path.join(distPath, 'assets', 'js');
+                
+                try {
+                    const files = fs.readdirSync(assetsPath);
+                    const markdownChunk = files.find(f => f.startsWith('markdown-') && f.endsWith('.js'));
+                    
+                    if (markdownChunk) {
+                        const chunkPath = path.join(assetsPath, markdownChunk);
+                        let content = fs.readFileSync(chunkPath, 'utf-8');
+                        
+                        // Add the prism fix at the very beginning (must be before any wrapped code)
+                        const prismFix = 'typeof self!=="undefined"&&(self.Prism={disableWorkerMessageHandler:true});';
+                        
+                        // Only add if not already at the very beginning
+                        if (!content.startsWith(prismFix)) {
+                            content = prismFix + content;
+                            fs.writeFileSync(chunkPath, content);
+                            console.log('[vite] Prism worker handler fix injected at top of', markdownChunk);
+                        } else {
+                            console.log('[vite] Prism fix already at top of', markdownChunk);
+                        }
+                    }
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    console.warn('[vite] Failed to fix prism worker handler:', errorMessage);
+                }
+            },
+        },
+        {
             name: 'fix-sw-imports',
             closeBundle() {
                 // Fix relative imports in service worker to use absolute paths
