@@ -5,7 +5,433 @@ Dynamic Programming
 
 ## Description
 
-The Coin Change problem is a classic **dynamic programming** problem that models an **unbounded knapsack**. Given a set of coin denominations and a target amount, we need to find the minimum number of coins needed to make up that amount. This problem appears frequently in financial applications, optimization problems, and as a fundamental DP pattern in technical interviews.
+The Coin Change problem is a classic dynamic programming problem that models an **unbounded knapsack**. Given a set of coin denominations and a target amount, we need to find the minimum number of coins needed to make up that amount. This problem appears frequently in financial applications, optimization problems, and as a fundamental DP pattern in technical interviews.
+
+Unlike the 0/1 Knapsack where each item can be used once, Coin Change allows unlimited usage of each coin denomination. This changes the DP state transition and iteration order, making it a distinct but related pattern.
+
+---
+
+## Concepts
+
+The Coin Change technique is built on several fundamental concepts that make it powerful for solving unbounded optimization problems.
+
+### 1. Unbounded Choice
+
+Each coin can be used unlimited times:
+
+| Property | 0/1 Knapsack | Coin Change (Unbounded) |
+|----------|--------------|------------------------|
+| Usage limit | 0 or 1 times | Unlimited times |
+| Iteration direction | Backwards | Forwards |
+| Typical goal | Maximize value | Minimize count |
+
+### 2. State Definition
+
+The DP state represents the optimal solution for a subproblem:
+
+| State | Meaning | Initialization |
+|-------|---------|----------------|
+| `dp[amount]` | Min coins to make `amount` | `inf` (unreachable) |
+| `dp[amount]` | Ways to make `amount` | `0` |
+| `dp[0]` | Base case | `0` (min) or `1` (count) |
+
+### 3. Optimal Substructure
+
+The minimum coins for amount `i` depends on minimum coins for smaller amounts:
+
+```
+dp[i] = min(dp[i], dp[i - coin] + 1) for all coins ≤ i
+```
+
+### 4. Overlapping Subproblems
+
+Calculating `dp[10]` with coins [1, 2, 5] requires:
+- `dp[9]` (using coin 1)
+- `dp[8]` (using coin 2)
+- `dp[5]` (using coin 5)
+
+These subproblems overlap and are reused.
+
+---
+
+## Frameworks
+
+Structured approaches for solving Coin Change problems.
+
+### Framework 1: Minimum Coins Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  MINIMUM COINS FRAMEWORK                            │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize dp[0] = 0, dp[i] = infinity for i>0 │
+│  2. For amount from 1 to target:                   │
+│     For each coin in coins:                        │
+│       If coin ≤ amount:                            │
+│         dp[amount] = min(dp[amount],              │
+│                          dp[amount - coin] + 1)    │
+│  3. Return dp[target] if finite, else -1          │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Finding fewest coins to make exact amount.
+
+### Framework 2: Count Combinations Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  COUNT COMBINATIONS FRAMEWORK                       │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize dp[0] = 1 (empty combination)      │
+│  2. For each coin in coins (outer loop):          │
+│     For amount from coin to target:                │
+│       dp[amount] += dp[amount - coin]             │
+│  3. Return dp[target]                                │
+│                                                      │
+│  Note: Coins outer loop ensures order doesn't matter│
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Counting number of ways to make amount (combinations).
+
+### Framework 3: Count Permutations Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  COUNT PERMUTATIONS FRAMEWORK                       │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize dp[0] = 1                            │
+│  2. For amount from 1 to target:                   │
+│     For each coin in coins:                        │
+│       If coin ≤ amount:                            │
+│         dp[amount] += dp[amount - coin]             │
+│  3. Return dp[target]                                │
+│                                                      │
+│  Note: Amount outer loop counts different orders    │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Counting sequences where order matters.
+
+---
+
+## Forms
+
+Different manifestations of the Coin Change pattern.
+
+### Form 1: Minimum Coins Required
+
+Find the fewest coins to make exact amount.
+
+| Example | Coins | Amount | Answer | Explanation |
+|---------|-------|--------|--------|-------------|
+| Basic | [1,2,5] | 11 | 3 | 5+5+1 |
+| Impossible | [2] | 3 | -1 | Can't make odd amount |
+| Edge | [] | 0 | 0 | Zero coins for zero amount |
+
+### Form 2: Count Combinations
+
+Number of ways to make amount (order doesn't matter).
+
+```
+Coins: [1, 2, 5], Amount: 5
+Combinations: [1,1,1,1,1], [1,1,1,2], [1,2,2], [5]
+Answer: 4
+```
+
+### Form 3: Count Permutations
+
+Number of sequences to make amount (order matters).
+
+```
+Coins: [1, 2], Amount: 3
+Permutations: [1,1,1], [1,2], [2,1]
+Answer: 3
+```
+
+### Form 4: Limited Coins (Bounded)
+
+Each coin has a maximum usage limit.
+
+```
+Approach: Convert to 0/1 using binary splitting
+Or use 2D DP: dp[i][amount] considering first i coin types
+```
+
+### Form 5: Maximum Value with Cost
+
+Each coin has a "value" - maximize total value within cost budget.
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Forward vs Backward Iteration
+
+The iteration direction determines if coins can be reused:
+
+```python
+# FORWARD - Coin Change (unbounded, can reuse)
+for coin in coins:
+    for amount in range(coin, target + 1):
+        dp[amount] += dp[amount - coin]
+
+# BACKWARD - 0/1 style (each coin once)
+for coin in coins:
+    for amount in range(target, coin - 1, -1):
+        dp[amount] += dp[amount - coin]
+```
+
+**Key insight**: Forward allows building on current iteration's updates (reuse), backward prevents it.
+
+### Tactic 2: Greedy vs DP Decision
+
+Greedy works only for canonical coin systems:
+
+```python
+def is_canonical(coins):
+    """Check if greedy works for all amounts."""
+    for amount in range(1, max(coins) * 2):
+        greedy_result = greedy_min_coins(coins, amount)
+        dp_result = coin_change(coins, amount)
+        if greedy_result != dp_result:
+            return False
+    return True
+
+# Example: [1, 3, 4] with amount 6
+# Greedy: 4+1+1 = 3 coins (suboptimal)
+# DP: 3+3 = 2 coins (optimal)
+```
+
+### Tactic 3: Space-Optimized Reconstruction
+
+Track parent pointers without full 2D table:
+
+```python
+def coin_change_with_path(coins, amount):
+    dp = [float('inf')] * (amount + 1)
+    parent = [-1] * (amount + 1)  # Which coin led to this amount
+    dp[0] = 0
+    
+    for i in range(1, amount + 1):
+        for coin in coins:
+            if coin <= i and dp[i - coin] + 1 < dp[i]:
+                dp[i] = dp[i - coin] + 1
+                parent[i] = coin
+    
+    # Reconstruct path
+    path = []
+    curr = amount
+    while curr > 0:
+        path.append(parent[curr])
+        curr -= parent[curr]
+    
+    return dp[amount], path
+```
+
+### Tactic 4: BFS Alternative for Minimum Coins
+
+BFS finds minimum coins without full DP table:
+
+```python
+from collections import deque
+
+def coin_change_bfs(coins, amount):
+    """BFS for minimum coins - useful for very large amounts."""
+    if amount == 0:
+        return 0
+    
+    coins = sorted(set(coins), reverse=True)  # Larger first for pruning
+    queue = deque([(amount, 0)])  # (remaining, coins_used)
+    visited = set([amount])
+    
+    while queue:
+        remaining, count = queue.popleft()
+        
+        for coin in coins:
+            next_remaining = remaining - coin
+            if next_remaining == 0:
+                return count + 1
+            if next_remaining > 0 and next_remaining not in visited:
+                visited.add(next_remaining)
+                queue.append((next_remaining, count + 1))
+    
+    return -1
+```
+
+### Tactic 5: Modulo Optimization for Large Counts
+
+When counting ways with very large numbers:
+
+```python
+def coin_change_count_mod(coins, amount, mod=10**9 + 7):
+    dp = [0] * (amount + 1)
+    dp[0] = 1
+    
+    for coin in coins:
+        for i in range(coin, amount + 1):
+            dp[i] = (dp[i] + dp[i - coin]) % mod
+    
+    return dp[amount]
+```
+
+---
+
+## Python Templates
+
+### Template 1: Minimum Coins (Bottom-Up)
+
+```python
+def coin_change_min(coins: list[int], amount: int) -> int:
+    """
+    Template 1: Find minimum coins needed to make amount.
+    Time: O(amount * len(coins)), Space: O(amount)
+    """
+    if amount == 0:
+        return 0
+    if not coins or amount < 0:
+        return -1
+    
+    # dp[i] = minimum coins needed to make amount i
+    dp = [float('inf')] * (amount + 1)
+    dp[0] = 0
+    
+    for current in range(1, amount + 1):
+        for coin in coins:
+            if coin <= current:
+                dp[current] = min(dp[current], dp[current - coin] + 1)
+    
+    return dp[amount] if dp[amount] != float('inf') else -1
+```
+
+### Template 2: Minimum Coins with Reconstruction
+
+```python
+def coin_change_min_path(coins: list[int], amount: int):
+    """
+    Template 2: Return both minimum coins and the coins used.
+    Time: O(amount * len(coins)), Space: O(amount)
+    """
+    if amount == 0:
+        return 0, []
+    
+    dp = [float('inf')] * (amount + 1)
+    parent = [-1] * (amount + 1)  # Which coin was used
+    dp[0] = 0
+    
+    for current in range(1, amount + 1):
+        for coin in coins:
+            if coin <= current and dp[current - coin] + 1 < dp[current]:
+                dp[current] = dp[current - coin] + 1
+                parent[current] = coin
+    
+    if dp[amount] == float('inf'):
+        return -1, []
+    
+    # Reconstruct the coins used
+    result_coins = []
+    curr = amount
+    while curr > 0:
+        result_coins.append(parent[curr])
+        curr -= parent[curr]
+    
+    return dp[amount], result_coins
+```
+
+### Template 3: Count Combinations
+
+```python
+def coin_change_combinations(coins: list[int], amount: int) -> int:
+    """
+    Template 3: Count combinations (order doesn't matter).
+    Time: O(amount * len(coins)), Space: O(amount)
+    """
+    MOD = 10**9 + 7
+    dp = [0] * (amount + 1)
+    dp[0] = 1  # One way to make amount 0 (use nothing)
+    
+    # Coins outer loop ensures combinations (not permutations)
+    for coin in coins:
+        for current in range(coin, amount + 1):
+            dp[current] = (dp[current] + dp[current - coin]) % MOD
+    
+    return dp[amount]
+```
+
+### Template 4: Count Permutations
+
+```python
+def coin_change_permutations(coins: list[int], amount: int) -> int:
+    """
+    Template 4: Count permutations (order matters).
+    Time: O(amount * len(coins)), Space: O(amount)
+    """
+    MOD = 10**9 + 7
+    dp = [0] * (amount + 1)
+    dp[0] = 1
+    
+    # Amount outer loop counts different orderings
+    for current in range(1, amount + 1):
+        for coin in coins:
+            if coin <= current:
+                dp[current] = (dp[current] + dp[current - coin]) % MOD
+    
+    return dp[amount]
+```
+
+### Template 5: Recursive with Memoization
+
+```python
+from functools import lru_cache
+
+def coin_change_memo(coins: list[int], amount: int) -> int:
+    """
+    Template 5: Top-down DP with memoization.
+    Time: O(amount * len(coins)), Space: O(amount)
+    """
+    @lru_cache(maxsize=None)
+    def helper(remain: int) -> int:
+        if remain == 0:
+            return 0
+        if remain < 0:
+            return float('inf')
+        
+        min_coins = float('inf')
+        for coin in coins:
+            result = helper(remain - coin)
+            if result != float('inf'):
+                min_coins = min(min_coins, result + 1)
+        
+        return min_coins
+    
+    result = helper(amount)
+    return result if result != float('inf') else -1
+```
+
+### Template 6: Perfect Squares Variation
+
+```python
+def num_squares(n: int) -> int:
+    """
+    Template 6: Minimum perfect squares summing to n.
+    Coin Change where coins are all perfect squares ≤ n.
+    Time: O(n * sqrt(n)), Space: O(n)
+    """
+    # Generate perfect square "coins"
+    coins = [i * i for i in range(1, int(n**0.5) + 1)]
+    
+    dp = [float('inf')] * (n + 1)
+    dp[0] = 0
+    
+    for i in range(1, n + 1):
+        for square in coins:
+            if square <= i:
+                dp[i] = min(dp[i], dp[i - square] + 1)
+    
+    return dp[n]
+```
 
 ---
 
@@ -114,817 +540,9 @@ Think of it as building a graph:
 
 ---
 
-## Algorithm Steps
-
-### Step-by-Step Approach
-
-1. **Understand the Problem**
-   - Identify if it's minimum coins, maximum value, or counting combinations
-   - Check if order matters (different from combination sum)
-   - Identify if coins can be reused (unbounded)
-
-2. **Choose the DP Approach**
-   - Bottom-up: Iterative, usually more space-efficient
-   - Top-down: Recursive with memoization, easier to visualize
-
-3. **Define the State**
-   - For minimum coins: `dp[i]` = minimum coins to make amount `i`
-   - For counting: `dp[i]` = number of ways to make amount `i`
-   - For combinations: `dp[i][j]` = ways using first `j` coins
-
-4. **Initialize Properly**
-   - Base case: `dp[0] = 0` (for min) or `dp[0] = 1` (for counting)
-   - Use infinity for impossible states
-
-5. **Build the Solution**
-   - Iterate through all amounts
-   - For each amount, try all coins
-   - Apply the state transition formula
-
-6. **Handle Edge Cases**
-   - Amount = 0: Return 0
-   - No valid coins: Return -1
-   - Impossible amount: Return -1 or infinity
-
-7. **Reconstruct Solution (if needed)**
-   - Track parent pointers
-   - Backtrack from target to find the coins used
-
----
-
-## Implementation
-
-### Template Code (Minimum Coins)
-
-````carousel
-```python
-def coin_change(coins: list[int], amount: int) -> int:
-    """
-    Find minimum number of coins needed to make up the amount.
-    
-    Args:
-        coins: List of coin denominations (positive integers)
-        amount: Target amount (non-negative)
-        
-    Returns:
-        Minimum number of coins, or -1 if impossible
-        
-    Time: O(amount * len(coins))
-    Space: O(amount)
-    """
-    if amount == 0:
-        return 0
-    
-    if not coins or amount < 0:
-        return -1
-    
-    # dp[i] = minimum coins needed to make amount i
-    dp = [float('inf')] * (amount + 1)
-    dp[0] = 0
-    
-    # Build up solution for each amount
-    for current_amount in range(1, amount + 1):
-        for coin in coins:
-            if coin <= current_amount:
-                # Use this coin and add remaining from previous state
-                dp[current_amount] = min(
-                    dp[current_amount],
-                    dp[current_amount - coin] + 1
-                )
-    
-    return dp[amount] if dp[amount] != float('inf') else -1
-
-
-def coin_change_with_coins(coins: list[int], amount: int) -> tuple[int, list[int]]:
-    """
-    Return both minimum coins and the coin combination used.
-    
-    Returns:
-        Tuple of (minimum_coins, list_of_coins_used)
-    """
-    if amount == 0:
-        return 0, []
-    
-    dp = [float('inf')] * (amount + 1)
-    dp[0] = 0
-    
-    # Track which coin was used to reach each amount
-    parent = [-1] * (amount + 1)
-    
-    for current_amount in range(1, amount + 1):
-        for coin in coins:
-            if coin <= current_amount:
-                if dp[current_amount - coin] + 1 < dp[current_amount]:
-                    dp[current_amount] = dp[current_amount - coin] + 1
-                    parent[current_amount] = coin
-    
-    if dp[amount] == float('inf'):
-        return -1, []
-    
-    # Reconstruct the coins used
-    result_coins = []
-    current = amount
-    while current > 0:
-        result_coins.append(parent[current])
-        current -= parent[current]
-    
-    return dp[amount], result_coins
-
-
-# Recursive with memoization
-from functools import lru_cache
-
-def coin_change_memo(coins: list[int], amount: int) -> int:
-    """
-    Recursive solution with memoization.
-    
-    Time: O(amount * len(coins))
-    Space: O(amount)
-    """
-    @lru_cache(maxsize=None)
-    def helper(remain: int) -> int:
-        if remain == 0:
-            return 0
-        if remain < 0:
-            return float('inf')
-        
-        min_coins = float('inf')
-        for coin in coins:
-            result = helper(remain - coin)
-            if result != float('inf'):
-                min_coins = min(min_coins, result + 1)
-        
-        return min_coins
-    
-    result = helper(amount)
-    return result if result != float('inf') else -1
-
-
-# Example usage
-if __name__ == "__main__":
-    coins = [1, 2, 5]
-    amount = 11
-    
-    result = coin_change(coins, amount)
-    print(f"Minimum coins: {result}")  # Output: 3
-    
-    min_coins, coins_used = coin_change_with_coins(coins, amount)
-    print(f"Coins used: {coins_used}")  # Output: [5, 5, 1]
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <climits>
-using namespace std;
-
-/**
- * Coin Change - Find minimum number of coins needed.
- * 
- * Time: O(amount * n) where n = number of coins
- * Space: O(amount)
- */
-int coinChange(vector<int>& coins, int amount) {
-    if (amount == 0) return 0;
-    if (coins.empty()) return -1;
-    
-    // dp[i] = minimum coins needed to make amount i
-    vector<int> dp(amount + 1, INT_MAX);
-    dp[0] = 0;
-    
-    // Build up solution for each amount
-    for (int currentAmount = 1; currentAmount <= amount; currentAmount++) {
-        for (int coin : coins) {
-            if (coin <= currentAmount && dp[currentAmount - coin] != INT_MAX) {
-                dp[currentAmount] = min(dp[currentAmount], 
-                                        dp[currentAmount - coin] + 1);
-            }
-        }
-    }
-    
-    return dp[amount] == INT_MAX ? -1 : dp[amount];
-}
-
-/**
- * Coin Change with reconstruction - return actual coins used.
- */
-pair<int, vector<int>> coinChangeWithCoins(vector<int>& coins, int amount) {
-    if (amount == 0) return {0, {}};
-    if (coins.empty()) return {-1, {}};
-    
-    vector<int> dp(amount + 1, INT_MAX);
-    dp[0] = 0;
-    
-    // Track which coin was used
-    vector<int> parent(amount + 1, -1);
-    vector<int> parentCoin(amount + 1, -1);
-    
-    for (int currentAmount = 1; currentAmount <= amount; currentAmount++) {
-        for (int coin : coins) {
-            if (coin <= currentAmount && dp[currentAmount - coin] != INT_MAX) {
-                if (dp[currentAmount - coin] + 1 < dp[currentAmount]) {
-                    dp[currentAmount] = dp[currentAmount - coin] + 1;
-                    parent[currentAmount] = currentAmount - coin;
-                    parentCoin[currentAmount] = coin;
-                }
-            }
-        }
-    }
-    
-    if (dp[amount] == INT_MAX) return {-1, {}};
-    
-    // Reconstruct coins
-    vector<int> resultCoins;
-    int current = amount;
-    while (current > 0) {
-        resultCoins.push_back(parentCoin[current]);
-        current = parent[current];
-    }
-    
-    return {dp[amount], resultCoins};
-}
-
-/**
- * Recursive with memoization.
- */
-class CoinChangeMemo {
-public:
-    int coinChange(vector<int>& coins, int amount) {
-        vector<int> memo(amount + 1, -1);
-        return helper(coins, amount, memo);
-    }
-    
-private:
-    int helper(vector<int>& coins, int remain, vector<int>& memo) {
-        if (remain == 0) return 0;
-        if (remain < 0) return INT_MAX;
-        if (memo[remain] != -1) return memo[remain];
-        
-        int minCoins = INT_MAX;
-        for (int coin : coins) {
-            int result = helper(coins, remain - coin, memo);
-            if (result != INT_MAX) {
-                minCoins = min(minCoins, result + 1);
-            }
-        }
-        
-        memo[remain] = minCoins;
-        return minCoins;
-    }
-};
-
-int main() {
-    vector<int> coins = {1, 2, 5};
-    int amount = 11;
-    
-    cout << "Coins: [1, 2, 5], Amount: 11" << endl;
-    cout << "Minimum coins: " << coinChange(coins, amount) << endl;
-    
-    auto [minCoins, coinsUsed] = coinChangeWithCoins(coins, amount);
-    cout << "Coins used: ";
-    for (int coin : coinsUsed) cout << coin << " ";
-    cout << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.Arrays;
-
-/**
- * Coin Change - Find minimum number of coins needed.
- * 
- * Time: O(amount * n) where n = number of coins
- * Space: O(amount)
- */
-public class CoinChange {
-    
-    /**
-     * Find minimum number of coins needed.
-     */
-    public static int coinChange(int[] coins, int amount) {
-        if (amount == 0) return 0;
-        if (coins == null || coins.length == 0) return -1;
-        
-        // dp[i] = minimum coins needed to make amount i
-        int[] dp = new int[amount + 1];
-        Arrays.fill(dp, Integer.MAX_VALUE);
-        dp[0] = 0;
-        
-        // Build up solution for each amount
-        for (int currentAmount = 1; currentAmount <= amount; currentAmount++) {
-            for (int coin : coins) {
-                if (coin <= currentAmount && dp[currentAmount - coin] != Integer.MAX_VALUE) {
-                    dp[currentAmount] = Math.min(dp[currentAmount], 
-                                                 dp[currentAmount - coin] + 1);
-                }
-            }
-        }
-        
-        return dp[amount] == Integer.MAX_VALUE ? -1 : dp[amount];
-    }
-    
-    /**
-     * Return both minimum coins and the coins used.
-     */
-    public static int[] coinChangeWithCoins(int[] coins, int amount) {
-        if (amount == 0) return new int[]{0};
-        if (coins == null || coins.length == 0) return new int[]{-1};
-        
-        int[] dp = new int[amount + 1];
-        Arrays.fill(dp, Integer.MAX_VALUE);
-        dp[0] = 0;
-        
-        // Track parent for reconstruction
-        int[] parent = new int[amount + 1];
-        Arrays.fill(parent, -1);
-        int[] parentCoin = new int[amount + 1];
-        
-        for (int currentAmount = 1; currentAmount <= amount; currentAmount++) {
-            for (int coin : coins) {
-                if (coin <= currentAmount && dp[currentAmount - coin] != Integer.MAX_VALUE) {
-                    if (dp[currentAmount - coin] + 1 < dp[currentAmount]) {
-                        dp[currentAmount] = dp[currentAmount - coin] + 1;
-                        parent[currentAmount] = currentAmount - coin;
-                        parentCoin[currentAmount] = coin;
-                    }
-                }
-            }
-        }
-        
-        if (dp[amount] == Integer.MAX_VALUE) return new int[]{-1};
-        
-        // Reconstruct coins
-        int[] result = new int[dp[amount]];
-        int idx = 0;
-        int current = amount;
-        while (current > 0) {
-            result[idx++] = parentCoin[current];
-            current = parent[current];
-        }
-        
-        return result;
-    }
-    
-    /**
-     * Recursive with memoization.
-     */
-    public static int coinChangeMemo(int[] coins, int amount) {
-        int[] memo = new int[amount + 1];
-        Arrays.fill(memo, -1);
-        return helper(coins, amount, memo);
-    }
-    
-    private static int helper(int[] coins, int remain, int[] memo) {
-        if (remain == 0) return 0;
-        if (remain < 0) return Integer.MAX_VALUE;
-        if (memo[remain] != -1) return memo[remain];
-        
-        int minCoins = Integer.MAX_VALUE;
-        for (int coin : coins) {
-            int result = helper(coins, remain - coin, memo);
-            if (result != Integer.MAX_VALUE) {
-                minCoins = Math.min(minCoins, result + 1);
-            }
-        }
-        
-        memo[remain] = minCoins;
-        return minCoins;
-    }
-    
-    public static void main(String[] args) {
-        int[] coins = {1, 2, 5};
-        int amount = 11;
-        
-        System.out.println("Coins: [1, 2, 5], Amount: 11");
-        System.out.println("Minimum coins: " + coinChange(coins, amount));
-        
-        int[] coinsUsed = coinChangeWithCoins(coins, amount);
-        System.out.print("Coins used: ");
-        for (int coin : coinsUsed) System.out.print(coin + " ");
-        System.out.println();
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Coin Change - Find minimum number of coins needed.
- * 
- * Time: O(amount * n) where n = number of coins
- * Space: O(amount)
- */
-
-/**
- * Find minimum number of coins needed to make up the amount.
- * @param {number[]} coins - Array of coin denominations
- * @param {number} amount - Target amount
- * @returns {number} Minimum number of coins, or -1 if impossible
- */
-function coinChange(coins, amount) {
-    if (amount === 0) return 0;
-    if (!coins || coins.length === 0) return -1;
-    
-    // dp[i] = minimum coins needed to make amount i
-    const dp = new Array(amount + 1).fill(Infinity);
-    dp[0] = 0;
-    
-    // Build up solution for each amount
-    for (let currentAmount = 1; currentAmount <= amount; currentAmount++) {
-        for (const coin of coins) {
-            if (coin <= currentAmount) {
-                dp[currentAmount] = Math.min(
-                    dp[currentAmount],
-                    dp[currentAmount - coin] + 1
-                );
-            }
-        }
-    }
-    
-    return dp[amount] === Infinity ? -1 : dp[amount];
-}
-
-/**
- * Return both minimum coins and the coins used.
- * @returns {Object} { minCoins, coinsUsed }
- */
-function coinChangeWithCoins(coins, amount) {
-    if (amount === 0) return { minCoins: 0, coinsUsed: [] };
-    if (!coins || coins.length === 0) return { minCoins: -1, coinsUsed: [] };
-    
-    const dp = new Array(amount + 1).fill(Infinity);
-    dp[0] = 0;
-    
-    // Track which coin was used
-    const parent = new Array(amount + 1).fill(-1);
-    const parentCoin = new Array(amount + 1).fill(-1);
-    
-    for (let currentAmount = 1; currentAmount <= amount; currentAmount++) {
-        for (const coin of coins) {
-            if (coin <= currentAmount && dp[currentAmount - coin] + 1 < dp[currentAmount]) {
-                dp[currentAmount] = dp[currentAmount - coin] + 1;
-                parent[currentAmount] = currentAmount - coin;
-                parentCoin[currentAmount] = coin;
-            }
-        }
-    }
-    
-    if (dp[amount] === Infinity) {
-        return { minCoins: -1, coinsUsed: [] };
-    }
-    
-    // Reconstruct coins used
-    const coinsUsed = [];
-    let current = amount;
-    while (current > 0) {
-        coinsUsed.push(parentCoin[current]);
-        current = parent[current];
-    }
-    
-    return { minCoins: dp[amount], coinsUsed };
-}
-
-/**
- * Recursive with memoization.
- */
-function coinChangeMemo(coins, amount) {
-    const memo = new Map();
-    
-    function helper(remain) {
-        if (remain === 0) return 0;
-        if (remain < 0) return Infinity;
-        if (memo.has(remain)) return memo.get(remain);
-        
-        let minCoins = Infinity;
-        for (const coin of coins) {
-            const result = helper(remain - coin);
-            if (result !== Infinity) {
-                minCoins = Math.min(minCoins, result + 1);
-            }
-        }
-        
-        memo.set(remain, minCoins);
-        return minCoins;
-    }
-    
-    const result = helper(amount);
-    return result === Infinity ? -1 : result;
-}
-
-// Example usage
-const coins = [1, 2, 5];
-const amount = 11;
-
-console.log(`Coins: [${coins.join(', ')}], Amount: ${amount}`);
-console.log(`Minimum coins: ${coinChange(coins, amount)}`);
-
-const { minCoins, coinsUsed } = coinChangeWithCoins(coins, amount);
-console.log(`Coins used: [${coinsUsed.join(', ')}]`);
-```
-````
-
----
-
-## Example
-
-### Example 1: Basic Case
-
-**Input:**
-```
-coins = [1, 2, 5]
-amount = 11
-```
-
-**Output:**
-```
-3
-```
-
-**Explanation:**
-The minimum number of coins needed is 3:
-- 11 = 5 + 5 + 1 (3 coins)
-
-Other combinations that work:
-- 11 = 5 + 2 + 2 + 2 (4 coins)
-- 11 = 2 + 2 + 2 + 2 + 2 + 1 (6 coins)
-- 11 = 1 × 11 (11 coins)
-
-### Example 2: Impossible Case
-
-**Input:**
-```
-coins = [2]
-amount = 3
-```
-
-**Output:**
-```
--1
-```
-
-**Explanation:**
-With only coin denomination 2, we can only make even amounts (0, 2, 4, 6, ...). Amount 3 is impossible.
-
-### Example 3: Zero Amount
-
-**Input:**
-```
-coins = [1, 2, 5]
-amount = 0
-```
-
-**Output:**
-```
-0
-```
-
-**Explanation:**
-Zero coins are needed to make amount 0.
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Bottom-up DP** | O(amount × n) | Iterate through all amounts and all coins |
-| **Top-down DP (Memoization)** | O(amount × n) | Each state computed once |
-| **Greedy (if applicable)** | O(n log n) | Sorting + single pass |
-| **BFS** | O(amount × n) | Level-by-level exploration |
-
-### Detailed Breakdown
-
-- **Bottom-up DP**:
-  - Outer loop: `amount` iterations
-  - Inner loop: `n` (number of coins) iterations
-  - Total: O(amount × n)
-
-- **Space Complexity**:
-  - DP array: O(amount)
-  - Parent tracking (for reconstruction): O(amount)
-  - Total: O(amount)
-
----
-
-## Space Complexity Analysis
-
-| Approach | Space Complexity | Notes |
-|----------|-----------------|-------|
-| **Bottom-up DP** | O(amount) | Single 1D array |
-| **Top-down DP** | O(amount) | Recursion stack + memo table |
-| **With reconstruction** | O(amount) | Additional parent array |
-| **Optimized** | O(n) | Only store last row |
-
-### Space Optimization
-
-For very large amounts, consider:
-1. **Single row DP**: Use only O(n) space by iterating coins first
-2. **Bitset approach**: Use bitset for boolean reachability
-3. **In-place modification**: Modify input if allowed
-
----
-
-## Common Variations
-
-### 1. Coin Change II - Counting Combinations
-
-Count the number of ways to make amount using unlimited coins.
-
-````carousel
-```python
-def coin_change_count(coins: list[int], amount: int) -> int:
-    """
-    Count number of combinations that make up the amount.
-    
-    Order does NOT matter (unlike permutations).
-    """
-    dp = [0] * (amount + 1)
-    dp[0] = 1
-    
-    for coin in coins:
-        for current_amount in range(coin, amount + 1):
-            dp[current_amount] += dp[current_amount - coin]
-    
-    return dp[amount]
-```
-
-<!-- slide -->
-```cpp
-int coinChangeCount(vector<int>& coins, int amount) {
-    vector<int> dp(amount + 1, 0);
-    dp[0] = 1;
-    
-    for (int coin : coins) {
-        for (int currentAmount = coin; currentAmount <= amount; currentAmount++) {
-            dp[currentAmount] += dp[currentAmount - coin];
-        }
-    }
-    
-    return dp[amount];
-}
-```
-
-<!-- slide -->
-```java
-public static int coinChangeCount(int[] coins, int amount) {
-    int[] dp = new int[amount + 1];
-    dp[0] = 1;
-    
-    for (int coin : coins) {
-        for (int currentAmount = coin; currentAmount <= amount; currentAmount++) {
-            dp[currentAmount] += dp[currentAmount - coin];
-        }
-    }
-    
-    return dp[amount];
-}
-```
-
-<!-- slide -->
-```javascript
-function coinChangeCount(coins, amount) {
-    const dp = new Array(amount + 1).fill(0);
-    dp[0] = 1;
-    
-    for (const coin of coins) {
-        for (let currentAmount = coin; currentAmount <= amount; currentAmount++) {
-            dp[currentAmount] += dp[currentAmount - coin];
-        }
-    }
-    
-    return dp[amount];
-}
-```
-````
-
-### 2. Maximum Value with Limited Coins (0/1 Knapsack)
-
-Find maximum value with limited copies of each coin.
-
-````carousel
-```python
-def coin_change_max_value(coins: list[int], values: list[int], amount: int) -> int:
-    """
-    Maximum value using at most one of each coin (0/1 knapsack).
-    """
-    n = len(coins)
-    dp = [0] * (amount + 1)
-    
-    for i in range(n):
-        for current_amount in range(amount, coins[i] - 1, -1):
-            dp[current_amount] = max(
-                dp[current_amount],
-                dp[current_amount - coins[i]] + values[i]
-            )
-    
-    return dp[amount]
-```
-
-### 3. Minimum Coins with Limited Count
-
-Each coin can be used at most k times.
-
-````carousel
-```python
-def coin_change_limited(coins: list[int], limits: list[int], amount: int) -> int:
-    """
-    Minimum coins when each coin has a limited count.
-    """
-    n = len(coins)
-    dp = [float('inf')] * (amount + 1)
-    dp[0] = 0
-    
-    for i in range(n):
-        coin = coins[i]
-        limit = limits[i]
-        
-        # Process each coin up to its limit
-        for count in range(1, limit + 1):
-            for current_amount in range(amount, coin - 1, -1):
-                if dp[current_amount - coin] != float('inf'):
-                    dp[current_amount] = min(
-                        dp[current_amount],
-                        dp[current_amount - coin] + 1
-                    )
-    
-    return dp[amount] if dp[amount] != float('inf') else -1
-```
-
-### 4. LeetCode 322 - Complete Solution
-
-Complete solution with edge case handling and optimization.
-
-````carousel
-```python
-def coin_change_optimized(coins: list[int], amount: int) -> int:
-    """
-    Optimized solution with early termination.
-    """
-    if amount == 0:
-        return 0
-    
-    # Sort coins for early termination optimization
-    coins = sorted(set(coins))
-    
-    # Maximum coin helps prune
-    max_coin = coins[0]
-    if amount < max_coin:
-        # Check if amount is directly reachable
-        return 1 if amount in coins else -1
-    
-    dp = [float('inf')] * (amount + 1)
-    dp[0] = 0
-    
-    # Use sorting: try larger coins first for fewer iterations
-    for coin in coins:
-        for current_amount in range(coin, amount + 1):
-            if dp[current_amount - coin] != float('inf'):
-                dp[current_amount] = min(dp[current_amount], dp[current_amount - coin] + 1)
-    
-    return dp[amount] if dp[amount] != float('inf') else -1
-```
-````
-
-### 5. Permutations vs Combinations
-
-Key difference in DP approach:
-
-- **Combinations** (order doesn't matter): Iterate coins first, then amounts
-- **Permutations** (order matters): Iterate amounts first, then coins
-
-````carousel
-```python
-# Combinations - order doesn't matter
-def count_combinations(coins, amount):
-    dp = [0] * (amount + 1)
-    dp[0] = 1
-    for coin in coins:  # Coins first
-        for current_amount in range(coin, amount + 1):
-            dp[current_amount] += dp[current_amount - coin]
-    return dp[amount]
-
-# Permutations - order matters
-def count_permutations(coins, amount):
-    dp = [0] * (amount + 1)
-    dp[0] = 1
-    for current_amount in range(1, amount + 1):  # Amounts first
-        for coin in coins:
-            if coin <= current_amount:
-                dp[current_amount] += dp[current_amount - coin]
-    return dp[amount]
-```
-````
-
----
-
 ## Practice Problems
 
-### Problem 1: Minimum Coins (LeetCode 322)
+### Problem 1: Coin Change (Minimum Coins)
 
 **Problem:** [LeetCode 322 - Coin Change](https://leetcode.com/problems/coin-change/)
 
@@ -937,7 +555,7 @@ def count_permutations(coins, amount):
 
 ---
 
-### Problem 2: Count Combinations (LeetCode 518)
+### Problem 2: Coin Change II (Count Combinations)
 
 **Problem:** [LeetCode 518 - Coin Change II](https://leetcode.com/problems/coin-change-2/)
 
@@ -950,20 +568,7 @@ def count_permutations(coins, amount):
 
 ---
 
-### Problem 3: Maximum Value (LeetCode 1449)
-
-**Problem:** [LeetCode 1449 - Form Largest Integer](https://leetcode.com/problems/form-largest-integer-given-cost-of-digits/)
-
-**Description:** Given costs of digits, form the largest number with a given total cost.
-
-**How to Apply the Technique:**
-- Treat costs as "coins" and digits as "values"
-- Use 0/1 knapsack DP to maximize value
-- Process from high to low to ensure each digit used at most once
-
----
-
-### Problem 4: Minimum Squares (LeetCode 279)
+### Problem 3: Perfect Squares
 
 **Problem:** [LeetCode 279 - Perfect Squares](https://leetcode.com/problems/perfect-squares/)
 
@@ -976,16 +581,29 @@ def count_permutations(coins, amount):
 
 ---
 
-### Problem 5: Minimum Steps to Make Array Equal (LeetCode 1526)
+### Problem 4: Combination Sum IV
 
-**Problem:** [LeetCode 1526 - Minimum Number of Operations to Make Array Continuous](https://leetcode.com/problems/minimum-number-of-operations-to-make-array-continuous/)
+**Problem:** [LeetCode 377 - Combination Sum IV](https://leetcode.com/problems/combination-sum-iv/)
 
-**Description:** Find minimum operations to make array continuous where all elements are the same or consecutive.
+**Description:** Given an array of distinct integers `nums` and a target integer `target`, return the number of possible combinations that add up to `target`.
 
 **How to Apply the Technique:**
-- Sort and use sliding window
-- Coin change variant: find minimum insertions in window
-- Use DP or greedy within window
+- This counts permutations (order matters)
+- Amount outer loop, coins inner loop
+- `dp[i] += dp[i - num]` for each valid num
+
+---
+
+### Problem 5: Minimum Cost For Tickets
+
+**Problem:** [LeetCode 983 - Minimum Cost For Tickets](https://leetcode.com/problems/minimum-cost-for-tickets/)
+
+**Description:** You have planned some train traveling one year in advance. The days of the year you will travel are given as an integer array `days`. Return the minimum number of dollars you need to travel every day in the given list of days.
+
+**How to Apply the Technique:**
+- DP where dp[i] = min cost to cover days from index i onward
+- Three choices at each day: 1-day, 7-day, or 30-day pass
+- Similar to coin change with variable "coin" values
 
 ---
 
@@ -1083,12 +701,3 @@ When to use:
 - ❌ For very large amounts (consider BFS or optimizations)
 
 This pattern is essential for technical interviews and competitive programming, appearing in various forms across many problems.
-
----
-
-## Related Algorithms
-
-- [0/1 Knapsack](./knapsack-01.md) - Bounded knapsack variant
-- [Unbounded Knapsack](./knapsack-unbounded.md) - Related DP pattern
-- [Combination Sum](./combination-sum.md) - Finding all combinations
-- [Partition Equal Subset](./partition-equal-subset.md) - Similar DP approach

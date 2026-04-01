@@ -4,143 +4,368 @@
 Graphs
 
 ## Description
+
 The Bellman-Ford algorithm finds the shortest path from a single source vertex to all other vertices in a weighted graph. Unlike Dijkstra's algorithm, Bellman-Ford can handle graphs with **negative edge weights** and can detect **negative cycles**. This makes it essential for problems where edge weights may be negative, such as in currency arbitrage detection, network routing, and certain optimization problems.
 
----
-
-## When to Use
-
-Use the Bellman-Ford algorithm when you need to solve problems involving:
-
-- **Negative Edge Weights**: When the graph contains edges with negative weights
-- **Negative Cycle Detection**: When you need to detect if a negative cycle exists in the graph
-- **Single-Source Shortest Path**: When finding shortest paths from one source to all other vertices
-- **Constraint Problems**: When problems can be modeled as shortest path with potential negative cycles
-
-### Comparison with Alternatives
-
-| Algorithm | Handles Negative Weights | Detects Negative Cycles | Time Complexity | Best For |
-|-----------|-------------------------|------------------------|-----------------|----------|
-| **Bellman-Ford** | ✅ Yes | ✅ Yes | O(V × E) | Graphs with negative weights |
-| **Dijkstra's** | ❌ No | ❌ No | O((V + E) log V) | Dense graphs with positive weights |
-| **Floyd-Warshall** | ✅ Yes | ✅ Yes | O(V³) | All-pairs shortest path |
-| **SPFA** | ✅ Yes | ✅ Yes | O(V × E) average | Sparse graphs, often faster in practice |
-
-### When to Choose Bellman-Ford vs Dijkstra
-
-- **Choose Bellman-Ford** when:
-  - Graph has negative edge weights
-  - You need to detect negative cycles
-  - You're unsure if all weights are non-negative
-  
-- **Choose Dijkstra's** when:
-  - All edge weights are guaranteed non-negative
-  - You need faster execution (uses priority queue)
-  - Graph is large and sparse
+The algorithm works by repeatedly relaxing all edges, gradually finding shorter paths using more edges. After V-1 iterations (where V is the number of vertices), all shortest paths are found. One additional iteration detects if any negative cycles exist in the graph.
 
 ---
 
-## Algorithm Explanation
+## Concepts
 
-### Core Concept
+The Bellman-Ford algorithm is built on several fundamental concepts that make it powerful for solving shortest path problems.
 
-The key insight behind Bellman-Ford is that in a graph without negative cycles, the shortest path between any two vertices contains at most **V-1 edges** (where V is the number of vertices). By repeatedly relaxing all edges, we progressively find shorter paths using more edges.
+### 1. Edge Relaxation
 
-### How It Works
-
-#### Initialization:
-1. Set the distance to the source vertex as 0
-2. Set all other vertices' distances to infinity (∞)
-
-#### Relaxation Process:
-1. **Repeat V-1 times**: For every edge (u, v) with weight w:
-   - If `dist[u] + w < dist[v]`, then update `dist[v] = dist[u] + w`
-2. This ensures we find shortest paths using paths of increasing length
-
-#### Negative Cycle Detection:
-- After V-1 iterations, perform one more pass
-- If any edge can still be relaxed, a negative cycle exists
-- The algorithm can traverse the cycle infinitely to get arbitrarily short paths
-
-### Visual Representation
+The core operation that improves path estimates:
 
 ```
-Graph with 5 vertices:
+If dist[u] + weight(u,v) < dist[v]:
+    dist[v] = dist[u] + weight(u,v)
+```
+
+| Concept | Description |
+|---------|-------------|
+| **Relaxation** | Updating a distance estimate when a shorter path is found |
+| **Property** | After relaxation, dist[v] is the weight of the shortest path found so far |
+
+### 2. V-1 Iterations Principle
+
+In a graph without negative cycles, the shortest path uses at most V-1 edges:
+
+| Iteration | Finds Paths Using |
+|-----------|-------------------|
+| 1 | Direct edges only |
+| 2 | Paths with up to 2 edges |
+| k | Paths with up to k edges |
+| V-1 | All possible shortest paths |
+
+### 3. Negative Cycle Detection
+
+After V-1 iterations, one more pass detects negative cycles:
+
+| Check | Meaning |
+|-------|---------|
+| Can still relax an edge | Negative cycle exists |
+| No relaxation possible | No negative cycles, distances are final |
+
+### 4. Path Reconstruction
+
+Track parent pointers to reconstruct actual shortest paths:
+
+```
+When relaxing edge (u, v):
+    if dist[u] + w < dist[v]:
+        dist[v] = dist[u] + w
+        parent[v] = u  # Track path
+```
+
+---
+
+## Frameworks
+
+Structured approaches for solving Bellman-Ford problems.
+
+### Framework 1: Standard Bellman-Ford (Single-Source)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  STANDARD BELLMAN-FORD FRAMEWORK                            │
+├─────────────────────────────────────────────────────────────┤
+│  1. Initialize distances:                                   │
+│     - dist[source] = 0                                      │
+│     - dist[others] = infinity                                 │
+│  2. Repeat V-1 times:                                       │
+│     a. For each edge (u, v, weight):                       │
+│        - If dist[u] + weight < dist[v]:                    │
+│          * dist[v] = dist[u] + weight                      │
+│          * parent[v] = u (for path reconstruction)          │
+│  3. Check for negative cycles:                              │
+│     a. For each edge (u, v, weight):                       │
+│        - If dist[u] + weight < dist[v]:                    │
+│          * Negative cycle detected!                        │
+│          * Return error or handle appropriately              │
+│  4. Return distances and parent array                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**When to use**: Standard single-source shortest path with possible negative weights.
+
+### Framework 2: Bellman-Ford with K Stops Limit
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  K-STOPS LIMITED BELLMAN-FORD FRAMEWORK                     │
+├─────────────────────────────────────────────────────────────┤
+│  1. Similar to standard Bellman-Ford                        │
+│  2. Run exactly K+1 iterations instead of V-1              │
+│     - K stops = K+1 edges                                   │
+│  3. Use separate distance array for each iteration          │
+│     - Prevents using more than k edges                      │
+│  4. dist[i][v] = shortest distance to v using at most i edges│
+│  5. Space optimization: use two 1D arrays instead of 2D   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**When to use**: Problems like "cheapest flights with at most K stops".
+
+### Framework 3: Distributed Bellman-Ford (Distance Vector)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  DISTRIBUTED BELLMAN-FORD FRAMEWORK                         │
+├─────────────────────────────────────────────────────────────┤
+│  1. Each node maintains distance vector to all destinations │
+│  2. Nodes periodically exchange distance vectors with neighbors│
+│  3. Each node updates its table:                           │
+│     - If neighbor has shorter path to destination:        │
+│       * Update: my_dist = neighbor_dist + link_cost       │
+│  4. Converges when no more updates occur                   │
+│  5. Used in routing protocols like RIP                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**When to use**: Network routing protocols, distributed systems.
+
+---
+
+## Forms
+
+Different manifestations of the Bellman-Ford algorithm.
+
+### Form 1: Standard Single-Source Shortest Path
+
+Basic form that finds shortest paths from one source to all vertices.
+
+| Aspect | Details |
+|--------|---------|
+| **Goal** | Shortest paths from source |
+| **Handles** | Negative weights, detects negative cycles |
+| **Time** | O(V × E) |
+| **Space** | O(V) |
+
+### Form 2: Shortest Path with Path Reconstruction
+
+Tracks actual paths, not just distances.
+
+| Modification | Maintain parent array |
+|--------------|----------------------|
+| **Update** | parent[v] = u when relaxing edge (u,v) |
+| **Reconstruction** | Follow parent pointers from target to source |
+| **Use Case** | Need to know the actual path taken |
+
+### Form 3: K-Stop Constrained Shortest Path
+
+Limits number of edges in path.
+
+| Modification | Run only K+1 iterations |
+|--------------|-------------------------|
+| **Use Case** | "At most K stops" problems |
+| **Complexity** | O(K × E) |
+
+### Form 4: Negative Cycle Detection Only
+
+Only checks if negative cycle exists.
+
+| Modification | Stop after detecting any relaxable edge |
+|--------------|------------------------------------------|
+| **Output** | Boolean (has/doesn't have negative cycle) |
+| **Use Case** | Currency arbitrage, feasibility checking |
+
+### Form 5: All-Pairs Shortest Path (Multiple Sources)
+
+Run Bellman-Ford from each vertex.
+
+| Approach | Run Bellman-Ford V times |
+|----------|--------------------------|
+| **Time** | O(V² × E) |
+| **Alternative** | Use Floyd-Warshall: O(V³) |
+| **Use Case** | When some vertices have negative edges |
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Early Termination
+
+If no relaxations occur in an iteration, stop early:
+
+```python
+def bellman_ford_early_stop(vertices, edges, source):
+    dist = [float('inf')] * vertices
+    dist[source] = 0
+    
+    for i in range(vertices - 1):
+        relaxed = False
+        for u, v, w in edges:
+            if dist[u] != float('inf') and dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+                relaxed = True
         
-        4          2
-    0 --------> 1 --------> 3
-    |           |
-    |           | -3
-    v           v
-    2           4
-    |           |
-    +-----------+
-
-Iteration 0: dist = [0, ∞, ∞, ∞, ∞]
-Iteration 1: dist = [0, 4, 2, ∞, ∞]
-             (relax 0→1, 0→2, then 1→2, 1→4 with -3)
-Iteration 2: dist = [0, 4, 2, 6, 1]
-             (relax 2→3, 3→4, 1→3)
-Final:       [0, 4, 2, 5, 1]
+        if not relaxed:  # Early termination
+            break
+    
+    return dist
 ```
 
-### Why V-1 Iterations?
+**When to use**: Graphs where distances converge quickly.
 
-In a graph without negative cycles:
-- The shortest path between any two vertices uses at most V-1 edges
-- Each iteration of relaxation finds shortest paths using at most one more edge
-- After V-1 iterations, all shortest paths (of length ≤ V-1 edges) are found
-- Any remaining relaxable edges indicate a negative cycle
+### Tactic 2: SPFA Optimization (Shortest Path Faster Algorithm)
 
-### Limitations
+Uses queue to only process vertices that changed:
 
-- **Time Complexity**: O(V × E) - slower than Dijkstra for sparse graphs
-- **Negative Cycles**: Can cause the algorithm to not terminate (hence the detection step)
-- **Not for All-Pairs**: For all-pairs, Floyd-Warshall may be more efficient
+```python
+from collections import deque
+
+def spfa(vertices, edges, source):
+    """Optimized Bellman-Ford for sparse graphs."""
+    dist = [float('inf')] * vertices
+    in_queue = [False] * vertices
+    count = [0] * vertices  # Relaxation count for negative cycle
+    
+    dist[source] = 0
+    queue = deque([source])
+    in_queue[source] = True
+    
+    # Build adjacency list
+    adj = [[] for _ in range(vertices)]
+    for u, v, w in edges:
+        adj[u].append((v, w))
+    
+    while queue:
+        u = queue.popleft()
+        in_queue[u] = False
+        
+        for v, w in adj[u]:
+            if dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+                count[v] = count[u] + 1
+                
+                # Negative cycle detection
+                if count[v] >= vertices:
+                    return None  # Negative cycle exists
+                
+                if not in_queue[v]:
+                    queue.append(v)
+                    in_queue[v] = True
+    
+    return dist
+```
+
+**When to use**: Sparse graphs, often faster in practice.
+
+### Tactic 3: Path Reconstruction
+
+Reconstruct actual shortest path:
+
+```python
+def reconstruct_path(parent, source, target):
+    """Reconstruct path from source to target."""
+    if parent[target] == -1 and target != source:
+        return []  # No path
+    
+    path = []
+    current = target
+    while current != -1:
+        path.append(current)
+        current = parent[current]
+    
+    path.reverse()
+    return path if path[0] == source else []
+```
+
+**When to use**: When you need the actual path, not just distance.
+
+### Tactic 4: Finding Negative Cycle Vertices
+
+Identify which vertices are affected by negative cycle:
+
+```python
+def find_negative_cycle_vertices(vertices, edges, source):
+    """Find vertices on negative cycles."""
+    dist = [float('inf')] * vertices
+    parent = [-1] * vertices
+    dist[source] = 0
+    
+    # V relaxations
+    for _ in range(vertices):
+        for u, v, w in edges:
+            if dist[u] != float('inf') and dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+                parent[v] = u
+    
+    # Find vertices on negative cycle
+    in_cycle = [False] * vertices
+    for v in range(vertices):
+        if parent[v] != -1:
+            current = v
+            for _ in range(vertices):
+                current = parent[current]
+                if current == -1:
+                    break
+            if current != -1:
+                in_cycle[current] = True
+    
+    return [i for i, x in enumerate(in_cycle) if x]
+```
+
+**When to use**: Need to identify which vertices are affected by negative cycles.
+
+### Tactic 5: Currency Arbitrage Detection
+
+Detect arbitrage opportunities using negative cycles:
+
+```python
+import math
+
+def detect_arbitrage(currencies, rates):
+    """
+    Detect currency arbitrage using Bellman-Ford.
+    
+    Args:
+        currencies: List of currency names
+        rates: List of (i, j, rate) tuples
+    """
+    n = len(currencies)
+    # Convert rates to weights: weight = -log(rate)
+    edges = []
+    for i, j, rate in rates:
+        weight = -math.log(rate)
+        edges.append((i, j, weight))
+    
+    # Bellman-Ford to detect negative cycle
+    dist = [float('inf')] * n
+    dist[0] = 0
+    
+    # Relax V-1 times
+    for _ in range(n - 1):
+        for u, v, w in edges:
+            if dist[u] != float('inf') and dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+    
+    # Check for negative cycle
+    for u, v, w in edges:
+        if dist[u] != float('inf') and dist[u] + w < dist[v]:
+            return True  # Arbitrage exists!
+    
+    return False
+```
+
+**When to use**: Currency exchange, detecting profitable cycles.
 
 ---
 
-## Algorithm Steps
+## Python Templates
 
-### Step-by-Step Approach
+### Template 1: Standard Bellman-Ford (Single-Source)
 
-1. **Understand the Graph**
-   - Identify the number of vertices (V)
-   - Identify all edges with their weights (directed edges)
-   - Determine the source vertex
-
-2. **Initialize Distances**
-   - Create an array `dist` of size V
-   - Set `dist[source] = 0`
-   - Set all other distances to infinity (use a large number like `float('inf')` or `Integer.MAX_VALUE`)
-
-3. **Perform V-1 Relaxations**
-   - For `i` from 1 to V-1:
-     - For each edge (u, v, w):
-       - If `dist[u] != infinity` AND `dist[u] + w < dist[v]`:
-         - Update `dist[v] = dist[u] + w`
-
-4. **Detect Negative Cycles**
-   - For each edge (u, v, w):
-     - If `dist[u] != infinity` AND `dist[u] + w < dist[v]`:
-       - Negative cycle detected!
-       - Return or handle accordingly
-
-5. **Return Results**
-   - Return the distance array
-   - Optionally return whether a negative cycle was found
-
----
-
-## Implementation
-
-### Template Code (Single-Source Shortest Path)
-
-````carousel
 ```python
 from typing import List, Tuple, Optional
 
-def bellman_ford(vertices: int, edges: List[Tuple[int, int, int]], source: int) -> Tuple[List[Optional[int]], bool]:
+def bellman_ford(vertices: int, edges: List[Tuple[int, int, int]], 
+                  source: int) -> Tuple[List[Optional[int]], bool]:
     """
     Bellman-Ford algorithm to find shortest paths from source to all vertices.
     
@@ -176,9 +401,14 @@ def bellman_ford(vertices: int, edges: List[Tuple[int, int, int]], source: int) 
     dist = [None if d == float('inf') else d for d in dist]
     
     return dist, has_negative_cycle
+```
 
+### Template 2: Bellman-Ford with Path Reconstruction
 
-def bellman_ford_with_path(vertices: int, edges: List[Tuple[int, int, int]], source: int) -> Tuple[List[Optional[int]], List[Optional[int]], bool]:
+```python
+def bellman_ford_with_path(vertices: int, edges: List[Tuple[int, int, int]], 
+                            source: int) -> Tuple[List[Optional[int]], 
+                                                    List[Optional[int]], bool]:
     """
     Bellman-Ford with path reconstruction.
     
@@ -224,851 +454,15 @@ def reconstruct_path(parent: List[int], source: int, target: int) -> List[int]:
     
     path.reverse()
     return path if path[0] == source else []
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    # Graph: 5 vertices (0 to 4)
-    # Edges: (source, destination, weight)
-    vertices = 5
-    edges = [
-        (0, 1, 4),
-        (0, 2, 2),
-        (1, 2, 3),
-        (1, 3, 2),
-        (2, 3, 5),
-        (1, 4, -3),  # negative weight edge
-        (3, 4, 4)
-    ]
-    source = 0
-    
-    distances, has_neg_cycle = bellman_ford(vertices, edges, source)
-    print(f"Source: {source}")
-    print(f"Negative cycle detected: {has_neg_cycle}")
-    print("Shortest distances:")
-    for i, d in enumerate(distances):
-        print(f"  Vertex {i}: {d}")
-    
-    print("\n" + "="*50)
-    print("With path reconstruction:")
-    dist, parent, has_cycle = bellman_ford_with_path(vertices, edges, source)
-    
-    for target in range(vertices):
-        path = reconstruct_path(parent, source, target)
-        if path:
-            print(f"Path to {target}: {path} (distance: {dist[target]})")
-        else:
-            print(f"No path to {target}")
-    
-    # Test with negative cycle
-    print("\n" + "="*50)
-    print("Testing with negative cycle:")
-    vertices_cycle = 3
-    edges_cycle = [
-        (0, 1, 2),
-        (1, 2, -3),
-        (2, 0, -1)  # Creates cycle: 0→1→2→0 with total weight -2
-    ]
-    dist, _ = bellman_ford(vertices_cycle, edges_cycle, 0)
-    print(f"Distances: {dist}")
 ```
 
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <limits>
-#include <tuple>
-using namespace std;
+### Template 3: SPFA (Shortest Path Faster Algorithm)
 
-/**
- * Bellman-Ford algorithm to find shortest paths from source to all vertices.
- * 
- * Time Complexity: O(V * E)
- * Space Complexity: O(V)
- */
-class BellmanFord {
-private:
-    int V;  // Number of vertices
-    vector<tuple<int, int, int>> edges;  // (u, v, w)
-    
-public:
-    BellmanFord(int vertices) : V(vertices) {}
-    
-    // Add directed edge
-    void addEdge(int u, int v, int w) {
-        edges.emplace_back(u, v, w);
-    }
-    
-    /**
-     * Find shortest paths from source to all vertices.
-     * 
-     * Returns: pair(distances, hasNegativeCycle)
-     * - distances: vector where distances[i] is shortest distance from source to i
-     *              (INF if unreachable)
-     * - hasNegativeCycle: true if negative cycle detected
-     */
-    pair<vector<long long>, bool> shortestPath(int source) {
-        const long long INF = LLONG_MAX / 4;
-        vector<long long> dist(V, INF);
-        dist[source] = 0;
-        
-        // Relax all edges V-1 times
-        for (int i = 0; i < V - 1; i++) {
-            for (const auto& [u, v, w] : edges) {
-                if (dist[u] != INF && dist[u] + w < dist[v]) {
-                    dist[v] = dist[u] + w;
-                }
-            }
-        }
-        
-        // Check for negative cycles
-        bool hasNegativeCycle = false;
-        for (const auto& [u, v, w] : edges) {
-            if (dist[u] != INF && dist[u] + w < dist[v]) {
-                hasNegativeCycle = true;
-                break;
-            }
-        }
-        
-        return {dist, hasNegativeCycle};
-    }
-    
-    /**
-     * Find shortest paths with path reconstruction.
-     */
-    tuple<vector<long long>, vector<int>, bool> shortestPathWithParent(int source) {
-        const long long INF = LLONG_MAX / 4;
-        vector<long long> dist(V, INF);
-        vector<int> parent(V, -1);
-        dist[source] = 0;
-        
-        // V-1 relaxations
-        for (int i = 0; i < V - 1; i++) {
-            for (const auto& [u, v, w] : edges) {
-                if (dist[u] != INF && dist[u] + w < dist[v]) {
-                    dist[v] = dist[u] + w;
-                    parent[v] = u;
-                }
-            }
-        }
-        
-        // Check for negative cycles
-        bool hasNegativeCycle = false;
-        for (const auto& [u, v, w] : edges) {
-            if (dist[u] != INF && dist[u] + w < dist[v]) {
-                hasNegativeCycle = true;
-                break;
-            }
-        }
-        
-        return {dist, parent, hasNegativeCycle};
-    }
-};
-
-// Reconstruct path from source to target
-vector<int> reconstructPath(const vector<int>& parent, int source, int target) {
-    if (parent[target] == -1 && target != source) return {};
-    
-    vector<int> path;
-    int current = target;
-    while (current != -1) {
-        path.push_back(current);
-        current = parent[current];
-    }
-    
-    reverse(path.begin(), path.end());
-    return path[0] == source ? path : vector<int>();
-}
-
-
-int main() {
-    // Create graph with 5 vertices
-    BellmanFord bf(5);
-    
-    // Add edges: (u, v, weight)
-    bf.addEdge(0, 1, 4);
-    bf.addEdge(0, 2, 2);
-    bf.addEdge(1, 2, 3);
-    bf.addEdge(1, 3, 2);
-    bf.addEdge(2, 3, 5);
-    bf.addEdge(1, 4, -3);  // negative weight
-    bf.addEdge(3, 4, 4);
-    
-    int source = 0;
-    
-    auto [dist, hasNegCycle] = bf.shortestPath(source);
-    
-    cout << "Source: " << source << endl;
-    cout << "Negative cycle detected: " << (hasNegCycle ? "Yes" : "No") << endl;
-    cout << "Shortest distances:" << endl;
-    for (int i = 0; i < 5; i++) {
-        cout << "  Vertex " << i << ": ";
-        if (dist[i] == LLONG_MAX / 4) {
-            cout << "INF (unreachable)";
-        } else {
-            cout << dist[i];
-        }
-        cout << endl;
-    }
-    
-    cout << "\n" << string(50, '=') << endl;
-    cout << "With path reconstruction:" << endl;
-    
-    auto [dist2, parent, hasCycle] = bf.shortestPathWithParent(source);
-    for (int target = 0; target < 5; target++) {
-        vector<int> path = reconstructPath(parent, source, target);
-        if (!path.empty()) {
-            cout << "Path to " << target << ": ";
-            for (size_t i = 0; i < path.size(); i++) {
-                cout << path[i] << (i < path.size() - 1 ? " -> " : "");
-            }
-            cout << " (distance: " << dist2[target] << ")" << endl;
-        } else {
-            cout << "No path to " << target << endl;
-        }
-    }
-    
-    // Test with negative cycle
-    cout << "\n" << string(50, '=') << endl;
-    cout << "Testing with negative cycle:" << endl;
-    
-    BellmanFord bf2(3);
-    bf2.addEdge(0, 1, 2);
-    bf2.addEdge(1, 2, -3);
-    bf2.addEdge(2, 0, -1);  // Creates negative cycle
-    
-    auto [dist3, hasNeg] = bf2.shortestPath(0);
-    cout << "Distances from 0: ";
-    for (int i = 0; i < 3; i++) {
-        cout << dist3[i] << " ";
-    }
-    cout << endl;
-    cout << "Negative cycle: " << (hasNeg ? "Yes" : "No") << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-/**
- * Bellman-Ford algorithm to find shortest paths from source to all vertices.
- * 
- * Time Complexity: O(V * E)
- * Space Complexity: O(V)
- */
-public class BellmanFord {
-    private int V;
-    private List<int[]> edges;  // [u, v, w]
-    
-    public BellmanFord(int vertices) {
-        this.V = vertices;
-        this.edges = new ArrayList<>();
-    }
-    
-    // Add directed edge
-    public void addEdge(int u, int v, int w) {
-        edges.add(new int[]{u, v, w});
-    }
-    
-    /**
-     * Find shortest paths from source to all vertices.
-     * 
-     * @return Map with "distances" (long[]), "hasNegativeCycle" (Boolean)
-     */
-    public Map<String, Object> shortestPath(int source) {
-        final long INF = Long.MAX_VALUE / 4;
-        long[] dist = new long[V];
-        Arrays.fill(dist, INF);
-        dist[source] = 0;
-        
-        // Relax all edges V-1 times
-        for (int i = 0; i < V - 1; i++) {
-            for (int[] edge : edges) {
-                int u = edge[0], v = edge[1], w = edge[2];
-                if (dist[u] != INF && dist[u] + w < dist[v]) {
-                    dist[v] = dist[u] + w;
-                }
-            }
-        }
-        
-        // Check for negative cycles
-        boolean hasNegativeCycle = false;
-        for (int[] edge : edges) {
-            int u = edge[0], v = edge[1], w = edge[2];
-            if (dist[u] != INF && dist[u] + w < dist[v]) {
-                hasNegativeCycle = true;
-                break;
-            }
-        }
-        
-        Map<String, Object> result = new HashMap<>();
-        result.put("distances", dist);
-        result.put("hasNegativeCycle", hasNegativeCycle);
-        return result;
-    }
-    
-    /**
-     * Find shortest paths with path reconstruction.
-     */
-    public Map<String, Object> shortestPathWithParent(int source) {
-        final long INF = Long.MAX_VALUE / 4;
-        long[] dist = new long[V];
-        int[] parent = new int[V];
-        Arrays.fill(dist, INF);
-        Arrays.fill(parent, -1);
-        dist[source] = 0;
-        
-        // V-1 relaxations
-        for (int i = 0; i < V - 1; i++) {
-            for (int[] edge : edges) {
-                int u = edge[0], v = edge[1], w = edge[2];
-                if (dist[u] != INF && dist[u] + w < dist[v]) {
-                    dist[v] = dist[u] + w;
-                    parent[v] = u;
-                }
-            }
-        }
-        
-        // Check for negative cycles
-        boolean hasNegativeCycle = false;
-        for (int[] edge : edges) {
-            int u = edge[0], v = edge[1], w = edge[2];
-            if (dist[u] != INF && dist[u] + w < dist[v]) {
-                hasNegativeCycle = true;
-                break;
-            }
-        }
-        
-        Map<String, Object> result = new HashMap<>();
-        result.put("distances", dist);
-        result.put("parent", parent);
-        result.put("hasNegativeCycle", hasNegativeCycle);
-        return result;
-    }
-    
-    // Reconstruct path from source to target
-    public List<Integer> reconstructPath(int[] parent, int source, int target) {
-        if (parent[target] == -1 && target != source) {
-            return Collections.emptyList();
-        }
-        
-        List<Integer> path = new ArrayList<>();
-        int current = target;
-        while (current != -1) {
-            path.add(current);
-            current = parent[current];
-        }
-        
-        Collections.reverse(path);
-        return path.get(0) == source ? path : Collections.emptyList();
-    }
-    
-    public static void main(String[] args) {
-        // Create graph with 5 vertices
-        BellmanFord bf = new BellmanFord(5);
-        
-        // Add edges: (u, v, weight)
-        bf.addEdge(0, 1, 4);
-        bf.addEdge(0, 2, 2);
-        bf.addEdge(1, 2, 3);
-        bf.addEdge(1, 3, 2);
-        bf.addEdge(2, 3, 5);
-        bf.addEdge(1, 4, -3);  // negative weight
-        bf.addEdge(3, 4, 4);
-        
-        int source = 0;
-        
-        Map<String, Object> result = bf.shortestPath(source);
-        long[] dist = (long[]) result.get("distances");
-        boolean hasNegCycle = (boolean) result.get("hasNegativeCycle");
-        
-        System.out.println("Source: " + source);
-        System.out.println("Negative cycle detected: " + hasNegCycle);
-        System.out.println("Shortest distances:");
-        for (int i = 0; i < 5; i++) {
-            System.out.println("  Vertex " + i + ": " + dist[i]);
-        }
-        
-        System.out.println("\n" + "=".repeat(50));
-        System.out.println("With path reconstruction:");
-        
-        Map<String, Object> result2 = bf.shortestPathWithParent(source);
-        long[] dist2 = (long[]) result2.get("distances");
-        int[] parent = (int[]) result2.get("parent");
-        
-        for (int target = 0; target < 5; target++) {
-            List<Integer> path = bf.reconstructPath(parent, source, target);
-            if (!path.isEmpty()) {
-                System.out.print("Path to " + target + ": ");
-                System.out.println(path + " (distance: " + dist2[target] + ")");
-            } else {
-                System.out.println("No path to " + target);
-            }
-        }
-        
-        // Test with negative cycle
-        System.out.println("\n" + "=".repeat(50));
-        System.out.println("Testing with negative cycle:");
-        
-        BellmanFord bf2 = new BellmanFord(3);
-        bf2.addEdge(0, 1, 2);
-        bf2.addEdge(1, 2, -3);
-        bf2.addEdge(2, 0, -1);  // Creates negative cycle
-        
-        Map<String, Object> result3 = bf2.shortestPath(0);
-        long[] dist3 = (long[]) result3.get("distances");
-        
-        System.out.print("Distances from 0: ");
-        for (int i = 0; i < 3; i++) {
-            System.out.print(dist3[i] + " ");
-        }
-        System.out.println();
-        System.out.println("Negative cycle: " + result3.get("hasNegativeCycle"));
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Bellman-Ford algorithm to find shortest paths from source to all vertices.
- * 
- * Time Complexity: O(V * E)
- * Space Complexity: O(V)
- */
-
-/**
- * Find shortest paths from source to all vertices.
- * 
- * @param {number} vertices - Number of vertices
- * @param {Array<[number, number, number]>} edges - Array of [u, v, w] tuples
- * @param {number} source - Source vertex
- * @returns {Object} { distances, hasNegativeCycle }
- */
-function bellmanFord(vertices, edges, source) {
-    const INF = Number.MAX_SAFE_INTEGER;
-    
-    // Initialize distances
-    const dist = new Array(vertices).fill(INF);
-    dist[source] = 0;
-    
-    // Relax all edges V-1 times
-    for (let i = 0; i < vertices - 1; i++) {
-        for (const [u, v, w] of edges) {
-            if (dist[u] !== INF && dist[u] + w < dist[v]) {
-                dist[v] = dist[u] + w;
-            }
-        }
-    }
-    
-    // Check for negative cycles
-    let hasNegativeCycle = false;
-    for (const [u, v, w] of edges) {
-        if (dist[u] !== INF && dist[u] + w < dist[v]) {
-            hasNegativeCycle = true;
-            break;
-        }
-    }
-    
-    return { distances: dist, hasNegativeCycle };
-}
-
-/**
- * Find shortest paths with path reconstruction.
- * 
- * @returns {Object} { distances, parent, hasNegativeCycle }
- */
-function bellmanFordWithPath(vertices, edges, source) {
-    const INF = Number.MAX_SAFE_INTEGER;
-    
-    const dist = new Array(vertices).fill(INF);
-    const parent = new Array(vertices).fill(-1);
-    dist[source] = 0;
-    
-    // V-1 relaxations
-    for (let i = 0; i < vertices - 1; i++) {
-        for (const [u, v, w] of edges) {
-            if (dist[u] !== INF && dist[u] + w < dist[v]) {
-                dist[v] = dist[u] + w;
-                parent[v] = u;
-            }
-        }
-    }
-    
-    // Check for negative cycles
-    let hasNegativeCycle = false;
-    for (const [u, v, w] of edges) {
-        if (dist[u] !== INF && dist[u] + w < dist[v]) {
-            hasNegativeCycle = true;
-            break;
-        }
-    }
-    
-    return { distances: dist, parent, hasNegativeCycle };
-}
-
-/**
- * Reconstruct path from source to target using parent array.
- * 
- * @param {number[]} parent - Parent array from Bellman-Ford
- * @param {number} source - Source vertex
- * @param {number} target - Target vertex
- * @returns {number[]} Path as array of vertices, or empty if no path
- */
-function reconstructPath(parent, source, target) {
-    if (parent[target] === -1 && target !== source) {
-        return [];  // No path exists
-    }
-    
-    const path = [];
-    let current = target;
-    
-    while (current !== -1) {
-        path.push(current);
-        current = parent[current];
-    }
-    
-    path.reverse();
-    return path[0] === source ? path : [];
-}
-
-
-// Example usage and demonstration
-const vertices = 5;
-const edges = [
-    [0, 1, 4],
-    [0, 2, 2],
-    [1, 2, 3],
-    [1, 3, 2],
-    [2, 3, 5],
-    [1, 4, -3],  // negative weight edge
-    [3, 4, 4]
-];
-const source = 0;
-
-const { distances, hasNegativeCycle } = bellmanFord(vertices, edges, source);
-
-console.log(`Source: ${source}`);
-console.log(`Negative cycle detected: ${hasNegativeCycle}`);
-console.log('Shortest distances:');
-distances.forEach((d, i) => {
-    console.log(`  Vertex ${i}: ${d === Number.MAX_SAFE_INTEGER ? 'INF (unreachable)' : d}`);
-});
-
-console.log('\n' + '='.repeat(50));
-console.log('With path reconstruction:');
-
-const { distances: dist2, parent, hasCycle } = bellmanFordWithPath(vertices, edges, source);
-
-for (let target = 0; target < vertices; target++) {
-    const path = reconstructPath(parent, source, target);
-    if (path.length > 0) {
-        console.log(`Path to ${target}: ${path.join(' -> ')} (distance: ${dist2[target]})`);
-    } else {
-        console.log(`No path to ${target}`);
-    }
-}
-
-// Test with negative cycle
-console.log('\n' + '='.repeat(50));
-console.log('Testing with negative cycle:');
-
-const verticesCycle = 3;
-const edgesCycle = [
-    [0, 1, 2],
-    [1, 2, -3],
-    [2, 0, -1]  // Creates cycle: 0→1→2→0 with total weight -2
-];
-
-const { distances: dist3, hasNegativeCycle: hasNeg } = bellmanFord(verticesCycle, edgesCycle, 0);
-console.log(`Distances from 0: ${dist3.join(' ')}`);
-console.log(`Negative cycle: ${hasNeg ? 'Yes' : 'No'}`);
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Initialization** | O(V) | Create distance array |
-| **Relaxation (V-1 iterations)** | O(V × E) | Each iteration processes all edges |
-| **Negative Cycle Check** | O(E) | One final pass through edges |
-| **Total** | **O(V × E)** | Dominated by relaxation steps |
-
-### Detailed Breakdown
-
-- **V-1 Iterations**: Each iteration examines all E edges
-- **Edge Processing**: For each edge, we perform constant-time comparison and potential update
-- **Worst Case**: O(V × E) where V is vertices and E is edges
-  - Dense graph: E ≈ V², so O(V³)
-  - Sparse graph: E ≈ V, so O(V²)
-
----
-
-## Space Complexity Analysis
-
-| Data Structure | Space | Description |
-|---------------|-------|-------------|
-| **Distance Array** | O(V) | Store shortest distances |
-| **Parent Array (optional)** | O(V) | For path reconstruction |
-| **Edge List** | O(E) | Input storage |
-| **Total** | **O(V + E)** | Can be reduced to O(V) if edges processed from input |
-
-### Space Optimization
-
-For memory-constrained environments:
-1. **Process edges on-the-fly**: Don't store all edges if possible
-2. **Single-pass relaxation**: Some variants can optimize memory usage
-3. **Use adjacency list**: Instead of edge list, process from adjacency representation
-
----
-
-## Common Variations
-
-### 1. Shortest Path with Path Reconstruction
-
-Track parent pointers during relaxation to reconstruct actual paths.
-
-**Implementation Note:** See the main implementation section above for `bellman_ford_with_path()` and `reconstruct_path()` functions in all four languages.
-
-### 2. Finding Negative Cycle Vertices
-
-Identify which vertices are affected by the negative cycle.
-
-````carousel
-```python
-def find_negative_cycle_vertices(vertices, edges, source):
-    """Find vertices affected by negative cycle."""
-    dist = [float('inf')] * vertices
-    parent = [-1] * vertices
-    dist[source] = 0
-    
-    # V relaxations
-    for _ in range(vertices):
-        for u, v, w in edges:
-            if dist[u] != float('inf') and dist[u] + w < dist[v]:
-                dist[v] = dist[u] + w
-                parent[v] = u
-    
-    # Find vertices on negative cycle
-    in_cycle = [False] * vertices
-    for v in range(vertices):
-        if parent[v] != -1:
-            # Trace back to find cycle
-            current = v
-            for _ in range(vertices):
-                current = parent[current]
-                if current == -1:
-                    break
-            if current != -1:
-                in_cycle[current] = True
-    
-    return [i for i, x in enumerate(in_cycle) if x]
-
-
-# Example usage
-if __name__ == "__main__":
-    vertices = 4
-    edges = [
-        (0, 1, 1),
-        (1, 2, -1),
-        (2, 3, -1),
-        (3, 1, -1)  # Negative cycle: 1 -> 2 -> 3 -> 1
-    ]
-    cycle_vertices = find_negative_cycle_vertices(vertices, edges, 0)
-    print(f"Vertices in negative cycle: {cycle_vertices}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <tuple>
-using namespace std;
-
-vector<int> findNegativeCycleVertices(int vertices, vector<tuple<int,int,int>>& edges, int source) {
-    const long long INF = LLONG_MAX / 4;
-    vector<long long> dist(vertices, INF);
-    vector<int> parent(vertices, -1);
-    dist[source] = 0;
-    
-    // V relaxations
-    for (int i = 0; i < vertices; i++) {
-        for (const auto& [u, v, w] : edges) {
-            if (dist[u] != INF && dist[u] + w < dist[v]) {
-                dist[v] = dist[u] + w;
-                parent[v] = u;
-            }
-        }
-    }
-    
-    // Find vertices on negative cycle
-    vector<bool> inCycle(vertices, false);
-    for (int v = 0; v < vertices; v++) {
-        if (parent[v] != -1) {
-            int current = v;
-            for (int i = 0; i < vertices; i++) {
-                current = parent[current];
-                if (current == -1) break;
-            }
-            if (current != -1) {
-                inCycle[current] = true;
-            }
-        }
-    }
-    
-    vector<int> result;
-    for (int i = 0; i < vertices; i++) {
-        if (inCycle[i]) result.push_back(i);
-    }
-    return result;
-}
-
-int main() {
-    int vertices = 4;
-    vector<tuple<int,int,int>> edges = {
-        {0, 1, 1},
-        {1, 2, -1},
-        {2, 3, -1},
-        {3, 1, -1}  // Negative cycle: 1 -> 2 -> 3 -> 1
-    };
-    
-    vector<int> cycleVertices = findNegativeCycleVertices(vertices, edges, 0);
-    cout << "Vertices in negative cycle: ";
-    for (int v : cycleVertices) cout << v << " ";
-    cout << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-public class NegativeCycleFinder {
-    public static List<Integer> findNegativeCycleVertices(int vertices, int[][] edges, int source) {
-        final long INF = Long.MAX_VALUE / 4;
-        long[] dist = new long[vertices];
-        int[] parent = new int[vertices];
-        Arrays.fill(dist, INF);
-        Arrays.fill(parent, -1);
-        dist[source] = 0;
-        
-        // V relaxations
-        for (int i = 0; i < vertices; i++) {
-            for (int[] edge : edges) {
-                int u = edge[0], v = edge[1], w = edge[2];
-                if (dist[u] != INF && dist[u] + w < dist[v]) {
-                    dist[v] = dist[u] + w;
-                    parent[v] = u;
-                }
-            }
-        }
-        
-        // Find vertices on negative cycle
-        boolean[] inCycle = new boolean[vertices];
-        for (int v = 0; v < vertices; v++) {
-            if (parent[v] != -1) {
-                int current = v;
-                for (int i = 0; i < vertices; i++) {
-                    current = parent[current];
-                    if (current == -1) break;
-                }
-                if (current != -1) {
-                    inCycle[current] = true;
-                }
-            }
-        }
-        
-        List<Integer> result = new ArrayList<>();
-        for (int i = 0; i < vertices; i++) {
-            if (inCycle[i]) result.add(i);
-        }
-        return result;
-    }
-    
-    public static void main(String[] args) {
-        int vertices = 4;
-        int[][] edges = {
-            {0, 1, 1},
-            {1, 2, -1},
-            {2, 3, -1},
-            {3, 1, -1}  // Negative cycle: 1 -> 2 -> 3 -> 1
-        };
-        
-        List<Integer> cycleVertices = findNegativeCycleVertices(vertices, edges, 0);
-        System.out.println("Vertices in negative cycle: " + cycleVertices);
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-function findNegativeCycleVertices(vertices, edges, source) {
-    const INF = Number.MAX_SAFE_INTEGER;
-    const dist = new Array(vertices).fill(INF);
-    const parent = new Array(vertices).fill(-1);
-    dist[source] = 0;
-    
-    // V relaxations
-    for (let i = 0; i < vertices; i++) {
-        for (const [u, v, w] of edges) {
-            if (dist[u] !== INF && dist[u] + w < dist[v]) {
-                dist[v] = dist[u] + w;
-                parent[v] = u;
-            }
-        }
-    }
-    
-    // Find vertices on negative cycle
-    const inCycle = new Array(vertices).fill(false);
-    for (let v = 0; v < vertices; v++) {
-        if (parent[v] !== -1) {
-            let current = v;
-            for (let i = 0; i < vertices; i++) {
-                current = parent[current];
-                if (current === -1) break;
-            }
-            if (current !== -1) {
-                inCycle[current] = true;
-            }
-        }
-    }
-    
-    return inCycle.map((x, i) => x ? i : -1).filter(x => x !== -1);
-}
-
-// Example usage
-const vertices = 4;
-const edges = [
-    [0, 1, 1],
-    [1, 2, -1],
-    [2, 3, -1],
-    [3, 1, -1]  // Negative cycle: 1 -> 2 -> 3 -> 1
-];
-
-const cycleVertices = findNegativeCycleVertices(vertices, edges, 0);
-console.log("Vertices in negative cycle:", cycleVertices);
-```
-````
-
-### 3. SPFA (Shortest Path Faster Algorithm)
-
-An optimization that uses a queue to only process vertices that were actually updated. Often faster in practice for sparse graphs.
-
-````carousel
 ```python
 from collections import deque
-from typing import List, Tuple, Optional
 
-def spfa(vertices: int, edges: List[Tuple[int, int, int]], source: int) -> Tuple[List[Optional[int]], bool]:
+def spfa(vertices: int, edges: List[Tuple[int, int, int]], 
+         source: int) -> Tuple[List[Optional[int]], bool]:
     """
     SPFA - Shortest Path Faster Algorithm.
     Often faster than standard Bellman-Ford for sparse graphs.
@@ -1105,7 +499,7 @@ def spfa(vertices: int, edges: List[Tuple[int, int, int]], source: int) -> Tuple
                 
                 # Negative cycle detection
                 if count[v] >= vertices:
-                    return dist, True
+                    return [None] * vertices, True
                 
                 if not in_queue[v]:
                     queue.append(v)
@@ -1113,284 +507,103 @@ def spfa(vertices: int, edges: List[Tuple[int, int, int]], source: int) -> Tuple
     
     dist = [None if d == float('inf') else d for d in dist]
     return dist, False
-
-
-# Example usage
-if __name__ == "__main__":
-    vertices = 5
-    edges = [
-        (0, 1, 4),
-        (0, 2, 2),
-        (1, 2, 3),
-        (1, 3, 2),
-        (2, 3, 5),
-        (1, 4, -3),
-        (3, 4, 4)
-    ]
-    
-    distances, has_neg = spfa(vertices, edges, 0)
-    print("SPFA Results:")
-    print(f"Negative cycle: {has_neg}")
-    print("Distances:", distances)
 ```
 
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <tuple>
-using namespace std;
+### Template 4: Bellman-Ford with K Stops Limit
 
-class SPFA {
-private:
-    int V;
-    vector<vector<pair<int,int>>> adj;  // adjacency list: (neighbor, weight)
+```python
+def bellman_ford_k_stops(vertices: int, edges: List[Tuple[int, int, int]],
+                         source: int, target: int, k: int) -> int:
+    """
+    Find shortest path from source to target with at most k stops.
     
-public:
-    SPFA(int vertices) : V(vertices) {
-        adj.resize(V);
-    }
+    Args:
+        k: Maximum number of stops (edges - 1)
     
-    void addEdge(int u, int v, int w) {
-        adj[u].push_back({v, w});
-    }
+    Returns:
+        Minimum cost, or -1 if no path exists
+    """
+    # dist[i] = shortest distance using at most i edges
+    dist = [float('inf')] * vertices
+    dist[source] = 0
     
-    pair<vector<long long>, bool> shortestPath(int source) {
-        const long long INF = LLONG_MAX / 4;
-        vector<long long> dist(V, INF);
-        vector<bool> inQueue(V, false);
-        vector<int> count(V, 0);  // Relaxation count
+    # Run k+1 iterations (k stops = k+1 edges max)
+    for _ in range(k + 1):
+        # Use copy to avoid using updates from current iteration
+        temp = dist.copy()
         
-        dist[source] = 0;
-        queue<int> q;
-        q.push(source);
-        inQueue[source] = true;
+        for u, v, w in edges:
+            if dist[u] != float('inf') and dist[u] + w < temp[v]:
+                temp[v] = dist[u] + w
         
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop();
-            inQueue[u] = false;
-            
-            for (const auto& [v, w] : adj[u]) {
-                if (dist[u] != INF && dist[u] + w < dist[v]) {
-                    dist[v] = dist[u] + w;
-                    count[v] = count[u] + 1;
-                    
-                    // Negative cycle detection
-                    if (count[v] >= V) {
-                        return {dist, true};
-                    }
-                    
-                    if (!inQueue[v]) {
-                        q.push(v);
-                        inQueue[v] = true;
-                    }
-                }
-            }
-        }
-        
-        return {dist, false};
-    }
-};
-
-int main() {
-    SPFA spfa(5);
-    spfa.addEdge(0, 1, 4);
-    spfa.addEdge(0, 2, 2);
-    spfa.addEdge(1, 2, 3);
-    spfa.addEdge(1, 3, 2);
-    spfa.addEdge(2, 3, 5);
-    spfa.addEdge(1, 4, -3);
-    spfa.addEdge(3, 4, 4);
+        dist = temp
     
-    auto [dist, hasNeg] = spfa.shortestPath(0);
-    
-    cout << "SPFA Results:" << endl;
-    cout << "Negative cycle: " << (hasNeg ? "Yes" : "No") << endl;
-    cout << "Distances: ";
-    for (long long d : dist) {
-        if (d == LLONG_MAX / 4) cout << "INF ";
-        else cout << d << " ";
-    }
-    cout << endl;
-    
-    return 0;
-}
+    return dist[target] if dist[target] != float('inf') else -1
 ```
 
-<!-- slide -->
-```java
-import java.util.*;
+### Template 5: Negative Cycle Detection
 
-public class SPFA {
-    private int V;
-    private List<int[]>[] adj;
+```python
+def has_negative_cycle(vertices: int, edges: List[Tuple[int, int, int]]) -> bool:
+    """
+    Check if graph contains a negative cycle.
     
-    public SPFA(int vertices) {
-        this.V = vertices;
-        this.adj = new ArrayList[V];
-        for (int i = 0; i < V; i++) {
-            adj[i] = new ArrayList<>();
-        }
-    }
+    Returns:
+        True if negative cycle exists, False otherwise
+    """
+    # Add dummy source connected to all vertices
+    dist = [0] * vertices  # Initialize all to 0 (allows detecting any cycle)
     
-    public void addEdge(int u, int v, int w) {
-        adj[u].add(new int[]{v, w});
-    }
+    # Relax V-1 times
+    for _ in range(vertices - 1):
+        for u, v, w in edges:
+            if dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
     
-    public Map<String, Object> shortestPath(int source) {
-        final long INF = Long.MAX_VALUE / 4;
-        long[] dist = new long[V];
-        boolean[] inQueue = new boolean[V];
-        int[] count = new int[V];
-        Arrays.fill(dist, INF);
-        
-        dist[source] = 0;
-        Queue<Integer> queue = new LinkedList<>();
-        queue.offer(source);
-        inQueue[source] = true;
-        
-        while (!queue.isEmpty()) {
-            int u = queue.poll();
-            inQueue[u] = false;
-            
-            for (int[] edge : adj[u]) {
-                int v = edge[0], w = edge[1];
-                if (dist[u] != INF && dist[u] + w < dist[v]) {
-                    dist[v] = dist[u] + w;
-                    count[v] = count[u] + 1;
-                    
-                    // Negative cycle detection
-                    if (count[v] >= V) {
-                        Map<String, Object> result = new HashMap<>();
-                        result.put("distances", dist);
-                        result.put("hasNegativeCycle", true);
-                        return result;
-                    }
-                    
-                    if (!inQueue[v]) {
-                        queue.offer(v);
-                        inQueue[v] = true;
-                    }
-                }
-            }
-        }
-        
-        Map<String, Object> result = new HashMap<>();
-        result.put("distances", dist);
-        result.put("hasNegativeCycle", false);
-        return result;
-    }
+    # Check for negative cycles
+    for u, v, w in edges:
+        if dist[u] + w < dist[v]:
+            return True
     
-    public static void main(String[] args) {
-        SPFA spfa = new SPFA(5);
-        spfa.addEdge(0, 1, 4);
-        spfa.addEdge(0, 2, 2);
-        spfa.addEdge(1, 2, 3);
-        spfa.addEdge(1, 3, 2);
-        spfa.addEdge(2, 3, 5);
-        spfa.addEdge(1, 4, -3);
-        spfa.addEdge(3, 4, 4);
-        
-        Map<String, Object> result = spfa.shortestPath(0);
-        long[] dist = (long[]) result.get("distances");
-        boolean hasNeg = (boolean) result.get("hasNegativeCycle");
-        
-        System.out.println("SPFA Results:");
-        System.out.println("Negative cycle: " + hasNeg);
-        System.out.print("Distances: ");
-        for (long d : dist) {
-            System.out.print(d + " ");
-        }
-        System.out.println();
-    }
-}
+    return False
+
+
+def find_negative_cycle_vertices(vertices: int, edges: List[Tuple[int, int, int]],
+                                  source: int) -> List[int]:
+    """Find vertices affected by negative cycle."""
+    dist = [float('inf')] * vertices
+    parent = [-1] * vertices
+    dist[source] = 0
+    
+    # V relaxations
+    for _ in range(vertices):
+        for u, v, w in edges:
+            if dist[u] != float('inf') and dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+                parent[v] = u
+    
+    # Find vertices on negative cycle
+    in_cycle = [False] * vertices
+    for v in range(vertices):
+        if parent[v] != -1:
+            current = v
+            for _ in range(vertices):
+                current = parent[current]
+                if current == -1:
+                    break
+            if current != -1:
+                in_cycle[current] = True
+    
+    return [i for i, x in enumerate(in_cycle) if x]
 ```
 
-<!-- slide -->
-```javascript
-class SPFA {
-    constructor(vertices) {
-        this.V = vertices;
-        this.adj = Array.from({ length: vertices }, () => []);
-    }
-    
-    addEdge(u, v, w) {
-        this.adj[u].push([v, w]);
-    }
-    
-    shortestPath(source) {
-        const INF = Number.MAX_SAFE_INTEGER;
-        const dist = new Array(this.V).fill(INF);
-        const inQueue = new Array(this.V).fill(false);
-        const count = new Array(this.V).fill(0);
-        
-        dist[source] = 0;
-        const queue = [source];
-        inQueue[source] = true;
-        
-        while (queue.length > 0) {
-            const u = queue.shift();
-            inQueue[u] = false;
-            
-            for (const [v, w] of this.adj[u]) {
-                if (dist[u] !== INF && dist[u] + w < dist[v]) {
-                    dist[v] = dist[u] + w;
-                    count[v] = count[u] + 1;
-                    
-                    // Negative cycle detection
-                    if (count[v] >= this.V) {
-                        return { distances: dist, hasNegativeCycle: true };
-                    }
-                    
-                    if (!inQueue[v]) {
-                        queue.push(v);
-                        inQueue[v] = true;
-                    }
-                }
-            }
-        }
-        
-        return { distances: dist, hasNegativeCycle: false };
-    }
-}
+### Template 6: Currency Arbitrage Detection
 
-// Example usage
-const spfa = new SPFA(5);
-spfa.addEdge(0, 1, 4);
-spfa.addEdge(0, 2, 2);
-spfa.addEdge(1, 2, 3);
-spfa.addEdge(1, 3, 2);
-spfa.addEdge(2, 3, 5);
-spfa.addEdge(1, 4, -3);
-spfa.addEdge(3, 4, 4);
-
-const result = spfa.shortestPath(0);
-console.log("SPFA Results:");
-console.log("Negative cycle:", result.hasNegativeCycle);
-console.log("Distances:", result.distances.map(d => 
-    d === Number.MAX_SAFE_INTEGER ? 'INF' : d
-));
-```
-````
-
-### 4. Bellman-Ford for Distributed Systems
-
-Used in distance-vector routing protocols like RIP (Routing Information Protocol).
-
-**Concept:** Each node maintains a distance vector table and periodically exchanges routing information with neighbors. The algorithm converges to the shortest paths without requiring global knowledge of the network topology.
-
-### 5. Currency Arbitrage Detection
-
-Model currencies as vertices, exchange rates as edge weights (negative log of rate), and look for negative cycles.
-
-````carousel
 ```python
 import math
-from typing import List, Tuple
 
-def detect_arbitrage(currencies: List[str], rates: List[Tuple[int, int, float]]) -> bool:
+def detect_arbitrage(currencies: List[str], 
+                     rates: List[Tuple[int, int, float]]) -> bool:
     """
     Detect currency arbitrage opportunity.
     
@@ -1403,8 +616,6 @@ def detect_arbitrage(currencies: List[str], rates: List[Tuple[int, int, float]])
     """
     n = len(currencies)
     # Convert rates to weights: weight = -log(rate)
-    # Arbitrage exists if we can find a cycle with product > 1
-    # Which means sum of -log(rate) < 0 (negative cycle)
     edges = []
     for i, j, rate in rates:
         weight = -math.log(rate)
@@ -1423,210 +634,126 @@ def detect_arbitrage(currencies: List[str], rates: List[Tuple[int, int, float]])
     # Check for negative cycle
     for u, v, w in edges:
         if dist[u] != float('inf') and dist[u] + w < dist[v]:
-            return True  # Arbitrage exists!
+            return True
     
     return False
-
-
-# Example: Currency arbitrage
-if __name__ == "__main__":
-    currencies = ["USD", "EUR", "GBP", "JPY"]
-    # Exchange rates (from, to, rate)
-    rates = [
-        (0, 1, 0.85),   # USD -> EUR: 1 USD = 0.85 EUR
-        (1, 2, 0.88),   # EUR -> GBP: 1 EUR = 0.88 GBP
-        (2, 0, 1.42),   # GBP -> USD: 1 GBP = 1.42 USD
-        # Cycle: USD -> EUR -> GBP -> USD
-        # Product: 0.85 * 0.88 * 1.42 = 1.062 > 1 (arbitrage!)
-    ]
-    
-    has_arbitrage = detect_arbitrage(currencies, rates)
-    print(f"Arbitrage opportunity detected: {has_arbitrage}")
-    
-    # Calculate profit
-    if has_arbitrage:
-        profit = 0.85 * 0.88 * 1.42
-        print(f"Profit multiplier: {profit:.4f} ({(profit-1)*100:.2f}% gain)")
 ```
 
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <cmath>
-using namespace std;
+### Template 7: Longest Path in DAG (using modified Bellman-Ford)
 
-bool detectArbitrage(int n, vector<tuple<int,int,double>>& rates) {
-    const double INF = 1e18;
-    vector<double> dist(n, INF);
-    dist[0] = 0;
+```python
+def longest_path_dag(vertices: int, edges: List[Tuple[int, int, int]],
+                     source: int) -> List[int]:
+    """
+    Find longest paths in a DAG using modified Bellman-Ford.
+    Negate weights and find shortest paths.
     
-    // Convert rates to weights: weight = -log(rate)
-    vector<tuple<int,int,double>> edges;
-    for (const auto& [i, j, rate] : rates) {
-        double weight = -log(rate);
-        edges.push_back({i, j, weight});
-    }
+    Note: Only works for DAGs. For general graphs, longest path is NP-hard.
+    """
+    # Negate all weights
+    neg_edges = [(u, v, -w) for u, v, w in edges]
     
-    // Relax V-1 times
-    for (int i = 0; i < n - 1; i++) {
-        for (const auto& [u, v, w] : edges) {
-            if (dist[u] != INF && dist[u] + w < dist[v]) {
-                dist[v] = dist[u] + w;
-            }
-        }
-    }
+    dist, has_neg_cycle = bellman_ford(vertices, neg_edges, source)
     
-    // Check for negative cycle
-    for (const auto& [u, v, w] : edges) {
-        if (dist[u] != INF && dist[u] + w < dist[v]) {
-            return true;  // Arbitrage exists!
-        }
-    }
+    # Check for positive cycle in original graph (negative in negated)
+    if has_neg_cycle:
+        return []  # Positive cycle exists, longest path undefined
     
-    return false;
-}
-
-int main() {
-    vector<string> currencies = {"USD", "EUR", "GBP", "JPY"};
-    vector<tuple<int,int,double>> rates = {
-        {0, 1, 0.85},   // USD -> EUR
-        {1, 2, 0.88},   // EUR -> GBP
-        {2, 0, 1.42}    // GBP -> USD
-    };
-    
-    bool hasArbitrage = detectArbitrage(currencies.size(), rates);
-    cout << "Arbitrage opportunity detected: " << (hasArbitrage ? "Yes" : "No") << endl;
-    
-    if (hasArbitrage) {
-        double profit = 0.85 * 0.88 * 1.42;
-        cout << "Profit multiplier: " << profit << " (" << (profit-1)*100 << "% gain)" << endl;
-    }
-    
-    return 0;
-}
+    # Convert back to positive distances
+    return [-d if d is not None else None for d in dist]
 ```
 
-<!-- slide -->
-```java
-import java.util.*;
+---
 
-public class ArbitrageDetector {
-    public static boolean detectArbitrage(int n, double[][] rates) {
-        final double INF = 1e18;
-        double[] dist = new double[n];
-        Arrays.fill(dist, INF);
-        dist[0] = 0;
+## When to Use
+
+Use the Bellman-Ford algorithm when you need to solve problems involving:
+
+- **Negative Edge Weights**: When the graph contains edges with negative weights
+- **Negative Cycle Detection**: When you need to detect if a negative cycle exists in the graph
+- **Single-Source Shortest Path**: When finding shortest paths from one source to all other vertices
+- **Constraint Problems**: When problems can be modeled as shortest path with potential negative cycles
+
+### Comparison with Alternatives
+
+| Algorithm | Handles Negative Weights | Detects Negative Cycles | Time Complexity | Best For |
+|-----------|-------------------------|------------------------|-----------------|----------|
+| **Bellman-Ford** | Yes | Yes | O(V × E) | Graphs with negative weights |
+| **Dijkstra's** | No | No | O((V + E) log V) | Dense graphs with positive weights |
+| **Floyd-Warshall** | Yes | Yes | O(V³) | All-pairs shortest path |
+| **SPFA** | Yes | Yes | O(V × E) average | Sparse graphs, often faster in practice |
+
+### When to Choose Bellman-Ford vs Dijkstra
+
+- **Choose Bellman-Ford** when:
+  - Graph has negative edge weights
+  - You need to detect negative cycles
+  - You're unsure if all weights are non-negative
+  
+- **Choose Dijkstra's** when:
+  - All edge weights are guaranteed non-negative
+  - You need faster execution (uses priority queue)
+  - Graph is large and sparse
+
+---
+
+## Algorithm Explanation
+
+### Core Concept
+
+The key insight behind Bellman-Ford is that in a graph without negative cycles, the shortest path between any two vertices contains at most **V-1 edges** (where V is the number of vertices). By repeatedly relaxing all edges, we progressively find shorter paths using more edges.
+
+### How It Works
+
+#### Initialization:
+1. Set the distance to the source vertex as 0
+2. Set all other vertices' distances to infinity (∞)
+
+#### Relaxation Process:
+1. **Repeat V-1 times**: For every edge (u, v) with weight w:
+    - If `dist[u] + w < dist[v]`, then update `dist[v] = dist[u] + w`
+2. This ensures we find shortest paths using paths of increasing length
+
+#### Negative Cycle Detection:
+- After V-1 iterations, perform one more pass
+- If any edge can still be relaxed, a negative cycle exists
+- The algorithm can traverse the cycle infinitely to get arbitrarily short paths
+
+### Visual Representation
+
+```
+Graph with 5 vertices:
         
-        // Build edges with weights = -log(rate)
-        List<double[]> edges = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                if (rates[i][j] > 0) {
-                    edges.add(new double[]{i, j, -Math.log(rates[i][j])});
-                }
-            }
-        }
-        
-        // Relax V-1 times
-        for (int i = 0; i < n - 1; i++) {
-            for (double[] edge : edges) {
-                int u = (int) edge[0];
-                int v = (int) edge[1];
-                double w = edge[2];
-                if (dist[u] != INF && dist[u] + w < dist[v]) {
-                    dist[v] = dist[u] + w;
-                }
-            }
-        }
-        
-        // Check for negative cycle
-        for (double[] edge : edges) {
-            int u = (int) edge[0];
-            int v = (int) edge[1];
-            double w = edge[2];
-            if (dist[u] != INF && dist[u] + w < dist[v]) {
-                return true;  // Arbitrage exists!
-            }
-        }
-        
-        return false;
-    }
-    
-    public static void main(String[] args) {
-        int n = 3;
-        double[][] rates = new double[n][n];
-        // Initialize with 0
-        for (int i = 0; i < n; i++) {
-            Arrays.fill(rates[i], 0);
-        }
-        rates[0][1] = 0.85;  // USD -> EUR
-        rates[1][2] = 0.88;  // EUR -> GBP
-        rates[2][0] = 1.42;  // GBP -> USD
-        
-        boolean hasArbitrage = detectArbitrage(n, rates);
-        System.out.println("Arbitrage opportunity detected: " + hasArbitrage);
-        
-        if (hasArbitrage) {
-            double profit = 0.85 * 0.88 * 1.42;
-            System.out.printf("Profit multiplier: %.4f (%.2f%% gain)%n", profit, (profit-1)*100);
-        }
-    }
-}
+        4          2
+    0 --------> 1 --------> 3
+    |           |
+    |           | -3
+    v           v
+    2           4
+    |           |
+    +-----------+
+
+Iteration 0: dist = [0, ∞, ∞, ∞, ∞]
+Iteration 1: dist = [0, 4, 2, ∞, ∞]
+             (relax 0→1, 0→2, then 1→2, 1→4 with -3)
+Iteration 2: dist = [0, 4, 2, 6, 1]
+             (relax 2→3, 3→4, 1→3)
+Final:       [0, 4, 2, 5, 1]
 ```
 
-<!-- slide -->
-```javascript
-function detectArbitrage(n, rates) {
-    const INF = 1e18;
-    const dist = new Array(n).fill(INF);
-    dist[0] = 0;
-    
-    // Build edges with weights = -log(rate)
-    const edges = [];
-    for (let i = 0; i < n; i++) {
-        for (let j = 0; j < n; j++) {
-            if (rates[i][j] > 0) {
-                edges.push([i, j, -Math.log(rates[i][j])]);
-            }
-        }
-    }
-    
-    // Relax V-1 times
-    for (let i = 0; i < n - 1; i++) {
-        for (const [u, v, w] of edges) {
-            if (dist[u] !== INF && dist[u] + w < dist[v]) {
-                dist[v] = dist[u] + w;
-            }
-        }
-    }
-    
-    // Check for negative cycle
-    for (const [u, v, w] of edges) {
-        if (dist[u] !== INF && dist[u] + w < dist[v]) {
-            return true;  // Arbitrage exists!
-        }
-    }
-    
-    return false;
-}
+### Why V-1 Iterations?
 
-// Example usage
-const n = 3;
-const rates = Array.from({ length: n }, () => new Array(n).fill(0));
-rates[0][1] = 0.85;  // USD -> EUR
-rates[1][2] = 0.88;  // EUR -> GBP
-rates[2][0] = 1.42;  // GBP -> USD
+In a graph without negative cycles:
+- The shortest path between any two vertices uses at most V-1 edges
+- Each iteration of relaxation finds shortest paths using at most one more edge
+- After V-1 iterations, all shortest paths (of length ≤ V-1 edges) are found
+- Any remaining relaxable edges indicate a negative cycle
 
-const hasArbitrage = detectArbitrage(n, rates);
-console.log("Arbitrage opportunity detected:", hasArbitrage);
+### Limitations
 
-if (hasArbitrage) {
-    const profit = 0.85 * 0.88 * 1.42;
-    console.log(`Profit multiplier: ${profit.toFixed(4)} (${((profit-1)*100).toFixed(2)}% gain)`);
-}
-```
-````
+- **Time Complexity**: O(V × E) - slower than Dijkstra for sparse graphs
+- **Negative Cycles**: Can cause the algorithm to not terminate (hence the detection step)
+- **Not for All-Pairs**: For all-pairs, Floyd-Warshall may be more efficient
 
 ---
 
@@ -1658,7 +785,7 @@ if (hasArbitrage) {
 
 ---
 
-### Problem 3: Find the City With the Smallest Number of Neighbors at a Threshold Distance
+### Problem 3: Find the City With the Smallest Number of Neighbors
 
 **Problem:** [LeetCode 1334 - Find the City With the Smallest Number of Neighbors at a Threshold Distance](https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/)
 
@@ -1671,29 +798,29 @@ if (hasArbitrage) {
 
 ---
 
-### Problem 4: Frog Position After T Seconds
-
-**Problem:** [LeetCode 1377 - Frog Position After T Seconds](https://leetcode.com/problems/frog-position-after-t-seconds/)
-
-**Description:** Given a tree graph where a frog starts at vertex 1, moves to unvisited neighbors with equal probability. Find probability that frog is at vertex target after exactly t seconds.
-
-**How to Apply Bellman-Ford:**
-- This can be modeled as a shortest path variant
-- Use DP with Bellman-Ford style updates to track probabilities
-
----
-
-### Problem 5: Minimum Cost to Convert String I
+### Problem 4: Minimum Cost to Convert String I
 
 **Problem:** [LeetCode 2976 - Minimum Cost to Convert String I](https://leetcode.com/problems/minimum-cost-to-convert-string-i/)
 
-**Description:** You are given two 0-indexed strings source and target, both of length n and consisting of lowercase English letters. You are also given two 0-indexed character arrays original and changed, and an integer array cost, where cost[i] represents the cost of changing character original[i] to character changed[i]. Return the minimum cost to convert the string source to the string target using any number of operations. If it's impossible, return -1.
+**Description:** You are given two strings source and target, and an array of character conversion costs. Return the minimum cost to convert source to target.
 
 **How to Apply Bellman-Ford:**
-- Model this as a graph where characters are nodes and conversions are edges with costs
-- Use Bellman-Ford (or Floyd-Warshall) to find shortest paths between all character pairs
-- This gives the minimum cost to convert any character to any other character
-- Then apply these costs to transform source to target character by character
+- Model as graph where characters are vertices
+- Use Floyd-Warshall or Bellman-Ford to find all-pairs shortest paths
+- Sum up costs for each character conversion needed
+
+---
+
+### Problem 5: Design Graph With Shortest Path Calculator
+
+**Problem:** [LeetCode 2642 - Design Graph With Shortest Path Calculator](https://leetcode.com/problems/design-graph-with-shortest-path-calculator/)
+
+**Description:** Design a class to calculate shortest path in a weighted directed graph with positive weights.
+
+**How to Apply Bellman-Ford:**
+- Can use Bellman-Ford for shortest path queries
+- Alternative: Dijkstra's for better performance with positive weights
+- Handle edge additions that might create negative cycles
 
 ---
 
@@ -1701,83 +828,85 @@ if (hasArbitrage) {
 
 ### Fundamentals
 
-- [Bellman-Ford Algorithm - Introduction (Take U Forward)](https://www.youtube.com/watch?v=9PHkk0UavIM) - Comprehensive introduction
-- [Bellman-Ford Algorithm (WilliamFiset)](https://www.youtube.com/watch?v=FtN3BYH2Zes) - Detailed explanation with visualizations
-- [Bellman-Ford Algorithm (NeetCode)](https://www.youtube.com/watch?v=9P6nOkT4L7U) - Practical implementation guide
+- [Bellman-Ford Algorithm - Introduction (Take U Forward)](https://www.youtube.com/watch?v=9trI0mriUyI) - Comprehensive introduction
+- [Bellman-Ford Algorithm (WilliamFiset)](https://www.youtube.com/watch?v=M1Fy86AuwBs) - Detailed explanation with visualizations
+- [Negative Cycle Detection (NeetCode)](https://www.youtube.com/watch?v=Tkpp2C3v3gU) - Practical implementation guide
 
-### Negative Cycles
+### Advanced Topics
 
-- [Detecting Negative Cycles](https://www.youtube.com/watch?v=42KhN60j5Vo) - How negative cycle detection works
-- [Bellman-Ford vs Dijkstra](https://www.youtube.com/watch?v=bo3Wqbq3y5A) - Comparison and when to use which
+- [SPFA Optimization](https://www.youtube.com/watch?v=Kkmv2e30HWs) - Faster algorithm for sparse graphs
+- [Currency Arbitrage Detection](https://www.youtube.com/watch?v=5uyJb2j3G7U) - Real-world application
+- [K-Stop Constraint Problems](https://www.youtube.com/watch?v=2kmB6M3BzsQ) - Modified Bellman-Ford
 
-### Applications
+### Problem-Specific
 
-- [SPFA Algorithm](https://www.youtube.com/watch?v=AmzG9W4jWV0) - Shortest Path Faster Algorithm
-- [Currency Arbitrage with Bellman-Ford](https://www.youtube.com/watch?v=4OQeKHY-j5Q) - Real-world application
+- [Cheapest Flights Within K Stops - LeetCode 787](https://www.youtube.com/watch?v=4wg3Q9bU5xg) - K-stop constraint
+- [Network Delay Time - LeetCode 743](https://www.youtube.com/watch?v=e1FZ8x5h7jU) - Basic shortest path
 
 ---
 
 ## Follow-up Questions
 
-### Q1: What happens if the graph has negative cycles?
+### Q1: What is the time complexity of Bellman-Ford?
 
-**Answer:** If a negative cycle exists, Bellman-Ford will detect it by finding an edge that can still be relaxed after V-1 iterations. In this case:
-- Shortest paths are undefined (can be arbitrarily small)
-- The algorithm returns a flag indicating negative cycle existence
-- For some problems, you may want to identify the affected vertices
+**Answer:** Bellman-Ford has O(V × E) time complexity:
+- V-1 iterations over all edges: O(V × E)
+- One additional pass for negative cycle detection: O(E)
+- Total: O(V × E)
 
-### Q2: Can Bellman-Ford handle undirected graphs?
+For dense graphs where E ≈ V², this becomes O(V³). For sparse graphs where E ≈ V, this is O(V²).
 
-**Answer:** Yes, but you need to add each undirected edge as two directed edges. For an undirected edge between u and v with weight w, add both (u, v, w) and (v, u, w). Note: If there's a negative weight edge in an undirected graph, make sure there isn't a 2-edge cycle that could cause issues.
+### Q2: How does Bellman-Ford handle negative cycles?
 
-### Q3: How does Bellman-Ford compare to Dijkstra in practice?
+**Answer:** After V-1 iterations, if we can still relax any edge, a negative cycle exists:
+1. The algorithm performs one extra iteration to check
+2. If any distance can be reduced, there's a negative cycle
+3. Vertices affected by the cycle will have their distances continue decreasing
+4. The algorithm typically returns a flag indicating negative cycle detection
 
-**Answer:**
-- **Time**: Dijkstra is typically O((V+E) log V), faster than Bellman-Ford's O(V×E)
-- **Weight Constraints**: Bellman-Ford handles negative weights; Dijkstra doesn't
-- **Negative Cycles**: Bellman-Ford can detect them; Dijkstra cannot
-- **Use Case**: Use Dijkstra for positive-weight graphs; Bellman-Ford when negatives possible
+### Q3: Can Bellman-Ford be used for all-pairs shortest path?
 
-### Q4: What is SPFA and when should I use it?
+**Answer:** Yes, but it's not efficient:
+- Run Bellman-Ford from each vertex: O(V² × E)
+- For dense graphs: O(V⁴)
+- Better alternatives: Floyd-Warshall (O(V³)) or Johnson's Algorithm (O(V² log V + VE))
 
-**Answer:** SPFA (Shortest Path Faster Algorithm) is an optimization of Bellman-Ford:
-- Uses a queue to process only vertices that were updated
-- Average case: O(E) for many practical graphs
-- Worst case: Still O(V×E) but rarely occurs
-- Use SPFA when you expect sparse updates or need better average performance
+### Q4: What is the difference between Bellman-Ford and Dijkstra's?
 
-### Q5: Can Bellman-Ford be parallelized?
+**Answer:** Key differences:
+| Aspect | Bellman-Ford | Dijkstra's |
+|--------|--------------|------------|
+| Handles negative weights | Yes | No |
+| Detects negative cycles | Yes | No |
+| Time complexity | O(VE) | O(E + V log V) |
+| Data structure | None/Queue | Priority queue |
+| Use case | Negative weights, cycle detection | Positive weights only |
 
-**Answer:** Yes! The relaxation of different edges can be done in parallel since they don't depend on each other within the same iteration. However:
-- You still need V-1 sequential iterations
-- Parallel speedup is limited but possible on GPU or multi-core systems
-- For most practical cases, the overhead isn't worth it
+### Q5: What is the SPFA algorithm?
+
+**Answer:** Shortest Path Faster Algorithm (SPFA) is an optimization of Bellman-Ford:
+- Uses a queue to only process vertices that were actually relaxed
+- Often much faster in practice for sparse graphs
+- Average case: O(E), worst case: O(VE)
+- Can detect negative cycles using a visit count array
 
 ---
 
 ## Summary
 
-The Bellman-Ford algorithm is an essential tool for solving shortest path problems in graphs with **negative edge weights** and for **negative cycle detection**. Key takeaways:
+The Bellman-Ford algorithm is a versatile **single-source shortest path** algorithm that handles **negative edge weights** and detects **negative cycles**. Key takeaways:
 
-- **Handles Negative Weights**: Unlike Dijkstra, works correctly with negative edge weights
-- **Negative Cycle Detection**: Can detect cycles with negative total weight
-- **Time Complexity**: O(V × E) - slower than Dijkstra but more versatile
-- **V-1 Iterations**: Guarantees finding shortest paths in graphs without negative cycles
+- **Handles negatives**: Works with graphs containing negative edge weights
+- **Cycle detection**: Can detect negative weight cycles
+- **Time complexity**: O(V × E)
+- **Space complexity**: O(V)
+- **Dynamic programming**: Based on iterative relaxation over all edges
 
 When to use:
-- ✅ Graphs with negative edge weights
-- ✅ When negative cycle detection is needed
-- ✅ When unsure if all weights are non-negative
-- ❌ For large graphs with only positive weights (use Dijkstra instead)
-- ❌ For all-pairs shortest path (use Floyd-Warshall)
+- Graphs with negative edge weights
+- Need to detect negative cycles
+- Single-source shortest path problems
+- Not for: Large sparse graphs with only positive weights (use Dijkstra's instead)
+- Not for: All-pairs shortest path (use Floyd-Warshall instead)
 
-This algorithm is fundamental in networking (routing protocols), finance (arbitrage detection), and various optimization problems. Master it to handle edge cases where simpler algorithms fail.
-
----
-
-## Related Algorithms
-
-- [Dijkstra's Algorithm](./dijkstras.md) - Faster for non-negative weights
-- [Floyd-Warshall](./floyd-warshall.md) - All-pairs shortest path
-- [SPFA](./spfa.md) - Optimized Bellman-Ford variant
-- [Graph BFS](./graph-bfs.md) - Unweighted shortest path
+This algorithm is essential for competitive programming and technical interviews, particularly in problems involving weighted graphs with potential negative edges, network routing, and arbitrage detection.

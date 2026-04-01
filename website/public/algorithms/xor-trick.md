@@ -7,6 +7,519 @@ Bit Manipulation
 
 The XOR Trick leverages the unique mathematical properties of the XOR (exclusive or) bitwise operation to solve common programming problems elegantly and efficiently. It enables finding single unique elements, swapping values without temporary variables, detecting missing numbers, and more - all in O(n) time with O(1) space complexity.
 
+This technique is fundamental in competitive programming and embedded systems where memory constraints are tight. The XOR operation's self-inverse property makes it particularly powerful for problems involving paired elements or memory-efficient computations.
+
+---
+
+## Concepts
+
+The XOR Trick is built on several fundamental concepts from bit manipulation and discrete mathematics.
+
+### 1. XOR Properties
+
+The mathematical foundations that make XOR tricks possible:
+
+| Property | Expression | Description |
+|----------|------------|-------------|
+| **Identity** | `a ^ 0 = a` | XOR with 0 returns the original value |
+| **Self-inverse** | `a ^ a = 0` | XOR with itself returns 0 |
+| **Commutative** | `a ^ b = b ^ a` | Order doesn't matter |
+| **Associative** | `(a ^ b) ^ c = a ^ (b ^ c)` | Grouping doesn't matter |
+
+### 2. Bitwise Operation Fundamentals
+
+XOR operates at the bit level:
+
+```
+XOR Truth Table:
+  0 ^ 0 = 0
+  0 ^ 1 = 1
+  1 ^ 0 = 1
+  1 ^ 1 = 0
+
+Example: 5 ^ 3
+  5 = 101 (binary)
+  3 = 011 (binary)
+  ------ XOR
+  6 = 110 (binary)
+```
+
+### 3. Pair Cancellation Pattern
+
+The key insight for finding unique elements:
+
+```
+When all elements appear twice except one:
+  result = 0
+  for each element:
+      result ^= element
+  # Pairs cancel (a ^ a = 0), leaving unique element
+```
+
+### 4. Bit Masking Techniques
+
+Finding and isolating specific bits:
+
+| Technique | Expression | Result |
+|-----------|------------|--------|
+| **Rightmost set bit** | `x & (-x)` | Isolates rightmost 1-bit |
+| **Toggle bit** | `x ^ (1 << n)` | Flips nth bit |
+| **Check bit** | `x & (1 << n)` | Non-zero if nth bit is 1 |
+| **Clear bit** | `x & ~(1 << n)` | Sets nth bit to 0 |
+
+---
+
+## Frameworks
+
+Structured approaches for applying the XOR trick.
+
+### Framework 1: Find Single Unique Element
+
+```
+┌─────────────────────────────────────────────────────┐
+│  FIND SINGLE UNIQUE FRAMEWORK                       │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Problem: All elements appear twice except one     │
+│                                                     │
+│  Initialize:                                        │
+│      result = 0   (XOR identity)                     │
+│                                                     │
+│  Process:                                           │
+│      For each element in array:                    │
+│          result ^= element                           │
+│                                                     │
+│  Return:                                            │
+│      result   (the unique element)                 │
+│                                                     │
+│  Why it works:                                     │
+│  - Pairs cancel: a ^ a = 0                          │
+│  - Unique remains: 0 ^ x = x                        │
+│                                                     │
+│  Complexity: O(n) time, O(1) space                 │
+└─────────────────────────────────────────────────────┘
+```
+
+### Framework 2: Find Two Unique Elements
+
+```
+┌─────────────────────────────────────────────────────┐
+│  FIND TWO UNIQUE ELEMENTS FRAMEWORK                  │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Problem: All elements appear twice, two appear once│
+│                                                     │
+│  Step 1: XOR all elements                            │
+│      xor_all = a ^ b  (a and b are the unique pair) │
+│                                                     │
+│  Step 2: Find differentiating bit                    │
+│      # xor_all has bits set where a and b differ    │
+│      rightmost_bit = xor_all & (-xor_all)            │
+│                                                     │
+│  Step 3: Partition and XOR separately              │
+│      group1 = XOR of elements with bit set           │
+│      group2 = XOR of elements without bit set       │
+│                                                     │
+│  Return:                                            │
+│      [group1, group2]   (the two unique elements)   │
+│                                                     │
+│  Complexity: O(n) time, O(1) space                 │
+└─────────────────────────────────────────────────────┘
+```
+
+### Framework 3: Find Missing Number in Sequence
+
+```
+┌─────────────────────────────────────────────────────┐
+│  FIND MISSING NUMBER FRAMEWORK                       │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Problem: Array contains n numbers from [0, n]      │
+│           with one missing. Find the missing.      │
+│                                                     │
+│  Initialize:                                        │
+│      result = n   (XOR with the extra number)       │
+│                                                     │
+│  Process:                                           │
+│      For i from 0 to n-1:                          │
+│          result ^= i ^ arr[i]                       │
+│                                                     │
+│  Return:                                            │
+│      result   (the missing number)                 │
+│                                                     │
+│  Why it works:                                     │
+│  - All present numbers: i ^ arr[i] = i ^ i = 0      │
+│  - Missing number: result = n ^ missing ^ n = missing│
+│                                                     │
+│  Complexity: O(n) time, O(1) space                 │
+└─────────────────────────────────────────────────────┘
+```
+
+### Framework 4: XOR Swap Algorithm
+
+```
+┌─────────────────────────────────────────────────────┐
+│  XOR SWAP FRAMEWORK                                  │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Caution: Only works when a and b are DIFFERENT   │
+│           memory locations!                          │
+│                                                     │
+│  Given: a = A, b = B                               │
+│                                                     │
+│  Step 1: a = a ^ b                                  │
+│      a = A ^ B,  b = B                              │
+│                                                     │
+│  Step 2: b = a ^ b                                  │
+│      b = (A ^ B) ^ B = A                            │
+│      a = A ^ B                                      │
+│                                                     │
+│  Step 3: a = a ^ b                                  │
+│      a = (A ^ B) ^ A = B                            │
+│      b = A                                          │
+│                                                     │
+│  Result: a = B, b = A   ✓ Swapped!                │
+│                                                     │
+│  Complexity: O(1) time, O(1) space                 │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## Forms
+
+Different manifestations of the XOR trick pattern.
+
+### Form 1: Single Unique Element
+
+All elements appear twice except one.
+
+| Input Pattern | Algorithm | Result |
+|---------------|-----------|--------|
+| `[4, 1, 2, 1, 2]` | XOR all | `4` |
+| `[2, 2, 1]` | XOR all | `1` |
+| `[1, 3, 1, 3, 5]` | XOR all | `5` |
+
+### Form 2: Two Unique Elements
+
+Exactly two elements appear once, rest appear twice.
+
+| Input Pattern | Algorithm | Result |
+|---------------|-----------|--------|
+| `[1, 2, 1, 3, 2, 5]` | Partition by bit, XOR each | `[3, 5]` |
+| `[4, 4, 2, 3]` | Partition by bit, XOR each | `[2, 3]` |
+
+### Form 3: Missing Number in Sequence
+
+Find missing number from [0, n] range.
+
+| Input | Range | Missing |
+|-------|-------|---------|
+| `[3, 0, 1]` | [0, 3] | `2` |
+| `[0, 1, 2, 4]` | [0, 4] | `3` |
+| `[1, 2]` | [0, 2] | `0` |
+
+### Form 4: Appearing Three Times (Bit Counting)
+
+Every element appears three times except one.
+
+```
+Approach: Count set bits at each position modulo 3
+- If bit appears 3k+1 times, it's set in unique element
+- Requires O(32n) time for 32-bit integers
+- Still O(1) space
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations for XOR tricks.
+
+### Tactic 1: Rightmost Set Bit Isolation
+
+Find the bit that differentiates two numbers:
+
+```python
+def find_rightmost_set_bit(x):
+    """
+    Isolate rightmost set bit using two's complement.
+    
+    Example: x = 6 (110), -x = ...11111010
+             x & -x = 010 = 2
+    """
+    return x & (-x)
+
+# Usage in finding two unique elements:
+xor_all = a ^ b  # Where a and b are unique elements
+diff_bit = xor_all & (-xor_all)  # Any set bit in xor_all
+
+# Partition based on this bit
+for num in nums:
+    if num & diff_bit:
+        group1 ^= num  # Has the bit set
+    else:
+        group2 ^= num  # Doesn't have the bit
+```
+
+**Why it works**: `x & (-x)` isolates the rightmost 1-bit due to two's complement representation.
+
+### Tactic 2: Bit Counting for "Appears Three Times"
+
+When elements appear three times instead of twice:
+
+```python
+def find_single_number_ii(nums):
+    """Find element appearing once while others appear three times."""
+    result = 0
+    
+    for i in range(32):  # For 32-bit integers
+        bit_sum = 0
+        mask = 1 << i
+        
+        # Count how many numbers have this bit set
+        for num in nums:
+            if num & mask:
+                bit_sum += 1
+        
+        # If count is not multiple of 3, this bit is in unique element
+        if bit_sum % 3:
+            result |= mask
+    
+    # Handle negative numbers in Python
+    if result >= 2**31:
+        result -= 2**32
+    
+    return result
+```
+
+**Key insight**: Bits that appear 3k+1 times belong to the unique element.
+
+### Tactic 3: XOR for Character Toggle
+
+Toggle between uppercase and lowercase:
+
+```python
+def toggle_case(char):
+    """Toggle case using XOR with 32 (0b100000)."""
+    # ASCII: 'A' = 65 (0b1000001), 'a' = 97 (0b1100001)
+    # Difference is 32 (0b100000)
+    return chr(ord(char) ^ 32)
+
+# Examples:
+# toggle_case('A') -> 'a'
+# toggle_case('a') -> 'A'
+```
+
+### Tactic 4: XOR Cipher (Simple Encryption)
+
+Basic encryption using XOR with a key:
+
+```python
+def xor_cipher(text, key):
+    """
+    Simple XOR cipher for encryption/decryption.
+    XORing twice with same key returns original.
+    
+    Time: O(n) where n = len(text)
+    Space: O(n) for result
+    """
+    result = []
+    key_len = len(key)
+    for i, char in enumerate(text):
+        result.append(chr(ord(char) ^ ord(key[i % key_len])))
+    return ''.join(result)
+
+# Usage:
+# encrypted = xor_cipher("Hello", "key")
+# decrypted = xor_cipher(encrypted, "key")  # Returns "Hello"
+```
+
+### Tactic 5: In-Place Array Duplicate Removal
+
+Mark visited elements using index as bit storage:
+
+```python
+def find_duplicate_xor_approach(nums):
+    """
+    Find duplicate using XOR (for specific constraints).
+    When array contains elements in range [1, n] with one duplicate.
+    """
+    n = len(nums) - 1  # Expected max value
+    
+    # XOR all array elements
+    xor_arr = 0
+    for num in nums:
+        xor_arr ^= num
+    
+    # XOR all expected values 1 to n
+    xor_expected = 0
+    for i in range(1, n + 1):
+        xor_expected ^= i
+    
+    # Duplicate = xor_arr ^ xor_expected
+    return xor_arr ^ xor_expected
+```
+
+---
+
+## Python Templates
+
+### Template 1: Find Single Unique Element
+
+```python
+def find_unique(nums):
+    """
+    Find the single element that appears once while others appear twice.
+    
+    Args:
+        nums: List where every element appears twice except one
+    
+    Returns:
+        The unique element
+    
+    Time: O(n)
+    Space: O(1)
+    """
+    result = 0
+    for num in nums:
+        result ^= num
+    return result
+```
+
+### Template 2: Find Two Unique Elements
+
+```python
+def find_two_unique(nums):
+    """
+    Find two unique elements when all others appear twice.
+    Uses bit masking to partition elements.
+    
+    Args:
+        nums: List where exactly two elements appear once, rest appear twice
+    
+    Returns:
+        List containing the two unique elements
+    """
+    # Step 1: XOR all numbers - gives a ^ b
+    xor_all = 0
+    for num in nums:
+        xor_all ^= num
+    
+    # Step 2: Find rightmost set bit (difference between a and b)
+    rightmost_bit = xor_all & (-xor_all)
+    
+    # Step 3: Partition into two groups and XOR separately
+    x, y = 0, 0
+    for num in nums:
+        if num & rightmost_bit:
+            x ^= num
+        else:
+            y ^= num
+    
+    return [x, y]
+```
+
+### Template 3: Find Missing Number in Sequence
+
+```python
+def find_missing_number(nums):
+    """
+    Find missing number in range [0, n] where n = len(nums).
+    XOR all indices and values.
+    
+    Args:
+        nums: Array containing n distinct numbers from [0, n] with one missing
+    
+    Returns:
+        The missing number
+    """
+    n = len(nums)
+    result = n  # XOR with n (the extra number)
+    
+    for i, num in enumerate(nums):
+        result ^= i ^ num
+    
+    return result
+```
+
+### Template 4: Find Element Appearing Once (Others Three Times)
+
+```python
+def find_unique_three(nums):
+    """
+    Find element appearing once while others appear three times.
+    Uses bit counting approach.
+    
+    Args:
+        nums: List where every element appears three times except one
+    
+    Returns:
+        The unique element
+    """
+    result = 0
+    
+    for i in range(32):  # For 32-bit integers
+        bit_sum = 0
+        mask = 1 << i
+        
+        for num in nums:
+            if num & mask:
+                bit_sum += 1
+        
+        # If count of 1s is not multiple of 3, this bit is set in answer
+        if bit_sum % 3:
+            result |= mask
+    
+    # Handle negative numbers in Python
+    if result >= 2**31:
+        result -= 2**32
+    
+    return result
+```
+
+### Template 5: XOR Swap Function
+
+```python
+def xor_swap(a, b):
+    """
+    Swap two integers using XOR (without temporary variable).
+    
+    IMPORTANT: Only works when a and b are different memory locations!
+    Do NOT use: xor_swap(arr[i], arr[i]) - will zero out the value!
+    
+    Args:
+        a: First integer (passed by value in Python)
+        b: Second integer (passed by value in Python)
+    
+    Returns:
+        Tuple of swapped values (b, a)
+    
+    Time: O(1)
+    Space: O(1)
+    """
+    a = a ^ b
+    b = a ^ b  # b = (a^b) ^ b = a
+    a = a ^ b  # a = (a^b) ^ a = b
+    return a, b
+
+
+def xor_swap_array(arr, i, j):
+    """
+    Swap two array elements in place using XOR.
+    Safe for arrays since we pass indices.
+    
+    Args:
+        arr: List of integers
+        i: First index
+        j: Second index
+    """
+    if i != j:  # Must be different indices!
+        arr[i] ^= arr[j]
+        arr[j] ^= arr[i]
+        arr[i] ^= arr[j]
+```
+
 ---
 
 ## When to Use
@@ -49,18 +562,12 @@ Use the XOR Trick when you need to solve problems involving:
 
 ### Core Concept
 
-XOR (exclusive or) is a bitwise operation that returns 1 when the two bits are different, and 0 when they are the same. Its mathematical properties make it incredibly powerful for certain problem types.
-
-**Key XOR Properties:**
-
-1. **Identity**: `a ^ 0 = a` - XOR with 0 returns the same number
-2. **Self-inverse**: `a ^ a = 0` - XOR with itself returns 0
-3. **Commutative**: `a ^ b = b ^ a` - Order doesn't matter
-4. **Associative**: `(a ^ b) ^ c = a ^ (b ^ c)` - Grouping doesn't matter
+The key insight behind the XOR Trick is that XORing a number with itself cancels it out (returns 0), and XORing with 0 preserves the value. This property allows us to find unique elements among pairs without additional storage.
 
 ### How It Works
 
 #### Finding a Unique Element:
+
 When all elements appear twice except one:
 ```
 Given: [4, 1, 2, 1, 2]
@@ -75,6 +582,7 @@ Using commutative/associative properties:
 Pairs cancel out (a ^ a = 0), leaving only the unique element.
 
 #### Swapping Without Temp Variable:
+
 ```
 Initial: a = 5, b = 10
 
@@ -83,6 +591,15 @@ Step 2: b = a ^ b  →  b = (5^10) ^ 10 = 5,  a = 5^10
 Step 3: a = a ^ b  →  a = (5^10) ^ 5 = 10,  b = 5
 
 Result: a = 10, b = 5 ✓
+```
+
+#### Finding Missing Number:
+
+For array `[3, 0, 1]` in range [0, 3]:
+```
+XOR indices: 0 ^ 1 ^ 2 ^ 3 = 0
+XOR values:  3 ^ 0 ^ 1 = 2
+Final: 0 ^ 2 = 2 ✓
 ```
 
 ### Visual Representation
@@ -101,840 +618,20 @@ Step 5: result = 6 ^ 2 = 4  (2 cancels out!)
 Final: 4 ✓
 ```
 
+### Why It Works
+
+- **Self-inverse Property**: `a ^ a = 0` eliminates paired elements
+- **Identity Property**: `a ^ 0 = a` preserves the unique element
+- **Commutativity/Associativity**: Order doesn't matter, enabling simple linear scan
+- **Bitwise Parallelism**: All 32 bits processed simultaneously
+
 ### Limitations
 
 - **Only works for ONE unique element**: When all others appear even number of times
 - **Integer data only**: Works with numbers, not arbitrary objects
 - **Two unique elements**: Requires additional grouping logic
 - **Not for counting**: Can't determine how many times elements appear
-
----
-
-## Algorithm Steps
-
-### Finding Single Unique Element
-
-1. **Initialize result**: Set `result = 0` (XOR identity)
-2. **Iterate through array**: For each element in the array
-3. **XOR accumulate**: `result ^= element`
-4. **Return result**: The remaining value is the unique element
-
-### Finding Two Unique Elements
-
-1. **XOR all elements**: Get `xor_all = a ^ b` (the two unique elements)
-2. **Find differentiating bit**: `rightmost_bit = xor_all & (-xor_all)`
-3. **Partition into groups**: Elements with that bit set vs unset
-4. **XOR each group separately**: Each group contains one unique element
-5. **Return both results**: The two accumulated values
-
-### Swapping Without Temp Variable
-
-1. **First XOR**: `a ^= b` - Store combined value in `a`
-2. **Second XOR**: `b ^= a` - Extract original `a` into `b`
-3. **Third XOR**: `a ^= b` - Extract original `b` into `a`
-4. **Note**: Only works when `a` and `b` are different memory locations
-
----
-
-## Implementation
-
-### Standard XOR Operations
-
-````carousel
-```python
-def find_unique(nums):
-    """
-    Find the single element that appears once while others appear twice.
-    
-    Args:
-        nums: List where every element appears twice except one
-    
-    Returns:
-        The unique element
-    
-    Time: O(n)
-    Space: O(1)
-    """
-    result = 0
-    for num in nums:
-        result ^= num
-    return result
-
-
-def swap_values(a, b):
-    """
-    Swap two values without temporary variable using XOR.
-    
-    Note: Only works when a and b are different memory locations.
-    
-    Args:
-        a: First value
-        b: Second value
-    
-    Returns:
-        Tuple of swapped values (b, a)
-    """
-    a ^= b
-    b ^= a
-    a ^= b
-    return a, b
-
-
-def find_missing_number(nums):
-    """
-    Find missing number in range [0, n] where n = len(nums).
-    XOR all indices and values.
-    
-    Args:
-        nums: Array containing n distinct numbers from [0, n] with one missing
-    
-    Returns:
-        The missing number
-    """
-    n = len(nums)
-    result = n  # XOR with n (the extra number)
-    for i, num in enumerate(nums):
-        result ^= i ^ num
-    return result
-
-
-def find_two_unique(nums):
-    """
-    Find two unique elements when all others appear twice.
-    Uses bit masking to partition elements.
-    
-    Args:
-        nums: List where exactly two elements appear once, rest appear twice
-    
-    Returns:
-        List containing the two unique elements
-    """
-    # Step 1: XOR all numbers - gives a ^ b
-    xor_all = 0
-    for num in nums:
-        xor_all ^= num
-    
-    # Step 2: Find rightmost set bit (difference between a and b)
-    rightmost_bit = xor_all & (-xor_all)
-    
-    # Step 3: Partition into two groups and XOR separately
-    x, y = 0, 0
-    for num in nums:
-        if num & rightmost_bit:
-            x ^= num
-        else:
-            y ^= num
-    
-    return [x, y]
-
-
-def find_unique_three(nums):
-    """
-    Find element appearing once while others appear three times.
-    Uses bit counting approach.
-    
-    Args:
-        nums: List where every element appears three times except one
-    
-    Returns:
-        The unique element
-    """
-    result = 0
-    for i in range(32):  # For 32-bit integers
-        bit_sum = 0
-        mask = 1 << i
-        for num in nums:
-            if num & mask:
-                bit_sum += 1
-        
-        if bit_sum % 3:
-            result |= mask
-    
-    return result
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    # Test find_unique
-    arr1 = [4, 1, 2, 1, 2]
-    print(f"Array: {arr1}")
-    print(f"Unique element: {find_unique(arr1)}")
-    print()
-    
-    # Test swap
-    a, b = 5, 10
-    print(f"Before swap: a={a}, b={b}")
-    a, b = swap_values(a, b)
-    print(f"After swap: a={a}, b={b}")
-    print()
-    
-    # Test missing number
-    arr2 = [3, 0, 1]
-    print(f"Array: {arr2}")
-    print(f"Missing number: {find_missing_number(arr2)}")
-    print()
-    
-    # Test two unique
-    arr3 = [1, 2, 1, 3, 2, 5]
-    print(f"Array: {arr3}")
-    print(f"Two unique elements: {find_two_unique(arr3)}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-using namespace std;
-
-/**
- * Find the single element that appears once while others appear twice.
- * 
- * Time: O(n)
- * Space: O(1)
- */
-int findUnique(const vector<int>& nums) {
-    int result = 0;
-    for (int num : nums) {
-        result ^= num;
-    }
-    return result;
-}
-
-/**
- * Swap two values without temporary variable using XOR.
- * Note: Only works when a and b are different memory locations.
- */
-void swapValues(int& a, int& b) {
-    if (&a != &b) {  // Important: must be different addresses
-        a ^= b;
-        b ^= a;
-        a ^= b;
-    }
-}
-
-/**
- * Find missing number in range [0, n] where n = nums.size().
- * XOR all indices and values.
- * 
- * Time: O(n)
- * Space: O(1)
- */
-int findMissingNumber(const vector<int>& nums) {
-    int n = nums.size();
-    int result = n;  // XOR with n (the extra number)
-    for (int i = 0; i < n; i++) {
-        result ^= i ^ nums[i];
-    }
-    return result;
-}
-
-/**
- * Find two unique elements when all others appear twice.
- * Uses bit masking to partition elements.
- * 
- * Time: O(n)
- * Space: O(1)
- */
-vector<int> findTwoUnique(const vector<int>& nums) {
-    // Step 1: XOR all numbers - gives a ^ b
-    int xorAll = 0;
-    for (int num : nums) {
-        xorAll ^= num;
-    }
-    
-    // Step 2: Find rightmost set bit (difference between a and b)
-    int rightmostBit = xorAll & (-xorAll);
-    
-    // Step 3: Partition into two groups and XOR separately
-    int x = 0, y = 0;
-    for (int num : nums) {
-        if (num & rightmostBit) {
-            x ^= num;
-        } else {
-            y ^= num;
-        }
-    }
-    
-    return {x, y};
-}
-
-/**
- * Find element appearing once while others appear three times.
- * Uses bit counting approach.
- * 
- * Time: O(32 * n) = O(n)
- * Space: O(1)
- */
-int findUniqueThree(const vector<int>& nums) {
-    int result = 0;
-    for (int i = 0; i < 32; i++) {  // For 32-bit integers
-        int bitSum = 0;
-        int mask = 1 << i;
-        for (int num : nums) {
-            if (num & mask) {
-                bitSum++;
-            }
-        }
-        
-        if (bitSum % 3) {
-            result |= mask;
-        }
-    }
-    return result;
-}
-
-int main() {
-    // Test findUnique
-    vector<int> arr1 = {4, 1, 2, 1, 2};
-    cout << "Array: ";
-    for (int x : arr1) cout << x << " ";
-    cout << endl;
-    cout << "Unique element: " << findUnique(arr1) << endl;
-    cout << endl;
-    
-    // Test swap
-    int a = 5, b = 10;
-    cout << "Before swap: a=" << a << ", b=" << b << endl;
-    swapValues(a, b);
-    cout << "After swap: a=" << a << ", b=" << b << endl;
-    cout << endl;
-    
-    // Test missing number
-    vector<int> arr2 = {3, 0, 1};
-    cout << "Array: ";
-    for (int x : arr2) cout << x << " ";
-    cout << endl;
-    cout << "Missing number: " << findMissingNumber(arr2) << endl;
-    cout << endl;
-    
-    // Test two unique
-    vector<int> arr3 = {1, 2, 1, 3, 2, 5};
-    cout << "Array: ";
-    for (int x : arr3) cout << x << " ";
-    cout << endl;
-    vector<int> twoUnique = findTwoUnique(arr3);
-    cout << "Two unique elements: " << twoUnique[0] << ", " << twoUnique[1] << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.Arrays;
-
-/**
- * XOR Trick implementations for common problems.
- */
-public class XORTechniques {
-    
-    /**
-     * Find the single element that appears once while others appear twice.
-     * 
-     * Time: O(n)
-     * Space: O(1)
-     */
-    public static int findUnique(int[] nums) {
-        int result = 0;
-        for (int num : nums) {
-            result ^= num;
-        }
-        return result;
-    }
-    
-    /**
-     * Swap two values in an array without temporary variable using XOR.
-     * Note: Only works when i and j are different indices.
-     */
-    public static void swapValues(int[] arr, int i, int j) {
-        if (i != j) {  // Important: must be different indices
-            arr[i] ^= arr[j];
-            arr[j] ^= arr[i];
-            arr[i] ^= arr[j];
-        }
-    }
-    
-    /**
-     * Find missing number in range [0, n] where n = nums.length.
-     * XOR all indices and values.
-     * 
-     * Time: O(n)
-     * Space: O(1)
-     */
-    public static int findMissingNumber(int[] nums) {
-        int n = nums.length;
-        int result = n;  // XOR with n (the extra number)
-        for (int i = 0; i < n; i++) {
-            result ^= i ^ nums[i];
-        }
-        return result;
-    }
-    
-    /**
-     * Find two unique elements when all others appear twice.
-     * Uses bit masking to partition elements.
-     * 
-     * Time: O(n)
-     * Space: O(1)
-     */
-    public static int[] findTwoUnique(int[] nums) {
-        // Step 1: XOR all numbers - gives a ^ b
-        int xorAll = 0;
-        for (int num : nums) {
-            xorAll ^= num;
-        }
-        
-        // Step 2: Find rightmost set bit (difference between a and b)
-        int rightmostBit = xorAll & (-xorAll);
-        
-        // Step 3: Partition into two groups and XOR separately
-        int x = 0, y = 0;
-        for (int num : nums) {
-            if ((num & rightmostBit) != 0) {
-                x ^= num;
-            } else {
-                y ^= num;
-            }
-        }
-        
-        return new int[]{x, y};
-    }
-    
-    /**
-     * Find element appearing once while others appear three times.
-     * Uses bit counting approach.
-     * 
-     * Time: O(32 * n) = O(n)
-     * Space: O(1)
-     */
-    public static int findUniqueThree(int[] nums) {
-        int result = 0;
-        for (int i = 0; i < 32; i++) {  // For 32-bit integers
-            int bitSum = 0;
-            int mask = 1 << i;
-            for (int num : nums) {
-                if ((num & mask) != 0) {
-                    bitSum++;
-                }
-            }
-            
-            if (bitSum % 3 != 0) {
-                result |= mask;
-            }
-        }
-        return result;
-    }
-    
-    public static void main(String[] args) {
-        // Test findUnique
-        int[] arr1 = {4, 1, 2, 1, 2};
-        System.out.println("Array: " + Arrays.toString(arr1));
-        System.out.println("Unique element: " + findUnique(arr1));
-        System.out.println();
-        
-        // Test swap
-        int[] arrSwap = {5, 10};
-        System.out.println("Before swap: arr[0]=" + arrSwap[0] + ", arr[1]=" + arrSwap[1]);
-        swapValues(arrSwap, 0, 1);
-        System.out.println("After swap: arr[0]=" + arrSwap[0] + ", arr[1]=" + arrSwap[1]);
-        System.out.println();
-        
-        // Test missing number
-        int[] arr2 = {3, 0, 1};
-        System.out.println("Array: " + Arrays.toString(arr2));
-        System.out.println("Missing number: " + findMissingNumber(arr2));
-        System.out.println();
-        
-        // Test two unique
-        int[] arr3 = {1, 2, 1, 3, 2, 5};
-        System.out.println("Array: " + Arrays.toString(arr3));
-        int[] twoUnique = findTwoUnique(arr3);
-        System.out.println("Two unique elements: " + twoUnique[0] + ", " + twoUnique[1]);
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * XOR Trick implementations for common problems.
- */
-
-/**
- * Find the single element that appears once while others appear twice.
- * 
- * @param {number[]} nums - Array where every element appears twice except one
- * @returns {number} The unique element
- * 
- * Time: O(n)
- * Space: O(1)
- */
-function findUnique(nums) {
-    let result = 0;
-    for (const num of nums) {
-        result ^= num;
-    }
-    return result;
-}
-
-/**
- * Swap two values without temporary variable using XOR.
- * Note: Only works when a and b are different memory locations.
- * 
- * @param {Object} obj - Object containing values to swap
- * @param {string} key1 - First key
- * @param {string} key2 - Second key
- */
-function swapValues(obj, key1, key2) {
-    if (key1 !== key2) {
-        obj[key1] ^= obj[key2];
-        obj[key2] ^= obj[key1];
-        obj[key1] ^= obj[key2];
-    }
-}
-
-/**
- * Find missing number in range [0, n] where n = nums.length.
- * XOR all indices and values.
- * 
- * @param {number[]} nums - Array containing n distinct numbers from [0, n] with one missing
- * @returns {number} The missing number
- * 
- * Time: O(n)
- * Space: O(1)
- */
-function findMissingNumber(nums) {
-    const n = nums.length;
-    let result = n;  // XOR with n (the extra number)
-    for (let i = 0; i < n; i++) {
-        result ^= i ^ nums[i];
-    }
-    return result;
-}
-
-/**
- * Find two unique elements when all others appear twice.
- * Uses bit masking to partition elements.
- * 
- * @param {number[]} nums - Array where exactly two elements appear once, rest appear twice
- * @returns {number[]} Array containing the two unique elements
- * 
- * Time: O(n)
- * Space: O(1)
- */
-function findTwoUnique(nums) {
-    // Step 1: XOR all numbers - gives a ^ b
-    let xorAll = 0;
-    for (const num of nums) {
-        xorAll ^= num;
-    }
-    
-    // Step 2: Find rightmost set bit (difference between a and b)
-    const rightmostBit = xorAll & (-xorAll);
-    
-    // Step 3: Partition into two groups and XOR separately
-    let x = 0, y = 0;
-    for (const num of nums) {
-        if (num & rightmostBit) {
-            x ^= num;
-        } else {
-            y ^= num;
-        }
-    }
-    
-    return [x, y];
-}
-
-/**
- * Find element appearing once while others appear three times.
- * Uses bit counting approach.
- * 
- * @param {number[]} nums - Array where every element appears three times except one
- * @returns {number} The unique element
- * 
- * Time: O(32 * n) = O(n)
- * Space: O(1)
- */
-function findUniqueThree(nums) {
-    let result = 0;
-    for (let i = 0; i < 32; i++) {  // For 32-bit integers
-        let bitSum = 0;
-        const mask = 1 << i;
-        for (const num of nums) {
-            if (num & mask) {
-                bitSum++;
-            }
-        }
-        
-        if (bitSum % 3 !== 0) {
-            result |= mask;
-        }
-    }
-    return result;
-}
-
-// Example usage and demonstration
-const arr1 = [4, 1, 2, 1, 2];
-console.log(`Array: [${arr1.join(', ')}]`);
-console.log(`Unique element: ${findUnique(arr1)}`);
-console.log();
-
-// Test swap
-let a = 5, b = 10;
-console.log(`Before swap: a=${a}, b=${b}`);
-let obj = { a: 5, b: 10 };
-swapValues(obj, 'a', 'b');
-console.log(`After swap: a=${obj.a}, b=${obj.b}`);
-console.log();
-
-// Test missing number
-const arr2 = [3, 0, 1];
-console.log(`Array: [${arr2.join(', ')}]`);
-console.log(`Missing number: ${findMissingNumber(arr2)}`);
-console.log();
-
-// Test two unique
-const arr3 = [1, 2, 1, 3, 2, 5];
-console.log(`Array: [${arr3.join(', ')}]`);
-console.log(`Two unique elements: ${findTwoUnique(arr3).join(', ')}`);
-```
-````
-
----
-
-## Example
-
-**Input - Single Unique:**
-```
-nums = [2, 2, 1]
-```
-
-**Output:**
-```
-1
-```
-
-**Explanation:** 2 ^ 2 = 0, 0 ^ 1 = 1
-
----
-
-**Input - Single Unique (larger array):**
-```
-nums = [4, 1, 2, 1, 2]
-```
-
-**Output:**
-```
-4
-```
-
-**Explanation:** 4 ^ 1 ^ 2 ^ 1 ^ 2 = 4 ^ (1^1) ^ (2^2) = 4 ^ 0 ^ 0 = 4
-
----
-
-**Input - Swap values:**
-```
-a = 5, b = 10
-```
-
-**Output:**
-```
-a = 10, b = 5
-```
-
-**Explanation:** XOR swap uses the property that (a^b)^b = a and (a^b)^a = b
-
----
-
-**Input - Missing number:**
-```
-nums = [3, 0, 1]
-n = 3
-```
-
-**Output:**
-```
-2
-```
-
-**Explanation:** XOR indices [0,1,2,3] with values [3,0,1]: 
-0^3 ^ 1^0 ^ 2^1 ^ 3 = (0^0) ^ (1^1) ^ (3^3) ^ 2 = 2
-
----
-
-**Input - Two unique elements:**
-```
-nums = [1, 2, 1, 3, 2, 5]
-```
-
-**Output:**
-```
-[3, 5]  (or [5, 3])
-```
-
-**Explanation:** XOR all = 3 ^ 5. Rightmost bit = 1, partitions into [1,3,1,3] and [2,2,5]. XOR each group separately.
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Find Single Unique** | O(n) | One pass through the array |
-| **Find Two Unique** | O(n) | Two passes through the array |
-| **Find Missing Number** | O(n) | One pass through the array |
-| **Swap Values** | O(1) | Constant time XOR operations |
-| **Find Unique (3x frequency)** | O(32 × n) = O(n) | 32 passes for each bit position |
-
-### Detailed Breakdown
-
-- **Finding unique element**: Single XOR accumulation across all n elements
-  - One iteration: O(n)
-  - XOR operation: O(1)
-  - Total: O(n)
-
-- **Finding two unique elements**:
-  - First pass (XOR all): O(n)
-  - Find rightmost bit: O(1)
-  - Second pass (partition and XOR): O(n)
-  - Total: O(n)
-
-- **Finding missing number**:
-  - XOR with n: O(1)
-  - Loop through indices and values: O(n)
-  - Total: O(n)
-
----
-
-## Space Complexity Analysis
-
-| Operation | Space Complexity | Description |
-|-----------|-----------------|-------------|
-| **All XOR Operations** | O(1) | Only store result variable(s) |
-| **Find Two Unique** | O(1) | Store two result variables |
-| **Bit Counting (3x)** | O(1) | Only counters and result |
-
-### Space Optimization Notes
-
-- **No auxiliary data structures**: Unlike hash set solutions that require O(n) space
-- **Iterative approach**: No recursion stack needed
-- **Bit manipulation**: Works with primitive integer types only
-
----
-
-## Common Variations
-
-### 1. Find Single Number II (Appears Once, Others 3x)
-
-When every element appears three times except one:
-
-````carousel
-```python
-def single_number_ii(nums):
-    """
-    Find element appearing once while others appear three times.
-    Uses bit counting - count 1s at each position modulo 3.
-    
-    Time: O(32 * n) = O(n)
-    Space: O(1)
-    """
-    result = 0
-    for i in range(32):
-        bit_sum = 0
-        for num in nums:
-            # Get i-th bit and add to sum
-            bit_sum += (num >> i) & 1
-        
-        # If count of 1s is not multiple of 3, this bit is set in answer
-        if bit_sum % 3:
-            result |= (1 << i)
-    
-    # Handle negative numbers (Python uses arbitrary precision)
-    if result >= 2**31:
-        result -= 2**32
-    
-    return result
-```
-````
-
-### 2. Find Single Number III (Two Unique Elements)
-
-When exactly two elements appear once and all others appear twice:
-
-````carousel
-```python
-def single_number_iii(nums):
-    """
-    Find two elements appearing once while others appear twice.
-    
-    Time: O(n)
-    Space: O(1)
-    """
-    # XOR all to get a ^ b
-    xor_all = 0
-    for num in nums:
-        xor_all ^= num
-    
-    # Find any set bit (rightmost is easiest)
-    # This bit differs between a and b
-    diff_bit = xor_all & (-xor_all)
-    
-    # Partition and XOR each group
-    a, b = 0, 0
-    for num in nums:
-        if num & diff_bit:
-            a ^= num
-        else:
-            b ^= num
-    
-    return [a, b]
-```
-````
-
-### 3. XOR for Character Cases
-
-Toggle between uppercase and lowercase:
-
-````carousel
-```python
-def toggle_case(char):
-    """
-    Toggle between 'A' and 'a' using XOR.
-    ASCII: 'A' = 65, 'a' = 97, difference is 32 (2^5)
-    """
-    return chr(ord(char) ^ 32)
-
-# Examples:
-# toggle_case('A') -> 'a'
-# toggle_case('a') -> 'A'
-```
-````
-
-### 4. XOR Cipher (Simple Encryption)
-
-Basic encryption using XOR with a key:
-
-````carousel
-```python
-def xor_cipher(text, key):
-    """
-    Simple XOR cipher for encryption/decryption.
-    XORing twice with same key returns original.
-    
-    Time: O(n) where n = len(text)
-    Space: O(n) for result
-    """
-    result = []
-    key_len = len(key)
-    for i, char in enumerate(text):
-        result.append(chr(ord(char) ^ ord(key[i % key_len])))
-    return ''.join(result)
-
-# Usage:
-# encrypted = xor_cipher("Hello", "key")
-# decrypted = xor_cipher(encrypted, "key")  # Returns "Hello"
-```
-````
+- **Three times frequency**: Requires bit counting instead of simple XOR
 
 ---
 
@@ -950,7 +647,7 @@ def xor_cipher(text, key):
 - XOR all elements together
 - Pairs cancel out (a ^ a = 0)
 - Result is the unique element
-- Follows your solution at: [bitwise-xor-finding-single-missing-number](../solutions/bitwise-xor-finding-single-missing-number.md)
+- Time: O(n), Space: O(1)
 
 ---
 
@@ -964,6 +661,7 @@ def xor_cipher(text, key):
 - Count set bits at each position across all numbers
 - Bits that appear 3k+1 times belong to the unique number
 - Reconstruct the answer from bit counts
+- Time: O(32n) = O(n), Space: O(1)
 
 ---
 
@@ -977,20 +675,22 @@ def xor_cipher(text, key):
 - XOR all indices (0 to n) with all values in array
 - All present numbers cancel out
 - Result is the missing number
+- Time: O(n), Space: O(1)
 
 ---
 
-### Problem 4: Find the Duplicate Number
+### Problem 4: Single Number III
 
-**Problem:** [LeetCode 287 - Find the Duplicate Number](https://leetcode.com/problems/find-the-duplicate-number/)
+**Problem:** [LeetCode 260 - Single Number III](https://leetcode.com/problems/single-number-iii/)
 
-**Description:** Given an array of `n + 1` integers where each integer is between 1 and `n` (inclusive), prove that at least one duplicate number must exist. Find the duplicate.
+**Description:** Given an integer array `nums`, in which exactly two elements appear only once and all the other elements appear exactly twice. Find the two elements that appear only once.
 
 **How to Apply XOR Trick:**
-- XOR all array elements with all numbers from 1 to n
-- All unique numbers cancel out
-- The duplicate appears twice in XOR, leaving it as result
-- Note: Only works when duplicate appears exactly twice
+- XOR all to get a ^ b
+- Find rightmost set bit to partition
+- XOR each group separately
+- Returns the two unique elements
+- Time: O(n), Space: O(1)
 
 ---
 
@@ -1002,8 +702,9 @@ def xor_cipher(text, key):
 
 **How to Apply XOR Trick:**
 - Use XOR 1 to invert bits (0^1=1, 1^1=0)
-- Swap elements using XOR for in-place reversal
 - Efficient bit manipulation for binary matrices
+- Combine with two-pointer swap
+- Time: O(n²), Space: O(1)
 
 ---
 
@@ -1098,12 +799,3 @@ When to use:
 - ❌ When elements appear odd frequencies other than 1
 
 This technique is essential for competitive programming and technical interviews, providing elegant solutions to problems that might otherwise require additional space complexity.
-
----
-
-## Related Algorithms
-
-- [Count Bits](./count-bits.md) - Related bit manipulation techniques
-- [Subset Generation with Bits](./subset-generation-bits.md) - Bit masking patterns
-- [Modular Inverse](./modular-inverse.md) - Number theory concepts
-- [NCR Binomial](./ncr-binomial.md) - Mathematical properties

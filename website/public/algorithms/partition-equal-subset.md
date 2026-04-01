@@ -7,6 +7,520 @@ Dynamic Programming
 
 The **Partition Equal Subset Sum** problem asks whether a given array of positive integers can be partitioned into two subsets with equal sum. This is a classic dynamic programming problem that reduces to the **Subset Sum** problem - finding a subset that sums to exactly half of the total array sum.
 
+This algorithm is essential for solving resource allocation problems, balanced partitioning tasks, and serves as a foundation for understanding the 0/1 Knapsack pattern. The space-optimized dynamic programming approach makes it practical for interview and competition settings.
+
+---
+
+## Concepts
+
+The Partition Equal Subset algorithm is built on several fundamental concepts that make it powerful for solving balanced partitioning problems.
+
+### 1. Problem Transformation
+
+The key insight that enables efficient solution:
+
+| Original Problem | Equivalent Problem |
+|------------------|-------------------|
+| Partition into two equal-sum subsets | Find one subset with sum = total/2 |
+| Check if both subsets equal | Check if subset sums to target |
+
+### 2. 0/1 Knapsack Connection
+
+This problem IS the 0/1 Knapsack with boolean constraint:
+
+| Knapsack Element | Partition Equal Subset |
+|------------------|------------------------|
+| Items | Array elements |
+| Item weight | Element value |
+| Knapsack capacity | target = sum/2 |
+| Goal | Fill exactly to capacity |
+
+### 3. DP State Evolution
+
+Understanding the state transition:
+
+| State | Definition | Formula |
+|-------|------------|---------|
+| **dp[i][s]** | Sum s achievable with first i elements | `dp[i][s] = dp[i-1][s] OR dp[i-1][s-num]` |
+| **dp[s]** (1D) | Sum s achievable | `dp[s] = dp[s] OR dp[s-num]` |
+
+### 4. Space Optimization Principle
+
+Why backwards iteration enables 1D array:
+
+```
+Forward iteration: dp[s] might use updated dp[s-num] (same element twice)
+Backwards iteration: dp[s-num] is from previous iteration (previous elements only)
+```
+
+---
+
+## Frameworks
+
+Structured approaches for solving partition problems.
+
+### Framework 1: Space-Optimized DP Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  SPACE-OPTIMIZED PARTITION FRAMEWORK                │
+├─────────────────────────────────────────────────────┤
+│  1. Calculate total sum of array                    │
+│  2. If sum is odd: return False (cannot partition)   │
+│  3. Set target = sum // 2                           │
+│  4. Initialize dp[0] = True, rest = False          │
+│  5. For each number in array:                       │
+│     a. For s from target down to number:            │
+│        - dp[s] = dp[s] OR dp[s - number]             │
+│     b. If dp[target]: return True (early exit)       │
+│  6. Return dp[target]                               │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Standard partition problem, need boolean result.
+
+### Framework 2: 2D DP Template (Educational)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  2D DP PARTITION FRAMEWORK                          │
+├─────────────────────────────────────────────────────┤
+│  1. Calculate total sum                             │
+│  2. If sum is odd: return False                    │
+│  3. target = sum // 2                               │
+│  4. Initialize dp[n+1][target+1] = False           │
+│  5. dp[0][0] = True                                 │
+│  6. For i from 1 to n:                              │
+│     a. For s from 0 to target:                      │
+│        - dp[i][s] = dp[i-1][s] (don't include)     │
+│        - If s >= nums[i-1]:                         │
+│          dp[i][s] |= dp[i-1][s-nums[i-1]] (include)│
+│  7. Return dp[n][target]                            │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Learning the concept, need to reconstruct actual subset.
+
+### Framework 3: Set-Based Framework
+
+```
+┌─────────────────────────────────────────────────────┐
+│  SET-BASED PARTITION FRAMEWORK                      │
+├─────────────────────────────────────────────────────┤
+│  1. Calculate total sum                             │
+│  2. If sum is odd: return False                    │
+│  3. target = sum // 2                               │
+│  4. reachable = {0}                                 │
+│  5. For each number:                                │
+│     a. new_reachable = {s + num for s in reachable}│
+│     b. reachable = reachable ∪ new_reachable         │
+│     c. If target in reachable: return True          │
+│  6. Return target in reachable                      │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Sparse sum spaces, want to avoid DP array allocation.
+
+---
+
+## Forms
+
+Different manifestations of the partition pattern.
+
+### Form 1: Boolean Partition Check
+
+Determine if equal partition is possible.
+
+| Feature | Specification |
+|---------|---------------|
+| Output | Boolean |
+| Approach | Space-optimized DP |
+| Space | O(sum) |
+| Time | O(n × sum) |
+
+### Form 2: Count Partitions
+
+Count the number of ways to partition.
+
+| DP State | Formula |
+|----------|---------|
+| **dp[s]** | Number of ways to achieve sum s |
+| **Transition** | `dp[s] += dp[s - num]` |
+
+### Form 3: Minimum Partition Difference
+
+When equal partition is impossible, minimize the difference.
+
+```python
+# Find largest achievable sum <= target
+for s in range(target, -1, -1):
+    if dp[s]:
+        return (total - s) - s  # Difference
+```
+
+### Form 4: K-Partition
+
+Partition into k equal-sum subsets.
+
+| Feature | Specification |
+|---------|---------------|
+| Approach | Backtracking with pruning |
+| Complexity | O(k × 2^n) |
+| Note | DP becomes infeasible for k > 2 |
+
+### Form 5: Reconstruct Partition
+
+Return the actual subsets, not just boolean.
+
+| Requirement | 2D DP needed to track choices |
+|-------------|-------------------------------|
+| Backtrack | From dp[n][target] to find included elements |
+| Output | Two lists representing the partition |
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Early Odd Check
+
+```python
+def can_partition(nums: list[int]) -> bool:
+    total = sum(nums)
+    
+    # Early termination: odd sum cannot be split equally
+    if total % 2 != 0:
+        return False
+    
+    target = total // 2
+    # Continue with DP...
+```
+
+### Tactic 2: Early Success Exit
+
+```python
+def can_partition_with_exit(nums: list[int]) -> bool:
+    total = sum(nums)
+    if total % 2 != 0:
+        return False
+    
+    target = total // 2
+    dp = [False] * (target + 1)
+    dp[0] = True
+    
+    for num in nums:
+        for s in range(target, num - 1, -1):
+            dp[s] = dp[s] or dp[s - num]
+        
+        # Early exit: target already achievable
+        if dp[target]:
+            return True
+    
+    return dp[target]
+```
+
+### Tactic 3: Set-Based Approach (Sparse Sums)
+
+```python
+def can_partition_set(nums: list[int]) -> bool:
+    """Alternative for sparse reachable sums."""
+    total = sum(nums)
+    if total % 2 != 0:
+        return False
+    
+    target = total // 2
+    reachable = {0}
+    
+    for num in nums:
+        # Add new reachable sums by including current number
+        new_reachable = {s + num for s in reachable if s + num <= target}
+        reachable = reachable | new_reachable
+        
+        if target in reachable:
+            return True
+    
+    return target in reachable
+```
+
+### Tactic 4: Memoization (Top-Down)
+
+```python
+from functools import lru_cache
+
+def can_partition_memo(nums: list[int]) -> bool:
+    """Top-down approach with memoization."""
+    total = sum(nums)
+    if total % 2 != 0:
+        return False
+    
+    target = total // 2
+    
+    @lru_cache(maxsize=None)
+    def dp(index: int, remaining: int) -> bool:
+        if remaining == 0:
+            return True
+        if index >= len(nums) or remaining < 0:
+            return False
+        
+        # Include or exclude current element
+        return dp(index + 1, remaining - nums[index]) or \
+               dp(index + 1, remaining)
+    
+    return dp(0, target)
+```
+
+### Tactic 5: Bitset Optimization (Concept)
+
+```python
+def can_partition_bitset(nums: list[int]) -> bool:
+    """
+    Bitset optimization concept (most effective in C++).
+    Uses bit manipulation for faster operations.
+    """
+    total = sum(nums)
+    if total % 2 != 0:
+        return False
+    
+    target = total // 2
+    # Represent reachable sums as bits
+    # dp |= dp << num  shifts and ORs in one operation
+    
+    # Python simulation (less efficient than C++ bitset)
+    reachable = 1  # Bit 0 is set (sum 0 is achievable)
+    
+    for num in nums:
+        reachable |= reachable << num
+    
+    # Check if bit 'target' is set
+    return (reachable >> target) & 1
+```
+
+---
+
+## Python Templates
+
+### Template 1: Space-Optimized Partition (Recommended)
+
+```python
+def can_partition(nums: list[int]) -> bool:
+    """
+    Check if array can be partitioned into two subsets with equal sum.
+    Space-optimized dynamic programming approach.
+    
+    Time Complexity: O(n × sum)
+    Space Complexity: O(sum)
+    """
+    total = sum(nums)
+    
+    # If total is odd, cannot partition into equal halves
+    if total % 2 != 0:
+        return False
+    
+    target = total // 2
+    
+    # dp[i] = True if sum i is achievable
+    dp = [False] * (target + 1)
+    dp[0] = True  # Sum 0 is always achievable (empty subset)
+    
+    for num in nums:
+        # Iterate backwards to avoid using same element twice
+        for s in range(target, num - 1, -1):
+            dp[s] = dp[s] or dp[s - num]
+        
+        # Early exit if target is reached
+        if dp[target]:
+            return True
+    
+    return dp[target]
+```
+
+### Template 2: 2D DP (For Reconstruction)
+
+```python
+def can_partition_2d(nums: list[int]) -> bool:
+    """
+    Full 2D DP implementation for educational purposes.
+    Easier to understand and enables subset reconstruction.
+    
+    Time Complexity: O(n × sum)
+    Space Complexity: O(n × sum)
+    """
+    total = sum(nums)
+    if total % 2 != 0:
+        return False
+    
+    target = total // 2
+    n = len(nums)
+    
+    # dp[i][s] = True if sum s is achievable using first i elements
+    dp = [[False] * (target + 1) for _ in range(n + 1)]
+    dp[0][0] = True
+    
+    for i in range(1, n + 1):
+        for s in range(target + 1):
+            # Don't include nums[i-1]
+            dp[i][s] = dp[i-1][s]
+            
+            # Include nums[i-1] if possible
+            if s >= nums[i-1]:
+                dp[i][s] = dp[i][s] or dp[i-1][s - nums[i-1]]
+    
+    return dp[n][target]
+```
+
+### Template 3: Find Actual Partition
+
+```python
+def find_partition(nums: list[int]) -> tuple[list[int], list[int]]:
+    """
+    Find the actual partition of array into two equal-sum subsets.
+    Returns ([], []) if partition is impossible.
+    
+    Time Complexity: O(n × sum)
+    Space Complexity: O(n × sum) for tracking choices
+    """
+    total = sum(nums)
+    
+    if total % 2 != 0:
+        return [], []
+    
+    target = total // 2
+    n = len(nums)
+    
+    # dp[i][s] = True if sum s achievable with first i elements
+    dp = [[False] * (target + 1) for _ in range(n + 1)]
+    dp[0][0] = True
+    
+    for i in range(1, n + 1):
+        for s in range(target + 1):
+            dp[i][s] = dp[i-1][s]  # Don't include
+            if s >= nums[i-1] and dp[i-1][s - nums[i-1]]:
+                dp[i][s] = True  # Include
+    
+    if not dp[n][target]:
+        return [], []
+    
+    # Backtrack to find which elements were included
+    subset1 = []
+    subset2 = []
+    s = target
+    
+    for i in range(n, 0, -1):
+        if dp[i-1][s]:
+            # nums[i-1] was not included
+            subset2.append(nums[i-1])
+        else:
+            # nums[i-1] was included
+            subset1.append(nums[i-1])
+            s -= nums[i-1]
+    
+    return subset1, subset2
+```
+
+### Template 4: Count Number of Partitions
+
+```python
+def count_partitions(nums: list[int]) -> int:
+    """
+    Count number of ways to partition array into two equal-sum subsets.
+    
+    Time Complexity: O(n × sum)
+    Space Complexity: O(sum)
+    """
+    total = sum(nums)
+    
+    if total % 2 != 0:
+        return 0
+    
+    target = total // 2
+    
+    # dp[i] = number of ways to achieve sum i
+    dp = [0] * (target + 1)
+    dp[0] = 1  # One way to make sum 0 (empty subset)
+    
+    for num in nums:
+        for s in range(target, num - 1, -1):
+            dp[s] += dp[s - num]
+    
+    return dp[target]
+```
+
+### Template 5: Minimum Partition Difference
+
+```python
+def min_partition_difference(nums: list[int]) -> int:
+    """
+    Find minimum difference between two subset sums.
+    
+    Time Complexity: O(n × sum)
+    Space Complexity: O(sum)
+    """
+    total = sum(nums)
+    target = total // 2
+    
+    # dp[s] = True if sum s is achievable
+    dp = [False] * (target + 1)
+    dp[0] = True
+    
+    for num in nums:
+        for s in range(target, num - 1, -1):
+            dp[s] = dp[s] or dp[s - num]
+    
+    # Find the largest achievable sum <= total/2
+    for s in range(target, -1, -1):
+        if dp[s]:
+            # One subset sums to s, other sums to total - s
+            return (total - s) - s
+    
+    return total  # Should never reach here
+```
+
+### Template 6: K-Partition (Backtracking)
+
+```python
+def can_partition_k_subsets(nums: list[int], k: int) -> bool:
+    """
+    Check if array can be partitioned into k subsets with equal sum.
+    
+    Time Complexity: O(k × 2^n) - exponential, uses backtracking with pruning
+    Space Complexity: O(n) - recursion depth
+    """
+    total = sum(nums)
+    
+    if total % k != 0:
+        return False
+    
+    target = total // k
+    nums.sort(reverse=True)  # Sort descending for better pruning
+    
+    used = [False] * len(nums)
+    
+    def backtrack(start_index: int, current_sum: int, groups_formed: int) -> bool:
+        if groups_formed == k - 1:
+            return True  # Last group automatically has correct sum
+        
+        if current_sum == target:
+            return backtrack(0, 0, groups_formed + 1)
+        
+        for i in range(start_index, len(nums)):
+            if used[i] or current_sum + nums[i] > target:
+                continue
+            
+            used[i] = True
+            if backtrack(i + 1, current_sum + nums[i], groups_formed):
+                return True
+            used[i] = False
+            
+            # Pruning: if current_sum is 0 and this fails, skip rest
+            if current_sum == 0:
+                break
+        
+        return False
+    
+    return backtrack(0, 0, 0)
+```
+
 ---
 
 ## When to Use
@@ -25,7 +539,7 @@ Use the Partition Equal Subset algorithm when you need to solve problems involvi
 | **Brute Force (Recursion)** | O(2ⁿ) | O(n) | Never - only for understanding |
 | **Memoization (Top-down)** | O(n × sum) | O(n × sum) | When you prefer recursive thinking |
 | **Tabulation (Bottom-up)** | O(n × sum) | O(n × sum) | Standard DP approach |
-| **Space-Optimized DP** | O(n × sum) | O(sum) | **Recommended** - best space efficiency |
+| **Space-Optimized DP** | O(n × sum) | **O(sum)** | **Recommended** - best space efficiency |
 | **Bitset Optimization** | O(n × sum/word_size) | O(sum/word_size) | For very tight space constraints |
 
 ### When to Use Each Approach
@@ -37,7 +551,7 @@ Use the Partition Equal Subset algorithm when you need to solve problems involvi
 
 - **Choose Bitset Optimization** when:
   - Dealing with very large sums and need maximum speed
-  - Working in C++ where `std::bitset` or `boost::dynamic_bitset` is available
+  - Working in C++ where `std::bitset` is available
   - Space is extremely constrained
 
 ---
@@ -87,885 +601,18 @@ When using 1D DP, we iterate from target down to num to **prevent using the same
 - Forward iteration: `dp[s]` might use the updated `dp[s-num]` (same element used twice)
 - Backward iteration: `dp[s-num]` is from the previous iteration (previous elements only)
 
----
+### Key Insights
 
-## Algorithm Steps
+1. **Problem transformation**: Equal partition ⇔ subset with sum = total/2
+2. **Odd sum check**: Early termination saves computation
+3. **Space optimization**: 1D array sufficient with backwards iteration
+4. **Early exit**: Return as soon as target is achievable
 
-### Space-Optimized Dynamic Programming
+### Limitations
 
-1. **Calculate Total Sum**: Sum all elements in the array
-2. **Check Odd Sum**: If sum is odd, return False immediately
-3. **Set Target**: target = sum / 2
-4. **Initialize DP Array**: `dp[0] = True` (sum 0 is always achievable), rest are False
-5. **Process Each Element**:
-   - For each number, iterate from target down to the number
-   - Update `dp[s] = dp[s] OR dp[s - num]`
-   - If `dp[target]` becomes True, early exit with True
-6. **Return Result**: Return `dp[target]`
-
-### Bitset Approach (C++)
-
-1. Initialize bitset with bit 0 set
-2. For each number, left-shift the bitset and OR with original
-3. Check if bit at target position is set
-
----
-
-## Implementation
-
-````carousel
-```python
-from typing import List
-
-def can_partition(nums: List[int]) -> bool:
-    """
-    Check if array can be partitioned into two subsets with equal sum.
-    Space-optimized dynamic programming approach.
-    
-    Args:
-        nums: List of positive integers
-    
-    Returns:
-        True if array can be partitioned into two equal-sum subsets
-        
-    Time Complexity: O(n × sum)
-    Space Complexity: O(sum)
-    """
-    total = sum(nums)
-    
-    # If total is odd, cannot partition into equal halves
-    if total % 2 != 0:
-        return False
-    
-    target = total // 2
-    n = len(nums)
-    
-    # dp[i] = True if sum i is achievable
-    dp = [False] * (target + 1)
-    dp[0] = True  # Sum 0 is always achievable (empty subset)
-    
-    for num in nums:
-        # Iterate backwards to avoid using same element twice
-        for s in range(target, num - 1, -1):
-            dp[s] = dp[s] or dp[s - num]
-        
-        # Early exit if target is reached
-        if dp[target]:
-            return True
-    
-    return dp[target]
-
-
-def can_partition_set(nums: List[int]) -> bool:
-    """
-    Alternative implementation using set for clarity.
-    Slightly more space-efficient for sparse reachable sums.
-    
-    Time Complexity: O(n × sum) worst case, but often faster in practice
-    Space Complexity: O(min(sum, 2^n)) - only stores reachable sums
-    """
-    total = sum(nums)
-    if total % 2 != 0:
-        return False
-    
-    target = total // 2
-    reachable = {0}
-    
-    for num in nums:
-        # Add new reachable sums by including current number
-        new_reachable = {s + num for s in reachable if s + num <= target}
-        reachable = reachable | new_reachable
-        
-        if target in reachable:
-            return True
-    
-    return target in reachable
-
-
-def can_partition_2d(nums: List[int]) -> bool:
-    """
-    Full 2D DP implementation for educational purposes.
-    Easier to understand but uses more space.
-    
-    Time Complexity: O(n × sum)
-    Space Complexity: O(n × sum)
-    """
-    total = sum(nums)
-    if total % 2 != 0:
-        return False
-    
-    target = total // 2
-    n = len(nums)
-    
-    # dp[i][s] = True if sum s is achievable using first i elements
-    dp = [[False] * (target + 1) for _ in range(n + 1)]
-    dp[0][0] = True
-    
-    for i in range(1, n + 1):
-        for s in range(target + 1):
-            # Don't include nums[i-1]
-            dp[i][s] = dp[i-1][s]
-            
-            # Include nums[i-1] if possible
-            if s >= nums[i-1]:
-                dp[i][s] = dp[i][s] or dp[i-1][s - nums[i-1]]
-    
-    return dp[n][target]
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    test_cases = [
-        [1, 5, 11, 5],      # True: [1,5,5] and [11]
-        [1, 2, 3, 5],       # False: sum=11 (odd)
-        [1, 2, 5],          # False: sum=8, target=4, no subset sums to 4
-        [3, 3, 3, 4, 5],    # True: [3,3,4] and [3,5]
-        [2, 2, 1, 1],       # True: [2,1] and [2,1]
-    ]
-    
-    print("Partition Equal Subset Sum Results:")
-    print("=" * 50)
-    
-    for nums in test_cases:
-        result = can_partition(nums)
-        total = sum(nums)
-        status = "✓ Can Partition" if result else "✗ Cannot Partition"
-        print(f"Array: {nums}")
-        print(f"Total Sum: {total}, Target: {total//2 if total%2==0 else 'N/A (odd)'}")
-        print(f"Result: {status}")
-        print("-" * 50)
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <numeric>
-#include <bitset>
-using namespace std;
-
-/**
- * Partition Equal Subset Sum - Space Optimized DP
- * 
- * Time Complexity: O(n × sum)
- * Space Complexity: O(sum)
- */
-class PartitionEqualSubset {
-public:
-    bool canPartition(vector<int>& nums) {
-        int total = accumulate(nums.begin(), nums.end(), 0);
-        
-        // If sum is odd, cannot partition equally
-        if (total % 2 != 0) {
-            return false;
-        }
-        
-        int target = total / 2;
-        
-        // dp[i] = true if sum i is achievable
-        vector<bool> dp(target + 1, false);
-        dp[0] = true;
-        
-        for (int num : nums) {
-            // Iterate backwards to avoid using same element twice
-            for (int s = target; s >= num; s--) {
-                dp[s] = dp[s] || dp[s - num];
-            }
-            
-            // Early exit
-            if (dp[target]) {
-                return true;
-            }
-        }
-        
-        return dp[target];
-    }
-};
-
-/**
- * Bitset Optimization (C++ specific)
- * Uses bit manipulation for faster operations
- * 
- * Time Complexity: O(n × sum / word_size)
- * Space Complexity: O(sum / word_size)
- */
-class PartitionEqualSubsetBitset {
-public:
-    bool canPartition(vector<int>& nums) {
-        int total = accumulate(nums.begin(), nums.end(), 0);
-        
-        if (total % 2 != 0) {
-            return false;
-        }
-        
-        int target = total / 2;
-        
-        // Use bitset for space efficiency
-        // bitset[0] represents sum 0 is achievable
-        vector<bool> bits(target + 1, false);
-        bits[0] = true;
-        
-        for (int num : nums) {
-            // Shift and OR: equivalent to adding num to all reachable sums
-            for (int s = target; s >= num; s--) {
-                bits[s] = bits[s] || bits[s - num];
-            }
-        }
-        
-        return bits[target];
-    }
-    
-    // Alternative using std::bitset (for compile-time size)
-    template<int MAX_SUM>
-    bool canPartitionBitset(vector<int>& nums) {
-        int total = accumulate(nums.begin(), nums.end(), 0);
-        
-        if (total % 2 != 0) {
-            return false;
-        }
-        
-        bitset<MAX_SUM> bs;
-        bs[0] = 1;  // Sum 0 is achievable
-        
-        for (int num : nums) {
-            bs |= (bs << num);
-        }
-        
-        return bs[total / 2];
-    }
-};
-
-/**
- * 2D DP Implementation (for educational purposes)
- */
-class PartitionEqualSubset2D {
-public:
-    bool canPartition(vector<int>& nums) {
-        int total = accumulate(nums.begin(), nums.end(), 0);
-        
-        if (total % 2 != 0) {
-            return false;
-        }
-        
-        int target = total / 2;
-        int n = nums.size();
-        
-        // dp[i][s] = true if sum s achievable with first i elements
-        vector<vector<bool>> dp(n + 1, vector<bool>(target + 1, false));
-        dp[0][0] = true;
-        
-        for (int i = 1; i <= n; i++) {
-            for (int s = 0; s <= target; s++) {
-                // Don't include nums[i-1]
-                dp[i][s] = dp[i-1][s];
-                
-                // Include nums[i-1]
-                if (s >= nums[i-1]) {
-                    dp[i][s] = dp[i][s] || dp[i-1][s - nums[i-1]];
-                }
-            }
-        }
-        
-        return dp[n][target];
-    }
-};
-
-
-int main() {
-    vector<vector<int>> testCases = {
-        {1, 5, 11, 5},      // true
-        {1, 2, 3, 5},       // false (odd sum)
-        {1, 2, 5},          // false
-        {3, 3, 3, 4, 5},    // true
-        {2, 2, 1, 1}        // true
-    };
-    
-    PartitionEqualSubset solver;
-    
-    cout << "Partition Equal Subset Sum Results:" << endl;
-    cout << "=====================================" << endl;
-    
-    for (auto& nums : testCases) {
-        bool result = solver.canPartition(nums);
-        int total = accumulate(nums.begin(), nums.end(), 0);
-        
-        cout << "Array: [";
-        for (int i = 0; i < nums.size(); i++) {
-            cout << nums[i];
-            if (i < nums.size() - 1) cout << ", ";
-        }
-        cout << "]" << endl;
-        
-        cout << "Total: " << total;
-        if (total % 2 == 0) {
-            cout << ", Target: " << total / 2;
-        } else {
-            cout << " (odd - impossible)";
-        }
-        cout << endl;
-        
-        cout << "Result: " << (result ? "✓ Can Partition" : "✗ Cannot Partition") << endl;
-        cout << "-------------------------------------" << endl;
-    }
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.Arrays;
-
-/**
- * Partition Equal Subset Sum - Space Optimized DP
- * 
- * Time Complexity: O(n × sum)
- * Space Complexity: O(sum)
- */
-public class PartitionEqualSubset {
-    
-    public boolean canPartition(int[] nums) {
-        int total = Arrays.stream(nums).sum();
-        
-        // If sum is odd, cannot partition equally
-        if (total % 2 != 0) {
-            return false;
-        }
-        
-        int target = total / 2;
-        
-        // dp[i] = true if sum i is achievable
-        boolean[] dp = new boolean[target + 1];
-        dp[0] = true;
-        
-        for (int num : nums) {
-            // Iterate backwards to avoid using same element twice
-            for (int s = target; s >= num; s--) {
-                dp[s] = dp[s] || dp[s - num];
-            }
-            
-            // Early exit
-            if (dp[target]) {
-                return true;
-            }
-        }
-        
-        return dp[target];
-    }
-    
-    /**
-     * 2D DP Implementation for educational purposes
-     */
-    public boolean canPartition2D(int[] nums) {
-        int total = Arrays.stream(nums).sum();
-        
-        if (total % 2 != 0) {
-            return false;
-        }
-        
-        int target = total / 2;
-        int n = nums.length;
-        
-        // dp[i][s] = true if sum s achievable with first i elements
-        boolean[][] dp = new boolean[n + 1][target + 1];
-        dp[0][0] = true;
-        
-        for (int i = 1; i <= n; i++) {
-            for (int s = 0; s <= target; s++) {
-                // Don't include nums[i-1]
-                dp[i][s] = dp[i-1][s];
-                
-                // Include nums[i-1]
-                if (s >= nums[i-1]) {
-                    dp[i][s] = dp[i][s] || dp[i-1][s - nums[i-1]];
-                }
-            }
-        }
-        
-        return dp[n][target];
-    }
-    
-    /**
-     * Set-based approach using HashSet
-     * Good for sparse sum spaces
-     */
-    public boolean canPartitionSet(int[] nums) {
-        int total = Arrays.stream(nums).sum();
-        
-        if (total % 2 != 0) {
-            return false;
-        }
-        
-        int target = total / 2;
-        java.util.Set<Integer> reachable = new java.util.HashSet<>();
-        reachable.add(0);
-        
-        for (int num : nums) {
-            java.util.Set<Integer> newReachable = new java.util.HashSet<>();
-            for (int s : reachable) {
-                if (s + num <= target) {
-                    newReachable.add(s + num);
-                }
-            }
-            reachable.addAll(newReachable);
-            
-            if (reachable.contains(target)) {
-                return true;
-            }
-        }
-        
-        return reachable.contains(target);
-    }
-    
-    /**
-     * Recursive approach with memoization
-     */
-    public boolean canPartitionMemo(int[] nums) {
-        int total = Arrays.stream(nums).sum();
-        
-        if (total % 2 != 0) {
-            return false;
-        }
-        
-        int target = total / 2;
-        Boolean[][] memo = new Boolean[nums.length][target + 1];
-        
-        return canPartitionHelper(nums, 0, target, memo);
-    }
-    
-    private boolean canPartitionHelper(int[] nums, int index, int remaining, Boolean[][] memo) {
-        if (remaining == 0) {
-            return true;
-        }
-        if (index >= nums.length || remaining < 0) {
-            return false;
-        }
-        if (memo[index][remaining] != null) {
-            return memo[index][remaining];
-        }
-        
-        // Include current or skip
-        boolean include = canPartitionHelper(nums, index + 1, remaining - nums[index], memo);
-        boolean exclude = canPartitionHelper(nums, index + 1, remaining, memo);
-        
-        memo[index][remaining] = include || exclude;
-        return memo[index][remaining];
-    }
-    
-    public static void main(String[] args) {
-        int[][] testCases = {
-            {1, 5, 11, 5},      // true
-            {1, 2, 3, 5},       // false
-            {1, 2, 5},          // false
-            {3, 3, 3, 4, 5},    // true
-            {2, 2, 1, 1}        // true
-        };
-        
-        PartitionEqualSubset solver = new PartitionEqualSubset();
-        
-        System.out.println("Partition Equal Subset Sum Results:");
-        System.out.println("=====================================");
-        
-        for (int[] nums : testCases) {
-            boolean result = solver.canPartition(nums);
-            int total = Arrays.stream(nums).sum();
-            
-            System.out.print("Array: [");
-            for (int i = 0; i < nums.length; i++) {
-                System.out.print(nums[i]);
-                if (i < nums.length - 1) System.out.print(", ");
-            }
-            System.out.println("]");
-            
-            System.out.print("Total: " + total);
-            if (total % 2 == 0) {
-                System.out.println(", Target: " + total / 2);
-            } else {
-                System.out.println(" (odd - impossible)");
-            }
-            
-            System.out.println("Result: " + (result ? "✓ Can Partition" : "✗ Cannot Partition"));
-            System.out.println("-------------------------------------");
-        }
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Partition Equal Subset Sum - Space Optimized DP
- * 
- * Time Complexity: O(n × sum)
- * Space Complexity: O(sum)
- */
-function canPartition(nums) {
-    const total = nums.reduce((a, b) => a + b, 0);
-    
-    // If sum is odd, cannot partition equally
-    if (total % 2 !== 0) {
-        return false;
-    }
-    
-    const target = total / 2;
-    
-    // dp[i] = true if sum i is achievable
-    const dp = new Array(target + 1).fill(false);
-    dp[0] = true;
-    
-    for (const num of nums) {
-        // Iterate backwards to avoid using same element twice
-        for (let s = target; s >= num; s--) {
-            dp[s] = dp[s] || dp[s - num];
-        }
-        
-        // Early exit
-        if (dp[target]) {
-            return true;
-        }
-    }
-    
-    return dp[target];
-}
-
-/**
- * Set-based approach
- * Good for sparse sum spaces
- */
-function canPartitionSet(nums) {
-    const total = nums.reduce((a, b) => a + b, 0);
-    
-    if (total % 2 !== 0) {
-        return false;
-    }
-    
-    const target = total / 2;
-    let reachable = new Set([0]);
-    
-    for (const num of nums) {
-        const newReachable = new Set();
-        for (const s of reachable) {
-            if (s + num <= target) {
-                newReachable.add(s + num);
-            }
-        }
-        reachable = new Set([...reachable, ...newReachable]);
-        
-        if (reachable.has(target)) {
-            return true;
-        }
-    }
-    
-    return reachable.has(target);
-}
-
-/**
- * 2D DP Implementation for educational purposes
- */
-function canPartition2D(nums) {
-    const total = nums.reduce((a, b) => a + b, 0);
-    
-    if (total % 2 !== 0) {
-        return false;
-    }
-    
-    const target = total / 2;
-    const n = nums.length;
-    
-    // dp[i][s] = true if sum s achievable with first i elements
-    const dp = Array(n + 1).fill(null).map(() => Array(target + 1).fill(false));
-    dp[0][0] = true;
-    
-    for (let i = 1; i <= n; i++) {
-        for (let s = 0; s <= target; s++) {
-            // Don't include nums[i-1]
-            dp[i][s] = dp[i-1][s];
-            
-            // Include nums[i-1]
-            if (s >= nums[i-1]) {
-                dp[i][s] = dp[i][s] || dp[i-1][s - nums[i-1]];
-            }
-        }
-    }
-    
-    return dp[n][target];
-}
-
-/**
- * Recursive approach with memoization
- */
-function canPartitionMemo(nums) {
-    const total = nums.reduce((a, b) => a + b, 0);
-    
-    if (total % 2 !== 0) {
-        return false;
-    }
-    
-    const target = total / 2;
-    const memo = new Map();
-    
-    function helper(index, remaining) {
-        if (remaining === 0) return true;
-        if (index >= nums.length || remaining < 0) return false;
-        
-        const key = `${index},${remaining}`;
-        if (memo.has(key)) return memo.get(key);
-        
-        const include = helper(index + 1, remaining - nums[index]);
-        const exclude = helper(index + 1, remaining);
-        const result = include || exclude;
-        
-        memo.set(key, result);
-        return result;
-    }
-    
-    return helper(0, target);
-}
-
-// Example usage and demonstration
-const testCases = [
-    [1, 5, 11, 5],      // true
-    [1, 2, 3, 5],       // false
-    [1, 2, 5],          // false
-    [3, 3, 3, 4, 5],    // true
-    [2, 2, 1, 1]        // true
-];
-
-console.log("Partition Equal Subset Sum Results:");
-console.log("=====================================");
-
-for (const nums of testCases) {
-    const result = canPartition(nums);
-    const total = nums.reduce((a, b) => a + b, 0);
-    
-    console.log(`Array: [${nums.join(', ')}]`);
-    
-    if (total % 2 === 0) {
-        console.log(`Total: ${total}, Target: ${total / 2}`);
-    } else {
-        console.log(`Total: ${total} (odd - impossible)`);
-    }
-    
-    console.log(`Result: ${result ? '✓ Can Partition' : '✗ Cannot Partition'}`);
-    console.log("-------------------------------------");
-}
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Sum Calculation** | O(n) | Single pass to compute total sum |
-| **DP Array Initialization** | O(sum) | Creating array of size target+1 |
-| **Main DP Loop** | O(n × sum) | Outer loop over n elements, inner loop over sum |
-| **Total** | **O(n × sum)** | Dominated by the nested loops |
-
-### Detailed Breakdown
-
-- **Best Case**: O(n) - if sum is odd, we return immediately after computing sum
-- **Average Case**: O(n × sum) - typical scenario
-- **Worst Case**: O(n × sum) - when we need to process all elements and all sum values
-
-### Space-Optimized vs 2D DP
-
-| Approach | Time | Space | Notes |
-|----------|------|-------|-------|
-| 2D DP | O(n × sum) | O(n × sum) | Easier to understand and debug |
-| 1D DP | O(n × sum) | O(sum) | **Recommended** - same time, less space |
-| Memoization | O(n × sum) | O(n × sum) | Good for sparse cases |
-
----
-
-## Space Complexity Analysis
-
-| Approach | Space Complexity | Components |
-|----------|------------------|------------|
-| **Space-Optimized (1D)** | **O(sum)** | Single boolean array of size target+1 |
-| **2D DP** | O(n × sum) | 2D boolean array |
-| **Memoization** | O(n × sum) | Recursion stack + memo table |
-| **Set-based** | O(min(sum, 2ⁿ)) | Only stores reachable sums |
-
-### Why Backwards Iteration Saves Space
-
-By iterating backwards, we can use a single array instead of storing all n rows:
-- `dp[s]` depends only on `dp[s]` (current state) and `dp[s-num]` (previous state)
-- Backwards iteration ensures `dp[s-num]` hasn't been updated yet in this iteration
-- This reduces space from O(n × sum) to O(sum)
-
----
-
-## Common Variations
-
-### 1. Count Number of Partitions
-
-Instead of just checking if partition is possible, count how many ways:
-
-````carousel
-```python
-def count_partitions(nums: List[int]) -> int:
-    """
-    Count number of ways to partition array into two equal-sum subsets.
-    
-    Time Complexity: O(n × sum)
-    Space Complexity: O(sum)
-    """
-    total = sum(nums)
-    
-    if total % 2 != 0:
-        return 0
-    
-    target = total // 2
-    
-    # dp[i] = number of ways to achieve sum i
-    dp = [0] * (target + 1)
-    dp[0] = 1  # One way to make sum 0 (empty subset)
-    
-    for num in nums:
-        for s in range(target, num - 1, -1):
-            dp[s] += dp[s - num]
-    
-    return dp[target]
-```
-````
-
-### 2. Partition with Minimum Difference
-
-When equal partition is impossible, find the minimum possible difference:
-
-````carousel
-```python
-def min_partition_difference(nums: List[int]) -> int:
-    """
-    Find minimum difference between two subset sums.
-    
-    Time Complexity: O(n × sum)
-    Space Complexity: O(sum)
-    """
-    total = sum(nums)
-    target = total // 2
-    
-    # dp[s] = True if sum s is achievable
-    dp = [False] * (target + 1)
-    dp[0] = True
-    
-    for num in nums:
-        for s in range(target, num - 1, -1):
-            dp[s] = dp[s] or dp[s - num]
-    
-    # Find the largest achievable sum <= total/2
-    for s in range(target, -1, -1):
-        if dp[s]:
-            # One subset sums to s, other sums to total - s
-            return (total - s) - s
-    
-    return total  # Should never reach here
-```
-````
-
-### 3. Partition into K Equal Sum Subsets
-
-Generalization to k subsets instead of 2:
-
-````carousel
-```python
-def can_partition_k_subsets(nums: List[int], k: int) -> bool:
-    """
-    Check if array can be partitioned into k subsets with equal sum.
-    
-    Time Complexity: O(k × 2^n) - exponential, uses backtracking with pruning
-    Space Complexity: O(n) - recursion depth
-    """
-    total = sum(nums)
-    
-    if total % k != 0:
-        return False
-    
-    target = total // k
-    nums.sort(reverse=True)  # Sort descending for better pruning
-    
-    used = [False] * len(nums)
-    
-    def backtrack(start_index, current_sum, groups_formed):
-        if groups_formed == k - 1:
-            return True  # Last group automatically has correct sum
-        
-        if current_sum == target:
-            return backtrack(0, 0, groups_formed + 1)
-        
-        for i in range(start_index, len(nums)):
-            if used[i] or current_sum + nums[i] > target:
-                continue
-            
-            used[i] = True
-            if backtrack(i + 1, current_sum + nums[i], groups_formed):
-                return True
-            used[i] = False
-            
-            # Pruning: if current_sum is 0 and this fails, skip rest
-            if current_sum == 0:
-                break
-        
-        return False
-    
-    return backtrack(0, 0, 0)
-```
-````
-
-### 4. Find Actual Partition (Not Just Boolean)
-
-Return the actual subsets instead of just True/False:
-
-````carousel
-```python
-def find_partition(nums: List[int]) -> Tuple[List[int], List[int]]:
-    """
-    Find the actual partition of array into two equal-sum subsets.
-    Returns ([], []) if partition is impossible.
-    
-    Time Complexity: O(n × sum)
-    Space Complexity: O(n × sum) for tracking choices
-    """
-    total = sum(nums)
-    
-    if total % 2 != 0:
-        return [], []
-    
-    target = total // 2
-    n = len(nums)
-    
-    # dp[i][s] = True if sum s achievable with first i elements
-    dp = [[False] * (target + 1) for _ in range(n + 1)]
-    dp[0][0] = True
-    
-    for i in range(1, n + 1):
-        for s in range(target + 1):
-            dp[i][s] = dp[i-1][s]  # Don't include
-            if s >= nums[i-1] and dp[i-1][s - nums[i-1]]:
-                dp[i][s] = True  # Include
-    
-    if not dp[n][target]:
-        return [], []
-    
-    # Backtrack to find which elements were included
-    subset1 = []
-    subset2 = []
-    s = target
-    
-    for i in range(n, 0, -1):
-        if dp[i-1][s]:
-            # nums[i-1] was not included
-            subset2.append(nums[i-1])
-        else:
-            # nums[i-1] was included
-            subset1.append(nums[i-1])
-            s -= nums[i-1]
-    
-    return subset1, subset2
-```
-````
+- **Pseudo-polynomial time**: O(n × sum) depends on numeric values, not just n
+- **Large sum constraint**: If sum > 10⁵, may need alternative approaches
+- **K-partition limitation**: DP only efficient for k=2; use backtracking for k>2
 
 ---
 
@@ -977,7 +624,10 @@ def find_partition(nums: List[int]) -> Tuple[List[int], List[int]]:
 
 **Description:** Given a non-empty array `nums` containing only positive integers, find if the array can be partitioned into two subsets such that the sum of elements in both subsets is equal.
 
-**How to Apply:** Direct application of the space-optimized DP approach shown above.
+**How to Apply:**
+- Direct application of the space-optimized DP approach
+- Check if sum is odd first (quick rejection)
+- Use backwards iteration to prevent reuse
 
 ---
 
@@ -985,9 +635,12 @@ def find_partition(nums: List[int]) -> Tuple[List[int], List[int]]:
 
 **Problem:** [LeetCode 494 - Target Sum](https://leetcode.com/problems/target-sum/)
 
-**Description:** You are given an integer array `nums` and an integer `target`. You want to build an expression out of nums by adding one of the symbols '+' and '-' before each integer in nums and then concatenate all the integers.
+**Description:** You are given an integer array `nums` and an integer `target`. You want to build an expression out of nums by adding one of the symbols `+` and `-` before each integer in `nums` and then concatenate all the integers.
 
-**How to Apply:** Transform to subset sum problem: Find subset P such that `sum(P) - sum(nums-P) = target`. This simplifies to `2*sum(P) = target + sum(nums)`, so we need subset with sum = `(target + sum(nums)) / 2`.
+**How to Apply:**
+- Transform to subset sum problem: Find subset P such that `sum(P) - sum(nums-P) = target`
+- This simplifies to `2*sum(P) = target + sum(nums)`, so we need subset with sum = `(target + sum(nums)) / 2`
+- Apply standard combination sum/count DP approach
 
 ---
 
@@ -997,7 +650,10 @@ def find_partition(nums: List[int]) -> Tuple[List[int], List[int]]:
 
 **Description:** You are given an array of integers `stones` where `stones[i]` is the weight of the i-th stone. We are playing a game with the stones. On each turn, we choose any two stones and smash them together.
 
-**How to Apply:** This reduces to finding the minimum partition difference. We want to partition stones into two groups with sums as close as possible, then the difference is the remaining weight.
+**How to Apply:**
+- This reduces to finding the minimum partition difference
+- We want to partition stones into two groups with sums as close as possible
+- The difference between group sums is the remaining weight
 
 ---
 
@@ -1007,7 +663,10 @@ def find_partition(nums: List[int]) -> Tuple[List[int], List[int]]:
 
 **Description:** Given an integer array `nums` and an integer `k`, return true if it is possible to divide this array into `k` non-empty subsets whose sums are all equal.
 
-**How to Apply:** Use backtracking with pruning as shown in Variation 3. The DP approach becomes infeasible for k > 2 due to exponential state space.
+**How to Apply:**
+- Use backtracking with pruning (DP becomes infeasible for k > 2)
+- Sort descending for better pruning
+- Use used[] array to track which elements are assigned
 
 ---
 
@@ -1017,7 +676,10 @@ def find_partition(nums: List[int]) -> Tuple[List[int], List[int]]:
 
 **Description:** You are given an array of binary strings `strs` and two integers `m` and `n`. Return the size of the largest subset of `strs` such that there are at most `m` 0's and `n` 1's in the subset.
 
-**How to Apply:** This is a 2D variant of the subset sum / knapsack problem. Instead of one constraint (sum), we have two constraints (count of 0s and 1s).
+**How to Apply:**
+- This is a 2D variant of the subset sum / knapsack problem
+- Instead of one constraint (sum), we have two constraints (count of 0s and 1s)
+- Use 2D DP: dp[i][j] = max subset size with i zeros and j ones
 
 ---
 
@@ -1052,6 +714,8 @@ def find_partition(nums: List[int]) -> Tuple[List[int], List[int]]:
 - **When to use**: Only for very small n (n ≤ 20) or when you need to enumerate all partitions
 - **DP is preferred**: O(n × sum) is pseudo-polynomial and much faster for typical constraints
 
+---
+
 ### Q2: What if the array contains negative numbers or zero?
 
 **Answer:** 
@@ -1061,6 +725,8 @@ def find_partition(nums: List[int]) -> Tuple[List[int], List[int]]:
   - Need to track both positive and negative ranges in DP
   - DP array needs offset: `dp[s + offset]` where offset = sum of absolute values
   - Time complexity becomes O(n × total_range) where total_range includes negatives
+
+---
 
 ### Q3: How does this relate to the Knapsack problem?
 
@@ -1074,6 +740,8 @@ def find_partition(nums: List[int]) -> Tuple[List[int], List[int]]:
   - Knapsack capacity = target = sum/2
   - Goal: Fill knapsack exactly to capacity
 
+---
+
 ### Q4: Can we optimize further if we know the array is sorted?
 
 **Answer:** Sorting helps in some variations:
@@ -1081,6 +749,8 @@ def find_partition(nums: List[int]) -> Tuple[List[int], List[int]]:
 - **Pruning in k-partition**: Sorting descending helps backtracking explore larger elements first
 - **No asymptotic improvement**: DP complexity remains O(n × sum)
 - **Practical improvement**: Can reduce constants and early exit in some cases
+
+---
 
 ### Q5: What are the constraints where this solution becomes infeasible?
 
@@ -1104,24 +774,16 @@ The **Partition Equal Subset Sum** problem is a fundamental dynamic programming 
 - **Space Optimization**: Use 1D array with backwards iteration to achieve O(sum) space
 - **Time Complexity**: O(n × sum) - pseudo-polynomial
 
-When to use:
+### When to use:
 - ✅ Finding if array can be split into equal-sum groups
 - ✅ Subset sum problems with specific target
 - ✅ As building block for more complex partition problems
 - ❌ When sum is extremely large (use meet-in-the-middle instead)
 - ❌ When you need to partition into more than 2 subsets (use backtracking)
 
-This problem is essential for understanding:
+### Essential Understanding:
 - 0/1 Knapsack pattern
 - Space optimization in DP
 - Problem transformation techniques
 
----
-
-## Related Algorithms
-
-- [0/1 Knapsack](./knapsack-01.md) - The parent pattern
-- [Coin Change](./coin-change.md) - Unbounded knapsack variant
-- [Combination Sum](./combination-sum.md) - Finding subsets that sum to target
-- [Subset Sum](./subset-sum.md) - Generalized version
-- [Minimum Subset Sum Difference](./minimum-subset-sum-difference.md) - Optimization variant
+This problem is essential for competitive programming and technical interviews, appearing frequently in problems from major tech companies.

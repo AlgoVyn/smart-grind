@@ -1,13 +1,547 @@
 # Sliding Window Maximum
 
 ## Category
-Heap / Priority Queue
+Arrays & Strings
 
 ## Description
 
-The Sliding Window Maximum problem asks for the maximum value in each sliding window of size `k` as it moves across an array. This is a fundamental problem that appears frequently in data stream processing, traffic monitoring, and various algorithmic challenges.
+The **Sliding Window Maximum** problem asks for the maximum value in each sliding window of size `k` as it moves across an array. This is a fundamental pattern that appears frequently in data stream processing, traffic monitoring, and various algorithmic challenges.
 
 The optimal solution uses a **monotonic deque** (double-ended queue) to achieve O(n) time complexity, making it one of the most efficient sliding window techniques. Each element is processed at most twice—once when entering the window and once when leaving—resulting in linear time performance.
+
+This pattern extends beyond simple maximum queries to minimum tracking, median finding, and various statistical computations over sliding windows.
+
+---
+
+## Concepts
+
+The Sliding Window Maximum technique is built on several fundamental concepts that make it powerful for efficient range queries.
+
+### 1. Monotonic Deque
+
+A deque that maintains elements in sorted order, allowing O(1) access to the maximum (or minimum) element.
+
+| Property | Description |
+|----------|-------------|
+| **Front** | Always contains the maximum element of the current window |
+| **Order** | Elements stored in decreasing order of their values |
+| **Indices** | Stores indices (not values) to track window boundaries |
+
+### 2. Window Invariant
+
+The deque maintains a critical invariant:
+
+```
+For decreasing deque: nums[deque[0]] >= nums[deque[1]] >= ... >= nums[deque[-1]]
+```
+
+This ensures the front always holds the maximum for the current window.
+
+### 3. Incremental Update
+
+Instead of scanning the entire window for each position, we:
+
+1. **Remove outgoing**: Elements that left the window (from front)
+2. **Remove smaller**: Elements that can never be maximum (from back)
+3. **Add incoming**: New element enters the window (at back)
+
+### 4. Amortized Analysis
+
+Each element is:
+- Pushed exactly once
+- Popped at most once (from front when leaving window)
+- Popped at most once (from back when smaller than new element)
+
+Total operations: O(2n) = O(n)
+
+---
+
+## Frameworks
+
+Structured approaches for solving sliding window maximum problems.
+
+### Framework 1: Maximum with Monotonic Deque
+
+```
+┌─────────────────────────────────────────────────────┐
+│  SLIDING WINDOW MAXIMUM FRAMEWORK                   │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize empty deque and result array         │
+│  2. For each index i from 0 to n-1:                │
+│     a. Remove indices from front that are          │
+│        outside the window (i - k + 1)              │
+│     b. Remove indices from back with values        │
+│        smaller than nums[i]                        │
+│     c. Push current index i to back                │
+│     d. If window is full (i >= k-1):               │
+│        - result.append(nums[deque[0]])            │
+│  3. Return result array                             │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Finding maximum in each window of size k efficiently.
+
+### Framework 2: Minimum with Monotonic Deque
+
+```
+┌─────────────────────────────────────────────────────┐
+│  SLIDING WINDOW MINIMUM FRAMEWORK                   │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize empty deque (maintains increasing)    │
+│  2. For each index i from 0 to n-1:                │
+│     a. Remove indices from front outside window    │
+│     b. Remove indices from back with values        │
+│        LARGER than nums[i] (flip comparison)       │
+│     c. Push current index i to back                │
+│     d. If window is full:                          │
+│        - result.append(nums[deque[0]])              │
+│  3. Return result array                             │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Finding minimum in each window of size k efficiently.
+
+### Framework 3: Sliding Window with Two Heaps (Median)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  SLIDING WINDOW MEDIAN FRAMEWORK                    │
+├─────────────────────────────────────────────────────┤
+│  1. Maintain two heaps: max-heap (lower half)      │
+│     and min-heap (upper half)                      │
+│  2. Balance heaps so sizes differ by at most 1     │
+│  3. For each new element:                          │
+│     a. Add to appropriate heap                     │
+│     b. Rebalance heaps                             │
+│     c. Remove outgoing element (lazy deletion)     │
+│  4. Median is top of larger heap or average        │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Finding median in each window (requires O(n log k) time).
+
+---
+
+## Forms
+
+Different manifestations of the sliding window maximum pattern.
+
+### Form 1: Fixed-Size Window (Maximum)
+
+Window size is constant; find maximum for each window.
+
+| Approach | Time | Space | When to Use |
+|----------|------|-------|-------------|
+| Monotonic Deque | O(n) | O(k) | Optimal, single pass |
+| Max Heap | O(n log k) | O(k) | Need k-largest, not just max |
+| Brute Force | O(n × k) | O(1) | Very small k |
+
+### Form 2: Fixed-Size Window (Minimum)
+
+Same as maximum but with flipped comparisons.
+
+```python
+# Key difference: use > instead of <
+while dq and nums[dq[-1]] > nums[i]:  # Note: > for minimum
+    dq.pop()
+```
+
+### Form 3: Sliding Window with Constraints
+
+Apply additional constraints to valid windows.
+
+```
+Example: Shortest Subarray with Sum at Least K
+- Use prefix sums + monotonic deque
+- Maintain increasing prefix sums in deque
+- For each ending point, find valid starting points
+```
+
+### Form 4: Circular/Wrapping Window
+
+Window wraps around array end to beginning.
+
+```
+Technique: Duplicate array or use modulo
+Array: [1, 2, 3, 4, 5] with window size 3
+Windows: [1,2,3], [2,3,4], [3,4,5], [4,5,1], [5,1,2]
+```
+
+### Form 5: Multi-Source Window (K-way)
+
+Merge k sorted sources and track running statistics.
+
+```
+Example: Smallest Range Covering Elements from K Lists
+- Use min-heap to track current window across k lists
+- Track current maximum separately
+- Slide window using heap operations
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Storing Indices vs Values
+
+Always store indices, not values, to track window boundaries:
+
+```python
+# Good: Store indices
+dq.append(i)  # Index
+max_val = nums[dq[0]]  # Access value via index
+
+# Not recommended for most cases: Store values
+dq.append(nums[i])  # Loses position information
+```
+
+### Tactic 2: Handling Edge Cases
+
+```python
+def max_sliding_window(nums, k):
+    if not nums or k == 0:
+        return []
+    if k == 1:
+        return nums[:]  # Each element is its own max
+    if k >= len(nums):
+        return [max(nums)]  # Single window
+    # ... main logic
+```
+
+### Tactic 3: Lazy Deletion with Two Heaps
+
+For median and complex window statistics:
+
+```python
+from collections import defaultdict
+
+def remove_outdated(heap, to_remove, valid_count):
+    """Remove outdated elements from heap top."""
+    while heap and to_remove.get(-heap[0] if heap is max_heap else heap[0], 0) > 0:
+        val = -heapq.heappop(heap) if heap is max_heap else heapq.heappop(heap)
+        to_remove[val] -= 1
+        valid_count -= 1
+```
+
+### Tactic 4: Early Termination for Circular Arrays
+
+```python
+# When processing circular arrays
+for i in range(2 * n):
+    actual_idx = i % n
+    
+    # Optimization: stop early if stack empty after first pass
+    if i >= n and not stack:
+        break
+```
+
+### Tactic 5: Prefix Sum + Monotonic Deque
+
+For problems with negative numbers and sum constraints:
+
+```python
+def shortest_subarray_with_sum_at_least_k(arr, k):
+    """Use prefix sums + monotonic deque."""
+    n = len(arr)
+    prefix = [0] * (n + 1)
+    for i in range(n):
+        prefix[i + 1] = prefix[i] + arr[i]
+    
+    min_len = float('inf')
+    dq = deque()  # Stores indices with increasing prefix sums
+    
+    for i in range(n + 1):
+        # Check if we can form valid subarray
+        while dq and prefix[i] - prefix[dq[0]] >= k:
+            min_len = min(min_len, i - dq.popleft())
+        
+        # Maintain monotonicity
+        while dq and prefix[i] <= prefix[dq[-1]]:
+            dq.pop()
+        
+        dq.append(i)
+    
+    return min_len if min_len != float('inf') else -1
+```
+
+### Tactic 6: Comparing Approaches
+
+```python
+# Monotonic Deque: O(n) time, O(k) space
+# Best for: single max/min per window
+
+def max_sliding_window_deque(nums, k):
+    # O(n) optimal solution
+    pass
+
+# Heap: O(n log k) time, O(k) space
+# Best for: need k-largest elements
+
+def max_sliding_window_heap(nums, k):
+    # O(n log k) but more flexible
+    pass
+```
+
+---
+
+## Python Templates
+
+### Template 1: Sliding Window Maximum (Monotonic Deque)
+
+```python
+from collections import deque
+
+def max_sliding_window(nums: list[int], k: int) -> list[int]:
+    """
+    Find maximum in each sliding window using monotonic deque.
+    Time: O(n), Space: O(k)
+    """
+    if not nums or k == 0:
+        return []
+    
+    result = []
+    dq = deque()  # Stores indices, maintains decreasing order
+    
+    for i, num in enumerate(nums):
+        # Remove indices outside the current window from front
+        while dq and dq[0] < i - k + 1:
+            dq.popleft()
+        
+        # Remove indices with smaller values from back
+        # (they can never be the maximum)
+        while dq and nums[dq[-1]] < num:
+            dq.pop()
+        
+        # Add current index
+        dq.append(i)
+        
+        # Start adding to result once window is full
+        if i >= k - 1:
+            result.append(nums[dq[0]])
+    
+    return result
+```
+
+### Template 2: Sliding Window Minimum (Monotonic Deque)
+
+```python
+from collections import deque
+
+def min_sliding_window(nums: list[int], k: int) -> list[int]:
+    """
+    Find minimum in each sliding window using monotonic deque.
+    Time: O(n), Space: O(k)
+    """
+    if not nums or k == 0:
+        return []
+    
+    result = []
+    dq = deque()  # Stores indices, maintains increasing order
+    
+    for i, num in enumerate(nums):
+        # Remove indices outside window
+        while dq and dq[0] < i - k + 1:
+            dq.popleft()
+        
+        # Remove indices with LARGER values (maintain increasing order)
+        while dq and nums[dq[-1]] > num:
+            dq.pop()
+        
+        dq.append(i)
+        
+        if i >= k - 1:
+            result.append(nums[dq[0]])
+    
+    return result
+```
+
+### Template 3: Sliding Window Maximum (Heap Approach)
+
+```python
+import heapq
+
+def max_sliding_window_heap(nums: list[int], k: int) -> list[int]:
+    """
+    Find maximum using max heap (simulated with min heap).
+    Time: O(n log k), Space: O(k)
+    
+    Useful when you need k-largest, not just maximum.
+    """
+    if not nums or k == 0:
+        return []
+    
+    result = []
+    max_heap = []  # Stores (-value, index) for max heap simulation
+    
+    for i, num in enumerate(nums):
+        # Add current element
+        heapq.heappush(max_heap, (-num, i))
+        
+        # Remove elements outside the window (lazy deletion)
+        while max_heap and max_heap[0][1] < i - k + 1:
+            heapq.heappop(max_heap)
+        
+        # Record maximum once window is full
+        if i >= k - 1:
+            result.append(-max_heap[0][0])
+    
+    return result
+```
+
+### Template 4: Sliding Window Median (Two Heaps)
+
+```python
+import heapq
+from collections import defaultdict
+
+def sliding_window_median(nums: list[int], k: int) -> list[float]:
+    """
+    Find median in each sliding window.
+    Time: O(n log k), Space: O(k)
+    """
+    if not nums or k == 0:
+        return []
+    
+    # Max heap for lower half (negated values)
+    lower = []  # max heap
+    # Min heap for upper half
+    upper = []  # min heap
+    
+    # Lazy deletion tracking
+    to_remove_lower = defaultdict(int)
+    to_remove_upper = defaultdict(int)
+    lower_size = upper_size = 0
+    
+    def balance():
+        # Ensure lower has equal or one more element than upper
+        if lower_size > upper_size + 1:
+            val = -heapq.heappop(lower)
+            upper_size += 1
+            lower_size -= 1
+            heapq.heappush(upper, val)
+        elif upper_size > lower_size:
+            val = heapq.heappop(upper)
+            lower_size += 1
+            upper_size -= 1
+            heapq.heappush(lower, -val)
+    
+    def get_median():
+        if k % 2 == 1:
+            return float(-lower[0])
+        return (-lower[0] + upper[0]) / 2.0
+    
+    def prune(heap, to_remove, size):
+        while heap and to_remove.get(-heap[0] if heap is lower else heap[0], 0) > 0:
+            val = -heapq.heappop(heap) if heap is lower else heapq.heappop(heap)
+            to_remove[val] -= 1
+            size -= 1
+        return size
+    
+    result = []
+    
+    for i, num in enumerate(nums):
+        # Add to appropriate heap
+        if not lower or num <= -lower[0]:
+            heapq.heappush(lower, -num)
+            lower_size += 1
+        else:
+            heapq.heappush(upper, num)
+            upper_size += 1
+        
+        balance()
+        
+        # Remove outgoing element
+        if i >= k:
+            out_num = nums[i - k]
+            if out_num <= -lower[0]:
+                to_remove_lower[out_num] += 1
+                lower_size -= 1
+            else:
+                to_remove_upper[out_num] += 1
+                upper_size -= 1
+        
+        # Clean up tops if needed
+        lower_size = prune(lower, to_remove_lower, lower_size)
+        upper_size = prune(upper, to_remove_upper, upper_size)
+        
+        # Record median
+        if i >= k - 1:
+            result.append(get_median())
+    
+    return result
+```
+
+### Template 5: Shortest Subarray with Sum at Least K
+
+```python
+from collections import deque
+
+def shortest_subarray_with_sum_at_least_k(arr: list[int], k: int) -> int:
+    """
+    Find shortest subarray with sum >= k.
+    Handles negative numbers using prefix sums + monotonic deque.
+    Time: O(n), Space: O(n)
+    """
+    n = len(arr)
+    # Build prefix sum array
+    prefix = [0] * (n + 1)
+    for i in range(n):
+        prefix[i + 1] = prefix[i] + arr[i]
+    
+    min_len = float('inf')
+    dq = deque()  # Monotonic deque storing indices
+    
+    for i in range(n + 1):
+        # Check if we can form valid subarray
+        while dq and prefix[i] - prefix[dq[0]] >= k:
+            min_len = min(min_len, i - dq.popleft())
+        
+        # Maintain monotonicity (increasing prefix sums)
+        while dq and prefix[i] <= prefix[dq[-1]]:
+            dq.pop()
+        
+        dq.append(i)
+    
+    return min_len if min_len != float('inf') else -1
+```
+
+### Template 6: Constrained Subset Sum (DP + Sliding Window)
+
+```python
+from collections import deque
+
+def constrained_subset_sum(nums: list[int], k: int) -> int:
+    """
+    Maximum sum of non-empty subset with constraint j - i <= k.
+    Uses DP with monotonic deque optimization.
+    Time: O(n), Space: O(n)
+    """
+    n = len(nums)
+    # dp[i] = maximum sum ending at index i
+    dp = [0] * n
+    dp[0] = nums[0]
+    
+    # Deque stores indices with decreasing dp values
+    dq = deque([0])
+    
+    for i in range(1, n):
+        # Remove indices outside the k-window
+        while dq and dq[0] < i - k:
+            dq.popleft()
+        
+        # dp[i] = nums[i] + max(dp[j]) for valid j
+        dp[i] = nums[i] + max(0, dp[dq[0]])
+        
+        # Maintain decreasing order in deque
+        while dq and dp[dq[-1]] < dp[i]:
+            dq.pop()
+        
+        dq.append(i)
+    
+    return max(dp)
+```
 
 ---
 
@@ -68,7 +602,7 @@ The key insight behind the monotonic deque solution is maintaining a **decreasin
 #### The Monotonic Deque Invariant:
 
 ```
-Deque stores indices, and nums[deque[0]] ≥ nums[deque[1]] ≥ nums[deque[2]] ≥ ...
+Deque stores indices, and nums[deque[0]] >= nums[deque[1]] >= nums[deque[2]] >= ...
 ```
 
 #### Processing Each Element:
@@ -108,785 +642,17 @@ Total operations: 2n = O(n)
 
 The deque can contain at most k elements (the current window size), so space is O(k).
 
----
+### Limitations
 
-## Algorithm Steps
-
-### Step-by-Step Approach
-
-1. **Initialize**: Create an empty deque to store indices and a result array
-2. **Iterate**: Loop through each element with index `i` from 0 to n-1
-3. **Window Cleanup**: Remove indices from the front that are outside the current window (index < i - k + 1)
-4. **Monotonic Cleanup**: Remove indices from the back where nums[index] < nums[i] (maintain decreasing order)
-5. **Add Current**: Push current index `i` to the back of the deque
-6. **Record Result**: Once i >= k-1, add nums[deque[0]] to the result (front is maximum)
-7. **Return**: Return the result array
-
-### Edge Cases to Handle
-
-- Empty array: Return empty array
-- k = 0: Return empty array (no window)
-- k = 1: Return a copy of the original array
-- k >= n: Return single element (the maximum)
-- Negative numbers: Algorithm works correctly
-- Duplicate values: Algorithm handles duplicates properly
-
----
-
-## Implementation
-
-### Template Code (Monotonic Deque - Optimal O(n))
-
-````carousel
-```python
-from typing import List
-from collections import deque
-
-def max_sliding_window(nums: List[int], k: int) -> List[int]:
-    """
-    Find the maximum element in each sliding window.
-    Uses a monotonic deque for O(n) time complexity.
-    
-    Args:
-        nums: Input array
-        k: Window size
-    
-    Returns:
-        List of maximum values in each window
-    
-    Time: O(n) - each element pushed/popped at most once
-    Space: O(k) - deque holds at most k indices
-    """
-    if not nums or k == 0:
-        return []
-    
-    if k == 1:
-        return nums[:]
-    
-    result = []
-    dq = deque()  # Stores indices, maintains decreasing order
-    
-    for i in range(len(nums)):
-        # Step 1: Remove indices that are outside the current window
-        # Keep indices >= i - k + 1 (within window)
-        while dq and dq[0] < i - k + 1:
-            dq.popleft()
-        
-        # Step 2: Remove indices with smaller values from back
-        # Maintain decreasing order (front = maximum)
-        while dq and nums[dq[-1]] < nums[i]:
-            dq.pop()
-        
-        # Step 3: Add current index to the deque
-        dq.append(i)
-        
-        # Step 4: Record maximum once window is full
-        # Window is full when we've seen at least k elements
-        if i >= k - 1:
-            result.append(nums[dq[0]])
-    
-    return result
-
-
-def max_sliding_window_heap(nums: List[int], k: int) -> List[int]:
-    """
-    Alternative implementation using max heap.
-    Time: O(n log k)
-    Space: O(k)
-    
-    Useful when you need k-largest elements, not just the maximum.
-    """
-    import heapq
-    
-    if not nums or k == 0:
-        return []
-    
-    result = []
-    max_heap = []  # Stores (-value, index) tuples
-    
-    for i in range(len(nums)):
-        # Add current element (negate for max heap simulation)
-        heapq.heappush(max_heap, (-nums[i], i))
-        
-        # Remove elements outside the window
-        while max_heap and max_heap[0][1] < i - k + 1:
-            heapq.heappop(max_heap)
-        
-        # Record maximum once window is full
-        if i >= k - 1:
-            result.append(-max_heap[0][0])
-    
-    return result
-
-
-def min_sliding_window(nums: List[int], k: int) -> List[int]:
-    """
-    Find the minimum element in each sliding window.
-    Similar to max, but maintains increasing order in deque.
-    """
-    if not nums or k == 0:
-        return []
-    
-    result = []
-    dq = deque()  # Stores indices, maintains increasing order
-    
-    for i in range(len(nums)):
-        # Remove indices outside window
-        while dq and dq[0] < i - k + 1:
-            dq.popleft()
-        
-        # Remove indices with larger values (maintain increasing order)
-        while dq and nums[dq[-1]] > nums[i]:
-            dq.pop()
-        
-        dq.append(i)
-        
-        if i >= k - 1:
-            result.append(nums[dq[0]])
-    
-    return result
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    nums = [1, 3, -1, -3, 5, 3, 6, 7]
-    k = 3
-    
-    print(f"Input array: {nums}")
-    print(f"Window size (k): {k}")
-    print()
-    
-    # Test with monotonic deque (O(n))
-    result = max_sliding_window(nums, k)
-    print(f"Monotonic Deque O(n): {result}")
-    
-    # Test with heap (O(n log k))
-    result_heap = max_sliding_window_heap(nums, k)
-    print(f"Max Heap O(n log k): {result_heap}")
-    
-    # Test minimum sliding window
-    result_min = min_sliding_window(nums, k)
-    print(f"Min sliding window: {result_min}")
-    
-    # Verify all windows
-    print("\nAll windows:")
-    for i in range(len(nums) - k + 1):
-        window = nums[i:i+k]
-        print(f"  Window {i}-{i+k-1}: {window} -> max = {max(window)}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <deque>
-using namespace std;
-
-/**
- * Sliding Window Maximum using Monotonic Deque.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(k)
- * 
- * Each element is pushed and popped at most once.
- */
-class SlidingWindowMaximum {
-public:
-    /**
-     * Find maximum in each sliding window.
-     * @param nums Input array
-     * @param k Window size
-     * @return Vector of maximum values
-     */
-    static vector<int> maxSlidingWindow(const vector<int>& nums, int k) {
-        if (nums.empty() || k == 0) return {};
-        if (k == 1) return nums;
-        
-        vector<int> result;
-        deque<int> dq;  // Stores indices, maintains decreasing order
-        
-        for (int i = 0; i < nums.size(); i++) {
-            // Remove indices outside the current window
-            while (!dq.empty() && dq.front() < i - k + 1) {
-                dq.pop_front();
-            }
-            
-            // Remove indices with smaller values from back
-            while (!dq.empty() && nums[dq.back()] < nums[i]) {
-                dq.pop_back();
-            }
-            
-            // Add current index
-            dq.push_back(i);
-            
-            // Record maximum once window is full
-            if (i >= k - 1) {
-                result.push_back(nums[dq.front()]);
-            }
-        }
-        
-        return result;
-    }
-    
-    /**
-     * Find minimum in each sliding window.
-     * Maintains increasing order in deque.
-     */
-    static vector<int> minSlidingWindow(const vector<int>& nums, int k) {
-        if (nums.empty() || k == 0) return {};
-        
-        vector<int> result;
-        deque<int> dq;  // Stores indices, maintains increasing order
-        
-        for (int i = 0; i < nums.size(); i++) {
-            // Remove indices outside window
-            while (!dq.empty() && dq.front() < i - k + 1) {
-                dq.pop_front();
-            }
-            
-            // Remove indices with larger values (maintain increasing order)
-            while (!dq.empty() && nums[dq.back()] > nums[i]) {
-                dq.pop_back();
-            }
-            
-            dq.push_back(i);
-            
-            if (i >= k - 1) {
-                result.push_back(nums[dq.front()]);
-            }
-        }
-        
-        return result;
-    }
-};
-
-int main() {
-    vector<int> nums = {1, 3, -1, -3, 5, 3, 6, 7};
-    int k = 3;
-    
-    cout << "Input array: ";
-    for (int x : nums) cout << x << " ";
-    cout << "\nWindow size (k): " << k << "\n\n";
-    
-    // Test maximum sliding window
-    vector<int> result = SlidingWindowMaximum::maxSlidingWindow(nums, k);
-    cout << "Maximums: ";
-    for (int x : result) cout << x << " ";
-    cout << "\n";
-    
-    // Test minimum sliding window
-    vector<int> minResult = SlidingWindowMaximum::minSlidingWindow(nums, k);
-    cout << "Minimums: ";
-    for (int x : minResult) cout << x << " ";
-    cout << "\n";
-    
-    // Show all windows
-    cout << "\nAll windows:\n";
-    for (int i = 0; i <= nums.size() - k; i++) {
-        cout << "  Window " << i << "-" << i + k - 1 << ": ";
-        for (int j = i; j < i + k; j++) {
-            cout << nums[j] << " ";
-        }
-        cout << "-> max = " << *max_element(nums.begin() + i, nums.begin() + i + k) << "\n";
-    }
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
-
-/**
- * Sliding Window Maximum using Monotonic Deque.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(k)
- */
-public class SlidingWindowMaximum {
-    
-    /**
-     * Find maximum in each sliding window.
-     * @param nums Input array
-     * @param k Window size
-     * @return List of maximum values
-     */
-    public static List<Integer> maxSlidingWindow(int[] nums, int k) {
-        List<Integer> result = new ArrayList<>();
-        
-        if (nums == null || nums.length == 0 || k == 0) {
-            return result;
-        }
-        
-        if (k == 1) {
-            for (int num : nums) {
-                result.add(num);
-            }
-            return result;
-        }
-        
-        Deque<Integer> dq = new LinkedList<>();  // Stores indices
-        
-        for (int i = 0; i < nums.length; i++) {
-            // Remove indices outside the current window
-            while (!dq.isEmpty() && dq.peekFirst() < i - k + 1) {
-                dq.pollFirst();
-            }
-            
-            // Remove indices with smaller values from back
-            while (!dq.isEmpty() && nums[dq.peekLast()] < nums[i]) {
-                dq.pollLast();
-            }
-            
-            // Add current index
-            dq.addLast(i);
-            
-            // Record maximum once window is full
-            if (i >= k - 1) {
-                result.add(nums[dq.peekFirst()]);
-            }
-        }
-        
-        return result;
-    }
-    
-    /**
-     * Find minimum in each sliding window.
-     * Maintains increasing order in deque.
-     */
-    public static List<Integer> minSlidingWindow(int[] nums, int k) {
-        List<Integer> result = new ArrayList<>();
-        
-        if (nums == null || nums.length == 0 || k == 0) {
-            return result;
-        }
-        
-        Deque<Integer> dq = new LinkedList<>();
-        
-        for (int i = 0; i < nums.length; i++) {
-            // Remove indices outside window
-            while (!dq.isEmpty() && dq.peekFirst() < i - k + 1) {
-                dq.pollFirst();
-            }
-            
-            // Remove indices with larger values
-            while (!dq.isEmpty() && nums[dq.peekLast()] > nums[i]) {
-                dq.pollLast();
-            }
-            
-            dq.addLast(i);
-            
-            if (i >= k - 1) {
-                result.add(nums[dq.peekFirst()]);
-            }
-        }
-        
-        return result;
-    }
-    
-    public static void main(String[] args) {
-        int[] nums = {1, 3, -1, -3, 5, 3, 6, 7};
-        int k = 3;
-        
-        System.out.println("Input array: [1, 3, -1, -3, 5, 3, 6, 7]");
-        System.out.println("Window size (k): 3");
-        System.out.println();
-        
-        // Test maximum sliding window
-        List<Integer> result = maxSlidingWindow(nums, k);
-        System.out.println("Maximums: " + result);
-        
-        // Test minimum sliding window
-        List<Integer> minResult = minSlidingWindow(nums, k);
-        System.out.println("Minimums: " + minResult);
-        System.out.println("\nAll windows:");
-        for (int i = 0; i <= nums.length - k; i++) {
-            System.out.print("  Window " + i + "-" + (i + k - 1) + ": [");
-            for (int j = i; j < i + k; j++) {
-                System.out.print(nums[j] + (j < i + k - 1 ? ", " : ""));
-            }
-            System.out.println("] -> max = " + result.get(i));
-        }
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Sliding Window Maximum using Monotonic Deque.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(k)
- */
-
-/**
- * Find maximum in each sliding window.
- * @param {number[]} nums - Input array
- * @param {number} k - Window size
- * @returns {number[]} Array of maximum values
- */
-function maxSlidingWindow(nums, k) {
-    if (!nums || nums.length === 0 || k === 0) {
-        return [];
-    }
-    
-    if (k === 1) {
-        return [...nums];
-    }
-    
-    const result = [];
-    const dq = [];  // Stores indices, maintains decreasing order
-    
-    for (let i = 0; i < nums.length; i++) {
-        // Remove indices outside the current window
-        while (dq.length > 0 && dq[0] < i - k + 1) {
-            dq.shift();
-        }
-        
-        // Remove indices with smaller values from back
-        while (dq.length > 0 && nums[dq[dq.length - 1]] < nums[i]) {
-            dq.pop();
-        }
-        
-        // Add current index
-        dq.push(i);
-        
-        // Record maximum once window is full
-        if (i >= k - 1) {
-            result.push(nums[dq[0]]);
-        }
-    }
-    
-    return result;
-}
-
-/**
- * Find minimum in each sliding window.
- * Maintains increasing order in deque.
- */
-function minSlidingWindow(nums, k) {
-    if (!nums || nums.length === 0 || k === 0) {
-        return [];
-    }
-    
-    const result = [];
-    const dq = [];  // Stores indices, maintains increasing order
-    
-    for (let i = 0; i < nums.length; i++) {
-        // Remove indices outside window
-        while (dq.length > 0 && dq[0] < i - k + 1) {
-            dq.shift();
-        }
-        
-        // Remove indices with larger values
-        while (dq.length > 0 && nums[dq[dq.length - 1]] > nums[i]) {
-            dq.pop();
-        }
-        
-        dq.push(i);
-        
-        if (i >= k - 1) {
-            result.push(nums[dq[0]]);
-        }
-    }
-    
-    return result;
-}
-
-// Example usage and demonstration
-const nums = [1, 3, -1, -3, 5, 3, 6, 7];
-const k = 3;
-
-console.log(`Input array: [${nums.join(', ')}]`);
-console.log(`Window size (k): ${k}`);
-console.log();
-
-// Test maximum sliding window
-const result = maxSlidingWindow(nums, k);
-console.log(`Maximums: [${result.join(', ')}]`);
-
-// Test minimum sliding window
-const minResult = minSlidingWindow(nums, k);
-console.log(`Minimums: [${minResult.join(', ')}]`);
-
-// Show all windows
-console.log('\nAll windows:');
-for (let i = 0; i <= nums.length - k; i++) {
-    const window = nums.slice(i, i + k);
-    console.log(`  Window ${i}-${i + k - 1}: [${window.join(', ')}] -> max = ${result[i]}`);
-}
-```
-````
-
----
-
-## Example
-
-**Input:**
-```
-nums = [1, 3, -1, -3, 5, 3, 6, 7]
-k = 3
-```
-
-**Output:**
-```
-[3, 3, 5, 5, 6, 7]
-```
-
-**Explanation:**
-| Window | Elements | Maximum |
-|--------|----------|---------|
-| Window 0 | [1, 3, -1] | 3 |
-| Window 1 | [3, -1, -3] | 3 |
-| Window 2 | [-1, -3, 5] | 5 |
-| Window 3 | [-3, 5, 3] | 5 |
-| Window 4 | [5, 3, 6] | 6 |
-| Window 5 | [3, 6, 7] | 7 |
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Single Pass** | O(n) | Each element pushed once, popped at most once |
-| **Total Operations** | O(2n) | Each element processed at most 2 times |
-| **Space** | O(k) | Deque holds at most k indices |
-
-### Detailed Breakdown
-
-- **Pushing elements**: n elements pushed → O(n)
-- **Popping elements**: At most n elements popped → O(n)
-- **Window cleanup**: Each element removed at most once when leaving window
-- **Monotonic cleanup**: Each element removed at most once when smaller element arrives
-
-**Total: O(n + n) = O(n)**
-
----
-
-## Space Complexity Analysis
-
-| Data Structure | Space | Reason |
-|----------------|-------|--------|
-| **Deque** | O(k) | At most k indices stored |
-| **Result Array** | O(n - k + 1) | Number of windows |
-| **Total** | O(n) | Can be considered O(n) worst case when k ≈ n |
-
----
-
-## Common Variations
-
-### 1. Minimum in Sliding Window
-
-Simply flip the comparison to maintain increasing order:
-
-````carousel
-```python
-def min_sliding_window(nums: List[int], k: int) -> List[int]:
-    """Find minimum - change < to > in monotonic cleanup."""
-    result = []
-    dq = deque()
-    
-    for i in range(len(nums)):
-        while dq and dq[0] < i - k + 1:
-            dq.popleft()
-        while dq and nums[dq[-1]] > nums[i]:  # Changed!
-            dq.pop()
-        dq.append(i)
-        if i >= k - 1:
-            result.append(nums[dq[0]])
-    
-    return result
-```
-
-<!-- slide -->
-```cpp
-vector<int> minSlidingWindow(vector<int>& nums, int k) {
-    vector<int> result;
-    deque<int> dq;  // Stores indices
-    
-    for (int i = 0; i < nums.size(); i++) {
-        // Remove indices outside window
-        while (!dq.empty() && dq.front() < i - k + 1) {
-            dq.pop_front();
-        }
-        
-        // Remove larger elements from back (maintain increasing order)
-        while (!dq.empty() && nums[dq.back()] > nums[i]) {
-            dq.pop_back();
-        }
-        
-        dq.push_back(i);
-        
-        if (i >= k - 1) {
-            result.push_back(nums[dq.front()]);
-        }
-    }
-    
-    return result;
-}
-```
-
-<!-- slide -->
-```java
-public List<Integer> minSlidingWindow(int[] nums, int k) {
-    List<Integer> result = new ArrayList<>();
-    Deque<Integer> dq = new LinkedList<>();
-    
-    for (int i = 0; i < nums.length; i++) {
-        // Remove indices outside window
-        while (!dq.isEmpty() && dq.peekFirst() < i - k + 1) {
-            dq.pollFirst();
-        }
-        
-        // Remove larger elements from back
-        while (!dq.isEmpty() && nums[dq.peekLast()] > nums[i]) {
-            dq.pollLast();
-        }
-        
-        dq.addLast(i);
-        
-        if (i >= k - 1) {
-            result.add(nums[dq.peekFirst()]);
-        }
-    }
-    
-    return result;
-}
-```
-
-<!-- slide -->
-```javascript
-function minSlidingWindow(nums, k) {
-    const result = [];
-    const dq = [];  // Stores indices
-    
-    for (let i = 0; i < nums.length; i++) {
-        // Remove indices outside window
-        while (dq.length > 0 && dq[0] < i - k + 1) {
-            dq.shift();
-        }
-        
-        // Remove larger elements from back
-        while (dq.length > 0 && nums[dq[dq.length - 1]] > nums[i]) {
-            dq.pop();
-        }
-        
-        dq.push(i);
-        
-        if (i >= k - 1) {
-            result.push(nums[dq[0]]);
-        }
-    }
-    
-    return result;
-}
-```
-````
-
-### 2. Sliding Window with Deque of Values
-
-Instead of storing indices, store values (simpler but loses window tracking):
-
-````carousel
-```python
-def max_sliding_window_values(nums: List[int], k: int) -> List[int]:
-    """Store values instead of indices - loses window tracking."""
-    from collections import deque
-    
-    result = []
-    dq = deque()
-    
-    for i, num in enumerate(nums):
-        # Remove from front if outside window
-        while dq and dq[0][1] < i - k + 1:
-            dq.popleft()
-        
-        # Remove smaller values from back
-        while dq and dq[-1][0] < num:
-            dq.pop()
-        
-        dq.append((num, i))
-        
-        if i >= k - 1:
-            result.append(dq[0][0])
-    
-    return result
-```
-````
-
-### 3. Sliding Window Maximum with Index Tracking
-
-Track both maximum and its index for more complex problems:
-
-````carousel
-```python
-def max_sliding_window_with_index(nums: List[int], k: int) -> List[tuple]:
-    """Return both value and index of maximum."""
-    result = []
-    dq = deque()
-    
-    for i in range(len(nums)):
-        while dq and dq[0][1] < i - k + 1:
-            dq.popleft()
-        while dq and dq[-1][0] < nums[i]:
-            dq.pop()
-        
-        dq.append((nums[i], i))
-        
-        if i >= k - 1:
-            result.append(dq[0])
-    
-    return result
-```
-````
-
-### 4. K-Largest Elements in Window
-
-Using max heap to get top k elements per window:
-
-````carousel
-```python
-import heapq
-from typing import List
-
-def k_largest_in_window(nums: List[int], k: int, m: int) -> List[List[int]]:
-    """
-    Find m largest elements in each sliding window of size k.
-    Time: O(n log m)
-    """
-    if k < m:
-        return []
-    
-    result = []
-    max_heap = []  # (-value, index)
-    
-    for i in range(len(nums)):
-        heapq.heappush(max_heap, (-nums[i], i))
-        
-        # Remove outside window
-        while max_heap and max_heap[0][1] < i - k + 1:
-            heapq.heappop(max_heap)
-        
-        if i >= k - 1:
-            # Get m largest
-            largest = sorted([-x for x, _ in max_heap[:m]], reverse=True)
-            result.append(largest)
-    
-    return result
-```
-````
+- **Only works with deque data structure**: Requires O(1) front and back operations
+- **Specific to min/max queries**: Doesn't directly extend to other statistics
+- **Window size must be known**: Requires fixed or bounded window size
 
 ---
 
 ## Practice Problems
 
-### Problem 1: Sliding Window Maximum
+### Problem 1: Sliding Window Maximum (Classic)
 
 **Problem:** [LeetCode 239 - Sliding Window Maximum](https://leetcode.com/problems/sliding-window-maximum/)
 
@@ -904,7 +670,7 @@ def k_largest_in_window(nums: List[int], k: int, m: int) -> List[List[int]]:
 
 **Problem:** [LeetCode 480 - Sliding Window Median](https://leetcode.com/problems/sliding-window-median/)
 
-**Description:** Given an integer array `nums` and integer `k`, return the median of each sliding window of size `k`. The median is the middle value in an ordered integer list.
+**Description:** Given an integer array `nums` and integer `k`, return the median of each sliding window of size `k`.
 
 **How to Apply:**
 - Use two heaps: a max heap for the lower half and a min heap for the upper half
@@ -956,6 +722,33 @@ def k_largest_in_window(nums: List[int], k: int, m: int) -> List[List[int]]:
 
 ---
 
+### Problem 6: Smallest Range Covering Elements from K Lists
+
+**Problem:** [LeetCode 632 - Smallest Range Covering Elements from K Lists](https://www.youtube.com/smallest-range-covering-elements-from-k-lists/)
+
+**Description:** You have k lists of sorted integers. Find the smallest range that includes at least one number from each of the k lists.
+
+**How to Apply:**
+- Use min-heap to track current minimum across k lists
+- Track current maximum separately
+- Slide window by extracting min and adding next from same list
+- Time: O(N log k), Space: O(k)
+
+---
+
+### Problem 7: Maximum of Absolute Value Expression
+
+**Problem:** [LeetCode 1131 - Maximum of Absolute Value Expression](https://leetcode.com/problems/maximum-of-absolute-value-expression/)
+
+**Description:** Given two arrays of integers with equal lengths, return the maximum value of |arr1[i] - arr1[j]| + |arr2[i] - arr2[j]| + |i - j|.
+
+**How to Apply:**
+- Transform into 4 linear expressions using properties of absolute values
+- Use sliding window maximum to find maximum for each expression
+- Time: O(n), Space: O(n)
+
+---
+
 ## Video Tutorial Links
 
 ### Fundamentals
@@ -970,6 +763,12 @@ def k_largest_in_window(nums: List[int], k: int, m: int) -> List[List[int]]:
 - [Dequeue Optimization (Algorithms Live)](https://www.youtube.com/watch?v=0FYkn4KN4Lw) - Why monotonic deque works
 - [Sliding Window Variations](https://www.youtube.com/watch?v=MK0m1z7c9bE) - Common variations and extensions
 
+### Problem-Specific
+
+- [Sliding Window Median - LeetCode 480](https://www.youtube.com/watch?v=eyLE9PZyXo0) - Advanced sliding window with data structures
+- [Shortest Subarray with Sum at Least K](https://www.youtube.com/watch?v=GzeqP1T7i6w) - Monotonic deque with prefix sums
+- [Constrained Subset Sum](https://www.youtube.com/watch?v=thZ7vxnn9dE) - DP optimization with sliding window
+
 ---
 
 ## Follow-up Questions
@@ -983,12 +782,16 @@ def k_largest_in_window(nums: List[int], k: int, m: int) -> List[List[int]]:
 
 A regular queue can only remove from the front, making the monotonic cleanup impossible in O(1).
 
+---
+
 ### Q2: Can this algorithm handle duplicate values correctly?
 
 **Answer:** Yes! The algorithm handles duplicates correctly because:
 - When nums[dq[-1]] < nums[i], we remove the smaller duplicate
 - When values are equal, we keep the earlier index (stays longer in window)
 - This maintains correctness because earlier index stays valid longer
+
+---
 
 ### Q3: How would you modify for circular arrays?
 
@@ -999,6 +802,8 @@ A regular queue can only remove from the front, making the monotonic cleanup imp
 
 Or use modulo arithmetic to track indices.
 
+---
+
 ### Q4: What's the difference between this and a segment tree approach?
 
 **Answer:**
@@ -1007,6 +812,8 @@ Or use modulo arithmetic to track indices.
 - **Sparse Table**: O(n log n) build, O(1) per query, O(n log n) space, static only
 - **Choice**: Use deque for streaming/sliding windows; segment tree for dynamic range queries; sparse table for static array with many queries
 
+---
+
 ### Q5: How do you handle very large window sizes (k ≈ n)?
 
 **Answer:** The algorithm still works efficiently:
@@ -1014,6 +821,27 @@ Or use modulo arithmetic to track indices.
 - Each element still pushed/popped at most once
 - The monotonic property still maintained
 - Consider edge case where k > n: return single maximum
+
+---
+
+### Q6: Can this be extended to find kth largest in each window?
+
+**Answer:** Yes, but with different data structures:
+- **Order Statistic Tree**: O(n log k) time
+- **Two Heaps**: O(n log k) time with lazy deletion
+- **Quickselect**: Too slow for sliding window
+
+For simple max/min, monotonic deque is optimal O(n). For kth order statistics, O(n log k) is expected.
+
+---
+
+### Q7: How does sliding window maximum relate to monotonic stack?
+
+**Answer:** Both use monotonic properties but for different purposes:
+- **Monotonic Stack**: Find next greater/smaller element for each position
+- **Monotonic Deque**: Find current maximum/minimum in a sliding window
+
+Stack is for pairwise relationships, deque is for range queries. Both achieve O(n) by maintaining sorted order.
 
 ---
 
@@ -1033,18 +861,13 @@ When to use:
 - ✅ When you need O(n) single-pass solution
 - ✅ Competitive programming and interviews
 
+When not to use:
+- ❌ When you need arbitrary order statistics (kth largest where k varies)
+- ❌ When the window size is unknown or unbounded
+- ❌ When you need to modify the underlying data frequently
+
 This algorithm is fundamental and appears in many real-world applications including:
 - Stock price monitoring
 - Network traffic analysis
 - Weather data processing
 - Any sliding window statistical analysis
-
----
-
-## Related Algorithms
-
-- [Monotonic Stack](./monotonic-stack.md) - Similar technique for next greater/smaller elements
-- [Heap/Priority Queue](./heap-kth-largest.md) - Alternative O(n log k) approach
-- [Prefix Sum](./prefix-sum.md) - For sliding window sum queries
-- [Segment Tree](./segment-tree.md) - For general range queries
-- [Sparse Table](./sparse-table.md) - For static range queries with O(1) time

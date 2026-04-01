@@ -7,11 +7,590 @@ Trees & BSTs
 
 DFS Inorder Traversal is a **depth-first tree traversal** algorithm that visits nodes in **Left-Root-Right** order. For Binary Search Trees (BST), this traversal produces nodes in **sorted (ascending) order**, making it an essential tool for tree-based problems. The algorithm systematically explores the leftmost branch first, processes the current node, and then explores the right branch.
 
-This traversal pattern is particularly valuable for:
-- Retrieving sorted data from BSTs in O(n) time
-- Converting between different tree representations
-- Solving problems requiring sequential access to tree elements
-- Validating BST properties and finding order statistics
+This traversal pattern is particularly valuable for retrieving sorted data from BSTs in O(n) time, converting between different tree representations, solving problems requiring sequential access to tree elements, and validating BST properties.
+
+---
+
+## Concepts
+
+The DFS Inorder Traversal is built on several fundamental concepts that make it powerful for solving tree problems.
+
+### 1. Traversal Order
+
+The fundamental principle is the **Left-Root-Right** processing order:
+
+1. **Left Subtree**: Recursively traverse the entire left subtree first
+2. **Root**: Process the current node
+3. **Right Subtree**: Recursively traverse the entire right subtree
+
+This ordering ensures that for any node, all values in its left subtree (which are smaller in a BST) are processed before the node itself, and all values in its right subtree (larger in a BST) are processed after.
+
+### 2. Tree Properties
+
+| Property | Description | Implication |
+|----------|-------------|-------------|
+| **BST Sorted Order** | Left < Root < Right | Inorder produces ascending sorted sequence |
+| **Complete Traversal** | Every node visited exactly once | O(n) time complexity guaranteed |
+| **Stack Usage** | Implicit (recursion) or explicit (iteration) | Memory usage depends on tree height |
+
+### 3. State Tracking
+
+Different implementations track traversal progress differently:
+
+| Implementation | State Tracking | Space Overhead |
+|----------------|----------------|----------------|
+| **Recursive** | Call stack | O(h) where h = tree height |
+| **Iterative (Stack)** | Explicit stack | O(h) |
+| **Morris** | Temporary tree modification | O(1) |
+| **Parent Pointer** | Upward traversal capability | O(1) |
+
+### 4. Node Relationships
+
+Understanding the relationships between nodes helps with traversal:
+
+- **Inorder Predecessor**: Rightmost node in left subtree
+- **Inorder Successor**: Leftmost node in right subtree
+- **Thread**: Temporary link from predecessor to current node (Morris traversal)
+
+---
+
+## Frameworks
+
+Structured approaches for solving inorder traversal problems.
+
+### Framework 1: Recursive Traversal Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  RECURSIVE INORDER TRAVERSAL FRAMEWORK              │
+├─────────────────────────────────────────────────────┤
+│  1. Define recursive function with node parameter   │
+│  2. Base case: if node is null, return              │
+│  3. Recursively traverse left subtree               │
+│  4. Process current node (add to result, etc.)      │
+│  5. Recursively traverse right subtree              │
+│  6. Return result                                   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Clean, readable code when recursion depth is manageable.
+
+### Framework 2: Iterative Traversal Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  ITERATIVE INORDER TRAVERSAL FRAMEWORK              │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize empty stack, current = root          │
+│  2. While current is not null OR stack not empty:   │
+│     a. While current is not null:                   │
+│        - Push current to stack                      │
+│        - Move current to left child                 │
+│     b. Pop from stack, process node                 │
+│     c. Move current to right child                  │
+│  3. Return result                                   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Avoiding recursion limit, explicit control over stack.
+
+### Framework 3: Morris Traversal Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  MORRIS INORDER TRAVERSAL FRAMEWORK (O(1) Space)    │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize current = root                       │
+│  2. While current is not null:                      │
+│     a. If no left child:                            │
+│        - Process current                            │
+│        - Go to right                                │
+│     b. If left child exists:                        │
+│        - Find inorder predecessor                   │
+│        - If no thread: create thread, go left       │
+│        - If thread exists: remove thread, process,    │
+│          go right                                   │
+│  3. Return result                                   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Memory-constrained environments, very large trees.
+
+---
+
+## Forms
+
+Different manifestations of the inorder traversal pattern.
+
+### Form 1: Standard Inorder Traversal
+
+Basic traversal returning all node values in order.
+
+| Aspect | Description |
+|--------|-------------|
+| **Input** | Root of binary tree |
+| **Output** | List of values in inorder sequence |
+| **Use Case** | General tree traversal, sorted output from BST |
+
+### Form 2: BST Validation
+
+Inorder traversal to validate BST property.
+
+| Aspect | Description |
+|--------|-------------|
+| **Key Insight** | Inorder of valid BST must be strictly increasing |
+| **Optimization** | Track previous value, no need to store all values |
+| **Time** | O(n) - stop early if violation found |
+
+### Form 3: Kth Smallest/Largest Element
+
+Finding order statistics in BST.
+
+| Aspect | Description |
+|--------|-------------|
+| **Key Insight** | Inorder gives sorted order, kth element is at position k |
+| **Optimization** | Stop traversal after k nodes, don't process entire tree |
+| **Time** | O(k) average, O(n) worst case |
+
+### Form 4: Tree Iterator
+
+Controlled inorder traversal for BST iterator.
+
+| Aspect | Description |
+|--------|-------------|
+| **Key Insight** | Use stack to simulate recursion, lazy loading |
+| **Operations** | hasNext(): O(1), next(): Amortized O(1) |
+| **Space** | O(h) for stack |
+
+### Form 5: Expression Tree Evaluation
+
+Converting infix expressions to postfix/prefix.
+
+| Aspect | Description |
+|--------|-------------|
+| **Key Insight** | Inorder naturally represents infix notation |
+| **Output** | Postfix for evaluation, prefix for prefix notation |
+| **Use Case** | Expression parsing and evaluation |
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Early Termination
+
+Stop traversal early when goal is achieved:
+
+```python
+def kth_smallest(root: TreeNode, k: int) -> int:
+    """Find kth smallest element using early termination."""
+    result = None
+    count = 0
+    
+    def traverse(node):
+        nonlocal count, result
+        if not node or result is not None:
+            return
+        
+        traverse(node.left)
+        
+        count += 1
+        if count == k:
+            result = node.val
+            return
+        
+        traverse(node.right)
+    
+    traverse(root)
+    return result
+```
+
+### Tactic 2: Previous Value Tracking for BST Validation
+
+Avoid storing all values by tracking only the previous value:
+
+```python
+def is_valid_bst(root: TreeNode) -> bool:
+    """Validate BST using inorder with previous tracking."""
+    prev_val = float('-inf')
+    is_valid = True
+    
+    def traverse(node):
+        nonlocal prev_val, is_valid
+        if not node or not is_valid:
+            return
+        
+        traverse(node.left)
+        
+        if node.val <= prev_val:
+            is_valid = False
+            return
+        prev_val = node.val
+        
+        traverse(node.right)
+    
+    traverse(root)
+    return is_valid
+```
+
+### Tactic 3: Stack with State Tracking
+
+Alternative iterative approach using visited flags:
+
+```python
+def inorder_iterative_with_state(root: TreeNode) -> list[int]:
+    """Inorder using stack with visited flags."""
+    if not root:
+        return []
+    
+    result = []
+    stack = [(root, False)]
+    
+    while stack:
+        node, visited = stack.pop()
+        if visited:
+            result.append(node.val)
+        else:
+            # Push in reverse order: right, node (visited), left
+            if node.right:
+                stack.append((node.right, False))
+            stack.append((node, True))
+            if node.left:
+                stack.append((node.left, False))
+    
+    return result
+```
+
+### Tactic 4: Morris Traversal Thread Management
+
+Creating and removing temporary threads:
+
+```python
+def morris_inorder(root: TreeNode) -> list[int]:
+    """O(1) space inorder traversal."""
+    result = []
+    current = root
+    
+    while current:
+        if not current.left:
+            result.append(current.val)
+            current = current.right
+        else:
+            # Find predecessor
+            predecessor = current.left
+            while predecessor.right and predecessor.right != current:
+                predecessor = predecessor.right
+            
+            if not predecessor.right:
+                # Create thread
+                predecessor.right = current
+                current = current.left
+            else:
+                # Remove thread and process
+                predecessor.right = None
+                result.append(current.val)
+                current = current.right
+    
+    return result
+```
+
+### Tactic 5: Recovering Swapped BST Nodes
+
+Using inorder to find and fix swapped nodes:
+
+```python
+def recover_tree(root: TreeNode) -> None:
+    """Recover BST where two nodes were swapped."""
+    first = second = prev = None
+    
+    def inorder(node):
+        nonlocal first, second, prev
+        if not node:
+            return
+        
+        inorder(node.left)
+        
+        if prev and prev.val > node.val:
+            if not first:
+                first = prev
+            second = node
+        prev = node
+        
+        inorder(node.right)
+    
+    inorder(root)
+    first.val, second.val = second.val, first.val
+```
+
+---
+
+## Python Templates
+
+### Template 1: Recursive Inorder Traversal
+
+```python
+from typing import List, Optional
+
+class TreeNode:
+    """Definition for a binary tree node."""
+    def __init__(self, val: int = 0, left: Optional['TreeNode'] = None, 
+                 right: Optional['TreeNode'] = None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+def inorder_recursive(root: Optional[TreeNode]) -> List[int]:
+    """
+    DFS Inorder Traversal - Recursive Approach
+    
+    Time Complexity: O(n) - visit each node exactly once
+    Space Complexity: O(h) - recursion stack, h = height of tree
+    
+    Args:
+        root: Root of binary tree
+        
+    Returns:
+        List of node values in inorder sequence
+    """
+    result = []
+    
+    def traverse(node: Optional[TreeNode]) -> None:
+        if not node:
+            return
+        traverse(node.left)           # Visit left subtree
+        result.append(node.val)       # Visit root
+        traverse(node.right)          # Visit right subtree
+    
+    traverse(root)
+    return result
+```
+
+### Template 2: Iterative Inorder Traversal
+
+```python
+from typing import List, Optional
+
+def inorder_iterative(root: Optional[TreeNode]) -> List[int]:
+    """
+    DFS Inorder Traversal - Iterative using stack
+    
+    Time Complexity: O(n) - each node pushed and popped once
+    Space Complexity: O(h) - explicit stack
+    
+    Args:
+        root: Root of binary tree
+        
+    Returns:
+        List of node values in inorder sequence
+    """
+    result = []
+    stack = []
+    current = root
+    
+    while current or stack:
+        # Go to leftmost node
+        while current:
+            stack.append(current)
+            current = current.left
+        
+        # Process current node
+        current = stack.pop()
+        result.append(current.val)
+        
+        # Move to right subtree
+        current = current.right
+    
+    return result
+```
+
+### Template 3: Morris Inorder Traversal (O(1) Space)
+
+```python
+def inorder_morris(root: Optional[TreeNode]) -> List[int]:
+    """
+    Morris Inorder Traversal - O(1) Space
+    
+    Uses threaded binary tree concept to traverse without stack.
+    Creates temporary links (threads) from predecessor to current.
+    
+    Time Complexity: O(n) - each edge traversed at most twice
+    Space Complexity: O(1) - only uses pointers
+    
+    Args:
+        root: Root of binary tree
+        
+    Returns:
+        List of node values in inorder sequence
+    """
+    result = []
+    current = root
+    
+    while current:
+        if not current.left:
+            # No left child, process and go right
+            result.append(current.val)
+            current = current.right
+        else:
+            # Find inorder predecessor (rightmost in left subtree)
+            predecessor = current.left
+            while predecessor.right and predecessor.right != current:
+                predecessor = predecessor.right
+            
+            if not predecessor.right:
+                # Create thread and move left
+                predecessor.right = current
+                current = current.left
+            else:
+                # Thread exists, remove it and process current
+                predecessor.right = None
+                result.append(current.val)
+                current = current.right
+    
+    return result
+```
+
+### Template 4: BST Iterator
+
+```python
+class BSTIterator:
+    """
+    Binary Search Tree Iterator
+    
+    Implements iterator over inorder traversal.
+    next() and hasNext() run in average O(1) time.
+    Uses O(h) memory where h is tree height.
+    """
+    
+    def __init__(self, root: Optional[TreeNode]):
+        self.stack = []
+        self._leftmost_inorder(root)
+    
+    def _leftmost_inorder(self, node: Optional[TreeNode]):
+        """Push all left nodes onto stack."""
+        while node:
+            self.stack.append(node)
+            node = node.left
+    
+    def next(self) -> int:
+        """Return next smallest number."""
+        topmost_node = self.stack.pop()
+        # If node has right child, push its leftmost path
+        if topmost_node.right:
+            self._leftmost_inorder(topmost_node.right)
+        return topmost_node.val
+    
+    def hasNext(self) -> bool:
+        """Return whether we have a next smallest number."""
+        return len(self.stack) > 0
+```
+
+### Template 5: Kth Smallest Element in BST
+
+```python
+def kth_smallest(root: TreeNode, k: int) -> int:
+    """
+    Find kth smallest element in BST using inorder traversal.
+    
+    Time: O(k) average, O(n) worst case
+    Space: O(h)
+    
+    Args:
+        root: Root of BST
+        k: Position (1-indexed)
+    
+    Returns:
+        kth smallest element value
+    """
+    stack = []
+    current = root
+    count = 0
+    
+    while current or stack:
+        while current:
+            stack.append(current)
+            current = current.left
+        
+        current = stack.pop()
+        count += 1
+        
+        if count == k:
+            return current.val
+        
+        current = current.right
+    
+    return -1  # k is larger than tree size
+```
+
+### Template 6: Validate BST with Inorder
+
+```python
+def is_valid_bst(root: Optional[TreeNode]) -> bool:
+    """
+    Validate BST using inorder traversal.
+    Inorder of valid BST must be strictly increasing.
+    
+    Time: O(n)
+    Space: O(h)
+    """
+    if not root:
+        return True
+    
+    stack = []
+    current = root
+    prev_val = float('-inf')
+    
+    while current or stack:
+        while current:
+            stack.append(current)
+            current = current.left
+        
+        current = stack.pop()
+        
+        # Check BST property
+        if current.val <= prev_val:
+            return False
+        prev_val = current.val
+        
+        current = current.right
+    
+    return True
+```
+
+### Template 7: Recover BST (Two Swapped Nodes)
+
+```python
+def recover_tree(root: Optional[TreeNode]) -> None:
+    """
+    Recover BST where exactly two nodes were swapped.
+    
+    Uses inorder to find violations in the sorted sequence.
+    
+    Time: O(n)
+    Space: O(h)
+    """
+    first = second = prev = None
+    
+    def inorder(node):
+        nonlocal first, second, prev
+        if not node:
+            return
+        
+        inorder(node.left)
+        
+        # Detect violation
+        if prev and prev.val > node.val:
+            if not first:
+                first = prev
+            second = node
+        prev = node
+        
+        inorder(node.right)
+    
+    inorder(root)
+    # Swap values back
+    first.val, second.val = second.val, first.val
+```
 
 ---
 
@@ -66,17 +645,13 @@ The fundamental principle of Inorder DFS is the **Left-Root-Right** processing o
 
 This ordering ensures that for any node, all values in its left subtree (which are smaller in a BST) are processed before the node itself, and all values in its right subtree (larger in a BST) are processed after.
 
-### Why It Works
+### How It Works
 
-**For Binary Search Trees:**
-- BST property: Left child < Parent < Right child
-- Inorder traversal visits: Left (smaller) → Root → Right (larger)
-- Result: Ascending sorted order
-
-**For General Binary Trees:**
-- Systematic exploration ensures no node is missed
-- Stack (implicit in recursion or explicit in iteration) tracks the path
-- Each node is visited exactly once
+#### Traversal Flow:
+1. Start at root, traverse left as far as possible
+2. When left is exhausted, process current node
+3. Then traverse the right subtree
+4. Continue recursively until all nodes are processed
 
 ### Visual Representation
 
@@ -86,7 +661,7 @@ For a sample BST:
         4
        / \
       2   6
-     / \  / \
+     / \/ \
     1   3 5  7
 ```
 
@@ -125,972 +700,25 @@ Step 7: From (4), go right to (6), then left to (5)
 Final Output: [1, 2, 3, 4, 5, 6, 7] ✓ Sorted!
 ```
 
-**Traversal Order Diagram:**
-
-```
-        4         ← 4th (root after left subtree)
-       / \
-      2   6       ← 2nd and 6th
-     / \  / \
-    1   3 5  7    ← 1st, 3rd, 5th, 7th
-    
-Visit Order: 1 → 2 → 3 → 4 → 5 → 6 → 7
-```
-
-### Types of Implementations
-
-| Implementation | Space Complexity | Best For |
-|----------------|------------------|----------|
-| **Recursive** | O(h) stack | Clean, readable code |
-| **Iterative (Stack)** | O(h) explicit stack | Avoiding recursion limit |
-| **Morris Traversal** | O(1) | Memory-constrained environments |
-
-Where h = height of tree (h = log n for balanced, h = n for skewed)
-
----
-
-## Algorithm Steps
-
-### Recursive Approach
-
-1. **Base Case**: If current node is null, return
-2. **Traverse Left**: Recursively call inorder on left child
-3. **Process Current**: Add current node's value to result
-4. **Traverse Right**: Recursively call inorder on right child
-
-### Iterative Approach (Using Stack)
-
-1. **Initialize**: Create empty stack, set current = root
-2. **Loop** while current is not null OR stack is not empty:
-   3. **Go Left**: While current is not null:
-      - Push current to stack
-      - Move current to left child
-   4. **Process**: Pop from stack, add to result
-   5. **Go Right**: Set current to right child of popped node
-
-### Morris Traversal (O(1) Space)
-
-1. **Initialize**: Set current = root
-2. **Loop** while current is not null:
-   3. **If no left child**: Process current, go right
-   4. **If left child exists**:
-      - Find inorder predecessor (rightmost in left subtree)
-      - If predecessor.right is null: Create thread, go left
-      - If predecessor.right is current: Remove thread, process current, go right
-
----
-
-## Implementation
-
-````carousel
-```python
-from typing import List, Optional
-
-class TreeNode:
-    """Definition for a binary tree node."""
-    def __init__(self, val: int = 0, left: Optional['TreeNode'] = None, right: Optional['TreeNode'] = None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-
-def inorder_recursive(root: Optional[TreeNode]) -> List[int]:
-    """
-    DFS Inorder Traversal - Recursive Approach
-    
-    Time Complexity: O(n) - visit each node exactly once
-    Space Complexity: O(h) - recursion stack, h = height of tree
-    
-    Args:
-        root: Root of binary tree
-        
-    Returns:
-        List of node values in inorder sequence
-    """
-    result = []
-    
-    def traverse(node: Optional[TreeNode]) -> None:
-        if not node:
-            return
-        traverse(node.left)           # Visit left subtree
-        result.append(node.val)       # Visit root
-        traverse(node.right)          # Visit right subtree
-    
-    traverse(root)
-    return result
-
-
-def inorder_iterative(root: Optional[TreeNode]) -> List[int]:
-    """
-    DFS Inorder Traversal - Iterative using stack
-    
-    Time Complexity: O(n) - each node pushed and popped once
-    Space Complexity: O(h) - explicit stack
-    
-    Args:
-        root: Root of binary tree
-        
-    Returns:
-        List of node values in inorder sequence
-    """
-    result = []
-    stack = []
-    current = root
-    
-    while current or stack:
-        # Go to leftmost node
-        while current:
-            stack.append(current)
-            current = current.left
-        
-        # Process current node
-        current = stack.pop()
-        result.append(current.val)
-        
-        # Move to right subtree
-        current = current.right
-    
-    return result
-
-
-def inorder_morris(root: Optional[TreeNode]) -> List[int]:
-    """
-    Morris Inorder Traversal - O(1) Space
-    
-    Uses threaded binary tree concept to traverse without stack.
-    Creates temporary links (threads) from predecessor to current.
-    
-    Time Complexity: O(n) - each edge traversed at most twice
-    Space Complexity: O(1) - only uses pointers
-    
-    Args:
-        root: Root of binary tree
-        
-    Returns:
-        List of node values in inorder sequence
-    """
-    result = []
-    current = root
-    
-    while current:
-        if not current.left:
-            # No left child, process and go right
-            result.append(current.val)
-            current = current.right
-        else:
-            # Find inorder predecessor (rightmost in left subtree)
-            predecessor = current.left
-            while predecessor.right and predecessor.right != current:
-                predecessor = predecessor.right
-            
-            if not predecessor.right:
-                # Create thread and move left
-                predecessor.right = current
-                current = current.left
-            else:
-                # Thread exists, remove it and process current
-                predecessor.right = None
-                result.append(current.val)
-                current = current.right
-    
-    return result
-
-
-def inorder_parent_pointer(root: Optional[TreeNode]) -> List[int]:
-    """
-    Inorder traversal with parent pointers - O(1) space
-    
-    Assumes each node has a 'parent' reference.
-    Used when tree structure allows upward traversal.
-    
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-    """
-    result = []
-    if not root:
-        return result
-    
-    # Find leftmost node
-    current = root
-    while current.left:
-        current = current.left
-    
-    # Traverse using parent pointers
-    while current:
-        result.append(current.val)
-        
-        # Find next node in inorder
-        if current.right:
-            # Go to leftmost of right subtree
-            current = current.right
-            while current.left:
-                current = current.left
-        else:
-            # Go up until we came from left child
-            while current.parent and current.parent.right == current:
-                current = current.parent
-            current = current.parent if current else None
-    
-    return result
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    # Build BST:        4
-    #                /   \
-    #               2     6
-    #              / \   / \
-    #             1   3 5   7
-    root = TreeNode(4)
-    root.left = TreeNode(2, TreeNode(1), TreeNode(3))
-    root.right = TreeNode(6, TreeNode(5), TreeNode(7))
-    
-    print("=" * 50)
-    print("DFS Inorder Traversal Demonstration")
-    print("=" * 50)
-    print("\nTree Structure:")
-    print("        4")
-    print("       / \\")
-    print("      2   6")
-    print("     / \\  / \\")
-    print("    1   3 5  7")
-    print()
-    
-    # Test all three approaches
-    recursive_result = inorder_recursive(root)
-    iterative_result = inorder_iterative(root)
-    morris_result = inorder_morris(root)
-    
-    print(f"Recursive:  {recursive_result}")
-    print(f"Iterative:  {iterative_result}")
-    print(f"Morris:     {morris_result}")
-    print()
-    print(f"All approaches match: {recursive_result == iterative_result == morris_result}")
-    print(f"Result is sorted: {recursive_result == sorted(recursive_result)}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <stack>
-using namespace std;
-
-/**
- * Definition for a binary tree node.
- */
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode *parent;  // Optional: for parent pointer approach
-    
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr), parent(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right), parent(nullptr) {}
-};
-
-/**
- * DFS Inorder Traversal - Recursive Approach
- * 
- * Time Complexity: O(n) - visit each node exactly once
- * Space Complexity: O(h) - recursion stack, h = height of tree
- */
-class InorderRecursive {
-public:
-    vector<int> inorderTraversal(TreeNode* root) {
-        vector<int> result;
-        traverse(root, result);
-        return result;
-    }
-    
-private:
-    void traverse(TreeNode* node, vector<int>& result) {
-        if (!node) return;
-        
-        traverse(node->left, result);    // Visit left
-        result.push_back(node->val);      // Visit root
-        traverse(node->right, result);    // Visit right
-    }
-};
-
-/**
- * DFS Inorder Traversal - Iterative using stack
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(h)
- */
-class InorderIterative {
-public:
-    vector<int> inorderTraversal(TreeNode* root) {
-        vector<int> result;
-        stack<TreeNode*> stk;
-        TreeNode* current = root;
-        
-        while (current || !stk.empty()) {
-            // Go to leftmost node
-            while (current) {
-                stk.push(current);
-                current = current->left;
-            }
-            
-            // Process current node
-            current = stk.top();
-            stk.pop();
-            result.push_back(current->val);
-            
-            // Move to right subtree
-            current = current->right;
-        }
-        
-        return result;
-    }
-};
-
-/**
- * Morris Inorder Traversal - O(1) Space
- * 
- * Uses threaded binary tree concept.
- * Time Complexity: O(n)
- * Space Complexity: O(1)
- */
-class InorderMorris {
-public:
-    vector<int> inorderTraversal(TreeNode* root) {
-        vector<int> result;
-        TreeNode* current = root;
-        
-        while (current) {
-            if (!current->left) {
-                // No left child, process and go right
-                result.push_back(current->val);
-                current = current->right;
-            } else {
-                // Find inorder predecessor
-                TreeNode* predecessor = current->left;
-                while (predecessor->right && predecessor->right != current) {
-                    predecessor = predecessor->right;
-                }
-                
-                if (!predecessor->right) {
-                    // Create thread
-                    predecessor->right = current;
-                    current = current->left;
-                } else {
-                    // Remove thread and process
-                    predecessor->right = nullptr;
-                    result.push_back(current->val);
-                    current = current->right;
-                }
-            }
-        }
-        
-        return result;
-    }
-};
-
-// Helper function to build example tree
-TreeNode* buildExampleTree() {
-    TreeNode* root = new TreeNode(4);
-    root->left = new TreeNode(2, new TreeNode(1), new TreeNode(3));
-    root->right = new TreeNode(6, new TreeNode(5), new TreeNode(7));
-    return root;
-}
-
-// Helper function to print vector
-void printVector(const vector<int>& vec, const string& label) {
-    cout << label << ": [";
-    for (size_t i = 0; i < vec.size(); i++) {
-        cout << vec[i];
-        if (i < vec.size() - 1) cout << ", ";
-    }
-    cout << "]" << endl;
-}
-
-int main() {
-    TreeNode* root = buildExampleTree();
-    
-    cout << "============================================" << endl;
-    cout << "DFS Inorder Traversal Demonstration" << endl;
-    cout << "============================================" << endl;
-    cout << "\nTree Structure:" << endl;
-    cout << "        4" << endl;
-    cout << "       / \\" << endl;
-    cout << "      2   6" << endl;
-    cout << "     / \\  / \\" << endl;
-    cout << "    1   3 5  7" << endl;
-    cout << endl;
-    
-    InorderRecursive rec;
-    InorderIterative iter;
-    InorderMorris morris;
-    
-    vector<int> recResult = rec.inorderTraversal(root);
-    vector<int> iterResult = iter.inorderTraversal(root);
-    vector<int> morrisResult = morris.inorderTraversal(root);
-    
-    printVector(recResult, "Recursive ");
-    printVector(iterResult, "Iterative ");
-    printVector(morrisResult, "Morris    ");
-    
-    cout << "\nAll approaches produce identical results!" << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
-
-/**
- * Definition for a binary tree node.
- */
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode parent;  // Optional: for parent pointer approach
-    
-    TreeNode(int x) {
-        this.val = x;
-        this.left = null;
-        this.right = null;
-        this.parent = null;
-    }
-    
-    TreeNode(int x, TreeNode left, TreeNode right) {
-        this.val = x;
-        this.left = left;
-        this.right = right;
-        this.parent = null;
-    }
-}
-
-/**
- * DFS Inorder Traversal - Multiple Implementation Approaches
- */
-public class InorderTraversal {
-    
-    /**
-     * Recursive Approach
-     * Time: O(n), Space: O(h)
-     */
-    public List<Integer> inorderRecursive(TreeNode root) {
-        List<Integer> result = new ArrayList<>();
-        traverse(root, result);
-        return result;
-    }
-    
-    private void traverse(TreeNode node, List<Integer> result) {
-        if (node == null) return;
-        
-        traverse(node.left, result);     // Visit left
-        result.add(node.val);             // Visit root
-        traverse(node.right, result);    // Visit right
-    }
-    
-    /**
-     * Iterative Approach using Stack
-     * Time: O(n), Space: O(h)
-     */
-    public List<Integer> inorderIterative(TreeNode root) {
-        List<Integer> result = new ArrayList<>();
-        Stack<TreeNode> stack = new Stack<>();
-        TreeNode current = root;
-        
-        while (current != null || !stack.isEmpty()) {
-            // Go to leftmost node
-            while (current != null) {
-                stack.push(current);
-                current = current.left;
-            }
-            
-            // Process current node
-            current = stack.pop();
-            result.add(current.val);
-            
-            // Move to right subtree
-            current = current.right;
-        }
-        
-        return result;
-    }
-    
-    /**
-     * Morris Traversal - O(1) Space
-     * Time: O(n), Space: O(1)
-     */
-    public List<Integer> inorderMorris(TreeNode root) {
-        List<Integer> result = new ArrayList<>();
-        TreeNode current = root;
-        
-        while (current != null) {
-            if (current.left == null) {
-                // No left child, process and go right
-                result.add(current.val);
-                current = current.right;
-            } else {
-                // Find inorder predecessor
-                TreeNode predecessor = current.left;
-                while (predecessor.right != null && predecessor.right != current) {
-                    predecessor = predecessor.right;
-                }
-                
-                if (predecessor.right == null) {
-                    // Create thread
-                    predecessor.right = current;
-                    current = current.left;
-                } else {
-                    // Remove thread and process
-                    predecessor.right = null;
-                    result.add(current.val);
-                    current = current.right;
-                }
-            }
-        }
-        
-        return result;
-    }
-    
-    /**
-     * Iterative with explicit state tracking
-     * Alternative approach tracking visited status
-     */
-    public List<Integer> inorderIterativeWithState(TreeNode root) {
-        List<Integer> result = new ArrayList<>();
-        if (root == null) return result;
-        
-        // Stack stores pairs of (node, isVisited)
-        Stack<Pair> stack = new Stack<>();
-        stack.push(new Pair(root, false));
-        
-        while (!stack.isEmpty()) {
-            Pair pair = stack.pop();
-            TreeNode node = pair.node;
-            boolean isVisited = pair.isVisited;
-            
-            if (isVisited || node == null) {
-                if (node != null) result.add(node.val);
-            } else {
-                // Push in reverse order of processing: right, root, left
-                stack.push(new Pair(node.right, false));
-                stack.push(new Pair(node, true));
-                stack.push(new Pair(node.left, false));
-            }
-        }
-        
-        return result;
-    }
-    
-    // Helper class for state tracking
-    private static class Pair {
-        TreeNode node;
-        boolean isVisited;
-        
-        Pair(TreeNode node, boolean isVisited) {
-            this.node = node;
-            this.isVisited = isVisited;
-        }
-    }
-    
-    // Demo main method
-    public static void main(String[] args) {
-        // Build tree:    4
-        //              /   \
-        //             2     6
-        //            / \   / \
-        //           1   3 5   7
-        TreeNode root = new TreeNode(4);
-        root.left = new TreeNode(2, new TreeNode(1), new TreeNode(3));
-        root.right = new TreeNode(6, new TreeNode(5), new TreeNode(7));
-        
-        System.out.println("============================================");
-        System.out.println("DFS Inorder Traversal Demonstration");
-        System.out.println("============================================");
-        
-        InorderTraversal solver = new InorderTraversal();
-        
-        System.out.println("\nRecursive:  " + solver.inorderRecursive(root));
-        System.out.println("Iterative:  " + solver.inorderIterative(root));
-        System.out.println("Morris:     " + solver.inorderMorris(root));
-        System.out.println("With State: " + solver.inorderIterativeWithState(root));
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Definition for a binary tree node.
- */
-class TreeNode {
-    /**
-     * @param {number} val - Node value
-     * @param {TreeNode} left - Left child
-     * @param {TreeNode} right - Right child
-     */
-    constructor(val, left = null, right = null) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
-    }
-}
-
-/**
- * DFS Inorder Traversal - Recursive Approach
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(h) - call stack
- * 
- * @param {TreeNode} root - Root of binary tree
- * @returns {number[]} Array of values in inorder
- */
-function inorderRecursive(root) {
-    const result = [];
-    
-    function traverse(node) {
-        if (!node) return;
-        
-        traverse(node.left);           // Visit left
-        result.push(node.val);          // Visit root
-        traverse(node.right);          // Visit right
-    }
-    
-    traverse(root);
-    return result;
-}
-
-/**
- * DFS Inorder Traversal - Iterative using stack
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(h)
- * 
- * @param {TreeNode} root - Root of binary tree
- * @returns {number[]} Array of values in inorder
- */
-function inorderIterative(root) {
-    const result = [];
-    const stack = [];
-    let current = root;
-    
-    while (current || stack.length > 0) {
-        // Go to leftmost node
-        while (current) {
-            stack.push(current);
-            current = current.left;
-        }
-        
-        // Process current node
-        current = stack.pop();
-        result.push(current.val);
-        
-        // Move to right subtree
-        current = current.right;
-    }
-    
-    return result;
-}
-
-/**
- * Morris Inorder Traversal - O(1) Space
- * 
- * Uses threaded binary tree concept.
- * Time Complexity: O(n)
- * Space Complexity: O(1)
- * 
- * @param {TreeNode} root - Root of binary tree
- * @returns {number[]} Array of values in inorder
- */
-function inorderMorris(root) {
-    const result = [];
-    let current = root;
-    
-    while (current) {
-        if (!current.left) {
-            // No left child, process and go right
-            result.push(current.val);
-            current = current.right;
-        } else {
-            // Find inorder predecessor
-            let predecessor = current.left;
-            while (predecessor.right && predecessor.right !== current) {
-                predecessor = predecessor.right;
-            }
-            
-            if (!predecessor.right) {
-                // Create thread
-                predecessor.right = current;
-                current = current.left;
-            } else {
-                // Remove thread and process
-                predecessor.right = null;
-                result.push(current.val);
-                current = current.right;
-            }
-        }
-    }
-    
-    return result;
-}
-
-/**
- * Inorder Traversal using Generator
- * Memory-efficient for large trees - yields values one at a time
- * 
- * @param {TreeNode} root - Root of binary tree
- * @yields {number} Next value in inorder sequence
- */
-function* inorderGenerator(root) {
-    function* traverse(node) {
-        if (!node) return;
-        
-        yield* traverse(node.left);
-        yield node.val;
-        yield* traverse(node.right);
-    }
-    
-    yield* traverse(root);
-}
-
-/**
- * Alternative: Inorder with explicit state tracking
- * Uses color/state marking approach
- * 
- * @param {TreeNode} root - Root of binary tree
- * @returns {number[]} Array of values in inorder
- */
-function inorderWithState(root) {
-    const result = [];
-    if (!root) return result;
-    
-    // Stack contains [node, visited] pairs
-    const stack = [[root, false]];
-    
-    while (stack.length > 0) {
-        const [node, visited] = stack.pop();
-        
-        if (visited) {
-            result.push(node.val);
-        } else {
-            // Push in reverse order: right, node (marked visited), left
-            if (node.right) stack.push([node.right, false]);
-            stack.push([node, true]);
-            if (node.left) stack.push([node.left, false]);
-        }
-    }
-    
-    return result;
-}
-
-
-// ============================================
-// Demonstration
-// ============================================
-
-// Build tree:        4
-//                 /   \
-//                2     6
-//               / \   / \
-//              1   3 5   7
-const root = new TreeNode(4);
-root.left = new TreeNode(2, new TreeNode(1), new TreeNode(3));
-root.right = new TreeNode(6, new TreeNode(5), new TreeNode(7));
-
-console.log("=".repeat(50));
-console.log("DFS Inorder Traversal Demonstration");
-console.log("=".repeat(50));
-console.log("\nTree Structure:");
-console.log("        4");
-console.log("       / \\");
-console.log("      2   6");
-console.log("     / \\  / \\");
-console.log("    1   3 5  7");
-console.log();
-
-const recursiveResult = inorderRecursive(root);
-const iterativeResult = inorderIterative(root);
-const morrisResult = inorderMorris(root);
-const stateResult = inorderWithState(root);
-
-console.log(`Recursive: [${recursiveResult.join(', ')}]`);
-console.log(`Iterative: [${iterativeResult.join(', ')}]`);
-console.log(`Morris:    [${morrisResult.join(', ')}]`);
-console.log(`WithState: [${stateResult.join(', ')}]`);
-console.log();
-
-// Demonstrate generator approach
-console.log("Using Generator:");
-const generator = inorderGenerator(root);
-const genResult = [...generator];
-console.log(`Generator: [${genResult.join(', ')}]`);
-
-// Verify all results match
-const allMatch = [recursiveResult, iterativeResult, morrisResult, stateResult, genResult]
-    .every(arr => JSON.stringify(arr) === JSON.stringify(recursiveResult));
-console.log(`\nAll approaches match: ${allMatch}`);
-console.log(`Result is sorted: ${JSON.stringify(recursiveResult) === JSON.stringify([...recursiveResult].sort((a,b) => a-b))}`);
-
-// Export for module usage
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        TreeNode,
-        inorderRecursive,
-        inorderIterative,
-        inorderMorris,
-        inorderGenerator,
-        inorderWithState
-    };
-}
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Inorder Traversal** | **O(n)** | Visit each of n nodes exactly once |
-| **Find Predecessor (Morris)** | O(1) amortized | Each edge traversed at most twice |
-
-### Detailed Breakdown
-
-**For All Approaches (Recursive, Iterative, Morris):**
-- **Node visits**: Each node is visited exactly once → O(n)
-- **Edge traversals**: Each edge is traversed at most twice (once down, once up) → O(n)
-- **Total**: O(n) time complexity
-
-**Morris Traversal Specifically:**
-- Each edge is traversed at most twice
-- Creating temporary links: O(1) per operation
-- Removing temporary links: O(1) per operation
-- Amortized time remains O(n)
-
-### Best/Average/Worst Cases
-
-| Case | Time | Tree Structure |
-|------|------|----------------|
-| Best | O(n) | Any tree (always linear in nodes) |
-| Average | O(n) | Balanced or random tree |
-| Worst | O(n) | Skewed tree (still visit all nodes) |
-
----
-
-## Space Complexity Analysis
-
-| Implementation | Space Complexity | Description |
-|----------------|------------------|-------------|
-| **Recursive** | **O(h)** | Call stack, h = height of tree |
-| **Iterative (Stack)** | **O(h)** | Explicit stack |
-| **Morris** | **O(1)** | Only uses pointers, modifies tree temporarily |
-| **With Parent Pointers** | **O(1)** | Can traverse up without stack |
-
-Where h = height of tree:
-- Balanced BST: h = O(log n)
-- Skewed tree: h = O(n)
-
-### Detailed Breakdown
-
-**Recursive Approach:**
-- Maximum recursion depth equals tree height
-- Balanced tree: O(log n) stack space
-- Skewed tree: O(n) stack space (risk of stack overflow)
-
-**Iterative Approach:**
-- Stack holds at most h nodes at any time
-- Same space complexity as recursive but explicit control
-- No risk of stack overflow from recursion
-
-**Morris Traversal:**
-- O(1) extra space (just a few pointers)
-- Temporarily modifies tree structure (creates threads)
-- Restores original tree structure after traversal
-
-### Space Comparison Summary
-
-```
-Tree Type        | Recursive | Iterative | Morris
------------------|-----------|-----------|-------
-Balanced (h=log n) | O(log n)  | O(log n)  | O(1)
-Skewed (h=n)       | O(n)      | O(n)      | O(1)
-```
-
----
-
-## Common Variations
-
-### 1. Morris Traversal (O(1) Space)
-
-The Morris Traversal is a clever algorithm that achieves O(1) space complexity by temporarily modifying the tree to create "threads" from predecessors back to their successors. The tree structure is restored before completion.
-
-**Key Steps:**
-1. For each node with a left child, find its inorder predecessor
-2. If predecessor.right is null, create a thread to current and go left
-3. If predecessor.right is current, remove the thread and process current
-
-**Use Cases:**
-- Memory-constrained environments
-- Very large trees where O(h) stack space is unacceptable
-- Interview problems testing advanced tree knowledge
-
-### 2. Threaded Binary Tree
-
-A threaded binary tree is a permanent modification where null pointers are replaced with threads to inorder predecessors and successors.
-
-**Types:**
-- **Single-threaded**: Right null pointers point to inorder successor
-- **Double-threaded**: Both left and right null pointers have threads
-
-**Benefits:**
-- O(1) space for traversal (no stack needed)
-- Faster inorder traversal (no recursion/stack overhead)
-- Easy to find predecessor and successor
-
-**Drawbacks:**
-- Modifies tree structure permanently
-- Insertion/deletion becomes more complex
-
-### 3. Inorder with Parent Pointers
-
-If each node has a reference to its parent, we can traverse without a stack.
-
-**Algorithm:**
-1. Find the leftmost node
-2. Process the node
-3. If there's a right child, go to its leftmost
-4. Otherwise, go up until we came from a left child
-5. Repeat until reaching root from right child
-
-**Time:** O(n), **Space:** O(1)
-
-### 4. Iterative with State Tracking
-
-Instead of the standard iterative approach, track whether a node has been visited.
-
-```python
-def inorder_state_tracking(root):
-    result = []
-    stack = [(root, False)]  # (node, is_visited)
-    
-    while stack:
-        node, visited = stack.pop()
-        if not node:
-            continue
-        if visited:
-            result.append(node.val)
-        else:
-            # Push in reverse order: right, root, left
-            stack.append((node.right, False))
-            stack.append((node, True))
-            stack.append((node.left, False))
-    
-    return result
-```
-
-This approach is more intuitive and easily adaptable to other traversals.
+### Why It Works
+
+**For Binary Search Trees:**
+- BST property: Left child < Parent < Right child
+- Inorder traversal visits: Left (smaller) → Root → Right (larger)
+- Result: Ascending sorted order
+
+**For General Binary Trees:**
+- Systematic exploration ensures no node is missed
+- Stack (implicit in recursion or explicit in iteration) tracks the path
+- Each node is visited exactly once
+
+### Limitations
+
+| Limitation | Description | Mitigation |
+|------------|-------------|------------|
+| **Stack Overflow** | Recursive approach may overflow for deep trees | Use iterative approach or Morris traversal |
+| **Only for Binary Trees** | Standard inorder defined for binary trees | Convert n-ary to binary for similar effect |
+| **Cannot Skip Nodes** | Must visit all nodes in order | Use other traversals if selective access needed |
 
 ---
 
@@ -1264,7 +892,7 @@ Never modify tree structure during Morris traversal (threads will break).
 3. **Use different traversal**: Preorder or postorder make more sense for n-ary
 
 Example custom inorder for n-ary:
-```
+```python
 def inorder_nary(node):
     if not node.children:
         process(node)
@@ -1314,14 +942,3 @@ DFS Inorder Traversal is a fundamental tree algorithm with powerful applications
 - Not restoring tree structure after Morris traversal
 
 Mastering inorder traversal is essential for tree-based problems in technical interviews and competitive programming. The ability to implement all three variants (recursive, iterative, Morris) demonstrates deep understanding of tree algorithms.
-
----
-
-## Related Algorithms
-
-- [DFS Preorder Traversal](./dfs-preorder.md) - Root-Left-Right order
-- [DFS Postorder Traversal](./dfs-postorder.md) - Left-Right-Root order
-- [BFS Level Order Traversal](./bfs-level-order.md) - Level-by-level traversal
-- [BST Insert](./bst-insert.md) - Building BSTs for inorder traversal
-- [Binary Search Tree Validation](./validate-bst.md) - Using inorder for validation
-- [Serialize and Deserialize Binary Tree](./serialize-tree.md) - Tree persistence

@@ -5,9 +5,472 @@ Arrays & Strings
 
 ## Description
 
-The Merge Intervals problem is a fundamental algorithmic pattern that requires combining all overlapping intervals into a single set of non-overlapping intervals. This pattern appears frequently in interval scheduling, calendar management, resource allocation, and various computational geometry problems.
+The Merge Intervals algorithm is a fundamental pattern for combining overlapping intervals into a single set of non-overlapping intervals. This technique appears frequently in interval scheduling, calendar management, resource allocation, and computational geometry problems.
 
-The key insight is that by sorting intervals by their start times, we can process them in a single pass, detecting and merging overlapping intervals efficiently.
+The key insight behind this algorithm is that by sorting intervals by their start times, we can process them in a single linear pass, detecting and merging overlapping intervals efficiently. This transforms a seemingly complex problem into an elegant O(n log n) solution.
+
+---
+
+## Concepts
+
+The Merge Intervals technique is built on several fundamental concepts that make it powerful for solving interval-based problems.
+
+### 1. Interval Representation
+
+An interval is typically represented as `[start, end]` where `start <= end`. The state of an interval is defined by its boundaries.
+
+| Property | Description | Example |
+|----------|-------------|---------|
+| **Start** | Beginning of interval | 1 in [1, 5] |
+| **End** | Termination of interval | 5 in [1, 5] |
+| **Duration** | Length of interval | `end - start` |
+| **Overlap** | Shared region with another interval | [1,5] and [3,7] overlap |
+
+### 2. Overlap Detection
+
+Two intervals `[s1, e1]` and `[s2, e2]` overlap if and only if:
+
+```
+s2 <= e1 (assuming s1 <= s2 after sorting)
+```
+
+| Scenario | Condition | Action |
+|----------|-----------|--------|
+| **Complete Overlap** | s1 <= s2 and e1 >= e2 | Interval 2 is contained in 1 |
+| **Partial Overlap** | s2 <= e1 and e2 > e1 | Merge into [s1, max(e1, e2)] |
+| **Touching** | s2 == e1 | Merge into [s1, e2] |
+| **No Overlap** | s2 > e1 | Separate intervals |
+
+### 3. Sorting Strategy
+
+Sorting is the critical preprocessing step:
+
+| Sort By | Use Case | Complexity |
+|---------|----------|------------|
+| **Start Time** | Merging overlapping intervals | O(n log n) |
+| **End Time** | Maximum non-overlapping intervals | O(n log n) |
+
+### 4. Incremental Merging
+
+Instead of comparing each interval with all others, maintain a "current merged interval" and compare only with that:
+
+```
+Current: [1, 3]     Next: [2, 6]     → Merge to [1, 6]
+Current: [1, 6]     Next: [8, 10]    → Keep both
+```
+
+---
+
+## Frameworks
+
+Structured approaches for solving merge intervals problems.
+
+### Framework 1: Standard Merge Intervals
+
+```
+┌─────────────────────────────────────────────────────┐
+│  STANDARD MERGE INTERVALS FRAMEWORK                 │
+├─────────────────────────────────────────────────────┤
+│  1. Handle edge cases (empty/single interval)      │
+│  2. Sort intervals by start time                     │
+│  3. Initialize result with first interval            │
+│  4. For each subsequent interval:                    │
+│     a. Get last interval in result                   │
+│     b. If current.start <= last.end:               │
+│        - Merge: last.end = max(last.end, current.end)│
+│     c. Else:                                         │
+│        - Add current interval to result              │
+│  5. Return merged intervals                          │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Classic merge intervals problem with overlapping detection.
+
+### Framework 2: Insert Interval
+
+```
+┌─────────────────────────────────────────────────────┐
+│  INSERT INTERVAL FRAMEWORK                          │
+├─────────────────────────────────────────────────────┤
+│  1. Find position where new interval fits            │
+│  2. Add all intervals ending before new starts       │
+│  3. Merge overlapping intervals:                     │
+│     - Update new interval start = min(starts)        │
+│     - Update new interval end = max(ends)            │
+│  4. Add merged interval to result                    │
+│  5. Add all remaining intervals                      │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Inserting a new interval into existing non-overlapping set.
+
+### Framework 3: Interval Intersection
+
+```
+┌─────────────────────────────────────────────────────┐
+│  INTERVAL INTERSECTION FRAMEWORK                    │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize two pointers (i=0, j=0)              │
+│  2. While i < len(A) and j < len(B):               │
+│     a. Compute intersection:                         │
+│        start = max(A[i].start, B[j].start)           │
+│        end = min(A[i].end, B[j].end)                 │
+│     b. If start <= end: add [start, end] to result   │
+│     c. Move pointer with smaller end time            │
+│  3. Return intersections                             │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Finding common time slots between two schedules.
+
+---
+
+## Forms
+
+Different manifestations of the merge intervals pattern.
+
+### Form 1: Complete Merge
+
+Merge all overlapping intervals into the minimal non-overlapping set.
+
+| Input | Output | Complexity |
+|-------|--------|------------|
+| [[1,3], [2,6], [8,10], [15,18]] | [[1,6], [8,10], [15,18]] | O(n log n) |
+| [[1,4], [4,5]] | [[1,5]] | O(n log n) |
+| [[1,4], [2,3]] | [[1,4]] | O(n log n) |
+
+### Form 2: Meeting Rooms II
+
+Find minimum rooms needed for all meetings (interval partitioning).
+
+| Approach | Data Structure | Time Complexity |
+|----------|----------------|-----------------|
+| **Two Pointer** | Sorted arrays | O(n log n) |
+| **Min Heap** | Priority queue | O(n log n) |
+| **Sweep Line** | Timeline events | O(n log n) |
+
+### Form 3: Non-overlapping Intervals
+
+Find minimum intervals to remove (greedy by end time).
+
+| Strategy | Sort By | Selection Criteria |
+|----------|---------|-------------------|
+| **Greedy** | End time | Keep intervals ending earliest |
+| **DP** | Start time | Dynamic programming for weighted |
+
+### Form 4: Employee Free Time
+
+Find common free slots across all employee schedules.
+
+```
+Step 1: Flatten all intervals: [[1,2], [1,3], [4,5], [6,7]]
+Step 2: Merge intervals: [[1,3], [4,5], [6,7]]
+Step 3: Find gaps: [[3,4], [5,6]] → Free time!
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: In-Place Sorting
+
+```python
+def merge_intervals_inplace(intervals):
+    """Merge intervals using in-place sort to save space."""
+    if not intervals:
+        return []
+    
+    # Sort in-place instead of creating new list
+    intervals.sort(key=lambda x: x[0])
+    
+    merged = [intervals[0]]
+    for current in intervals[1:]:
+        last = merged[-1]
+        if current[0] <= last[1]:
+            last[1] = max(last[1], current[1])
+        else:
+            merged.append(current)
+    
+    return merged
+```
+
+### Tactic 2: Binary Search for Insertion
+
+```python
+import bisect
+
+def insert_interval_optimized(intervals, new_interval):
+    """Insert interval using binary search for position."""
+    if not intervals:
+        return [new_interval]
+    
+    # Binary search for insertion point
+    start_pos = bisect.bisect_left(intervals, [new_interval[0], float('-inf')])
+    
+    # Insert and merge locally around insertion point
+    # Only need to check neighbors, not entire list
+    # ... merge logic ...
+    return result
+```
+
+### Tactic 3: Sweep Line for Meeting Rooms
+
+```python
+def min_meeting_rooms_sweep(intervals):
+    """Count meeting rooms using sweep line technique."""
+    events = []
+    for start, end in intervals:
+        events.append((start, 1))   # +1 room needed
+        events.append((end, -1))      # -1 room freed
+    
+    # Sort by time, +1 before -1 if same time (start before end)
+    events.sort(key=lambda x: (x[0], x[1]))
+    
+    rooms = 0
+    max_rooms = 0
+    for _, delta in events:
+        rooms += delta
+        max_rooms = max(max_rooms, rooms)
+    
+    return max_rooms
+```
+
+### Tactic 4: Greedy for Minimum Removals
+
+```python
+def erase_overlap_intervals(intervals):
+    """Minimum intervals to remove - greedy by end time."""
+    if not intervals:
+        return 0
+    
+    # Sort by end time (not start time!)
+    intervals.sort(key=lambda x: x[1])
+    
+    count = 1  # Keep first interval (ends earliest)
+    last_end = intervals[0][1]
+    
+    for i in range(1, len(intervals)):
+        if intervals[i][0] >= last_end:
+            # Non-overlapping - keep it
+            count += 1
+            last_end = intervals[i][1]
+        # else: overlapping - skip (will be removed)
+    
+    return len(intervals) - count
+```
+
+### Tactic 5: Two-Pointer for Intersection
+
+```python
+def interval_intersection_two_pointer(A, B):
+    """Find intersection using two pointers."""
+    result = []
+    i = j = 0
+    
+    while i < len(A) and j < len(B):
+        # Find intersection
+        start = max(A[i][0], B[j][0])
+        end = min(A[i][1], B[j][1])
+        
+        if start <= end:
+            result.append([start, end])
+        
+        # Move pointer of interval that ends first
+        if A[i][1] < B[j][1]:
+            i += 1
+        else:
+            j += 1
+    
+    return result
+```
+
+---
+
+## Python Templates
+
+### Template 1: Basic Merge Intervals
+
+```python
+def merge_intervals(intervals: list[list[int]]) -> list[list[int]]:
+    """
+    Merge overlapping intervals.
+    
+    Args:
+        intervals: List of [start, end] intervals
+    
+    Returns:
+        List of merged non-overlapping intervals
+    
+    Time: O(n log n) - sorting dominates
+    Space: O(n) - for storing result
+    """
+    if not intervals:
+        return []
+    
+    # Sort by start time
+    intervals.sort(key=lambda x: x[0])
+    
+    merged = [intervals[0]]
+    
+    for current_start, current_end in intervals[1:]:
+        last_end = merged[-1][1]
+        
+        # Check for overlap
+        if current_start <= last_end:
+            # Merge: extend end to maximum
+            merged[-1][1] = max(last_end, current_end)
+        else:
+            # No overlap - add new interval
+            merged.append([current_start, current_end])
+    
+    return merged
+```
+
+### Template 2: Insert Interval
+
+```python
+def insert_interval(intervals: list[list[int]], new_interval: list[int]) -> list[list[int]]:
+    """
+    Insert a new interval into existing non-overlapping intervals.
+    
+    Args:
+        intervals: List of non-overlapping intervals sorted by start
+        new_interval: [start, end] interval to insert
+    
+    Returns:
+        New list with inserted and merged interval
+    """
+    result = []
+    i = 0
+    n = len(intervals)
+    new_start, new_end = new_interval
+    
+    # Add all intervals ending before new interval starts
+    while i < n and intervals[i][1] < new_start:
+        result.append(intervals[i])
+        i += 1
+    
+    # Merge all overlapping intervals with new_interval
+    while i < n and intervals[i][0] <= new_end:
+        new_start = min(new_start, intervals[i][0])
+        new_end = max(new_end, intervals[i][1])
+        i += 1
+    
+    result.append([new_start, new_end])
+    
+    # Add remaining intervals
+    while i < n:
+        result.append(intervals[i])
+        i += 1
+    
+    return result
+```
+
+### Template 3: Meeting Rooms II (Min Heap Approach)
+
+```python
+import heapq
+
+def min_meeting_rooms(intervals: list[list[int]]) -> int:
+    """
+    Find minimum number of meeting rooms required.
+    
+    Args:
+        intervals: List of [start, end] meeting times
+    
+    Returns:
+        Minimum rooms needed
+    """
+    if not intervals:
+        return 0
+    
+    # Sort by start time
+    intervals.sort(key=lambda x: x[0])
+    
+    # Min heap to track end times of ongoing meetings
+    min_heap = []
+    
+    for start, end in intervals:
+        # If a meeting ended before this starts, reuse room
+        if min_heap and min_heap[0] <= start:
+            heapq.heappop(min_heap)
+        
+        # Allocate room (new or reused)
+        heapq.heappush(min_heap, end)
+    
+    return len(min_heap)
+```
+
+### Template 4: Non-overlapping Intervals (Greedy)
+
+```python
+def erase_overlap_intervals(intervals: list[list[int]]) -> int:
+    """
+    Find minimum intervals to remove to make rest non-overlapping.
+    LeetCode 435 variation.
+    
+    Args:
+        intervals: List of [start, end] intervals
+    
+    Returns:
+        Minimum number of intervals to remove
+    """
+    if not intervals:
+        return 0
+    
+    # Sort by end time - crucial for greedy optimality
+    intervals.sort(key=lambda x: x[1])
+    
+    # Always keep the interval that ends earliest
+    keep_count = 1
+    last_end = intervals[0][1]
+    
+    for i in range(1, len(intervals)):
+        if intervals[i][0] >= last_end:
+            # No overlap - can keep this interval
+            keep_count += 1
+            last_end = intervals[i][1]
+        # else: overlap - skip (remove) this interval
+    
+    return len(intervals) - keep_count
+```
+
+### Template 5: Interval List Intersections
+
+```python
+def interval_intersection(A: list[list[int]], B: list[list[int]]) -> list[list[int]]:
+    """
+    Find intersections between two lists of intervals.
+    LeetCode 986 solution.
+    
+    Args:
+        A: First list of intervals
+        B: Second list of intervals
+    
+    Returns:
+        List of intersecting intervals
+    """
+    result = []
+    i = j = 0
+    
+    while i < len(A) and j < len(B):
+        # Find overlap
+        start = max(A[i][0], B[j][0])
+        end = min(A[i][1], B[j][1])
+        
+        if start <= end:
+            result.append([start, end])
+        
+        # Move pointer of interval that ends first
+        if A[i][1] < B[j][1]:
+            i += 1
+        else:
+            j += 1
+    
+    return result
+```
 
 ---
 
@@ -53,7 +516,7 @@ Use the Merge Intervals algorithm when you need to solve problems involving:
 
 ### Core Concept
 
-The fundamental principle behind the merge intervals algorithm is that **sorting intervals ensures any by their start time overlapping intervals will be adjacent**. This allows us to process all intervals in a single linear scan after sorting.
+The fundamental principle behind the merge intervals algorithm is that **sorting intervals by their start time ensures any overlapping intervals will be adjacent**. This allows us to process all intervals in a single linear scan after sorting.
 
 ### How It Works
 
@@ -94,613 +557,18 @@ Initial: merged = [[1,3]]
 Final Result: [[1,6], [8,10], [15,18]]
 ```
 
-### Edge Cases
+### Why It Works
 
-1. **Empty input**: Return empty list
-2. **Single interval**: Return the same interval
-3. **Non-overlapping intervals**: Return sorted intervals as-is
-4. **Completely overlapping intervals**: Merge all into one interval
-5. **Touching intervals** `[1,4], [4,5]`: Merge (4 <= 4 is True)
-6. **Reverse sorted input**: Sorting handles this correctly
+- **After sorting**: All potentially overlapping intervals are adjacent
+- **Single comparison**: We only need to track the "current merged interval"
+- **Linear scan**: Each interval is processed exactly once → O(n) after sorting
+- **The overlap check is O(1)**
 
-### Why Sorting Works
+### Limitations
 
-- After sorting by start time, all potentially overlapping intervals are adjacent
-- We only need to track the "current merged interval" 
-- Each interval is processed exactly once → O(n) after sorting
-- The overlap check is O(1)
-
----
-
-## Algorithm Steps
-
-### Step-by-Step Approach
-
-1. **Handle Edge Cases**
-   - If intervals list is empty, return empty list
-   - If intervals has only one interval, return it
-
-2. **Sort Intervals**
-   - Sort by start time (first element of each interval)
-   - This ensures adjacent intervals are candidates for merging
-   - Time: O(n log n)
-
-3. **Initialize Result**
-   - Start with the first interval in the sorted list
-   - This becomes our first "merged" interval
-
-4. **Iterate and Merge**
-   - For each subsequent interval:
-     - Check if it overlaps with the last interval in result
-     - **If overlap**: Extend the end of last interval to max(end1, end2)
-     - **If no overlap**: Add the current interval to result
-
-5. **Return Result**
-   - The result list now contains all merged non-overlapping intervals
-
-### Pseudocode
-
-```
-function merge(intervals):
-    if intervals is empty:
-        return []
-    
-    sort intervals by start time
-    
-    merged = [intervals[0]]
-    
-    for each (start, end) in intervals[1:]:
-        lastEnd = merged[last][1]
-        
-        if start <= lastEnd:  // overlap
-            merged[last][1] = max(lastEnd, end)
-        else:                  // no overlap
-            merged.append([start, end])
-    
-    return merged
-```
-
----
-
-## Implementation
-
-### Template Code (Merge Intervals)
-
-````carousel
-```python
-def merge_intervals(intervals):
-    """
-    Merge overlapping intervals.
-    
-    Args:
-        intervals: List of [start, end] intervals
-    
-    Returns:
-        List of merged non-overlapping intervals
-    
-    Time: O(n log n) - sorting dominates
-    Space: O(n) - for storing result
-    """
-    if not intervals:
-        return []
-    
-    # Sort intervals by start time
-    sorted_intervals = sorted(intervals, key=lambda x: x[0])
-    
-    merged = [sorted_intervals[0]]
-    
-    for current_start, current_end in sorted_intervals[1:]:
-        last_end = merged[-1][1]
-        
-        # If current interval overlaps with previous, merge them
-        if current_start <= last_end:
-            merged[-1][1] = max(last_end, current_end)
-        else:
-            # No overlap, add new interval
-            merged.append([current_start, current_end])
-    
-    return merged
-
-
-# Example usage
-if __name__ == "__main__":
-    # Example 1: Standard case
-    intervals1 = [[1, 3], [2, 6], [8, 10], [15, 18]]
-    print(f"Input:  {intervals1}")
-    print(f"Output: {merge_intervals(intervals1)}")
-    # Output: [[1, 6], [8, 10], [15, 18]]
-    
-    # Example 2: Touching intervals
-    intervals2 = [[1, 4], [4, 5]]
-    print(f"\nInput:  {intervals2}")
-    print(f"Output: {merge_intervals(intervals2)}")
-    # Output: [[1, 5]]
-    
-    # Example 3: All overlapping
-    intervals3 = [[1, 4], [2, 3]]
-    print(f"\nInput:  {intervals3}")
-    print(f"Output: {merge_intervals(intervals3)}")
-    # Output: [[1, 4]]
-    
-    # Example 4: No overlapping
-    intervals4 = [[1, 4], [5, 6]]
-    print(f"\nInput:  {intervals4}")
-    print(f"Output: {merge_intervals(intervals4)}")
-    # Output: [[1, 4], [5, 6]]
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-/**
- * Merge overlapping intervals.
- * 
- * Time Complexity: O(n log n) - sorting dominates
- * Space Complexity: O(n) - for storing result
- * 
- * @param intervals Vector of [start, end] intervals
- * @return Vector of merged non-overlapping intervals
- */
-vector<vector<int>> mergeIntervals(vector<vector<int>>& intervals) {
-    if (intervals.empty()) {
-        return {};
-    }
-    
-    // Sort intervals by start time
-    sort(intervals.begin(), intervals.end(), 
-         [](const vector<int>& a, const vector<int>& b) {
-             return a[0] < b[0];
-         });
-    
-    vector<vector<int>> merged;
-    merged.push_back(intervals[0]);
-    
-    for (size_t i = 1; i < intervals.size(); i++) {
-        int currentStart = intervals[i][0];
-        int currentEnd = intervals[i][1];
-        int lastEnd = merged.back()[1];
-        
-        // If current interval overlaps with previous, merge them
-        if (currentStart <= lastEnd) {
-            merged.back()[1] = max(lastEnd, currentEnd);
-        } else {
-            // No overlap, add new interval
-            merged.push_back(intervals[i]);
-        }
-    }
-    
-    return merged;
-}
-
-// Helper function to print intervals
-void printIntervals(const vector<vector<int>>& intervals) {
-    cout << "[";
-    for (size_t i = 0; i < intervals.size(); i++) {
-        cout << "[" << intervals[i][0] << ", " << intervals[i][1] << "]";
-        if (i < intervals.size() - 1) cout << ", ";
-    }
-    cout << "]" << endl;
-}
-
-int main() {
-    // Example 1: Standard case
-    vector<vector<int>> intervals1 = {{1, 3}, {2, 6}, {8, 10}, {15, 18}};
-    cout << "Input:  ";
-    printIntervals(intervals1);
-    cout << "Output: ";
-    printIntervals(mergeIntervals(intervals1));
-    // Output: [[1, 6], [8, 10], [15, 18]]
-    
-    // Example 2: Touching intervals
-    vector<vector<int>> intervals2 = {{1, 4}, {4, 5}};
-    cout << "\nInput:  ";
-    printIntervals(intervals2);
-    cout << "Output: ";
-    printIntervals(mergeIntervals(intervals2));
-    // Output: [[1, 5]]
-    
-    // Example 3: All overlapping
-    vector<vector<int>> intervals3 = {{1, 4}, {2, 3}};
-    cout << "\nInput:  ";
-    printIntervals(intervals3);
-    cout << "Output: ";
-    printIntervals(mergeIntervals(intervals3));
-    // Output: [[1, 4]]
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-/**
- * Merge overlapping intervals.
- * 
- * Time Complexity: O(n log n) - sorting dominates
- * Space Complexity: O(n) - for storing result
- */
-public class MergeIntervals {
-    
-    /**
-     * Merge overlapping intervals.
-     * 
-     * @param intervals List of int[] where each int[] is [start, end]
-     * @return List of merged non-overlapping intervals
-     */
-    public static int[][] merge(int[][] intervals) {
-        if (intervals == null || intervals.length == 0) {
-            return new int[0][];
-        }
-        
-        // Sort intervals by start time
-        Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
-        
-        List<int[]> merged = new ArrayList<>();
-        merged.add(intervals[0]);
-        
-        for (int i = 1; i < intervals.length; i++) {
-            int currentStart = intervals[i][0];
-            int currentEnd = intervals[i][1];
-            int lastEnd = merged.get(merged.size() - 1)[1];
-            
-            // If current interval overlaps with previous, merge them
-            if (currentStart <= lastEnd) {
-                merged.get(merged.size() - 1)[1] = Math.max(lastEnd, currentEnd);
-            } else {
-                // No overlap, add new interval
-                merged.add(intervals[i]);
-            }
-        }
-        
-        return merged.toArray(new int[0][]);
-    }
-    
-    // Alternative: Using List<int[]> for clearer API
-    public static List<int[]> mergeAsList(List<int[]> intervals) {
-        if (intervals == null || intervals.isEmpty()) {
-            return new ArrayList<>();
-        }
-        
-        // Sort by start time
-        intervals.sort(Comparator.comparingInt(a -> a[0]));
-        
-        List<int[]> merged = new ArrayList<>();
-        merged.add(intervals.get(0));
-        
-        for (int i = 1; i < intervals.size(); i++) {
-            int[] current = intervals.get(i);
-            int[] last = merged.get(merged.size() - 1);
-            
-            if (current[0] <= last[1]) {
-                // Overlap - extend the end
-                last[1] = Math.max(last[1], current[1]);
-            } else {
-                // No overlap - add new interval
-                merged.add(current);
-            }
-        }
-        
-        return merged;
-    }
-    
-    // Test the implementation
-    public static void main(String[] args) {
-        // Example 1: Standard case
-        int[][] intervals1 = {{1, 3}, {2, 6}, {8, 10}, {15, 18}};
-        System.out.print("Input:  ");
-        printIntervals(intervals1);
-        System.out.print("Output: ");
-        printIntervals(merge(intervals1));
-        
-        // Example 2: Touching intervals
-        int[][] intervals2 = {{1, 4}, {4, 5}};
-        System.out.print("\nInput:  ");
-        printIntervals(intervals2);
-        System.out.print("Output: ");
-        printIntervals(merge(intervals2));
-        
-        // Example 3: All overlapping
-        int[][] intervals3 = {{1, 4}, {2, 3}};
-        System.out.print("\nInput:  ");
-        printIntervals(intervals3);
-        System.out.print("Output: ");
-        printIntervals(merge(intervals3));
-    }
-    
-    private static void printIntervals(int[][] intervals) {
-        System.out.print("[");
-        for (int i = 0; i < intervals.length; i++) {
-            System.out.print("[" + intervals[i][0] + ", " + intervals[i][1] + "]");
-            if (i < intervals.length - 1) System.out.print(", ");
-        }
-        System.out.println("]");
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Merge overlapping intervals.
- * 
- * Time Complexity: O(n log n) - sorting dominates
- * Space Complexity: O(n) - for storing result
- * 
- * @param {number[][]} intervals - Array of [start, end] intervals
- * @returns {number[][]} - Array of merged non-overlapping intervals
- */
-function mergeIntervals(intervals) {
-    if (!intervals || intervals.length === 0) {
-        return [];
-    }
-    
-    // Sort by start time (creating copy to avoid mutating input)
-    const sorted = [...intervals].sort((a, b) => a[0] - b[0]);
-    
-    const merged = [sorted[0]];
-    
-    for (let i = 1; i < sorted.length; i++) {
-        const [start, end] = sorted[i];
-        const lastEnd = merged[merged.length - 1][1];
-        
-        if (start <= lastEnd) {
-            // Overlap - extend the end
-            merged[merged.length - 1][1] = Math.max(lastEnd, end);
-        } else {
-            // No overlap - add new interval
-            merged.push([start, end]);
-        }
-    }
-    
-    return merged;
-}
-
-// Alternative: In-place modification
-function mergeIntervalsInPlace(intervals) {
-    if (!intervals || intervals.length === 0) {
-        return [];
-    }
-    
-    // Sort in place
-    intervals.sort((a, b) => a[0] - b[0]);
-    
-    const merged = [intervals[0]];
-    
-    for (let i = 1; i < intervals.length; i++) {
-        const current = intervals[i];
-        const last = merged[merged.length - 1];
-        
-        if (current[0] <= last[1]) {
-            last[1] = Math.max(last[1], current[1]);
-        } else {
-            merged.push(current);
-        }
-    }
-    
-    return merged;
-}
-
-// Test the implementation
-function runTests() {
-    // Example 1: Standard case
-    const intervals1 = [[1, 3], [2, 6], [8, 10], [15, 18]];
-    console.log('Input: ', JSON.stringify(intervals1));
-    console.log('Output:', JSON.stringify(mergeIntervals(intervals1)));
-    // Output: [[1, 6], [8, 10], [15, 18]]
-    
-    // Example 2: Touching intervals
-    const intervals2 = [[1, 4], [4, 5]];
-    console.log('\nInput: ', JSON.stringify(intervals2));
-    console.log('Output:', JSON.stringify(mergeIntervals(intervals2)));
-    // Output: [[1, 5]]
-    
-    // Example 3: All overlapping
-    const intervals3 = [[1, 4], [2, 3]];
-    console.log('\nInput: ', JSON.stringify(intervals3));
-    console.log('Output:', JSON.stringify(mergeIntervals(intervals3)));
-    // Output: [[1, 4]]
-    
-    // Example 4: No overlapping
-    const intervals4 = [[1, 4], [5, 6]];
-    console.log('\nInput: ', JSON.stringify(intervals4));
-    console.log('Output:', JSON.stringify(mergeIntervals(intervals4)));
-    // Output: [[1, 4], [5, 6]]
-    
-    // Example 5: Empty input
-    const intervals5 = [];
-    console.log('\nInput: ', JSON.stringify(intervals5));
-    console.log('Output:', JSON.stringify(mergeIntervals(intervals5)));
-    // Output: []
-    
-    // Example 6: Single interval
-    const intervals6 = [[1, 5]];
-    console.log('\nInput: ', JSON.stringify(intervals6));
-    console.log('Output:', JSON.stringify(mergeIntervals(intervals6)));
-    // Output: [[1, 5]]
-}
-
-runTests();
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Sorting** | O(n log n) | Dominant factor - must sort all intervals |
-| **Single Pass Merge** | O(n) | Each interval processed once |
-| **Total** | **O(n log n)** | Sorting dominates |
-| **Space (Output)** | O(n) | Worst case: no merging, all intervals distinct |
-| **Space (Auxiliary)** | O(1) | In-place merging if input list can be modified |
-
-### Detailed Breakdown
-
-- **Sorting**: O(n log n) using comparison-based sort (TimSort in Python, sort in other languages)
-- **Merging**: O(n) - single linear scan through sorted intervals
-- **Total**: O(n log n) + O(n) = **O(n log n)**
-
-### When Time Complexity Matters
-
-- **Best case**: O(n log n) - even when all intervals can be merged
-- **Worst case**: O(n log n) - sorting dominates regardless
-- **Note**: You cannot achieve better than O(n log n) because any algorithm must at least examine each interval's start and end values
-
----
-
-## Space Complexity Analysis
-
-| Component | Space | Notes |
-|-----------|-------|-------|
-| **Output Array** | O(n) | Stores merged intervals |
-| **Sorted Copy** | O(n) | If creating sorted copy |
-| **In-Place Sort** | O(1) extra | Most languages sort in-place |
-
-### Space Optimization
-
-- **In-place sorting**: Most implementations sort the input array in-place, using O(1) extra space
-- **Avoid copy**: Use `sorted(intervals, key=...)` in Python creates a new list; consider `intervals.sort(key=...)` for in-place
-- **Minimizing allocations**: Reuse the input array when possible
-
----
-
-## Common Variations
-
-### 1. Insert Interval
-
-Insert a new interval into an existing set of non-overlapping intervals and merge if necessary.
-
-````carousel
-```python
-def insert_interval(intervals, new_interval):
-    """Insert a new interval into merged intervals."""
-    intervals.append(new_interval)
-    return merge_intervals(intervals)
-```
-````
-
-### 2. Meeting Rooms
-
-Determine the minimum number of meeting rooms needed:
-
-````carousel
-```python
-def min_meeting_rooms(intervals):
-    """Find minimum meeting rooms needed."""
-    if not intervals:
-        return 0
-    
-    # Extract all start and end times
-    starts = sorted([i[0] for i in intervals])
-    ends = sorted([i[1] for i in intervals])
-    
-    rooms = 0
-    max_rooms = 0
-    i = 0  # for starts
-    j = 0  # for ends
-    
-    while i < len(intervals):
-        if starts[i] < ends[j]:
-            rooms += 1
-            max_rooms = max(max_rooms, rooms)
-            i += 1
-        else:
-            rooms -= 1
-            j += 1
-    
-    return max_rooms
-```
-````
-
-### 3. Employee Free Time
-
-Find common free time for all employees:
-
-````carousel
-```python
-def employee_free_time(schedules):
-    """Find common free time across all employees."""
-    # Flatten and merge all intervals
-    all_intervals = [interval for employee in schedules for interval in employee]
-    merged = merge_intervals(all_intervals)
-    
-    # Find gaps between merged intervals
-    free_time = []
-    for i in range(1, len(merged)):
-        free_time.append([merged[i-1][1], merged[i][0]])
-    
-    return free_time
-```
-````
-
-### 4. Interval Intersection
-
-Find the intersection of two sets of intervals:
-
-````carousel
-```python
-def interval_intersection(intervals1, intervals2):
-    """Find intersection of two interval lists."""
-    result = []
-    i = j = 0
-    
-    intervals1 = sorted(intervals1, key=lambda x: x[0])
-    intervals2 = sorted(intervals2, key=lambda x: x[0])
-    
-    while i < len(intervals1) and j < len(intervals2):
-        start1, end1 = intervals1[i]
-        start2, end2 = intervals2[j]
-        
-        # Check for overlap
-        start = max(start1, start2)
-        end = min(end1, end2)
-        
-        if start <= end:
-            result.append([start, end])
-        
-        # Move the pointer with smaller end
-        if end1 < end2:
-            i += 1
-        else:
-            j += 1
-    
-    return result
-```
-````
-
-### 5. Non-overlapping Intervals
-
-Count minimum intervals to remove to make them non-overlapping:
-
-````carousel
-```python
-def erase_overlap_intervals(intervals):
-    """Minimum intervals to remove to make non-overlapping."""
-    if not intervals:
-        return 0
-    
-    # Sort by end time (greedy approach)
-    intervals.sort(key=lambda x: x[1])
-    
-    count = 0
-    prev_end = intervals[0][1]
-    
-    for i in range(1, len(intervals)):
-        if intervals[i][0] < prev_end:
-            count += 1  # Need to remove this interval
-        else:
-            prev_end = intervals[i][1]
-    
-    return count
-```
-````
+- **Requires sorting**: O(n log n) is the lower bound due to comparison-based sorting
+- **Static intervals**: Best for problems where all intervals are known upfront
+- **Memory overhead**: May need O(n) space for the result
 
 ---
 
@@ -710,9 +578,9 @@ def erase_overlap_intervals(intervals):
 
 **Problem:** [LeetCode 56 - Merge Intervals](https://leetcode.com/problems/merge-intervals/)
 
-**Description:** Given an array of intervals where intervals[i] = [starti, endi], merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all the intervals in the input.
+**Description:** Given an array of intervals where `intervals[i] = [starti, endi]`, merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all the intervals in the input.
 
-**How to Apply the Technique:**
+**How to Apply:**
 - Sort intervals by start time
 - Iterate and merge overlapping intervals
 - Time complexity: O(n log n) for sorting
@@ -723,9 +591,9 @@ def erase_overlap_intervals(intervals):
 
 **Problem:** [LeetCode 253 - Meeting Rooms II](https://leetcode.com/problems/meeting-rooms-ii/)
 
-**Description:** Given an array of meeting time intervals where intervals[i] = [starti, endi], find the minimum number of conference rooms required.
+**Description:** Given an array of meeting time intervals where `intervals[i] = [starti, endi]`, find the minimum number of conference rooms required.
 
-**How to Apply the Technique:**
+**How to Apply:**
 - First approach: Use merge intervals + sweep line
 - Sort all start times and end times separately
 - Count overlapping meetings at each point
@@ -737,9 +605,9 @@ def erase_overlap_intervals(intervals):
 
 **Problem:** [LeetCode 435 - Non-overlapping Intervals](https://leetcode.com/problems/non-overlapping-intervals/)
 
-**Description:** Given an array of intervals intervals[i] = [starti, endi], return the minimum number of intervals you need to remove to make the rest of the intervals non-overlapping.
+**Description:** Given an array of intervals `intervals[i] = [starti, endi]`, return the minimum number of intervals you need to remove to make the rest of the intervals non-overlapping.
 
-**How to Apply the Technique:**
+**How to Apply:**
 - Sort by end time (not start time!)
 - Greedy: always remove the interval that ends later
 - Count intervals that can be kept, subtract from total
@@ -750,9 +618,9 @@ def erase_overlap_intervals(intervals):
 
 **Problem:** [LeetCode 57 - Insert Interval](https://leetcode.com/problems/insert-interval/)
 
-**Description:** You are given an array of non-overlapping intervals intervals where intervals[i] = [starti, endi] represent the start and the end of the intervals and intervals is sorted in ascending order by starti. Insert newInterval into intervals such that intervals is still sorted in ascending order by starti and intervals still does not have any overlapping intervals.
+**Description:** You are given an array of non-overlapping intervals where `intervals[i] = [starti, endi]` represent the start and the end of the intervals and intervals is sorted in ascending order by starti. Insert `newInterval` into intervals such that intervals is still sorted in ascending order by starti and intervals still does not have any overlapping intervals.
 
-**How to Apply the Technique:**
+**How to Apply:**
 - Add new interval to list
 - Apply standard merge intervals algorithm
 - Or: binary search for insertion point + merge locally
@@ -763,9 +631,9 @@ def erase_overlap_intervals(intervals):
 
 **Problem:** [LeetCode 986 - Interval List Intersections](https://leetcode.com/problems/interval-list-intersections/)
 
-**Description:** You are given two lists of closed intervals, firstList and secondList, where firstList[i] = [starti, endi] and secondList[j] = [startj, endj]. The lists are sorted in ascending order by start. Return the intersection of these interval lists.
+**Description:** You are given two lists of closed intervals, `firstList` and `secondList`, where `firstList[i] = [starti, endi]` and `secondList[j] = [startj, endj]`. The lists are sorted in ascending order by start. Return the intersection of these interval lists.
 
-**How to Apply the Technique:**
+**How to Apply:**
 - Use two pointers, one for each list
 - At each step, find intersection of current intervals
 - Move the pointer with smaller end time forward
@@ -796,11 +664,13 @@ def erase_overlap_intervals(intervals):
 
 ## Follow-up Questions
 
-### Q1: Why do we sort by start time instead of end time?
+### Q1: Why do we sort by start time instead of end time for merging?
 
 **Answer:** Sorting by start time ensures that any overlapping intervals will be adjacent in the sorted list. When we process intervals sequentially, we only need to compare each interval with the last merged interval. If we sorted by end time, we would need to check against multiple previous intervals, losing the O(n) single-pass property.
 
 However, for some variations like "non-overlapping intervals," sorting by end time is actually better because it enables a greedy approach that always keeps intervals that end earliest.
+
+---
 
 ### Q2: How would you handle intervals with negative numbers or large values?
 
@@ -808,6 +678,8 @@ However, for some variations like "non-overlapping intervals," sorting by end ti
 - The sorting step compares numeric values regardless of sign
 - The overlap condition `start <= last_end` works for any integers
 - Only concern is integer overflow in languages like C++/Java for very large values - use 64-bit integers
+
+---
 
 ### Q3: Can this algorithm be modified to handle floating-point intervals?
 
@@ -817,6 +689,8 @@ However, for some variations like "non-overlapping intervals," sorting by end ti
 - Sorting works the same way
 - Be careful with floating-point precision issues
 
+---
+
 ### Q4: How would you merge intervals in place to save space?
 
 **Answer:** Many implementations already do this:
@@ -825,6 +699,8 @@ However, for some variations like "non-overlapping intervals," sorting by end ti
 - This reduces space from O(n) to O(1) auxiliary space
 - In Python: `intervals.sort(key=lambda x: x[0])` then merge
 
+---
+
 ### Q5: What if intervals can have the same start time but different end times?
 
 **Answer:** The algorithm handles this correctly:
@@ -832,16 +708,6 @@ However, for some variations like "non-overlapping intervals," sorting by end ti
 - They will be merged because `start <= last_end` will be true
 - They effectively become one interval with the maximum end time
 - Example: [[1,3], [1,5]] → [[1,5]]
-
-### Q6: How do you handle the case where intervals are given as objects or custom data structures?
-
-**Answer:** The core algorithm remains the same:
-1. Extract start and end values from your data structure
-2. Sort using a custom comparator or key function
-3. Apply the merge logic
-4. Convert back to your desired output format
-
-The pattern is language-agnostic - only the syntax for accessing fields changes.
 
 ---
 
@@ -868,12 +734,3 @@ This pattern is essential for:
 3. **Real-world applications** - Calendar apps, scheduling systems
 
 The algorithm's elegance lies in its simplicity: just sort and scan. This makes it both easy to implement and easy to understand, while still being optimal for the problem constraints.
-
----
-
-## Related Algorithms
-
-- [Sort + Two Pointers](./two-pointers.md) - Related pattern for sorted arrays
-- [Sweep Line](./sweep-line.md) - Advanced interval techniques
-- [Interval Tree](./interval-tree.md) - For dynamic interval operations
-- [Meeting Rooms](./meeting-rooms.md) - Practical application of the pattern

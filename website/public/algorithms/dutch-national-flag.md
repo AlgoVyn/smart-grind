@@ -7,7 +7,523 @@ Arrays & Strings
 
 The **Dutch National Flag** algorithm (also known as **3-way partition**) is a classic sorting algorithm proposed by Edsger Dijkstra. It efficiently sorts an array containing only **three distinct values** (like 0, 1, 2 or red, white, blue) in a **single pass** with **O(n)** time complexity and **O(1)** space complexity.
 
-This algorithm is most famously used to solve the "Sort Colors" problem (LeetCode 75), but its underlying principle of three-way partitioning is applicable to many other scenarios involving element categorization.
+This algorithm is most famously used to solve the "Sort Colors" problem (LeetCode 75), but its underlying principle of three-way partitioning is applicable to many other scenarios including quicksort optimization, element categorization, and in-place partitioning problems.
+
+The key insight is using **three pointers** to partition the array into four distinct sections during a single traversal, ensuring each element is processed at most once.
+
+---
+
+## Concepts
+
+The Dutch National Flag algorithm is built on several fundamental concepts that make it powerful for three-way partitioning.
+
+### 1. Three-Pointer Strategy
+
+The algorithm uses three pointers to create four distinct partitions:
+
+| Pointer | Purpose | Region |
+|---------|---------|--------|
+| **`low`** | Boundary for 0s | `[0, low-1]` contains all 0s |
+| **`mid`** | Current element being processed | `[low, mid-1]` contains all 1s |
+| **`high`** | Boundary for 2s | `[high+1, n-1]` contains all 2s |
+
+### 2. Four-Way Partition
+
+During execution, the array is conceptually divided into:
+
+```
+[0, low-1] | [low, mid-1] | [mid, high] | [high+1, n-1]
+    0s      |      1s      |  unknown    |      2s
+  (done)    |    (done)    | (processing)|    (done)
+```
+
+### 3. Single-Pass Processing
+
+Each element is processed exactly once:
+
+```
+while mid <= high:
+    if nums[mid] == 0: swap to left section, advance both
+    elif nums[mid] == 1: already in middle, just advance
+    else: swap to right section, shrink right bound
+```
+
+### 4. Invariant Maintenance
+
+The algorithm maintains these invariants throughout:
+
+- All elements before `low` are 0
+- All elements from `low` to `mid-1` are 1
+- All elements after `high` are 2
+- Elements from `mid` to `high` are unprocessed
+
+---
+
+## Frameworks
+
+Structured approaches for solving Dutch National Flag problems.
+
+### Framework 1: Classic 3-Way Partition
+
+```
+┌─────────────────────────────────────────────────────┐
+│  DUTCH NATIONAL FLAG FRAMEWORK                      │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize pointers:                             │
+│     - low = 0 (boundary for 0s)                     │
+│     - mid = 0 (current processing pointer)          │
+│     - high = n - 1 (boundary for 2s)              │
+│  2. While mid <= high:                               │
+│     - If nums[mid] == 0:                            │
+│         swap(nums[low], nums[mid])                  │
+│         low++, mid++                                │
+│     - If nums[mid] == 1:                            │
+│         mid++                                       │
+│     - If nums[mid] == 2:                            │
+│         swap(nums[mid], nums[high])                 │
+│         high-- (don't increment mid!)               │
+│  3. Array is now sorted with 0s, 1s, 2s             │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Sorting arrays with exactly three distinct values (0, 1, 2).
+
+### Framework 2: Generic K-Way Partition
+
+```
+┌─────────────────────────────────────────────────────┐
+│  K-WAY PARTITION FRAMEWORK                          │
+├─────────────────────────────────────────────────────┤
+│  1. For k distinct values, use multiple pointers   │
+│  2. Alternative: Count and rewrite approach         │
+│     a. Count occurrences of each value             │
+│     b. Rewrite array in sorted order               │
+│  3. For k > 3, counting sort is often preferred    │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Generalizing to more than three values.
+
+### Framework 3: Quicksort 3-Way Partition
+
+```
+┌─────────────────────────────────────────────────────┐
+│  QUICKSORT 3-WAY PARTITION FRAMEWORK               │
+├─────────────────────────────────────────────────────┤
+│  1. Select pivot element                            │
+│  2. Partition array into three sections:           │
+│     - Elements less than pivot                     │
+│     - Elements equal to pivot                      │
+│     - Elements greater than pivot                  │
+│  3. Recursively sort less-than and greater-than    │
+│  4. Skip equal section (already sorted)            │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Optimizing quicksort for arrays with many duplicates.
+
+---
+
+## Forms
+
+Different manifestations of the Dutch National Flag pattern.
+
+### Form 1: Sort Colors (0, 1, 2)
+
+The classic problem - sorting red, white, and blue colors represented as 0, 1, 2.
+
+```python
+# Standard implementation for 0, 1, 2
+def sort_colors(nums):
+    low = mid = 0
+    high = len(nums) - 1
+    
+    while mid <= high:
+        if nums[mid] == 0:
+            nums[low], nums[mid] = nums[mid], nums[low]
+            low += 1
+            mid += 1
+        elif nums[mid] == 1:
+            mid += 1
+        else:  # nums[mid] == 2
+            nums[mid], nums[high] = nums[high], nums[mid]
+            high -= 1
+```
+
+### Form 2: Partition by Pivot
+
+General three-way partition around any pivot value.
+
+| Section | Condition |
+|---------|-----------|
+| Left | `element < pivot` |
+| Middle | `element == pivot` |
+| Right | `element > pivot` |
+
+### Form 3: Two-Way Partition (Binary)
+
+Simplified version for two categories only.
+
+```python
+def partition_binary(nums, condition):
+    """Partition array based on binary condition."""
+    left = 0
+    for right in range(len(nums)):
+        if condition(nums[right]):
+            nums[left], nums[right] = nums[right], nums[left]
+            left += 1
+    return nums
+```
+
+### Form 4: Move Zeroes (Special Case)
+
+Move all zeros to end while maintaining relative order of non-zero elements.
+
+```python
+def move_zeroes(nums):
+    """Special case: move all 0s to end."""
+    left = 0
+    for right in range(len(nums)):
+        if nums[right] != 0:
+            nums[left], nums[right] = nums[right], nums[left]
+            left += 1
+```
+
+### Form 5: Sort by Parity
+
+Separate even and odd numbers.
+
+```python
+def sort_by_parity(nums):
+    """Separate even and odd numbers."""
+    left = 0
+    for right in range(len(nums)):
+        if nums[right] % 2 == 0:  # Even
+            nums[left], nums[right] = nums[right], nums[left]
+            left += 1
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Why Not to Increment mid After Swapping with high
+
+Critical pitfall explained:
+
+```python
+if nums[mid] == 2:
+    nums[mid], nums[high] = nums[high], nums[mid]
+    high -= 1
+    # Don't increment mid!
+    # The element swapped from high hasn't been processed yet
+    # It could be 0, 1, or 2 - we need to check it
+```
+
+### Tactic 2: Counting Sort Alternative
+
+For some cases, counting sort is simpler:
+
+```python
+def sort_colors_counting(nums):
+    """Alternative using counting sort."""
+    count = [0, 0, 0]
+    for num in nums:
+        count[num] += 1
+    
+    idx = 0
+    for val in range(3):
+        for _ in range(count[val]):
+            nums[idx] = val
+            idx += 1
+```
+
+**Trade-off**: Two passes vs one pass, O(k) extra space vs O(1).
+
+### Tactic 3: Handling Unknown Values
+
+When values are not exactly 0, 1, 2:
+
+```python
+def three_way_partition(nums, pivot1, pivot2):
+    """
+    Partition into three categories:
+    - < pivot1
+    - >= pivot1 and <= pivot2
+    - > pivot2
+    """
+    low = mid = 0
+    high = len(nums) - 1
+    
+    while mid <= high:
+        if nums[mid] < pivot1:
+            nums[low], nums[mid] = nums[mid], nums[low]
+            low += 1
+            mid += 1
+        elif pivot1 <= nums[mid] <= pivot2:
+            mid += 1
+        else:  # nums[mid] > pivot2
+            nums[mid], nums[high] = nums[high], nums[mid]
+            high -= 1
+```
+
+### Tactic 4: In-Place vs. Return New Array
+
+```python
+# In-place (modifies original)
+def sort_colors_inplace(nums):
+    # ... modifies nums directly
+    return None  # or return nums for chaining
+
+# Non-destructive (returns new array)
+def sort_colors_copy(nums):
+    result = nums.copy()
+    # ... sort result
+    return result
+```
+
+### Tactic 5: One-Pass vs. Two-Pass Decision Tree
+
+```
+Decision: Which approach to use?
+┌─────────────────────────────────────────┐
+│ Need O(1) space?                       │
+│ ├── Yes: Use Dutch National Flag       │
+│ └── No: Consider counting sort           │
+│                                         │
+│ Need stability (preserve order)?       │
+│ ├── Yes: Use counting sort               │
+│ └── No: Dutch National Flag is fine     │
+│                                         │
+│ Exactly 3 distinct values?             │
+│ ├── Yes: Dutch National Flag optimal     │
+│ └── No: Counting sort more flexible      │
+└─────────────────────────────────────────┘
+```
+
+### Tactic 6: Quickselect Integration
+
+Use for finding kth element with duplicates:
+
+```python
+def three_way_partition_for_quickselect(nums, left, right, pivot_idx):
+    """Partition for quickselect with duplicate handling."""
+    pivot = nums[pivot_idx]
+    
+    # Move pivot to end
+    nums[pivot_idx], nums[right] = nums[right], nums[pivot_idx]
+    
+    # Three-way partition
+    store_idx = left
+    mid_start = left
+    
+    for i in range(left, right):
+        if nums[i] < pivot:
+            nums[store_idx], nums[i] = nums[i], nums[store_idx]
+            # Also swap if we had equal elements before
+            if mid_start > store_idx:
+                nums[mid_start], nums[i] = nums[i], nums[mid_start]
+            store_idx += 1
+            mid_start += 1
+        elif nums[i] == pivot:
+            nums[mid_start], nums[i] = nums[i], nums[mid_start]
+            mid_start += 1
+    
+    # Move pivot to final place
+    nums[mid_start], nums[right] = nums[right], nums[mid_start]
+    
+    return (store_idx, mid_start)  # Return range of equal elements
+```
+
+---
+
+## Python Templates
+
+### Template 1: Classic Dutch National Flag (0, 1, 2)
+
+```python
+def sort_colors(nums: list[int]) -> None:
+    """
+    Dutch National Flag - 3-way partition algorithm.
+    
+    Sorts an array containing only 0s, 1s, and 2s in-place in a single pass.
+    
+    Time Complexity: O(n)
+    Space Complexity: O(1)
+    
+    Args:
+        nums: List containing only 0, 1, and 2 (modified in-place)
+    
+    Returns:
+        None (modifies nums in place)
+    
+    Example:
+        >>> nums = [2, 0, 2, 1, 1, 0]
+        >>> sort_colors(nums)
+        >>> print(nums)
+        [0, 0, 1, 1, 2, 2]
+    """
+    if not nums or len(nums) <= 1:
+        return
+    
+    low = 0      # All elements before low are 0s
+    mid = 0      # Current element being processed
+    high = len(nums) - 1  # All elements after high are 2s
+    
+    # Process until mid crosses high
+    while mid <= high:
+        if nums[mid] == 0:
+            # Move 0 to the left section
+            nums[low], nums[mid] = nums[mid], nums[low]
+            low += 1
+            mid += 1
+        elif nums[mid] == 1:
+            # 1 is already in correct partition, move forward
+            mid += 1
+        else:  # nums[mid] == 2
+            # Move 2 to the right section
+            # Don't increment mid - need to process swapped element
+            nums[mid], nums[high] = nums[high], nums[mid]
+            high -= 1
+```
+
+### Template 2: Generic 3-Way Partition
+
+```python
+def three_way_partition(nums: list[int], pivot: int) -> tuple[int, int]:
+    """
+    Partition array around pivot into three sections:
+    - Elements less than pivot
+    - Elements equal to pivot
+    - Elements greater than pivot
+    
+    Returns (start_of_equal, end_of_equal) indices.
+    
+    Used in 3-way quicksort (Dutch National Flag variant)
+    """
+    low = 0
+    mid = 0
+    high = len(nums) - 1
+    
+    while mid <= high:
+        if nums[mid] < pivot:
+            nums[low], nums[mid] = nums[mid], nums[low]
+            low += 1
+            mid += 1
+        elif nums[mid] == pivot:
+            mid += 1
+        else:  # nums[mid] > pivot
+            nums[mid], nums[high] = nums[high], nums[mid]
+            high -= 1
+    
+    return (low, mid)  # Range of equal elements
+```
+
+### Template 3: Move Zeroes to End
+
+```python
+def move_zeroes(nums: list[int]) -> None:
+    """
+    Move all 0's to the end while maintaining relative order of non-zero elements.
+    
+    This is essentially a 2-way partition (Dutch National Flag with 2 values).
+    
+    Time: O(n), Space: O(1)
+    """
+    left = 0  # Position to place next non-zero element
+    
+    for right in range(len(nums)):
+        if nums[right] != 0:
+            # Swap non-zero element to the front section
+            nums[left], nums[right] = nums[right], nums[left]
+            left += 1
+    
+    # All elements from 'left' to end are already 0 or will be 0
+```
+
+### Template 4: Sort by Parity
+
+```python
+def sort_array_by_parity(nums: list[int]) -> list[int]:
+    """
+    Sort array so that all even integers come before all odd integers.
+    
+    Two-way partition based on parity.
+    Time: O(n), Space: O(1)
+    """
+    left = 0  # Position for next even number
+    
+    for right in range(len(nums)):
+        if nums[right] % 2 == 0:  # Even number
+            nums[left], nums[right] = nums[right], nums[left]
+            left += 1
+    
+    return nums
+```
+
+### Template 5: Sort Colors Alternative (Counting)
+
+```python
+def sort_colors_counting(nums: list[int]) -> None:
+    """
+    Alternative implementation using counting sort.
+    
+    Two-pass algorithm with O(k) extra space.
+    Better when stability is required or for k > 3 distinct values.
+    
+    Time: O(n), Space: O(k) where k = number of distinct values
+    """
+    if not nums:
+        return
+    
+    # Count occurrences of each value
+    # Assuming values are 0, 1, 2
+    count = [0, 0, 0]
+    for num in nums:
+        count[num] += 1
+    
+    # Rewrite array in sorted order
+    idx = 0
+    for val in range(3):
+        for _ in range(count[val]):
+            nums[idx] = val
+            idx += 1
+```
+
+### Template 6: Wiggle Sort II
+
+```python
+def wiggle_sort(nums: list[int]) -> None:
+    """
+    Reorder array such that nums[0] < nums[1] > nums[2] < nums[3]...
+    
+    Uses three-way partition concept for median-based sorting.
+    Time: O(n), Space: O(n)
+    """
+    # Find median using quickselect
+    # Then three-way partition around median
+    # Finally interleave smaller and larger halves
+    
+    n = len(nums)
+    sorted_nums = sorted(nums)
+    
+    # Interleave: smaller half (reversed) + larger half (reversed)
+    mid = (n + 1) // 2
+    j, k = mid - 1, n - 1
+    
+    result = []
+    for i in range(n):
+        if i % 2 == 0:
+            result.append(sorted_nums[j])
+            j -= 1
+        else:
+            result.append(sorted_nums[k])
+            k -= 1
+    
+    nums[:] = result
+```
 
 ---
 
@@ -67,10 +583,10 @@ The key insight behind the Dutch National Flag algorithm is using **three pointe
 
 #### Four Partitions:
 
-1. **[0, low - 1]**: All zeros
-2. **[low, mid - 1]**: All ones
+1. **[0, low - 1]**: All zeros (processed)
+2. **[low, mid - 1]**: All ones (processed)
 3. **[mid, high]**: Unprocessed elements (unknown)
-4. **[high + 1, n - 1]**: All twos
+4. **[high + 1, n - 1]**: All twos (processed)
 
 #### Algorithm Logic:
 
@@ -100,599 +616,58 @@ For array `[2, 0, 2, 1, 1, 0]`:
 
 ```
 Initial: [2, 0, 2, 1, 1, 0]
-         low=0, mid=0, high=5
+          low=0, mid=0, high=5
 
 Step 1: mid=0, nums[mid]=2 → swap with high
         [0, 0, 2, 1, 1, 2]
-         low=0, mid=0, high=4
+          low=0, mid=0, high=4
 
 Step 2: mid=0, nums[mid]=0 → swap with low
         [0, 0, 2, 1, 1, 2]
-         low=1, mid=1, high=4
+          low=1, mid=1, high=4
 
 Step 3: mid=1, nums[mid]=0 → swap with low
         [0, 0, 2, 1, 1, 2]
-         low=2, mid=2, high=4
+          low=2, mid=2, high=4
 
 Step 4: mid=2, nums[mid]=2 → swap with high
         [0, 0, 1, 1, 2, 2]
-         low=2, mid=2, high=3
+          low=2, mid=2, high=3
 
 Step 5: mid=2, nums[mid]=1 → mid++
         [0, 0, 1, 1, 2, 2]
-         low=2, mid=3, high=3
+          low=2, mid=3, high=3
 
 Step 6: mid=3, nums[mid]=1 → mid++
         [0, 0, 1, 1, 2, 2]
-         low=2, mid=4, high=3
+          low=2, mid=4, high=3
 
 mid > high → Done!
 
 Final: [0, 0, 1, 1, 2, 2]
 ```
 
-### Important Edge Cases
-
-1. **All elements are the same**: `[1, 1, 1]` - Algorithm handles gracefully
-2. **Already sorted**: `[0, 0, 1, 1, 2, 2]` - Only moves mid pointer
-3. **Reverse sorted**: `[2, 2, 1, 1, 0, 0]` - Maximum swaps
-4. **Empty array**: `[]` - Handles correctly
-5. **Single element**: `[1]` - No processing needed
-
----
-
-## Algorithm Steps
-
-### Step-by-Step Approach
-
-1. **Initialize Pointers**:
-   - Set `low = 0`
-   - Set `mid = 0`
-   - Set `high = n - 1` (last index)
-
-2. **Process Each Element**:
-   - While `mid <= high`:
-     - If `nums[mid] == 0`: Swap with `low`, increment both `low` and `mid`
-     - If `nums[mid] == 1`: Just increment `mid`
-     - If `nums[mid] == 2`: Swap with `high`, decrement `high` (don't increment `mid`!)
-
-3. **Continue Until Complete**:
-   - Loop until `mid` crosses `high`
-   - All elements are now sorted
-
-### Key Implementation Notes
-
-- **Don't increment mid after swapping with high**: The element swapped from `high` hasn't been processed yet
-- **Always swap with low when seeing 0**: Ensures zeros are moved to correct position
-- **The array is modified in-place**: No extra space needed
-
----
-
-## Implementation
-
-### Template Code (Sort Colors - Dutch National Flag)
-
-````carousel
-```python
-def sort_colors(nums: list[int]) -> None:
-    """
-    Dutch National Flag - 3-way partition algorithm.
-    
-    Sorts an array containing only 0s, 1s, and 2s in-place in a single pass.
-    
-    Time Complexity: O(n)
-    Space Complexity: O(1)
-    
-    Args:
-        nums: List containing only 0, 1, and 2 (modified in-place)
-    
-    Returns:
-        None (modifies nums in place)
-    
-    Example:
-        >>> nums = [2, 0, 2, 1, 1, 0]
-        >>> sort_colors(nums)
-        >>> print(nums)
-        [0, 0, 1, 1, 2, 2]
-    """
-    if not nums or len(nums) <= 1:
-        return
-    
-    low = 0      # All elements before low are 0s
-    mid = 0      # Current element being processed
-    high = len(nums) - 1  # All elements after high are 2s
-    
-    # Process until mid crosses high
-    while mid <= high:
-        if nums[mid] == 0:
-            # Move 0 to the left section
-            nums[low], nums[mid] = nums[mid], nums[low]
-            low += 1
-            mid += 1
-        elif nums[mid] == 1:
-            # 1 is already in correct partition, move forward
-            mid += 1
-        else:  # nums[mid] == 2
-            # Move 2 to the right section
-            # Don't increment mid - need to process swapped element
-            nums[mid], nums[high] = nums[high], nums[mid]
-            high -= 1
-
-
-# Alternative: Using indices explicitly
-def sort_colors_explicit(nums: list[int]) -> list[int]:
-    """Version with explicit index variables for clarity."""
-    n = len(nums)
-    if n <= 1:
-        return nums
-    
-    low = 0      # Boundary for 0s
-    mid = 0      # Current pointer
-    high = n - 1  # Boundary for 2s
-    
-    while mid <= high:
-        if nums[mid] == 0:
-            # Swap and move both pointers
-            nums[low], nums[mid] = nums[mid], nums[low]
-            low += 1
-            mid += 1
-        elif nums[mid] == 1:
-            # Already in middle section
-            mid += 1
-        else:  # nums[mid] == 2
-            # Swap with high, don't increment mid
-            nums[mid], nums[high] = nums[high], nums[mid]
-            high -= 1
-    
-    return nums
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    # Test case 1
-    nums1 = [2, 0, 2, 1, 1, 0]
-    sort_colors(nums1)
-    print(f"Input: [2, 0, 2, 1, 1, 0]")
-    print(f"Output: {nums1}")  # [0, 0, 1, 1, 2, 2]
-    
-    # Test case 2
-    nums2 = [2, 1, 2, 1, 0, 2, 1]
-    sort_colors(nums2)
-    print(f"\nInput: [2, 1, 2, 1, 0, 2, 1]")
-    print(f"Output: {nums2}")  # [0, 1, 1, 1, 2, 2, 2]
-    
-    # Test case 3: Already sorted
-    nums3 = [0, 0, 1, 1, 2, 2]
-    sort_colors(nums3)
-    print(f"\nInput: [0, 0, 1, 1, 2, 2]")
-    print(f"Output: {nums3}")  # [0, 0, 1, 1, 2, 2]
-    
-    # Test case 4: Reverse sorted
-    nums4 = [2, 2, 1, 1, 0, 0]
-    sort_colors(nums4)
-    print(f"\nInput: [2, 2, 1, 1, 0, 0]")
-    print(f"Output: {nums4}")  # [0, 0, 1, 1, 2, 2]
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-using namespace std;
-
-/**
- * Dutch National Flag - 3-way partition algorithm.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(1)
- * 
- * Sorts an array containing only 0s, 1s, and 2s in-place.
- */
-void sortColors(vector<int>& nums) {
-    if (nums.size() <= 1) return;
-    
-    int low = 0;      // All elements before low are 0s
-    int mid = 0;     // Current element being processed
-    int high = nums.size() - 1;  // All elements after high are 2s
-    
-    while (mid <= high) {
-        if (nums[mid] == 0) {
-            // Move 0 to the left section
-            swap(nums[low], nums[mid]);
-            low++;
-            mid++;
-        } else if (nums[mid] == 1) {
-            // 1 is already in correct partition
-            mid++;
-        } else {  // nums[mid] == 2
-            // Move 2 to the right section
-            swap(nums[mid], nums[high]);
-            high--;
-            // Don't increment mid here - need to check swapped element
-        }
-    }
-}
-
-// Overloaded version returning sorted vector
-vector<int> sortColorsCopy(vector<int> nums) {
-    sortColors(nums);
-    return nums;
-}
-
-
-int main() {
-    // Test case 1
-    vector<int> nums1 = {2, 0, 2, 1, 1, 0};
-    sortColors(nums1);
-    
-    cout << "Test 1:" << endl;
-    cout << "Input:  [2, 0, 2, 1, 1, 0]" << endl;
-    cout << "Output: [";
-    for (int i = 0; i < nums1.size(); i++) {
-        cout << nums1[i];
-        if (i < nums1.size() - 1) cout << ", ";
-    }
-    cout << "]" << endl << endl;
-    
-    // Test case 2
-    vector<int> nums2 = {2, 1, 2, 1, 0, 2, 1};
-    sortColors(nums2);
-    
-    cout << "Test 2:" << endl;
-    cout << "Input:  [2, 1, 2, 1, 0, 2, 1]" << endl;
-    cout << "Output: [";
-    for (int i = 0; i < nums2.size(); i++) {
-        cout << nums2[i];
-        if (i < nums2.size() - 1) cout << ", ";
-    }
-    cout << "]" << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * Dutch National Flag - 3-way partition algorithm.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(1)
- * 
- * Sorts an array containing only 0s, 1s, and 2s in-place.
- */
-public class DutchNationalFlag {
-    
-    /**
-     * Sort array with only 0s, 1s, and 2s in-place.
-     * 
-     * @param nums Array containing only 0, 1, and 2 (modified in-place)
-     */
-    public static void sortColors(int[] nums) {
-        if (nums == null || nums.length <= 1) {
-            return;
-        }
-        
-        int low = 0;           // All elements before low are 0s
-        int mid = 0;           // Current element being processed
-        int high = nums.length - 1;  // All elements after high are 2s
-        
-        while (mid <= high) {
-            if (nums[mid] == 0) {
-                // Move 0 to the left section
-                swap(nums, low, mid);
-                low++;
-                mid++;
-            } else if (nums[mid] == 1) {
-                // 1 is already in correct partition
-                mid++;
-            } else {  // nums[mid] == 2
-                // Move 2 to the right section
-                swap(nums, mid, high);
-                high--;
-                // Don't increment mid - need to process swapped element
-            }
-        }
-    }
-    
-    /**
-     * Helper method to swap two elements in an array.
-     */
-    private static void swap(int[] arr, int i, int j) {
-        int temp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = temp;
-    }
-    
-    /**
-     * Alternative version using three counters (counting sort approach).
-     */
-    public static void sortColorsCounting(int[] nums) {
-        if (nums == null || nums.length <= 1) {
-            return;
-        }
-        
-        // Count occurrences
-        int count0 = 0, count1 = 0, count2 = 0;
-        for (int num : nums) {
-            if (num == 0) count0++;
-            else if (num == 1) count1++;
-            else count2++;
-        }
-        
-        // Rewrite array
-        int index = 0;
-        for (int i = 0; i < count0; i++) nums[index++] = 0;
-        for (int i = 0; i < count1; i++) nums[index++] = 1;
-        for (int i = 0; i < count2; i++) nums[index++] = 2;
-    }
-    
-    
-    public static void main(String[] args) {
-        // Test case 1
-        int[] nums1 = {2, 0, 2, 1, 1, 0};
-        sortColors(nums1);
-        System.out.print("Test 1: ");
-        System.out.print("Input:  [2, 0, 2, 1, 1, 0] -> ");
-        System.out.print("Output: [");
-        for (int i = 0; i < nums1.length; i++) {
-            System.out.print(nums1[i]);
-            if (i < nums1.length - 1) System.out.print(", ");
-        }
-        System.out.println("]");
-        
-        // Test case 2
-        int[] nums2 = {2, 1, 2, 1, 0, 2, 1};
-        sortColors(nums2);
-        System.out.print("Test 2: ");
-        System.out.print("Input:  [2, 1, 2, 1, 0, 2, 1] -> ");
-        System.out.print("Output: [");
-        for (int i = 0; i < nums2.length; i++) {
-            System.out.print(nums2[i]);
-            if (i < nums2.length - 1) System.out.print(", ");
-        }
-        System.out.println("]");
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Dutch National Flag - 3-way partition algorithm.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(1)
- * 
- * Sorts an array containing only 0s, 1s, and 2s in-place.
- * 
- * @param {number[]} nums - Array containing only 0, 1, and 2
- * @returns {number[]} - The sorted array (modified in place)
- */
-function sortColors(nums) {
-    if (!nums || nums.length <= 1) {
-        return nums;
-    }
-    
-    let low = 0;           // All elements before low are 0s
-    let mid = 0;           // Current element being processed
-    let high = nums.length - 1;  // All elements after high are 2s
-    
-    while (mid <= high) {
-        if (nums[mid] === 0) {
-            // Move 0 to the left section
-            [nums[low], nums[mid]] = [nums[mid], nums[low]];
-            low++;
-            mid++;
-        } else if (nums[mid] === 1) {
-            // 1 is already in correct partition
-            mid++;
-        } else {  // nums[mid] === 2
-            // Move 2 to the right section
-            [nums[mid], nums[high]] = [nums[high], nums[mid]];
-            high--;
-            // Don't increment mid - need to process swapped element
-        }
-    }
-    
-    return nums;
-}
-
-/**
- * Alternative: Functional version returning new array
- */
-function sortColorsCopy(nums) {
-    const result = [...nums];
-    sortColors(result);
-    return result;
-}
-
-
-/**
- * Alternative: Using counting sort approach
- */
-function sortColorsCounting(nums) {
-    if (!nums || nums.length <= 1) {
-        return nums;
-    }
-    
-    // Count occurrences
-    const count = [0, 0, 0];
-    for (const num of nums) {
-        count[num]++;
-    }
-    
-    // Rewrite array
-    let index = 0;
-    for (let i = 0; i < count[0]; i++) nums[index++] = 0;
-    for (let i = 0; i < count[1]; i++) nums[index++] = 1;
-    for (let i = 0; i < count[2]; i++) nums[index++] = 2;
-    
-    return nums;
-}
-
-
-// Example usage and demonstration
-console.log("Dutch National Flag Algorithm - Test Cases\n");
-
-// Test case 1
-const nums1 = [2, 0, 2, 1, 1, 0];
-sortColors(nums1);
-console.log(`Test 1: Input:  [2, 0, 2, 1, 1, 0]`);
-console.log(`        Output: [${nums1.join(', ')}]`);
-console.log(`        Expected: [0, 0, 1, 1, 2, 2]`);
-console.log();
-
-// Test case 2
-const nums2 = [2, 1, 2, 1, 0, 2, 1];
-sortColors(nums2);
-console.log(`Test 2: Input:  [2, 1, 2, 1, 0, 2, 1]`);
-console.log(`        Output: [${nums2.join(', ')}]`);
-console.log(`        Expected: [0, 1, 1, 1, 2, 2, 2]`);
-console.log();
-
-// Test case 3: Already sorted
-const nums3 = [0, 0, 1, 1, 2, 2];
-sortColors(nums3);
-console.log(`Test 3: Input:  [0, 0, 1, 1, 2, 2]`);
-console.log(`        Output: [${nums3.join(', ')}]`);
-console.log(`        Expected: [0, 0, 1, 1, 2, 2]`);
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Single Pass** | O(n) | Each element is processed at most once |
-| **Swapping** | O(1) per swap | Constant time element exchange |
-| **Overall** | O(n) | Single traversal through the array |
-
-### Detailed Breakdown
+### Why O(n) Time
 
 - **Best Case**: O(n) - Even when array is already sorted, we still traverse once
 - **Average Case**: O(n) - Same as best case, linear time
 - **Worst Case**: O(n) - Even reverse sorted takes single pass
 - **Why not O(n²)**: Each element is swapped at most once, never revisited
 
----
+### Important Edge Cases
 
-## Space Complexity Analysis
+1. **All elements are the same**: `[1, 1, 1]` - Algorithm handles gracefully, mid advances through all
+2. **Already sorted**: `[0, 0, 1, 1, 2, 2]` - Only moves mid pointer, minimal swaps
+3. **Reverse sorted**: `[2, 2, 1, 1, 0, 0]` - Maximum swaps but still O(n)
+4. **Empty array**: `[]` - Handles correctly with early return
+5. **Single element**: `[1]` - No processing needed
 
-| Component | Space | Description |
-|-----------|-------|-------------|
-| **In-place sorting** | O(1) | Only three pointer variables used |
-| **No extra array** | O(1) | Array is sorted without allocation |
-| **Recursion stack** | O(1) | Iterative implementation |
-| **Total** | O(1) | Constant extra space |
+### Limitations
 
-### Comparison with Other Approaches
-
-| Algorithm | Extra Space |
-|-----------|-------------|
-| Dutch National Flag | O(1) ✓ |
-| Counting Sort | O(k) where k = range |
-| Built-in Sort | O(n) (for Timsort) |
-| Merge Sort | O(n) |
-
----
-
-## Common Variations
-
-### 1. Dutch National Flag for K Colors
-
-Extending the algorithm to handle more than 3 colors using multiple pointers:
-
-````carousel
-```python
-def sort_k_colors(nums: list[int], k: int) -> None:
-    """
-    Extended Dutch National Flag for k distinct values.
-    
-    Time: O(n * k)  # Not optimal, but works
-    Space: O(1)
-    """
-    if k <= 2:
-        sort_colors(nums) if k == 2 else None
-        return
-    
-    # For k > 2, use partition based approach
-    # This is a simplified version
-    counts = [0] * k
-    for num in nums:
-        counts[num] += 1
-    
-    idx = 0
-    for val in range(k):
-        for _ in range(counts[val]):
-            nums[idx] = val
-            idx += 1
-```
-````
-
-### 2. Three-Way Quicksort Partition
-
-The same principle used in quicksort to handle duplicate pivot values:
-
-````carousel
-```python
-def three_way_partition(arr: list[int], pivot: int) -> list[int]:
-    """
-    Partition array around pivot into three sections:
-    - Elements less than pivot
-    - Elements equal to pivot  
-    - Elements greater than pivot
-    
-    Used in 3-way quicksort (Dutch National Flag variant)
-    """
-    low = 0
-    mid = 0
-    high = len(arr) - 1
-    
-    while mid <= high:
-        if arr[mid] < pivot:
-            arr[low], arr[mid] = arr[mid], arr[low]
-            low += 1
-            mid += 1
-        elif arr[mid] == pivot:
-            mid += 1
-        else:
-            arr[mid], arr[high] = arr[high], arr[mid]
-            high -= 1
-    
-    return arr
-```
-````
-
-### 3. Partition by Multiple Criteria
-
-Using the same three-pointer technique for complex partitioning:
-
-````carousel
-```python
-def partition_negatives_first(arr: list[int]) -> list[int]:
-    """
-    Partition array so all negative numbers come before non-negatives.
-    
-    Similar to Dutch National Flag but with 2 categories.
-    """
-    low = 0
-    mid = 0
-    high = len(arr) - 1
-    
-    while mid <= high:
-        if arr[mid] < 0:
-            arr[low], arr[mid] = arr[mid], arr[low]
-            low += 1
-            mid += 1
-        else:
-            mid += 1
-    
-    return arr
-```
-````
+- **Exactly 3 values**: Designed specifically for three distinct values
+- **Not stable**: Swaps elements, doesn't preserve original order
+- **Comparison-based**: Requires values to be comparable
+- **In-place modification**: Modifies the original array
 
 ---
 
@@ -730,29 +705,31 @@ def sortColors(nums):
 
 ---
 
-### Problem 2: Partition Array into Two Arrays to Minimize Difference
+### Problem 2: Move Zeroes
 
-**Problem:** [LeetCode 2034 - Partition Array into Two Arrays to Minimize Difference](https://leetcode.com/problems/partition-array-into-two-arrays-to-minimize-difference/)
+**Problem:** [LeetCode 283 - Move Zeroes](https://leetcode.com/problems/move-zeroes/)
 
-**Description:** Given an integer array `nums` of size `n`, partition it into two groups (each group having at least one element) such that the difference between the sums of the two groups is minimized.
+**Description:** Given an integer array `nums`, move all 0's to the end of it while maintaining the relative order of the non-zero elements.
 
 **How to Apply Dutch National Flag:**
-- Sort the array first (DNF or built-in sort)
-- Then use prefix sums to find minimum difference
-- Works well when array has limited distinct values
+- Treat 0 and non-zeros as two categories
+- Similar to Dutch National Flag with 2 values (simplified)
+- Single pass solution
+- Time: O(n), Space: O(1)
 
 ---
 
-### Problem 3: Find the Kth Smallest Element
+### Problem 3: Sort Array By Parity
 
-**Problem:** [LeetCode 215 - Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/)
+**Problem:** [LeetCode 905 - Sort Array By Parity](https://leetcode.com/problems/sort-array-by-parity/)
 
-**Description:** Given an integer array `nums` and an integer `k`, return the kth largest element in the array.
+**Description:** Given an integer array `nums`, move all the even integers at the beginning of the array followed by all the odd integers.
 
 **How to Apply Dutch National Flag:**
-- Use quickselect with 3-way partition
-- Handle duplicates efficiently
-- Average O(n) time complexity
+- Treat even and odd as two categories
+- Two-way partition similar to DNF
+- Single pass solution
+- Time: O(n), Space: O(1)
 
 ---
 
@@ -766,19 +743,47 @@ def sortColors(nums):
 - First sort the array using Dutch National Flag (if 3 values)
 - Then apply wiggle ordering
 - Can be done in O(n) for specific value ranges
+- Time: O(n log n) for general case
 
 ---
 
-### Problem 5: Three Number Sort
+### Problem 5: Kth Largest Element in an Array
 
-**Problem:** [LeetCode 283 - Move Zeroes](https://leetcode.com/problems/move-zeroes/)
+**Problem:** [LeetCode 215 - Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/)
 
-**Description:** Given an integer array `nums`, move all 0's to the end of it while maintaining the relative order of the non-zero elements.
+**Description:** Given an integer array `nums` and an integer `k`, return the kth largest element in the array.
 
 **How to Apply Dutch National Flag:**
-- Treat 0 and non-zeros as two categories
-- Similar to Dutch National Flag with 2 values
-- Single pass solution
+- Use quickselect with 3-way partition
+- Handle duplicates efficiently
+- Average O(n) time complexity
+- Better than standard quicksort for arrays with duplicates
+
+---
+
+### Problem 6: Wiggle Sort
+
+**Problem:** [LeetCode 280 - Wiggle Sort](https://leetcode.com/problems/wiggle-sort/)
+
+**Description:** Given an unsorted array `nums`, reorder it in-place such that `nums[0] <= nums[1] >= nums[2] <= nums[3]...`
+
+**How to Apply Dutch National Flag:**
+- Sort and then swap adjacent elements
+- Or use one-pass with comparisons
+- Time: O(n log n) or O(n)
+
+---
+
+### Problem 7: Relative Sort Array
+
+**Problem:** [LeetCode 1122 - Relative Sort Array](https://leetcode.com/problems/relative-sort-array/)
+
+**Description:** Given two arrays `arr1` and `arr2`, the elements of `arr2` are distinct, and all elements in `arr2` are also in `arr1`. Sort the elements of `arr1` such that the relative ordering of items in `arr1` are the same as in `arr2`.
+
+**How to Apply Dutch National Flag:**
+- Use counting approach (variant of DNF)
+- Count occurrences and reorder based on `arr2` order
+- Time: O(n + m), Space: O(m)
 
 ---
 
@@ -796,6 +801,12 @@ def sortColors(nums):
 - [Dutch National Flag in Different Languages](https://www.youtube.com/watch?v=2E67lG3D4eU) - Implementation variations
 - [Interview Problem Discussion](https://www.youtube.com/watch?v=2F4r0N2u4vU) - Common interview questions
 
+### Problem-Specific
+
+- [Move Zeroes - LeetCode 283](https://www.youtube.com/watch?v=3PmQ0N857vs) - Two-pointer technique
+- [Wiggle Sort II](https://www.youtube.com/watch?v=vGnk9UHwxn0) - Advanced sorting
+- [Kth Largest Element](https://www.youtube.com/watch?v=XEmy13g1Qxc) - Quickselect with 3-way partition
+
 ---
 
 ## Follow-up Questions
@@ -804,26 +815,96 @@ def sortColors(nums):
 
 **Answer:** When we swap `nums[mid]` with `nums[high]`, the element from position `high` (which could be 0, 1, or 2) moves to position `mid`. This element hasn't been processed yet, so we need to check it again. If we increment `mid`, we might skip processing this element incorrectly.
 
+Example:
+```
+Before swap: [..., 2, ..., 0] (mid points to 2, high points to 0)
+After swap:  [..., 0, ..., 2] (0 is now at mid, needs processing)
+```
+
+---
+
 ### Q2: Can Dutch National Flag handle more than 3 values?
 
 **Answer:** The classic Dutch National Flag algorithm is specifically designed for exactly 3 values. For k values, you can either:
-1. Use counting sort (O(n + k) time, O(k) space)
-2. Extend the algorithm with multiple partitions (complex)
-3. Use quicksort with 3-way partition recursively
+1. **Use counting sort**: O(n + k) time, O(k) space - simpler and more flexible
+2. **Extend the algorithm**: With multiple partitions (complex, not recommended)
+3. **Use quicksort**: With 3-way partition recursively
+
+For k > 3, counting sort is usually preferred over extending DNF.
+
+---
 
 ### Q3: What's the difference between Dutch National Flag and counting sort?
 
-**Answer:** 
-- **Dutch National Flag**: O(n) time, O(1) space, single pass, requires exactly 3 values
-- **Counting Sort**: O(n + k) time, O(k) space, two passes, works for any range of values
+**Answer:**
 
-### Q4: Is the algorithm stable?
+| Aspect | Dutch National Flag | Counting Sort |
+|--------|---------------------|---------------|
+| **Time** | O(n) | O(n + k) where k is range |
+| **Space** | O(1) | O(k) |
+| **Passes** | Single pass | Two passes (count + write) |
+| **Stability** | Not stable | Stable |
+| **Values** | Exactly 3 | Any range |
 
-**Answer:** The classic Dutch National Flag algorithm is **not stable** by default because it swaps elements. However, if stability is required, you can use a modified approach or use counting sort instead.
+---
+
+### Q4: Is the algorithm stable? Does it preserve the relative order of equal elements?
+
+**Answer:** The classic Dutch National Flag algorithm is **not stable** by default because it swaps elements arbitrarily. For example, if you have two 1s at different positions, their relative order might change.
+
+If stability is required:
+- Use counting sort (stable variant)
+- Or use a modified approach that tracks original indices
+
+---
 
 ### Q5: How does this relate to quicksort?
 
-**Answer:** Dutch National Flag is essentially the partition step of quicksort, but specifically optimized for handling three distinct values. In quicksort's 3-way partition variant, this same technique is used to separate elements less than, equal to, and greater than the pivot, which is particularly effective when there are many duplicate values.
+**Answer:** Dutch National Flag is essentially the partition step of quicksort, but specifically optimized for handling three distinct values. In quicksort's 3-way partition variant:
+- Elements < pivot go to left
+- Elements == pivot go to middle
+- Elements > pivot go to right
+
+This is exactly the DNF pattern! The 3-way quicksort is particularly effective when there are many duplicate values, as it avoids re-sorting equal elements.
+
+---
+
+### Q6: When should I choose counting sort over Dutch National Flag?
+
+**Answer:** Choose counting sort when:
+- You need **stability** (preserve original order of duplicates)
+- You have **more than 3** distinct values
+- You can afford **O(k) extra space**
+- The **value range (k)** is small and known
+
+Choose Dutch National Flag when:
+- You have **exactly 3** distinct values
+- You need **O(1) extra space**
+- You want **single-pass** processing
+
+---
+
+### Q7: Can Dutch National Flag handle negative numbers?
+
+**Answer:** Yes, if you map them appropriately. The algorithm works with any comparable values, not just 0, 1, 2. You just need to establish an ordering:
+
+```python
+def sort_three_categories(nums):
+    # Example: negative, zero, positive
+    low = mid = 0
+    high = len(nums) - 1
+    
+    while mid <= high:
+        if nums[mid] < 0:  # Negative category
+            nums[low], nums[mid] = nums[mid], nums[low]
+            low += 1
+            mid += 1
+        elif nums[mid] == 0:  # Zero category
+            mid += 1
+        else:  # Positive category
+            nums[mid], nums[high] = nums[high], nums[mid]
+            high -= 1
+```
 
 ---
 
@@ -841,16 +922,10 @@ When to use:
 - ✅ Sorting arrays with exactly 3 distinct values
 - ✅ Problems requiring single-pass partitioning
 - ✅ Scenarios needing O(1) extra space
+
+When not to use:
 - ❌ More than 3 distinct values (use counting sort or quicksort)
 - ❌ When stability is required (use counting sort)
+- ❌ General-purpose sorting needs
 
 This algorithm is a fundamental technique in competitive programming and technical interviews, frequently appearing in problems like "Sort Colors" (LeetCode 75). Understanding the three-pointer approach opens the door to solving many similar partitioning problems efficiently.
-
----
-
-## Related Algorithms
-
-- [Two Pointers](./two-pointers.md) - Related technique
-- [Quicksort](./quicksort.md) - Uses similar partitioning
-- [Counting Sort](./counting-sort.md) - Alternative for limited range
-- [Bucket Sort](./bucket-sort.md) - Generalization of counting sort

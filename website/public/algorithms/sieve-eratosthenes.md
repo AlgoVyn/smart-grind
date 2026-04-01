@@ -5,7 +5,570 @@ Math & Number Theory
 
 ## Description
 
-The Sieve of Eratosthenes is an ancient and efficient algorithm for finding all prime numbers up to a given limit n. It works by iteratively marking the multiples of each prime starting from 2. Dating back to ancient Greece (circa 240 BC), it remains one of the most efficient algorithms for prime generation and is fundamental to number theory problems.
+The Sieve of Eratosthenes is an ancient and efficient algorithm for finding all prime numbers up to a given limit n. Dating back to ancient Greece (circa 240 BC), it remains one of the most efficient algorithms for prime generation and is fundamental to number theory problems in competitive programming.
+
+The algorithm works by iteratively marking the multiples of each prime starting from 2. The key insight is that every composite number has at least one prime factor less than or equal to its square root, allowing us to eliminate all non-prime numbers efficiently with a time complexity of O(n log log n).
+
+---
+
+## Concepts
+
+The Sieve of Eratosthenes is built on several fundamental concepts that make it powerful for prime generation and number theory applications.
+
+### 1. Prime and Composite Numbers
+
+| Type | Definition | Example |
+|------|------------|---------|
+| **Prime** | Number with exactly two divisors: 1 and itself | 2, 3, 5, 7, 11 |
+| **Composite** | Number with more than two divisors | 4, 6, 8, 9, 10 |
+| **Neither** | 0 and 1 are neither prime nor composite | 0, 1 |
+
+### 2. Sieve Principle
+
+Instead of checking each number individually for primality (O(n√n)), the sieve marks multiples of known primes:
+
+```
+For each prime p found:
+    Mark all multiples of p (2p, 3p, 4p, ...) as composite
+```
+
+### 3. Optimization: Start from p²
+
+When marking multiples of prime p, we can start from p² instead of 2p:
+
+- Multiples 2p, 3p, ..., (p-1)p were already marked by smaller primes
+- Starting from p² avoids redundant work
+- This is crucial for achieving O(n log log n) complexity
+
+### 4. Square Root Bound
+
+We only need to sieve up to √n:
+
+- Any composite number c ≤ n has a prime factor p ≤ √c ≤ √n
+- After processing all primes up to √n, all composites are marked
+- Remaining unmarked numbers are primes
+
+---
+
+## Frameworks
+
+Structured approaches for implementing and using the Sieve of Eratosthenes.
+
+### Framework 1: Basic Sieve Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  BASIC SIEVE OF ERATOSTHENES FRAMEWORK                │
+├─────────────────────────────────────────────────────┤
+│  1. Create boolean array is_prime[0...n], init True  │
+│  2. Mark is_prime[0] = is_prime[1] = False           │
+│  3. For p from 2 to √n:                              │
+│     a. If is_prime[p] is True:                       │
+│        - Mark all multiples from p² to n as False    │
+│  4. Collect all indices where is_prime[i] is True   │
+│  5. Return list of primes                            │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Finding all primes up to n, basic prime generation.
+
+### Framework 2: Optimized Sieve (Odd Numbers Only)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  OPTIMIZED SIEVE FRAMEWORK (Odd Numbers Only)         │
+├─────────────────────────────────────────────────────┤
+│  1. Handle n < 2: return []                          │
+│  2. If n >= 2: start with [2]                       │
+│  3. Create boolean array for odd numbers only     │
+│     - Index i represents number 2i + 3              │
+│  4. For i from 0 to (√n - 3) / 2:                  │
+│     a. If is_prime[i] is True:                     │
+│        - p = 2i + 3                                 │
+│        - Mark multiples starting from (p²-3)/2      │
+│  5. Convert indices back to numbers and return      │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Memory-constrained environments, ~2x speedup.
+
+### Framework 3: SPF (Smallest Prime Factor) Sieve
+
+```
+┌─────────────────────────────────────────────────────┐
+│  SMALLEST PRIME FACTOR (SPF) SIEVE FRAMEWORK         │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize spf[i] = i for all i (each number    │
+│     is its own smallest prime factor initially)    │
+│  2. For i from 2 to √n:                              │
+│     a. If spf[i] == i (i is prime):                 │
+│        - For j from i² to n, step i:               │
+│          - If spf[j] == j: set spf[j] = i          │
+│  3. Return spf array                                │
+│  4. Use spf for O(log n) factorization              │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When you need prime factorization queries after sieve.
+
+---
+
+## Forms
+
+Different manifestations and applications of the sieve pattern.
+
+### Form 1: Prime Generation Sieve
+
+Standard sieve for generating all primes up to n.
+
+| Variant | Time | Space | Use Case |
+|---------|------|-------|----------|
+| Basic | O(n log log n) | O(n) | General purpose |
+| Odd-only | O(n log log n) | O(n/2) | Memory optimization |
+| Segmented | O(n log log n) | O(√n) | Very large n |
+
+### Form 2: Prime Counting Sieve
+
+Count primes less than n without storing all primes.
+
+```python
+def count_primes(n):
+    if n <= 2: return 0
+    is_prime = [True] * n
+    is_prime[0] = is_prime[1] = False
+    for p in range(2, int(n**0.5) + 1):
+        if is_prime[p]:
+            for i in range(p*p, n, p):
+                is_prime[i] = False
+    return sum(is_prime)
+```
+
+### Form 3: Factorization Sieve (SPF Array)
+
+Precompute smallest prime factor for fast factorization.
+
+```python
+# After SPF sieve, factorize in O(log n)
+def factorize(x, spf):
+    factors = []
+    while x > 1:
+        factors.append(spf[x])
+        x //= spf[x]
+    return factors
+```
+
+### Form 4: Segmented Sieve
+
+For finding primes in a range [low, high] where high is very large.
+
+```
+1. Generate base primes up to √high using standard sieve
+2. Create boolean array for range [low, high]
+3. For each base prime p:
+   - Find first multiple in range
+   - Mark all multiples in range
+4. Return unmarked numbers in range
+```
+
+### Form 5: Bitwise Sieve
+
+Memory-optimized version using bits instead of bytes.
+
+| Standard | Bitwise | Savings |
+|----------|---------|---------|
+| 1 byte per number | 1 bit per number | 8x memory reduction |
+| 100MB for n=10⁸ | 12.5MB for n=10⁸ | Significant for large n |
+
+---
+
+## Tactics
+
+Specific techniques and optimizations for sieve implementation.
+
+### Tactic 1: Efficient Composite Marking
+
+Mark multiples starting from p², not 2p:
+
+```python
+for p in range(2, int(n**0.5) + 1):
+    if is_prime[p]:
+        # Start from p*p, not 2*p
+        for multiple in range(p * p, n + 1, p):
+            is_prime[multiple] = False
+```
+
+**Why this works**: Smaller multiples (2p, 3p, ..., (p-1)p) have smaller prime factors and were already marked.
+
+### Tactic 2: Sieve Only Odd Numbers
+
+Skip all even numbers except 2:
+
+```python
+def sieve_odd_only(n):
+    if n < 2: return []
+    if n == 2: return [2]
+    
+    # Only track odd numbers: index i represents 2i + 3
+    size = (n - 3) // 2 + 1
+    is_prime = [True] * size
+    
+    limit = int(n**0.5)
+    for i in range((limit - 3) // 2 + 1):
+        if is_prime[i]:
+            p = 2 * i + 3
+            # Start marking from p²
+            start = (p * p - 3) // 2
+            for j in range(start, size, p):
+                is_prime[j] = False
+    
+    primes = [2]
+    for i in range(size):
+        if is_prime[i]:
+            primes.append(2 * i + 3)
+    return primes
+```
+
+### Tactic 3: Linear Sieve for O(n)
+
+When you need optimal O(n) time and smallest prime factors:
+
+```python
+def linear_sieve(n):
+    """O(n) sieve that also computes smallest prime factors."""
+    spf = [0] * (n + 1)
+    is_prime = [True] * (n + 1)
+    is_prime[0] = is_prime[1] = False
+    primes = []
+    
+    for i in range(2, n + 1):
+        if is_prime[i]:
+            primes.append(i)
+            spf[i] = i
+        
+        for p in primes:
+            if i * p > n:
+                break
+            is_prime[i * p] = False
+            spf[i * p] = p
+            if i % p == 0:  # Critical optimization
+                break
+    
+    return primes, spf
+```
+
+### Tactic 4: Segmented Sieve for Large Ranges
+
+When n > 10⁷ and memory is constrained:
+
+```python
+def segmented_sieve(low, high):
+    """Find primes in [low, high] using O(√high) memory."""
+    import math
+    
+    if low < 2: low = 2
+    limit = int(math.sqrt(high)) + 1
+    base_primes = sieve(limit)
+    
+    size = high - low + 1
+    is_prime = [True] * size
+    
+    for p in base_primes:
+        # Find first multiple of p in [low, high]
+        start = max(p * p, ((low + p - 1) // p) * p)
+        for j in range(start, high + 1, p):
+            is_prime[j - low] = False
+    
+    return [i for i in range(low, high + 1) if is_prime[i - low]]
+```
+
+### Tactic 5: Precompute Prime Counts with Prefix Sum
+
+For O(1) prime counting queries:
+
+```python
+def sieve_with_prefix(n):
+    """Returns primes and prefix count array for O(1) queries."""
+    is_prime = [True] * (n + 1)
+    is_prime[0] = is_prime[1] = False
+    
+    for p in range(2, int(n**0.5) + 1):
+        if is_prime[p]:
+            for i in range(p * p, n + 1, p):
+                is_prime[i] = False
+    
+    # Prefix sum: prime_prefix[i] = number of primes ≤ i
+    prime_prefix = [0] * (n + 1)
+    for i in range(1, n + 1):
+        prime_prefix[i] = prime_prefix[i-1] + (1 if is_prime[i] else 0)
+    
+    return [i for i in range(2, n+1) if is_prime[i]], prime_prefix
+
+# O(1) query: count primes in [l, r]
+def count_primes_range(l, r, prime_prefix):
+    return prime_prefix[r] - prime_prefix[l-1]
+```
+
+---
+
+## Python Templates
+
+### Template 1: Basic Sieve of Eratosthenes
+
+```python
+def sieve_basic(n: int) -> list[int]:
+    """
+    Template for basic Sieve of Eratosthenes.
+    Returns list of all primes up to n.
+    
+    Time: O(n log log n)
+    Space: O(n)
+    """
+    if n < 2:
+        return []
+    
+    # Initialize: assume all numbers are prime
+    is_prime = [True] * (n + 1)
+    is_prime[0] = is_prime[1] = False
+    
+    # Sieve: only need to check up to sqrt(n)
+    for p in range(2, int(n ** 0.5) + 1):
+        if is_prime[p]:
+            # Mark multiples starting from p*p
+            for multiple in range(p * p, n + 1, p):
+                is_prime[multiple] = False
+    
+    # Collect primes
+    return [i for i in range(2, n + 1) if is_prime[i]]
+```
+
+### Template 2: Prime Counting (LeetCode 204)
+
+```python
+def count_primes(n: int) -> int:
+    """
+    Count primes strictly less than n.
+    LeetCode 204 solution template.
+    
+    Time: O(n log log n)
+    Space: O(n)
+    """
+    if n <= 2:
+        return 0
+    
+    is_prime = [True] * n
+    is_prime[0] = is_prime[1] = False
+    
+    for p in range(2, int(n ** 0.5) + 1):
+        if is_prime[p]:
+            for multiple in range(p * p, n, p):
+                is_prime[multiple] = False
+    
+    return sum(is_prime)
+```
+
+### Template 3: Smallest Prime Factor (SPF) Sieve
+
+```python
+def sieve_spf(n: int) -> list[int]:
+    """
+    Compute smallest prime factor for each number up to n.
+    Enables O(log n) factorization.
+    
+    Time: O(n log log n)
+    Space: O(n)
+    """
+    spf = [0] * (n + 1)
+    
+    # Initialize: each number is its own SPF
+    for i in range(n + 1):
+        spf[i] = i
+    
+    # Sieve: update SPF for composites
+    for i in range(2, int(n ** 0.5) + 1):
+        if spf[i] == i:  # i is prime
+            for j in range(i * i, n + 1, i):
+                if spf[j] == j:  # Not yet assigned
+                    spf[j] = i
+    
+    return spf
+
+
+def factorize(x: int, spf: list[int]) -> list[int]:
+    """Factorize x using SPF array. Time: O(log x)"""
+    factors = []
+    while x > 1:
+        factors.append(spf[x])
+        x //= spf[x]
+    return factors
+
+
+def factorize_with_exponents(x: int, spf: list[int]) -> dict[int, int]:
+    """Factorize x and return {prime: exponent}. Time: O(log x)"""
+    factors = {}
+    while x > 1:
+        p = spf[x]
+        factors[p] = factors.get(p, 0) + 1
+        x //= p
+    return factors
+```
+
+### Template 4: Optimized Sieve (Odd Numbers Only)
+
+```python
+def sieve_optimized(n: int) -> list[int]:
+    """
+    Optimized sieve using only odd numbers.
+    ~2x faster and ~2x less memory than basic sieve.
+    
+    Time: O(n log log n)
+    Space: O(n/2)
+    """
+    if n < 2:
+        return []
+    if n == 2:
+        return [2]
+    
+    # Only track odd numbers >= 3
+    # Index i represents number 2*i + 3
+    size = (n - 3) // 2 + 1
+    is_prime = [True] * size
+    
+    limit = int(n ** 0.5)
+    for i in range((limit - 3) // 2 + 1):
+        if is_prime[i]:
+            p = 2 * i + 3
+            # Start marking from p*p
+            # Position of p*p in odd number array
+            start = (p * p - 3) // 2
+            for j in range(start, size, p):
+                is_prime[j] = False
+    
+    # Collect primes
+    primes = [2]
+    for i in range(size):
+        if is_prime[i]:
+            primes.append(2 * i + 3)
+    
+    return primes
+```
+
+### Template 5: Segmented Sieve for Large Ranges
+
+```python
+def segmented_sieve(low: int, high: int) -> list[int]:
+    """
+    Find primes in range [low, high] using O(√high) memory.
+    Useful when high > 10^7 or when memory is constrained.
+    
+    Time: O((high-low+1) log log high + √high log log √high)
+    Space: O(√high)
+    """
+    import math
+    
+    if low < 2:
+        low = 2
+    
+    # Generate base primes up to √high
+    limit = int(math.sqrt(high)) + 1
+    base_primes = sieve_basic(limit)
+    
+    # Create segment
+    size = high - low + 1
+    is_prime = [True] * size
+    
+    # Mark composites in segment
+    for p in base_primes:
+        # Find first multiple of p in [low, high]
+        start = max(p * p, ((low + p - 1) // p) * p)
+        for j in range(start, high + 1, p):
+            is_prime[j - low] = False
+    
+    return [low + i for i in range(size) if is_prime[i]]
+```
+
+### Template 6: Prime Prefix Sum for Range Queries
+
+```python
+def sieve_with_prefix(n: int) -> tuple[list[int], list[int]]:
+    """
+    Build sieve and prefix sum array for O(1) prime counting queries.
+    
+    Returns:
+        - primes: List of all primes up to n
+        - prefix: prefix[i] = count of primes ≤ i
+    
+    Time: O(n log log n)
+    Space: O(n)
+    """
+    is_prime = [True] * (n + 1)
+    is_prime[0] = is_prime[1] = False
+    
+    for p in range(2, int(n ** 0.5) + 1):
+        if is_prime[p]:
+            for i in range(p * p, n + 1, p):
+                is_prime[i] = False
+    
+    # Build prefix sum
+    prefix = [0] * (n + 1)
+    for i in range(1, n + 1):
+        prefix[i] = prefix[i - 1] + (1 if is_prime[i] else 0)
+    
+    primes = [i for i in range(2, n + 1) if is_prime[i]]
+    return primes, prefix
+
+
+def count_primes_in_range(l: int, r: int, prefix: list[int]) -> int:
+    """Count primes in [l, r] in O(1) time."""
+    if l > r:
+        return 0
+    if l <= 0:
+        return prefix[r]
+    return prefix[r] - prefix[l - 1]
+```
+
+### Template 7: Sieve for Multiplicative Functions
+
+```python
+def sieve_multiplicative(n: int) -> dict:
+    """
+    Compute multiplicative functions using sieve.
+    Returns phi (Euler's totient), mu (Möbius), d (divisor count).
+    
+    Time: O(n log log n)
+    Space: O(n)
+    """
+    spf = list(range(n + 1))
+    
+    # Sieve for SPF
+    for i in range(2, int(n ** 0.5) + 1):
+        if spf[i] == i:
+            for j in range(i * i, n + 1, i):
+                if spf[j] == j:
+                    spf[j] = i
+    
+    # Initialize functions
+    phi = list(range(n + 1))  # Euler's totient
+    mu = [1] * (n + 1)        # Möbius function
+    is_square_free = [True] * (n + 1)
+    
+    for i in range(2, n + 1):
+        if spf[i] == i:  # i is prime
+            # Update multiples of prime i
+            for j in range(i, n + 1, i):
+                phi[j] -= phi[j] // i
+                mu[j] *= -1
+            
+            # Mark multiples of i² as not square-free
+            i_sq = i * i
+            for j in range(i_sq, n + 1, i_sq):
+                is_square_free[j] = False
+    
+    for i in range(n + 1):
+        if not is_square_free[i]:
+            mu[i] = 0
+    
+    return {'phi': phi, 'mu': mu, 'spf': spf}
+```
 
 ---
 
@@ -16,27 +579,33 @@ Use the Sieve of Eratosthenes when you need to solve problems involving:
 - **Prime Number Generation**: Finding all primes up to n
 - **Prime Counting**: Counting primes less than n
 - **Factorization Preprocessing**: Precomputing smallest prime factors
-- **Multiples Elimination**: When you need to mark multiples efficiently
+- **Multiplicative Functions**: Computing Euler's totient, Möbius function
+- **Range Prime Queries**: Multiple queries about primes in ranges
 
 ### Comparison with Alternatives
 
 | Algorithm | Time Complexity | Space | Best Use Case |
 |-----------|----------------|-------|---------------|
 | **Sieve of Eratosthenes** | O(n log log n) | O(n) | Finding all primes up to n |
-| **Naive Prime Check** | O(√n) per number | O(1) | Single prime check |
-| **Segmented Sieve** | O(n log log n) | O(√n) | Large ranges with memory constraints |
-| **Sundaram's Sieve** | O(n log n) | O(n) | Alternative prime generation |
-| **Atkin's Sieve** | O(n / log log n) | O(n) | Theoretical faster sieve (practical overhead) |
+| **Linear Sieve** | O(n) | O(n) | Need SPF or O(n) guarantee |
+| **Segmented Sieve** | O(n log log n) | O(√n) | Large ranges, memory constraints |
+| **Naive Prime Check** | O(√n) per number | O(1) | Single/few prime checks |
+| **Miller-Rabin** | O(k log³n) | O(1) | Very large numbers (n > 10¹⁸) |
 
 ### When to Choose Sieve vs Alternatives
 
 - **Choose Standard Sieve** when:
-  - You need all primes up to n (n ≤ 10^7 typically)
+  - You need all primes up to n (n ≤ 10⁷ typically)
   - Memory is not a constraint (O(n) space)
   - You need to answer multiple prime-related queries
 
+- **Choose Linear Sieve** when:
+  - You need smallest prime factors
+  - O(n) time is required
+  - Computing multiplicative functions
+
 - **Choose Segmented Sieve** when:
-  - n is very large (n > 10^8)
+  - n is very large (n > 10⁸)
   - Memory is limited
   - You only need primes in a specific range
 
@@ -73,16 +642,16 @@ For n = 30:
 
 ```
 Initial:     [F, F, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T]
-             0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30
+              0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30
 
 After p=2:   [F, F, T, T, F, T, F, T, F, T, F, T, F, T, F, T, F, T, F, T, F, T, F, T, F, T, F, T, F, T]
-             Mark 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30
+              Mark 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30
 
 After p=3:   [F, F, T, T, F, T, F, T, F, F, F, T, F, T, F, F, F, T, F, T, F, F, F, T, F, T, F, F, F, T]
-             Mark 9, 15, 21, 27 (6, 12, 18, 24, 30 already marked)
+              Mark 9, 15, 21, 27
 
-After p=5:   [F, F, T, T, F, T, F, T, F, F, F, T, F, T, F, F, F, T, F, T, F, F, F, T, F, T, F, F, F, F]
-             Mark 25
+After p=5:   [F, F, T, T, F, T, F, T, F, F, F, T, F, T, F, F, F, T, F, T, F, F, F, T, F, F, F, F, F, F]
+              Mark 25
 
 Result:      Primes at indices: 2, 3, 5, 7, 11, 13, 17, 19, 23, 29
 ```
@@ -101,702 +670,18 @@ Consider p = 5:
 - **Proof**: If n = a × b with a ≤ b, then a² ≤ a × b = n, so a ≤ √n
 - **Implication**: We only need to process primes up to √n to eliminate all composites
 
----
+### Why It Works
 
-## Algorithm Steps
+- **No redundant calculations**: Each composite is marked only by its smallest prime factor
+- **Efficient**: Total operations are O(n log log n)
+- **Simple**: Basic implementation is straightforward
 
-### Building the Sieve
+### Limitations
 
-1. **Handle edge cases**: If n < 2, return empty list
-2. **Create boolean array**: Initialize is_prime[0...n] = True
-3. **Mark 0 and 1**: Set is_prime[0] = is_prime[1] = False
-4. **Main sieve loop**: For p from 2 to √n:
-   - If is_prime[p] is True:
-     - Mark all multiples from p² to n as False
-5. **Collect results**: Return all indices where is_prime[i] is True
-
-### Querying Primes
-
-1. **Count primes**: Simply sum the boolean array
-2. **Find kth prime**: Iterate through and count
-3. **Check if n is prime**: Return is_prime[n]
-
----
-
-## Implementation
-
-### Template Code (All Languages)
-
-````carousel
-```python
-def sieve(n):
-    """
-    Find all prime numbers up to n using Sieve of Eratosthenes.
-    
-    Args:
-        n: Upper limit (inclusive)
-    
-    Returns:
-        List of all prime numbers from 2 to n
-    
-    Time: O(n log log n)
-    Space: O(n)
-    """
-    if n < 2:
-        return []
-    
-    # Initialize boolean array: is_prime[i] = True means i is prime
-    is_prime = [True] * (n + 1)
-    is_prime[0] = is_prime[1] = False
-    
-    # Only need to sieve up to sqrt(n)
-    p = 2
-    while p * p <= n:
-        if is_prime[p]:
-            # Mark all multiples of p starting from p*p as non-prime
-            for i in range(p * p, n + 1, p):
-                is_prime[i] = False
-        p += 1
-    
-    # Collect all primes
-    return [i for i in range(2, n + 1) if is_prime[i]]
-
-
-def count_primes(n):
-    """Count number of primes less than n."""
-    if n <= 2:
-        return 0
-    
-    is_prime = [True] * n
-    is_prime[0] = is_prime[1] = False
-    
-    for p in range(2, int(n ** 0.5) + 1):
-        if is_prime[p]:
-            for i in range(p * p, n, p):
-                is_prime[i] = False
-    
-    return sum(is_prime)
-
-
-def sieve_optimized(n):
-    """Optimized version using odd numbers only - ~2x faster."""
-    if n < 2:
-        return []
-    if n == 2:
-        return [2]
-    
-    # Only track odd numbers (index i represents number 2*i + 3)
-    size = (n - 3) // 2 + 1
-    is_prime = [True] * size
-    
-    # Sieve odd numbers only
-    limit = int(n ** 0.5)
-    for i in range(limit // 2):
-        if is_prime[i]:
-            # p = 2i + 3
-            p = 2 * i + 3
-            start = (p * p - 3) // 2
-            step = p
-            for j in range(start, size, step):
-                is_prime[j] = False
-    
-    # Collect results (include 2 and convert odd indices back to numbers)
-    primes = [2]
-    for i in range(size):
-        if is_prime[i]:
-            primes.append(2 * i + 3)
-    
-    return primes
-
-
-def smallest_prime_factor(n):
-    """Precompute smallest prime factor for each number."""
-    spf = list(range(n + 1))
-    
-    for i in range(2, int(n ** 0.5) + 1):
-        if spf[i] == i:  # i is prime
-            for j in range(i * i, n + 1, i):
-                if spf[j] == j:
-                    spf[j] = i
-    
-    return spf
-
-
-def prime_factors(n, spf):
-    """Get prime factorization using SPF array."""
-    factors = []
-    while n > 1:
-        factors.append(spf[n])
-        n //= spf[n]
-    return factors
-
-
-# Example usage
-if __name__ == "__main__":
-    n = 30
-    print(f"Primes up to {n}: {sieve(n)}")
-    print(f"Count of primes up to {n}: {count_primes(n)}")
-    print(f"Optimized primes up to {n}: {sieve_optimized(n)}")
-    
-    # SPF example
-    spf = smallest_prime_factor(30)
-    print(f"\nSmallest prime factors up to 30: {spf}")
-    print(f"Prime factors of 30: {prime_factors(30, spf)}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <cmath>
-using namespace std;
-
-/**
- * Sieve of Eratosthenes - Find all primes up to n
- * 
- * Time: O(n log log n)
- * Space: O(n)
- */
-vector<int> sieve(int n) {
-    if (n < 2) return {};
-    
-    vector<bool> is_prime(n + 1, true);
-    is_prime[0] = is_prime[1] = false;
-    
-    for (int p = 2; p * p <= n; p++) {
-        if (is_prime[p]) {
-            for (int i = p * p; i <= n; i += p) {
-                is_prime[i] = false;
-            }
-        }
-    }
-    
-    vector<int> primes;
-    for (int i = 2; i <= n; i++) {
-        if (is_prime[i]) primes.push_back(i);
-    }
-    return primes;
-}
-
-/**
- * Count primes less than n
- */
-int countPrimes(int n) {
-    if (n <= 2) return 0;
-    
-    vector<bool> is_prime(n, true);
-    is_prime[0] = is_prime[1] = false;
-    
-    for (int p = 2; p * p < n; p++) {
-        if (is_prime[p]) {
-            for (int i = p * p; i < n; i += p) {
-                is_prime[i] = false;
-            }
-        }
-    }
-    
-    int count = 0;
-    for (bool prime : is_prime) {
-        if (prime) count++;
-    }
-    return count;
-}
-
-/**
- * Optimized sieve - odd numbers only
- */
-vector<int> sieveOptimized(int n) {
-    if (n < 2) return {};
-    if (n == 2) return {2};
-    
-    // Only track odd numbers: index i -> number 2*i + 3
-    int size = (n - 3) / 2 + 1;
-    vector<bool> is_prime(size, true);
-    
-    int limit = static_cast<int>(sqrt(n));
-    for (int i = 0; i <= limit / 2; i++) {
-        if (is_prime[i]) {
-            int p = 2 * i + 3;
-            int start = (p * p - 3) / 2;
-            for (int j = start; j < size; j += p) {
-                is_prime[j] = false;
-            }
-        }
-    }
-    
-    vector<int> primes = {2};
-    for (int i = 0; i < size; i++) {
-        if (is_prime[i]) {
-            primes.push_back(2 * i + 3);
-        }
-    }
-    return primes;
-}
-
-/**
- * Smallest Prime Factor (SPF) array
- */
-vector<int> smallestPrimeFactor(int n) {
-    vector<int> spf(n + 1);
-    for (int i = 0; i <= n; i++) spf[i] = i;
-    
-    for (int i = 2; i * i <= n; i++) {
-        if (spf[i] == i) {  // i is prime
-            for (int j = i * i; j <= n; j += i) {
-                if (spf[j] == j) spf[j] = i;
-            }
-        }
-    }
-    return spf;
-}
-
-/**
- * Get prime factorization using SPF
- */
-vector<int> primeFactors(int n, const vector<int>& spf) {
-    vector<int> factors;
-    while (n > 1) {
-        factors.push_back(spf[n]);
-        n /= spf[n];
-    }
-    return factors;
-}
-
-int main() {
-    int n = 30;
-    
-    cout << "Primes up to " << n << ": ";
-    vector<int> primes = sieve(n);
-    for (int p : primes) cout << p << " ";
-    cout << endl;
-    
-    cout << "Count: " << countPrimes(n) << endl;
-    
-    cout << "Optimized: ";
-    primes = sieveOptimized(n);
-    for (int p : primes) cout << p << " ";
-    cout << endl;
-    
-    // SPF example
-    vector<int> spf = smallestPrimeFactor(30);
-    cout << "\nPrime factors of 30: ";
-    vector<int> factors = primeFactors(30, spf);
-    for (int f : factors) cout << f << " ";
-    cout << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-/**
- * Sieve of Eratosthenes - Find all primes up to n
- * 
- * Time: O(n log log n)
- * Space: O(n)
- */
-public class SieveOfEratosthenes {
-    
-    /**
-     * Find all prime numbers up to n
-     */
-    public static List<Integer> sieve(int n) {
-        if (n < 2) return new ArrayList<>();
-        
-        boolean[] isPrime = new boolean[n + 1];
-        Arrays.fill(isPrime, true);
-        isPrime[0] = isPrime[1] = false;
-        
-        for (int p = 2; p * p <= n; p++) {
-            if (isPrime[p]) {
-                for (int i = p * p; i <= n; i += p) {
-                    isPrime[i] = false;
-                }
-            }
-        }
-        
-        List<Integer> primes = new ArrayList<>();
-        for (int i = 2; i <= n; i++) {
-            if (isPrime[i]) primes.add(i);
-        }
-        return primes;
-    }
-    
-    /**
-     * Count primes less than n
-     */
-    public static int countPrimes(int n) {
-        if (n <= 2) return 0;
-        
-        boolean[] isPrime = new boolean[n];
-        Arrays.fill(isPrime, true);
-        isPrime[0] = isPrime[1] = false;
-        
-        for (int p = 2; p * p < n; p++) {
-            if (isPrime[p]) {
-                for (int i = p * p; i < n; i += p) {
-                    isPrime[i] = false;
-                }
-            }
-        }
-        
-        int count = 0;
-        for (boolean prime : isPrime) {
-            if (prime) count++;
-        }
-        return count;
-    }
-    
-    /**
-     * Optimized sieve - odd numbers only
-     */
-    public static List<Integer> sieveOptimized(int n) {
-        if (n < 2) return new ArrayList<>();
-        if (n == 2) return Arrays.asList(2);
-        
-        // Only track odd numbers: index i -> number 2*i + 3
-        int size = (n - 3) / 2 + 1;
-        boolean[] isPrime = new boolean[size];
-        Arrays.fill(isPrime, true);
-        
-        int limit = (int) Math.sqrt(n);
-        for (int i = 0; i <= limit / 2; i++) {
-            if (isPrime[i]) {
-                int p = 2 * i + 3;
-                int start = (p * p - 3) / 2;
-                for (int j = start; j < size; j += p) {
-                    isPrime[j] = false;
-                }
-            }
-        }
-        
-        List<Integer> primes = new ArrayList<>();
-        primes.add(2);
-        for (int i = 0; i < size; i++) {
-            if (isPrime[i]) {
-                primes.add(2 * i + 3);
-            }
-        }
-        return primes;
-    }
-    
-    /**
-     * Build Smallest Prime Factor array
-     */
-    public static int[] smallestPrimeFactor(int n) {
-        int[] spf = new int[n + 1];
-        for (int i = 0; i <= n; i++) spf[i] = i;
-        
-        for (int i = 2; i * i <= n; i++) {
-            if (spf[i] == i) {
-                for (int j = i * i; j <= n; j += i) {
-                    if (spf[j] == j) spf[j] = i;
-                }
-            }
-        }
-        return spf;
-    }
-    
-    /**
-     * Get prime factorization using SPF
-     */
-    public static List<Integer> primeFactors(int n, int[] spf) {
-        List<Integer> factors = new ArrayList<>();
-        while (n > 1) {
-            factors.add(spf[n]);
-            n /= spf[n];
-        }
-        return factors;
-    }
-    
-    public static void main(String[] args) {
-        int n = 30;
-        
-        System.out.print("Primes up to " + n + ": ");
-        System.out.println(sieve(n));
-        
-        System.out.println("Count: " + countPrimes(n));
-        
-        System.out.print("Optimized: ");
-        System.out.println(sieveOptimized(n));
-        
-        // SPF example
-        int[] spf = smallestPrimeFactor(30);
-        System.out.print("Prime factors of 30: ");
-        System.out.println(primeFactors(30, spf));
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Sieve of Eratosthenes - Find all primes up to n
- * 
- * Time: O(n log log n)
- * Space: O(n)
- */
-function sieve(n) {
-    if (n < 2) return [];
-    
-    const isPrime = new Array(n + 1).fill(true);
-    isPrime[0] = isPrime[1] = false;
-    
-    for (let p = 2; p * p <= n; p++) {
-        if (isPrime[p]) {
-            for (let i = p * p; i <= n; i += p) {
-                isPrime[i] = false;
-            }
-        }
-    }
-    
-    const primes = [];
-    for (let i = 2; i <= n; i++) {
-        if (isPrime[i]) primes.push(i);
-    }
-    return primes;
-}
-
-/**
- * Count primes less than n
- */
-function countPrimes(n) {
-    if (n <= 2) return 0;
-    
-    const isPrime = new Array(n).fill(true);
-    isPrime[0] = isPrime[1] = false;
-    
-    for (let p = 2; p * p < n; p++) {
-        if (isPrime[p]) {
-            for (let i = p * p; i < n; i += p) {
-                isPrime[i] = false;
-            }
-        }
-    }
-    
-    return isPrime.filter(Boolean).length;
-}
-
-/**
- * Optimized sieve - odd numbers only (approximately 2x faster)
- */
-function sieveOptimized(n) {
-    if (n < 2) return [];
-    if (n === 2) return [2];
-    
-    // Only track odd numbers: index i -> number 2*i + 3
-    const size = Math.floor((n - 3) / 2) + 1;
-    const isPrime = new Array(size).fill(true);
-    
-    const limit = Math.floor(Math.sqrt(n));
-    for (let i = 0; i <= Math.floor(limit / 2); i++) {
-        if (isPrime[i]) {
-            const p = 2 * i + 3;
-            const start = Math.floor((p * p - 3) / 2);
-            for (let j = start; j < size; j += p) {
-                isPrime[j] = false;
-            }
-        }
-    }
-    
-    const primes = [2];
-    for (let i = 0; i < size; i++) {
-        if (isPrime[i]) {
-            primes.push(2 * i + 3);
-        }
-    }
-    return primes;
-}
-
-/**
- * Build Smallest Prime Factor array
- */
-function smallestPrimeFactor(n) {
-    const spf = new Array(n + 1);
-    for (let i = 0; i <= n; i++) spf[i] = i;
-    
-    for (let i = 2; i * i <= n; i++) {
-        if (spf[i] === i) {
-            for (let j = i * i; j <= n; j += i) {
-                if (spf[j] === j) spf[j] = i;
-            }
-        }
-    }
-    return spf;
-}
-
-/**
- * Get prime factorization using SPF
- */
-function primeFactors(n, spf) {
-    const factors = [];
-    while (n > 1) {
-        factors.push(spf[n]);
-        n = Math.floor(n / spf[n]);
-    }
-    return factors;
-}
-
-// Example usage
-const n = 30;
-console.log(`Primes up to ${n}:`, sieve(n));
-console.log(`Count: ${countPrimes(n)}`);
-console.log(`Optimized:`, sieveOptimized(n));
-
-// SPF example
-const spf = smallestPrimeFactor(30);
-console.log(`Prime factors of 30:`, primeFactors(30, spf));
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Basic Sieve** | O(n log log n) | Marking multiples of each prime |
-| **Optimized Sieve** | O(n log log n) | Same complexity, fewer operations |
-| **Prime Count** | O(n log log n) | Same as sieve, then sum |
-| **SPF Build** | O(n log log n) | Extended sieve for factorization |
-| **Prime Query** | O(1) | Array lookup after preprocessing |
-
-### Detailed Breakdown
-
-- **Initialization**: O(n) - Create and fill boolean array
-- **Marking multiples**: For each prime p, we mark n/p elements
-  - Sum = n/2 + n/3 + n/5 + n/7 + ... = n × (1/2 + 1/3 + 1/5 + ...)
-  - This sum converges to O(n log log n)
-- **Total**: O(n log log n)
-
-### Why O(n log log n)?
-
-The harmonic series of primes converges to log log n:
-- π(n) ~ n / log n (Prime Number Theorem)
-- Work = n × (1/2 + 1/3 + 1/5 + ...) ≈ n × log log n
-
----
-
-## Space Complexity Analysis
-
-| Variant | Space | Notes |
-|---------|-------|-------|
-| **Basic Sieve** | O(n) | Boolean array of size n+1 |
-| **Optimized (Odd only)** | O(n/2) | ~50% memory reduction |
-| **SPF Array** | O(n) | Integer array for factorization |
-| **Segmented Sieve** | O(√n) | Only store segment |
-
-### Space Optimization
-
-For very large n:
-1. **Bit array**: Use bits instead of booleans (8x less memory)
-2. **Segmented sieve**: Process in chunks
-3. **Odd-only tracking**: Halve the space
-
----
-
-## Common Variations
-
-### 1. Segmented Sieve
-
-For very large n where memory is constrained:
-
-````carousel
-```python
-def segmented_sieve(low, high):
-    """Find primes in range [low, high] using segmented sieve."""
-    import math
-    
-    if low < 2:
-        low = 2
-    
-    # Base primes up to sqrt(high)
-    limit = int(math.sqrt(high)) + 1
-    base_primes = sieve(limit)
-    
-    # Create segment
-    size = high - low + 1
-    is_prime = [True] * size
-    
-    # Mark composites in segment using base primes
-    for p in base_primes:
-        # Find first multiple in [low, high]
-        start = max(p * p, ((low + p - 1) // p) * p)
-        for j in range(start, high + 1, p):
-            is_prime[j - low] = False
-    
-    return [i for i in range(low, high + 1) if is_prime[i - low]]
-```
-````
-
-### 2. Linear Sieve (Euler's Sieve)
-
-O(n) algorithm that generates primes in linear time:
-
-````carousel
-```python
-def linear_sieve(n):
-    """Linear sieve - O(n) prime generation."""
-    primes = []
-    is_prime = [True] * (n + 1)
-    is_prime[0] = is_prime[1] = False
-    
-    for i in range(2, n + 1):
-        if is_prime[i]:
-            primes.append(i)
-        for p in primes:
-            if p * i > n:
-                break
-            is_prime[p * i] = False
-            if i % p == 0:
-                break
-    
-    return primes
-```
-````
-
-### 3. Smallest Prime Factor (SPF) Sieve
-
-Useful for prime factorization queries:
-
-- Precomputes smallest prime factor for each number
-- Enables O(log n) prime factorization
-- Used in many competitive programming problems
-
-### 4. Bitwise Sieve
-
-For memory-constrained environments:
-- Uses 1 bit per number instead of 1 byte
-- 8x more memory efficient
-- Useful for n > 10^8
-
-### 5. Prime Counting Function (π(n))
-
-Counting primes less than n efficiently using the sieve:
-
-````carousel
-```python
-def prime_count(n):
-    """Count primes less than n."""
-    if n <= 2:
-        return 0
-    
-    is_prime = [True] * n
-    is_prime[0] = is_prime[1] = False
-    
-    for p in range(2, int(n ** 0.5) + 1):
-        if is_prime[p]:
-            for i in range(p * p, n, p):
-                is_prime[i] = False
-    
-    return sum(is_prime)
-```
-````
+- **Memory constraint**: Requires O(n) space
+- **Range limitation**: For n > 10⁸, memory becomes problematic
+- **Single shot**: Preprocesses entire range; not ideal for sparse queries
+- **Not for large single numbers**: For testing primality of a single large number (n > 10¹⁸), use Miller-Rabin instead
 
 ---
 
@@ -819,50 +704,50 @@ def prime_count(n):
 
 **Problem:** [LeetCode 1175 - Prime Arrangements](https://leetcode.com/problems/prime-arrangements/)
 
-**Description:** Return the number of ways to arrange the first n numbers such that all primes are in odd positions.
+**Description:** Return the number of ways to arrange the first n numbers such that all primes are in odd positions (1-indexed).
 
 **How to Apply Sieve:**
 - First, count primes up to n using sieve
 - Calculate factorial for prime and non-prime counts
-- Result = (prime_count)! × (n - prime_count)! mod 10^9+7
+- Result = (prime_count)! × (n - prime_count)! mod 10⁹+7
 
 ---
 
-### Problem 3: Ugly Number
+### Problem 3: Ugly Number II
 
-**Problem:** [LeetCode 263 - Ugly Number](https://leetcode.com/problems/ugly-number/)
+**Problem:** [LeetCode 264 - Ugly Number II](https://leetcode.com/problems/ugly-number-ii/)
 
-**Description:** An ugly number is a positive integer whose prime factors are only 2, 3, and 5.
+**Description:** An ugly number is a positive integer whose prime factors are limited to 2, 3, and 5. Given n, return the nth ugly number.
 
 **How to Apply Sieve:**
-- Precompute primes using sieve
-- Check if given number has any prime factor outside {2, 3, 5}
-- Can also use SPF array for O(log n) factorization
+- Sieve is not directly used, but understanding of prime factors helps
+- Alternatively, can use SPF sieve to check if a number has only 2, 3, 5 as factors
 
 ---
 
-### Problem 4: Find all primes
+### Problem 4: Sum of Four Divisors
 
-**Problem:** [LeetCode 507 - Perfect Number](https://leetcode.com/problems/perfect-number/)
+**Problem:** [LeetCode 1390 - Sum of Four Divisors](https://leetcode.com/problems/sum-of-four-divisors/)
 
-**Description:** Find all divisors (excluding the number itself) and check if their sum equals the number.
+**Description:** Given an integer array nums, return the sum of divisors of the integers in nums that have exactly four divisors.
 
 **How to Apply Sieve:**
-- While doing prime sieve, also precompute sum of divisors
-- Use SPF array for efficient divisor calculation
+- Precompute SPF up to max(nums)
+- For each number, factorize using SPF and check if it has exactly 4 divisors
+- A number has exactly 4 divisors if it's either p³ or p×q (distinct primes)
 
 ---
 
-### Problem 5: Range Prime Queries
+### Problem 5: Distinct Prime Factors of Product of Array
 
-**Problem:** [LeetCode 1781 - Sum of Beauty of All Substrings](https://leetcode.com/problems/sum-of-beauty-of-all-substrings/)
+**Problem:** [LeetCode 2521 - Distinct Prime Factors of Product of Array](https://leetcode.com/problems/distinct-prime-factors-of-product-of-array/)
 
-**Description:** Given the frequency of characters, determine prime frequency counts.
+**Description:** You are given an array of positive integers nums. Return the number of distinct prime factors in the product of the elements of nums.
 
 **How to Apply Sieve:**
-- Precompute primes up to 26 (for 26 letters)
-- Use sieve to quickly check if a frequency is prime
-- Optimize character frequency analysis
+- Precompute SPF up to max(nums)
+- For each number, get unique prime factors using SPF
+- Use a set to track distinct primes across all numbers
 
 ---
 
@@ -870,16 +755,20 @@ def prime_count(n):
 
 ### Fundamentals
 
-- [Sieve of Eratosthenes - Introduction (Take U Forward)](https://www.youtube.com/watch?v=明月几时有) - Comprehensive introduction
-- [Prime Number Sieve Algorithm (WilliamFiset)](https://www.youtube.com/watch?v=ELphsJ1SlHw) - Detailed explanation with visualizations
-- [Count Primes - LeetCode Solution (NeetCode)](https://www.youtube.com/watch?v=O-7X0e8c7vc) - Practical implementation
+- [Sieve of Eratosthenes - Introduction (Take U Forward)](https://www.youtube.com/watch?v=6-eGg7u9Sgc) - Comprehensive introduction to sieve
+- [Prime Number Sieve Algorithm (WilliamFiset)](https://www.youtube.com/watch?v=jaSux1q2z9s) - Detailed explanation with visualizations
+- [Count Primes - LeetCode Solution (NeetCode)](https://www.youtube.com/watch?v=US8c0W2DpxM) - Practical implementation
 
 ### Advanced Topics
 
-- [Segmented Sieve](https://www.youtube.com/watch?v=5CO2dGzK4xY) - For large ranges
+- [Segmented Sieve](https://www.youtube.com/watch?v=fByR4R4CE3Y) - For large ranges
 - [Linear Sieve (Euler's Sieve)](https://www.youtube.com/watch?v=0j5lXz2h3YQ) - O(n) algorithm
 - [Sieve for Smallest Prime Factor](https://www.youtube.com/watch?v=v4_9Z-nEA4c) - Factorization queries
-- [Sieve vs Alternative Methods](https://www.youtube.com/watch?v=o9K5ZBhL7pM) - When to use which
+
+### Problem Solving
+
+- [Prime Arrangements LeetCode Solution](https://www.youtube.com/watch?v=8mWzXFlM3K8) - Combinatorics with sieve
+- [Sum of Four Divisors Solution](https://www.youtube.com/watch?v=4pHpQ5M4DRg) - SPF application
 
 ---
 
@@ -889,10 +778,10 @@ def prime_count(n):
 
 **Answer:** O(n log log n) - This comes from the harmonic series of primes. We mark n/p multiples for each prime p, and the sum of reciprocals of primes converges to log log n. This is much better than O(n²) naive checking.
 
-### Q2: Can Sieve handle n up to 10^8?
+### Q2: Can Sieve handle n up to 10⁸?
 
 **Answer:** With standard O(n) space:
-- Memory: 10^8 bytes ≈ 100MB (acceptable in most environments)
+- Memory: 10⁸ bytes ≈ 100MB (acceptable in most environments)
 - Time: ~1-2 seconds on modern hardware
 - For larger n, use segmented sieve (O(√n) space)
 
@@ -904,21 +793,21 @@ def prime_count(n):
 3. **Segmented sieve**: Process in chunks
 4. **Run-length encoding**: For sparse prime distributions
 
-### Q4: What is the difference between Eratosthenes and Sundaram's sieve?
+### Q4: What is the difference between Eratosthenes and Linear Sieve?
 
 **Answer:**
-- **Eratosthenes**: Marks multiples of primes directly
-- **Sundaram**: Uses a different mathematical approach (removes numbers of form i+j+2ij)
-- Both have O(n log log n) complexity
-- Eratosthenes is more commonly used and slightly faster in practice
+- **Eratosthenes**: O(n log log n), simpler implementation
+- **Linear Sieve**: O(n), computes smallest prime factors, more complex
+- Linear Sieve marks each composite exactly once by its smallest prime factor
+- Use Linear Sieve when you need SPF or guaranteed O(n)
 
-### Q5: When should you use the Linear Sieve over the basic Sieve?
+### Q5: When should you use Segmented Sieve over standard Sieve?
 
-**Answer:** Use Linear Sieve when:
-- You need O(n) guarantee (theoretically optimal)
-- You need primes in order with no gaps
-- You're generating all primes up to very large n
-- However, for most practical cases (n < 10^7), basic sieve is simpler and fast enough
+**Answer:** Use Segmented Sieve when:
+- n is very large (n > 10⁸)
+- Memory is limited (uses O(√n) space)
+- You only need primes in a specific range [low, high]
+- Finding primes in a window far from 0
 
 ---
 
@@ -933,7 +822,7 @@ The Sieve of Eratosthenes is a foundational algorithm in number theory for gener
 - **Historical significance**: Still relevant after 2000+ years
 
 When to use:
-- ✅ Generating all primes up to n (n ≤ 10^7)
+- ✅ Generating all primes up to n (n ≤ 10⁷)
 - ✅ Counting primes less than n
 - ✅ Preprocessing for factorization queries
 - ✅ Any problem requiring multiple prime checks
@@ -941,12 +830,3 @@ When to use:
 - ❌ Single prime check (use naive O(√n) check)
 
 This algorithm is essential for competitive programming and technical interviews, especially in problems involving prime numbers, factorization, and number theory.
-
----
-
-## Related Algorithms
-
-- [Segmented Sieve](./segmented-sieve.md) - Large range prime finding
-- [Linear Sieve](./linear-sieve.md) - O(n) prime generation
-- [Prime Factorization](./prime-factorization.md) - Using SPF arrays
-- [Miller-Rabin](./miller-rabin.md) - Probabilistic prime testing for large numbers

@@ -11,6 +11,481 @@ The key insight is that since both input lists are sorted, we can efficiently me
 
 ---
 
+## Concepts
+
+The Merge Two Sorted Lists technique is built on several fundamental concepts.
+
+### 1. Sorted Input Invariant
+
+Both inputs maintain the sorted property:
+
+| List | Property | Implication |
+|------|----------|-------------|
+| **List 1** | Sorted ascending | Head contains minimum of List 1 |
+| **List 2** | Sorted ascending | Head contains minimum of List 2 |
+| **Result** | Will be sorted | Next element always minimum of two heads |
+
+### 2. Two-Pointer Technique
+
+Maintain pointers to current elements in both lists:
+
+```
+Pointer 1 → Current element in List 1
+Pointer 2 → Current element in List 2
+
+At each step:
+- Compare *Pointer 1 vs *Pointer 2
+- Attach smaller to result
+- Advance that pointer
+```
+
+### 3. Dummy Node Pattern
+
+Use a placeholder to simplify edge cases:
+
+```
+Dummy → [placeholder] → [merged elements...]
+         ↑
+        Tail pointer always points here
+```
+
+Eliminates special cases for empty result list.
+
+### 4. Remaining Elements Optimization
+
+When one list exhausted, attach remainder directly:
+
+```
+List 1: [1, 3, 5]  → exhausted
+List 2: [2, 4, 6, 8, 10]
+Result: [1, 2, 3, 4, 5] → attach [6, 8, 10] directly
+```
+
+---
+
+## Frameworks
+
+Structured approaches for merging sorted lists.
+
+### Framework 1: Iterative Merge Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  ITERATIVE MERGE FRAMEWORK                          │
+├─────────────────────────────────────────────────────┤
+│  1. Create dummy node as placeholder                │
+│  2. Initialize tail = dummy                         │
+│  3. While both lists have nodes:                    │
+│     a. Compare list1.val vs list2.val              │
+│     b. Attach smaller node to tail.next            │
+│     c. Advance pointer of chosen list            │
+│     d. Advance tail pointer                        │
+│  4. Attach remaining non-empty list (if any)      │
+│  5. Return dummy.next (skip placeholder)          │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: General case, O(1) space required, production code.
+
+### Framework 2: Recursive Merge Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  RECURSIVE MERGE FRAMEWORK                          │
+├─────────────────────────────────────────────────────┤
+│  1. Base cases:                                     │
+│     - If list1 is null, return list2               │
+│     - If list2 is null, return list1               │
+│  2. Compare list1.val vs list2.val                 │
+│  3. If list1.val <= list2.val:                     │
+│     a. list1.next = merge(list1.next, list2)       │
+│     b. Return list1                                │
+│  4. Else:                                           │
+│     a. list2.next = merge(list1, list2.next)       │
+│     b. Return list2                                │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Clean code preferred, stack space acceptable.
+
+### Framework 3: In-Place Array Merge Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  IN-PLACE ARRAY MERGE FRAMEWORK                     │
+├─────────────────────────────────────────────────────┤
+│  Given: nums1 with extra space, nums2, sizes m, n │
+│  1. Initialize pointers:                            │
+│     - p1 = m - 1 (last valid element in nums1)     │
+│     - p2 = n - 1 (last element in nums2)           │
+│     - p = m + n - 1 (end of merged result)          │
+│  2. While p2 >= 0:                                  │
+│     a. If p1 >= 0 and nums1[p1] > nums2[p2]:       │
+│        - nums1[p] = nums1[p1]                       │
+│        - p1 -= 1                                    │
+│     b. Else:                                        │
+│        - nums1[p] = nums2[p2]                       │
+│        - p2 -= 1                                    │
+│     c. p -= 1                                       │
+│  3. nums1 now contains merged sorted array        │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Arrays with extra space, in-place requirement.
+
+---
+
+## Forms
+
+Different manifestations of the merge pattern.
+
+### Form 1: Linked List Merge
+
+Standard two sorted linked lists:
+
+| Operation | Time | Space |
+|-----------|------|-------|
+| Iterative | O(n + m) | O(1) |
+| Recursive | O(n + m) | O(n + m) stack |
+
+Key: Reuse existing nodes, just rewire pointers.
+
+### Form 2: Array Merge
+
+Two sorted arrays into new array:
+
+| Operation | Time | Space |
+|-----------|------|-------|
+| Standard | O(n + m) | O(n + m) for result |
+| In-place | O(n + m) | O(1) if extra space available |
+
+Key: Handle from end to avoid overwriting.
+
+### Form 3: K-Way Merge
+
+Merge k sorted lists using heap:
+
+```
+Approach:
+1. Push first element from each list into min-heap
+2. Pop smallest, add to result
+3. Push next from same list if exists
+4. Repeat until heap empty
+```
+
+Time: O(N log k) where N = total elements, k = number of lists.
+
+### Form 4: Sorted Stream Merge
+
+Merge data streams that arrive continuously:
+
+```
+Pattern:
+- Use priority queue to track current element from each stream
+- Always output minimum
+- Request next from that stream
+- Repeat
+```
+
+### Form 5: Sorted File Merge
+
+External sorting merge phase:
+
+```
+Application: Sorting large files that don't fit in memory
+- Read chunks, sort in memory, write to temp files
+- Merge sorted temp files using k-way merge
+- Write final sorted output
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Dummy Node Eliminates Edge Cases
+
+Without dummy:
+```python
+if not list1:
+    return list2
+if not list2:
+    return list1
+if list1.val <= list2.val:
+    head = list1
+    list1 = list1.next
+else:
+    head = list2
+    list2 = list2.next
+# ... continue
+```
+
+With dummy:
+```python
+dummy = ListNode(0)
+tail = dummy
+# ... simple loop
+return dummy.next
+```
+
+### Tactic 2: Early Termination for Subarray Search
+
+When searching for insertion point:
+```python
+def merge_with_insertion(list1, list2):
+    """Insert nodes from list2 into appropriate positions in list1."""
+    dummy = ListNode(0, list1)
+    prev = dummy
+    
+    while list2:
+        # Move prev to insertion point
+        while prev.next and prev.next.val < list2.val:
+            prev = prev.next
+        
+        # Insert list2 head at this position
+        temp = list2.next
+        list2.next = prev.next
+        prev.next = list2
+        list2 = temp
+        
+        # Move prev forward (optimization)
+        prev = prev.next
+    
+    return dummy.next
+```
+
+### Tactic 3: Merge with Duplicates Handling
+
+Handle equal values consistently:
+```python
+while list1 and list2:
+    if list1.val <= list2.val:  # <= for stability
+        tail.next = list1
+        list1 = list1.next
+    else:
+        tail.next = list2
+        list2 = list2.next
+    tail = tail.next
+```
+
+### Tactic 4: Union of Sorted Arrays
+
+Find union (unique elements):
+```python
+def union_sorted(arr1, arr2):
+    """Find union of two sorted arrays."""
+    result = []
+    i, j = 0, 0
+    
+    while i < len(arr1) and j < len(arr2):
+        # Skip duplicates in arr1
+        while i > 0 and i < len(arr1) and arr1[i] == arr1[i-1]:
+            i += 1
+        # Skip duplicates in arr2
+        while j > 0 and j < len(arr2) and arr2[j] == arr2[j-1]:
+            j += 1
+        
+        if i >= len(arr1):
+            result.extend(arr2[j:])
+            break
+        if j >= len(arr2):
+            result.extend(arr1[i:])
+            break
+        
+        if arr1[i] < arr2[j]:
+            result.append(arr1[i])
+            i += 1
+        elif arr1[i] > arr2[j]:
+            result.append(arr2[j])
+            j += 1
+        else:
+            result.append(arr1[i])
+            i += 1
+            j += 1
+    
+    return result
+```
+
+### Tactic 5: Intersection of Sorted Arrays
+
+Find common elements:
+```python
+def intersection_sorted(arr1, arr2):
+    """Find intersection of two sorted arrays."""
+    result = []
+    i, j = 0, 0
+    
+    while i < len(arr1) and j < len(arr2):
+        if arr1[i] < arr2[j]:
+            i += 1
+        elif arr1[i] > arr2[j]:
+            j += 1
+        else:
+            # Found common element
+            if not result or result[-1] != arr1[i]:  # Avoid duplicates
+                result.append(arr1[i])
+            i += 1
+            j += 1
+    
+    return result
+```
+
+---
+
+## Python Templates
+
+### Template 1: Iterative Linked List Merge
+
+```python
+from typing import Optional
+
+class ListNode:
+    def __init__(self, val: int = 0, next: 'ListNode' = None):
+        self.val = val
+        self.next = next
+
+def merge_two_lists(list1: Optional[ListNode], 
+                  list2: Optional[ListNode]) -> Optional[ListNode]:
+    """
+    Template 1: Merge two sorted linked lists iteratively.
+    Time: O(n + m), Space: O(1)
+    """
+    # Create dummy node to simplify edge cases
+    dummy = ListNode(-1)
+    tail = dummy
+    
+    # Compare and merge nodes from both lists
+    while list1 and list2:
+        if list1.val <= list2.val:
+            tail.next = list1
+            list1 = list1.next
+        else:
+            tail.next = list2
+            list2 = list2.next
+        tail = tail.next
+    
+    # Attach remaining nodes
+    if list1:
+        tail.next = list1
+    if list2:
+        tail.next = list2
+    
+    return dummy.next
+```
+
+### Template 2: Recursive Linked List Merge
+
+```python
+def merge_two_lists_recursive(list1: Optional[ListNode], 
+                             list2: Optional[ListNode]) -> Optional[ListNode]:
+    """
+    Template 2: Merge two sorted linked lists recursively.
+    Time: O(n + m), Space: O(n + m) for recursion stack
+    """
+    # Base cases
+    if not list1:
+        return list2
+    if not list2:
+        return list1
+    
+    # Compare and pick the smaller head
+    if list1.val <= list2.val:
+        list1.next = merge_two_lists_recursive(list1.next, list2)
+        return list1
+    else:
+        list2.next = merge_two_lists_recursive(list1, list2.next)
+        return list2
+```
+
+### Template 3: In-Place Array Merge
+
+```python
+def merge_sorted_arrays_inplace(nums1: list, m: int, nums2: list, n: int) -> None:
+    """
+    Template 3: Merge nums2 into nums1 in-place.
+    nums1 has length m + n with last n positions empty.
+    
+    Time: O(m + n), Space: O(1)
+    """
+    # Start from the end
+    p1, p2, p = m - 1, n - 1, m + n - 1
+    
+    while p2 >= 0:
+        if p1 >= 0 and nums1[p1] > nums2[p2]:
+            nums1[p] = nums1[p1]
+            p1 -= 1
+        else:
+            nums1[p] = nums2[p2]
+            p2 -= 1
+        p -= 1
+```
+
+### Template 4: K-Way Merge with Heap
+
+```python
+import heapq
+from typing import List, Optional
+
+def merge_k_lists(lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+    """
+    Template 4: Merge k sorted linked lists using min-heap.
+    Time: O(N log k) where N is total nodes, k is number of lists
+    Space: O(k) for the heap
+    """
+    dummy = ListNode(-1)
+    tail = dummy
+    
+    # Min-heap: (value, list_index, node)
+    heap = []
+    
+    # Initialize heap with first node from each list
+    for i, head in enumerate(lists):
+        if head:
+            heapq.heappush(heap, (head.val, i, head))
+    
+    # Extract min and add next node from same list
+    while heap:
+        val, i, node = heapq.heappop(heap)
+        tail.next = node
+        tail = tail.next
+        
+        if node.next:
+            heapq.heappush(heap, (node.next.val, i, node.next))
+    
+    return dummy.next
+```
+
+### Template 5: Merge Sort Helper
+
+```python
+def merge_sort_linked_list(head: Optional[ListNode]) -> Optional[ListNode]:
+    """
+    Template 5: Sort linked list using merge sort.
+    Time: O(n log n), Space: O(log n) for recursion
+    """
+    if not head or not head.next:
+        return head
+    
+    # Find middle using slow/fast pointers
+    slow, fast = head, head.next
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+    
+    mid = slow.next
+    slow.next = None  # Split the list
+    
+    # Recursively sort both halves
+    left = merge_sort_linked_list(head)
+    right = merge_sort_linked_list(mid)
+    
+    # Merge sorted halves
+    return merge_two_lists(left, right)
+```
+
+---
+
 ## When to Use
 
 Use the Merge Two Sorted Lists algorithm when you need to solve problems involving:
@@ -27,7 +502,7 @@ Use the Merge Two Sorted Lists algorithm when you need to solve problems involvi
 |----------|----------------|------------------|----------|
 | **Two Pointers (Iterative)** | O(n + m) | O(1) | Two sorted linked lists/arrays |
 | **Recursive** | O(n + m) | O(n + m) stack | When recursion is preferred |
-| **K-way Merge (Heap)** | O(n log k) | O(k) | k sorted sequences |
+| **K-way Merge (Heap)** | O(N log k) | O(k) | k sorted sequences |
 | **Naive Concatenation + Sort** | O((n+m) log(n+m)) | O(n + m) | When lists aren't pre-sorted |
 
 ### When to Choose Each Approach
@@ -100,872 +575,12 @@ The dummy node eliminates special cases:
 - We always attach to the tail (which always exists)
 - At the end, we simply return `dummy.next` to skip the placeholder
 
-### Edge Cases to Consider
-
-1. **Both lists empty**: Return null
-2. **One list empty**: Return the other list
-3. **Lists with single nodes**: Handle correctly
-4. **All elements in one list smaller**: The other list gets attached at once
-5. **Duplicate values**: Handle equal values consistently (usually pick from first list)
-
----
-
-## Algorithm Steps
-
-### Building the Merged List
-
-1. **Create dummy node**: `dummy = new ListNode(-1)` (or any placeholder value)
-2. **Initialize tail pointer**: `tail = dummy`
-3. **While both lists have nodes**:
-   - Compare `list1.val` and `list2.val`
-   - Attach the smaller node to `tail.next`
-   - Move the chosen list's pointer forward
-   - Update `tail = tail.next`
-4. **After the loop**: One list may still have nodes
-   - If `list1` remains: `tail.next = list1`
-   - If `list2` remains: `tail.next = list2`
-5. **Return the result**: `return dummy.next` (skip the dummy)
-
-### Complexity Analysis
-
-| Operation | Time Complexity | Space Complexity |
-|-----------|----------------|------------------|
-| **Iterative Merge** | O(n + m) | O(1) |
-| **Recursive Merge** | O(n + m) | O(n + m) stack |
-| **Build Input Lists** | O(n + m) | O(n + m) |
-
----
-
-## Implementation
-
-### Template Code (Iterative Approach)
-
-````carousel
-```python
-from typing import Optional
-
-class ListNode:
-    """Definition for singly-linked list node."""
-    def __init__(self, val: int = 0, next: 'ListNode' = None):
-        self.val = val
-        self.next = next
-
-
-def merge_two_lists(list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:
-    """
-    Merge two sorted linked lists into one sorted list.
-    
-    Args:
-        list1: Head of first sorted linked list
-        list2: Head of second sorted linked list
-        
-    Returns:
-        Head of the merged sorted linked list
-        
-    Time: O(n + m)
-    Space: O(1)
-    """
-    # Create dummy node to simplify edge cases
-    dummy = ListNode(-1)
-    tail = dummy
-    
-    # Compare and merge nodes from both lists
-    while list1 and list2:
-        if list1.val <= list2.val:
-            tail.next = list1
-            list1 = list1.next
-        else:
-            tail.next = list2
-            list2 = list2.next
-        tail = tail.next
-    
-    # Attach remaining nodes from list1 (if any)
-    if list1:
-        tail.next = list1
-    
-    # Attach remaining nodes from list2 (if any)
-    if list2:
-        tail.next = list2
-    
-    return dummy.next
-
-
-# ==================== HELPER FUNCTIONS ====================
-
-def create_linked_list(arr: list) -> Optional[ListNode]:
-    """Create a linked list from a Python list."""
-    if not arr:
-        return None
-    dummy = ListNode(0)
-    current = dummy
-    for val in arr:
-        current.next = ListNode(val)
-        current = current.next
-    return dummy.next
-
-
-def linked_list_to_list(node: Optional[ListNode]) -> list:
-    """Convert a linked list to Python list for display."""
-    result = []
-    while node:
-        result.append(node.val)
-        node = node.next
-    return result
-
-
-# ==================== RECURSIVE VERSION ====================
-
-def merge_two_lists_recursive(list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:
-    """
-    Merge two sorted linked lists recursively.
-    
-    Time: O(n + m)
-    Space: O(n + m) due to recursion stack
-    """
-    # Base case: if either list is empty, return the other
-    if not list1:
-        return list2
-    if not list2:
-        return list1
-    
-    # Compare and pick the smaller head
-    if list1.val <= list2.val:
-        list1.next = merge_two_lists_recursive(list1.next, list2)
-        return list1
-    else:
-        list2.next = merge_two_lists_recursive(list1, list2.next)
-        return list2
-
-
-# ==================== EXAMPLE USAGE ====================
-
-if __name__ == "__main__":
-    # Create two sorted linked lists:
-    # List 1: 1 -> 2 -> 4
-    # List 2: 1 -> 3 -> 4
-    
-    list1 = create_linked_list([1, 2, 4])
-    list2 = create_linked_list([1, 3, 4])
-    
-    # Merge them (iterative)
-    result = merge_two_lists(list1, list2)
-    print("Iterative result:", linked_list_to_list(result))
-    
-    # Merge them (recursive)
-    list1 = create_linked_list([1, 2, 4])
-    list2 = create_linked_list([1, 3, 4])
-    result_rec = merge_two_lists_recursive(list1, list2)
-    print("Recursive result:", linked_list_to_list(result_rec))
-    
-    # Edge cases
-    print("\nEdge case tests:")
-    
-    # Both empty
-    result = merge_two_lists(None, None)
-    print(f"Both empty: {linked_list_to_list(result)}")
-    
-    # One empty
-    result = merge_two_lists(create_linked_list([1, 2, 3]), None)
-    print(f"Second empty: {linked_list_to_list(result)}")
-    
-    result = merge_two_lists(None, create_linked_list([1, 2, 3]))
-    print(f"First empty: {linked_list_to_list(result)}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-using namespace std;
-
-/**
- * Definition for singly-linked list.
- */
-struct ListNode {
-    int val;
-    ListNode* next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode* next) : val(x), next(next) {}
-};
-
-/**
- * Merge two sorted linked lists into one sorted list.
- * 
- * Time: O(n + m)
- * Space: O(1)
- */
-ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
-    // Create dummy node to simplify edge cases
-    ListNode* dummy = new ListNode(-1);
-    ListNode* tail = dummy;
-    
-    // Compare and merge nodes from both lists
-    while (list1 != nullptr && list2 != nullptr) {
-        if (list1->val <= list2->val) {
-            tail->next = list1;
-            list1 = list1->next;
-        } else {
-            tail->next = list2;
-            list2 = list2->next;
-        }
-        tail = tail->next;
-    }
-    
-    // Attach remaining nodes from list1 (if any)
-    if (list1 != nullptr) {
-        tail->next = list1;
-    }
-    
-    // Attach remaining nodes from list2 (if any)
-    if (list2 != nullptr) {
-        tail->next = list2;
-    }
-    
-    ListNode* result = dummy->next;
-    delete dummy;  // Clean up dummy node
-    return result;
-}
-
-/**
- * Merge two sorted linked lists recursively.
- * 
- * Time: O(n + m)
- * Space: O(n + m) stack space
- */
-ListNode* mergeTwoListsRecursive(ListNode* list1, ListNode* list2) {
-    // Base case: if either list is empty, return the other
-    if (list1 == nullptr) return list2;
-    if (list2 == nullptr) return list1;
-    
-    // Compare and pick the smaller head
-    if (list1->val <= list2->val) {
-        list1->next = mergeTwoListsRecursive(list1->next, list2);
-        return list1;
-    } else {
-        list2->next = mergeTwoListsRecursive(list1, list2->next);
-        return list2;
-    }
-}
-
-// ==================== HELPER FUNCTIONS ====================
-
-ListNode* createLinkedList(const vector<int>& arr) {
-    if (arr.empty()) return nullptr;
-    
-    ListNode* dummy = new ListNode(0);
-    ListNode* current = dummy;
-    
-    for (int val : arr) {
-        current->next = new ListNode(val);
-        current = current->next;
-    }
-    
-    ListNode* result = dummy->next;
-    delete dummy;
-    return result;
-}
-
-vector<int> linkedListToVector(ListNode* node) {
-    vector<int> result;
-    while (node != nullptr) {
-        result.push_back(node->val);
-        node = node->next;
-    }
-    return result;
-}
-
-void printLinkedList(ListNode* node) {
-    vector<int> vec = linkedListToVector(node);
-    cout << "[";
-    for (size_t i = 0; i < vec.size(); i++) {
-        cout << vec[i];
-        if (i < vec.size() - 1) cout << ", ";
-    }
-    cout << "]" << endl;
-}
-
-// ==================== EXAMPLE USAGE ====================
-
-int main() {
-    // Create two sorted linked lists:
-    // List 1: 1 -> 2 -> 4
-    // List 2: 1 -> 3 -> 4
-    
-    vector<int> arr1 = {1, 2, 4};
-    vector<int> arr2 = {1, 3, 4};
-    
-    ListNode* list1 = createLinkedList(arr1);
-    ListNode* list2 = createLinkedList(arr2);
-    
-    // Merge them (iterative)
-    ListNode* result = mergeTwoLists(list1, list2);
-    cout << "Iterative result: ";
-    printLinkedList(result);
-    
-    // Merge them (recursive)
-    list1 = createLinkedList(arr1);
-    list2 = createLinkedList(arr2);
-    ListNode* resultRec = mergeTwoListsRecursive(list1, list2);
-    cout << "Recursive result: ";
-    printLinkedList(resultRec);
-    
-    // Edge cases
-    cout << "\nEdge case tests:" << endl;
-    
-    // Both empty
-    ListNode* empty = mergeTwoLists(nullptr, nullptr);
-    cout << "Both empty: ";
-    printLinkedList(empty);
-    
-    // One empty
-    ListNode* oneEmpty = mergeTwoLists(createLinkedList({1, 2, 3}), nullptr);
-    cout << "Second empty: ";
-    printLinkedList(oneEmpty);
-    
-    oneEmpty = mergeTwoLists(nullptr, createLinkedList({1, 2, 3}));
-    cout << "First empty: ";
-    printLinkedList(oneEmpty);
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * Definition for singly-linked list.
- */
-class ListNode {
-    int val;
-    ListNode next;
-    
-    ListNode() {}
-    
-    ListNode(int val) {
-        this.val = val;
-    }
-    
-    ListNode(int val, ListNode next) {
-        this.val = val;
-        this.next = next;
-    }
-}
-
-/**
- * Merge two sorted linked lists into one sorted list.
- * 
- * Time: O(n + m)
- * Space: O(1)
- */
-public class MergeTwoSortedLists {
-    
-    public static ListNode mergeTwoLists(ListNode list1, ListNode list2) {
-        // Create dummy node to simplify edge cases
-        ListNode dummy = new ListNode(-1);
-        ListNode tail = dummy;
-        
-        // Compare and merge nodes from both lists
-        while (list1 != null && list2 != null) {
-            if (list1.val <= list2.val) {
-                tail.next = list1;
-                list1 = list1.next;
-            } else {
-                tail.next = list2;
-                list2 = list2.next;
-            }
-            tail = tail.next;
-        }
-        
-        // Attach remaining nodes from list1 (if any)
-        if (list1 != null) {
-            tail.next = list1;
-        }
-        
-        // Attach remaining nodes from list2 (if any)
-        if (list2 != null) {
-            tail.next = list2;
-        }
-        
-        return dummy.next;
-    }
-    
-    /**
-     * Merge two sorted linked lists recursively.
-     * 
-     * Time: O(n + m)
-     * Space: O(n + m) stack space
-     */
-    public static ListNode mergeTwoListsRecursive(ListNode list1, ListNode list2) {
-        // Base case: if either list is empty, return the other
-        if (list1 == null) return list2;
-        if (list2 == null) return list1;
-        
-        // Compare and pick the smaller head
-        if (list1.val <= list2.val) {
-            list1.next = mergeTwoListsRecursive(list1.next, list2);
-            return list1;
-        } else {
-            list2.next = mergeTwoListsRecursive(list1, list2.next);
-            return list2;
-        }
-    }
-    
-    // ==================== HELPER FUNCTIONS ====================
-    
-    public static ListNode createLinkedList(int[] arr) {
-        if (arr == null || arr.length == 0) return null;
-        
-        ListNode dummy = new ListNode(0);
-        ListNode current = dummy;
-        
-        for (int val : arr) {
-            current.next = new ListNode(val);
-            current = current.next;
-        }
-        
-        return dummy.next;
-    }
-    
-    public static void printLinkedList(ListNode node) {
-        System.out.print("[");
-        boolean first = true;
-        while (node != null) {
-            if (!first) System.out.print(", ");
-            System.out.print(node.val);
-            first = false;
-            node = node.next;
-        }
-        System.out.println("]");
-    }
-    
-    // ==================== EXAMPLE USAGE ====================
-    
-    public static void main(String[] args) {
-        // Create two sorted linked lists:
-        // List 1: 1 -> 2 -> 4
-        // List 2: 1 -> 3 -> 4
-        
-        int[] arr1 = {1, 2, 4};
-        int[] arr2 = {1, 3, 4};
-        
-        ListNode list1 = createLinkedList(arr1);
-        ListNode list2 = createLinkedList(arr2);
-        
-        // Merge them (iterative)
-        ListNode result = mergeTwoLists(list1, list2);
-        System.out.print("Iterative result: ");
-        printLinkedList(result);
-        
-        // Merge them (recursive)
-        list1 = createLinkedList(arr1);
-        list2 = createLinkedList(arr2);
-        ListNode resultRec = mergeTwoListsRecursive(list1, list2);
-        System.out.print("Recursive result: ");
-        printLinkedList(resultRec);
-        
-        // Edge cases
-        System.out.println("\nEdge case tests:");
-        
-        // Both empty
-        ListNode empty = mergeTwoLists(null, null);
-        System.out.print("Both empty: ");
-        printLinkedList(empty);
-        
-        // One empty
-        ListNode oneEmpty = mergeTwoLists(createLinkedList(new int[]{1, 2, 3}), null);
-        System.out.print("Second empty: ");
-        printLinkedList(oneEmpty);
-        
-        oneEmpty = mergeTwoLists(null, createLinkedList(new int[]{1, 2, 3}));
-        System.out.print("First empty: ");
-        printLinkedList(oneEmpty);
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Definition for singly-linked list.
- */
-class ListNode {
-    constructor(val = 0, next = null) {
-        this.val = val;
-        this.next = next;
-    }
-}
-
-/**
- * Merge two sorted linked lists into one sorted list.
- * 
- * @param {ListNode} list1 - Head of first sorted linked list
- * @param {ListNode} list2 - Head of second sorted linked list
- * @returns {ListNode} Head of the merged sorted linked list
- * 
- * Time: O(n + m)
- * Space: O(1)
- */
-function mergeTwoLists(list1, list2) {
-    // Create dummy node to simplify edge cases
-    const dummy = new ListNode(-1);
-    let tail = dummy;
-    
-    // Compare and merge nodes from both lists
-    while (list1 !== null && list2 !== null) {
-        if (list1.val <= list2.val) {
-            tail.next = list1;
-            list1 = list1.next;
-        } else {
-            tail.next = list2;
-            list2 = list2.next;
-        }
-        tail = tail.next;
-    }
-    
-    // Attach remaining nodes from list1 (if any)
-    if (list1 !== null) {
-        tail.next = list1;
-    }
-    
-    // Attach remaining nodes from list2 (if any)
-    if (list2 !== null) {
-        tail.next = list2;
-    }
-    
-    return dummy.next;
-}
-
-/**
- * Merge two sorted linked lists recursively.
- * 
- * @param {ListNode} list1 - Head of first sorted linked list
- * @param {ListNode} list2 - Head of second sorted linked list
- * @returns {ListNode} Head of the merged sorted linked list
- * 
- * Time: O(n + m)
- * Space: O(n + m) stack space
- */
-function mergeTwoListsRecursive(list1, list2) {
-    // Base case: if either list is empty, return the other
-    if (list1 === null) return list2;
-    if (list2 === null) return list1;
-    
-    // Compare and pick the smaller head
-    if (list1.val <= list2.val) {
-        list1.next = mergeTwoListsRecursive(list1.next, list2);
-        return list1;
-    } else {
-        list2.next = mergeTwoListsRecursive(list1, list2.next);
-        return list2;
-    }
-}
-
-// ==================== HELPER FUNCTIONS ====================
-
-/**
- * Create a linked list from an array.
- * @param {number[]} arr - Input array
- * @returns {ListNode} Head of the linked list
- */
-function createLinkedList(arr) {
-    if (!arr || arr.length === 0) return null;
-    
-    const dummy = new ListNode(0);
-    let current = dummy;
-    
-    for (const val of arr) {
-        current.next = new ListNode(val);
-        current = current.next;
-    }
-    
-    return dummy.next;
-}
-
-/**
- * Convert a linked list to an array.
- * @param {ListNode} node - Head of the linked list
- * @returns {number[]} Array representation
- */
-function linkedListToArray(node) {
-    const result = [];
-    while (node !== null) {
-        result.push(node.val);
-        node = node.next;
-    }
-    return result;
-}
-
-// ==================== EXAMPLE USAGE ====================
-
-// Create two sorted linked lists:
-// List 1: 1 -> 2 -> 4
-// List 2: 1 -> 3 -> 4
-
-const arr1 = [1, 2, 4];
-const arr2 = [1, 3, 4];
-
-const list1 = createLinkedList(arr1);
-const list2 = createLinkedList(arr2);
-
-// Merge them (iterative)
-const result = mergeTwoLists(list1, list2);
-console.log("Iterative result:", linkedListToArray(result));
-
-// Merge them (recursive)
-const list1Rec = createLinkedList(arr1);
-const list2Rec = createLinkedList(arr2);
-const resultRec = mergeTwoListsRecursive(list1Rec, list2Rec);
-console.log("Recursive result:", linkedListToArray(resultRec));
-
-// Edge cases
-console.log("\nEdge case tests:");
-
-// Both empty
-console.log("Both empty:", linkedListToArray(mergeTwoLists(null, null)));
-
-// One empty
-console.log("Second empty:", linkedListToArray(mergeTwoLists(createLinkedList([1, 2, 3]), null)));
-console.log("First empty:", linkedListToArray(mergeTwoLists(null, createLinkedList([1, 2, 3]))));
-```
-````
-
----
-
-## Example
-
-**Input:**
-```python
-# Create two sorted linked lists:
-# List 1: 1 -> 2 -> 4
-# List 2: 1 -> 3 -> 4
-
-list1 = create_linked_list([1, 2, 4])
-list2 = create_linked_list([1, 3, 4])
-
-# Merge them
-result = merge_two_lists(list1, list2)
-print(linked_list_to_list(result))
-```
-
-**Output:**
-```
-[1, 1, 2, 3, 4, 4]
-```
-
-**Step-by-Step Explanation:**
-
-1. **Initial state**: list1 = [1→2→4], list2 = [1→3→4], merged = []
-2. **Compare 1 vs 1**: Equal, pick from list1 → merged = [1], list1 advances to 2
-3. **Compare 2 vs 1**: 1 is smaller, pick from list2 → merged = [1, 1], list2 advances to 3
-4. **Compare 2 vs 3**: 2 is smaller, pick from list1 → merged = [1, 1, 2], list1 advances to 4
-5. **Compare 4 vs 3**: 3 is smaller, pick from list2 → merged = [1, 1, 2, 3], list2 advances to 4
-6. **Compare 4 vs 4**: Equal, pick from list1 → merged = [1, 1, 2, 3, 4], list1 exhausted
-7. **Attach remaining**: list2 has [4], attach it → merged = [1, 1, 2, 3, 4, 4]
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Single Pass Merge** | O(n + m) | Each node visited exactly once |
-| **Compare Operations** | O(n + m) | At most n + m comparisons |
-| **Pointer Updates** | O(n + m) | Each pointer moves forward once |
-
-### Detailed Breakdown
-
-- **Worst Case**: O(n + m) - When elements are interleaved (1 from A, 1 from B, 1 from A, 1 from B...)
-- **Best Case**: O(min(n, m)) - When all elements of one list are smaller than the other (only one comparison needed, rest just attached)
-- **Average Case**: O(n + m) - Linear time regardless of distribution
-
----
-
-## Space Complexity Analysis
-
-### Iterative Approach
-
-- **O(1)** extra space (excluding the output list)
-- Only pointer variables: dummy, tail, list1, list2
-- No recursion stack or additional data structures
-
-### Recursive Approach
-
-- **O(n + m)** stack space for the call stack
-- Each recursive call adds a frame
-- Maximum depth equals total number of nodes
-- Not tail-recursive in most languages
-
-### Array-Based Merge (for reference)
-
-- **O(n + m)** for the output array
-- In-place merge variants exist but are complex
-
----
-
-## Common Variations
-
-### 1. Merge K Sorted Lists
-
-Merging k sorted lists using a min-heap (priority queue).
-
-````carousel
-```python
-import heapq
-from typing import List, Optional
-
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-def merge_k_lists(lists: List[Optional[ListNode]]) -> Optional[ListNode]:
-    """
-    Merge k sorted linked lists using a min-heap.
-    
-    Time: O(N log k) where N is total nodes, k is number of lists
-    Space: O(k) for the heap
-    """
-    dummy = ListNode(-1)
-    tail = dummy
-    
-    # Min-heap: (value, list_index, node)
-    heap = []
-    
-    # Initialize heap with first node from each list
-    for i, head in enumerate(lists):
-        if head:
-            heapq.heappush(heap, (head.val, i, head))
-    
-    # Extract min and add next node from same list
-    while heap:
-        val, i, node = heapq.heappop(heap)
-        tail.next = node
-        tail = tail.next
-        
-        if node.next:
-            heapq.heappush(heap, (node.next.val, i, node.next))
-    
-    return dummy.next
-```
-````
-
-### 2. Merge Sort for Linked Lists
-
-Using merge as the core operation in merge sort.
-
-````carousel
-```python
-def merge_sort_linked_list(head: ListNode) -> ListNode:
-    """
-    Sort a linked list using merge sort.
-    
-    Time: O(n log n)
-    Space: O(log n) for recursion
-    """
-    if not head or not head.next:
-        return head
-    
-    # Find middle using slow/fast pointers
-    slow, fast = head, head.next
-    while fast and fast.next:
-        slow = slow.next
-        fast = fast.next.next
-    
-    mid = slow.next
-    slow.next = None  # Split the list
-    
-    # Recursively sort both halves
-    left = merge_sort_linked_list(head)
-    right = merge_sort_linked_list(mid)
-    
-    # Merge sorted halves
-    return merge_two_lists(left, right)
-```
-````
-
-### 3. In-Place Array Merge
-
-Merging two sorted arrays in-place (when array1 has extra space).
-
-````carousel
-```python
-def merge_sorted_arrays_inplace(nums1: list, m: int, nums2: list, n: int) -> None:
-    """
-    Merge two sorted arrays in-place (modifies nums1).
-    
-    Time: O(m + n)
-    Space: O(1)
-    
-    Args:
-        nums1: First sorted array with extra space
-        m: Number of elements in nums1's valid portion
-        nums2: Second sorted array
-        n: Number of elements in nums2
-    """
-    # Start from the end to avoid overwriting
-    p1, p2, p = m - 1, n - 1, m + n - 1
-    
-    while p2 >= 0:
-        if p1 >= 0 and nums1[p1] > nums2[p2]:
-            nums1[p] = nums1[p1]
-            p1 -= 1
-        else:
-            nums1[p] = nums2[p2]
-            p2 -= 1
-        p -= 1
-```
-````
-
-### 4. Union of Two Sorted Arrays
-
-Finding union of two sorted arrays.
-
-````carousel
-```python
-def union_sorted_arrays(arr1: list, arr2: list) -> list:
-    """
-    Find union of two sorted arrays (unique elements).
-    
-    Time: O(n + m)
-    Space: O(n + m) for result
-    """
-    result = []
-    i, j = 0, 0
-    
-    while i < len(arr1) and j < len(arr2):
-        # Skip duplicates in arr1
-        while i < len(arr1) - 1 and arr1[i] == arr1[i + 1]:
-            i += 1
-        # Skip duplicates in arr2
-        while j < len(arr2) - 1 and arr2[j] == arr2[j + 1]:
-            j += 1
-            
-        if arr1[i] < arr2[j]:
-            result.append(arr1[i])
-            i += 1
-        elif arr1[i] > arr2[j]:
-            result.append(arr2[j])
-            j += 1
-        else:  # Equal
-            result.append(arr1[i])
-            i += 1
-            j += 1
-    
-    # Add remaining elements
-    while i < len(arr1):
-        if not result or arr1[i] != result[-1]:
-            result.append(arr1[i])
-        i += 1
-    
-    while j < len(arr2):
-        if not result or arr2[j] != result[-1]:
-            result.append(arr2[j])
-        j += 1
-    
-    return result
-```
-````
+### Limitations
+
+- **Requires sorted inputs**: Algorithm assumes both inputs are sorted
+- **Sequential access**: Must process elements in order
+- **Space for arrays**: Standard merge needs O(n+m) space unless in-place
+- **Comparison-based**: Requires elements to be comparable
 
 ---
 
@@ -977,12 +592,10 @@ def union_sorted_arrays(arr1: list, arr2: list) -> list:
 
 **Description:** Merge two sorted linked lists and return it as a sorted list.
 
-**How to Apply the Technique:**
+**How to Apply Merge:**
 - Use the two-pointer iterative approach with a dummy node
 - Each comparison picks the smaller head
 - Attach remaining nodes when one list is exhausted
-
-**Solution Key:** Time O(n + m), Space O(1)
 
 ---
 
@@ -992,13 +605,11 @@ def union_sorted_arrays(arr1: list, arr2: list) -> list:
 
 **Description:** Merge k sorted linked lists and return it as one sorted list.
 
-**How to Apply the Technique:**
+**How to Apply Merge:**
 - Use a min-heap to efficiently find the smallest element among k lists
 - Push first element from each list into heap
 - Pop smallest, push next from same list
 - Repeat until heap is empty
-
-**Solution Key:** Time O(N log k), Space O(k)
 
 ---
 
@@ -1008,12 +619,10 @@ def union_sorted_arrays(arr1: list, arr2: list) -> list:
 
 **Description:** Merge nums1 and nums2 into a single array sorted in non-decreasing order.
 
-**How to Apply the Technique:**
+**How to Apply Merge:**
 - Use three pointers, starting from the end of arrays
 - Fill nums1 from the back to avoid overwriting
 - Compare elements and place larger one at current position
-
-**Solution Key:** Time O(m + n), Space O(1)
 
 ---
 
@@ -1023,12 +632,10 @@ def union_sorted_arrays(arr1: list, arr2: list) -> list:
 
 **Description:** Sort a linked list in O(n log n) time using constant space complexity.
 
-**How to Apply the Technique:**
+**How to Apply Merge:**
 - Use merge sort: find middle, split, recursively sort, then merge
 - The merge step is exactly the "merge two sorted lists" algorithm
 - Combine with in-place splitting using slow/fast pointers
-
-**Solution Key:** Time O(n log n), Space O(log n) for recursion
 
 ---
 
@@ -1038,12 +645,10 @@ def union_sorted_arrays(arr1: list, arr2: list) -> list:
 
 **Description:** Find the intersection node of two singly linked lists.
 
-**How to Apply the Technique:**
+**How to Apply Merge:**
 - While not directly merging, this problem uses similar pointer manipulation
 - Align longer list by advancing difference, then traverse together
 - Understanding merge helps with list manipulation concepts
-
-**Solution Key:** Time O(m + n), Space O(1)
 
 ---
 
@@ -1053,17 +658,13 @@ def union_sorted_arrays(arr1: list, arr2: list) -> list:
 
 - [Merge Two Sorted Lists - LeetCode (NeetCode)](https://www.youtube.com/watch?v=1K-JSeq-5xs) - Clear explanation with animations
 - [Merge Two Sorted Lists - Floyd's Cycle Detection](https://www.youtube.com/watch?v=0B-dF1UkBiI) - Iterative approach walkthrough
+- [Merge Sort Explained](https://www.youtube.com/watch?v=4VqmGXwpJqc) - How merge fits into merge sort
 
 ### Related Topics
 
-- [Merge Sort Explained](https://www.youtube.com/watch?v=4VqmGXwpJqc) - How merge fits into merge sort
 - [K-Way Merge using Heap](https://www.youtube.com/watch?v=3BhbVCX6wNQ) - Generalization to k lists
 - [Linked List Merge Sort](https://www.youtube.com/watch?v=3BhbVCX6wNQ) - Practical application
-
-### Advanced
-
 - [In-Place Array Merge](https://www.youtube.com/watch?v=h3R0T2J2jXU) - Merging without extra space
-- [External Merge Sort](https://www.youtube.com/watch?v=8NscT_xibble) - For large file sorting
 
 ---
 
@@ -1071,47 +672,21 @@ def union_sorted_arrays(arr1: list, arr2: list) -> list:
 
 ### Q1: Can you implement merge iteratively without a dummy node?
 
-**Answer:** Yes, but it requires handling edge cases separately:
+**Answer:** Yes, but it requires handling edge cases separately. The dummy node approach is preferred for cleaner code.
 
-```python
-def merge_two_lists_no_dummy(list1, list2):
-    # Handle empty cases
-    if not list1: return list2
-    if not list2: return list1
-    
-    # Find the smaller head to be the result head
-    if list1.val <= list2.val:
-        head = list1
-        list1 = list1.next
-    else:
-        head = list2
-        list2 = list2.next
-    
-    tail = head
-    
-    # Continue merging
-    while list1 and list2:
-        if list1.val <= list2.val:
-            tail.next = list1
-            list1 = list1.next
-        else:
-            tail.next = list2
-            list2 = list2.next
-        tail = tail.next
-    
-    tail.next = list1 or list2
-    return head
-```
-
-The dummy node approach is preferred for its cleaner handling of edge cases.
+---
 
 ### Q2: How would you handle merging with duplicate values?
 
 **Answer:** The iterative approach naturally handles duplicates by using `<=` (or `<` for strict inequality). Using `<=` ensures stability—the first list's element comes first when values are equal.
 
+---
+
 ### Q3: What if the lists are sorted in descending order?
 
 **Answer:** Simply reverse both lists first, apply the merge algorithm, then reverse the result. Alternatively, modify the comparison from `<=` to `>=`.
+
+---
 
 ### Q4: How does this differ from merging arrays vs linked lists?
 
@@ -1119,6 +694,8 @@ The dummy node approach is preferred for its cleaner handling of edge cases.
 - **Arrays**: Can merge from the end to achieve O(1) extra space (no need for dummy node)
 - **Linked Lists**: Must use forward traversal with dummy node for O(1) space
 - Both have the same O(n + m) time complexity
+
+---
 
 ### Q5: How would you merge more than two sorted lists efficiently?
 
@@ -1146,12 +723,3 @@ When to use:
 - ✅ K-way merge with heap optimization
 
 This algorithm is essential for technical interviews and competitive programming. Master both iterative and recursive approaches, as each has specific use cases and trade-offs.
-
----
-
-## Related Algorithms
-
-- [Merge Sort](./merge-sort.md) - Uses merge as the combine step
-- [K-Way Merge](./k-way-merge.md) - Generalization with priority queue
-- [Two Pointers](./two-pointers.md) - Related technique for sorted arrays
-- [Linked List](./linked-list-basics.md) - Data structure fundamentals

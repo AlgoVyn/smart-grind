@@ -7,6 +7,536 @@ Arrays & Strings
 
 Kadane's Algorithm finds the **maximum sum of a contiguous subarray** (also known as the Maximum Subarray Problem) in O(n) time. This is a classic dynamic programming problem with an elegant greedy optimization that works by iterating through the array once, tracking the maximum sum ending at each position and the global maximum seen so far.
 
+The algorithm is fundamental in competitive programming and technical interviews for solving a wide range of array problems efficiently. Its simplicity and optimal performance make it a go-to solution for maximum subarray problems.
+
+---
+
+## Concepts
+
+The Kadane's Algorithm is built on several fundamental concepts that make it powerful for solving maximum subarray problems.
+
+### 1. Local Optimum vs Global Optimum
+
+At each position, Kadane's tracks two values:
+
+| Value | Description | Purpose |
+|-------|-------------|---------|
+| **max_current** | Maximum sum ending at current index | Local optimum |
+| **max_global** | Maximum sum seen so far across all positions | Global optimum |
+
+### 2. Greedy Choice Property
+
+At each position, we make a greedy decision:
+
+```
+Either extend the previous subarray OR start a new subarray at current position
+max_current = max(nums[i], max_current + nums[i])
+```
+
+This greedy choice is optimal because extending a negative-sum prefix would only decrease the total.
+
+### 3. Subarray State Tracking
+
+The algorithm implicitly tracks subarray boundaries:
+
+- When `nums[i] > max_current + nums[i]`: Start new subarray at `i`
+- When `nums[i] <= max_current + nums[i]`: Extend existing subarray
+
+### 4. Dynamic Programming Principle
+
+Kadane's is a DP algorithm with O(1) space:
+
+- **State**: Maximum sum ending at position `i`
+- **Transition**: `dp[i] = max(nums[i], dp[i-1] + nums[i])`
+- **Optimization**: Use rolling variables instead of array
+
+---
+
+## Frameworks
+
+Structured approaches for solving maximum subarray problems.
+
+### Framework 1: Basic Kadane's (Maximum Sum Only)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  BASIC KADANE'S ALGORITHM                             │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize: max_current = max_global = nums[0]   │
+│  2. Iterate i from 1 to n-1:                         │
+│     a. max_current = max(nums[i], max_current + nums[i]) │
+│     b. max_global = max(max_global, max_current)     │
+│  3. Return max_global                                │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Only need the maximum sum value, not the subarray indices.
+
+### Framework 2: Kadane's with Indices Tracking
+
+```
+┌─────────────────────────────────────────────────────┐
+│  KADANE'S WITH INDICES TRACKING                       │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize:                                      │
+│     - max_current = max_global = nums[0]              │
+│     - start = end = 0                                 │
+│     - temp_start = 0                                  │
+│  2. Iterate i from 1 to n-1:                         │
+│     a. If nums[i] > max_current + nums[i]:         │
+│        - max_current = nums[i]                       │
+│        - temp_start = i                            │
+│     b. Else:                                         │
+│        - max_current += nums[i]                      │
+│     c. If max_current > max_global:                │
+│        - max_global = max_current                    │
+│        - start = temp_start                          │
+│        - end = i                                     │
+│  3. Return (max_global, start, end)                  │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Need to find the actual subarray, not just the sum.
+
+### Framework 3: Circular Array Maximum
+
+```
+┌─────────────────────────────────────────────────────┐
+│  CIRCULAR ARRAY MAXIMUM SUM                           │
+├─────────────────────────────────────────────────────┤
+│  1. Find max subarray using normal Kadane's         │
+│  2. If max < 0: return max (all negative case)      │
+│  3. Find min subarray using inverted Kadane's:      │
+│     - min_current = min(nums[i], min_current + nums[i]) │
+│  4. Total sum = sum of all elements                  │
+│  5. Return max(max_normal, total - min_normal)       │
+│                                                      │
+│  Key Insight: max_circular = total - min_subarray    │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Array is circular (subarray can wrap around the end).
+
+---
+
+## Forms
+
+Different manifestations of Kadane's Algorithm.
+
+### Form 1: Maximum Sum Subarray
+
+The classic form - find contiguous subarray with largest sum.
+
+| Variation | Return Value | When to Use |
+|-----------|--------------|-------------|
+| **Basic** | Maximum sum | Just need the value |
+| **With indices** | (sum, start, end) | Need the subarray |
+| **All maximums** | List of subarrays | Multiple solutions |
+
+### Form 2: Maximum Product Subarray
+
+Handles products (requires tracking both max and min).
+
+| State | Update Rule | Why |
+|-------|-------------|-----|
+| **max_prod** | `max(nums[i], max_prod * nums[i], min_prod * nums[i])` | Positive × positive or negative × negative |
+| **min_prod** | `min(nums[i], max_prod * nums[i], min_prod * nums[i])` | Negative × positive |
+
+**Key difference**: Must track minimum because negative × negative can become maximum.
+
+### Form 3: Circular Maximum
+
+Array wraps around the end.
+
+```
+Two cases:
+1. Maximum subarray doesn't wrap (normal Kadane's)
+2. Maximum subarray wraps around
+
+Case 2 Formula: total_sum - minimum_subarray_sum
+```
+
+### Form 4: Maximum Average Subarray (Fixed Size)
+
+Find subarray of exactly size k with maximum average.
+
+```
+Use sliding window to find maximum sum of size k
+Result = max_sum / k
+```
+
+### Form 5: Minimum Sum Subarray
+
+Find subarray with smallest (most negative) sum.
+
+```
+Approach 1: Negate array, run Kadane's, negate result
+Approach 2: Change max to min in the algorithm
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Track All Maximum Subarrays
+
+When multiple subarrays have the same maximum sum:
+
+```python
+def find_all_max_subarrays(nums: list[int]) -> list[tuple]:
+    """Find all subarrays with maximum sum."""
+    if not nums:
+        return []
+    
+    max_current = max_global = nums[0]
+    current_start = 0
+    max_subarrays = [(nums[0], 0, 0)]  # (sum, start, end)
+    
+    for i in range(1, len(nums)):
+        if nums[i] > max_current + nums[i]:
+            max_current = nums[i]
+            current_start = i
+        else:
+            max_current += nums[i]
+        
+        if max_current > max_global:
+            max_global = max_current
+            max_subarrays = [(max_global, current_start, i)]
+        elif max_current == max_global:
+            max_subarrays.append((max_global, current_start, i))
+    
+    return max_subarrays
+```
+
+### Tactic 2: Longest Maximum Sum Subarray
+
+When multiple subarrays have the same sum, find the longest:
+
+```python
+def longest_max_sum_subarray(nums: list[int]) -> tuple:
+    """Find longest subarray with maximum sum."""
+    if not nums:
+        return 0, 0, -1, -1
+    
+    max_sum = nums[0]
+    max_len = 1
+    max_start = max_end = 0
+    
+    current_sum = nums[0]
+    current_len = 1
+    current_start = 0
+    
+    for i in range(1, len(nums)):
+        if nums[i] > current_sum + nums[i]:
+            current_sum = nums[i]
+            current_len = 1
+            current_start = i
+        else:
+            current_sum += nums[i]
+            current_len += 1
+        
+        if current_sum > max_sum:
+            max_sum, max_len = current_sum, current_len
+            max_start, max_end = current_start, i
+        elif current_sum == max_sum and current_len > max_len:
+            max_len = current_len
+            max_start, max_end = current_start, i
+    
+    return max_sum, max_len, max_start, max_end
+```
+
+### Tactic 3: Maximum Product with Zero Handling
+
+Handle zeros in product subarray:
+
+```python
+def max_product_with_zeros(nums: list[int]) -> int:
+    """Maximum product subarray handling zeros."""
+    if not nums:
+        return 0
+    
+    max_prod = min_prod = result = nums[0]
+    
+    for i in range(1, len(nums)):
+        if nums[i] == 0:
+            max_prod = min_prod = 1
+            result = max(result, 0)
+            continue
+        
+        if nums[i] < 0:
+            max_prod, min_prod = min_prod, max_prod
+        
+        max_prod = max(nums[i], max_prod * nums[i])
+        min_prod = min(nums[i], min_prod * nums[i])
+        result = max(result, max_prod)
+    
+    return result
+```
+
+### Tactic 4: Two-Pass for Circular Array
+
+Two approaches for circular maximum:
+
+```python
+def max_circular_sum_twopass(nums: list[int]) -> int:
+    """Circular maximum using two passes."""
+    if not nums:
+        return 0
+    
+    # Pass 1: Normal maximum (Kadane's)
+    max_normal = nums[0]
+    max_current = nums[0]
+    for i in range(1, len(nums)):
+        max_current = max(nums[i], max_current + nums[i])
+        max_normal = max(max_normal, max_current)
+    
+    # If all negative, return normal max
+    if max_normal < 0:
+        return max_normal
+    
+    # Pass 2: Minimum subarray
+    min_normal = nums[0]
+    min_current = nums[0]
+    total = sum(nums)
+    for i in range(1, len(nums)):
+        min_current = min(nums[i], min_current + nums[i])
+        min_normal = min(min_normal, min_current)
+    
+    return max(max_normal, total - min_normal)
+```
+
+### Tactic 5: Prefix Sum Alternative
+
+When you need to query multiple ranges:
+
+```python
+from itertools import accumulate
+
+def max_subarray_prefix_sum(nums: list[int]) -> int:
+    """Alternative using prefix sums."""
+    if not nums:
+        return 0
+    
+    prefix = [0] + list(accumulate(nums))
+    min_prefix = 0
+    max_sum = nums[0]
+    
+    for i in range(1, len(prefix)):
+        max_sum = max(max_sum, prefix[i] - min_prefix)
+        min_prefix = min(min_prefix, prefix[i])
+    
+    return max_sum
+```
+
+---
+
+## Python Templates
+
+### Template 1: Basic Kadane's Algorithm (Maximum Sum)
+
+```python
+def max_subarray_sum(nums: list[int]) -> int:
+    """
+    Template for finding maximum subarray sum.
+    Returns only the maximum sum value.
+    
+    Time: O(n)
+    Space: O(1)
+    """
+    if not nums:
+        return 0
+    
+    max_current = max_global = nums[0]
+    
+    for i in range(1, len(nums)):
+        max_current = max(nums[i], max_current + nums[i])
+        max_global = max(max_global, max_current)
+    
+    return max_global
+```
+
+### Template 2: Kadane's with Subarray Indices
+
+```python
+def max_subarray_with_indices(nums: list[int]) -> tuple:
+    """
+    Template for finding maximum subarray with indices.
+    Returns (max_sum, start_index, end_index).
+    
+    Time: O(n)
+    Space: O(1)
+    """
+    if not nums:
+        return 0, -1, -1
+    
+    max_current = max_global = nums[0]
+    start = end = 0
+    temp_start = 0
+    
+    for i in range(1, len(nums)):
+        if nums[i] > max_current + nums[i]:
+            max_current = nums[i]
+            temp_start = i
+        else:
+            max_current += nums[i]
+        
+        if max_current > max_global:
+            max_global = max_current
+            start = temp_start
+            end = i
+    
+    return max_global, start, end
+```
+
+### Template 3: Maximum Product Subarray
+
+```python
+def max_product_subarray(nums: list[int]) -> int:
+    """
+    Template for maximum product subarray.
+    Handles negatives by tracking both max and min.
+    
+    Time: O(n)
+    Space: O(1)
+    """
+    if not nums:
+        return 0
+    
+    max_prod = min_prod = result = nums[0]
+    
+    for i in range(1, len(nums)):
+        if nums[i] < 0:
+            max_prod, min_prod = min_prod, max_prod
+        
+        max_prod = max(nums[i], max_prod * nums[i])
+        min_prod = min(nums[i], min_prod * nums[i])
+        result = max(result, max_prod)
+    
+    return result
+```
+
+### Template 4: Maximum Sum Circular Subarray
+
+```python
+def max_circular_subarray(nums: list[int]) -> int:
+    """
+    Template for circular array maximum sum.
+    Subarray can wrap around the end.
+    
+    Time: O(n)
+    Space: O(1)
+    """
+    if not nums:
+        return 0
+    
+    # Normal maximum subarray
+    max_normal = nums[0]
+    max_current = nums[0]
+    for i in range(1, len(nums)):
+        max_current = max(nums[i], max_current + nums[i])
+        max_normal = max(max_normal, max_current)
+    
+    # All negative case
+    if max_normal < 0:
+        return max_normal
+    
+    # Minimum subarray (for circular case)
+    min_normal = nums[0]
+    min_current = nums[0]
+    total = nums[0]
+    for i in range(1, len(nums)):
+        min_current = min(nums[i], min_current + nums[i])
+        min_normal = min(min_normal, min_current)
+        total += nums[i]
+    
+    return max(max_normal, total - min_normal)
+```
+
+### Template 5: Maximum Average Subarray I (Fixed Size)
+
+```python
+def max_average_subarray(nums: list[int], k: int) -> float:
+    """
+    Template for maximum average of any subarray of size k.
+    Uses sliding window approach.
+    
+    Time: O(n)
+    Space: O(1)
+    """
+    if not nums or k <= 0 or k > len(nums):
+        return 0.0
+    
+    window_sum = sum(nums[:k])
+    max_sum = window_sum
+    
+    for i in range(k, len(nums)):
+        window_sum += nums[i] - nums[i - k]
+        max_sum = max(max_sum, window_sum)
+    
+    return max_sum / k
+```
+
+### Template 6: Best Time to Buy and Sell Stock (Kadane's Variant)
+
+```python
+def max_profit(prices: list[int]) -> int:
+    """
+    Template for maximum profit with single transaction.
+    Equivalent to maximum difference where buy < sell.
+    
+    Time: O(n)
+    Space: O(1)
+    """
+    if not prices:
+        return 0
+    
+    min_price = prices[0]
+    max_profit = 0
+    
+    for price in prices[1:]:
+        min_price = min(min_price, price)
+        max_profit = max(max_profit, price - min_price)
+    
+    return max_profit
+```
+
+### Template 7: Repeated Substring Pattern (KMP Application)
+
+```python
+def is_repeated_substring(s: str) -> bool:
+    """
+    Check if string is made of repeated substring using KMP LPS array.
+    
+    Time: O(n)
+    Space: O(n)
+    """
+    n = len(s)
+    if n <= 1:
+        return False
+    
+    # Build LPS array
+    lps = [0] * n
+    length = 0
+    i = 1
+    
+    while i < n:
+        if s[i] == s[length]:
+            length += 1
+            lps[i] = length
+            i += 1
+        else:
+            if length != 0:
+                length = lps[length - 1]
+            else:
+                lps[i] = 0
+                i += 1
+    
+    # Check if repeated
+    return lps[-1] > 0 and n % (n - lps[-1]) == 0
+```
+
 ---
 
 ## When to Use
@@ -17,7 +547,7 @@ Use Kadane's Algorithm when you need to solve problems involving:
 - **Maximum Product Subarray**: Finding the contiguous subarray with the largest product (variation)
 - **Best Time to Buy and Sell Stock**: Finding maximum profit with single transaction
 - **Circular Array Problems**: Maximum sum in a circular array
-- **Subarray with At Least K Elements**: Finding maximum average of any contiguous subarray
+- **Fixed Window Maximum Average**: Finding maximum average of any contiguous subarray of size k
 
 ### Comparison with Alternatives
 
@@ -83,7 +613,7 @@ max_current: -2    1   -2    4    3    5    6    1    4
 max_global:  -2    1    1    4    4    5    6    6    6
                           ↑         ↑         ↑
                         start=3  start=3   start=3
-                                  end=6     end=6
+                                   end=6     end=6
 
 Maximum subarray: [4, -1, 2, 1] = 6 (indices 3-6)
 ```
@@ -101,895 +631,6 @@ The greedy choice (starting fresh when the prefix sum becomes negative) is optim
 - **Requires at least one element**: Empty array handling needs special care
 - **Not suitable for minimization directly**: Needs modification (negate array or use different approach)
 - **Single pass constraint**: Cannot easily find the actual subarray indices in some variations
-
----
-
-## Step-by-Step Approach
-
-### Finding Maximum Subarray Sum
-
-1. **Handle edge cases**: Return 0 or appropriate value for empty array
-2. **Initialize**: Set `max_current = max_global = nums[0]`
-3. **Iterate** through the array from index 1
-4. **At each element**:
-   - `max_current = max(nums[i], max_current + nums[i])`
-   - `max_global = max(max_global, max_current)`
-5. **Return** `max_global`
-
-### Finding the Actual Subarray (with indices)
-
-1. **Handle edge cases**: Return (0, -1, -1) for empty array
-2. **Initialize**: 
-   - `max_current = max_global = nums[0]`
-   - `start = end = 0`
-   - `temp_start = 0`
-3. **Iterate** through the array from index 1
-4. **At each element**:
-   - If `nums[i] > max_current + nums[i]`:
-     - Start new subarray: `max_current = nums[i]`, `temp_start = i`
-   - Else:
-     - Extend current: `max_current = max_current + nums[i]`
-   - If `max_current > max_global`:
-     - Update: `max_global = max_current`, `start = temp_start`, `end = i`
-5. **Return** `(max_global, start, end)`
-
----
-
-## Implementation
-
-### Template Code (Maximum Subarray Sum)
-
-````carousel
-```python
-def max_subarray(nums: list[int]) -> tuple:
-    """
-    Find the contiguous subarray with the largest sum.
-    
-    Args:
-        nums: List of integers (can include negative numbers)
-        
-    Returns:
-        Tuple of (max_sum, start_index, end_index)
-        
-    Time: O(n)
-    Space: O(1)
-    """
-    if not nums:
-        return 0, -1, -1
-    
-    # Initialize variables
-    max_current = max_global = nums[0]
-    start = end = 0
-    temp_start = 0
-    
-    for i in range(1, len(nums)):
-        # Either extend previous subarray or start new one
-        if nums[i] > max_current + nums[i]:
-            max_current = nums[i]
-            temp_start = i
-        else:
-            max_current = max_current + nums[i]
-        
-        # Update global maximum if current is better
-        if max_current > max_global:
-            max_global = max_current
-            start = temp_start
-            end = i
-    
-    return max_global, start, end
-
-
-def max_subarray_kadane(nums: list[int]) -> int:
-    """
-    Simpler version that returns only the maximum sum.
-    
-    Args:
-        nums: List of integers
-        
-    Returns:
-        Maximum sum of contiguous subarray
-        
-    Time: O(n)
-    Space: O(1)
-    """
-    if not nums:
-        return 0
-    
-    max_current = max_global = nums[0]
-    
-    for i in range(1, len(nums)):
-        max_current = max(nums[i], max_current + nums[i])
-        max_global = max(max_global, max_current)
-    
-    return max_global
-
-
-# Example usage
-if __name__ == "__main__":
-    # Test case 1
-    nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]
-    max_sum, start, end = max_subarray(nums)
-    print(f"Array: {nums}")
-    print(f"Maximum subarray sum: {max_sum}")
-    print(f"Subarray: {nums[start:end+1]}")  # Output: [4, -1, 2, 1]
-    
-    # Test case 2
-    nums = [1]
-    print(f"\nArray: {nums}")
-    print(f"Maximum subarray sum: {max_subarray_kadane(nums)}")  # Output: 1
-    
-    # Test case 3 - all negative
-    nums = [-1, -2, -3, -4]
-    print(f"\nArray: {nums}")
-    print(f"Maximum subarray sum: {max_subarray_kadane(nums)}")  # Output: -1
-    
-    # Test case 4
-    nums = [5, 4, -1, 7, 8]
-    print(f"\nArray: {nums}")
-    print(f"Maximum subarray sum: {max_subarray_kadane(nums)}")  # Output: 23
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-/**
- * Kadane's Algorithm - Maximum Subarray Sum
- * 
- * Time: O(n)
- * Space: O(1)
- */
-
-// Returns only the maximum sum
-int maxSubarraySum(const vector<int>& nums) {
-    if (nums.empty()) return 0;
-    
-    int maxCurrent = nums[0];
-    int maxGlobal = nums[0];
-    
-    for (size_t i = 1; i < nums.size(); i++) {
-        maxCurrent = max(nums[i], maxCurrent + nums[i]);
-        maxGlobal = max(maxGlobal, maxCurrent);
-    }
-    
-    return maxGlobal;
-}
-
-// Returns tuple: (max_sum, start_index, end_index)
-tuple<int, int, int> maxSubarray(const vector<int>& nums) {
-    if (nums.empty()) return {0, -1, -1};
-    
-    int maxCurrent = nums[0];
-    int maxGlobal = nums[0];
-    int start = 0, end = 0;
-    int tempStart = 0;
-    
-    for (size_t i = 1; i < nums.size(); i++) {
-        // Either start new or extend previous
-        if (nums[i] > maxCurrent + nums[i]) {
-            maxCurrent = nums[i];
-            tempStart = i;
-        } else {
-            maxCurrent = maxCurrent + nums[i];
-        }
-        
-        // Update global maximum
-        if (maxCurrent > maxGlobal) {
-            maxGlobal = maxCurrent;
-            start = tempStart;
-            end = i;
-        }
-    }
-    
-    return {maxGlobal, start, end};
-}
-
-int main() {
-    // Test case 1
-    vector<int> nums1 = {-2, 1, -3, 4, -1, 2, 1, -5, 4};
-    auto [sum1, start1, end1] = maxSubarray(nums1);
-    cout << "Array: [-2, 1, -3, 4, -1, 2, 1, -5, 4]" << endl;
-    cout << "Maximum subarray sum: " << sum1 << endl;
-    cout << "Subarray: [";
-    for (int i = start1; i <= end1; i++) {
-        cout << nums1[i] << (i < end1 ? ", " : "");
-    }
-    cout << "]" << endl << endl;
-    
-    // Test case 2
-    vector<int> nums2 = {5, 4, -1, 7, 8};
-    cout << "Maximum subarray sum: " << maxSubarraySum(nums2) << endl;  // Output: 23
-    
-    // Test case 3 - all negative
-    vector<int> nums3 = {-1, -2, -3, -4};
-    cout << "Maximum subarray sum: " << maxSubarraySum(nums3) << endl;  // Output: -1
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * Kadane's Algorithm - Maximum Subarray Sum
- * 
- * Time: O(n)
- * Space: O(1)
- */
-public class KadaneAlgorithm {
-    
-    /**
-     * Returns the maximum sum of a contiguous subarray.
-     */
-    public static int maxSubarraySum(int[] nums) {
-        if (nums == null || nums.length == 0) {
-            return 0;
-        }
-        
-        int maxCurrent = nums[0];
-        int maxGlobal = nums[0];
-        
-        for (int i = 1; i < nums.length; i++) {
-            maxCurrent = Math.max(nums[i], maxCurrent + nums[i]);
-            maxGlobal = Math.max(maxGlobal, maxCurrent);
-        }
-        
-        return maxGlobal;
-    }
-    
-    /**
-     * Returns int[] with {maxSum, startIndex, endIndex}
-     */
-    public static int[] maxSubarray(int[] nums) {
-        if (nums == null || nums.length == 0) {
-            return new int[]{0, -1, -1};
-        }
-        
-        int maxCurrent = nums[0];
-        int maxGlobal = nums[0];
-        int start = 0, end = 0;
-        int tempStart = 0;
-        
-        for (int i = 1; i < nums.length; i++) {
-            // Either start new subarray or extend previous
-            if (nums[i] > maxCurrent + nums[i]) {
-                maxCurrent = nums[i];
-                tempStart = i;
-            } else {
-                maxCurrent = maxCurrent + nums[i];
-            }
-            
-            // Update global maximum
-            if (maxCurrent > maxGlobal) {
-                maxGlobal = maxCurrent;
-                start = tempStart;
-                end = i;
-            }
-        }
-        
-        return new int[]{maxGlobal, start, end};
-    }
-    
-    public static void main(String[] args) {
-        // Test case 1
-        int[] nums1 = {-2, 1, -3, 4, -1, 2, 1, -5, 4};
-        int[] result1 = maxSubarray(nums1);
-        System.out.println("Array: [-2, 1, -3, 4, -1, 2, 1, -5, 4]");
-        System.out.println("Maximum subarray sum: " + result1[0]);
-        System.out.print("Subarray: [");
-        for (int i = result1[1]; i <= result1[2]; i++) {
-            System.out.print(nums1[i] + (i < result1[2] ? ", " : ""));
-        }
-        System.out.println("]");  // Output: [4, -1, 2, 1]
-        
-        // Test case 2
-        int[] nums2 = {5, 4, -1, 7, 8};
-        System.out.println("\nMaximum subarray sum: " + maxSubarraySum(nums2));  // Output: 23
-        
-        // Test case 3 - all negative
-        int[] nums3 = {-1, -2, -3, -4};
-        System.out.println("Maximum subarray sum: " + maxSubarraySum(nums3));  // Output: -1
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Kadane's Algorithm - Maximum Subarray Sum
- * 
- * Time: O(n)
- * Space: O(1)
- */
-
-/**
- * Returns the maximum sum of a contiguous subarray.
- * @param {number[]} nums - Array of integers
- * @returns {number} Maximum subarray sum
- */
-function maxSubarraySum(nums) {
-    if (!nums || nums.length === 0) {
-        return 0;
-    }
-    
-    let maxCurrent = nums[0];
-    let maxGlobal = nums[0];
-    
-    for (let i = 1; i < nums.length; i++) {
-        maxCurrent = Math.max(nums[i], maxCurrent + nums[i]);
-        maxGlobal = Math.max(maxGlobal, maxCurrent);
-    }
-    
-    return maxGlobal;
-}
-
-/**
- * Returns object with maxSum, startIndex, and endIndex.
- * @param {number[]} nums - Array of integers
- * @returns {Object} { maxSum, startIndex, endIndex }
- */
-function maxSubarray(nums) {
-    if (!nums || nums.length === 0) {
-        return { maxSum: 0, startIndex: -1, endIndex: -1 };
-    }
-    
-    let maxCurrent = nums[0];
-    let maxGlobal = nums[0];
-    let start = 0, end = 0;
-    let tempStart = 0;
-    
-    for (let i = 1; i < nums.length; i++) {
-        // Either start new subarray or extend previous
-        if (nums[i] > maxCurrent + nums[i]) {
-            maxCurrent = nums[i];
-            tempStart = i;
-        } else {
-            maxCurrent = maxCurrent + nums[i];
-        }
-        
-        // Update global maximum
-        if (maxCurrent > maxGlobal) {
-            maxGlobal = maxCurrent;
-            start = tempStart;
-            end = i;
-        }
-    }
-    
-    return { maxSum: maxGlobal, startIndex: start, endIndex: end };
-}
-
-// Example usage
-const nums1 = [-2, 1, -3, 4, -1, 2, 1, -5, 4];
-const result1 = maxSubarray(nums1);
-console.log(`Array: [${nums1.join(', ')}]`);
-console.log(`Maximum subarray sum: ${result1.maxSum}`);
-console.log(`Subarray: [${nums1.slice(result1.startIndex, result1.endIndex + 1).join(', ')}]`);
-
-const nums2 = [5, 4, -1, 7, 8];
-console.log(`\nMaximum subarray sum: ${maxSubarraySum(nums2)}`);  // Output: 23
-
-const nums3 = [-1, -2, -3, -4];
-console.log(`Maximum subarray sum: ${maxSubarraySum(nums3)}`);  // Output: -1
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Single Pass** | O(n) | One iteration through the array |
-| **Per Element** | O(1) | Constant time operations at each step |
-| **Total** | O(n) | Linear time - optimal for this problem |
-
-### Detailed Breakdown
-
-- **Single iteration**: We traverse the array exactly once, making constant-time operations at each step
-- **No nested loops**: Unlike brute force O(n²) or O(n³), Kadane's uses only a single loop
-- **Optimal**: Cannot be improved upon since we must look at each element at least once
-
----
-
-## Space Complexity Analysis
-
-| Version | Space Complexity | Description |
-|---------|-----------------|-------------|
-| **Basic version** | O(1) | Only uses a few scalar variables |
-| **With indices tracking** | O(1) | Same variables, just more of them |
-| **With subarray return** | O(k) | Need to copy k elements of the subarray |
-
-### Space Breakdown
-
-- **Variables needed**: `maxCurrent`, `maxGlobal`, loop index `i`
-- **For indices**: Additional `start`, `end`, `tempStart` variables
-- **No auxiliary data structures**: Unlike dynamic programming solutions that use arrays
-
----
-
-## Common Variations
-
-### 1. Maximum Product Subarray
-
-Instead of sum, find the maximum product. Need to track both maximum and minimum (since negative × negative = positive).
-
-````carousel
-```python
-def max_product_subarray(nums: list[int]) -> int:
-    """
-    Find the contiguous subarray with the largest product.
-    
-    Time: O(n)
-    Space: O(1)
-    """
-    if not nums:
-        return 0
-    
-    max_prod = min_prod = result = nums[0]
-    
-    for i in range(1, len(nums)):
-        # When nums[i] is negative, swapping max and min
-        if nums[i] < 0:
-            max_prod, min_prod = min_prod, max_prod
-        
-        max_prod = max(nums[i], max_prod * nums[i])
-        min_prod = min(nums[i], min_prod * nums[i])
-        result = max(result, max_prod)
-    
-    return result
-```
-
-<!-- slide -->
-```cpp
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-int maxProductSubarray(const vector<int>& nums) {
-    if (nums.empty()) return 0;
-    
-    int maxProd = nums[0];
-    int minProd = nums[0];
-    int result = nums[0];
-    
-    for (size_t i = 1; i < nums.size(); i++) {
-        if (nums[i] < 0) {
-            swap(maxProd, minProd);
-        }
-        
-        maxProd = max(nums[i], maxProd * nums[i]);
-        minProd = min(nums[i], minProd * nums[i]);
-        result = max(result, maxProd);
-    }
-    
-    return result;
-}
-```
-
-<!-- slide -->
-```java
-public int maxProductSubarray(int[] nums) {
-    if (nums == null || nums.length == 0) {
-        return 0;
-    }
-    
-    int maxProd = nums[0];
-    int minProd = nums[0];
-    int result = nums[0];
-    
-    for (int i = 1; i < nums.length; i++) {
-        if (nums[i] < 0) {
-            int temp = maxProd;
-            maxProd = minProd;
-            minProd = temp;
-        }
-        
-        maxProd = Math.max(nums[i], maxProd * nums[i]);
-        minProd = Math.min(nums[i], minProd * nums[i]);
-        result = Math.max(result, maxProd);
-    }
-    
-    return result;
-}
-```
-
-<!-- slide -->
-```javascript
-function maxProductSubarray(nums) {
-    if (!nums || nums.length === 0) {
-        return 0;
-    }
-    
-    let maxProd = nums[0];
-    let minProd = nums[0];
-    let result = nums[0];
-    
-    for (let i = 1; i < nums.length; i++) {
-        if (nums[i] < 0) {
-            [maxProd, minProd] = [minProd, maxProd];
-        }
-        
-        maxProd = Math.max(nums[i], maxProd * nums[i]);
-        minProd = Math.min(nums[i], minProd * nums[i]);
-        result = Math.max(result, maxProd);
-    }
-    
-    return result;
-}
-```
-````
-
-### 2. Maximum Sum Circular Subarray
-
-Find the maximum sum in a circular array (subarray can wrap around the end).
-
-````carousel
-```python
-def max_circular_sum(nums: list[int]) -> int:
-    """
-    Find maximum sum in circular array.
-    
-    Time: O(n)
-    Space: O(1)
-    """
-    if not nums:
-        return 0
-    
-    # Kadane's for normal maximum subarray
-    max_normal = nums[0]
-    max_current = nums[0]
-    for i in range(1, len(nums)):
-        max_current = max(nums[i], max_current + nums[i])
-        max_normal = max(max_normal, max_current)
-    
-    # If all numbers are negative, return normal max
-    if max_normal < 0:
-        return max_normal
-    
-    # Find minimum subarray (invert the array)
-    min_normal = nums[0]
-    min_current = nums[0]
-    total = nums[0]
-    for i in range(1, len(nums)):
-        min_current = min(nums[i], min_current + nums[i])
-        min_normal = min(min_normal, min_current)
-        total += nums[i]
-    
-    # Maximum circular = total - minimum subarray
-    return max(max_normal, total - min_normal)
-```
-
-<!-- slide -->
-```cpp
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-int maxCircularSum(const vector<int>& nums) {
-    if (nums.empty()) return 0;
-    
-    int maxNormal = nums[0], maxCurrent = nums[0];
-    int minNormal = nums[0], minCurrent = nums[0];
-    int total = nums[0];
-    
-    for (size_t i = 1; i < nums.size(); i++) {
-        maxCurrent = max(nums[i], maxCurrent + nums[i]);
-        maxNormal = max(maxNormal, maxCurrent);
-        
-        minCurrent = min(nums[i], minCurrent + nums[i]);
-        minNormal = min(minNormal, minCurrent);
-        
-        total += nums[i];
-    }
-    
-    if (maxNormal < 0) return maxNormal;
-    
-    return max(maxNormal, total - minNormal);
-}
-```
-
-<!-- slide -->
-```java
-public int maxCircularSum(int[] nums) {
-    if (nums == null || nums.length == 0) {
-        return 0;
-    }
-    
-    int maxNormal = nums[0], maxCurrent = nums[0];
-    int minNormal = nums[0], minCurrent = nums[0];
-    int total = nums[0];
-    
-    for (int i = 1; i < nums.length; i++) {
-        maxCurrent = Math.max(nums[i], maxCurrent + nums[i]);
-        maxNormal = Math.max(maxNormal, maxCurrent);
-        
-        minCurrent = Math.min(nums[i], minCurrent + nums[i]);
-        minNormal = Math.min(minNormal, minCurrent);
-        
-        total += nums[i];
-    }
-    
-    if (maxNormal < 0) return maxNormal;
-    
-    return Math.max(maxNormal, total - minNormal);
-}
-```
-
-<!-- slide -->
-```javascript
-function maxCircularSum(nums) {
-    if (!nums || nums.length === 0) {
-        return 0;
-    }
-    
-    let maxNormal = nums[0], maxCurrent = nums[0];
-    let minNormal = nums[0], minCurrent = nums[0];
-    let total = nums[0];
-    
-    for (let i = 1; i < nums.length; i++) {
-        maxCurrent = Math.max(nums[i], maxCurrent + nums[i]);
-        maxNormal = Math.max(maxNormal, maxCurrent);
-        
-        minCurrent = Math.min(nums[i], minCurrent + nums[i]);
-        minNormal = Math.min(minNormal, minCurrent);
-        
-        total += nums[i];
-    }
-    
-    if (maxNormal < 0) return maxNormal;
-    
-    return Math.max(maxNormal, total - minNormal);
-}
-```
-````
-
-### 3. Maximum Average Subarray
-
-Find subarray with maximum average (length >= k).
-
-````carousel
-```python
-def max_average(nums: list[int], k: int) -> float:
-    """
-    Find maximum average of any contiguous subarray of length k.
-    
-    Time: O(n)
-    Space: O(1)
-    """
-    # Calculate sum of first k elements
-    window_sum = sum(nums[:k])
-    max_sum = window_sum
-    
-    # Slide the window
-    for i in range(k, len(nums)):
-        window_sum += nums[i] - nums[i - k]
-        max_sum = max(max_sum, window_sum)
-    
-    return max_sum / k
-```
-
-<!-- slide -->
-```cpp
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-double maxAverage(const vector<int>& nums, int k) {
-    long long windowSum = 0;
-    for (int i = 0; i < k; i++) {
-        windowSum += nums[i];
-    }
-    
-    long long maxSum = windowSum;
-    
-    for (size_t i = k; i < nums.size(); i++) {
-        windowSum += nums[i] - nums[i - k];
-        maxSum = max(maxSum, windowSum);
-    }
-    
-    return static_cast<double>(maxSum) / k;
-}
-```
-
-<!-- slide -->
-```java
-public double maxAverage(int[] nums, int k) {
-    long windowSum = 0;
-    for (int i = 0; i < k; i++) {
-        windowSum += nums[i];
-    }
-    
-    long maxSum = windowSum;
-    
-    for (int i = k; i < nums.length; i++) {
-        windowSum += nums[i] - nums[i - k];
-        maxSum = Math.max(maxSum, windowSum);
-    }
-    
-    return (double) maxSum / k;
-}
-```
-
-<!-- slide -->
-```javascript
-function maxAverage(nums, k) {
-    let windowSum = 0;
-    for (let i = 0; i < k; i++) {
-        windowSum += nums[i];
-    }
-    
-    let maxSum = windowSum;
-    
-    for (let i = k; i < nums.length; i++) {
-        windowSum += nums[i] - nums[i - k];
-        maxSum = Math.max(maxSum, windowSum);
-    }
-    
-    return maxSum / k;
-}
-```
-````
-
-### 4. Longest Subarray with Maximum Sum
-
-Find the longest subarray with the maximum possible sum.
-
-````carousel
-```python
-def longest_max_sum_subarray(nums: list[int]) -> tuple:
-    """
-    Find the longest subarray with maximum sum.
-    
-    Returns: (max_sum, length, start_index, end_index)
-    """
-    if not nums:
-        return 0, 0, -1, -1
-    
-    max_sum = nums[0]
-    max_len = 1
-    max_start = max_end = 0
-    
-    current_sum = nums[0]
-    current_len = 1
-    current_start = 0
-    
-    for i in range(1, len(nums)):
-        # Choose: extend or restart
-        if nums[i] > current_sum + nums[i]:
-            current_sum = nums[i]
-            current_len = 1
-            current_start = i
-        else:
-            current_sum += nums[i]
-            current_len += 1
-        
-        # Update max if better or same but longer
-        if current_sum > max_sum:
-            max_sum = current_sum
-            max_len = current_len
-            max_start = current_start
-            max_end = i
-        elif current_sum == max_sum and current_len > max_len:
-            max_len = current_len
-            max_start = current_start
-            max_end = i
-    
-    return max_sum, max_len, max_start, max_end
-```
-
-<!-- slide -->
-```cpp
-#include <vector>
-#include <tuple>
-using namespace std;
-
-tuple<int, int, int, int> longestMaxSumSubarray(const vector<int>& nums) {
-    if (nums.empty()) return {0, 0, -1, -1};
-    
-    int maxSum = nums[0], maxLen = 1, maxStart = 0, maxEnd = 0;
-    int currentSum = nums[0], currentLen = 1, currentStart = 0;
-    
-    for (size_t i = 1; i < nums.size(); i++) {
-        if (nums[i] > currentSum + nums[i]) {
-            currentSum = nums[i];
-            currentLen = 1;
-            currentStart = i;
-        } else {
-            currentSum += nums[i];
-            currentLen++;
-        }
-        
-        if (currentSum > maxSum) {
-            maxSum = currentSum;
-            maxLen = currentLen;
-            maxStart = currentStart;
-            maxEnd = i;
-        } else if (currentSum == maxSum && currentLen > maxLen) {
-            maxLen = currentLen;
-            maxStart = currentStart;
-            maxEnd = i;
-        }
-    }
-    
-    return {maxSum, maxLen, maxStart, maxEnd};
-}
-```
-
-<!-- slide -->
-```java
-public int[] longestMaxSumSubarray(int[] nums) {
-    if (nums == null || nums.length == 0) {
-        return new int[]{0, 0, -1, -1};
-    }
-    
-    int maxSum = nums[0], maxLen = 1, maxStart = 0, maxEnd = 0;
-    int currentSum = nums[0], currentLen = 1, currentStart = 0;
-    
-    for (int i = 1; i < nums.length; i++) {
-        if (nums[i] > currentSum + nums[i]) {
-            currentSum = nums[i];
-            currentLen = 1;
-            currentStart = i;
-        } else {
-            currentSum += nums[i];
-            currentLen++;
-        }
-        
-        if (currentSum > maxSum) {
-            maxSum = currentSum;
-            maxLen = currentLen;
-            maxStart = currentStart;
-            maxEnd = i;
-        } else if (currentSum == maxSum && currentLen > maxLen) {
-            maxLen = currentLen;
-            maxStart = currentStart;
-            maxEnd = i;
-        }
-    }
-    
-    return new int[]{maxSum, maxLen, maxStart, maxEnd};
-}
-```
-
-<!-- slide -->
-```javascript
-function longestMaxSumSubarray(nums) {
-    if (!nums || nums.length === 0) {
-        return { maxSum: 0, maxLen: 0, maxStart: -1, maxEnd: -1 };
-    }
-    
-    let maxSum = nums[0], maxLen = 1, maxStart = 0, maxEnd = 0;
-    let currentSum = nums[0], currentLen = 1, currentStart = 0;
-    
-    for (let i = 1; i < nums.length; i++) {
-        if (nums[i] > currentSum + nums[i]) {
-            currentSum = nums[i];
-            currentLen = 1;
-            currentStart = i;
-        } else {
-            currentSum += nums[i];
-            currentLen++;
-        }
-        
-        if (currentSum > maxSum) {
-            maxSum = currentSum;
-            maxLen = currentLen;
-            maxStart = currentStart;
-            maxEnd = i;
-        } else if (currentSum === maxSum && currentLen > maxLen) {
-            maxLen = currentLen;
-            maxStart = currentStart;
-            maxEnd = i;
-        }
-    }
-    
-    return { maxSum, maxLen, maxStart, maxEnd };
-}
-```
-````
 
 ---
 
@@ -1062,6 +703,18 @@ function longestMaxSumSubarray(nums) {
 
 ---
 
+### Problem 6: Maximum Subarray Sum After One Operation
+
+**Problem:** [LeetCode 1746 - Maximum Subarray Sum After One Operation](https://leetcode.com/problems/maximum-subarray-sum-after-one-operation/)
+
+**Description:** Given an integer array, you can perform one operation where you square one element. Find the maximum subarray sum possible.
+
+**How to Apply Kadane's:**
+- Track two states: max sum without operation, max sum with operation used
+- Apply modified DP approach
+
+---
+
 ## Video Tutorial Links
 
 ### Fundamentals
@@ -1091,6 +744,8 @@ function longestMaxSumSubarray(nums) {
 - This gives us the recurrence: `S[i] = max(nums[i], S[i-1] + nums[i])`
 - By induction, this produces the global maximum.
 
+---
+
 ### Q2: How do you handle an empty array or all negative numbers?
 
 **Answer:**
@@ -1098,11 +753,15 @@ function longestMaxSumSubarray(nums) {
 - **All negative**: Return the largest (least negative) single element, not 0
 - This is because Kadane's correctly handles this case: `max(nums[i], maxCurrent + nums[i])` will always pick the single element when all numbers are negative
 
+---
+
 ### Q3: Can Kadane's Algorithm be modified to find the minimum subarray sum?
 
 **Answer:** Yes! Simply negate the array first, find maximum subarray, then negate back:
 - `min_sum = -max_subarray([-x for x in nums])`
 - Alternatively, just change `max` to `min` in the recurrence
+
+---
 
 ### Q4: How would you modify Kadane's to find the subarray with maximum sum AND minimum length?
 
@@ -1111,6 +770,8 @@ function longestMaxSumSubarray(nums) {
 - When finding a new maximum sum, update the indices
 - When finding an equal sum but with shorter length, also update
 - The greedy approach still works because we're making optimal local decisions
+
+---
 
 ### Q5: What is the difference between Kadane's and the divide-and-conquer approach?
 
@@ -1140,12 +801,3 @@ When to use:
 - ❌ Subarrays with constraints beyond sum (need DP)
 
 This algorithm is a fundamental technique in competitive programming and technical interviews, often serving as a building block for more complex dynamic programming problems.
-
----
-
-## Related Algorithms
-
-- [Sliding Window](./sliding-window-fixed-size-subarray-calculation.md) - Similar linear pass techniques
-- [Dynamic Programming](./dp-1d-array-kadane-s-algorithm-for-max-min-subarray.md) - DP formulation of the problem
-- [Prefix Sum](./prefix-sum.md) - For range sum queries
-- [Binary Lifting](./binary-lifting.md) - Advanced queries on arrays

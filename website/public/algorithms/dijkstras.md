@@ -5,7 +5,632 @@ Graphs
 
 ## Description
 
-Dijkstra's algorithm finds the **shortest path** from a source vertex to all other vertices in a weighted graph with **non-negative edge weights**. It is a fundamental greedy algorithm that uses a priority queue (min-heap) to always process the vertex with the smallest known distance first. This algorithm is the backbone of many navigation systems, network routing protocols, and pathfinding applications.
+Dijkstra's algorithm finds the shortest path from a source vertex to all other vertices in a weighted graph with non-negative edge weights. It is a fundamental greedy algorithm that uses a priority queue (min-heap) to always process the vertex with the smallest known distance first.
+
+This algorithm is the backbone of many navigation systems, network routing protocols, and pathfinding applications. It elegantly combines the greedy approach with relaxation to efficiently compute shortest paths, making it essential for competitive programming and technical interviews involving graph problems.
+
+---
+
+## Concepts
+
+The Dijkstra's algorithm is built on several fundamental concepts that make it powerful for solving shortest path problems.
+
+### 1. Greedy Selection
+
+At each step, Dijkstra's selects the unvisited vertex with the smallest known distance:
+
+```
+Key Property: Once a vertex is extracted from the priority queue,
+its shortest distance is FINAL and cannot be improved.
+
+Why? All edge weights are non-negative, so any alternative path
+would have to go through a vertex with distance >= current.
+```
+
+### 2. Relaxation
+
+The process of updating shortest distances:
+
+```
+For each neighbor v of current vertex u:
+    new_distance = dist[u] + weight(u, v)
+    if new_distance < dist[v]:
+        dist[v] = new_distance  # Relaxation
+        update priority queue
+```
+
+### 3. Priority Queue Operations
+
+| Operation | Time | Description |
+|-----------|------|-------------|
+| **Extract Min** | O(log V) | Remove vertex with minimum distance |
+| **Decrease Key** | O(log V) | Update distance of a vertex |
+| **Insert** | O(log V) | Add new vertex to queue |
+
+### 4. Distance State
+
+Track shortest known distance to each vertex:
+
+| State | Initial Value | Final Value |
+|-------|---------------|---------------|
+| **Source** | 0 | 0 (unchanged) |
+| **Reachable** | ∞ | Shortest path distance |
+| **Unreachable** | ∞ | ∞ (remains infinity) |
+
+---
+
+## Frameworks
+
+Structured approaches for solving shortest path problems.
+
+### Framework 1: Standard Dijkstra's
+
+```
+┌─────────────────────────────────────────────────────┐
+│  STANDARD DIJKSTRA'S FRAMEWORK                        │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize:                                      │
+│     - dist[source] = 0                               │
+│     - dist[v] = ∞ for all other vertices             │
+│     - priority_queue = [(0, source)]                 │
+│     - visited = empty set                            │
+│  2. While queue not empty:                           │
+│     a. Extract (d, u) with minimum d                 │
+│     b. If u in visited: continue                     │
+│     c. Mark u as visited                             │
+│     d. For each neighbor v of u:                     │
+│        - new_dist = d + weight(u, v)                 │
+│        - If new_dist < dist[v]:                      │
+│          * dist[v] = new_dist                        │
+│          * push (new_dist, v) to queue               │
+│  3. Return dist array                                │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Standard shortest path from single source to all vertices.
+
+### Framework 2: Dijkstra's with Path Reconstruction
+
+```
+┌─────────────────────────────────────────────────────┐
+│  DIJKSTRA'S WITH PATH FRAMEWORK                     │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize distances and parent array:           │
+│     - dist[source] = 0, parent[source] = null      │
+│     - dist[v] = ∞, parent[v] = undefined             │
+│     - priority_queue = [(0, source)]               │
+│  2. While queue not empty:                           │
+│     a. Extract (d, u) with minimum d                 │
+│     b. If d > dist[u]: continue (stale entry)       │
+│     c. For each neighbor v of u:                     │
+│        - new_dist = d + weight(u, v)                 │
+│        - If new_dist < dist[v]:                      │
+│          * dist[v] = new_dist                        │
+│          * parent[v] = u                             │
+│          * push (new_dist, v) to queue               │
+│  3. To reconstruct path from source to v:            │
+│     - Follow parent pointers from v to source        │
+│     - Reverse the path                               │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When you need the actual shortest path, not just distances.
+
+### Framework 3: Early Termination Dijkstra's
+
+```
+┌─────────────────────────────────────────────────────┐
+│  EARLY TERMINATION DIJKSTRA'S FRAMEWORK               │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize as standard Dijkstra's              │
+│  2. While queue not empty:                           │
+│     a. Extract (d, u) with minimum d                 │
+│     b. If u == target: return dist[target]          │
+│        (Early exit - found shortest to target)       │
+│     c. Process neighbors as usual                    │
+│  3. Return dist[target] or ∞ if unreachable          │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When you only need the path to a specific target, not all vertices.
+
+---
+
+## Forms
+
+Different manifestations of Dijkstra's algorithm.
+
+### Form 1: Standard Implementation
+
+Basic Dijkstra's with priority queue.
+
+| Aspect | Details |
+|--------|---------|
+| Time | O((V + E) log V) |
+| Space | O(V) |
+| Use Case | General shortest path |
+
+### Form 2: Dense Graph Optimization
+
+For dense graphs (E ≈ V²), use array instead of heap:
+
+| Aspect | Details |
+|--------|---------|
+| Time | O(V²) |
+| Space | O(V) |
+| Use Case | Dense graphs where E = O(V²) |
+
+### Form 3: 0-1 BFS (Special Case)
+
+When all edge weights are 0 or 1, use deque:
+
+| Aspect | Details |
+|--------|---------|
+| Time | O(V + E) |
+| Space | O(V) |
+| Use Case | Graphs with only 0/1 edge weights |
+
+### Form 4: Multi-Source Dijkstra's
+
+Run from multiple sources simultaneously:
+
+```
+Initialize: Push all sources with distance 0
+Result: For each vertex, find nearest source and distance
+Use Case: Voronoi diagrams, nearest facility queries
+```
+
+### Form 5: Bidirectional Dijkstra's
+
+Run from both source and target:
+
+```
+Run forward from source, backward from target
+Stop when searches meet
+Result: Often faster for single-pair shortest path
+Use Case: Route finding in large graphs
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Stale Entry Handling
+
+Multiple entries for same vertex in priority queue:
+
+```python
+def dijkstra_handle_stale(graph, source):
+    """Handle stale entries in priority queue."""
+    import heapq
+    
+    dist = {v: float('inf') for v in graph}
+    dist[source] = 0
+    heap = [(0, source)]
+    
+    while heap:
+        d, u = heapq.heappop(heap)
+        
+        # Skip if we've already found a better path
+        if d > dist[u]:
+            continue  # Stale entry - skip
+        
+        for v, weight in graph[u]:
+            new_dist = d + weight
+            if new_dist < dist[v]:
+                dist[v] = new_dist
+                heapq.heappush(heap, (new_dist, v))
+    
+    return dist
+```
+
+### Tactic 2: Path Reconstruction
+
+Track parents to reconstruct shortest path:
+
+```python
+def dijkstra_with_path(graph, source, target):
+    """Dijkstra's with path reconstruction."""
+    import heapq
+    
+    dist = {v: float('inf') for v in graph}
+    parent = {v: None for v in graph}
+    dist[source] = 0
+    
+    heap = [(0, source)]
+    
+    while heap:
+        d, u = heapq.heappop(heap)
+        
+        if u == target:
+            break  # Found shortest path to target
+        
+        if d > dist[u]:
+            continue
+        
+        for v, weight in graph[u]:
+            new_dist = d + weight
+            if new_dist < dist[v]:
+                dist[v] = new_dist
+                parent[v] = u
+                heapq.heappush(heap, (new_dist, v))
+    
+    # Reconstruct path
+    if dist[target] == float('inf'):
+        return None  # No path
+    
+    path = []
+    curr = target
+    while curr is not None:
+        path.append(curr)
+        curr = parent[curr]
+    path.reverse()
+    
+    return path, dist[target]
+```
+
+### Tactic 3: 0-1 BFS Optimization
+
+Use deque for graphs with only 0/1 weights:
+
+```python
+from collections import deque
+
+def zero_one_bfs(graph, source):
+    """BFS for graphs with 0/1 edge weights."""
+    dist = {v: float('inf') for v in graph}
+    dist[source] = 0
+    dq = deque([source])
+    
+    while dq:
+        u = dq.popleft()
+        
+        for v, weight in graph[u]:
+            if weight not in (0, 1):
+                raise ValueError("Only 0/1 weights allowed")
+            
+            new_dist = dist[u] + weight
+            if new_dist < dist[v]:
+                dist[v] = new_dist
+                if weight == 0:
+                    dq.appendleft(v)  # Priority for 0-weight edges
+                else:
+                    dq.append(v)
+    
+    return dist
+```
+
+### Tactic 4: Early Termination
+
+Stop when target is reached:
+
+```python
+def dijkstra_early_termination(graph, source, target):
+    """Stop early when target is reached."""
+    import heapq
+    
+    dist = {v: float('inf') for v in graph}
+    dist[source] = 0
+    heap = [(0, source)]
+    
+    while heap:
+        d, u = heapq.heappop(heap)
+        
+        if u == target:
+            return d  # Found shortest path to target
+        
+        if d > dist[u]:
+            continue
+        
+        for v, weight in graph[u]:
+            new_dist = d + weight
+            if new_dist < dist[v]:
+                dist[v] = new_dist
+                heapq.heappush(heap, (new_dist, v))
+    
+    return float('inf')  # Target unreachable
+```
+
+### Tactic 5: Handling Large Graphs
+
+Memory-efficient implementation:
+
+```python
+def dijkstra_memory_efficient(graph, source, max_vertices):
+    """Memory-efficient for large graphs."""
+    import heapq
+    
+    # Use arrays instead of dicts for contiguous vertex IDs
+    dist = [float('inf')] * max_vertices
+    visited = [False] * max_vertices
+    dist[source] = 0
+    
+    heap = [(0, source)]
+    
+    while heap:
+        d, u = heapq.heappop(heap)
+        
+        if visited[u]:
+            continue
+        visited[u] = True
+        
+        for v, weight in graph[u]:
+            if not visited[v] and d + weight < dist[v]:
+                dist[v] = d + weight
+                heapq.heappush(heap, (dist[v], v))
+    
+    return dist
+```
+
+---
+
+## Python Templates
+
+### Template 1: Standard Dijkstra's
+
+```python
+import heapq
+from typing import Dict, List, Tuple
+
+def dijkstra(graph: Dict[int, List[Tuple[int, int]]], source: int) -> Dict[int, float]:
+    """
+    Standard Dijkstra's shortest path algorithm.
+    
+    Args:
+        graph: Adjacency list {vertex: [(neighbor, weight), ...]}
+        source: Starting vertex
+    
+    Returns:
+        Dictionary mapping each vertex to its shortest distance from source
+    
+    Time: O((V + E) log V), Space: O(V)
+    """
+    # Initialize distances
+    dist = {v: float('inf') for v in graph}
+    dist[source] = 0
+    
+    # Min-heap: (distance, vertex)
+    heap = [(0, source)]
+    visited = set()
+    
+    while heap:
+        d, u = heapq.heappop(heap)
+        
+        # Skip if already processed
+        if u in visited:
+            continue
+        visited.add(u)
+        
+        # Skip stale entries
+        if d > dist[u]:
+            continue
+        
+        # Relax neighbors
+        for v, weight in graph.get(u, []):
+            new_dist = d + weight
+            if new_dist < dist[v]:
+                dist[v] = new_dist
+                heapq.heappush(heap, (new_dist, v))
+    
+    return dist
+```
+
+### Template 2: Dijkstra's with Path Reconstruction
+
+```python
+import heapq
+from typing import Dict, List, Tuple, Optional
+
+def dijkstra_with_path(graph: Dict[int, List[Tuple[int, int]]], 
+                       source: int, 
+                       target: Optional[int] = None) -> Tuple[Dict[int, float], Dict[int, Optional[int]]]:
+    """
+    Dijkstra's with path reconstruction.
+    
+    Returns:
+        Tuple of (distances, parent_map)
+    """
+    dist = {v: float('inf') for v in graph}
+    parent = {v: None for v in graph}
+    dist[source] = 0
+    
+    heap = [(0, source)]
+    
+    while heap:
+        d, u = heapq.heappop(heap)
+        
+        # Early termination if target reached
+        if target is not None and u == target:
+            break
+        
+        if d > dist[u]:
+            continue
+        
+        for v, weight in graph.get(u, []):
+            new_dist = d + weight
+            if new_dist < dist[v]:
+                dist[v] = new_dist
+                parent[v] = u
+                heapq.heappush(heap, (new_dist, v))
+    
+    return dist, parent
+
+
+def reconstruct_path(parent: Dict[int, Optional[int]], 
+                     source: int, 
+                     target: int) -> List[int]:
+    """Reconstruct path from source to target."""
+    if parent[target] is None and target != source:
+        return []  # No path
+    
+    path = []
+    curr = target
+    while curr is not None:
+        path.append(curr)
+        curr = parent[curr]
+    
+    path.reverse()
+    return path if path[0] == source else []
+```
+
+### Template 3: 0-1 BFS
+
+```python
+from collections import deque
+from typing import Dict, List, Tuple
+
+def zero_one_bfs(graph: Dict[int, List[Tuple[int, int]]], source: int) -> Dict[int, float]:
+    """
+    0-1 BFS for graphs with edge weights 0 or 1.
+    Faster than Dijkstra's for this special case.
+    
+    Time: O(V + E), Space: O(V)
+    """
+    dist = {v: float('inf') for v in graph}
+    dist[source] = 0
+    dq = deque([source])
+    
+    while dq:
+        u = dq.popleft()
+        
+        for v, weight in graph.get(u, []):
+            if weight not in (0, 1):
+                raise ValueError("Only 0/1 weights allowed")
+            
+            new_dist = dist[u] + weight
+            if new_dist < dist[v]:
+                dist[v] = new_dist
+                if weight == 0:
+                    dq.appendleft(v)
+                else:
+                    dq.append(v)
+    
+    return dist
+```
+
+### Template 4: Multi-Source Dijkstra's
+
+```python
+import heapq
+from typing import Dict, List, Tuple, Set
+
+def multi_source_dijkstra(graph: Dict[int, List[Tuple[int, int]]], 
+                          sources: Set[int]) -> Tuple[Dict[int, float], Dict[int, int]]:
+    """
+    Multi-source Dijkstra's - find nearest source for each vertex.
+    
+    Returns:
+        Tuple of (distances, nearest_source)
+    """
+    dist = {v: float('inf') for v in graph}
+    nearest = {v: None for v in graph}
+    
+    heap = []
+    for s in sources:
+        dist[s] = 0
+        nearest[s] = s
+        heapq.heappush(heap, (0, s))
+    
+    while heap:
+        d, u = heapq.heappop(heap)
+        
+        if d > dist[u]:
+            continue
+        
+        for v, weight in graph.get(u, []):
+            new_dist = d + weight
+            if new_dist < dist[v]:
+                dist[v] = new_dist
+                nearest[v] = nearest[u]
+                heapq.heappush(heap, (new_dist, v))
+    
+    return dist, nearest
+```
+
+### Template 5: Dijkstra's with Limited Hops
+
+```python
+import heapq
+from typing import Dict, List, Tuple
+
+def dijkstra_with_hops(graph: Dict[int, List[Tuple[int, int]]], 
+                       source: int, 
+                       max_hops: int) -> Dict[int, float]:
+    """
+    Dijkstra's with constraint on number of edges (hops).
+    Useful for problems like "cheapest flights within K stops".
+    
+    State: (cost, node, hops_used)
+    """
+    # dist[node][hops] = minimum cost
+    from collections import defaultdict
+    dist = defaultdict(lambda: defaultdict(lambda: float('inf')))
+    dist[source][0] = 0
+    
+    heap = [(0, source, 0)]  # (cost, node, hops)
+    
+    while heap:
+        cost, u, hops = heapq.heappop(heap)
+        
+        if hops > max_hops:
+            continue
+        
+        if cost > dist[u][hops]:
+            continue
+        
+        for v, weight in graph.get(u, []):
+            new_cost = cost + weight
+            new_hops = hops + 1
+            
+            if new_hops <= max_hops and new_cost < dist[v][new_hops]:
+                dist[v][new_hops] = new_cost
+                heapq.heappush(heap, (new_cost, v, new_hops))
+    
+    # Return minimum cost across all valid hop counts
+    result = {}
+    for v in graph:
+        result[v] = min(dist[v].values()) if dist[v] else float('inf')
+    return result
+```
+
+### Template 6: Dense Graph Dijkstra's (O(V²))
+
+```python
+def dijkstra_dense(graph: List[List[int]], source: int) -> List[float]:
+    """
+    Dijkstra's for dense graph using array (adjacency matrix).
+    graph[i][j] = weight, or 0 if no edge.
+    
+    Time: O(V²), Space: O(V)
+    """
+    n = len(graph)
+    dist = [float('inf')] * n
+    visited = [False] * n
+    dist[source] = 0
+    
+    for _ in range(n):
+        # Find unvisited vertex with minimum distance
+        u = -1
+        for i in range(n):
+            if not visited[i] and (u == -1 or dist[i] < dist[u]):
+                u = i
+        
+        if dist[u] == float('inf'):
+            break
+        
+        visited[u] = True
+        
+        # Update distances to neighbors
+        for v in range(n):
+            if graph[u][v] != 0 and not visited[v]:
+                new_dist = dist[u] + graph[u][v]
+                if new_dist < dist[v]:
+                    dist[v] = new_dist
+    
+    return dist
+```
 
 ---
 
@@ -14,44 +639,43 @@ Dijkstra's algorithm finds the **shortest path** from a source vertex to all oth
 Use Dijkstra's algorithm when you need to solve problems involving:
 
 - **Shortest Path in Weighted Graphs**: Finding the minimum cost path between nodes
-- **Non-Negative Weights**: When all edge weights are ≥ 0 (for negative weights, use Bellman-Ford)
+- **Non-Negative Weights**: When all edge weights are ≥ 0
 - **Single Source Shortest Path**: Finding distances from one source to all other nodes
 - **Navigation Systems**: GPS, maps, and route planning
 - **Network Routing**: Finding optimal routes in computer networks
-- **Resource Allocation**: Finding minimum cost paths in transportation/logistics
 
 ### Comparison with Alternatives
 
 | Algorithm | Time Complexity | Edge Weight Constraint | Use Case |
 |-----------|----------------|------------------------|----------|
-| **Dijkstra's** | O((V + E) log V) | Non-negative only | Single-source shortest path, dense graphs |
-| **Bellman-Ford** | O(V × E) | All weights | Negative weights, negative cycle detection |
-| **Floyd-Warshall** | O(V³) | All weights | All-pairs shortest path, small graphs |
-| **BFS (unweighted)** | O(V + E) | Unit weights | Unweighted graphs, shortest path in terms of edges |
-| **A* Search** | O(E) average | Non-negative | Heuristic-guided shortest path, games |
+| **Dijkstra's** | O((V + E) log V) | Non-negative only | Single-source, general graphs |
+| **Bellman-Ford** | O(V × E) | All weights | Negative weights, negative cycles |
+| **Floyd-Warshall** | O(V³) | All weights | All-pairs shortest path |
+| **BFS** | O(V + E) | Unit weights | Unweighted graphs |
+| **0-1 BFS** | O(V + E) | 0/1 weights only | Special case optimization |
+| **A* Search** | O(E) avg | Non-negative | Heuristic-guided, single target |
 
 ### When to Choose Dijkstra's vs Other Algorithms
 
 - **Choose Dijkstra's** when:
   - Edge weights are non-negative
   - You need single-source shortest paths
-  - You want better performance than Bellman-Ford
-  - The graph is sparse (E ≈ V)
+  - You want O((V + E) log V) performance
+  - Graph is sparse to moderately dense
 
 - **Choose Bellman-Ford** when:
   - Graph may have negative edge weights
   - You need to detect negative weight cycles
-  - You're unsure about edge weight signs
+  - Graph is small or you need to handle all weight types
 
 - **Choose Floyd-Warshall** when:
   - You need all-pairs shortest paths
   - Graph is small (V ≤ 500)
   - Multiple queries for different source-destination pairs
 
-- **Choose A*** when:
-  - You have a good heuristic function
-  - You're finding path to a specific target (not all nodes)
-  - Game pathfinding or robotics
+- **Choose BFS** when:
+  - All edge weights are equal (unweighted graph)
+  - You only care about number of edges, not total weight
 
 ---
 
@@ -60,6 +684,8 @@ Use Dijkstra's algorithm when you need to solve problems involving:
 ### Core Concept
 
 Dijkstra's algorithm works on the principle of **greedy selection** and **relaxation**. At each step, it selects the unvisited vertex with the smallest known distance from the source, then attempts to find shorter paths to its neighbors through relaxation.
+
+**Relaxation**: For each neighbor of the current vertex, check if going through the current vertex gives a shorter path than currently known. If so, update the distance.
 
 ### How It Works
 
@@ -70,18 +696,18 @@ Dijkstra's algorithm works on the principle of **greedy selection** and **relaxa
 
 #### Main Algorithm Loop:
 1. **Extract Minimum**: Remove vertex with smallest distance from heap
-2. **Termination Check**: If heap is empty or all reachable vertices visited, stop
-3. **Relaxation**: For each neighbor of current vertex:
+2. **Skip Check**: If already visited or stale entry, skip
+3. **Mark Visited**: Mark current vertex as processed
+4. **Relaxation**: For each neighbor of current vertex:
    - Calculate new distance = current_distance + edge_weight
    - If new distance < known distance, update and add to heap
-4. Repeat until heap is empty
+5. Repeat until heap is empty
 
 #### Why the Greedy Approach Works
 
-The algorithm makes a greedy choice: once we extract a vertex with the minimum distance from the priority queue, that distance is **final** and cannot be improved later. Here's why:
-
+Once we extract a vertex with the minimum distance from the priority queue, that distance is **final** because:
 - All edge weights are non-negative
-- Any alternative path to this vertex must go through an unvisited vertex
+- Any alternative path must go through an unvisited vertex
 - All unvisited vertices have distance ≥ current distance (by heap property)
 - Therefore, no alternative path can be shorter
 
@@ -89,980 +715,36 @@ The algorithm makes a greedy choice: once we extract a vertex with the minimum d
 
 ```
 Graph:                    Step-by-step distances from source 0:
-                         
-    4                      Step 0: dist[0]=0, others=∞
-   / \                    
-  1   2                   Step 1: Extract 0, relax neighbors
-  |   |                   → dist[1]=4, dist[2]=1
-  3   3                   
-                           Step 2: Extract 2 (min), relax neighbors  
-                          → dist[1]=3 (improved!), dist[3]=9
-                           Step 3: Extract 1 (min), relax neighbors
-                          → dist[3]=6 (improved!)
-                           Step 4: Extract 3 (min), done
+     4                      
+    / \                    Step 0: dist[0]=0, others=∞
+   0---1                   
+    \ /                    Step 1: Extract 0, relax neighbors
+     2                     → dist[1]=4, dist[2]=1
+      \                    
+       3                   Step 2: Extract 2 (dist=1), relax
+                           → dist[1]=3 (improved via 0→2→1)
+                           → dist[3]=9
+                            
+                           Step 3: Extract 1 (dist=3), relax
+                           → dist[3]=8 (improved via 0→2→1→3?)
+                            
+                           Step 4: Extract 3 (dist=8), done
                            
-Final: {0:0, 1:3, 2:1, 3:6}
+Final distances: {0: 0, 1: 3, 2: 1, 3: 8}
 ```
 
-### Key Terminology
+### Why It Works
 
-- **Relaxation**: The process of checking if going through the current vertex gives a shorter path to a neighbor
-- **Priority Queue**: A data structure that always returns the element with highest (or lowest) priority
-- **Min-Heap**: A complete binary tree where each parent node is smaller than its children (used for priority queue)
-- **Infinity**: A large value (e.g., `float('inf')` in Python) representing unreachable vertices
+1. **Greedy choice property**: Picking the vertex with minimum distance is always optimal
+2. **Optimal substructure**: Shortest path to a vertex contains shortest paths to intermediate vertices
+3. **Non-negative weights guarantee**: Ensures we never need to revisit a "finalized" vertex
 
 ### Limitations
 
 - **Does NOT work with negative edge weights**: Can produce incorrect results
 - **Does NOT detect negative cycles**: Unlike Bellman-Ford
-- **Can be slow for very large graphs**: Consider A* with heuristics for specific targets
-
----
-
-## Algorithm Steps
-
-### Complete Step-by-Step Approach
-
-1. **Validate Input**
-   - Check if graph is empty or source is valid
-   - Ensure all edge weights are non-negative
-
-2. **Initialize Data Structures**
-   - Create distance array: source = 0, others = ∞
-   - Create min-heap: push (0, source)
-   - Create visited set (optional, can use distance comparison)
-
-3. **Process Vertices**
-   - While heap is not empty:
-     a. Pop vertex with minimum distance
-     b. Skip if current distance > known distance (stale entry)
-     c. For each neighbor:
-        - Calculate potential new distance
-        - If shorter, update distance and push to heap
-
-4. **Return Results**
-   - Return the distance dictionary
-   - Optionally: maintain parent array for path reconstruction
-
-5. **Path Reconstruction (Optional)**
-   - Track parent of each vertex when updating distances
-   - Backtrack from target to source to reconstruct path
-
----
-
-## Implementation
-
-### Template Code (Dijkstra's Shortest Path)
-
-````carousel
-```python
-import heapq
-from collections import defaultdict
-from typing import Dict, List, Tuple, Optional
-
-def dijkstra(graph: Dict[int, List[Tuple[int, int]]], source: int) -> Dict[int, float]:
-    """
-    Dijkstra's Shortest Path Algorithm
-    
-    Time Complexity: O((V + E) log V)
-    Space Complexity: O(V)
-    
-    Args:
-        graph: Adjacency list {vertex: [(neighbor, weight), ...]}
-        source: Starting vertex index
-    
-    Returns:
-        Dictionary mapping each vertex to its shortest distance from source
-    
-    Note: Works only for non-negative edge weights!
-    """
-    # Initialize distances
-    distances = {vertex: float('inf') for vertex in graph}
-    distances[source] = 0
-    
-    # Min-heap: (distance, vertex)
-    # heapq is a min-heap in Python
-    heap = [(0, source)]
-    
-    # Track visited (optional optimization)
-    visited = set()
-    
-    while heap:
-        curr_dist, current = heapq.heappop(heap)
-        
-        # Skip if already processed or stale entry
-        if current in visited:
-            continue
-        visited.add(current)
-        
-        # Skip if we've already found a shorter path
-        if curr_dist > distances[current]:
-            continue
-        
-        # Explore all neighbors
-        for neighbor, weight in graph.get(current, []):
-            # Skip negative weights (use Bellman-Ford instead)
-            if weight < 0:
-                continue
-                
-            distance = curr_dist + weight
-            
-            # Relaxation: found shorter path?
-            if distance < distances[neighbor]:
-                distances[neighbor] = distance
-                heapq.heappush(heap, (distance, neighbor))
-    
-    return distances
-
-
-def dijkstra_with_path(graph: Dict[int, List[Tuple[int, int]]], source: int) -> Tuple[Dict[int, float], Dict[int, int]]:
-    """
-    Dijkstra's algorithm with path reconstruction.
-    
-    Returns:
-        Tuple of (distances, parent_map)
-        To reconstruct path: backtrack from target using parent_map
-    """
-    distances = {vertex: float('inf') for vertex in graph}
-    distances[source] = 0
-    
-    # Parent map for path reconstruction: child -> parent
-    parent = {source: None}
-    
-    heap = [(0, source)]
-    visited = set()
-    
-    while heap:
-        curr_dist, current = heapq.heappop(heap)
-        
-        if current in visited:
-            continue
-        visited.add(current)
-        
-        if curr_dist > distances[current]:
-            continue
-        
-        for neighbor, weight in graph.get(current, []):
-            if weight < 0:
-                continue
-                
-            distance = curr_dist + weight
-            
-            if distance < distances[neighbor]:
-                distances[neighbor] = distance
-                parent[neighbor] = current
-                heapq.heappush(heap, (distance, neighbor))
-    
-    return distances, parent
-
-
-def reconstruct_path(parent: Dict[int, Optional[int]], source: int, target: int) -> List[int]:
-    """Reconstruct path from source to target using parent map."""
-    if target not in parent:
-        return []  # No path exists
-    
-    path = []
-    current = target
-    
-    while current is not None:
-        path.append(current)
-        current = parent[current]
-    
-    path.reverse()
-    return path if path[0] == source else []
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    # Build graph (adjacency list)
-    #     4
-    #    / \
-    #   1---2
-    #    \ /
-    #     3
-    graph = defaultdict(list)
-    graph[0] = [(1, 4), (2, 1)]      # 0 -> 1 (4), 0 -> 2 (1)
-    graph[1] = [(0, 4), (2, 2), (3, 5)]  # 1 -> 0, 2, 3
-    graph[2] = [(0, 1), (1, 2), (3, 8)]  # 2 -> 0, 1, 3
-    graph[3] = [(1, 5), (2, 8)]      # 3 -> 1, 2
-    
-    # Find shortest paths from vertex 0
-    print("=" * 50)
-    print("Dijkstra's Algorithm Demonstration")
-    print("=" * 50)
-    
-    distances = dijkstra(graph, 0)
-    print("\nShortest paths from vertex 0:")
-    for vertex, dist in sorted(distances.items()):
-        print(f"  To {vertex}: {dist}")
-    
-    # With path reconstruction
-    distances, parent = dijkstra_with_path(graph, 0)
-    
-    print("\nPaths from vertex 0:")
-    for target in sorted(graph.keys()):
-        path = reconstruct_path(parent, 0, target)
-        path_str = " -> ".join(map(str, path))
-        print(f"  To {target}: {path_str} (cost: {distances[target]})")
-    
-    # Output: {0: 0, 1: 3, 2: 1, 3: 6}
-    # Path to 1: 0 -> 2 -> 1 (1 + 2 = 3)
-    # Path to 3: 0 -> 2 -> 1 -> 3 (1 + 2 + 3 = 6) or 0 -> 2 -> 3 (1 + 8 = 9)
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <limits>
-#include <utility>
-#include <unordered_map>
-using namespace std;
-
-/**
- * Dijkstra's Shortest Path Algorithm
- * 
- * Time Complexity: O((V + E) log V)
- * Space Complexity: O(V)
- */
-
-typedef pair<int, int> pii;  // (distance, vertex)
-typedef pair<int, pii> edge; // (weight, (from, to))
-
-/**
- * Dijkstra's algorithm using adjacency list
- * @param graph: vector of vector of (neighbor, weight) pairs
- * @param source: starting vertex index
- * @return: vector of shortest distances from source
- */
-vector<int> dijkstra(const vector<vector<pair<int, int>>>& graph, int source) {
-    int n = graph.size();
-    const int INF = numeric_limits<int>::max();
-    
-    // Initialize distances
-    vector<int> dist(n, INF);
-    dist[source] = 0;
-    
-    // Min-heap: (distance, vertex)
-    priority_queue<pii, vector<pii>, greater<pii>> pq;
-    pq.push({0, source});
-    
-    // Track visited vertices
-    vector<bool> visited(n, false);
-    
-    while (!pq.empty()) {
-        auto [currDist, current] = pq.top();
-        pq.pop();
-        
-        // Skip if already visited or stale entry
-        if (visited[current]) continue;
-        visited[current] = true;
-        
-        if (currDist > dist[current]) continue;
-        
-        // Explore all neighbors
-        for (auto [neighbor, weight] : graph[current]) {
-            // Skip negative weights
-            if (weight < 0) continue;
-            
-            int newDist = currDist + weight;
-            
-            // Relaxation
-            if (newDist < dist[neighbor]) {
-                dist[neighbor] = newDist;
-                pq.push({newDist, neighbor});
-            }
-        }
-    }
-    
-    return dist;
-}
-
-/**
- * Dijkstra's algorithm with path reconstruction
- * Returns pair of (distances, parent map)
- */
-pair<vector<int>, vector<int>> dijkstraWithPath(const vector<vector<pair<int, int>>>& graph, int source) {
-    int n = graph.size();
-    const int INF = numeric_limits<int>::max();
-    
-    vector<int> dist(n, INF);
-    vector<int> parent(n, -1);
-    dist[source] = 0;
-    
-    priority_queue<pii, vector<pii>, greater<pii>> pq;
-    pq.push({0, source});
-    
-    vector<bool> visited(n, false);
-    
-    while (!pq.empty()) {
-        auto [currDist, current] = pq.top();
-        pq.pop();
-        
-        if (visited[current]) continue;
-        visited[current] = true;
-        
-        if (currDist > dist[current]) continue;
-        
-        for (auto [neighbor, weight] : graph[current]) {
-            if (weight < 0) continue;
-            
-            int newDist = currDist + weight;
-            
-            if (newDist < dist[neighbor]) {
-                dist[neighbor] = newDist;
-                parent[neighbor] = current;
-                pq.push({newDist, neighbor});
-            }
-        }
-    }
-    
-    return {dist, parent};
-}
-
-/**
- * Reconstruct path from source to target
- */
-vector<int> reconstructPath(const vector<int>& parent, int source, int target) {
-    if (parent[target] == -1 && target != source) return {};
-    
-    vector<int> path;
-    int current = target;
-    
-    while (current != -1) {
-        path.push_back(current);
-        if (current == source) break;
-        current = parent[current];
-    }
-    
-    reverse(path.begin(), path.end());
-    return path;
-}
-
-
-int main() {
-    // Build graph (adjacency list)
-    //     4
-    //    / \
-    //   1---2
-    //    \ /
-    //     3
-    int n = 4;
-    vector<vector<pair<int, int>>> graph(n);
-    
-    graph[0] = {{1, 4}, {2, 1}};      // 0 -> 1 (4), 0 -> 2 (1)
-    graph[1] = {{0, 4}, {2, 2}, {3, 5}};  // 1 -> 0, 2, 3
-    graph[2] = {{0, 1}, {1, 2}, {3, 8}};  // 2 -> 0, 1, 3
-    graph[3] = {{1, 5}, {2, 8}};      // 3 -> 1, 2
-    
-    cout << "==================================================" << endl;
-    cout << "Dijkstra's Algorithm Demonstration" << endl;
-    cout << "==================================================" << endl;
-    
-    // Find shortest paths from vertex 0
-    vector<int> distances = dijkstra(graph, 0);
-    
-    cout << "\nShortest paths from vertex 0:" << endl;
-    for (int i = 0; i < n; i++) {
-        cout << "  To " << i << ": " << distances[i] << endl;
-    }
-    
-    // With path reconstruction
-    auto [dist, parent] = dijkstraWithPath(graph, 0);
-    
-    cout << "\nPaths from vertex 0:" << endl;
-    for (int target = 0; target < n; target++) {
-        vector<int> path = reconstructPath(parent, 0, target);
-        cout << "  To " << target << ": ";
-        for (size_t i = 0; i < path.size(); i++) {
-            cout << path[i];
-            if (i < path.size() - 1) cout << " -> ";
-        }
-        cout << " (cost: " << dist[target] << ")" << endl;
-    }
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-/**
- * Dijkstra's Shortest Path Algorithm
- * 
- * Time Complexity: O((V + E) log V)
- * Space Complexity: O(V)
- */
-public class Dijkstra {
-    
-    /**
-     * Dijkstra's algorithm using adjacency list
-     * @param graph: Map of vertex to list of (neighbor, weight) pairs
-     * @param source: starting vertex
-     * @return: Map of shortest distances from source
-     */
-    public static Map<Integer, Integer> dijkstra(Map<Integer, List<int[]>> graph, int source) {
-        // Initialize distances
-        Map<Integer, Integer> dist = new HashMap<>();
-        for (Integer vertex : graph.keySet()) {
-            dist.put(vertex, Integer.MAX_VALUE);
-        }
-        dist.put(source, 0);
-        
-        // Min-heap: (distance, vertex)
-        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
-        pq.add(new int[]{0, source});
-        
-        // Track visited vertices
-        Set<Integer> visited = new HashSet<>();
-        
-        while (!pq.isEmpty()) {
-            int[] current = pq.poll();
-            int currDist = current[0];
-            int currentVertex = current[1];
-            
-            // Skip if already visited or stale entry
-            if (visited.contains(currentVertex)) continue;
-            visited.add(currentVertex);
-            
-            if (currDist > dist.get(currentVertex)) continue;
-            
-            // Explore all neighbors
-            List<int[]> neighbors = graph.getOrDefault(currentVertex, Collections.emptyList());
-            for (int[] edge : neighbors) {
-                int neighbor = edge[0];
-                int weight = edge[1];
-                
-                // Skip negative weights
-                if (weight < 0) continue;
-                
-                int newDist = currDist + weight;
-                
-                // Relaxation
-                if (newDist < dist.get(neighbor)) {
-                    dist.put(neighbor, newDist);
-                    pq.add(new int[]{newDist, neighbor});
-                }
-            }
-        }
-        
-        return dist;
-    }
-    
-    /**
-     * Dijkstra's algorithm with path reconstruction
-     * Returns pair of (distances, parent map)
-     */
-    public static Pair<Map<Integer, Integer>, Map<Integer, Integer>> dijkstraWithPath(
-            Map<Integer, List<int[]>> graph, int source) {
-        
-        Map<Integer, Integer> dist = new HashMap<>();
-        Map<Integer, Integer> parent = new HashMap<>();
-        
-        for (Integer vertex : graph.keySet()) {
-            dist.put(vertex, Integer.MAX_VALUE);
-        }
-        dist.put(source, 0);
-        parent.put(source, null);
-        
-        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
-        pq.add(new int[]{0, source});
-        
-        Set<Integer> visited = new HashSet<>();
-        
-        while (!pq.isEmpty()) {
-            int[] current = pq.poll();
-            int currDist = current[0];
-            int currentVertex = current[1];
-            
-            if (visited.contains(currentVertex)) continue;
-            visited.add(currentVertex);
-            
-            if (currDist > dist.get(currentVertex)) continue;
-            
-            List<int[]> neighbors = graph.getOrDefault(currentVertex, Collections.emptyList());
-            for (int[] edge : neighbors) {
-                int neighbor = edge[0];
-                int weight = edge[1];
-                
-                if (weight < 0) continue;
-                
-                int newDist = currDist + weight;
-                
-                if (newDist < dist.get(neighbor)) {
-                    dist.put(neighbor, newDist);
-                    parent.put(neighbor, currentVertex);
-                    pq.add(new int[]{newDist, neighbor});
-                }
-            }
-        }
-        
-        return new Pair<>(dist, parent);
-    }
-    
-    /**
-     * Reconstruct path from source to target
-     */
-    public static List<Integer> reconstructPath(Map<Integer, Integer> parent, int source, int target) {
-        if (!parent.containsKey(target)) return Collections.emptyList();
-        
-        List<Integer> path = new ArrayList<>();
-        Integer current = target;
-        
-        while (current != null) {
-            path.add(current);
-            if (current == source) break;
-            current = parent.get(current);
-        }
-        
-        Collections.reverse(path);
-        return path;
-    }
-    
-    // Simple Pair class since Java doesn't have built-in Pair
-    static class Pair<K, V> {
-        K key;
-        V value;
-        Pair(K key, V value) { this.key = key; this.value = value; }
-        K getKey() { return key; }
-        V getValue() { return value; }
-    }
-    
-    public static void main(String[] args) {
-        // Build graph (adjacency list)
-        Map<Integer, List<int[]>> graph = new HashMap<>();
-        
-        graph.put(0, Arrays.asList(new int[]{1, 4}, new int[]{2, 1}));
-        graph.put(1, Arrays.asList(new int[]{0, 4}, new int[]{2, 2}, new int[]{3, 5}));
-        graph.put(2, Arrays.asList(new int[]{0, 1}, new int[]{1, 2}, new int[]{3, 8}));
-        graph.put(3, Arrays.asList(new int[]{1, 5}, new int[]{2, 8}));
-        
-        System.out.println("==================================================");
-        System.out.println("Dijkstra's Algorithm Demonstration");
-        System.out.println("==================================================");
-        
-        // Find shortest paths from vertex 0
-        Map<Integer, Integer> distances = dijkstra(graph, 0);
-        
-        System.out.println("\nShortest paths from vertex 0:");
-        for (Integer vertex : Arrays.asList(0, 1, 2, 3)) {
-            System.out.println("  To " + vertex + ": " + distances.get(vertex));
-        }
-        
-        // With path reconstruction
-        Pair<Map<Integer, Integer>, Map<Integer, Integer>> result = dijkstraWithPath(graph, 0);
-        Map<Integer, Integer> dist = result.getKey();
-        Map<Integer, Integer> parent = result.getValue();
-        
-        System.out.println("\nPaths from vertex 0:");
-        for (int target = 0; target <= 3; target++) {
-            List<Integer> path = reconstructPath(parent, 0, target);
-            System.out.print("  To " + target + ": ");
-            System.out.println(String.join(" -> ", path.stream()
-                .map(String::valueOf)
-                .toArray(String[]::new)) + " (cost: " + dist.get(target) + ")");
-        }
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Dijkstra's Shortest Path Algorithm
- * 
- * Time Complexity: O((V + E) log V)
- * Space Complexity: O(V)
- */
-
-/**
- * Dijkstra's algorithm using adjacency list
- * @param {Map<number, Array<[number, number]>>} graph - Adjacency list {vertex: [[neighbor, weight], ...]}
- * @param {number} source - Starting vertex
- * @returns {Map<number, number>} Map of shortest distances from source
- */
-function dijkstra(graph, source) {
-    // Initialize distances
-    const dist = new Map();
-    for (const [vertex] of graph) {
-        dist.set(vertex, Infinity);
-    }
-    dist.set(source, 0);
-    
-    // Min-heap using custom implementation or use built-in with custom comparison
-    // Using a simple array with sorting for clarity (not most efficient)
-    // For production, use a proper priority queue library
-    const heap = [[0, source]];
-    
-    // Track visited vertices
-    const visited = new Set();
-    
-    while (heap.length > 0) {
-        // Extract minimum (inefficient for large graphs - use proper heap)
-        heap.sort((a, b) => a[0] - b[0]);
-        const [currDist, current] = heap.shift();
-        
-        // Skip if already visited or stale entry
-        if (visited.has(current)) continue;
-        visited.add(current);
-        
-        if (currDist > dist.get(current)) continue;
-        
-        // Explore all neighbors
-        const neighbors = graph.get(current) || [];
-        for (const [neighbor, weight] of neighbors) {
-            // Skip negative weights
-            if (weight < 0) continue;
-            
-            const newDist = currDist + weight;
-            
-            // Relaxation
-            if (newDist < dist.get(neighbor)) {
-                dist.set(neighbor, newDist);
-                heap.push([newDist, neighbor]);
-            }
-        }
-    }
-    
-    return dist;
-}
-
-/**
- * Dijkstra's algorithm with path reconstruction
- * @returns {Object} {distances, parent}
- */
-function dijkstraWithPath(graph, source) {
-    const dist = new Map();
-    const parent = new Map();
-    
-    for (const [vertex] of graph) {
-        dist.set(vertex, Infinity);
-    }
-    dist.set(source, 0);
-    parent.set(source, null);
-    
-    const heap = [[0, source]];
-    const visited = new Set();
-    
-    while (heap.length > 0) {
-        heap.sort((a, b) => a[0] - b[0]);
-        const [currDist, current] = heap.shift();
-        
-        if (visited.has(current)) continue;
-        visited.add(current);
-        
-        if (currDist > dist.get(current)) continue;
-        
-        const neighbors = graph.get(current) || [];
-        for (const [neighbor, weight] of neighbors) {
-            if (weight < 0) continue;
-            
-            const newDist = currDist + weight;
-            
-            if (newDist < dist.get(neighbor)) {
-                dist.set(neighbor, newDist);
-                parent.set(neighbor, current);
-                heap.push([newDist, neighbor]);
-            }
-        }
-    }
-    
-    return { distances: dist, parent };
-}
-
-/**
- * Reconstruct path from source to target
- * @param {Map<number, number|null>} parent - Parent map
- * @param {number} source - Source vertex
- * @param {number} target - Target vertex
- * @returns {number[]} Path from source to target
- */
-function reconstructPath(parent, source, target) {
-    if (!parent.has(target)) return [];
-    
-    const path = [];
-    let current = target;
-    
-    while (current !== null && current !== undefined) {
-        path.push(current);
-        if (current === source) break;
-        current = parent.get(current);
-    }
-    
-    return path.reverse();
-}
-
-// Min-Heap Priority Queue implementation for better performance
-class MinHeap {
-    constructor() {
-        this.heap = [];
-    }
-    
-    push(item) {
-        this.heap.push(item);
-        this.bubbleUp(this.heap.length - 1);
-    }
-    
-    pop() {
-        if (this.heap.length === 0) return null;
-        if (this.heap.length === 1) return this.heap.pop();
-        
-        const min = this.heap[0];
-        this.heap[0] = this.heap.pop();
-        this.bubbleDown(0);
-        return min;
-    }
-    
-    isEmpty() {
-        return this.heap.length === 0;
-    }
-    
-    bubbleUp(index) {
-        while (index > 0) {
-            const parentIndex = Math.floor((index - 1) / 2);
-            if (this.heap[parentIndex][0] <= this.heap[index][0]) break;
-            [this.heap[parentIndex], this.heap[index]] = [this.heap[index], this.heap[parentIndex]];
-            index = parentIndex;
-        }
-    }
-    
-    bubbleDown(index) {
-        const length = this.heap.length;
-        while (true) {
-            const leftChild = 2 * index + 1;
-            const rightChild = 2 * index + 2;
-            let smallest = index;
-            
-            if (leftChild < length && this.heap[leftChild][0] < this.heap[smallest][0]) {
-                smallest = leftChild;
-            }
-            if (rightChild < length && this.heap[rightChild][0] < this.heap[smallest][0]) {
-                smallest = rightChild;
-            }
-            if (smallest === index) break;
-            
-            [this.heap[smallest], this.heap[index]] = [this.heap[index], this.heap[smallest]];
-            index = smallest;
-        }
-    }
-}
-
-/**
- * Optimized Dijkstra using MinHeap
- */
-function dijkstraOptimized(graph, source) {
-    const dist = new Map();
-    for (const [vertex] of graph) {
-        dist.set(vertex, Infinity);
-    }
-    dist.set(source, 0);
-    
-    const heap = new MinHeap();
-    heap.push([0, source]);
-    
-    const visited = new Set();
-    
-    while (!heap.isEmpty()) {
-        const [currDist, current] = heap.pop();
-        
-        if (visited.has(current)) continue;
-        visited.add(current);
-        
-        if (currDist > dist.get(current)) continue;
-        
-        const neighbors = graph.get(current) || [];
-        for (const [neighbor, weight] of neighbors) {
-            if (weight < 0) continue;
-            
-            const newDist = currDist + weight;
-            
-            if (newDist < dist.get(neighbor)) {
-                dist.set(neighbor, newDist);
-                heap.push([newDist, neighbor]);
-            }
-        }
-    }
-    
-    return dist;
-}
-
-
-// Example usage and demonstration
-// Build graph (adjacency list)
-//     4
-//    / \
-//   1---2
-//    \ /
-//     3
-
-const graph = new Map();
-graph.set(0, [[1, 4], [2, 1]]);
-graph.set(1, [[0, 4], [2, 2], [3, 5]]);
-graph.set(2, [[0, 1], [1, 2], [3, 8]]);
-graph.set(3, [[1, 5], [2, 8]]);
-
-console.log("=".repeat(50));
-console.log("Dijkstra's Algorithm Demonstration");
-console.log("=".repeat(50));
-
-// Find shortest paths from vertex 0
-const distances = dijkstra(graph, 0);
-
-console.log("\nShortest paths from vertex 0:");
-for (const [vertex, dist] of distances) {
-    console.log(`  To ${vertex}: ${dist}`);
-}
-
-// With path reconstruction
-const { distances: distMap, parent } = dijkstraWithPath(graph, 0);
-
-console.log("\nPaths from vertex 0:");
-for (const target of [0, 1, 2, 3]) {
-    const path = reconstructPath(parent, 0, target);
-    console.log(`  To ${target}: ${path.join(" -> ")} (cost: ${distMap.get(target)})`);
-}
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Build + Query** | O((V + E) log V) | Standard implementation with min-heap |
-| **With Binary Heap** | O((V + E) log V) | Most common implementation |
-| **With Fibonacci Heap** | O(E + V log V) | Better theoretical complexity for sparse graphs |
-| **Space** | O(V) | For distance array and priority queue |
-
-### Detailed Breakdown
-
-- **Vertex Processing**: Each vertex is extracted at most once → O(V log V)
-- **Edge Relaxation**: Each edge is examined at most once → O(E log V) for heap operations
-- **Total**: O((V + E) log V) ≈ O(E log V) for connected graphs (E ≥ V)
-
-### Optimization Notes
-
-- Use **Fibonacci Heap** for theoretical O(E + V log V) improvement (rarely needed in practice)
-- Use **array-based heap** for small graphs
-- Early termination when target reached (for single-target queries)
-
----
-
-## Space Complexity Analysis
-
-| Data Structure | Space | Description |
-|---------------|-------|-------------|
-| **Distance Array** | O(V) | Stores shortest distances |
-| **Priority Queue** | O(V) | Maximum size during execution |
-| **Visited Set** | O(V) | Optional, can use distance comparison |
-| **Parent Map** | O(V) | For path reconstruction |
-| **Total** | O(V) | Main space complexity |
-
-### Space Optimization
-
-- Use distance comparison instead of visited set (saves O(V))
-- For path reconstruction, only store parent of each vertex
-- Use sparse arrays when vertex IDs are not contiguous
-
----
-
-## Common Variations
-
-### 1. Bidirectional Dijkstra
-
-Run Dijkstra from both source and target, meeting in the middle. Useful when you only need one destination.
-
-````carousel
-```python
-def bidirectional_dijkstra(graph, source, target):
-    """Bidirectional Dijkstra - faster for single destination queries."""
-    if source == target: return 0
-    
-    # Forward search from source
-    dist_forward = {source: 0}
-    heap_forward = [(0, source)]
-    
-    # Backward search from target  
-    dist_backward = {target: 0}
-    heap_backward = [(0, target)]
-    
-    best_dist = float('inf')
-    
-    while heap_forward and heap_backward:
-        # Expand forward
-        if heap_forward:
-            d_f, u = heapq.heappop(heap_forward)
-            if u in dist_backward:
-                best_dist = min(best_dist, d_f + dist_backward[u])
-            if d_f > best_dist: break
-            for v, w in graph.get(u, []):
-                nd = d_f + w
-                if nd < dist_forward.get(v, float('inf')):
-                    dist_forward[v] = nd
-                    heapq.heappush(heap_forward, (nd, v))
-        
-        # Expand backward
-        if heap_backward:
-            d_b, u = heapq.heappop(heap_backward)
-            if u in dist_forward:
-                best_dist = min(best_dist, d_b + dist_forward[u])
-            if d_b > best_dist: break
-            for v, w in graph.get(u, []):
-                nd = d_b + w
-                if nd < dist_backward.get(v, float('inf')):
-                    dist_backward[v] = nd
-                    heapq.heappush(heap_backward, (nd, v))
-    
-    return best_dist
-```
-````
-
-### 2. 0-1 BFS (Special Case)
-
-When all edge weights are 0 or 1, use deque for O(V + E).
-
-````carousel
-```python
-def zero_one_bfs(graph, source):
-    """0-1 BFS for graphs with edge weights 0 or 1."""
-    from collections import deque
-    
-    dist = {v: float('inf') for v in graph}
-    dist[source] = 0
-    
-    dq = deque([source])
-    
-    while dq:
-        current = dq.popleft()
-        
-        for neighbor, weight in graph.get(current, []):
-            if weight not in (0, 1):
-                raise ValueError("Only 0-1 weights allowed")
-            
-            new_dist = dist[current] + weight
-            
-            if new_dist < dist[neighbor]:
-                dist[neighbor] = new_dist
-                if weight == 0:
-                    dq.appendleft(neighbor)
-                else:
-                    dq.append(neighbor)
-    
-    return dist
-```
-````
-
-### 3. Dial's Algorithm (Bucket Dijkstra)
-
-For small integer weights, use bucket-based approach for O(V + E + C) where C is max weight.
-
-### 4. Multi-Source Dijkstra
-
-Run Dijkstra from multiple sources simultaneously to find nearest source for each vertex.
+- **Memory overhead**: Priority queue requires O(V) space
+- **Slower than BFS for unweighted graphs**: O((V + E) log V) vs O(V + E)
 
 ---
 
@@ -1072,12 +754,13 @@ Run Dijkstra from multiple sources simultaneously to find nearest source for eac
 
 **Problem:** [LeetCode 743 - Network Delay Time](https://leetcode.com/problems/network-delay-time/)
 
-**Description:** You are given a network of `n` nodes labeled 1 to `n`. There are also `times` edges `[u, v, w]` representing a signal traveling from node `u` to node `v` in `w` time units. Find the minimum time for the signal to reach all nodes.
+**Description:** You are given a network of `n` nodes labeled 1 to `n`. There are also `times` edges `[u, v, w]` representing a signal traveling from node `u` to node `v` in `w` time units. Find the minimum time for the signal to reach all nodes from a given source node `k`.
 
-**How to Apply Dijkstra:**
+**How to Apply Dijkstra's:**
 - Build adjacency list from times array
 - Run Dijkstra from source node k
-- Return maximum distance if all nodes reachable, else -1
+- Return maximum distance among all reachable nodes
+- If any node unreachable, return -1
 
 ---
 
@@ -1085,12 +768,13 @@ Run Dijkstra from multiple sources simultaneously to find nearest source for eac
 
 **Problem:** [LeetCode 1631 - Path With Minimum Effort](https://leetcode.com/problems/path-with-minimum-effort/)
 
-**Description:** You are given a 2D array of heights. Find a path from top-left to bottom-right that minimizes the maximum absolute difference between consecutive cells.
+**Description:** You are given a 2D array `heights` of size `rows x columns`, where `heights[row][col]` represents the height of cell `(row, col)`. Find a path from top-left to bottom-right that minimizes the maximum absolute difference in heights between consecutive cells.
 
-**How to Apply Dijkstra:**
+**How to Apply Dijkstra's:**
 - Treat each cell as a vertex
 - Edge weight = max absolute difference between cells
-- Use Dijkstra with modified relaxation to find minimum maximum edge
+- Use modified Dijkstra to track maximum edge weight along path
+- Find path with minimum maximum effort
 
 ---
 
@@ -1098,37 +782,38 @@ Run Dijkstra from multiple sources simultaneously to find nearest source for eac
 
 **Problem:** [LeetCode 787 - Cheapest Flights Within K Stops](https://leetcode.com/problems/cheapest-flights-within-k-stops/)
 
-**Description:** There are `n` cities connected by flights. Find the cheapest price to travel from city `src` to city `dst` with at most `k` stops.
+**Description:** There are `n` cities connected by flights. The flight `flights[i] = [from, to, price]` indicates a flight from city `from` to city `to` with cost `price`. Find the cheapest price to travel from city `src` to city `dst` with at most `k` stops.
 
-**How to Apply Dijkstra:**
-- Modified Dijkstra to track number of stops
-- State: (cost, current_node, stops_used)
+**How to Apply Dijkstra's:**
+- Modified state: (cost, city, stops_used)
+- Track both cost and number of stops
 - Only expand if stops_used <= k
+- Use priority queue ordered by cost
 
 ---
 
-### Problem 4: Find the City With the Smallest Number of Neighbors
+### Problem 4: Find the City With Smallest Number of Neighbors
 
-**Problem:** [LeetCode 1334 - Find the City With the Smallest Number of Neighbors](https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/)
+**Problem:** [LeetCode 1334 - Find the City With the Smallest Number of Neighbors at a Threshold Distance](https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/)
 
-**Description:** Given `n` cities and distances between them, find the city with the smallest number of reachable cities within distance `threshold`.
+**Description:** Given `n` cities and edges representing bidirectional roads with distances, find the city with the smallest number of cities reachable within distance `threshold`. If multiple such cities exist, return the city with the greatest number.
 
-**How to Apply Dijkstra:**
-- Run Dijkstra from each city
-- Count reachable cities within threshold
-- Track minimum and return city index
+**How to Apply Dijkstra's:**
+- Run Dijkstra from each city to find all shortest paths
+- Count reachable cities within threshold for each source
+- Track city with minimum count (or maximum number if tied)
 
 ---
 
 ### Problem 5: Minimum Cost to Reach Destination in Time
 
-**Problem:** [LeetCode 1379 - Find a Value of a Mysterious Function](https://leetcode.com/problems/minimum-cost-to-reach-destination-in-time/)
+**Problem:** [LeetCode 1928 - Minimum Cost to Reach Destination in Time](https://leetcode.com/problems/minimum-cost-to-reach-destination-in-time/)
 
-**Description:** Similar to shortest path but with time constraints and vertex costs.
+**Description:** There is a country of `n` cities numbered from 0 to `n - 1` where all cities are connected by bi-directional roads. The roads are represented as a 2D integer array `edges` where `edges[i] = [x, y, time]` denotes a road between cities `x` and `y` that takes `time` minutes to travel. Each city has a passing fee represented by `passingFees`. Find the minimum cost to reach destination before maxTime.
 
-**How to Apply Dijkstra:**
-- State: (cost, time, current_city)
-- Track both cost and time in relaxation
+**How to Apply Dijkstra's:**
+- State: (total_cost, current_city, time_spent)
+- Modified relaxation considering both cost and time constraints
 - Optimize for minimum cost while respecting time limit
 
 ---
@@ -1153,61 +838,62 @@ Run Dijkstra from multiple sources simultaneously to find nearest source for eac
 
 ### Q1: Why doesn't Dijkstra's algorithm work with negative edge weights?
 
-**Answer:** Dijkstra's greedy approach relies on the assumption that once we extract a vertex with minimum distance, that distance is final. With negative edge weights, a shorter path could be discovered later by going through a vertex with currently larger distance. The algorithm would incorrectly finalize distances too early.
+**Answer:** Dijkstra's greedy approach relies on the assumption that once we extract a vertex with minimum distance, that distance is final. With negative edge weights, a shorter path could be discovered later by going through a vertex with currently larger distance. The algorithm would incorrectly finalize distances too early. For example, if A→B has cost 5 and A→C→B has cost 3+1=4 but C is processed after B, we miss the shorter path.
 
 ### Q2: How would you modify Dijkstra to handle negative weights?
 
 **Answer:** You cannot directly modify Dijkstra for negative weights. Use Bellman-Ford instead, which:
 - Iterates V-1 times relaxing all edges
-- Can detect negative cycles
-- Has higher time complexity O(V × E)
+- Can detect negative cycles (if distances keep improving after V-1 iterations)
+- Has higher time complexity O(V × E) but handles all weights
 
 ### Q3: What's the difference between Dijkstra and BFS?
 
 **Answer:**
-- **BFS**: Unweighted graphs, finds shortest path in terms of edges
-- **Dijkstra**: Weighted graphs with non-negative weights, finds shortest path in terms of total weight
-- Both use similar greedy approach but Dijkstra uses priority queue instead of regular queue
+- **BFS**: Uses a regular queue, processes nodes level by level
+  - Works on unweighted graphs (all edges equal)
+  - Finds shortest path in terms of number of edges
+  - Time: O(V + E)
+
+- **Dijkstra**: Uses a priority queue (min-heap), processes by distance
+  - Works on weighted graphs with non-negative weights
+  - Finds shortest path in terms of total weight
+  - Time: O((V + E) log V)
 
 ### Q4: Can Dijkstra be used for all-pairs shortest path?
 
-**Answer:** Yes, you can run Dijkstra from each vertex (O(V × (V + E) log V)), but:
-- Floyd-Warshall is better for small dense graphs O(V³)
-- For sparse graphs, Dijkstra from each vertex is practical
+**Answer:** Yes, by running Dijkstra from each vertex:
+- Time: O(V × (V + E) log V) = O(V² log V + VE log V)
+- For sparse graphs (E ≈ V), this is O(V² log V)
+- Floyd-Warshall is O(V³) and better for dense small graphs
+- Johnson's algorithm combines both for sparse graphs with negative weights
 
 ### Q5: How does A* differ from Dijkstra?
 
 **Answer:** A* uses a heuristic to guide the search:
-- Dijkstra explores uniformly based on distance from source
-- A* prioritizes vertices closer to the target using heuristic h(n)
-- A* is faster for single-target queries but requires admissible heuristic
+- Dijkstra's priority: actual distance from source
+- A* priority: actual distance + heuristic estimate to target
+- A* is faster for single-target queries when a good heuristic exists
+- A* requires admissible heuristic (never overestimates) for correctness
+- Dijkstra explores uniformly; A* focuses toward the target
 
 ---
 
 ## Summary
 
-Dijkstra's algorithm is a **fundamental graph algorithm** for finding shortest paths in weighted graphs with **non-negative edge weights**. Key takeaways:
+Dijkstra's algorithm is a fundamental graph algorithm for finding shortest paths in weighted graphs with non-negative edge weights. Key takeaways:
 
 - **Greedy + Relaxation**: Always process closest vertex first, update neighbors
 - **Time Complexity**: O((V + E) log V) with binary heap
 - **Space Complexity**: O(V) for distances and priority queue
-- **Limitation**: Only works with non-negative weights
+- **Limitation**: Only works with non-negative weights (use Bellman-Ford otherwise)
 
 When to use:
-- ✅ Finding shortest path in weighted graphs
+- ✅ Finding shortest path in weighted graphs with non-negative weights
 - ✅ GPS and navigation systems
 - ✅ Network routing protocols
+- ✅ Any single-source shortest path problem
 - ❌ Graphs with negative edge weights (use Bellman-Ford)
-- ❌ Finding shortest path with negative cycles
+- ❌ Unweighted graphs (BFS is simpler and faster)
 
 This algorithm is essential for competitive programming and technical interviews, especially in problems involving route planning, network optimization, and pathfinding.
-
----
-
-## Related Algorithms
-
-- [Bellman-Ford](./bellman-ford.md) - Handles negative weights
-- [Floyd-Warshall](./floyd-warshall.md) - All-pairs shortest path
-- [BFS](./bfs-level-order.md) - Unweighted shortest path
-- [Topological Sort](./topological-sort.md) - DAG shortest path (O(V + E))
-- [A* Search](./a-star-search.md) - Heuristic-guided shortest path

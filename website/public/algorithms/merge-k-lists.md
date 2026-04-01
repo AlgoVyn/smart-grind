@@ -5,29 +5,565 @@ Heap / Priority Queue
 
 ## Description
 
-Merge K Sorted Lists is a classic problem that merges k sorted linked lists into one sorted list. The optimal approach uses a min-heap (priority queue) to always extract the smallest element among the current heads of all lists.
+Merge K Sorted Lists is a classic problem that merges k sorted linked lists into one sorted list. The optimal approach uses a min-heap (priority queue) to always extract the smallest element among the current heads of all lists, achieving O(N log k) time complexity where N is the total number of elements and k is the number of lists.
 
-The algorithm works as follows:
-1. Initialize a min-heap with the first element from each list
-2. Extract the minimum element from heap and add to result
-3. Push the next element from the same list into the heap
-4. Repeat until heap is empty
+This algorithm is fundamental for solving problems involving multiple sorted sequences, k-way merging, and finding kth smallest elements across multiple data sources. It's widely used in external sorting, database merge operations, and stream processing where data arrives from multiple sorted sources.
 
-Time complexity: O(N log k) where N is total elements and k is number of lists
-- Each element is inserted and extracted from heap once: O(N log k)
-- Building the initial heap: O(k)
+---
 
-Space complexity: O(k) for the heap plus O(k) for the result list.
+## Concepts
 
-Alternative approaches include:
-- Divide and conquer (merge pairs of lists recursively)
-- Naive approach (merge one list at a time)
+The Merge K Sorted Lists algorithm is built on several fundamental concepts from heap data structures and merge algorithms.
+
+### 1. Min-Heap Property
+
+A min-heap ensures the smallest element is always accessible in O(1) time:
+
+| Property | Description | Complexity |
+|----------|-------------|------------|
+| **Min Access** | Smallest element at root | O(1) |
+| **Insertion** | Add new element | O(log k) |
+| **Extraction** | Remove and return min | O(log k) |
+| **Size** | Number of elements tracked | O(1) |
+
+### 2. K-Way Merge Strategy
+
+The core insight of merging k lists simultaneously:
+
+```
+Initialize: Push first element from each list into heap
+
+While heap not empty:
+    1. Extract minimum element from heap (current smallest)
+    2. Add to result list
+    3. Push next element from same source list into heap
+    4. Repeat until all lists exhausted
+```
+
+### 3. List State Tracking
+
+Each heap entry tracks its source list to know which list to advance:
+
+| Component | Purpose | Stored As |
+|-----------|---------|-----------|
+| **Value** | The actual element value | Integer |
+| **List Index** | Which source list | Integer index |
+| **Node Reference** | Pointer to current node | Node object |
+
+### 4. Alternative Approaches
+
+Different strategies for merging k sorted lists:
+
+| Approach | Time | Space | Best For |
+|----------|------|-------|----------|
+| **Min-Heap** | O(N log k) | O(k) | General purpose, streaming |
+| **Divide & Conquer** | O(N log k) | O(log k) | Linked lists, recursion-friendly |
+| **Sequential Merge** | O(N·k) | O(1) | Only when k is very small |
+
+---
+
+## Frameworks
+
+Structured approaches for solving merge k sorted lists problems.
+
+### Framework 1: Min-Heap Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  MIN-HEAP K-WAY MERGE FRAMEWORK                       │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  1. INITIALIZE HEAP:                                │
+│     For each list i from 0 to k-1:                  │
+│         If list[i] not empty:                        │
+│             Push (value[i], i, node[i]) to heap     │
+│                                                     │
+│  2. CREATE RESULT DUMMY NODE                         │
+│     dummy = new Node()                               │
+│     current = dummy                                   │
+│                                                     │
+│  3. PROCESS WHILE HEAP NOT EMPTY:                    │
+│     While heap not empty:                           │
+│         a. (val, i, node) = heap.pop()              │
+│         b. current.next = new Node(val)             │
+│         c. current = current.next                   │
+│         d. If node.next exists:                     │
+│              heap.push((node.next.val, i, node.next))│
+│                                                     │
+│  4. RETURN RESULT                                    │
+│     Return dummy.next                                │
+│                                                     │
+│  Complexity: O(N log k) time, O(k) space             │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When you need to merge k sorted lists efficiently with predictable performance.
+
+### Framework 2: Divide and Conquer Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  DIVIDE AND CONQUER MERGE FRAMEWORK                   │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  function mergeKLists(lists):                        │
+│      If lists is empty: return null                  │
+│      While len(lists) > 1:                           │
+│          merged = []                                 │
+│          For i from 0 to len(lists)-1 step 2:       │
+│              If i+1 < len(lists):                    │
+│                  merged.append(mergeTwoLists(        │
+│                      lists[i], lists[i+1]))          │
+│              Else:                                   │
+│                  merged.append(lists[i])            │
+│          lists = merged                              │
+│      Return lists[0]                                 │
+│                                                     │
+│  function mergeTwoLists(l1, l2):                      │
+│      // Standard merge of two sorted lists           │
+│      dummy = new Node()                              │
+│      current = dummy                                 │
+│      While l1 and l2:                                │
+│          If l1.val < l2.val:                        │
+│              current.next = l1                       │
+│              l1 = l1.next                            │
+│          Else:                                       │
+│              current.next = l2                       │
+│              l2 = l2.next                            │
+│          current = current.next                      │
+│      current.next = l1 or l2                        │
+│      Return dummy.next                               │
+│                                                     │
+│  Complexity: O(N log k) time, O(log k) stack space   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When working with linked lists and want to avoid heap overhead, or when recursion depth is acceptable.
+
+### Framework 3: Kth Smallest Element Framework
+
+```
+┌─────────────────────────────────────────────────────┐
+│  KTH SMALLEST ELEMENT FRAMEWORK                       │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  1. Initialize heap with first element of each list │
+│                                                     │
+│  2. Extract (k-1) elements:                          │
+│     For count from 1 to k-1:                         │
+│         (val, i, node) = heap.pop()                 │
+│         If node.next exists:                         │
+│             heap.push((node.next.val, i, node.next)) │
+│         If heap is empty: return null                │
+│                                                     │
+│  3. Return kth smallest:                               │
+│     Return heap.peek().val                           │
+│                                                     │
+│  Complexity: O(k log k) time for kth element         │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When you only need the kth smallest element without fully merging all lists.
+
+---
+
+## Forms
+
+Different manifestations of the merge k sorted lists pattern.
+
+### Form 1: Merge K Sorted Linked Lists
+
+Classic linked list merging where each list is a chain of nodes.
+
+| Characteristic | Implementation Detail |
+|----------------|----------------------|
+| **Node Structure** | val + next pointer |
+| **Heap Entry** | (val, list_index, node_ptr) |
+| **Progression** | node = node.next |
+| **Result Type** | Linked list head |
+
+### Form 2: Merge K Sorted Arrays
+
+Same algorithm applied to array data structures.
+
+| Characteristic | Implementation Detail |
+|----------------|----------------------|
+| **Index Tracking** | Track (array_index, element_index) |
+| **Heap Entry** | (val, arr_idx, elem_idx) |
+| **Progression** | elem_idx++ |
+| **Boundary Check** | elem_idx < len(array) |
+
+### Form 3: Streaming/Multi-Source Merge
+
+Merge data arriving from multiple live sources (logs, sensors, etc.).
+
+```
+Source 1: [1, 4, 7] arriving over time
+Source 2: [2, 5, 8] arriving over time
+Source 3: [3, 6, 9] arriving over time
+
+Heap maintains "current" element from each active source
+As data arrives: push to heap
+When source ends: stop pushing that source
+```
+
+### Form 4: External Merge Sort Application
+
+Used in external sorting when data doesn't fit in memory.
+
+1. Sort chunks of data that fit in memory
+2. Create k sorted runs (files)
+3. Use k-way merge to combine into final sorted output
+4. Process incrementally, write to disk
+
+---
+
+## Tactics
+
+Specific techniques and optimizations for merge k sorted lists.
+
+### Tactic 1: Using heapq in Python
+
+Python's built-in heapq module simplifies implementation:
+
+```python
+import heapq
+
+def merge_k_lists_heapq(lists):
+    """Merge using Python's heapq module."""
+    heap = []
+    
+    # Initialize heap with (value, list_index, node)
+    # list_index breaks ties to avoid comparing nodes
+    for i, node in enumerate(lists):
+        if node:
+            heapq.heappush(heap, (node.val, i, node))
+    
+    dummy = ListNode(0)
+    current = dummy
+    
+    while heap:
+        val, i, node = heapq.heappop(heap)
+        current.next = ListNode(val)
+        current = current.next
+        
+        if node.next:
+            heapq.heappush(heap, (node.next.val, i, node.next))
+    
+    return dummy.next
+```
+
+**Key point**: Include list_index as tie-breaker since Python's heapq can't compare custom objects directly.
+
+### Tactic 2: Early Termination for Kth Element
+
+Stop early when only need kth smallest:
+
+```python
+def find_kth_smallest(lists, k):
+    """Find kth smallest without full merge."""
+    heap = []
+    
+    for i, lst in enumerate(lists):
+        if lst:
+            heapq.heappush(heap, (lst[0], i, 0))
+    
+    count = 0
+    while heap:
+        val, i, j = heapq.heappop(heap)
+        count += 1
+        
+        if count == k:
+            return val
+        
+        if j + 1 < len(lists[i]):
+            heapq.heappush(heap, (lists[i][j + 1], i, j + 1))
+    
+    return None
+```
+
+**Optimization**: O(k log k) instead of O(N log k) when k << N.
+
+### Tactic 3: Optimized Two-List Merge
+
+Efficient merge of two sorted lists as building block:
+
+```python
+def merge_two_lists(l1, l2):
+    """Optimized two-list merge using dummy head."""
+    dummy = ListNode(0)
+    tail = dummy
+    
+    while l1 and l2:
+        if l1.val <= l2.val:
+            tail.next = l1
+            l1 = l1.next
+        else:
+            tail.next = l2
+            l2 = l2.next
+        tail = tail.next
+    
+    # Attach remaining list (optimization: avoid loop)
+    tail.next = l1 if l1 else l2
+    
+    return dummy.next
+```
+
+**Benefits**: Single pass through both lists, O(1) extra space.
+
+### Tactic 4: Handling Empty Lists
+
+Defensive programming for edge cases:
+
+```python
+def merge_k_lists_safe(lists):
+    """Handle edge cases gracefully."""
+    # Filter out None/empty lists
+    valid_lists = [lst for lst in lists if lst]
+    
+    if not valid_lists:
+        return None
+    
+    if len(valid_lists) == 1:
+        return valid_lists[0]
+    
+    # Proceed with merge...
+```
+
+### Tactic 5: Custom Comparator Pattern
+
+For complex data types, use custom comparison:
+
+```python
+import heapq
+from dataclasses import dataclass, field
+
+@dataclass(order=True)
+class HeapEntry:
+    priority: int
+    list_idx: int = field(compare=False)
+    node: 'ListNode' = field(compare=False)
+
+# Usage:
+heap = []
+for i, node in enumerate(lists):
+    if node:
+        heapq.heappush(heap, HeapEntry(node.val, i, node))
+```
+
+---
+
+## Python Templates
+
+### Template 1: Min-Heap Approach
+
+```python
+import heapq
+from typing import List, Optional
+
+class ListNode:
+    def __init__(self, val: int = 0, next: Optional['ListNode'] = None):
+        self.val = val
+        self.next = next
+
+def merge_k_lists(lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+    """
+    Merge k sorted linked lists using min-heap.
+    
+    Time: O(N log k) where N is total elements, k is number of lists
+    Space: O(k) for the heap
+    """
+    # Edge cases
+    if not lists:
+        return None
+    
+    # Initialize heap with first node from each list
+    heap = []
+    for i, node in enumerate(lists):
+        if node:
+            # (value, list_index, node) - list_index breaks ties
+            heapq.heappush(heap, (node.val, i, node))
+    
+    # Dummy head for easier list construction
+    dummy = ListNode(0)
+    current = dummy
+    
+    # Process heap until empty
+    while heap:
+        val, i, node = heapq.heappop(heap)
+        current.next = ListNode(val)
+        current = current.next
+        
+        # Push next node from same list if exists
+        if node.next:
+            heapq.heappush(heap, (node.next.val, i, node.next))
+    
+    return dummy.next
+```
+
+### Template 2: Divide and Conquer Approach
+
+```python
+def merge_k_lists_divide_conquer(lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+    """
+    Merge k sorted lists using divide and conquer.
+    
+    Time: O(N log k) 
+    Space: O(log k) for recursion stack
+    """
+    if not lists:
+        return None
+    
+    # Merge pairs iteratively until one list remains
+    while len(lists) > 1:
+        merged = []
+        
+        # Merge adjacent pairs
+        for i in range(0, len(lists) - 1, 2):
+            merged.append(merge_two_lists(lists[i], lists[i + 1]))
+        
+        # Handle odd number of lists
+        if len(lists) % 2 == 1:
+            merged.append(lists[-1])
+        
+        lists = merged
+    
+    return lists[0]
+
+def merge_two_lists(l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:
+    """Merge two sorted linked lists."""
+    dummy = ListNode(0)
+    current = dummy
+    
+    while l1 and l2:
+        if l1.val <= l2.val:
+            current.next = l1
+            l1 = l1.next
+        else:
+            current.next = l2
+            l2 = l2.next
+        current = current.next
+    
+    # Attach remaining nodes
+    current.next = l1 or l2
+    return dummy.next
+```
+
+### Template 3: Kth Smallest Element
+
+```python
+def find_kth_smallest(lists: List[List[int]], k: int) -> Optional[int]:
+    """
+    Find kth smallest element across k sorted arrays.
+    
+    Time: O(k log k) to initialize + O(k log k) to extract k elements = O(k log k)
+    Space: O(k) for heap
+    """
+    if not lists or k <= 0:
+        return None
+    
+    # Initialize heap with first element from each array
+    heap = []
+    for i, arr in enumerate(lists):
+        if arr:
+            heapq.heappush(heap, (arr[0], i, 0))
+    
+    # Extract k-1 elements
+    for _ in range(k - 1):
+        if not heap:
+            return None  # k is larger than total elements
+        
+        val, i, j = heapq.heappop(heap)
+        
+        # Push next element from same array
+        if j + 1 < len(lists[i]):
+            heapq.heappush(heap, (lists[i][j + 1], i, j + 1))
+    
+    # kth smallest is at heap top
+    return heap[0][0] if heap else None
+```
+
+### Template 4: Merge K Sorted Arrays
+
+```python
+def merge_k_arrays(arrays: List[List[int]]) -> List[int]:
+    """
+    Merge k sorted arrays into one sorted array.
+    
+    Time: O(N log k) where N is total elements
+    Space: O(k) for heap + O(N) for result
+    """
+    if not arrays:
+        return []
+    
+    result = []
+    heap = []
+    
+    # Initialize: (value, array_index, element_index)
+    for i, arr in enumerate(arrays):
+        if arr:
+            heapq.heappush(heap, (arr[0], i, 0))
+    
+    # Process heap
+    while heap:
+        val, i, j = heapq.heappop(heap)
+        result.append(val)
+        
+        # Push next element from same array
+        if j + 1 < len(arrays[i]):
+            heapq.heappush(heap, (arrays[i][j + 1], i, j + 1))
+    
+    return result
+```
+
+### Template 5: Smallest Range Covering K Lists
+
+```python
+def smallest_range(lists: List[List[int]]) -> List[int]:
+    """
+    Find smallest range that includes at least one element from each list.
+    Uses min-heap to track current window.
+    
+    Time: O(N log k) where N is total elements
+    Space: O(k)
+    """
+    if not lists:
+        return []
+    
+    heap = []
+    current_max = float('-inf')
+    
+    # Initialize heap and find initial max
+    for i, lst in enumerate(lists):
+        if lst:
+            heapq.heappush(heap, (lst[0], i, 0))
+            current_max = max(current_max, lst[0])
+    
+    best_range = [float('-inf'), float('inf')]
+    
+    while len(heap) == len(lists):  # All lists must contribute
+        current_min, i, j = heapq.heappop(heap)
+        
+        # Update best range if current is smaller
+        if current_max - current_min < best_range[1] - best_range[0]:
+            best_range = [current_min, current_max]
+        
+        # Push next from same list
+        if j + 1 < len(lists[i]):
+            next_val = lists[i][j + 1]
+            heapq.heappush(heap, (next_val, i, j + 1))
+            current_max = max(current_max, next_val)
+        else:
+            break  # One list exhausted, can't get smaller range
+    
+    return best_range
+```
 
 ---
 
 ## When to Use
 
-Use this algorithm when you need to solve problems involving:
+Use the Merge K Sorted Lists algorithm when you need to solve problems involving:
 
 - **Multiple Sorted Sequences**: When you need to merge or process multiple sorted arrays/lists efficiently
 - **K-way Merge Problems**: When merging k sorted data sources into one sorted output
@@ -105,847 +641,23 @@ Step 1: Heap has [1(list1), 2(list2), 3(list3)] → Extract 1, add 4
 Step 2: Heap has [2(list2), 3(list3), 4(list1)] → Extract 2, add 5
 Step 3: Heap has [3(list3), 4(list1), 5(list2)] → Extract 3, add 6
 ... and so on until all merged
+
+Final: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
 ```
 
-### Why Min-Heap Works
-
-- The heap always contains exactly k elements (one from each non-empty list)
-- The minimum element is always at the top (O(1) access)
-- Insertion and extraction are both O(log k)
-- Each of the N total elements is processed exactly once
-
----
-
-## Algorithm Steps
-
-### Min-Heap Approach
-
-1. **Handle edge cases**: If lists is empty or contains only nulls, return null
-2. **Initialize heap**: Create a min-heap and add the first node from each non-empty list
-3. **Create dummy node**: Use a dummy head to simplify list construction
-4. **Process while heap not empty**:
-   - Extract minimum from heap
-   - Add to result list
-   - If extracted node has a next node, push next node to heap
-5. **Return**: Return dummy.next (the head of merged list)
-
-### Divide and Conquer Approach
-
-1. **Base case**: If lists is empty, return null; if lists has one element, return it
-2. **Pair merging**: While more than one list exists, merge pairs together
-3. **Handle odd list**: If odd number of lists, carry over the last unpaired list
-4. **Recurse**: Continue until only one list remains
-
----
-
-## Implementation
-
-### Template Code (Min-Heap Approach)
-
-````carousel
-```python
-import heapq
-from typing import List, Optional
-
-class ListNode:
-    """Definition for singly-linked list node"""
-    def __init__(self, val: int = 0, next: 'ListNode' = None):
-        self.val = val
-        self.next = next
-
-
-def merge_k_lists(lists: List[Optional[ListNode]]) -> Optional[ListNode]:
-    """
-    Merge k sorted linked lists into one sorted list using min-heap.
-    
-    Args:
-        lists: List of sorted linked list heads
-        
-    Returns:
-        Head of merged sorted linked list
-        
-    Time: O(N log k)
-    Space: O(k)
-    """
-    # Dummy head for easier construction
-    dummy = ListNode(-1)
-    current = dummy
-    
-    # Initialize min-heap with (value, list_index, node)
-    # list_index is used to break ties
-    heap = []
-    
-    for i, node in enumerate(lists):
-        if node:
-            heapq.heappush(heap, (node.val, i, node))
-    
-    # Process heap
-    while heap:
-        val, i, node = heapq.heappop(heap)
-        current.next = ListNode(val)
-        current = current.next
-        
-        # Push next node from same list
-        if node.next:
-            heapq.heappush(heap, (node.next.val, i, node.next))
-    
-    return dummy.next
-
-
-def merge_k_lists_divide_conquer(lists: List[Optional[ListNode]]) -> Optional[ListNode]:
-    """
-    Merge k sorted lists using divide and conquer approach.
-    
-    Args:
-        lists: List of sorted linked list heads
-        
-    Returns:
-        Head of merged sorted linked list
-        
-    Time: O(N log k)
-    Space: O(log k) for recursion stack
-    """
-    if not lists:
-        return None
-    
-    # Merge two lists at a time
-    while len(lists) > 1:
-        merged_lists = []
-        
-        for i in range(0, len(lists) - 1, 2):
-            merged = merge_two_lists(lists[i], lists[i + 1])
-            merged_lists.append(merged)
-        
-        # Handle odd number of lists
-        if len(lists) % 2 == 1:
-            merged_lists.append(lists[-1])
-        
-        lists = merged_lists
-    
-    return lists[0]
-
-
-def merge_two_lists(l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:
-    """Merge two sorted linked lists"""
-    dummy = ListNode(-1)
-    current = dummy
-    
-    while l1 and l2:
-        if l1.val <= l2.val:
-            current.next = l1
-            l1 = l1.next
-        else:
-            current.next = l2
-            l2 = l2.next
-        current = current.next
-    
-    current.next = l1 or l2
-    return dummy.next
-
-
-def list_to_linkedlist(arr: List[int]) -> Optional[ListNode]:
-    """Convert list to linked list"""
-    if not arr:
-        return None
-    dummy = ListNode(-1)
-    current = dummy
-    for val in arr:
-        current.next = ListNode(val)
-        current = current.next
-    return dummy.next
-
-
-def linkedlist_to_list(node: Optional[ListNode]) -> List[int]:
-    """Convert linked list to list"""
-    result = []
-    while node:
-        result.append(node.val)
-        node = node.next
-    return result
-
-
-# Example usage
-if __name__ == "__main__":
-    # Create sorted linked lists
-    list1 = list_to_linkedlist([1, 4, 7, 10])
-    list2 = list_to_linkedlist([2, 5, 8])
-    list3 = list_to_linkedlist([3, 6, 9, 11])
-    
-    lists = [list1, list2, list3]
-    
-    # Merge using heap
-    result = merge_k_lists(lists)
-    print("Merged (using heap):", linkedlist_to_list(result))
-    # Output: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-    
-    # Recreate lists for second method
-    list1 = list_to_linkedlist([1, 4, 7, 10])
-    list2 = list_to_linkedlist([2, 5, 8])
-    list3 = list_to_linkedlist([3, 6, 9, 11])
-    
-    # Merge using divide and conquer
-    result = merge_k_lists_divide_conquer([list1, list2, list3])
-    print("Merged (divide conquer):", linkedlist_to_list(result))
-    # Output: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-    
-    # Edge case: empty list
-    result = merge_k_lists([])
-    print("Empty input:", linkedlist_to_list(result))  # []
-    
-    # Edge case: one list
-    result = merge_k_lists([list_to_linkedlist([1, 2, 3])])
-    print("Single list:", linkedlist_to_list(result))  # [1, 2, 3]
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <algorithm>
-
-using namespace std;
-
-/**
- * Definition for singly-linked list.
- */
-struct ListNode {
-    int val;
-    ListNode* next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode* next) : val(x), next(next) {}
-};
-
-/**
- * Merge k sorted linked lists using min-heap (priority queue).
- * 
- * Time Complexity: O(N log k)
- * Space Complexity: O(k)
- */
-class Solution {
-public:
-    ListNode* mergeKLists(vector<ListNode*>& lists) {
-        // Priority queue with custom comparator for min-heap
-        // Stores (value, list_index, node pointer)
-        auto cmp = [](const pair<int, ListNode*>& a, const pair<int, ListNode*>& b) {
-            return a.first > b.first;  // Min-heap: smallest value at top
-        };
-        
-        priority_queue<pair<int, ListNode*>, vector<pair<int, ListNode*>>, decltype(cmp)> pq(cmp);
-        
-        // Initialize heap with first node from each list
-        for (int i = 0; i < lists.size(); i++) {
-            if (lists[i] != nullptr) {
-                pq.push({lists[i]->val, lists[i]});
-            }
-        }
-        
-        // Dummy head for easier construction
-        ListNode dummy(0);
-        ListNode* current = &dummy;
-        
-        // Process heap
-        while (!pq.empty()) {
-            auto [val, node] = pq.top();
-            pq.pop();
-            
-            current->next = new ListNode(val);
-            current = current->next;
-            
-            // Push next node from same list
-            if (node->next != nullptr) {
-                pq.push({node->next->val, node->next});
-            }
-        }
-        
-        return dummy.next;
-    }
-    
-    /**
-     * Merge k sorted lists using divide and conquer.
-     * 
-     * Time Complexity: O(N log k)
-     * Space Complexity: O(log k) for recursion stack
-     */
-    ListNode* mergeKListsDivideConquer(vector<ListNode*>& lists) {
-        if (lists.empty()) return nullptr;
-        
-        while (lists.size() > 1) {
-            vector<ListNode*> mergedLists;
-            
-            for (int i = 0; i < lists.size() - 1; i += 2) {
-                ListNode* merged = mergeTwoLists(lists[i], lists[i + 1]);
-                mergedLists.push_back(merged);
-            }
-            
-            // Handle odd number of lists
-            if (lists.size() % 2 == 1) {
-                mergedLists.push_back(lists.back());
-            }
-            
-            lists = mergedLists;
-        }
-        
-        return lists[0];
-    }
-    
-private:
-    ListNode* mergeTwoLists(ListNode* l1, ListNode* l2) {
-        ListNode dummy(0);
-        ListNode* current = &dummy;
-        
-        while (l1 && l2) {
-            if (l1->val <= l2->val) {
-                current->next = l1;
-                l1 = l1->next;
-            } else {
-                current->next = l2;
-                l2 = l2->next;
-            }
-            current = current->next;
-        }
-        
-        current->next = l1 ? l1 : l2;
-        return dummy.next;
-    }
-};
-
-// Helper functions for testing
-ListNode* createList(const vector<int>& arr) {
-    if (arr.empty()) return nullptr;
-    ListNode dummy(0);
-    ListNode* current = &dummy;
-    for (int val : arr) {
-        current->next = new ListNode(val);
-        current = current->next;
-    }
-    return dummy.next;
-}
-
-vector<int> toVector(ListNode* head) {
-    vector<int> result;
-    while (head) {
-        result.push_back(head->val);
-        head = head->next;
-    }
-    return result;
-}
-
-int main() {
-    Solution solution;
-    
-    // Create sorted linked lists
-    vector<ListNode*> lists = {
-        createList({1, 4, 7, 10}),
-        createList({2, 5, 8}),
-        createList({3, 6, 9, 11})
-    };
-    
-    // Merge using heap
-    ListNode* result = solution.mergeKLists(lists);
-    cout << "Merged (heap): ";
-    for (int val : toVector(result)) cout << val << " ";
-    cout << endl;
-    // Output: 1 2 3 4 5 6 7 8 9 10 11
-    
-    // Recreate lists for second method
-    lists = {
-        createList({1, 4, 7, 10}),
-        createList({2, 5, 8}),
-        createList({3, 6, 9, 11})
-    };
-    
-    // Merge using divide and conquer
-    result = solution.mergeKListsDivideConquer(lists);
-    cout << "Merged (divide conquer): ";
-    for (int val : toVector(result)) cout << val << " ";
-    cout << endl;
-    // Output: 1 2 3 4 5 6 7 8 9 10 11
-    
-    // Edge cases
-    vector<ListNode*> emptyLists = {};
-    result = solution.mergeKLists(emptyLists);
-    cout << "Empty input: " << (toVector(result).empty() ? "empty" : "not empty") << endl;
-    
-    vector<ListNode*> singleList = {createList({1, 2, 3})};
-    result = solution.mergeKLists(singleList);
-    cout << "Single list: ";
-    for (int val : toVector(result)) cout << val << " ";
-    cout << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-/**
- * Definition for singly-linked list.
- */
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
-}
-
-/**
- * Merge k sorted linked lists using min-heap (priority queue).
- * 
- * Time Complexity: O(N log k)
- * Space Complexity: O(k)
- */
-class Solution {
-    public ListNode mergeKLists(ListNode[] lists) {
-        // Min-heap prioritized by value
-        PriorityQueue<ListNode> pq = new PriorityQueue<>(
-            (a, b) -> Integer.compare(a.val, b.val)
-        );
-        
-        // Initialize heap with first node from each list
-        for (ListNode node : lists) {
-            if (node != null) {
-                pq.offer(node);
-            }
-        }
-        
-        // Dummy head for easier construction
-        ListNode dummy = new ListNode(0);
-        ListNode current = dummy;
-        
-        // Process heap
-        while (!pq.isEmpty()) {
-            ListNode node = pq.poll();
-            current.next = new ListNode(node.val);
-            current = current.next;
-            
-            // Push next node from same list
-            if (node.next != null) {
-                pq.offer(node.next);
-            }
-        }
-        
-        return dummy.next;
-    }
-    
-    /**
-     * Merge k sorted lists using divide and conquer.
-     * 
-     * Time Complexity: O(N log k)
-     * Space Complexity: O(log k) for recursion stack
-     */
-    public ListNode mergeKListsDivideConquer(ListNode[] lists) {
-        if (lists == null || lists.length == 0) return null;
-        
-        while (lists.length > 1) {
-            ListNode[] mergedLists = new ListNode[(lists.length + 1) / 2];
-            
-            for (int i = 0; i < lists.length - 1; i += 2) {
-                mergedLists[i / 2] = mergeTwoLists(lists[i], lists[i + 1]);
-            }
-            
-            // Handle odd number of lists
-            if (lists.length % 2 == 1) {
-                mergedLists[mergedLists.length - 1] = lists[lists.length - 1];
-            }
-            
-            lists = mergedLists;
-        }
-        
-        return lists[0];
-    }
-    
-    private ListNode mergeTwoLists(ListNode l1, ListNode l2) {
-        ListNode dummy = new ListNode(0);
-        ListNode current = dummy;
-        
-        while (l1 != null && l2 != null) {
-            if (l1.val <= l2.val) {
-                current.next = l1;
-                l1 = l1.next;
-            } else {
-                current.next = l2;
-                l2 = l2.next;
-            }
-            current = current.next;
-        }
-        
-        current.next = (l1 != null) ? l1 : l2;
-        return dummy.next;
-    }
-    
-    // Helper method to create list from array
-    static ListNode createList(int[] arr) {
-        if (arr == null || arr.length == 0) return null;
-        ListNode dummy = new ListNode(0);
-        ListNode current = dummy;
-        for (int val : arr) {
-            current.next = new ListNode(val);
-            current = current.next;
-        }
-        return dummy.next;
-    }
-    
-    // Helper method to convert list to array
-    static List<Integer> toList(ListNode head) {
-        List<Integer> result = new ArrayList<>();
-        while (head != null) {
-            result.add(head.val);
-            head = head.next;
-        }
-        return result;
-    }
-    
-    // Main method for testing
-    public static void main(String[] args) {
-        Solution solution = new Solution();
-        
-        // Create sorted linked lists
-        ListNode[] lists = {
-            createList(new int[]{1, 4, 7, 10}),
-            createList(new int[]{2, 5, 8}),
-            createList(new int[]{3, 6, 9, 11})
-        };
-        
-        // Merge using heap
-        ListNode result = solution.mergeKLists(lists);
-        System.out.println("Merged (heap): " + toList(result));
-        // Output: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        
-        // Recreate lists for second method
-        lists = new ListNode[]{
-            createList(new int[]{1, 4, 7, 10}),
-            createList(new int[]{2, 5, 8}),
-            createList(new int[]{3, 6, 9, 11})
-        };
-        
-        // Merge using divide and conquer
-        result = solution.mergeKListsDivideConquer(lists);
-        System.out.println("Merged (divide conquer): " + toList(result));
-        // Output: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        
-        // Edge cases
-        ListNode[] emptyLists = {};
-        result = solution.mergeKLists(emptyLists);
-        System.out.println("Empty input: " + toList(result));
-        
-        ListNode[] singleList = {createList(new int[]{1, 2, 3})};
-        result = solution.mergeKLists(singleList);
-        System.out.println("Single list: " + toList(result));
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Definition for singly-linked list.
- * function ListNode(val, next) {
- *     this.val = (val===undefined ? 0 : val)
- *     this.next = (next===undefined ? null : next)
- * }
- */
-
-/**
- * Merge k sorted linked lists using min-heap (priority queue).
- * 
- * Time Complexity: O(N log k)
- * Space Complexity: O(k)
- * 
- * @param {ListNode[]} lists - Array of sorted linked list heads
- * @returns {ListNode|null} - Head of merged sorted linked list
- */
-function mergeKLists(lists) {
-    // Min-heap using priority queue
-    // We'll use a simple array with sorting for clarity
-    // In production, use a proper heap implementation
-    
-    const heap = [];
-    
-    // Initialize heap with first node from each list
-    for (let i = 0; i < lists.length; i++) {
-        if (lists[i]) {
-            heap.push({ val: lists[i].val, index: i, node: lists[i] });
-        }
-    }
-    
-    // Sort to create min-heap behavior
-    heap.sort((a, b) => a.val - b.val);
-    
-    // Dummy head for easier construction
-    const dummy = new ListNode(0);
-    let current = dummy;
-    
-    // Process heap
-    while (heap.length > 0) {
-        // Extract minimum (first element after sort)
-        const { val, index, node } = heap.shift();
-        
-        current.next = new ListNode(val);
-        current = current.next;
-        
-        // Push next node from same list
-        if (node.next) {
-            heap.push({ 
-                val: node.next.val, 
-                index: index, 
-                node: node.next 
-            });
-            // Re-sort to maintain min-heap
-            heap.sort((a, b) => a.val - b.val);
-        }
-    }
-    
-    return dummy.next;
-}
-
-/**
- * Merge k sorted lists using divide and conquer approach.
- * 
- * Time Complexity: O(N log k)
- * Space Complexity: O(log k) for recursion stack
- * 
- * @param {ListNode[]} lists - Array of sorted linked list heads
- * @returns {ListNode|null} - Head of merged sorted linked list
- */
-function mergeKListsDivideConquer(lists) {
-    if (!lists || lists.length === 0) return null;
-    if (lists.length === 1) return lists[0];
-    
-    // Merge pairs iteratively
-    while (lists.length > 1) {
-        const mergedLists = [];
-        
-        for (let i = 0; i < lists.length - 1; i += 2) {
-            const merged = mergeTwoLists(lists[i], lists[i + 1]);
-            mergedLists.push(merged);
-        }
-        
-        // Handle odd number of lists
-        if (lists.length % 2 === 1) {
-            mergedLists.push(lists[lists.length - 1]);
-        }
-        
-        lists = mergedLists;
-    }
-    
-    return lists[0];
-}
-
-/**
- * Merge two sorted linked lists.
- * 
- * @param {ListNode} l1 - First sorted linked list
- * @param {ListNode} l2 - Second sorted linked list
- * @returns {ListNode} - Merged sorted linked list
- */
-function mergeTwoLists(l1, l2) {
-    const dummy = new ListNode(0);
-    let current = dummy;
-    
-    while (l1 && l2) {
-        if (l1.val <= l2.val) {
-            current.next = l1;
-            l1 = l1.next;
-        } else {
-            current.next = l2;
-            l2 = l2.next;
-        }
-        current = current.next;
-    }
-    
-    current.next = l1 || l2;
-    return dummy.next;
-}
-
-/**
- * Helper function to convert array to linked list.
- * 
- * @param {number[]} arr - Input array
- * @returns {ListNode|null} - Linked list head
- */
-function arrayToList(arr) {
-    if (!arr || arr.length === 0) return null;
-    
-    const dummy = new ListNode(0);
-    let current = dummy;
-    
-    for (const val of arr) {
-        current.next = new ListNode(val);
-        current = current.next;
-    }
-    
-    return dummy.next;
-}
-
-/**
- * Helper function to convert linked list to array.
- * 
- * @param {ListNode} head - Linked list head
- * @returns {number[]} - Array representation
- */
-function listToArray(head) {
-    const result = [];
-    while (head) {
-        result.push(head.val);
-        head = head.next;
-    }
-    return result;
-}
-
-// Example usage and testing
-console.log("=== Merge K Sorted Lists Demo ===\n");
-
-// Create sorted linked lists
-const list1 = arrayToList([1, 4, 7, 10]);
-const list2 = arrayToList([2, 5, 8]);
-const list3 = arrayToList([3, 6, 9, 11]);
-
-// Merge using heap approach
-const merged1 = mergeKLists([list1, list2, list3]);
-console.log("Merged (heap):", listToArray(merged1));
-// Output: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-
-// Recreate lists for second method
-const list1b = arrayToList([1, 4, 7, 10]);
-const list2b = arrayToList([2, 5, 8]);
-const list3b = arrayToList([3, 6, 9, 11]);
-
-// Merge using divide and conquer
-const merged2 = mergeKListsDivideConquer([list1b, list2b, list3b]);
-console.log("Merged (divide conquer):", listToArray(merged2));
-// Output: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-
-// Edge cases
-console.log("Empty input:", listToArray(mergeKLists([])));
-// Output: []
-
-console.log("Single list:", listToArray(mergeKLists([arrayToList([1, 2, 3])])));
-// Output: [1, 2, 3]
-
-console.log("Lists with nulls:", listToArray(mergeKLists([null, arrayToList([1]), null])));
-// Output: [1]
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Min-Heap Approach | Divide and Conquer | Naive Approach |
-|-----------|-------------------|-------------------|----------------|
-| **Build/Init** | O(k) | O(k) | O(k) |
-| **Processing** | O(N log k) | O(N log k) | O(N·k) |
-| **Total** | **O(N log k)** | **O(N log k)** | **O(N·k)** |
-
-### Detailed Breakdown
-
-#### Min-Heap Approach:
-- **Heap initialization**: O(k) - insert first element from each list
-- **Processing N elements**: Each element requires:
-  - One heap extract: O(log k)
-  - One potential heap insert: O(log k)
-  - Total: O(N log k)
-- **Overall**: O(N log k) + O(k) = O(N log k)
-
-#### Divide and Conquer:
-- **First level**: k/2 merges, each processing ~2N/k elements
-- **Second level**: k/4 merges, each processing ~4N/k elements
-- **Total levels**: log(k)
-- **Overall**: O(N log k)
-
----
-
-## Space Complexity Analysis
-
-| Approach | Heap/Queue Space | Result Space | Recursion Stack | Total |
-|----------|-----------------|--------------|------------------|-------|
-| **Min-Heap** | O(k) | O(N) | O(1) | O(N + k) |
-| **Divide and Conquer** | O(1) | O(N) | O(log k) | O(N + log k) |
-| **Naive** | O(k) | O(N) | O(1) | O(N + k) |
-
-### Key Observations
-
-- **Min-Heap**: Uses O(k) for the priority queue
-- **Divide and Conquer**: Uses O(log k) for recursion stack (no heap needed)
-- **Result space**: O(N) is required regardless of approach to store the output
-
----
-
-## Common Variations
-
-### 1. Merge K Sorted Arrays
-
-Instead of linked lists, merge sorted arrays using the same heap-based approach.
-
-````carousel
-```python
-import heapq
-
-def merge_k_arrays(arrays):
-    """Merge k sorted arrays into one sorted array."""
-    result = []
-    heap = []
-    
-    # Initialize heap with (value, array_index, element_index)
-    for i, arr in enumerate(arrays):
-        if arr:
-            heapq.heappush(heap, (arr[0], i, 0))
-    
-    while heap:
-        val, i, j = heapq.heappop(heap)
-        result.append(val)
-        
-        # Push next element from same array
-        if j + 1 < len(arrays[i]):
-            heapq.heappush(heap, (arrays[i][j + 1], i, j + 1))
-    
-    return result
-```
-````
-
-### 2. Kth Smallest Element in N Sorted Lists
-
-Find the kth smallest element across k sorted lists without fully merging.
-
-````carousel
-```python
-import heapq
-
-def kth_smallest(lists, k):
-    """Find kth smallest element in k sorted lists."""
-    if not lists or k <= 0:
-        return None
-    
-    # Heap stores (value, list_index, element_index)
-    heap = []
-    for i, lst in enumerate(lists):
-        if lst:
-            heapq.heappush(heap, (lst[0], i, 0))
-    
-    # Extract k-1 elements
-    for _ in range(k - 1):
-        if not heap:
-            return None
-        val, i, j = heapq.heappop(heap)
-        if j + 1 < len(lists[i]):
-            heapq.heappush(heap, (lists[i][j + 1], i, j + 1))
-    
-    return heap[0][0] if heap else None
-```
-````
-
-### 3. External Merge Sort
-
-When data is too large to fit in memory, use the heap-based merge for external sorting.
-
-### 4. Stream Merging
-
-Merge infinite or streaming sorted data sources using a persistent heap.
+### Why It Works
+
+- **Heap Property**: The heap always maintains the smallest element at the top (O(1) access)
+- **Incremental Processing**: Each element is processed exactly once in sorted order
+- **Pointer Tracking**: By tracking which list each element came from, we know which list to advance
+- **Comparison Efficiency**: Each insertion/extraction is O(log k), giving total O(N log k)
+
+### Limitations
+
+- **Memory Overhead**: Requires O(k) space for the heap
+- **Random Access Required**: Must be able to advance each list independently
+- **Sorted Input Required**: All input lists must be pre-sorted
+- **No Early Termination**: For full merge, must process all N elements
 
 ---
 
@@ -957,7 +669,7 @@ Merge infinite or streaming sorted data sources using a persistent heap.
 
 **Description:** You are given an array of k linked-lists lists, each linked-list is sorted in ascending order. Merge all the linked-lists into one sorted linked-list and return it.
 
-**How to Apply:**
+**How to Apply Merge K Sorted Lists:**
 - Use min-heap to always extract the smallest current element
 - Time complexity: O(N log k) where N = total elements, k = number of lists
 - Space: O(k) for the heap
@@ -970,7 +682,7 @@ Merge infinite or streaming sorted data sources using a persistent heap.
 
 **Description:** Given an n x n matrix where each of the rows and columns is sorted in ascending order, return the kth smallest element in the matrix.
 
-**How to Apply:**
+**How to Apply Merge K Sorted Lists:**
 - Treat each row as a sorted list
 - Use min-heap to find kth smallest in O(k log n) time
 - Alternative: Binary search with count function
@@ -983,10 +695,10 @@ Merge infinite or streaming sorted data sources using a persistent heap.
 
 **Description:** You have k lists of sorted integers in non-decreasing order. Find the smallest range that contains at least one number from each of the k lists.
 
-**How to Apply:**
+**How to Apply Merge K Sorted Lists:**
 - Use min-heap to maintain current window
-- Use max-heap or track current maximum
-- Slide window using heap operations
+- Track current maximum separately
+- Update range when smaller range found
 
 ---
 
@@ -996,10 +708,10 @@ Merge infinite or streaming sorted data sources using a persistent heap.
 
 **Description:** Design a data structure that supports adding a num from data stream and finding the median of all elements so far.
 
-**How to Apply:**
+**How to Apply Merge K Sorted Lists:**
 - Use two heaps: min-heap for upper half, max-heap for lower half
 - Balance heaps to ensure median is at heap tops
-- This is a direct application of the k-way merge heap principle
+- This is a direct application of heap-based selection
 
 ---
 
@@ -1009,9 +721,9 @@ Merge infinite or streaming sorted data sources using a persistent heap.
 
 **Description:** Given an integer array nums and an integer k, return the k most frequent elements.
 
-**How to Apply:**
+**How to Apply Merge K Sorted Lists:**
 - Use heap to efficiently select top k elements
-- First count frequencies, then use max-heap to extract k most frequent
+- First count frequencies, then use min-heap to extract k most frequent
 - Time: O(N log k) for heap operations
 
 ---
@@ -1084,12 +796,3 @@ When to use:
 - ❌ When k = 1 (use simple traversal)
 
 This algorithm is essential for understanding heap-based problem solving and frequently appears in technical interviews and competitive programming.
-
----
-
-## Related Algorithms
-
-- [Merge Two Sorted Lists](./merge-sorted-lists.md) - Base case for merging
-- [Kth Largest Element](./kth-largest.md) - Heap-based selection
-- [Top K Elements](./heap-top-k-elements.md) - Heap pattern for selection
-- [Sliding Window Median](./sliding-window-median.md) - Advanced heap application

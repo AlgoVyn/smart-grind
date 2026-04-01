@@ -5,9 +5,518 @@ Greedy
 
 ## Description
 
-The Activity Selection problem is a classic **greedy algorithm** problem where we need to select the maximum number of non-overlapping activities from a given set. Each activity has a start time and an end time, and two activities are considered non-overlapping if one finishes before (or exactly when) the other starts.
+The Activity Selection problem is a classic greedy algorithm problem where we need to select the maximum number of non-overlapping activities from a given set. Each activity has a start time and an end time, and two activities are considered non-overlapping if one finishes before (or exactly when) the other starts.
 
-This problem demonstrates the power of greedy algorithms where making locally optimal choices (selecting the earliest finishing activity) leads to a globally optimal solution.
+This problem demonstrates the power of greedy algorithms where making locally optimal choices (selecting the earliest finishing activity) leads to a globally optimal solution. The key insight is that by always selecting the activity that finishes earliest, we maximize the remaining time available for other activities, ensuring we can fit as many as possible.
+
+---
+
+## Concepts
+
+The Activity Selection technique is built on several fundamental concepts that make it powerful for resource allocation and scheduling problems.
+
+### 1. Greedy Choice Property
+
+The fundamental principle that makes this algorithm work:
+
+| Property | Description | Implication |
+|----------|-------------|-------------|
+| **Local Optimal** | Select earliest finishing compatible activity | Leaves maximum room for others |
+| **Global Optimal** | Sequence of local choices yields max activities | No need to explore alternatives |
+| **No Backtracking** | Once selected, never reconsider | Simple, efficient implementation |
+
+### 2. Activity Representation
+
+An activity is represented as a pair `(start, end)` where:
+
+| Attribute | Description | Constraint |
+|-----------|-------------|------------|
+| **Start** | Beginning time | Non-negative integer |
+| **End** | Finishing time | `end > start` |
+| **Duration** | `end - start` | Can vary across activities |
+
+### 3. Compatibility Check
+
+Two activities are compatible (can both be selected) if:
+
+```python
+def are_compatible(activity1, activity2):
+    """
+    Check if two activities don't overlap.
+    """
+    start1, end1 = activity1
+    start2, end2 = activity2
+    
+    # Activities don't overlap if one ends before other starts
+    return end1 <= start2 or end2 <= start1
+```
+
+### 4. Sorting Strategy
+
+| Sort By | Purpose | Result |
+|---------|---------|--------|
+| **End Time** | Greedy selection (earliest finish) | Optimal for max count |
+| **Start Time** | Alternative approach | May not yield optimal |
+| **Duration** | Shortest activity first | Not optimal for this problem |
+
+---
+
+## Frameworks
+
+Structured approaches for solving activity selection problems.
+
+### Framework 1: Standard Greedy Activity Selection
+
+```
+┌─────────────────────────────────────────────────────┐
+│  ACTIVITY SELECTION FRAMEWORK                       │
+├─────────────────────────────────────────────────────┤
+│  1. Handle edge case: empty input                    │
+│  2. Create list: (end, start, original_index)        │
+│  3. Sort by end time (ascending)                     │
+│  4. Select first activity (earliest end)            │
+│  5. Initialize: last_end = selected.end             │
+│  6. For each remaining activity:                    │
+│     a. If activity.start >= last_end:              │
+│        - Select activity (store index)              │
+│        - Update last_end = activity.end             │
+│     b. Else:                                         │
+│        - Skip (overlaps with last selected)         │
+│  7. Return list of selected indices                  │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Classic activity selection with maximum count objective.
+
+### Framework 2: Weighted Activity Selection (DP)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  WEIGHTED ACTIVITY SELECTION FRAMEWORK              │
+├─────────────────────────────────────────────────────┤
+│  1. Sort activities by end time                    │
+│  2. Precompute: for each activity i, find p[i]     │
+│     - p[i] = largest index j where activity j       │
+│       doesn't overlap with activity i                │
+│     - Use binary search: O(log n) per query        │
+│  3. Initialize dp[0] = weight[0]                   │
+│  4. For each i from 1 to n-1:                        │
+│     a. option1 = weight[i]                          │
+│     b. if p[i] != -1: option1 += dp[p[i]]           │
+│     c. option2 = dp[i-1] (don't select i)            │
+│     d. dp[i] = max(option1, option2)                │
+│  5. Return dp[n-1]                                   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When activities have different values/profits.
+
+### Framework 3: Minimum Activities to Remove
+
+```
+┌─────────────────────────────────────────────────────┐
+│  MINIMUM ACTIVITIES TO REMOVE FRAMEWORK             │
+├─────────────────────────────────────────────────────┤
+│  1. Apply standard activity selection                │
+│  2. Count selected activities: selected_count       │
+│  3. Answer = total_activities - selected_count      │
+│                                                     │
+│  Key Insight: This is equivalent to finding           │
+│  the maximum set of non-overlapping activities      │
+│  and removing the rest                               │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: LeetCode 435 - Non-overlapping Intervals variation.
+
+---
+
+## Forms
+
+Different manifestations of the activity selection pattern.
+
+### Form 1: Maximum Activities (Classic)
+
+Select the maximum number of non-overlapping activities.
+
+| Input Activities | Sorted by End | Selected | Count |
+|----------------|---------------|----------|-------|
+| [(1,4), (3,5), (0,6)] | [(1,4), (3,5), (0,6)] | [(1,4)] | 1 |
+| [(1,3), (3,5), (5,7)] | [(1,3), (3,5), (5,7)] | All | 3 |
+| [(1,10), (2,3), (3,4)] | [(2,3), (3,4), (1,10)] | [(2,3), (3,4)] | 2 |
+
+### Form 2: Minimum Platforms (Meeting Rooms II)
+
+Find minimum resources needed for all activities.
+
+```
+Problem: All activities must occur
+Solution: Track maximum concurrent activities
+Approach: Sweep line or min-heap
+```
+
+### Form 3: Balloon Bursting
+
+Minimum arrows to burst all balloons (intervals on a line).
+
+| Balloon | Interval | Greedy Strategy |
+|---------|----------|-----------------|
+| 1 | [1,6] | Sort by end, shoot at 6 |
+| 2 | [2,8] | Burst with same arrow if overlapping |
+| 3 | [10,16] | Shoot new arrow at 16 |
+
+### Form 4: Pair Chain
+
+Maximum length chain where each pair follows the previous.
+
+```
+pairs[i] = [left, right], pair p2 follows p1 if p1[1] < p2[0]
+Same as activity selection: sort by right, greedily select
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Return Indices vs Intervals
+
+```python
+def activity_selection_indices(activities):
+    """
+    Return original indices of selected activities.
+    Useful when you need to reference original data.
+    """
+    if not activities:
+        return []
+    
+    # Store (end, start, original_index)
+    indexed = [(end, start, i) for i, (start, end) in enumerate(activities)]
+    indexed.sort()  # Sorts by end time
+    
+    selected_indices = [indexed[0][2]]
+    last_end = indexed[0][0]
+    
+    for end, start, idx in indexed[1:]:
+        if start >= last_end:
+            selected_indices.append(idx)
+            last_end = end
+    
+    return selected_indices
+
+
+def activity_selection_intervals(activities):
+    """
+    Return the actual selected intervals.
+    """
+    if not activities:
+        return []
+    
+    # Sort by end time
+    sorted_acts = sorted(activities, key=lambda x: x[1])
+    
+    selected = [sorted_acts[0]]
+    last_end = sorted_acts[0][1]
+    
+    for start, end in sorted_acts[1:]:
+        if start >= last_end:
+            selected.append((start, end))
+            last_end = end
+    
+    return selected
+```
+
+### Tactic 2: Handling Same End Times
+
+```python
+def activity_selection_with_ties(activities):
+    """
+    When multiple activities have same end time,
+    prefer the one with earlier start.
+    """
+    # Sort by end, then by start (ascending)
+    # This ensures we pick shorter activities when ends are equal
+    activities.sort(key=lambda x: (x[1], x[0]))
+    
+    selected = []
+    last_end = float('-inf')
+    
+    for start, end in activities:
+        if start >= last_end:
+            selected.append((start, end))
+            last_end = end
+    
+    return selected
+```
+
+### Tactic 3: Greedy Proof by Exchange Argument
+
+```python
+def explain_greedy_correctness():
+    """
+    Understanding why greedy works:
+    
+    Exchange Argument:
+    1. Let A = {a1, a2, ..., ak} be greedy solution (sorted by end)
+    2. Let O = {o1, o2, ..., om} be optimal solution (sorted by end)
+    3. We prove k >= m by showing we can replace oi with ai
+    
+    Key insight: Since ai is the earliest-finishing activity 
+    compatible with previous selections, end(ai) <= end(oi)
+    Therefore, replacing oi with ai leaves at least as much room
+    for remaining activities.
+    
+    By induction, we can transform O into A without reducing size.
+    Hence, greedy is optimal.
+    """
+    pass
+```
+
+### Tactic 4: Binary Search for Weighted Version
+
+```python
+def find_last_compatible_binary(activities, i):
+    """
+    Find rightmost activity that ends before activities[i] starts.
+    Used in weighted activity selection DP.
+    """
+    start_i = activities[i][0]
+    lo, hi = 0, i - 1
+    result = -1
+    
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if activities[mid][1] <= start_i:
+            result = mid
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    
+    return result
+```
+
+### Tactic 5: Convert to Minimum Removals
+
+```python
+def min_activities_to_remove(activities):
+    """
+    LeetCode 435 variation.
+    Convert to: total - max_non_overlapping
+    """
+    if not activities:
+        return 0
+    
+    # Apply greedy activity selection
+    activities.sort(key=lambda x: x[1])
+    
+    keep_count = 1
+    last_end = activities[0][1]
+    
+    for start, end in activities[1:]:
+        if start >= last_end:
+            keep_count += 1
+            last_end = end
+    
+    return len(activities) - keep_count
+```
+
+---
+
+## Python Templates
+
+### Template 1: Activity Selection (Return Indices)
+
+```python
+from typing import List, Tuple
+
+
+def activity_selection(activities: List[Tuple[int, int]]) -> List[int]:
+    """
+    Select maximum number of non-overlapping activities.
+    Returns original indices of selected activities.
+    
+    Args:
+        activities: List of (start, end) tuples for each activity
+    
+    Returns:
+        Indices of selected non-overlapping activities
+    
+    Time: O(n log n) for sorting
+    Space: O(n) for storing indices (excluding input storage)
+    """
+    if not activities:
+        return []
+    
+    n = len(activities)
+    
+    # Create list of (end, start, original_index) and sort by end time
+    sorted_activities = sorted(
+        [(activities[i][1], activities[i][0], i) for i in range(n)],
+        key=lambda x: (x[0], x[1])
+    )
+    
+    # Select first activity (earliest end time)
+    result = [sorted_activities[0][2]]
+    last_end_time = sorted_activities[0][0]
+    
+    # Select subsequent non-overlapping activities
+    for i in range(1, n):
+        start_time = sorted_activities[i][1]
+        
+        # If this activity starts after or when the last one ends
+        if start_time >= last_end_time:
+            result.append(sorted_activities[i][2])
+            last_end_time = sorted_activities[i][0]
+    
+    return result
+```
+
+### Template 2: Activity Selection (Return Intervals)
+
+```python
+def activity_selection_intervals(intervals: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
+    """
+    Alternative version that returns the actual intervals instead of indices.
+    
+    Args:
+        intervals: List of (start, end) tuples
+    
+    Returns:
+        List of selected non-overlapping intervals
+    """
+    if not intervals:
+        return []
+    
+    # Sort by end time
+    sorted_intervals = sorted(intervals, key=lambda x: x[1])
+    
+    # Select first interval
+    result = [sorted_intervals[0]]
+    last_end = sorted_intervals[0][1]
+    
+    # Select subsequent non-overlapping intervals
+    for start, end in sorted_intervals[1:]:
+        if start >= last_end:
+            result.append((start, end))
+            last_end = end
+    
+    return result
+```
+
+### Template 3: Weighted Activity Selection (DP)
+
+```python
+def weighted_activity_selection(activities: List[Tuple[int, int]], 
+                                weights: List[int]) -> int:
+    """
+    Weighted Activity Selection using Dynamic Programming.
+    
+    Args:
+        activities: List of (start, end) tuples
+        weights: List of weights for each activity
+    
+    Returns:
+        Maximum total weight of non-overlapping activities
+    """
+    if not activities:
+        return 0
+    
+    n = len(activities)
+    
+    # Sort by end time
+    sorted_indices = sorted(range(n), key=lambda i: activities[i][1])
+    
+    # Create sorted activities and weights
+    sorted_activities = [activities[i] for i in sorted_indices]
+    sorted_weights = [weights[i] for i in sorted_indices]
+    
+    # Find the last non-overlapping activity for each activity
+    def find_last_compatible(i):
+        for j in range(i - 1, -1, -1):
+            if sorted_activities[j][1] <= sorted_activities[i][0]:
+                return j
+        return -1
+    
+    # DP: dp[i] = max weight considering activities 0 to i
+    dp = [0] * n
+    
+    for i in range(n):
+        # Option 1: Don't include activity i
+        weight_without = dp[i - 1] if i > 0 else 0
+        
+        # Option 2: Include activity i
+        last_compatible = find_last_compatible(i)
+        weight_with = sorted_weights[i]
+        if last_compatible >= 0:
+            weight_with += dp[last_compatible]
+        
+        dp[i] = max(weight_without, weight_with)
+    
+    return dp[n - 1]
+```
+
+### Template 4: Minimum Activities to Remove
+
+```python
+def min_activities_to_remove(activities: List[Tuple[int, int]]) -> int:
+    """
+    Find minimum number of activities to remove to make all non-overlapping.
+    Equivalent to: n - max_non_overlapping
+    
+    LeetCode 435 solution.
+    """
+    if not activities:
+        return 0
+    
+    n = len(activities)
+    
+    # Sort by end time
+    sorted_activities = sorted(
+        [(activities[i][1], activities[i][0], i) for i in range(n)],
+        key=lambda x: (x[0], x[1])
+    )
+    
+    count = 1  # At least one activity can be selected
+    last_end = sorted_activities[0][0]
+    
+    for i in range(1, n):
+        if sorted_activities[i][1] >= last_end:
+            count += 1
+            last_end = sorted_activities[i][0]
+    
+    return n - count
+```
+
+### Template 5: Meeting Rooms II
+
+```python
+import heapq
+
+def min_meeting_rooms(intervals: List[List[int]]) -> int:
+    """
+    Find minimum number of meeting rooms required.
+    Uses min-heap to track end times of ongoing meetings.
+    """
+    if not intervals:
+        return 0
+    
+    # Sort by start time
+    sorted_intervals = sorted(intervals, key=lambda x: x[0])
+    
+    # Min-heap to track end times
+    min_heap = []
+    
+    for start, end in sorted_intervals:
+        # If meeting ends before next starts, pop from heap
+        if min_heap and min_heap[0] <= start:
+            heapq.heappop(min_heap)
+        
+        # Add current meeting end time
+        heapq.heappush(min_heap, end)
+    
+    return len(min_heap)
+```
 
 ---
 
@@ -73,7 +582,7 @@ The key insight behind the Activity Selection algorithm is that by always select
 
 4. **Repeat** until all activities are processed.
 
-### Visual Representation
+#### Visual Representation
 
 Consider activities with (start, end) times:
 ```
@@ -114,773 +623,6 @@ The Activity Selection problem satisfies two key properties that make greedy wor
 1. **Greedy Choice Property**: Choosing the activity that finishes earliest is always part of some optimal solution. If there's an optimal solution that doesn't include the earliest-finishing activity, we can swap the first activity in that solution with the earliest-finishing one without reducing the number of activities.
 
 2. **Optimal Substructure**: After selecting the earliest-finishing activity, the remaining problem (selecting from activities that start after it ends) is itself an activity selection problem. The optimal solution to the whole problem consists of the greedy choice plus the optimal solution to the subproblem.
-
-### Edge Cases to Consider
-
-- **Empty input**: Return empty result
-- **Single activity**: Return that activity
-- **All overlapping activities**: Return only 1 activity
-- **All non-overlapping activities**: Return all activities
-- **Activities with same end time**: Sort by start time, pick the one starting earlier
-
----
-
-## Algorithm Steps
-
-### Detailed Step-by-Step Approach
-
-1. **Input**: List of n activities, each with (start_time, end_time)
-
-2. **Preprocessing**:
-   - Create a list of tuples: (end_time, start_time, original_index)
-   - Sort this list by end_time (ascending), then by start_time (ascending)
-
-3. **Initialization**:
-   - Create an empty result list
-   - Select the first activity from sorted list
-   - Add its original index to result
-   - Set `last_end_time` = end_time of first selected activity
-
-4. **Iteration** (for each activity i from 1 to n-1):
-   - Get the start_time of current activity
-   - If start_time >= last_end_time:
-     - Add this activity's original index to result
-     - Update last_end_time = current activity's end_time
-
-5. **Return**: The indices of selected activities
-
----
-
-## Implementation
-
-### Template Code (Activity Selection)
-
-````carousel
-```python
-from typing import List, Tuple
-
-
-def activity_selection(activities: List[Tuple[int, int]]) -> List[int]:
-    """
-    Select maximum number of non-overlapping activities.
-    
-    Args:
-        activities: List of (start, end) tuples for each activity
-    
-    Returns:
-        Indices of selected non-overlapping activities
-    
-    Time: O(n log n) for sorting
-    Space: O(n) for storing indices (excluding input storage)
-    """
-    if not activities:
-        return []
-    
-    n = len(activities)
-    
-    # Create list of (end, start, original_index) and sort by end time
-    # This handles sorting while keeping track of original indices
-    sorted_activities = sorted(
-        [(activities[i][1], activities[i][0], i) for i in range(n)],
-        key=lambda x: (x[0], x[1])
-    )
-    
-    # Select first activity (earliest end time)
-    result = [sorted_activities[0][2]]  # Store original index
-    last_end_time = sorted_activities[0][0]
-    
-    # Select subsequent non-overlapping activities
-    for i in range(1, n):
-        start_time = sorted_activities[i][1]
-        
-        # If this activity starts after or when the last one ends
-        if start_time >= last_end_time:
-            result.append(sorted_activities[i][2])  # Store original index
-            last_end_time = sorted_activities[i][0]
-    
-    return result
-
-
-def activity_selection_intervals(intervals: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
-    """
-    Alternative version that returns the actual intervals instead of indices.
-    
-    Args:
-        intervals: List of (start, end) tuples
-    
-    Returns:
-        List of selected non-overlapping intervals
-    """
-    if not intervals:
-        return []
-    
-    # Sort by end time
-    sorted_intervals = sorted(intervals, key=lambda x: x[1])
-    
-    # Select first interval
-    result = [sorted_intervals[0]]
-    last_end = sorted_intervals[0][1]
-    
-    # Select subsequent non-overlapping intervals
-    for start, end in sorted_intervals[1:]:
-        if start >= last_end:
-            result.append((start, end))
-            last_end = end
-    
-    return result
-
-
-# Example usage
-if __name__ == "__main__":
-    # Activities: (start_time, end_time)
-    activities = [
-        (1, 4),   # Activity 0: 1pm - 4pm
-        (3, 5),   # Activity 1: 3pm - 5pm
-        (0, 6),   # Activity 2: 12pm - 6pm
-        (5, 7),   # Activity 3: 5pm - 7pm
-        (3, 9),   # Activity 4: 3pm - 9pm
-        (5, 9),   # Activity 5: 5pm - 9pm
-        (6, 10),  # Activity 6: 6pm - 10pm
-        (8, 11),  # Activity 7: 8pm - 11pm
-    ]
-    
-    print("Activity Selection Problem")
-    print("=" * 40)
-    print("\nActivities (start, end):")
-    for i, (s, e) in enumerate(activities):
-        print(f"  Activity {i}: {s}:00 - {e}:00")
-    
-    # Get indices of selected activities
-    selected_indices = activity_selection(activities)
-    print(f"\nSelected activity indices: {selected_indices}")
-    
-    # Get actual intervals
-    selected_intervals = activity_selection_intervals(activities)
-    print("\nSelected non-overlapping activities:")
-    for idx in selected_indices:
-        s, e = activities[idx]
-        print(f"  Activity {idx}: {s}:00 - {e}:00")
-    
-    print(f"\nMaximum number of activities: {len(selected_indices)}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-/**
- * Activity Selection Algorithm
- * 
- * Select maximum number of non-overlapping activities.
- * 
- * Time Complexity: O(n log n) for sorting
- * Space Complexity: O(n) for storing result
- */
-vector<int> activitySelection(const vector<pair<int, int>>& activities) {
-    int n = activities.size();
-    if (n == 0) return {};
-    
-    // Create vector of (end, start, original_index) and sort by end time
-    vector<tuple<int, int, int>> sortedActivities;
-    sortedActivities.reserve(n);
-    
-    for (int i = 0; i < n; i++) {
-        sortedActivities.emplace_back(activities[i].second, activities[i].first, i);
-    }
-    
-    sort(sortedActivities.begin(), sortedActivities.end(),
-         [](const auto& a, const auto& b) {
-             if (get<0>(a) != get<0>(b)) return get<0>(a) < get<0>(b);
-             return get<1>(a) < get<1>(b);
-         });
-    
-    // Select first activity
-    vector<int> result;
-    result.push_back(get<2>(sortedActivities[0]));
-    int lastEndTime = get<0>(sortedActivities[0]);
-    
-    // Select subsequent non-overlapping activities
-    for (int i = 1; i < n; i++) {
-        int startTime = get<1>(sortedActivities[i]);
-        
-        if (startTime >= lastEndTime) {
-            result.push_back(get<2>(sortedActivities[i]));
-            lastEndTime = get<0>(sortedActivities[i]);
-        }
-    }
-    
-    return result;
-}
-
-// Alternative version returning intervals
-vector<pair<int, int>> activitySelectionIntervals(const vector<pair<int, int>>& intervals) {
-    int n = intervals.size();
-    if (n == 0) return {};
-    
-    // Sort by end time
-    vector<pair<int, int>> sortedIntervals = intervals;
-    sort(sortedIntervals.begin(), sortedIntervals.end(),
-         [](const auto& a, const auto& b) {
-             if (a.second != b.second) return a.second < b.second;
-             return a.first < b.first;
-         });
-    
-    // Select first interval
-    vector<pair<int, int>> result;
-    result.push_back(sortedIntervals[0]);
-    int lastEnd = sortedIntervals[0].second;
-    
-    // Select subsequent non-overlapping intervals
-    for (int i = 1; i < n; i++) {
-        if (sortedIntervals[i].first >= lastEnd) {
-            result.push_back(sortedIntervals[i]);
-            lastEnd = sortedIntervals[i].second;
-        }
-    }
-    
-    return result;
-}
-
-int main() {
-    // Activities: (start_time, end_time)
-    vector<pair<int, int>> activities = {
-        {1, 4},   // Activity 0
-        {3, 5},   // Activity 1
-        {0, 6},   // Activity 2
-        {5, 7},   // Activity 3
-        {3, 9},   // Activity 4
-        {5, 9},   // Activity 5
-        {6, 10},  // Activity 6
-        {8, 11}   // Activity 7
-    };
-    
-    cout << "Activity Selection Problem" << endl;
-    cout << "==========================" << endl << endl;
-    
-    cout << "Activities (start, end):" << endl;
-    for (int i = 0; i < activities.size(); i++) {
-        cout << "  Activity " << i << ": " << activities[i].first 
-             << ":00 - " << activities[i].second << ":00" << endl;
-    }
-    
-    // Get indices of selected activities
-    vector<int> selectedIndices = activitySelection(activities);
-    cout << "\nSelected activity indices: ";
-    for (int idx : selectedIndices) {
-        cout << idx << " ";
-    }
-    cout << endl;
-    
-    // Get actual intervals
-    vector<pair<int, int>> selectedIntervals = activitySelectionIntervals(activities);
-    cout << "\nSelected non-overlapping activities:" << endl;
-    for (int idx : selectedIndices) {
-        cout << "  Activity " << idx << ": " << activities[idx].first 
-             << ":00 - " << activities[idx].second << ":00" << endl;
-    }
-    
-    cout << "\nMaximum number of activities: " << selectedIndices.size() << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-/**
- * Activity Selection Algorithm
- * 
- * Select maximum number of non-overlapping activities.
- * 
- * Time Complexity: O(n log n) for sorting
- * Space Complexity: O(n) for storing result
- */
-public class ActivitySelection {
-    
-    /**
-     * Select maximum number of non-overlapping activities.
-     * 
-     * @param activities List of activities as int[2] {start, end}
-     * @return Indices of selected non-overlapping activities
-     */
-    public static List<Integer> activitySelection(int[][] activities) {
-        if (activities == null || activities.length == 0) {
-            return new ArrayList<>();
-        }
-        
-        int n = activities.length;
-        
-        // Create list of (end, start, original_index) and sort by end time
-        List<int[]> sortedActivities = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            sortedActivities.add(new int[]{activities[i][1], activities[i][0], i});
-        }
-        
-        // Sort by end time, then by start time
-        sortedActivities.sort((a, b) -> {
-            if (a[0] != b[0]) return Integer.compare(a[0], b[0]);
-            return Integer.compare(a[1], b[1]);
-        });
-        
-        // Select first activity (earliest end time)
-        List<Integer> result = new ArrayList<>();
-        result.add(sortedActivities.get(0)[2]);  // Store original index
-        int lastEndTime = sortedActivities.get(0)[0];
-        
-        // Select subsequent non-overlapping activities
-        for (int i = 1; i < n; i++) {
-            int startTime = sortedActivities.get(i)[1];
-            
-            // If this activity starts after or when the last one ends
-            if (startTime >= lastEndTime) {
-                result.add(sortedActivities.get(i)[2]);  // Store original index
-                lastEndTime = sortedActivities.get(i)[0];
-            }
-        }
-        
-        return result;
-    }
-    
-    /**
-     * Alternative version that returns the actual intervals.
-     * 
-     * @param intervals List of intervals as int[2] {start, end}
-     * @return List of selected non-overlapping intervals
-     */
-    public static List<int[]> activitySelectionIntervals(int[][] intervals) {
-        if (intervals == null || intervals.length == 0) {
-            return new ArrayList<>();
-        }
-        
-        // Sort by end time
-        Arrays.sort(intervals, (a, b) -> {
-            if (a[1] != b[1]) return Integer.compare(a[1], b[1]);
-            return Integer.compare(a[0], b[0]);
-        });
-        
-        // Select first interval
-        List<int[]> result = new ArrayList<>();
-        result.add(intervals[0]);
-        int lastEnd = intervals[0][1];
-        
-        // Select subsequent non-overlapping intervals
-        for (int i = 1; i < intervals.length; i++) {
-            if (intervals[i][0] >= lastEnd) {
-                result.add(intervals[i]);
-                lastEnd = intervals[i][1];
-            }
-        }
-        
-        return result;
-    }
-    
-    public static void main(String[] args) {
-        // Activities: {start_time, end_time}
-        int[][] activities = {
-            {1, 4},   // Activity 0
-            {3, 5},   // Activity 1
-            {0, 6},   // Activity 2
-            {5, 7},   // Activity 3
-            {3, 9},   // Activity 4
-            {5, 9},   // Activity 5
-            {6, 10},  // Activity 6
-            {8, 11}   // Activity 7
-        };
-        
-        System.out.println("Activity Selection Problem");
-        System.out.println("=========================");
-        System.out.println();
-        
-        System.out.println("Activities (start, end):");
-        for (int i = 0; i < activities.length; i++) {
-            System.out.println("  Activity " + i + ": " + activities[i][0] 
-                    + ":00 - " + activities[i][1] + ":00");
-        }
-        
-        // Get indices of selected activities
-        List<Integer> selectedIndices = activitySelection(activities);
-        System.out.println();
-        System.out.print("Selected activity indices: ");
-        for (Integer idx : selectedIndices) {
-            System.out.print(idx + " ");
-        }
-        System.out.println();
-        
-        // Get actual intervals
-        List<int[]> selectedIntervals = activitySelectionIntervals(activities);
-        System.out.println();
-        System.out.println("Selected non-overlapping activities:");
-        for (Integer idx : selectedIndices) {
-            System.out.println("  Activity " + idx + ": " + activities[idx][0] 
-                    + ":00 - " + activities[idx][1] + ":00");
-        }
-        
-        System.out.println();
-        System.out.println("Maximum number of activities: " + selectedIndices.size());
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Activity Selection Algorithm
- * 
- * Select maximum number of non-overlapping activities.
- * 
- * Time Complexity: O(n log n) for sorting
- * Space Complexity: O(n) for storing result
- */
-
-/**
- * Select maximum number of non-overlapping activities.
- * @param {number[][]} activities - Array of [start, end] pairs
- * @returns {number[]} Indices of selected non-overlapping activities
- */
-function activitySelection(activities) {
-    if (!activities || activities.length === 0) {
-        return [];
-    }
-    
-    const n = activities.length;
-    
-    // Create array of {end, start, originalIndex} and sort by end time
-    const sortedActivities = activities
-        .map((activity, index) => ({
-            end: activity[1],
-            start: activity[0],
-            originalIndex: index
-        }))
-        .sort((a, b) => {
-            if (a.end !== b.end) return a.end - b.end;
-            return a.start - b.start;
-        });
-    
-    // Select first activity (earliest end time)
-    const result = [sortedActivities[0].originalIndex];
-    let lastEndTime = sortedActivities[0].end;
-    
-    // Select subsequent non-overlapping activities
-    for (let i = 1; i < n; i++) {
-        const startTime = sortedActivities[i].start;
-        
-        // If this activity starts after or when the last one ends
-        if (startTime >= lastEndTime) {
-            result.push(sortedActivities[i].originalIndex);
-            lastEndTime = sortedActivities[i].end;
-        }
-    }
-    
-    return result;
-}
-
-/**
- * Alternative version that returns the actual intervals.
- * @param {number[][]} intervals - Array of [start, end] pairs
- * @returns {number[][]} Selected non-overlapping intervals
- */
-function activitySelectionIntervals(intervals) {
-    if (!intervals || intervals.length === 0) {
-        return [];
-    }
-    
-    // Sort by end time
-    const sortedIntervals = [...intervals].sort((a, b) => {
-        if (a[1] !== b[1]) return a[1] - b[1];
-        return a[0] - b[0];
-    });
-    
-    // Select first interval
-    const result = [sortedIntervals[0]];
-    let lastEnd = sortedIntervals[0][1];
-    
-    // Select subsequent non-overlapping intervals
-    for (let i = 1; i < sortedIntervals.length; i++) {
-        if (sortedIntervals[i][0] >= lastEnd) {
-            result.push(sortedIntervals[i]);
-            lastEnd = sortedIntervals[i][1];
-        }
-    }
-    
-    return result;
-}
-
-// Example usage
-const activities = [
-    [1, 4],   // Activity 0
-    [3, 5],   // Activity 1
-    [0, 6],   // Activity 2
-    [5, 7],   // Activity 3
-    [3, 9],   // Activity 4
-    [5, 9],   // Activity 5
-    [6, 10],  // Activity 6
-    [8, 11]   // Activity 7
-];
-
-console.log("Activity Selection Problem");
-console.log("==========================");
-console.log();
-
-console.log("Activities (start, end):");
-activities.forEach((activity, index) => {
-    console.log(`  Activity ${index}: ${activity[0]}:00 - ${activity[1]}:00`);
-});
-
-// Get indices of selected activities
-const selectedIndices = activitySelection(activities);
-console.log();
-console.log(`Selected activity indices: ${selectedIndices.join(" ")}`);
-
-// Get actual intervals
-const selectedIntervals = activitySelectionIntervals(activities);
-console.log();
-console.log("Selected non-overlapping activities:");
-selectedIndices.forEach(idx => {
-    console.log(`  Activity ${idx}: ${activities[idx][0]}:00 - ${activities[idx][1]}:00`);
-});
-
-console.log();
-console.log(`Maximum number of activities: ${selectedIndices.length}`);
-```
-````
-
----
-
-## Example
-
-**Input:**
-```
-Activities (start, end):
-  Activity 0: 1 - 4
-  Activity 1: 3 - 5
-  Activity 2: 0 - 6
-  Activity 3: 5 - 7
-  Activity 4: 3 - 9
-  Activity 5: 5 - 9
-  Activity 6: 6 - 10
-  Activity 7: 8 - 11
-```
-
-**Output:**
-```
-Selected activity indices: [0, 3, 7]
-Selected non-overlapping activities:
-  Activity 0: 1 - 4
-  Activity 3: 5 - 7
-  Activity 7: 8 - 11
-Maximum number of activities: 3
-
-Explanation: After sorting by end time, we select:
-1. Activity 0 (ends at 4, earliest)
-2. Activity 3 (starts at 5 ≥ 4)
-3. Activity 7 (starts at 8 ≥ 7)
-```
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|-----------------|-------------|
-| **Sorting** | O(n log n) | Sorting activities by end time |
-| **Selection** | O(n) | Single pass through sorted activities |
-| **Total** | **O(n log n)** | Dominated by sorting |
-
-### Detailed Breakdown
-
-- **Sorting Phase**: O(n log n)
-  - Creating the sorted list: O(n)
-  - Sorting by end time: O(n log n)
-  
-- **Selection Phase**: O(n)
-  - Single pass through sorted activities
-  - Each comparison/selection is O(1)
-
-- **Overall**: O(n log n) due to sorting
-
----
-
-## Space Complexity Analysis
-
-| Component | Space Complexity | Description |
-|-----------|-----------------|-------------|
-| **Sorted List** | O(n) | Stores copy of activities with original indices |
-| **Result List** | O(k) | Where k is the number of selected activities |
-| **Total** | **O(n)** | Excluding input storage |
-
-### Space Optimization (Optional)
-
-For memory-constrained environments:
-1. **In-place sorting**: Sort the original array if you don't need to preserve input
-2. **Use indices instead of copies**: Store only indices during sorting
-3. **Iterative approach**: Process without storing all indices
-
----
-
-## Common Variations
-
-### 1. Weighted Activity Selection (Dynamic Programming)
-
-When activities have different values/weights, greedy doesn't work. Use DP instead:
-
-````carousel
-```python
-def weighted_activity_selection(activities, weights):
-    """
-    Weighted Activity Selection using Dynamic Programming.
-    
-    Args:
-        activities: List of (start, end) tuples
-        weights: List of weights for each activity
-    
-    Returns:
-        Maximum total weight of non-overlapping activities
-    """
-    if not activities:
-        return 0
-    
-    n = len(activities)
-    
-    # Sort by end time
-    sorted_indices = sorted(range(n), key=lambda i: activities[i][1])
-    
-    # Create sorted activities and weights
-    sorted_activities = [activities[i] for i in sorted_indices]
-    sorted_weights = [weights[i] for i in sorted_indices]
-    
-    # Find the last non-overlapping activity for each activity
-    # Using binary search would be O(log n), but we'll use O(n) here
-    def find_last_compatible(i):
-        for j in range(i - 1, -1, -1):
-            if sorted_activities[j][1] <= sorted_activities[i][0]:
-                return j
-        return -1
-    
-    # DP: dp[i] = max weight considering activities 0 to i
-    dp = [0] * n
-    
-    for i in range(n):
-        # Option 1: Don't include activity i
-        weight_without = dp[i - 1] if i > 0 else 0
-        
-        # Option 2: Include activity i
-        last_compatible = find_last_compatible(i)
-        weight_with = sorted_weights[i]
-        if last_compatible >= 0:
-            weight_with += dp[last_compatible]
-        
-        dp[i] = max(weight_without, weight_with)
-    
-    return dp[n - 1]
-```
-````
-
-### 2. Activity Selection with Same Start Time
-
-When activities can have the same start time, select the one with earliest end time:
-
-````carousel
-```python
-def activity_selection_same_start(activities):
-    """
-    Activity Selection when multiple activities can start at same time.
-    Select the activity with earliest end time when starts are equal.
-    """
-    if not activities:
-        return []
-    
-    # Sort by (start, end) - activities with same start, pick earliest end
-    sorted_activities = sorted(
-        enumerate(activities),
-        key=lambda x: (x[1][0], x[1][1])
-    )
-    
-    result = [sorted_activities[0][0]]
-    last_end = sorted_activities[0][1][1]
-    
-    for idx, (start, end) in sorted_activities[1:]:
-        if start >= last_end:
-            result.append(idx)
-            last_end = end
-    
-    return result
-```
-````
-
-### 3. Minimum Number of Activities to Remove
-
-Find minimum activities to remove to make remaining non-overlapping:
-
-````carousel
-```python
-def min_activities_to_remove(activities):
-    """
-    Find minimum number of activities to remove to make all non-overlapping.
-    
-    Equivalent to: n - max_non_overlapping
-    """
-    if not activities:
-        return 0
-    
-    n = len(activities)
-    
-    # Sort by end time
-    sorted_activities = sorted(
-        [(activities[i][1], activities[i][0], i) for i in range(n)],
-        key=lambda x: (x[0], x[1])
-    )
-    
-    count = 1  # At least one activity can be selected
-    last_end = sorted_activities[0][0]
-    
-    for i in range(1, n):
-        if sorted_activities[i][1] >= last_end:
-            count += 1
-            last_end = sorted_activities[i][0]
-    
-    return n - count
-```
-````
-
-### 4. Meeting Rooms (Related Problem)
-
-Minimum number of meeting rooms required:
-
-````carousel
-```python
-import heapq
-
-def min_meeting_rooms(intervals):
-    """
-    Find minimum number of meeting rooms required.
-    
-    Uses min-heap to track end times of ongoing meetings.
-    """
-    if not intervals:
-        return 0
-    
-    # Sort by start time
-    sorted_intervals = sorted(intervals, key=lambda x: x[0])
-    
-    # Min-heap to track end times
-    min_heap = []
-    
-    for start, end in sorted_intervals:
-        # If meeting ends before next starts, pop from heap
-        if min_heap and min_heap[0] <= start:
-            heapq.heappop(min_heap)
-        
-        # Add current meeting end time
-        heapq.heappush(min_heap, end)
-    
-    return len(min_heap)
-```
-````
 
 ---
 
@@ -984,12 +726,16 @@ def min_meeting_rooms(intervals):
 
 If we sorted by start time, we might pick activities that finish late, blocking many potential activities.
 
+---
+
 ### Q2: Can Activity Selection handle activities with the same end time?
 
 **Answer:** Yes, but you need a tie-breaker:
 - If two activities have the same end time, sort by start time (ascending)
 - This picks the one that starts earlier, which is always safe
 - Example: [1,5] and [4,5] → pick [1,5] first, then check [4,5]
+
+---
 
 ### Q3: What if activities can share endpoints (one ends exactly when another starts)?
 
@@ -998,6 +744,8 @@ If we sorted by start time, we might pick activities that finish late, blocking 
 - This allows activities that end exactly when another starts
 - This is the correct interpretation for non-overlapping
 
+---
+
 ### Q4: How do you modify the algorithm for weighted activity selection?
 
 **Answer:** Greedy doesn't work for weighted versions. Use Dynamic Programming:
@@ -1005,6 +753,8 @@ If we sorted by start time, we might pick activities that finish late, blocking 
 2. For each activity i, find last non-conflicting activity j
 3. Use DP: `dp[i] = max(dp[i-1], weight[i] + dp[j])`
 4. Time: O(n²) or O(n log n) with binary search
+
+---
 
 ### Q5: What's the difference between Activity Selection and Merge Intervals?
 
@@ -1032,12 +782,3 @@ When to use:
 - ❌ When you need ALL valid combinations (use backtracking)
 
 This algorithm is fundamental to understanding greedy algorithms and is frequently asked in technical interviews, especially in problems related to interval scheduling and resource allocation.
-
----
-
-## Related Algorithms
-
-- [Merge Intervals](./merge-intervals.md) - Combining overlapping intervals
-- [Meeting Rooms II](./meeting-rooms-ii.md) - Minimum resources problem
-- [Greedy Task Scheduling](./greedy-task-scheduling-frequency-based.md) - Related greedy problems
-- [Knapsack 0/1](./knapsack-01.md) - Weighted selection (DP approach)

@@ -294,6 +294,11 @@ export const ALGORITHMS_DATA: AlgorithmCategory[] = [
         id: 'backtracking',
         title: 'Backtracking',
         algorithms: [
+            {
+                id: 'algo-backtracking',
+                name: 'Backtracking',
+                url: 'https://leetcode.com/problems/subsets/',
+            },
             { id: 'algo-subsets', name: 'Subsets', url: 'https://leetcode.com/problems/subsets/' },
             {
                 id: 'algo-permutations',

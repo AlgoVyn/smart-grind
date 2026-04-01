@@ -7,10 +7,614 @@ Backtracking
 
 The N-Queens problem is a classic combinatorial problem that asks: *How can N chess queens be placed on an N×N chessboard so that no two queens threaten each other?* A queen can attack horizontally, vertically, and along both diagonals. This problem exemplifies the power of **backtracking** - a systematic way to explore all possible configurations while pruning branches that cannot lead to valid solutions.
 
-The N-Queens problem is not just a puzzle; it has practical applications in:
-- **Parallel processing**: Task scheduling where no two tasks conflict
-- **VLSI design**: Placement of components without signal interference
-- **Load balancing**: Distributing resources without overlap
+The N-Queens problem is not just a puzzle; it has practical applications in parallel processing, VLSI design, and load balancing scenarios where resources must be placed without conflict.
+
+---
+
+## Concepts
+
+The N-Queens algorithm is built on several fundamental concepts that make backtracking effective for constraint satisfaction problems.
+
+### 1. Constraint Propagation
+
+Each queen placement affects available positions:
+
+| Constraint | Rule | Tracking Method |
+|------------|------|-----------------|
+| **Column** | One queen per column | Set of occupied columns |
+| **Main Diagonal (↘)** | `row - col` is constant | Set of `row - col` values |
+| **Anti-Diagonal (↙)** | `row + col` is constant | Set of `row + col` values |
+
+### 2. Incremental Construction
+
+Build solution row by row:
+
+```
+Row 0: Try columns 0 to N-1
+  - For each valid column, place queen
+  - Recurse to Row 1
+  - Backtrack (remove queen, try next column)
+Row 1: Repeat process
+...
+Row N: All queens placed (solution found!)
+```
+
+### 3. Backtracking Pattern
+
+The core backtracking approach:
+
+```
+1. Choose: Select next position to try
+2. Constraint Check: Verify placement is valid
+3. Place: Add to current state
+4. Recurse: Continue to next decision
+5. Backtrack: Undo placement if path fails
+```
+
+### 4. Pruning
+
+Eliminate invalid branches early:
+
+- **Early detection**: Check constraints before recursing
+- **Dead end recognition**: If no valid column in current row, backtrack immediately
+- **Symmetry**: For optimization, can exploit problem symmetry
+
+---
+
+## Frameworks
+
+Structured approaches for solving N-Queens problems.
+
+### Framework 1: Standard Backtracking with Sets
+
+```
+┌─────────────────────────────────────────────────────┐
+│  STANDARD N-QUEENS BACKTRACKING FRAMEWORK            │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize tracking sets:                      │
+│     - cols = set()     (occupied columns)            │
+│     - pos_diag = set() (row + col, anti-diagonal)   │
+│     - neg_diag = set() (row - col, main diagonal)    │
+│  2. Define backtrack(row, board):                   │
+│     a. If row == N: add board to solutions           │
+│     b. For each col in range(N):                    │
+│        - Check if (col, row+col, row-col) in sets   │
+│        - If safe:                                    │
+│          * Add to all three sets                     │
+│          * board.append(col)                         │
+│          * backtrack(row + 1, board)               │
+│          * Remove from sets (backtrack)             │
+│          * board.pop()                               │
+│  3. Call backtrack(0, [])                           │
+│  4. Return all solutions                             │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Finding all solutions, N ≤ 15-20, clean code preferred.
+
+### Framework 2: Bitwise Optimization
+
+```
+┌─────────────────────────────────────────────────────┐
+│  BITWISE N-QUEENS FRAMEWORK                          │
+├─────────────────────────────────────────────────────┤
+│  1. Use bitmask to track available positions:       │
+│     - available = (1 << N) - 1  (all N bits set)   │
+│  2. Define backtrack(row, cols, pos_diag, neg_diag) │
+│     a. If available == 0 and row < N: return       │
+│     b. While available:                             │
+│        - pos = available & (-available)  (LSB)       │
+│        - available -= pos                          │
+│        - Recurse with:                              │
+│          cols | pos                                 │
+│          (pos_diag | pos) << 1                       │
+│          (neg_diag | pos) >> 1                     │
+│  3. Track solutions                                 │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Performance critical, N ≤ 32, count-only solutions.
+
+### Framework 3: Single Solution Search
+
+```
+┌─────────────────────────────────────────────────────┐
+│  SINGLE SOLUTION N-QUEENS FRAMEWORK                  │
+├─────────────────────────────────────────────────────┤
+│  1. Same initialization as standard framework      │
+│  2. In backtrack:                                    │
+│     a. If row == N: return True (found solution)   │
+│     b. For each valid column:                        │
+│        - Place queen                                 │
+│        - If backtrack(row + 1): return True        │
+│        - Remove queen                                │
+│     c. Return False (no solution from this path)    │
+│  3. Stop after first solution found                  │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Only need one solution, early termination desired.
+
+---
+
+## Forms
+
+Different manifestations of the N-Queens pattern.
+
+### Form 1: Find All Solutions
+
+Return all valid board configurations:
+
+| N | Solutions | Time | Space |
+|---|-----------|------|-------|
+| 1 | 1 | O(1) | O(1) |
+| 4 | 2 | O(N!) | O(N²) output |
+| 8 | 92 | O(N!) | O(N²) output |
+| 10 | 724 | O(N!) | O(N²) output |
+
+### Form 2: Count Solutions Only
+
+Return just the count (not boards):
+
+| N | Count | Optimization |
+|---|-------|--------------|
+| 1 | 1 | No board storage |
+| 8 | 92 | O(1) extra space |
+| 14 | 365,596 | Bitwise recommended |
+
+**Benefit**: No need to store board representations, just increment counter.
+
+### Form 3: Return One Solution
+
+Stop after finding first valid placement:
+
+```
+Typical for N ≥ 4, a solution always exists
+Time: Much faster than finding all solutions
+Can use heuristic: start from middle column
+```
+
+### Form 4: N-Rooks (Simplified)
+
+Place rooks instead of queens:
+
+| Difference | N-Queens | N-Rooks |
+|------------|----------|---------|
+| Attacks | Row, Col, Diagonals | Row, Col only |
+| Constraints | 3 sets | 1 set (columns) |
+| Solutions | Complex | N! (all permutations) |
+| Time | O(N!) | O(N!) but simpler |
+
+### Form 5: Bitwise Representation
+
+Use integers to represent board state:
+
+```
+For N ≤ 32, use 32-bit integers as bitmasks:
+- cols: bits represent which columns are occupied
+- pos_diag: bits for anti-diagonals (row + col)
+- neg_diag: bits for main diagonals (row - col + N - 1)
+
+Available positions: ~(cols | pos_diag | neg_diag) & ((1 << N) - 1)
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Set-Based Constraint Tracking
+
+Use sets for O(1) constraint checking:
+
+```python
+def solve_n_queens(n):
+    solutions = []
+    cols = set()        # occupied columns
+    pos_diag = set()    # row + col
+    neg_diag = set()    # row - col
+    
+    def backtrack(row, board):
+        if row == n:
+            solutions.append(board[:])
+            return
+        
+        for col in range(n):
+            if (col in cols or 
+                (row + col) in pos_diag or 
+                (row - col) in neg_diag):
+                continue
+            
+            # Place queen
+            cols.add(col)
+            pos_diag.add(row + col)
+            neg_diag.add(row - col)
+            board.append(col)
+            
+            backtrack(row + 1, board)
+            
+            # Backtrack
+            cols.remove(col)
+            pos_diag.remove(row + col)
+            neg_diag.remove(row - col)
+            board.pop()
+    
+    backtrack(0, [])
+    return solutions
+```
+
+### Tactic 2: Bitwise Optimization
+
+Use bit manipulation for speed:
+
+```python
+def solve_n_queens_bitwise(n):
+    """Solve N-Queens using bitwise operations."""
+    solutions = []
+    all_ones = (1 << n) - 1  # n bits set to 1
+    
+    def backtrack(row, cols, pos_diag, neg_diag, board):
+        if row == n:
+            solutions.append(board[:])
+            return
+        
+        # Available positions
+        available = all_ones & ~(cols | pos_diag | neg_diag)
+        
+        while available:
+            # Get rightmost available position
+            pos = available & (-available)
+            available -= pos
+            
+            col = (pos.bit_length() - 1)
+            board.append(col)
+            
+            backtrack(
+                row + 1,
+                cols | pos,
+                (pos_diag | pos) << 1,
+                (neg_diag | pos) >> 1,
+                board
+            )
+            
+            board.pop()
+    
+    backtrack(0, 0, 0, 0, [])
+    return solutions
+```
+
+### Tactic 3: Symmetry Pruning
+
+For optimization on symmetric boards:
+
+```python
+def solve_n_queens_symmetry_optimized(n):
+    """Exploit symmetry - only search first half of first row."""
+    if n == 1:
+        return [["Q"]]
+    
+    solutions = []
+    cols = set()
+    pos_diag = set()
+    neg_diag = set()
+    
+    def backtrack(row, board):
+        if row == n:
+            solutions.append(board[:])
+            return
+        
+        # For row 0, only search first half
+        start_col = 0
+        end_col = n
+        if row == 0 and n > 1:
+            end_col = (n + 1) // 2
+        
+        for col in range(start_col, end_col):
+            if (col in cols or 
+                (row + col) in pos_diag or 
+                (row - col) in neg_diag):
+                continue
+            
+            cols.add(col)
+            pos_diag.add(row + col)
+            neg_diag.add(row - col)
+            board.append(col)
+            
+            backtrack(row + 1, board)
+            
+            cols.remove(col)
+            pos_diag.remove(row + col)
+            neg_diag.remove(row - col)
+            board.pop()
+    
+    backtrack(0, [])
+    
+    # Mirror solutions for complete count
+    # (Implementation for full solutions)
+    
+    return solutions
+```
+
+### Tactic 4: Find Single Solution with Heuristic
+
+Stop early when one solution found:
+
+```python
+def solve_n_queens_one(n):
+    """Find just one solution."""
+    cols = set()
+    pos_diag = set()
+    neg_diag = set()
+    result = []
+    
+    def backtrack(row, board):
+        if row == n:
+            result.extend(board)
+            return True  # Found solution
+        
+        # Try middle columns first (heuristic)
+        columns = list(range(n))
+        mid = n // 2
+        columns.sort(key=lambda x: abs(x - mid))
+        
+        for col in columns:
+            if (col in cols or 
+                (row + col) in pos_diag or 
+                (row - col) in neg_diag):
+                continue
+            
+            cols.add(col)
+            pos_diag.add(row + col)
+            neg_diag.add(row - col)
+            board.append(col)
+            
+            if backtrack(row + 1, board):
+                return True
+            
+            cols.remove(col)
+            pos_diag.remove(row + col)
+            neg_diag.remove(row - col)
+            board.pop()
+        
+        return False
+    
+    backtrack(0, [])
+    return result
+```
+
+### Tactic 5: Count Solutions Without Storing
+
+Memory-efficient counting:
+
+```python
+def total_n_queens(n):
+    """Return count of solutions without storing them."""
+    count = 0
+    cols = set()
+    pos_diag = set()
+    neg_diag = set()
+    
+    def backtrack(row):
+        nonlocal count
+        if row == n:
+            count += 1
+            return
+        
+        for col in range(n):
+            if (col in cols or 
+                (row + col) in pos_diag or 
+                (row - col) in neg_diag):
+                continue
+            
+            cols.add(col)
+            pos_diag.add(row + col)
+            neg_diag.add(row - col)
+            
+            backtrack(row + 1)
+            
+            cols.remove(col)
+            pos_diag.remove(row + col)
+            neg_diag.remove(row - col)
+    
+    backtrack(0)
+    return count
+```
+
+---
+
+## Python Templates
+
+### Template 1: Standard Backtracking (All Solutions)
+
+```python
+def solve_n_queens(n: int) -> list[list[str]]:
+    """
+    Template 1: Solve N-Queens using backtracking with set optimization.
+    Returns all solutions as board representations.
+    
+    Time: O(N!), Space: O(N) for recursion + O(N²) for output
+    """
+    solutions = []
+    
+    # Track columns and diagonals under attack
+    cols = set()        # columns with queens
+    pos_diag = set()    # r + c for positive diagonal
+    neg_diag = set()    # r - c for negative diagonal
+    
+    def backtrack(row: int, board: list[int]) -> None:
+        # Base case: all queens placed successfully
+        if row == n:
+            # Convert to board representation
+            solution = []
+            for col in board:
+                row_str = '.' * col + 'Q' + '.' * (n - col - 1)
+                solution.append(row_str)
+            solutions.append(solution)
+            return
+        
+        # Try placing queen in each column of current row
+        for col in range(n):
+            # Calculate diagonal identifiers
+            p_diag = row + col
+            n_diag = row - col
+            
+            # Skip if position is under attack
+            if (col in cols or 
+                p_diag in pos_diag or 
+                n_diag in neg_diag):
+                continue
+            
+            # Place queen: mark position as occupied
+            cols.add(col)
+            pos_diag.add(p_diag)
+            neg_diag.add(n_diag)
+            board.append(col)
+            
+            # Recurse to next row
+            backtrack(row + 1, board)
+            
+            # Backtrack: remove queen and try next position
+            cols.remove(col)
+            pos_diag.remove(p_diag)
+            neg_diag.remove(n_diag)
+            board.pop()
+    
+    backtrack(0, [])
+    return solutions
+```
+
+### Template 2: Bitwise Optimization
+
+```python
+def solve_n_queens_bitwise(n: int) -> list[list[int]]:
+    """
+    Template 2: Solve N-Queens using bitwise operations.
+    Much faster for larger N.
+    
+    Time: O(N!), Space: O(N)
+    """
+    solutions = []
+    all_ones = (1 << n) - 1  # n bits set to 1
+    
+    def backtrack(row: int, cols: int, pos_diag: int, neg_diag: int, 
+                  board: list[int]) -> None:
+        if row == n:
+            solutions.append(board[:])
+            return
+        
+        # Available positions: bits not set in any constraint
+        available = all_ones & ~(cols | pos_diag | neg_diag)
+        
+        while available:
+            # Get rightmost available position
+            pos = available & (-available)
+            available -= pos
+            
+            col = pos.bit_length() - 1
+            board.append(col)
+            
+            # Recurse with updated constraints
+            backtrack(
+                row + 1,
+                cols | pos,
+                (pos_diag | pos) << 1,
+                (neg_diag | pos) >> 1,
+                board
+            )
+            
+            board.pop()
+    
+    backtrack(0, 0, 0, 0, [])
+    return solutions
+```
+
+### Template 3: Count Solutions Only
+
+```python
+def total_n_queens(n: int) -> int:
+    """
+    Template 3: Return count of solutions without storing them.
+    Memory efficient for larger N.
+    
+    Time: O(N!), Space: O(N)
+    """
+    count = 0
+    cols = set()
+    pos_diag = set()
+    neg_diag = set()
+    
+    def backtrack(row: int) -> None:
+        nonlocal count
+        if row == n:
+            count += 1
+            return
+        
+        for col in range(n):
+            if (col in cols or 
+                (row + col) in pos_diag or 
+                (row - col) in neg_diag):
+                continue
+            
+            cols.add(col)
+            pos_diag.add(row + col)
+            neg_diag.add(row - col)
+            
+            backtrack(row + 1)
+            
+            cols.remove(col)
+            pos_diag.remove(row + col)
+            neg_diag.remove(row - col)
+    
+    backtrack(0)
+    return count
+```
+
+### Template 4: Find Single Solution
+
+```python
+def solve_n_queens_one(n: int) -> list[int]:
+    """
+    Template 4: Find just one solution.
+    Stops as soon as solution is found.
+    
+    Time: O(N!) worst case, but typically much faster
+    Space: O(N)
+    """
+    cols = set()
+    pos_diag = set()
+    neg_diag = set()
+    result = []
+    
+    def backtrack(row: int, board: list[int]) -> bool:
+        if row == n:
+            result.extend(board)
+            return True  # Found solution
+        
+        for col in range(n):
+            if (col in cols or 
+                (row + col) in pos_diag or 
+                (row - col) in neg_diag):
+                continue
+            
+            cols.add(col)
+            pos_diag.add(row + col)
+            neg_diag.add(row - col)
+            board.append(col)
+            
+            if backtrack(row + 1, board):
+                return True  # Stop further search
+            
+            cols.remove(col)
+            pos_diag.remove(row + col)
+            neg_diag.remove(row - col)
+            board.pop()
+        
+        return False
+    
+    backtrack(0, [])
+    return result
+```
 
 ---
 
@@ -101,724 +705,18 @@ Q . . .                 . . . Q
 (0,1) (1,3) (2,0) (3,2)  (0,2) (1,0) (2,3) (3,1)
 ```
 
-### Optimization Techniques
-
-1. **Set-Based Tracking**: O(1) lookup for columns and diagonals under attack
-2. **Bitmask Optimization**: Use single integers to track occupied positions (faster for larger N)
-3. **Early Termination**: Skip rows where no valid column exists
-4. **Symmetry Pruning**: For N > 6, only search first half of first row (solutions are symmetric)
-
-### Limitations
-
-- **Exponential Time**: O(N!) worst case - not feasible for very large N
-- **Memory Intensive for All Solutions**: Number of solutions grows exponentially
-- **No Polynomial Solution**: This is an NP-complete problem
-
----
-
-## Algorithm Steps
-
-### Step-by-Step Approach
-
-1. **Initialize Tracking Structures**
-   - Create sets for columns, positive diagonals (row+col), and negative diagonals (row-col)
-   - Each tracks positions already under attack
-
-2. **Base Case Check**
-   - If `row == N`, all queens are placed successfully
-   - Convert column positions to board representation and add to solutions
-
-3. **Try Each Column**
-   - For the current row, iterate through all columns (0 to N-1)
-   - For each column, check if it's safe to place a queen
-
-4. **Safety Check**
-   - Skip if column is in `cols` set
-   - Skip if `row + col` is in `pos_diag` set (anti-diagonal)
-   - Skip if `row - col` is in `neg_diag` set (main diagonal)
-
-5. **Place Queen**
-   - Add column and both diagonals to their respective sets
-   - Add column position to current board state
-   - Recursively call for next row
-
-6. **Backtrack**
-   - Remove column and diagonals from sets (undo the placement)
-   - Remove last column from board state
-   - Try next column position
-
-7. **Return Solutions**
-   - After recursion completes, return all valid board configurations
-
----
-
-## Implementation
-
-### Template Code (Backtracking with Set Optimization)
-
-````carousel
-```python
-def solve_n_queens(n):
-    """
-    Solve N-Queens problem using backtracking with set optimization.
-    
-    Args:
-        n: Number of queens (board is n×n)
-    
-    Returns:
-        List of solutions, each solution is a list of column positions
-        where row i has queen at column positions[i]
-    
-    Time: O(N!) - worst case explores all permutations
-    Space: O(N) - recursion stack + tracking sets
-    """
-    solutions = []
-    
-    # Track columns and diagonals under attack
-    cols = set()           # columns with queens
-    pos_diag = set()       # r + c for positive diagonal (↙)
-    neg_diag = set()       # r - c for negative diagonal (↘)
-    
-    def backtrack(row, board):
-        # Base case: all queens placed successfully
-        if row == n:
-            solutions.append(board[:])
-            return
-        
-        # Try placing queen in each column of current row
-        for col in range(n):
-            # Calculate diagonal identifiers
-            p_diag = row + col  # positive diagonal
-            n_diag = row - col  # negative diagonal
-            
-            # Skip if position is under attack
-            if col in cols or p_diag in pos_diag or n_diag in neg_diag:
-                continue
-            
-            # Place queen: mark position as occupied
-            cols.add(col)
-            pos_diag.add(p_diag)
-            neg_diag.add(n_diag)
-            board.append(col)
-            
-            # Recurse to next row
-            backtrack(row + 1, board)
-            
-            # Backtrack: remove queen and try next position
-            cols.remove(col)
-            pos_diag.remove(p_diag)
-            neg_diag.remove(n_diag)
-            board.pop()
-    
-    # Start from first row
-    backtrack(0, [])
-    return solutions
-
-
-def solve_n_queens_board(n):
-    """Return solutions as visual board representations."""
-    solutions = solve_n_queens(n)
-    result = []
-    
-    for positions in solutions:
-        board = []
-        for col in positions:
-            row_str = '.' * col + 'Q' + '.' * (n - col - 1)
-            board.append(row_str)
-        result.append(board)
-    
-    return result
-
-
-# Example usage
-if __name__ == "__main__":
-    n = 4
-    solutions = solve_n_queens_board(n)
-    
-    print(f"N-Queens solutions for n={n}:")
-    print(f"Total solutions: {len(solutions)}\n")
-    
-    for i, solution in enumerate(solutions, 1):
-        print(f"Solution {i}:")
-        for row in solution:
-            print(f"  {row}")
-        print()
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <set>
-using namespace std;
-
-/**
- * Solve N-Queens problem using backtracking with set optimization.
- * 
- * Time Complexity: O(N!) - worst case explores all permutations
- * Space Complexity: O(N) - recursion stack + tracking sets
- */
-class NQueens {
-private:
-    int n;
-    vector<vector<string>> solutions;
-    set<int> cols;       // columns occupied
-    set<int> posDiag;    // row + col (positive diagonal ↙)
-    set<int> negDiag;    // row - col (negative diagonal ↘)
-    
-public:
-    NQueens(int n) : n(n) {}
-    
-    vector<vector<string>> solve() {
-        vector<int> board;
-        backtrack(0, board);
-        return solutions;
-    }
-    
-private:
-    void backtrack(int row, vector<int>& board) {
-        // Base case: all queens placed
-        if (row == n) {
-            solutions.push_back(buildBoard(board));
-            return;
-        }
-        
-        // Try each column in current row
-        for (int col = 0; col < n; col++) {
-            int pDiag = row + col;
-            int nDiag = row - col;
-            
-            // Skip if position is under attack
-            if (cols.count(col) || posDiag.count(pDiag) || negDiag.count(nDiag)) {
-                continue;
-            }
-            
-            // Place queen
-            cols.insert(col);
-            posDiag.insert(pDiag);
-            negDiag.insert(nDiag);
-            board.push_back(col);
-            
-            // Recurse to next row
-            backtrack(row + 1, board);
-            
-            // Backtrack
-            cols.erase(col);
-            posDiag.erase(pDiag);
-            negDiag.erase(nDiag);
-            board.pop_back();
-        }
-    }
-    
-    vector<string> buildBoard(const vector<int>& board) {
-        vector<string> result;
-        for (int col : board) {
-            string row(n, '.');
-            row[col] = 'Q';
-            result.push_back(row);
-        }
-        return result;
-    }
-};
-
-
-int main() {
-    int n = 4;
-    NQueens solver(n);
-    vector<vector<string>> solutions = solver.solve();
-    
-    cout << "N-Queens solutions for n=" << n << ":" << endl;
-    cout << "Total solutions: " << solutions.size() << endl << endl;
-    
-    for (size_t i = 0; i < solutions.size(); i++) {
-        cout << "Solution " << i + 1 << ":" << endl;
-        for (const string& row : solutions[i]) {
-            cout << "  " << row << endl;
-        }
-        cout << endl;
-    }
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-/**
- * Solve N-Queens problem using backtracking with set optimization.
- * 
- * Time Complexity: O(N!) - worst case explores all permutations
- * Space Complexity: O(N) - recursion stack + tracking sets
- */
-public class NQueensSolver {
-    private int n;
-    private Set<Integer> cols;       // columns occupied
-    private Set<Integer> posDiag;   // row + col (positive diagonal)
-    private Set<Integer> negDiag;   // row - col (negative diagonal)
-    private List<List<String>> solutions;
-    
-    public NQueensSolver(int n) {
-        this.n = n;
-        this.cols = new HashSet<>();
-        this.posDiag = new HashSet<>();
-        this.negDiag = new HashSet<>();
-        this.solutions = new ArrayList<>();
-    }
-    
-    public List<List<String>> solve() {
-        List<Integer> board = new ArrayList<>();
-        backtrack(0, board);
-        return solutions;
-    }
-    
-    private void backtrack(int row, List<Integer> board) {
-        // Base case: all queens placed
-        if (row == n) {
-            solutions.add(buildBoard(board));
-            return;
-        }
-        
-        // Try each column in current row
-        for (int col = 0; col < n; col++) {
-            int pDiag = row + col;
-            int nDiag = row - col;
-            
-            // Skip if position is under attack
-            if (cols.contains(col) || posDiag.contains(pDiag) || negDiag.contains(nDiag)) {
-                continue;
-            }
-            
-            // Place queen
-            cols.add(col);
-            posDiag.add(pDiag);
-            negDiag.add(nDiag);
-            board.add(col);
-            
-            // Recurse to next row
-            backtrack(row + 1, board);
-            
-            // Backtrack
-            cols.remove(col);
-            posDiag.remove(pDiag);
-            negDiag.remove(nDiag);
-            board.remove(board.size() - 1);
-        }
-    }
-    
-    private List<String> buildBoard(List<Integer> board) {
-        List<String> result = new ArrayList<>();
-        for (int col : board) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < n; i++) {
-                sb.append(i == col ? 'Q' : '.');
-            }
-            result.add(sb.toString());
-        }
-        return result;
-    }
-    
-    public static void main(String[] args) {
-        int n = 4;
-        NQueensSolver solver = new NQueensSolver(n);
-        List<List<String>> solutions = solver.solve();
-        
-        System.out.println("N-Queens solutions for n=" + n + ":");
-        System.out.println("Total solutions: " + solutions.size());
-        System.out.println();
-        
-        for (int i = 0; i < solutions.size(); i++) {
-            System.out.println("Solution " + (i + 1) + ":");
-            for (String row : solutions.get(i)) {
-                System.out.println("  " + row);
-            }
-            System.out.println();
-        }
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Solve N-Queens problem using backtracking with set optimization.
- * 
- * Time Complexity: O(N!) - worst case explores all permutations
- * Space Complexity: O(N) - recursion stack + tracking sets
- */
-function solveNQueens(n) {
-    const solutions = [];
-    const cols = new Set();      // columns occupied
-    const posDiag = new Set();   // row + col (positive diagonal)
-    const negDiag = new Set();   // row - col (negative diagonal)
-    
-    function backtrack(row, board) {
-        // Base case: all queens placed
-        if (row === n) {
-            solutions.push([...board]);
-            return;
-        }
-        
-        // Try each column in current row
-        for (let col = 0; col < n; col++) {
-            const pDiag = row + col;
-            const nDiag = row - col;
-            
-            // Skip if position is under attack
-            if (cols.has(col) || posDiag.has(pDiag) || negDiag.has(nDiag)) {
-                continue;
-            }
-            
-            // Place queen
-            cols.add(col);
-            posDiag.add(pDiag);
-            negDiag.add(nDiag);
-            board.push(col);
-            
-            // Recurse to next row
-            backtrack(row + 1, board);
-            
-            // Backtrack
-            cols.delete(col);
-            posDiag.delete(pDiag);
-            negDiag.delete(nDiag);
-            board.pop();
-        }
-    }
-    
-    backtrack(0, []);
-    return solutions;
-}
-
-/**
- * Convert column positions to board representation
- */
-function convertToBoard(positions) {
-    const n = positions.length;
-    return positions.map(col => {
-        return '.'.repeat(col) + 'Q' + '.'.repeat(n - col - 1);
-    });
-}
-
-// Example usage
-const n = 4;
-const solutions = solveNQueens(n);
-
-console.log(`N-Queens solutions for n=${n}:`);
-console.log(`Total solutions: ${solutions.length}\n`);
-
-solutions.forEach((solution, i) => {
-    console.log(`Solution ${i + 1}:`);
-    const board = convertToBoard(solution);
-    board.forEach(row => console.log(`  ${row}`));
-    console.log();
-});
-```
-````
-
----
-
-## Example
-
-### Example 1: n = 4
-
-**Input:**
-```
-n = 4
-```
-
-**Output:**
-```
-[
-  [".Q..", "...Q", "Q...", "..Q."],
-  ["..Q.", "Q...", "...Q", ".Q.."]
-]
-```
-
-**Explanation:**
-- For n=4, there are exactly 2 valid solutions
-- Solution 1: Queens at positions (0,1), (1,3), (2,0), (3,2)
-- Solution 2: Queens at positions (0,2), (1,0), (2,3), (3,1)
-
-### Example 2: n = 1
-
-**Input:**
-```
-n = 1
-```
-
-**Output:**
-```
-[["Q"]]
-```
-
-**Explanation:** Only one queen, placed at (0,0)
-
-### Example 3: n = 2 or n = 3
-
-**Input:**
-```
-n = 2  or  n = 3
-```
-
-**Output:**
-```
-[]
-```
-
-**Explanation:** No solutions exist for n=2 and n=3 because it's impossible to place queens without them attacking each other.
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Worst Case** | O(N!) | Explores all possible permutations |
-| **Average Case** | O(N!) | Still exponential due to pruning |
-| **Best Case** | O(1) | When N=0 or N=1 (immediate solution) |
-| **Solution Count** | Varies | Known formula: ~0.34^N for large N |
-
-### Detailed Breakdown
+### Why It Achieves O(N!) Complexity
 
 - **Branch Factor**: At row `r`, we try up to `(N - r)` columns
 - **Total Combinations**: N × (N-1) × (N-2) × ... × 1 = N!
 - **Constraint Checking**: O(1) per position using sets
 - **Overhead**: Each successful placement triggers recursion; each failure triggers backtracking
 
-### Known Solution Counts
+### Limitations
 
-| N | Number of Solutions |
-|---|---------------------|
-| 1 | 1 |
-| 2 | 0 |
-| 3 | 0 |
-| 4 | 2 |
-| 5 | 10 |
-| 6 | 4 |
-| 7 | 40 |
-| 8 | 92 |
-| 9 | 352 |
-| 10 | 724 |
-| 11 | 2,680 |
-| 12 | 14,200 |
-
----
-
-## Space Complexity Analysis
-
-| Component | Space | Description |
-|-----------|-------|-------------|
-| **Recursion Stack** | O(N) | Maximum depth of recursion |
-| **Column Set** | O(N) | Tracks occupied columns |
-| **Diagonal Sets** | O(N) | Tracks occupied diagonals |
-| **Board State** | O(N) | Current queen placements |
-| **Solutions Storage** | O(N² × S) | S = number of solutions |
-
-### Space Optimization Notes
-
-- Using **bitmasks** instead of sets reduces space to O(1)
-- If only one solution is needed, don't store all solutions
-- For very large N, consider iterative approaches or mathematical constructions
-
----
-
-## Common Variations
-
-### 1. Bitwise Optimization (Most Efficient)
-
-Using bit manipulation instead of sets for faster performance:
-
-````carousel
-```python
-def solve_n_queens_bitwise(n):
-    """Solve N-Queens using bitwise operations - much faster."""
-    solutions = []
-    
-    def backtrack(row, cols, pos_diag, neg_diag, board):
-        if row == n:
-            solutions.append(board[:])
-            return
-        
-        # Available positions: all columns not occupied
-        # Bits: column 0 = LSB
-        available = ((1 << n) - 1) & ~(cols | pos_diag | neg_diag)
-        
-        while available:
-            # Pick rightmost available position
-            pos = available & (-available)
-            available -= pos
-            
-            col = pos.bit_length() - 1
-            board.append(col)
-            
-            backtrack(
-                row + 1,
-                cols | pos,
-                (pos_diag | pos) << 1,
-                (neg_diag | pos) >> 1,
-                board
-            )
-            
-            board.pop()
-    
-    backtrack(0, 0, 0, 0, [])
-    return solutions
-```
-
-<!-- slide -->
-```javascript
-function solveNQueensBitwise(n) {
-    const solutions = [];
-    
-    function backtrack(row, cols, posDiag, negDiag, board) {
-        if (row === n) {
-            solutions.push([...board]);
-            return;
-        }
-        
-        // Available positions
-        let available = ((1 << n) - 1) & ~(cols | posDiag | negDiag);
-        
-        while (available) {
-            const pos = available & (-available);
-            available -= pos;
-            
-            const col = Math.log2(pos);
-            board.push(col);
-            
-            backtrack(
-                row + 1,
-                cols | pos,
-                (posDiag | pos) << 1,
-                (negDiag | pos) >> 1,
-                board
-            );
-            
-            board.pop();
-        }
-    }
-    
-    backtrack(0, 0, 0, 0, []);
-    return solutions;
-}
-```
-````
-
-### 2. Finding Only ONE Solution
-
-Stop after finding the first solution:
-
-````carousel
-```python
-def solve_n_queens_one(n):
-    """Find just one solution - stops as soon as found."""
-    cols = set()
-    pos_diag = set()
-    neg_diag = set()
-    result = []
-    
-    def backtrack(row, board):
-        if row == n:
-            result.append(board[:])
-            return True  # Signal found
-        
-        for col in range(n):
-            p_diag = row + col
-            n_diag = row - col
-            
-            if col in cols or p_diag in pos_diag or n_diag in neg_diag:
-                continue
-            
-            cols.add(col)
-            pos_diag.add(p_diag)
-            neg_diag.add(n_diag)
-            board.append(col)
-            
-            if backtrack(row + 1, board):
-                return True  # Stop further search
-            
-            cols.remove(col)
-            pos_diag.remove(p_diag)
-            neg_diag.remove(n_diag)
-            board.pop()
-        
-        return False
-    
-    backtrack(0, [])
-    return result[0] if result else []
-```
-````
-
-### 3. N-Queens II (Count Only)
-
-Return count instead of all boards:
-
-````carousel
-```python
-def total_n_queens(n):
-    """Return count of solutions without storing them."""
-    count = 0
-    cols = set()
-    pos_diag = set()
-    neg_diag = set()
-    
-    def backtrack(row):
-        nonlocal count
-        if row == n:
-            count += 1
-            return
-        
-        for col in range(n):
-            if col in cols or (row + col) in pos_diag or (row - col) in neg_diag:
-                continue
-            
-            cols.add(col)
-            pos_diag.add(row + col)
-            neg_diag.add(row - col)
-            
-            backtrack(row + 1)
-            
-            cols.remove(col)
-            pos_diag.remove(row + col)
-            neg_diag.remove(row - col)
-    
-    backtrack(0)
-    return count
-```
-````
-
-### 4. N-Rooks (Simpler Variant)
-
-Place N rooks - only need column tracking:
-
-````carousel
-```python
-def solve_n_rooks(n):
-    """N-Rooks problem - rooks only attack horizontally/vertically."""
-    solutions = []
-    cols = set()
-    
-    def backtrack(row, board):
-        if row == n:
-            solutions.append(board[:])
-            return
-        
-        for col in range(n):
-            if col in cols:
-                continue
-            
-            cols.add(col)
-            board.append(col)
-            backtrack(row + 1, board)
-            cols.remove(col)
-            board.pop()
-    
-    backtrack(0, [])
-    return solutions
-```
-````
+- **Exponential Time**: O(N!) worst case - not feasible for very large N
+- **Memory Intensive for All Solutions**: Number of solutions grows exponentially
+- **No Polynomial Solution**: This is an NP-complete problem
 
 ---
 
@@ -915,6 +813,8 @@ def solve_n_rooks(n):
 - The constraint checking only eliminates invalid branches AFTER we try positions
 - Pruning reduces average case but not worst-case complexity
 
+---
+
 ### Q2: How does bitwise optimization improve performance?
 
 **Answer:** Bitwise optimization provides significant speedup because:
@@ -924,6 +824,8 @@ def solve_n_rooks(n):
 - For N ≤ 32, all state fits in a single 32-bit integer
 - Can process multiple positions in parallel with SIMD instructions
 
+---
+
 ### Q3: Can N-Queens be solved in polynomial time?
 
 **Answer:** No, N-Queens is NP-Complete, meaning:
@@ -931,6 +833,8 @@ def solve_n_rooks(n):
 - Solutions grow exponentially (~0.34^N)
 - However, there's a mathematical construction for finding ONE solution in O(N²)
 - For specific N values, there are known patterns that can be generated directly
+
+---
 
 ### Q4: What's the maximum N that can be practically solved?
 
@@ -942,6 +846,8 @@ def solve_n_rooks(n):
 
 With bitwise + symmetry pruning + distributed computing:
 - N up to 50+ has been solved (but huge computational resources needed)
+
+---
 
 ### Q5: How does N-Queens relate to other backtracking problems?
 
@@ -975,17 +881,9 @@ When to use:
 - ✅ When you need ALL solutions
 - ✅ Learning backtracking fundamentals
 
+When NOT to use:
 - ❌ Very large N (exponential explosion)
 - ❌ When only one solution needed (use mathematical construction instead)
 - ❌ When performance is critical (use bitwise optimization)
 
 This algorithm is essential for competitive programming and technical interviews, serving as a gateway to understanding more complex backtracking and combinatorial optimization problems.
-
----
-
-## Related Algorithms
-
-- [Combinations](./combinations.md) - Generate all combinations
-- [Permutations](./permutations.md) - Generate all permutations
-- [Subsets](./subsets.md) - Power set generation
-- [Backtracking Patterns](./backtracking-patterns.md) - Common backtracking approaches

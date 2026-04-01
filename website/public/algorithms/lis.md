@@ -4,17 +4,478 @@
 Dynamic Programming
 
 ## Description
-The Longest Increasing Subsequence (LIS) problem finds the length of the longest subsequence where all elements are in strictly increasing order. The key insight is using binary search to achieve O(n log n) time complexity.
 
-The algorithm maintains a sorted list (using binary search) of the smallest possible tail values for increasing subsequences of different lengths:
-- For each element, find its position in the tails array using binary search
-- If it's larger than all elements, append it (we found a longer LIS)
-- Otherwise, replace the first element that's >= it (improving the smallest tail for that length)
+The Longest Increasing Subsequence (LIS) problem finds the length of the longest subsequence where all elements are in strictly increasing order. A **subsequence** maintains relative order but elements don't need to be contiguous.
 
-This works because:
-- The tails array always stays sorted
-- Each position in tails represents the smallest tail for an increasing subsequence of that length
-- Binary search gives O(log n) for each element lookup
+The key insight is using binary search to achieve O(n log n) time complexity instead of the naive O(n²) dynamic programming approach. The algorithm maintains a sorted list of the smallest possible tail values for increasing subsequences of different lengths, allowing efficient lookups through binary search.
+
+This technique is fundamental in competitive programming and appears frequently in problems involving sequences, envelope nesting, patience sorting, and optimization with increasing order constraints.
+
+---
+
+## Concepts
+
+### 1. Subsequence vs Substring
+
+Understanding the distinction is critical for solving LIS problems:
+
+| Concept | Definition | Example (in [10, 9, 2, 5, 3]) |
+|---------|------------|------------------------------|
+| **Subsequence** | Elements in relative order, not necessarily contiguous | [10, 2, 3] or [9, 5] |
+| **Substring** | Contiguous elements | [9, 2, 5] only |
+
+### 2. Tails Array
+
+The core data structure for the efficient O(n log n) solution:
+
+- `tails[i]` = smallest possible tail value for an increasing subsequence of length `i+1`
+- The tails array is always sorted (enabling binary search)
+- Each position represents the minimum tail for that subsequence length
+
+### 3. Binary Search Positioning
+
+For each element, determine its position in the tails array:
+
+| Operation | Binary Search Type | When to Use |
+|-----------|-------------------|-------------|
+| **Strictly Increasing** | `bisect_left` (first ≥) | Elements must be strictly greater |
+| **Non-decreasing** | `bisect_right` (first >) | Equal elements allowed |
+
+### 4. Optimal Substructure
+
+The LIS problem exhibits optimal substructure:
+- If we know the LIS ending at position `i`, we can extend it for position `i+1`
+- The optimal solution can be built from optimal solutions to subproblems
+
+---
+
+## Frameworks
+
+### Framework 1: Binary Search + Tails (O(n log n))
+
+```
+┌─────────────────────────────────────────────────────┐
+│  LIS BINARY SEARCH FRAMEWORK                        │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize empty tails array                     │
+│  2. For each element in input array:               │
+│     a. Binary search for position in tails        │
+│     b. If position == len(tails):                 │
+│        - Append element (found longer LIS)         │
+│     c. Else:                                       │
+│        - Replace at position (smaller tail)        │
+│  3. Return length of tails array                   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Need only the length, array size is large (n > 10⁴)
+
+### Framework 2: Naive DP (O(n²))
+
+```
+┌─────────────────────────────────────────────────────┐
+│  LIS NAIVE DP FRAMEWORK                             │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize dp array with 1s (each element      │
+│     is a subsequence of length 1)                  │
+│  2. For each i from 1 to n-1:                     │
+│     a. For each j from 0 to i-1:                  │
+│        - If nums[j] < nums[i]:                    │
+│          dp[i] = max(dp[i], dp[j] + 1)            │
+│  3. Return max value in dp array                   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Need to reconstruct the actual sequence, small arrays
+
+### Framework 3: Reconstruction with Binary Search
+
+```
+┌─────────────────────────────────────────────────────┐
+│  LIS RECONSTRUCTION FRAMEWORK                       │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize tails array and tracking arrays:  │
+│     - prev[i] = predecessor index for nums[i]      │
+│     - indices[i] = position of nums[i] in tails   │
+│  2. For each element, perform binary search        │
+│  3. Track predecessor relationships                │
+│  4. After processing, backtrack from end:          │
+│     - Find last element (largest index value)     │
+│     - Follow prev pointers to reconstruct         │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Need both length and the actual LIS sequence
+
+---
+
+## Forms
+
+### Form 1: Standard LIS (Strictly Increasing)
+
+Find the longest subsequence where each element is strictly greater than the previous.
+
+| Example | Array | LIS | Length |
+|---------|-------|-----|--------|
+| Basic | [10, 9, 2, 5, 3, 7, 101, 18] | [2, 3, 7, 18] | 4 |
+| Duplicates | [0, 1, 0, 3, 2, 3] | [0, 1, 2, 3] | 4 |
+| All Same | [7, 7, 7, 7, 7] | [7] | 1 |
+
+### Form 2: Longest Non-Decreasing Subsequence (LNDS)
+
+Elements can be equal or greater. Use `bisect_right` instead of `bisect_left`.
+
+| Array | LNDS | Length |
+|-------|------|--------|
+| [1, 1, 1, 1] | [1, 1, 1, 1] | 4 |
+| [1, 2, 2, 3] | [1, 2, 2, 3] | 4 |
+
+### Form 3: Longest Decreasing Subsequence (LDS)
+
+Reverse the array or negate values, then apply LIS.
+
+```
+Approach 1: Reverse array → Find LIS
+Approach 2: Negate values → Find LIS
+```
+
+### Form 4: 2D LIS (Russian Doll Envelopes)
+
+Sort by one dimension, find LIS on the other dimension with special handling.
+
+```
+Sort: By width ascending, height descending
+Then: Find LIS on heights
+```
+
+### Form 5: Count of LIS
+
+Track both length and count of longest subsequences.
+
+| State | Meaning |
+|-------|---------|
+| `length[i]` | Length of LIS ending at i |
+| `count[i]` | Number of LIS of that length ending at i |
+
+---
+
+## Tactics
+
+### Tactic 1: Binary Search Optimization
+
+Replace the O(n) scan with O(log n) binary search:
+
+```python
+import bisect
+
+def length_of_lis_optimized(nums: list[int]) -> int:
+    """O(n log n) solution using binary search."""
+    tails = []
+    for num in nums:
+        pos = bisect.bisect_left(tails, num)
+        if pos == len(tails):
+            tails.append(num)
+        else:
+            tails[pos] = num
+    return len(tails)
+```
+
+### Tactic 2: Patience Sorting Visualization
+
+The LIS algorithm is equivalent to the card game patience sorting:
+
+```
+Processing [10, 9, 2, 5, 3, 7, 101, 18]:
+
+Pile 1:  [10] → [9] → [2]
+Pile 2:             [5] → [3]
+Pile 3:                   [7]
+Pile 4:                         [101] → [18]
+
+Number of piles = LIS length = 4
+```
+
+### Tactic 3: Coordinate Compression for Large Values
+
+When values are large but n is small:
+
+```python
+def length_of_lis_compressed(nums: list[int]) -> int:
+    """For when values are very large."""
+    # Compress coordinates
+    sorted_unique = sorted(set(nums))
+    rank = {v: i for i, v in enumerate(sorted_unique)}
+    
+    # Now work with ranks instead of values
+    compressed = [rank[x] for x in nums]
+    return length_of_lis(compressed)
+```
+
+### Tactic 4: Segment Tree Alternative
+
+For problems requiring range queries on LIS:
+
+```python
+class SegmentTreeLIS:
+    """O(n log n) with ability to query any range."""
+    def __init__(self, size):
+        self.n = size
+        self.tree = [0] * (4 * size)
+    
+    def query(self, left, right):
+        """Query max LIS length in range."""
+        pass  # Implementation depends on specific problem
+    
+    def update(self, index, value):
+        """Update LIS length at index."""
+        pass
+```
+
+### Tactic 5: Fenwick Tree with Coordinate Compression
+
+Combines compression with efficient queries:
+
+```python
+class FenwickTree:
+    def __init__(self, size):
+        self.n = size
+        self.tree = [0] * (size + 1)
+    
+    def update(self, index, value):
+        while index <= self.n:
+            self.tree[index] = max(self.tree[index], value)
+            index += index & -index
+    
+    def query(self, index):
+        """Max in range [1, index]."""
+        result = 0
+        while index > 0:
+            result = max(result, self.tree[index])
+            index -= index & -index
+        return result
+```
+
+---
+
+## Python Templates
+
+### Template 1: Basic LIS Length (Binary Search)
+
+```python
+import bisect
+from typing import List
+
+def length_of_lis(nums: List[int]) -> int:
+    """
+    Find LIS length using binary search - O(n log n).
+    Returns length only, not the actual sequence.
+    """
+    if not nums:
+        return 0
+    
+    tails = []  # tails[i] = smallest tail for LIS of length i+1
+    
+    for num in nums:
+        pos = bisect.bisect_left(tails, num)
+        
+        if pos == len(tails):
+            tails.append(num)
+        else:
+            tails[pos] = num
+    
+    return len(tails)
+```
+
+### Template 2: LIS with Reconstruction
+
+```python
+import bisect
+from typing import List, Tuple
+
+def length_of_lis_with_sequence(nums: List[int]) -> Tuple[int, List[int]]:
+    """
+    Find LIS length and one actual LIS sequence.
+    Time: O(n log n), Space: O(n)
+    """
+    if not nums:
+        return 0, []
+    
+    n = len(nums)
+    tails = []  # Smallest tail for each length
+    prev = [-1] * n  # Predecessor index
+    indices = [-1] * n  # Position in tails for each element
+    tail_indices = []  # Index of tail element
+    
+    for i, num in enumerate(nums):
+        pos = bisect.bisect_left(tails, num)
+        
+        if pos == len(tails):
+            tails.append(num)
+            tail_indices.append(i)
+        else:
+            tails[pos] = num
+            tail_indices[pos] = i
+        
+        indices[i] = pos
+        
+        if pos > 0:
+            prev[i] = tail_indices[pos - 1]
+    
+    # Reconstruct sequence
+    lis = []
+    curr = tail_indices[-1]
+    while curr != -1:
+        lis.append(nums[curr])
+        curr = prev[curr]
+    
+    return len(tails), lis[::-1]
+```
+
+### Template 3: Longest Non-Decreasing Subsequence
+
+```python
+import bisect
+from typing import List
+
+def length_of_lnds(nums: List[int]) -> int:
+    """
+    Longest Non-Decreasing Subsequence.
+    Allows equal elements (use bisect_right instead of left).
+    """
+    if not nums:
+        return 0
+    
+    tails = []
+    
+    for num in nums:
+        pos = bisect.bisect_right(tails, num)  # Note: bisect_right
+        
+        if pos == len(tails):
+            tails.append(num)
+        else:
+            tails[pos] = num
+    
+    return len(tails)
+```
+
+### Template 4: Number of Longest Increasing Subsequences
+
+```python
+from typing import List
+
+def number_of_lis(nums: List[int]) -> int:
+    """
+    Count the number of longest increasing subsequences.
+    Time: O(n²), Space: O(n)
+    """
+    if not nums:
+        return 0
+    
+    n = len(nums)
+    length = [1] * n  # length[i] = LIS ending at i
+    count = [1] * n   # count[i] = number of LIS ending at i
+    
+    for i in range(n):
+        for j in range(i):
+            if nums[j] < nums[i]:
+                if length[j] + 1 > length[i]:
+                    length[i] = length[j] + 1
+                    count[i] = count[j]
+                elif length[j] + 1 == length[i]:
+                    count[i] += count[j]
+    
+    max_length = max(length)
+    return sum(c for l, c in zip(length, count) if l == max_length)
+```
+
+### Template 5: Russian Doll Envelopes (2D LIS)
+
+```python
+from typing import List
+import bisect
+
+def max_envelopes(envelopes: List[List[int]]) -> int:
+    """
+    Russian Doll Envelopes - 2D LIS problem.
+    Sort by width ascending, height descending, then find LIS on heights.
+    """
+    if not envelopes:
+        return 0
+    
+    # Sort: width ascending, height descending for same width
+    envelopes.sort(key=lambda x: (x[0], -x[1]))
+    
+    # Find LIS on heights
+    tails = []
+    for _, height in envelopes:
+        pos = bisect.bisect_left(tails, height)
+        
+        if pos == len(tails):
+            tails.append(height)
+        else:
+            tails[pos] = height
+    
+    return len(tails)
+```
+
+### Template 6: Longest Bitonic Subsequence
+
+```python
+from typing import List
+
+def longest_bitonic_subsequence(nums: List[int]) -> int:
+    """
+    Longest subsequence that increases then decreases.
+    Time: O(n²), Space: O(n)
+    """
+    if not nums:
+        return 0
+    
+    n = len(nums)
+    
+    # LIS from left
+    lis = [1] * n
+    for i in range(n):
+        for j in range(i):
+            if nums[j] < nums[i]:
+                lis[i] = max(lis[i], lis[j] + 1)
+    
+    # LIS from right (for decreasing part)
+    lds = [1] * n
+    for i in range(n - 1, -1, -1):
+        for j in range(i + 1, n):
+            if nums[j] < nums[i]:
+                lds[i] = max(lds[i], lds[j] + 1)
+    
+    # Combine: peak element counted twice, subtract 1
+    return max(lis[i] + lds[i] - 1 for i in range(n))
+```
+
+### Template 7: Minimum Deletions to Make Array Increasing
+
+```python
+from typing import List
+import bisect
+
+def min_deletions_to_make_increasing(nums: List[int]) -> int:
+    """
+    Minimum deletions to make array strictly increasing.
+    Answer = n - LIS_length
+    """
+    if not nums:
+        return 0
+    
+    # Find LIS length
+    tails = []
+    for num in nums:
+        pos = bisect.bisect_left(tails, num)
+        if pos == len(tails):
+            tails.append(num)
+        else:
+            tails[pos] = num
+    
+    return len(nums) - len(tails)
+```
 
 ---
 
@@ -22,20 +483,20 @@ This works because:
 
 Use the LIS algorithm when you need to solve problems involving:
 
-- **Finding Longest Increasing Subsequence**: The classic problem of finding the longest strictly increasing subsequence in an array
-- **Envelope嵌套问题**: Problems involving nesting or包裹 (Russian Doll Envelopes)
-- **Patience Sorting**: Similar to the card game patience sorting
-- **Building Towers**: Problems about building structures with height constraints
-- **Optimization with Increasing Order**: Any problem requiring the longest sequence with increasing property
+- **Finding Longest Increasing Subsequence**: The classic problem
+- **Envelope Nesting Problems**: Russian Doll Envelopes
+- **Patience Sorting**: Card game and sorting applications
+- **Building Towers**: Problems with height constraints
+- **Optimization with Increasing Order**: Any problem requiring longest increasing sequence
 
 ### Comparison with Alternatives
 
-| Algorithm | Time Complexity | Space Complexity | Use Case |
-|-----------|----------------|------------------|----------|
-| **Naive DP** | O(n²) | O(n) | Small arrays, when actual sequence needed |
+| Algorithm | Time | Space | Use Case |
+|-----------|------|-------|----------|
+| **Naive DP** | O(n²) | O(n) | Small arrays, need actual sequence |
 | **Binary Search + Tails** | O(n log n) | O(n) | Large arrays, length only |
 | **Segment Tree** | O(n log n) | O(n) | When range queries needed |
-| **Fenwick Tree** | O(n log n) | O(n) | Coordinate compression needed |
+| **Fenwick Tree** | O(n log n) | O(n) | With coordinate compression |
 
 ### When to Choose Which Approach
 
@@ -57,6 +518,8 @@ Use the LIS algorithm when you need to solve problems involving:
 
 The key insight behind the efficient LIS algorithm is maintaining a **tails array** where `tails[i]` represents the smallest possible tail value for an increasing subsequence of length `i+1`. This array is always sorted, allowing us to use binary search for efficient lookups.
 
+The invariant maintained is: **tails[i] is the smallest possible tail value for any increasing subsequence of length i+1.**
+
 ### How It Works
 
 #### Processing Phase:
@@ -67,12 +530,10 @@ The key insight behind the efficient LIS algorithm is maintaining a **tails arra
    - Otherwise, replace the element at that position (we found a better tail for that length)
 3. **Result**: The length of `tails` equals the length of LIS
 
-#### Why This Works (Proof Sketch):
-
-The invariant maintained is: `tails[i]` is the smallest possible tail value for any increasing subsequence of length `i+1`.
+#### Why This Works:
 
 - **If we append**: The new element is larger than all elements in `tails`, meaning we found a subsequence of length `len(tails) + 1`
-- **If we replace**: We're improving the minimum tail for that length, which can only help future elements (smaller tail = more flexibility)
+- **If we replace**: We're improving the minimum tail for that length, which can only help future elements (smaller tail = more flexibility for appending)
 
 ### Visual Representation
 
@@ -88,859 +549,21 @@ Processing 7:  tails = [2, 3, 7] (append)
 Processing 101: tails = [2, 3, 7, 101] (append)
 Processing 18: tails = [2, 3, 7, 18]  (replace 101)
 
-LIS Length: 4
+Final LIS Length: 4
+Possible LIS: [2, 3, 7, 18]
 ```
 
-### Important Distinctions
+### Why It Works
 
-- **Strictly Increasing**: Uses `bisect_left` (finds first element >= value)
-- **Non-decreasing**: Use `bisect_right` (finds first element > value)
+1. **Greedy Choice**: By keeping the smallest possible tail for each length, we maximize the chance of appending future elements
+2. **Optimal Substructure**: The LIS ending at any position can be extended by following elements
+3. **Binary Search Efficiency**: The sorted nature of tails enables O(log n) operations
 
----
+### Limitations
 
-## Algorithm Steps
-
-### Step-by-Step Approach
-
-1. **Initialize empty tails array**: This will store the smallest possible tail for each subsequence length
-2. **For each element in the input array**:
-   - Find the position using binary search (`bisect_left` for strictly increasing)
-   - If position equals tails length, append (found longer subsequence)
-   - Otherwise, replace at position (optimize future possibilities)
-3. **Return the length of tails array**: This is the LIS length
-
-### Reconstructing the Actual Sequence
-
-To get the actual subsequence (not just the length):
-1. Maintain an additional array to track predecessors
-2. Track which position each element occupies in tails
-3. Backtrack from the end to reconstruct the sequence
-
----
-
-## Implementation
-
-### Template Code (Binary Search Approach)
-
-````carousel
-```python
-import bisect
-from typing import List, Tuple
-
-def length_of_lis(nums: List[int]) -> int:
-    """
-    Find the length of the longest increasing subsequence.
-    Uses binary search optimization for O(n log n) time.
-    
-    Args:
-        nums: List of integers
-        
-    Returns:
-        Length of the longest increasing subsequence
-        
-    Time: O(n log n)
-    Space: O(n)
-    """
-    if not nums:
-        return 0
-    
-    # tails[i] = smallest tail for increasing subsequence of length i+1
-    tails = []
-    
-    for num in nums:
-        # Find position to insert/replace using binary search
-        pos = bisect.bisect_left(tails, num)
-        
-        if pos == len(tails):
-            # num is larger than all elements, extend the sequence
-            tails.append(num)
-        else:
-            # Replace to maintain smallest possible tail
-            tails[pos] = num
-    
-    return len(tails)
-
-
-def length_of_lis_non_decreasing(nums: List[int]) -> int:
-    """
-    Find the length of the longest non-decreasing subsequence.
-    Uses bisect_right for non-strictly increasing.
-    
-    Time: O(n log n)
-    Space: O(n)
-    """
-    if not nums:
-        return 0
-    
-    tails = []
-    
-    for num in nums:
-        pos = bisect.bisect_right(tails, num)  # Note: bisect_right
-        
-        if pos == len(tails):
-            tails.append(num)
-        else:
-            tails[pos] = num
-    
-    return len(tails)
-
-
-def lis_with_binary_search(nums: List[int]) -> Tuple[int, List[int]]:
-    """
-    Find LIS length and one actual LIS sequence.
-    
-    Args:
-        nums: List of integers
-        
-    Returns:
-        Tuple of (length, lis_sequence)
-        
-    Time: O(n log n)
-    Space: O(n)
-    """
-    if not nums:
-        return 0, []
-    
-    # For tracking the actual sequence
-    # tails[i] = smallest tail for LIS of length i+1
-    tails = []
-    # Track the predecessor index for reconstruction
-    prev = [-1] * len(nums)
-    # Track which position each element occupies in tails
-    indices = []
-    
-    for i, num in enumerate(nums):
-        pos = bisect.bisect_left(tails, num)
-        
-        if pos == len(tails):
-            tails.append(num)
-        else:
-            tails[pos] = num
-        
-        indices.append(pos)
-        
-        if pos > 0:
-            # Find the previous element
-            for j in range(i - 1, -1, -1):
-                if indices[j] == pos - 1 and nums[j] < num:
-                    prev[i] = j
-                    break
-    
-    # Reconstruct the LIS
-    lis_length = len(tails)
-    lis = []
-    # Find the last element
-    for i in range(len(nums) - 1, -1, -1):
-        if indices[i] == lis_length - 1:
-            curr = i
-            break
-    
-    while curr != -1:
-        lis.append(nums[curr])
-        curr = prev[curr]
-    
-    return lis_length, list(reversed(lis))
-
-
-# Example usage
-if __name__ == "__main__":
-    # Test case 1
-    nums = [10, 9, 2, 5, 3, 7, 101, 18]
-    length = length_of_lis(nums)
-    print(f"Array: {nums}")
-    print(f"LIS Length: {length}")  # Output: 4
-    # Possible LIS: [2, 3, 7, 101] or [2, 5, 7, 101] or [2, 3, 7, 18]
-    
-    # Test case 2
-    nums = [0, 1, 0, 3, 2, 3]
-    length = length_of_lis(nums)
-    print(f"\nArray: {nums}")
-    print(f"LIS Length: {length}")  # Output: 4
-    # LIS: [0, 1, 2, 3]
-    
-    # Test case 3
-    nums = [7, 7, 7, 7, 7, 7, 7]
-    length = length_of_lis(nums)
-    print(f"\nArray: {nums}")
-    print(f"LIS Length: {length}")  # Output: 1 (strictly increasing)
-    
-    # Test case 4 - Get actual sequence
-    nums = [10, 9, 2, 5, 3, 7, 101, 18]
-    length, sequence = lis_with_binary_search(nums)
-    print(f"\nArray: {nums}")
-    print(f"LIS Length: {length}, LIS: {sequence}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-/**
- * Longest Increasing Subsequence using binary search.
- * 
- * Time Complexity: O(n log n)
- * Space Complexity: O(n)
- */
-class LIS {
-public:
-    /**
-     * Find the length of the longest increasing subsequence.
-     */
-    static int lengthOfLIS(const vector<int>& nums) {
-        if (nums.empty()) return 0;
-        
-        vector<int> tails;  // tails[i] = smallest tail for LIS of length i+1
-        
-        for (int num : nums) {
-            // Find position using binary search
-            auto it = lower_bound(tails.begin(), tails.end(), num);
-            
-            if (it == tails.end()) {
-                // num is larger than all elements, extend the sequence
-                tails.push_back(num);
-            } else {
-                // Replace to maintain smallest possible tail
-                *it = num;
-            }
-        }
-        
-        return tails.size();
-    }
-    
-    /**
-     * Find the length of the longest non-decreasing subsequence.
-     * Use upper_bound instead of lower_bound.
-     */
-    static int lengthOfLNDS(const vector<int>& nums) {
-        if (nums.empty()) return 0;
-        
-        vector<int> tails;
-        
-        for (int num : nums) {
-            auto it = upper_bound(tails.begin(), tails.end(), num);
-            
-            if (it == tails.end()) {
-                tails.push_back(num);
-            } else {
-                *it = num;
-            }
-        }
-        
-        return tails.size();
-    }
-    
-    /**
-     * Find both length and one actual LIS sequence.
-     */
-    static pair<int, vector<int>> lisWithSequence(const vector<int>& nums) {
-        if (nums.empty()) return {0, {}};
-        
-        int n = nums.size();
-        vector<int> tails;
-        vector<int> prev(n, -1);      // Predecessor index
-        vector<int> indices(n, -1);   // Position in tails
-        
-        for (int i = 0; i < n; i++) {
-            int num = nums[i];
-            auto it = lower_bound(tails.begin(), tails.end(), num);
-            
-            int pos = it - tails.begin();
-            
-            if (it == tails.end()) {
-                tails.push_back(num);
-            } else {
-                *it = num;
-            }
-            
-            indices[i] = pos;
-            
-            if (pos > 0) {
-                // Find predecessor
-                for (int j = i - 1; j >= 0; j--) {
-                    if (indices[j] == pos - 1 && nums[j] < num) {
-                        prev[i] = j;
-                        break;
-                    }
-                }
-            }
-        }
-        
-        // Reconstruct LIS
-        int lisLength = tails.size();
-        vector<int> lis;
-        
-        // Find the last element
-        int curr = -1;
-        for (int i = n - 1; i >= 0; i--) {
-            if (indices[i] == lisLength - 1) {
-                curr = i;
-                break;
-            }
-        }
-        
-        while (curr != -1) {
-            lis.push_back(nums[curr]);
-            curr = prev[curr];
-        }
-        
-        reverse(lis.begin(), lis.end());
-        return {lisLength, lis};
-    }
-};
-
-int main() {
-    // Test case 1
-    vector<int> nums1 = {10, 9, 2, 5, 3, 7, 101, 18};
-    cout << "Array: [10, 9, 2, 5, 3, 7, 101, 18]" << endl;
-    cout << "LIS Length: " << LIS::lengthOfLIS(nums1) << endl;  // Output: 4
-    
-    // Test case 2
-    vector<int> nums2 = {0, 1, 0, 3, 2, 3};
-    cout << "\nArray: [0, 1, 0, 3, 2, 3]" << endl;
-    cout << "LIS Length: " << LIS::lengthOfLIS(nums2) << endl;  // Output: 4
-    
-    // Test case 3 - Get actual sequence
-    auto [len, seq] = LIS::lisWithSequence(nums1);
-    cout << "\nArray: [10, 9, 2, 5, 3, 7, 101, 18]" << endl;
-    cout << "LIS Length: " << len << ", LIS: ";
-    for (int x : seq) cout << x << " ";
-    cout << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.Arrays;
-
-/**
- * Longest Increasing Subsequence using binary search.
- * 
- * Time Complexity: O(n log n)
- * Space Complexity: O(n)
- */
-public class LIS {
-    
-    /**
-     * Find the length of the longest increasing subsequence.
-     */
-    public static int lengthOfLIS(int[] nums) {
-        if (nums == null || nums.length == 0) {
-            return 0;
-        }
-        
-        // tails[i] = smallest tail for LIS of length i+1
-        int[] tails = new int[nums.length];
-        int size = 0;  // Current size of tails
-        
-        for (int num : nums) {
-            // Binary search for position
-            int pos = binarySearch(tails, 0, size, num);
-            
-            if (pos == size) {
-                // num is larger than all elements, extend
-                tails[size++] = num;
-            } else {
-                // Replace to maintain smallest tail
-                tails[pos] = num;
-            }
-        }
-        
-        return size;
-    }
-    
-    /**
-     * Binary search for first element >= target in range [0, hi).
-     */
-    private static int binarySearch(int[] arr, int lo, int hi, int target) {
-        while (lo < hi) {
-            int mid = lo + (hi - lo) / 2;
-            if (arr[mid] >= target) {
-                hi = mid;
-            } else {
-                lo = mid + 1;
-            }
-        }
-        return lo;
-    }
-    
-    /**
-     * Find the length of the longest non-decreasing subsequence.
-     */
-    public static int lengthOfLNDS(int[] nums) {
-        if (nums == null || nums.length == 0) {
-            return 0;
-        }
-        
-        int[] tails = new int[nums.length];
-        int size = 0;
-        
-        for (int num : nums) {
-            // Use upper bound (first > target)
-            int pos = upperBound(tails, 0, size, num);
-            
-            if (pos == size) {
-                tails[size++] = num;
-            } else {
-                tails[pos] = num;
-            }
-        }
-        
-        return size;
-    }
-    
-    private static int upperBound(int[] arr, int lo, int hi, int target) {
-        while (lo < hi) {
-            int mid = lo + (hi - lo) / 2;
-            if (arr[mid] > target) {
-                hi = mid;
-            } else {
-                lo = mid + 1;
-            }
-        }
-        return lo;
-    }
-    
-    /**
-     * Find both length and one actual LIS sequence.
-     */
-    public static int[] lisWithSequence(int[] nums) {
-        if (nums == null || nums.length == 0) {
-            return new int[0];
-        }
-        
-        int n = nums.length;
-        int[] tails = new int[n];
-        int[] prev = new int[n];
-        int[] indices = new int[n];
-        Arrays.fill(prev, -1);
-        int size = 0;
-        
-        for (int i = 0; i < n; i++) {
-            int num = nums[i];
-            int pos = binarySearch(tails, 0, size, num);
-            
-            if (pos == size) {
-                tails[size++] = num;
-            } else {
-                tails[pos] = num;
-            }
-            
-            indices[i] = pos;
-            
-            if (pos > 0) {
-                // Find predecessor
-                for (int j = i - 1; j >= 0; j--) {
-                    if (indices[j] == pos - 1 && nums[j] < num) {
-                        prev[i] = j;
-                        break;
-                    }
-                }
-            }
-        }
-        
-        // Reconstruct LIS
-        int[] lis = new int[size];
-        int curr = -1;
-        
-        // Find last element
-        for (int i = n - 1; i >= 0; i--) {
-            if (indices[i] == size - 1) {
-                curr = i;
-                break;
-            }
-        }
-        
-        int idx = size - 1;
-        while (curr != -1) {
-            lis[idx--] = nums[curr];
-            curr = prev[curr];
-        }
-        
-        return lis;
-    }
-    
-    public static void main(String[] args) {
-        // Test case 1
-        int[] nums1 = {10, 9, 2, 5, 3, 7, 101, 18};
-        System.out.println("Array: [10, 9, 2, 5, 3, 7, 101, 18]");
-        System.out.println("LIS Length: " + lengthOfLIS(nums1));  // Output: 4
-        
-        // Test case 2
-        int[] nums2 = {0, 1, 0, 3, 2, 3};
-        System.out.println("\nArray: [0, 1, 0, 3, 2, 3]");
-        System.out.println("LIS Length: " + lengthOfLIS(nums2));  // Output: 4
-        
-        // Test case 3 - Get actual sequence
-        int[] seq = lisWithSequence(nums1);
-        System.out.println("\nArray: [10, 9, 2, 5, 3, 7, 101, 18]");
-        System.out.print("LIS: ");
-        System.out.println(Arrays.toString(seq));
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Longest Increasing Subsequence using binary search.
- * 
- * Time Complexity: O(n log n)
- * Space Complexity: O(n)
- */
-
-/**
- * Find the length of the longest increasing subsequence.
- * @param {number[]} nums - Input array
- * @returns {number} Length of LIS
- */
-function lengthOfLIS(nums) {
-    if (!nums || nums.length === 0) {
-        return 0;
-    }
-    
-    // tails[i] = smallest tail for LIS of length i+1
-    const tails = [];
-    
-    for (const num of nums) {
-        // Binary search for position
-        let left = 0;
-        let right = tails.length;
-        
-        while (left < right) {
-            const mid = Math.floor((left + right) / 2);
-            if (tails[mid] >= num) {
-                right = mid;
-            } else {
-                left = mid + 1;
-            }
-        }
-        
-        if (left === tails.length) {
-            // num is larger than all elements, extend
-            tails.push(num);
-        } else {
-            // Replace to maintain smallest tail
-            tails[left] = num;
-        }
-    }
-    
-    return tails.length;
-}
-
-/**
- * Find the length of the longest non-decreasing subsequence.
- * @param {number[]} nums - Input array
- * @returns {number} Length of LNDS
- */
-function lengthOfLNDS(nums) {
-    if (!nums || nums.length === 0) {
-        return 0;
-    }
-    
-    const tails = [];
-    
-    for (const num of nums) {
-        // Use upper bound (first > num)
-        let left = 0;
-        let right = tails.length;
-        
-        while (left < right) {
-            const mid = Math.floor((left + right) / 2);
-            if (tails[mid] > num) {
-                right = mid;
-            } else {
-                left = mid + 1;
-            }
-        }
-        
-        if (left === tails.length) {
-            tails.push(num);
-        } else {
-            tails[left] = num;
-        }
-    }
-    
-    return tails.length;
-}
-
-/**
- * Find both length and one actual LIS sequence.
- * @param {number[]} nums - Input array
- * @returns {{length: number, sequence: number[]}}
- */
-function lisWithSequence(nums) {
-    if (!nums || nums.length === 0) {
-        return { length: 0, sequence: [] };
-    }
-    
-    const n = nums.length;
-    const tails = [];
-    const prev = new Array(n).fill(-1);
-    const indices = new Array(n).fill(-1);
-    
-    for (let i = 0; i < n; i++) {
-        const num = nums[i];
-        
-        // Binary search
-        let left = 0;
-        let right = tails.length;
-        
-        while (left < right) {
-            const mid = Math.floor((left + right) / 2);
-            if (tails[mid] >= num) {
-                right = mid;
-            } else {
-                left = mid + 1;
-            }
-        }
-        
-        if (left === tails.length) {
-            tails.push(num);
-        } else {
-            tails[left] = num;
-        }
-        
-        indices[i] = left;
-        
-        if (left > 0) {
-            // Find predecessor
-            for (let j = i - 1; j >= 0; j--) {
-                if (indices[j] === left - 1 && nums[j] < num) {
-                    prev[i] = j;
-                    break;
-                }
-            }
-        }
-    }
-    
-    // Reconstruct LIS
-    const lisLength = tails.length;
-    const lis = [];
-    
-    // Find last element
-    let curr = -1;
-    for (let i = n - 1; i >= 0; i--) {
-        if (indices[i] === lisLength - 1) {
-            curr = i;
-            break;
-        }
-    }
-    
-    while (curr !== -1) {
-        lis.push(nums[curr]);
-        curr = prev[curr];
-    }
-    
-    return { length: lisLength, sequence: lis.reverse() };
-}
-
-// Example usage
-console.log("Array: [10, 9, 2, 5, 3, 7, 101, 18]");
-console.log("LIS Length:", lengthOfLIS([10, 9, 2, 5, 3, 7, 101, 18]));  // Output: 4
-
-console.log("\nArray: [0, 1, 0, 3, 2, 3]");
-console.log("LIS Length:", lengthOfLIS([0, 1, 0, 3, 2, 3]));  // Output: 4
-
-const result = lisWithSequence([10, 9, 2, 5, 3, 7, 101, 18]);
-console.log("\nArray: [10, 9, 2, 5, 3, 7, 101, 18]");
-console.log("LIS Length:", result.length, "LIS:", result.sequence);
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Processing** | O(n log n) | Binary search for each of n elements |
-| **Space** | O(n) | tails array stores at most n elements |
-
-### Detailed Breakdown
-
-- **Naive DP Approach**: O(n²) time, O(n) space
-  - For each element, check all previous elements
-  - dp[i] = max(dp[j] + 1) for all j < i where nums[j] < nums[i]
-
-- **Binary Search Approach**: O(n log n) time, O(n) space
-  - For each element, binary search in tails array: O(log n)
-  - Total: n × O(log n) = O(n log n)
-
-### Comparison Table
-
-| Approach | Time | Space | Pros | Cons |
-|----------|------|-------|------|------|
-| Naive DP | O(n²) | O(n) | Can reconstruct sequence | Too slow for n > 10⁴ |
-| Binary Search | O(n log n) | O(n) | Fast for large n | Only gives length |
-| Segment Tree | O(n log n) | O(n) | Can query any range | More complex |
-| patience Sorting | O(n log n) | O(n) | Same as binary search | Just another view |
-
----
-
-## Space Complexity Analysis
-
-- **tails array**: O(n) - stores at most one element per length
-- **Predecessor array** (for reconstruction): O(n)
-- **Indices array** (for reconstruction): O(n)
-- **Total**: O(n)
-
----
-
-## Common Variations
-
-### 1. Longest Decreasing Subsequence (LDS)
-
-Reverse the array or negate values, then apply LIS.
-
-````carousel
-```python
-def length_of_lds(nums: list[int]) -> int:
-    """Find length of longest decreasing subsequence."""
-    # Method 1: Reverse and find LIS
-    return length_of_lis(nums[::-1])
-
-def length_of_lds_negate(nums: list[int]) -> int:
-    """Find LDS by negating values."""
-    return length_of_lis([-x for x in nums])
-```
-````
-
-### 2. Longest Non-Decreasing Subsequence (LNDS)
-
-Use `bisect_right` instead of `bisect_left` (upper bound instead of lower bound).
-
-````carousel
-```python
-import bisect
-
-def length_of_lnds(nums: list[int]) -> int:
-    """Find length of longest non-decreasing subsequence."""
-    if not nums:
-        return 0
-    
-    tails = []
-    for num in nums:
-        # Use bisect_right for non-decreasing
-        pos = bisect.bisect_right(tails, num)
-        
-        if pos == len(tails):
-            tails.append(num)
-        else:
-            tails[pos] = num
-    
-    return len(tails)
-```
-````
-
-### 3. Minimum Number of Deletions to Make Array Increasing
-
-The complement of LIS - delete elements to make it strictly increasing.
-
-````carousel
-```python
-def min_deletions_to_make_increasing(nums: list[int]) -> int:
-    """Minimum deletions to make array strictly increasing."""
-    return len(nums) - length_of_lis(nums)
-```
-````
-
-### 4. Longest Bitonic Subsequence
-
-Find LIS from left and LDS from right, then combine.
-
-````carousel
-```python
-def length_of_lbs(nums: list[int]) -> int:
-    """Longest Bitonic Subsequence - increases then decreases."""
-    if not nums:
-        return 0
-    
-    n = len(nums)
-    
-    # LIS from left
-    lis_from_left = [0] * n
-    for i in range(n):
-        for j in range(i):
-            if nums[j] < nums[i]:
-                lis_from_left[i] = max(lis_from_left[i], lis_from_left[j] + 1)
-        lis_from_left[i] = max(1, lis_from_left[i])
-    
-    # LIS from right (for LDS)
-    lis_from_right = [0] * n
-    for i in range(n - 1, -1, -1):
-        for j in range(i + 1, n):
-            if nums[i] > nums[j]:
-                lis_from_right[i] = max(lis_from_right[i], lis_from_right[j] + 1)
-        lis_from_right[i] = max(1, lis_from_right[i])
-    
-    # Combine
-    max_length = 0
-    for i in range(n):
-        max_length = max(max_length, lis_from_left[i] + lis_from_right[i] - 1)
-    
-    return max_length
-```
-````
-
-### 5. Building Envelope Problem (Russian Doll Envelopes)
-
-Sort by width, then find LIS on heights (with reversed order for equal widths).
-
-````carousel
-```python
-def max_envelopes(envelopes: list[list[int]]) -> int:
-    """
-    Russian Doll Envelopes problem.
-    
-    Args:
-        envelopes: List of [width, height] pairs
-        
-    Returns:
-        Maximum number of envelopes that can be Russian-doll nested
-    """
-    if not envelopes:
-        return 0
-    
-    # Sort by width ascending, then by height descending
-    envelopes.sort(key=lambda x: (x[0], -x[1]))
-    
-    # Extract heights and find LIS
-    heights = [h for _, h in envelopes]
-    
-    return length_of_lis(heights)
-```
-````
-
----
-
-## Example
-
-**Input:**
-```
-nums = [10, 9, 2, 5, 3, 7, 101, 18]
-```
-
-**Output:**
-```
-LIS Length: 4
-One possible LIS: [2, 3, 7, 18]
-```
-
-**Input:**
-```
-nums = [0, 1, 0, 3, 2, 3]
-```
-
-**Output:**
-```
-LIS Length: 4
-LIS: [0, 1, 2, 3]
-```
+- **Reconstruction complexity**: Getting the actual sequence requires additional O(n) space for tracking
+- **Doesn't count subsequences**: To count number of LIS, need O(n²) DP approach
+- **Only for sequences**: Doesn't work for problems requiring non-sequential patterns
 
 ---
 
@@ -969,6 +592,7 @@ LIS: [0, 1, 2, 3]
 - Track both length and count at each position
 - When finding a longer subsequence, update count
 - When finding equal length, add to count
+- Use O(n²) DP approach
 
 ---
 
@@ -985,28 +609,29 @@ LIS: [0, 1, 2, 3]
 
 ---
 
-### Problem 4: Longest Increasing Subsequence in 2D
+### Problem 4: Minimum Number of Arrows to Burst Balloons
 
-**Problem:** [LeetCode 491 - Non-decreasing Subsequences](https://leetcode.com/problems/non-decreasing-subsequences/)
+**Problem:** [LeetCode 452 - Minimum Number of Arrows to Burst Balloons](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/)
 
-**Description:** Find all non-decreasing subsequences of length at least 2.
+**Description:** Given a 2D integer array `points` where each point represents a balloon, return the minimum number of arrows needed to burst all balloons.
 
 **How to Apply LIS:**
-- Use set to avoid duplicates
-- Track indices to ensure increasing order
-- DFS with pruning based on LIS length
+- Sort by end coordinate
+- Similar to activity selection / LIS variations
+- Greedy approach related to patience sorting
 
 ---
 
-### Problem 5: Minimum Deletions to Make Sequence Sorted
+### Problem 5: Maximum Length of Pair Chain
 
-**Problem:** [LeetCode 1771 - Maximize Palindrome Length from Subsequences](https://leetcode.com/problems/maximize-palindrome-length-from-subsequences/)
+**Problem:** [LeetCode 646 - Maximum Length of Pair Chain](https://leetcode.com/problems/maximum-length-of-pair-chain/)
 
-**Description:** Given two strings, find the longest palindromic subsequence.
+**Description:** Given an array of pairs where each pair [left, right] represents a chain link, find the longest chain that can be formed.
 
 **How to Apply LIS:**
-- Can be transformed to LIS problem with clever sorting
-- Used in sequence alignment problems
+- Sort by second element
+- Apply LIS logic on first elements
+- Greedy approach similar to LIS optimization
 
 ---
 
@@ -1024,17 +649,24 @@ LIS: [0, 1, 2, 3]
 - [LIS vs LDS - Longest Bitonic Subsequence](https://www.youtube.com/watch?v=4s1hL0X2M5k) - Combined approach
 - [Segment Tree for LIS](https://www.youtube.com/watch?v=fV0Rq8n6Y2g) - Alternative approach
 
+### Problem-Specific
+
+- [Patience Sorting](https://www.youtube.com/watch?v=7KPQd2AarT4) - Card game visualization
+- [LIS Variations](https://www.youtube.com/watch?v=8NbYdVFCmD8) - Multiple LIS problem types
+
 ---
 
 ## Follow-up Questions
 
 ### Q1: What is the difference between LIS and LNDS?
 
-**Answer:** 
+**Answer:**
 - **LIS (Longest Increasing Subsequence)**: Strictly increasing (each element must be greater than previous)
 - **LNDS (Longest Non-Decreasing Subsequence)**: Each element can be equal to or greater than previous
 
 Use `bisect_left` for LIS and `bisect_right` for LNDS.
+
+---
 
 ### Q2: Can LIS be solved in O(n log n) without binary search?
 
@@ -1044,6 +676,8 @@ Use `bisect_left` for LIS and `bisect_right` for LNDS.
 3. Update DP value at current position
 This gives O(n log n) with additional benefits like range queries.
 
+---
+
 ### Q3: How do you reconstruct the actual LIS sequence?
 
 **Answer:** Maintain additional arrays:
@@ -1052,17 +686,21 @@ This gives O(n log n) with additional benefits like range queries.
 
 After processing, backtrack from the largest index to reconstruct the sequence.
 
+---
+
 ### Q4: What is the space complexity if we only need the length?
 
 **Answer:** Still O(n) in the worst case because tails can contain at most n elements. However, we can optimize by:
 - Using a single array instead of storing multiple auxiliary structures
 - For reconstruction, using a map instead of arrays (trades time for space)
 
+---
+
 ### Q5: How does LIS relate to patience sorting?
 
 **Answer:** The binary search approach is equivalent to **patience sorting**:
 - Each pile represents a subsequence
-- We place each card on the leftmost pile with top >= card value
+- We place each card on the leftmost pile with top ≥ card value
 - Number of piles = LIS length
 - This is used in algorithms like merge sort for counting inversions
 
@@ -1089,7 +727,7 @@ The O(n log n) binary search approach is the most commonly used in practice due 
 
 ## Related Algorithms
 
-- [Dynamic Programming](./dynamic-programming.md) - General DP concepts
+- [Longest Common Subsequence](./lcs.md) - Similar DP approach for strings
 - [Binary Search](./binary-search.md) - Search technique used
 - [Segment Tree](./segment-tree.md) - Alternative LIS approach
 - [Patience Sorting](./patience-sorting.md) - Related sorting technique

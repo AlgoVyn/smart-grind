@@ -5,7 +5,535 @@ Linked List
 
 ## Description
 
-The Fast and Slow Pointers technique (also known as **Floyd's Cycle Detection Algorithm**) uses two pointers moving at different speeds to solve problems involving linked structures and iterative patterns. This elegant technique enables detecting cycles, finding middle elements, and solving various pattern recognition problems in **O(n) time** with **O(1) space**.
+The Fast & Slow Pointers technique (also known as Floyd's Cycle Detection Algorithm) uses two pointers moving at different speeds to solve problems involving linked structures and iterative patterns. This elegant approach enables detecting cycles, finding middle elements, and solving various pattern recognition problems in **O(n) time** with **O(1) space** complexity.
+
+By moving one pointer at twice the speed of the other, we can exploit mathematical properties of relative motion to solve problems that would otherwise require additional memory. This technique is fundamental in competitive programming and technical interviews.
+
+---
+
+## Concepts
+
+The Fast & Slow Pointers technique is built on several mathematical and algorithmic principles.
+
+### 1. Relative Speed and Meeting
+
+When two pointers move at different speeds (typically 1:2 ratio), the faster pointer will eventually catch up to the slower one if they are both within a cycle.
+
+| Speed Ratio | Fast Steps | Slow Steps | Meeting Guarantee |
+|-------------|------------|------------|-------------------|
+| **1:2** (Standard) | 2 per iteration | 1 per iteration | Guaranteed in cycle |
+| **1:3** | 3 per iteration | 1 per iteration | Still works, less optimal |
+| **1:n** | n per iteration | 1 per iteration | Works for any n > 1 |
+
+### 2. Cycle Detection Mechanics
+
+The key insight for cycle detection:
+
+```
+In a cycle of length λ:
+- Let μ = distance from head to cycle start
+- Let d = distance from cycle start to meeting point
+- Slow travels: μ + d steps
+- Fast travels: μ + d + kλ steps (for some k ≥ 1)
+- Since fast = 2 × slow: μ + d + kλ = 2(μ + d)
+- Therefore: μ = kλ - d (distance relationship)
+```
+
+### 3. Middle Finding Principle
+
+When finding the middle of a linked list:
+- Fast pointer reaches the end in ~n/2 iterations
+- Slow pointer has moved exactly n/2 steps
+- Result: Slow pointer is at the middle node
+
+### 4. Phase-Based Algorithm Structure
+
+| Phase | Purpose | Pointer Movement | Outcome |
+|-------|---------|------------------|---------|
+| **Phase 1** | Detect cycle | Fast: 2 steps, Slow: 1 step | Meeting point or null |
+| **Phase 2** | Find cycle start | Both: 1 step | Cycle entrance node |
+| **Phase 3** | Calculate length | Traverse cycle | Cycle length λ |
+
+---
+
+## Frameworks
+
+Structured approaches for solving fast & slow pointers problems.
+
+### Framework 1: Cycle Detection Template
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  CYCLE DETECTION FRAMEWORK (Floyd's Algorithm)            │
+├─────────────────────────────────────────────────────────┤
+│  1. Initialize: slow = head, fast = head                  │
+│  2. While fast and fast.next exist:                      │
+│     a. Move slow: slow = slow.next (1 step)             │
+│     b. Move fast: fast = fast.next.next (2 steps)       │
+│     c. If slow == fast: return True (cycle found)       │
+│  3. If loop exits: return False (no cycle)              │
+└─────────────────────────────────────────────────────────┘
+```
+
+**When to use**: Detecting if a linked list, sequence, or structure has a cycle.
+
+### Framework 2: Finding Cycle Start Template
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  FIND CYCLE START FRAMEWORK                               │
+├─────────────────────────────────────────────────────────┤
+│  Phase 1: Find Meeting Point                              │
+│  1. Use Cycle Detection to find meeting point            │
+│  2. If no meeting point, return None                     │
+│                                                           │
+│  Phase 2: Find Cycle Start                                │
+│  1. Reset slow to head                                   │
+│  2. Move both slow and fast one step at a time           │
+│  3. Where they meet is the cycle start node             │
+│                                                           │
+│  Mathematical guarantee: distance(head→start) =            │
+│                         distance(meeting→start)          │
+└─────────────────────────────────────────────────────────┘
+```
+
+**When to use**: Finding where a cycle begins in a linked list.
+
+### Framework 3: Middle Node Finding Template
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  MIDDLE NODE FINDING FRAMEWORK                            │
+├─────────────────────────────────────────────────────────┤
+│  1. Initialize: slow = head, fast = head                   │
+│  2. While fast and fast.next exist:                      │
+│     a. Move slow: slow = slow.next (1 step)              │
+│     b. Move fast: fast = fast.next.next (2 steps)        │
+│  3. Return slow (at middle when fast reaches end)         │
+│                                                           │
+│  Note: For even-length lists, returns second middle      │
+│  Variation: Use fast.next and fast.next.next for first   │
+└─────────────────────────────────────────────────────────┘
+```
+
+**When to use**: Finding the middle element of a linked list in one pass.
+
+---
+
+## Forms
+
+Different manifestations of the fast & slow pointers pattern.
+
+### Form 1: Linked List Cycle Detection
+
+The classic application - detecting cycles in linked lists.
+
+| Problem | Detection | Finding Start | Finding Length |
+|-----------|-------------|---------------|----------------|
+| **Basic Cycle** | O(n) time, O(1) space | Use 2-phase | Traverse from start |
+| **Self-loop** | Single node points to itself | Node itself | Length = 1 |
+| **Large Cycle** | Same algorithm works | Distance μ + d | Count nodes |
+
+### Form 2: Array as Linked List
+
+Treat array indices as "next" pointers.
+
+```
+Array: [1, 3, 4, 2, 2]
+Index:  0  1  2  3  4
+       ↓  ↓  ↓  ↓  ↓
+Value: 1  3  4  2  2
+
+Traverse: index → array[index]
+Cycle exists at duplicate values
+```
+
+**Example**: Finding duplicate in array of 1..n
+
+### Form 3: Number Sequence (Happy Number)
+
+Use a transformation function as the "next" operation.
+
+```
+Happy Number Transformation:
+19 → 1² + 9² = 82
+82 → 8² + 2² = 68
+68 → 6² + 8² = 100
+100 → 1² + 0² + 0² = 1 (Happy!)
+
+Non-happy number enters a cycle without reaching 1
+```
+
+### Form 4: Nth Node from End
+
+Modify the pointer separation to find specific positions.
+
+```
+To find nth node from end:
+1. Move fast n steps ahead of slow
+2. Move both together until fast reaches end
+3. Slow is now at nth node from end
+```
+
+### Form 5: Palindrome Detection
+
+Combine middle finding with list reversal.
+
+```
+Steps:
+1. Find middle using fast/slow
+2. Reverse second half
+3. Compare first half with reversed second half
+4. (Optional) Restore the list
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Cycle Length Calculation
+
+Once cycle start is found, count nodes in the cycle:
+
+```python
+def cycle_length(head: ListNode) -> int:
+    """Find the length of the cycle."""
+    start = find_cycle_start(head)
+    if not start:
+        return 0
+    
+    current = start.next
+    length = 1
+    while current != start:
+        length += 1
+        current = current.next
+    return length
+```
+
+### Tactic 2: Remove Cycle from Linked List
+
+```python
+def remove_cycle(head: ListNode) -> ListNode:
+    """Remove cycle from linked list."""
+    if not head:
+        return head
+    
+    start = find_cycle_start(head)
+    if not start:
+        return head
+    
+    # Find the last node in cycle
+    current = start
+    while current.next != start:
+        current = current.next
+    
+    # Break the cycle
+    current.next = None
+    return head
+```
+
+### Tactic 3: First vs Second Middle
+
+For even-length lists, control which middle to return:
+
+```python
+def find_middle_second(head: ListNode) -> ListNode:
+    """Return second middle for even-length lists (standard)."""
+    slow, fast = head, head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+    return slow
+
+def find_middle_first(head: ListNode) -> ListNode:
+    """Return first middle for even-length lists."""
+    slow, fast = head, head
+    while fast.next and fast.next.next:
+        slow = slow.next
+        fast = fast.next.next
+    return slow
+```
+
+### Tactic 4: Nth Node from End
+
+```python
+def nth_from_end(head: ListNode, n: int) -> ListNode:
+    """Find nth node from end in one pass."""
+    if not head or n <= 0:
+        return None
+    
+    slow, fast = head, head
+    
+    # Move fast n steps ahead
+    for _ in range(n):
+        if not fast:
+            return None
+        fast = fast.next
+    
+    # Move both until fast reaches end
+    while fast:
+        slow = slow.next
+        fast = fast.next
+    
+    return slow
+```
+
+### Tactic 5: Palindrome Linked List
+
+```python
+def is_palindrome(head: ListNode) -> bool:
+    """Check if linked list is palindrome using reversal."""
+    if not head or not head.next:
+        return True
+    
+    # Find middle
+    slow, fast = head, head
+    while fast.next and fast.next.next:
+        slow = slow.next
+        fast = fast.next.next
+    
+    # Reverse second half
+    second_half = reverse_list(slow.next)
+    
+    # Compare
+    first, second = head, second_half
+    result = True
+    while second:
+        if first.val != second.val:
+            result = False
+            break
+        first = first.next
+        second = second.next
+    
+    # Restore (optional)
+    slow.next = reverse_list(second_half)
+    return result
+```
+
+### Tactic 6: Array as Linked List (Find Duplicate)
+
+```python
+def find_duplicate(nums: list[int]) -> int:
+    """
+    Find duplicate in array of 1..n using cycle detection.
+    Treat array as linked list where index i points to nums[i].
+    """
+    # Phase 1: Find intersection
+    slow, fast = nums[0], nums[0]
+    while True:
+        slow = nums[slow]
+        fast = nums[nums[fast]]
+        if slow == fast:
+            break
+    
+    # Phase 2: Find cycle start (the duplicate)
+    slow = nums[0]
+    while slow != fast:
+        slow = nums[slow]
+        fast = nums[fast]
+    
+    return slow
+```
+
+### Tactic 7: Happy Number Detection
+
+```python
+def is_happy_number(n: int) -> bool:
+    """
+    Determine if a number is happy using Floyd's algorithm.
+    A happy number eventually reaches 1; otherwise enters a cycle.
+    """
+    def get_next(num: int) -> int:
+        total = 0
+        while num > 0:
+            digit = num % 10
+            total += digit * digit
+            num //= 10
+        return total
+    
+    if n <= 0:
+        return False
+    
+    slow, fast = n, get_next(n)
+    while fast != 1 and slow != fast:
+        slow = get_next(slow)
+        fast = get_next(get_next(fast))
+    
+    return fast == 1
+```
+
+---
+
+## Python Templates
+
+### Template 1: Basic Cycle Detection
+
+```python
+from typing import Optional
+
+class ListNode:
+    """Definition for singly-linked list node."""
+    def __init__(self, val: int = 0, next: Optional['ListNode'] = None):
+        self.val = val
+        self.next = next
+
+def has_cycle(head: Optional[ListNode]) -> bool:
+    """
+    Template for detecting if a linked list has a cycle.
+    Time: O(n), Space: O(1)
+    """
+    if not head or not head.next:
+        return False
+    
+    slow, fast = head, head
+    
+    while fast and fast.next:
+        slow = slow.next        # Move slow by 1
+        fast = fast.next.next   # Move fast by 2
+        
+        if slow == fast:        # They met - cycle exists!
+            return True
+    
+    return False
+```
+
+### Template 2: Find Cycle Start
+
+```python
+def find_cycle_start(head: Optional[ListNode]) -> Optional[ListNode]:
+    """
+    Template for finding the starting node of a cycle.
+    Uses two-phase approach.
+    Time: O(n), Space: O(1)
+    """
+    if not head or not head.next:
+        return None
+    
+    # Phase 1: Find meeting point
+    slow, fast = head, head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:
+            break
+    
+    # No cycle found
+    if not fast or not fast.next:
+        return None
+    
+    # Phase 2: Find cycle start
+    slow = head
+    while slow != fast:
+        slow = slow.next
+        fast = fast.next
+    
+    return slow
+```
+
+### Template 3: Find Middle Node
+
+```python
+def find_middle(head: Optional[ListNode]) -> Optional[ListNode]:
+    """
+    Template for finding the middle of a linked list.
+    Returns second middle for even-length lists.
+    Time: O(n), Space: O(1)
+    """
+    if not head:
+        return None
+    
+    slow, fast = head, head
+    
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+    
+    return slow
+```
+
+### Template 4: Happy Number
+
+```python
+def is_happy(n: int) -> bool:
+    """
+    Template for happy number detection.
+    Uses Floyd's cycle detection on digit transformation.
+    Time: O(log n), Space: O(1)
+    """
+    def get_next(num: int) -> int:
+        total = 0
+        while num > 0:
+            digit = num % 10
+            total += digit * digit
+            num //= 10
+        return total
+    
+    if n <= 0:
+        return False
+    
+    slow, fast = n, get_next(n)
+    while fast != 1 and slow != fast:
+        slow = get_next(slow)
+        fast = get_next(get_next(fast))
+    
+    return fast == 1
+```
+
+### Template 5: Find Duplicate in Array
+
+```python
+def find_duplicate(nums: list[int]) -> int:
+    """
+    Template for finding duplicate in array of 1..n.
+    Treats array as linked list where index points to value.
+    Time: O(n), Space: O(1)
+    """
+    # Phase 1: Find intersection
+    slow, fast = nums[0], nums[0]
+    while True:
+        slow = nums[slow]
+        fast = nums[nums[fast]]
+        if slow == fast:
+            break
+    
+    # Phase 2: Find cycle start (duplicate)
+    slow = nums[0]
+    while slow != fast:
+        slow = nums[slow]
+        fast = nums[fast]
+    
+    return slow
+```
+
+### Template 6: Remove Nth Node from End
+
+```python
+def remove_nth_from_end(head: ListNode, n: int) -> Optional[ListNode]:
+    """
+    Template for removing the nth node from end.
+    Uses fast/slow pointer separation.
+    Time: O(n), Space: O(1)
+    """
+    dummy = ListNode(0)
+    dummy.next = head
+    
+    slow, fast = dummy, dummy
+    
+    # Move fast n+1 steps ahead
+    for _ in range(n + 1):
+        fast = fast.next
+    
+    # Move both until fast reaches end
+    while fast:
+        slow = slow.next
+        fast = fast.next
+    
+    # Remove the node
+    slow.next = slow.next.next
+    return dummy.next
+```
 
 ---
 
@@ -21,25 +549,25 @@ Use the Fast & Slow Pointers algorithm when you need to solve problems involving
 
 ### Comparison with Alternatives
 
-| Technique | Use Case | Time Complexity | Space Complexity | Notes |
-|-----------|----------|-----------------|-------------------|-------|
-| **Fast & Slow Pointers** | Cycle detection, middle finding | O(n) | O(1) | Single pass, elegant solution |
-| **Hash Set** | Cycle detection | O(n) | O(n) | Uses extra memory |
-| **Brute Force** | Cycle detection | O(n²) | O(1) | Inefficient, not recommended |
-| **Two-pass** | Find middle | O(n) | O(1) | Requires knowing length first |
+| Technique | Time | Space | Best For |
+|-----------|------|-------|----------|
+| **Fast & Slow Pointers** | O(n) | O(1) | Cycle detection, middle finding |
+| **Hash Set** | O(n) | O(n) | When you need path tracking |
+| **Brute Force** | O(n²) | O(1) | Not recommended |
+| **Two-pass** | O(n) | O(1) | When length is known |
 
-### When to Choose Fast & Slow Pointers vs Hash Set
+### When to Choose Fast & Slow Pointers
 
-- **Choose Fast & Slow Pointers** when:
-  - You need O(1) space complexity
-  - You're only detecting existence of a cycle (not need to identify nodes)
-  - You want an elegant, mathematical approach
-  - Finding the middle element is also required
+- ✅ You need O(1) space complexity
+- ✅ You're detecting cycle existence
+- ✅ Finding the middle element
+- ✅ Working with implicit linked structures
 
-- **Choose Hash Set** when:
-  - You need to identify specific nodes in the cycle
-  - You need to track all visited nodes
-  - The problem requires storing additional information about nodes
+### When NOT to Use
+
+- ❌ You need to track the actual path taken
+- ❌ You're working with tree/graph structures without "next" pointers
+- ❌ The problem requires identifying all nodes in a cycle
 
 ---
 
@@ -47,29 +575,23 @@ Use the Fast & Slow Pointers algorithm when you need to solve problems involving
 
 ### Core Concept
 
-The fundamental insight behind the Fast & Slow Pointers technique is based on relative speed and modular arithmetic. When two pointers move at different speeds through a cycle, the faster pointer will eventually "lap" the slower pointer because the difference in their positions decreases by one in each iteration.
+The fundamental insight is based on relative speed and modular arithmetic. When two pointers move at different speeds through a cycle, the faster pointer will eventually "lap" the slower pointer because the difference in their positions decreases by one in each iteration.
 
 ### How It Works
 
 #### Phase 1: Detect Cycle
-1. Initialize both pointers at the start of the linked structure
-2. **Slow pointer** moves one step at a time (pointer to `next`)
-3. **Fast pointer** moves two steps at a time (pointer to `next.next`)
+1. Initialize both pointers at the start
+2. Slow pointer moves one step at a time
+3. Fast pointer moves two steps at a time
 4. If fast pointer catches up to slow pointer → **cycle exists**
 5. If fast pointer reaches end (null) → **no cycle**
 
 #### Phase 2: Find Cycle Start (Optional)
-Once a cycle is detected, to find where it starts:
+Once a cycle is detected:
 1. Reset one pointer to the head
 2. Move both pointers one step at a time
 3. Where they meet is the cycle start node
 4. **Mathematical proof**: Distance from head to cycle start equals distance from meeting point to cycle start
-
-#### Phase 3: Find Middle
-When finding the middle of a linked list:
-1. Move both pointers at the same speed ratio (1:2)
-2. When fast reaches the end, slow is at the middle
-3. For even-length lists, returns the second middle node
 
 ### Visual Representation
 
@@ -91,1427 +613,27 @@ Iteration 7:  Slow=3, Fast=2 ← THEY MEET! Cycle detected!
 ### Why It Works - Mathematical Proof
 
 In a cyclic list with cycle length λ:
-- Let μ be the distance from head to cycle start
+- Let μ = distance from head to cycle start
+- Let d = distance from cycle start to meeting point
 - After μ iterations, slow enters the cycle at position 0
 - Fast is already in the cycle at position (μ mod λ)
 - Relative distance between them: λ - (μ mod λ)
 - Each iteration reduces this by 1
 - They must meet within at most λ iterations
 
-### Key Insights
-
-- **Cycle detection time**: O(μ + λ) where μ is distance to cycle, λ is cycle length
-- If fast reaches null, no cycle exists
-- When they meet, slow has traveled d steps, fast has traveled 2d steps
-- Meeting point is always within the cycle
-- The technique works on any iterable with "next" concept
+For finding cycle start:
+- Slow traveled: μ + d steps to meeting point
+- Fast traveled: μ + d + kλ steps (k extra laps)
+- Since fast = 2 × slow: μ + d + kλ = 2(μ + d)
+- Simplifying: μ = kλ - d
+- Therefore, from meeting point, traveling μ more steps reaches cycle start
 
 ### Limitations
 
 - **Only works for linear traversal**: Cannot detect cycles in graphs with branching
-- **Single cycle assumption**: May not work with multiple cycles
+- **Single cycle assumption**: May not work cleanly with multiple cycles
 - **Requires pointer access**: Needs ability to traverse via "next" pointers
 - **Cannot identify all cycle nodes**: Only detects existence and start point
-
----
-
-## Algorithm Steps
-
-### For Cycle Detection
-
-1. **Initialize pointers**: Set both `slow` and `fast` to the head of the list
-2. **Edge case check**: If head is null or has no next, return false (no cycle)
-3. **Iterate**: While fast and fast.next exist:
-   - Move slow by one: `slow = slow.next`
-   - Move fast by two: `fast = fast.next.next`
-   - Check if they meet: `if slow == fast`, return true (cycle found)
-4. **Terminate**: If loop exits, return false (fast reached end)
-
-### For Finding Cycle Start
-
-1. **Detect cycle** (same as above)
-2. **Reset one pointer**: Set slow back to head, keep fast at meeting point
-3. **Move together**: Advance both by one step until they meet
-4. **Meeting point**: This is the cycle start node
-
-### For Finding Middle
-
-1. **Initialize**: Both pointers at head
-2. **Traverse**: While fast and fast.next exist:
-   - Move slow by one
-   - Fast by two
-3. **End condition**: When fast reaches end, slow is at middle
-4. **Return**: slow pointer (second middle for even-length lists)
-
----
-
-## Implementation
-
-### Template Code (Cycle Detection & Related Problems)
-
-````carousel
-```python
-from typing import Optional, List
-
-class ListNode:
-    """Definition for singly-linked list node."""
-    def __init__(self, val: int = 0, next: 'ListNode' = None):
-        self.val = val
-        self.next = next
-
-
-def has_cycle(head: Optional[ListNode]) -> bool:
-    """
-    Detect if a cycle exists in linked list using Floyd's algorithm.
-    
-    Args:
-        head: Head of the linked list
-        
-    Returns:
-        True if cycle exists, False otherwise
-        
-    Time: O(n)
-    Space: O(1)
-    """
-    if not head or not head.next:
-        return False
-    
-    slow = head
-    fast = head
-    
-    while fast and fast.next:
-        slow = slow.next        # Move slow by 1
-        fast = fast.next.next   # Move fast by 2
-        
-        if slow == fast:        # They met - cycle exists!
-            return True
-    
-    return False
-
-
-def find_cycle_start(head: Optional[ListNode]) -> Optional[ListNode]:
-    """
-    Find the starting node of the cycle if it exists.
-    
-    Mathematical theorem: Distance from head to cycle start = 
-                         Distance from meeting point to cycle start
-    
-    Args:
-        head: Head of the linked list
-        
-    Returns:
-        Node where cycle starts, or None if no cycle
-        
-    Time: O(n)
-    Space: O(1)
-    """
-    if not head or not head.next:
-        return None
-    
-    # Phase 1: Find meeting point
-    slow = head
-    fast = head
-    
-    while fast and fast.next:
-        slow = slow.next
-        fast = fast.next.next
-        if slow == fast:
-            break
-    
-    # No cycle found
-    if not fast or not fast.next:
-        return None
-    
-    # Phase 2: Find cycle start
-    # Move both pointers one step at a time
-    slow = head
-    while slow != fast:
-        slow = slow.next
-        fast = fast.next
-    
-    return slow
-
-
-def find_middle(head: Optional[ListNode]) -> Optional[ListNode]:
-    """
-    Find the middle of the linked list.
-    
-    When fast reaches end, slow is at middle.
-    For even-length lists, returns the second middle node.
-    
-    Args:
-        head: Head of the linked list
-        
-    Returns:
-        Middle node
-        
-    Time: O(n)
-    Space: O(1)
-    """
-    if not head:
-        return None
-    
-    slow = head
-    fast = head
-    
-    while fast and fast.next:
-        slow = slow.next
-        fast = fast.next.next
-    
-    return slow
-
-
-def is_happy_number(n: int) -> bool:
-    """
-    Determine if a number is happy.
-    
-    A happy number is defined by repeatedly replacing the number
-    with the sum of squares of its digits, and repeating until
-    the number equals 1 (happy), or it loops endlessly in a cycle.
-    
-    Uses Floyd's cycle detection algorithm!
-    
-    Args:
-        n: Input number
-        
-    Returns:
-        True if happy number, False otherwise
-        
-    Time: O(log n) - digits reduce logarithmically
-    Space: O(1)
-    """
-    def get_next(num: int) -> int:
-        """Calculate sum of squares of digits."""
-        total = 0
-        while num > 0:
-            digit = num % 10
-            total += digit * digit
-            num //= 10
-        return total
-    
-    if n <= 0:
-        return False
-    
-    slow = n
-    fast = get_next(n)
-    
-    while fast != 1 and slow != fast:
-        slow = get_next(slow)
-        fast = get_next(get_next(fast))
-    
-    return fast == 1
-
-
-def find_duplicate(nums: List[int]) -> int:
-    """
-    Find the duplicate number in an array of 1 to n.
-    
-    Treats the array as a linked list where:
-    - index i points to nums[i]
-    - The duplicate creates a cycle
-    
-    Uses the fast-slow pointers technique!
-    
-    Args:
-        nums: List of integers with one duplicate
-        
-    Returns:
-        The duplicate number
-        
-    Time: O(n)
-    Space: O(1)
-    """
-    # Phase 1: Find intersection
-    slow = nums[0]
-    fast = nums[0]
-    
-    while True:
-        slow = nums[slow]
-        fast = nums[nums[fast]]
-        if slow == fast:
-            break
-    
-    # Phase 2: Find cycle start (the duplicate)
-    slow = nums[0]
-    while slow != fast:
-        slow = nums[slow]
-        fast = nums[fast]
-    
-    return slow
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    # Create a linked list with cycle: 1 -> 2 -> 3 -> 4 -> 5
-    #                                              ↑        ↓
-    #                                              ←←←←←←←←
-    
-    # Build the list
-    node1 = ListNode(1)
-    node2 = ListNode(2)
-    node3 = ListNode(3)
-    node4 = ListNode(4)
-    node5 = ListNode(5)
-    
-    node1.next = node2
-    node2.next = node3
-    node3.next = node4
-    node4.next = node5
-    node5.next = node2  # Creates cycle: 5 -> 2
-    
-    # Test cycle detection
-    print("Cycle Detection Test:")
-    print(f"  Has cycle: {has_cycle(node1)}")  # True
-    print(f"  Cycle starts at node with value: {find_cycle_start(node1).val}")  # 2
-    
-    # Test middle finding (create list without cycle)
-    node_a = ListNode(1)
-    node_b = ListNode(2)
-    node_c = ListNode(3)
-    node_d = ListNode(4)
-    node_e = ListNode(5)
-    
-    node_a.next = node_b
-    node_b.next = node_c
-    node_c.next = node_d
-    node_d.next = node_e
-    
-    print("\nMiddle Finding Test:")
-    print(f"  Middle node: {find_middle(node_a).val}")  # 3
-    
-    # Test happy number
-    print("\nHappy Number Test:")
-    print(f"  19 is happy: {is_happy_number(19)}")  # True
-    print(f"  2 is happy: {is_happy_number(2)}")    # False
-    
-    # Test duplicate finding
-    print("\nDuplicate Finding Test:")
-    print(f"  Duplicate in [1,3,4,2,2]: {find_duplicate([1,3,4,2,2])}")  # 2
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <unordered_set>
-using namespace std;
-
-/**
- * Definition for singly-linked list node.
- */
-struct ListNode {
-    int val;
-    ListNode* next;
-    ListNode(int x) : val(x), next(nullptr) {}
-};
-
-/**
- * Detect if a cycle exists in linked list using Floyd's algorithm.
- * 
- * Time: O(n)
- * Space: O(1)
- */
-bool hasCycle(ListNode* head) {
-    if (!head || !head->next) return false;
-    
-    ListNode* slow = head;
-    ListNode* fast = head;
-    
-    while (fast && fast->next) {
-        slow = slow->next;
-        fast = fast->next->next;
-        
-        if (slow == fast) return true;
-    }
-    
-    return false;
-}
-
-/**
- * Find the starting node of the cycle if it exists.
- * 
- * Mathematical theorem: Distance from head to cycle start = 
- *                      Distance from meeting point to cycle start
- * 
- * Time: O(n)
- * Space: O(1)
- */
-ListNode* findCycleStart(ListNode* head) {
-    if (!head || !head->next) return nullptr;
-    
-    // Phase 1: Find meeting point
-    ListNode* slow = head;
-    ListNode* fast = head;
-    
-    while (fast && fast->next) {
-        slow = slow->next;
-        fast = fast->next->next;
-        if (slow == fast) break;
-    }
-    
-    if (!fast || !fast->next) return nullptr;
-    
-    // Phase 2: Find cycle start
-    slow = head;
-    while (slow != fast) {
-        slow = slow->next;
-        fast = fast->next;
-    }
-    
-    return slow;
-}
-
-/**
- * Find the middle of the linked list.
- * For even-length lists, returns the second middle node.
- * 
- * Time: O(n)
- * Space: O(1)
- */
-ListNode* findMiddle(ListNode* head) {
-    if (!head) return nullptr;
-    
-    ListNode* slow = head;
-    ListNode* fast = head;
-    
-    while (fast && fast->next) {
-        slow = slow->next;
-        fast = fast->next->next;
-    }
-    
-    return slow;
-}
-
-/**
- * Determine if a number is happy using Floyd's algorithm.
- * 
- * Time: O(log n)
- * Space: O(1)
- */
-int getNext(int n) {
-    int total = 0;
-    while (n > 0) {
-        int digit = n % 10;
-        total += digit * digit;
-        n /= 10;
-    }
-    return total;
-}
-
-bool isHappyNumber(int n) {
-    if (n <= 0) return false;
-    
-    int slow = n;
-    int fast = getNext(n);
-    
-    while (fast != 1 && slow != fast) {
-        slow = getNext(slow);
-        fast = getNext(getNext(fast));
-    }
-    
-    return fast == 1;
-}
-
-/**
- * Find duplicate in array [1, n] using cycle detection.
- * 
- * Time: O(n)
- * Space: O(1)
- */
-int findDuplicate(vector<int>& nums) {
-    // Phase 1: Find intersection
-    int slow = nums[0];
-    int fast = nums[0];
-    
-    do {
-        slow = nums[slow];
-        fast = nums[nums[fast]];
-    } while (slow != fast);
-    
-    // Phase 2: Find cycle start (duplicate)
-    slow = nums[0];
-    while (slow != fast) {
-        slow = nums[slow];
-        fast = nums[fast];
-    }
-    
-    return slow;
-
-
-int main() {
-    // Test cycle detection
-    cout << "Cycle Detection Test:" << endl;
-    
-    // Create list: 1 -> 2 -> 3 -> 4 -> 5 -> 2 (cycle)
-    ListNode* n1 = new ListNode(1);
-    ListNode* n2 = new ListNode(2);
-    ListNode* n3 = new ListNode(3);
-    ListNode* n4 = new ListNode(4);
-    ListNode* n5 = new ListNode(5);
-    
-    n1->next = n2;
-    n2->next = n3;
-    n3->next = n4;
-    n4->next = n5;
-    n5->next = n2;  // Creates cycle
-    
-    cout << "  Has cycle: " << (hasCycle(n1) ? "true" : "false") << endl;
-    cout << "  Cycle starts at: " << findCycleStart(n1)->val << endl;
-    
-    // Test middle finding
-    cout << "\nMiddle Finding Test:" << endl;
-    ListNode* m1 = new ListNode(1);
-    m1->next = new ListNode(2);
-    m1->next->next = new ListNode(3);
-    m1->next->next->next = new ListNode(4);
-    m1->next->next->next->next = new ListNode(5);
-    
-    cout << "  Middle: " << findMiddle(m1)->val << endl;
-    
-    // Test happy number
-    cout << "\nHappy Number Test:" << endl;
-    cout << "  19 is happy: " << (isHappyNumber(19) ? "true" : "false") << endl;
-    cout << "  2 is happy: " << (isHappyNumber(2) ? "true" : "false") << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * Definition for singly-linked list node.
- */
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode(int x) {
-        val = x;
-        next = null;
-    }
-}
-
-/**
- * Fast & Slow Pointers implementation in Java.
- */
-public class FastSlowPointers {
-    
-    /**
-     * Detect if a cycle exists in linked list using Floyd's algorithm.
-     * 
-     * Time: O(n)
-     * Space: O(1)
-     */
-    public boolean hasCycle(ListNode head) {
-        if (head == null || head.next == null) {
-            return false;
-        }
-        
-        ListNode slow = head;
-        ListNode fast = head;
-        
-        while (fast != null && fast.next != null) {
-            slow = slow.next;
-            fast = fast.next.next;
-            
-            if (slow == fast) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Find the starting node of the cycle if it exists.
-     * 
-     * Mathematical theorem: Distance from head to cycle start = 
-     *                      Distance from meeting point to cycle start
-     * 
-     * Time: O(n)
-     * Space: O(1)
-     */
-    public ListNode findCycleStart(ListNode head) {
-        if (head == null || head.next == null) {
-            return null;
-        }
-        
-        // Phase 1: Find meeting point
-        ListNode slow = head;
-        ListNode fast = head;
-        
-        while (fast != null && fast.next != null) {
-            slow = slow.next;
-            fast = fast.next.next;
-            if (slow == fast) {
-                break;
-            }
-        }
-        
-        if (fast == null || fast.next == null) {
-            return null;  // No cycle
-        }
-        
-        // Phase 2: Find cycle start
-        slow = head;
-        while (slow != fast) {
-            slow = slow.next;
-            fast = fast.next;
-        }
-        
-        return slow;
-    }
-    
-    /**
-     * Find the middle of the linked list.
-     * For even-length lists, returns the second middle node.
-     * 
-     * Time: O(n)
-     * Space: O(1)
-     */
-    public ListNode findMiddle(ListNode head) {
-        if (head == null) {
-            return null;
-        }
-        
-        ListNode slow = head;
-        ListNode fast = head;
-        
-        while (fast != null && fast.next != null) {
-            slow = slow.next;
-            fast = fast.next.next;
-        }
-        
-        return slow;
-    }
-    
-    /**
-     * Determine if a number is happy using Floyd's algorithm.
-     * 
-     * Time: O(log n)
-     * Space: O(1)
-     */
-    private int getNext(int n) {
-        int total = 0;
-        while (n > 0) {
-            int digit = n % 10;
-            total += digit * digit;
-            n /= 10;
-        }
-        return total;
-    }
-    
-    public boolean isHappyNumber(int n) {
-        if (n <= 0) {
-            return false;
-        }
-        
-        int slow = n;
-        int fast = getNext(n);
-        
-        while (fast != 1 && slow != fast) {
-            slow = getNext(slow);
-            fast = getNext(getNext(fast));
-        }
-        
-        return fast == 1;
-    }
-    
-    /**
-     * Find duplicate in array [1, n] using cycle detection.
-     * 
-     * Time: O(n)
-     * Space: O(1)
-     */
-    public int findDuplicate(int[] nums) {
-        // Phase 1: Find intersection
-        int slow = nums[0];
-        int fast = nums[0];
-        
-        do {
-            slow = nums[slow];
-            fast = nums[nums[fast]];
-        } while (slow != fast);
-        
-        // Phase 2: Find cycle start (duplicate)
-        slow = nums[0];
-        while (slow != fast) {
-            slow = nums[slow];
-            fast = nums[fast];
-        }
-        
-        return slow;
-    }
-    
-    // Test the implementation
-    public static void main(String[] args) {
-        FastSlowPointers solution = new FastSlowPointers();
-        
-        // Test cycle detection
-        System.out.println("Cycle Detection Test:");
-        
-        // Create list: 1 -> 2 -> 3 -> 4 -> 5 -> 2 (cycle)
-        ListNode n1 = new ListNode(1);
-        ListNode n2 = new ListNode(2);
-        ListNode n3 = new ListNode(3);
-        ListNode n4 = new ListNode(4);
-        ListNode n5 = new ListNode(5);
-        
-        n1.next = n2;
-        n2.next = n3;
-        n3.next = n4;
-        n4.next = n5;
-        n5.next = n2;
-        
-        System.out.println("  Has cycle: " + solution.hasCycle(n1));
-        System.out.println("  Cycle starts at: " + solution.findCycleStart(n1).val);
-        
-        // Test middle finding
-        System.out.println("\nMiddle Finding Test:");
-        ListNode m1 = new ListNode(1);
-        m1.next = new ListNode(2);
-        m1.next.next = new ListNode(3);
-        m1.next.next.next = new ListNode(4);
-        m1.next.next.next.next = new ListNode(5);
-        
-        System.out.println("  Middle: " + solution.findMiddle(m1).val);
-        
-        // Test happy number
-        System.out.println("\nHappy Number Test:");
-        System.out.println("  19 is happy: " + solution.isHappyNumber(19));
-        System.out.println("  2 is happy: " + solution.isHappyNumber(2));
-        
-        // Test duplicate finding
-        System.out.println("\nDuplicate Finding Test:");
-        int[] nums = {1, 3, 4, 2, 2};
-        System.out.println("  Duplicate in [1,3,4,2,2]: " + solution.findDuplicate(nums));
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Fast & Slow Pointers implementation in JavaScript
- */
-
-/**
- * Definition for singly-linked list node.
- */
-class ListNode {
-    constructor(val = 0, next = null) {
-        this.val = val;
-        this.next = next;
-    }
-}
-
-/**
- * Detect if a cycle exists in linked list using Floyd's algorithm.
- * 
- * Time: O(n)
- * Space: O(1)
- * @param {ListNode} head - Head of the linked list
- * @returns {boolean} True if cycle exists
- */
-function hasCycle(head) {
-    if (!head || !head.next) return false;
-    
-    let slow = head;
-    let fast = head;
-    
-    while (fast && fast.next) {
-        slow = slow.next;
-        fast = fast.next.next;
-        
-        if (slow === fast) return true;
-    }
-    
-    return false;
-}
-
-/**
- * Find the starting node of the cycle if it exists.
- * 
- * Mathematical theorem: Distance from head to cycle start = 
- *                      Distance from meeting point to cycle start
- * 
- * Time: O(n)
- * Space: O(1)
- * @param {ListNode} head - Head of the linked list
- * @returns {ListNode|null} Node where cycle starts, or null
- */
-function findCycleStart(head) {
-    if (!head || !head.next) return null;
-    
-    // Phase 1: Find meeting point
-    let slow = head;
-    let fast = head;
-    
-    while (fast && fast.next) {
-        slow = slow.next;
-        fast = fast.next.next;
-        if (slow === fast) break;
-    }
-    
-    if (!fast || !fast.next) return null;
-    
-    // Phase 2: Find cycle start
-    slow = head;
-    while (slow !== fast) {
-        slow = slow.next;
-        fast = fast.next;
-    }
-    
-    return slow;
-}
-
-/**
- * Find the middle of the linked list.
- * For even-length lists, returns the second middle node.
- * 
- * Time: O(n)
- * Space: O(1)
- * @param {ListNode} head - Head of the linked list
- * @returns {ListNode|null} Middle node
- */
-function findMiddle(head) {
-    if (!head) return null;
-    
-    let slow = head;
-    let fast = head;
-    
-    while (fast && fast.next) {
-        slow = slow.next;
-        fast = fast.next.next;
-    }
-    
-    return slow;
-}
-
-/**
- * Calculate sum of squares of digits.
- * @param {number} n - Input number
- * @returns {number} Sum of squares of digits
- */
-function getNext(n) {
-    let total = 0;
-    while (n > 0) {
-        const digit = n % 10;
-        total += digit * digit;
-        n = Math.floor(n / 10);
-    }
-    return total;
-}
-
-/**
- * Determine if a number is happy using Floyd's algorithm.
- * 
- * Time: O(log n)
- * Space: O(1)
- * @param {number} n - Input number
- * @returns {boolean} True if happy number
- */
-function isHappyNumber(n) {
-    if (n <= 0) return false;
-    
-    let slow = n;
-    let fast = getNext(n);
-    
-    while (fast !== 1 && slow !== fast) {
-        slow = getNext(slow);
-        fast = getNext(getNext(fast));
-    }
-    
-    return fast === 1;
-}
-
-/**
- * Find duplicate in array [1, n] using cycle detection.
- * 
- * Time: O(n)
- * Space: O(1)
- * @param {number[]} nums - Array with one duplicate
- * @returns {number} The duplicate number
- */
-function findDuplicate(nums) {
-    // Phase 1: Find intersection
-    let slow = nums[0];
-    let fast = nums[0];
-    
-    do {
-        slow = nums[slow];
-        fast = nums[nums[fast]];
-    } while (slow !== fast);
-    
-    // Phase 2: Find cycle start (duplicate)
-    slow = nums[0];
-    while (slow !== fast) {
-        slow = nums[slow];
-        fast = nums[fast];
-    }
-    
-    return slow;
-}
-
-
-// ============== Example Usage & Testing ==============
-
-// Test cycle detection
-console.log("Cycle Detection Test:");
-
-// Create list: 1 -> 2 -> 3 -> 4 -> 5 -> 2 (cycle)
-const n1 = new ListNode(1);
-const n2 = new ListNode(2);
-const n3 = new ListNode(3);
-const n4 = new ListNode(4);
-const n5 = new ListNode(5);
-
-n1.next = n2;
-n2.next = n3;
-n3.next = n4;
-n4.next = n5;
-n5.next = n2;  // Creates cycle
-
-console.log(`  Has cycle: ${hasCycle(n1)}`);  // true
-console.log(`  Cycle starts at node with value: ${findCycleStart(n1).val}`);  // 2
-
-// Test middle finding (create list without cycle)
-const m1 = new ListNode(1);
-m1.next = new ListNode(2);
-m1.next.next = new ListNode(3);
-m1.next.next.next = new ListNode(4);
-m1.next.next.next.next = new ListNode(5);
-
-console.log("\nMiddle Finding Test:");
-console.log(`  Middle node: ${findMiddle(m1).val}`);  // 3
-
-// Test happy number
-console.log("\nHappy Number Test:");
-console.log(`  19 is happy: ${isHappyNumber(19)}`);  // true
-console.log(`  2 is happy: ${isHappyNumber(2)}`);    // false
-
-// Test duplicate finding
-console.log("\nDuplicate Finding Test:");
-console.log(`  Duplicate in [1,3,4,2,2]: ${findDuplicate([1, 3, 4, 2, 2])}`);  // 2
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Cycle Detection** | O(n) | At most n steps before meeting or reaching end |
-| **Find Cycle Start** | O(n) | Additional O(n) to find start point |
-| **Find Middle** | O(n) | Single pass to find middle |
-| **Happy Number** | O(log n) | Digit count reduces logarithmically |
-| **Find Duplicate** | O(n) | Treats array as implicit linked list |
-
-### Detailed Breakdown
-
-- **Cycle Detection**: 
-  - If no cycle: fast pointer reaches null in ~n/2 iterations = O(n)
-  - If cycle: slow travels μ + λ steps = O(n)
-  - Total: O(n)
-
-- **Find Middle**:
-  - Fast pointer moves 2x speed, so when it reaches end, slow is at middle
-  - Single pass through list = O(n)
-
-- **Happy Number**:
-  - Each iteration reduces digit count
-  - Max digits for 32-bit int is 10
-  - Each number becomes smaller quickly = O(log n)
-
----
-
-## Space Complexity Analysis
-
-| Operation | Space Complexity | Notes |
-|-----------|------------------|-------|
-| **All Operations** | O(1) | Only uses two pointers regardless of input size |
-
-### Key Points
-
-- No additional data structures required
-- Pointers only, no recursion (could be O(n) if recursive)
-- Constant space makes it ideal for memory-constrained environments
-
----
-
-## Common Variations
-
-### 1. Find Cycle Length
-
-Once cycle start is found, count nodes in cycle:
-
-````carousel
-```python
-def cycle_length(head):
-    """Find the length of the cycle."""
-    start = find_cycle_start(head)
-    if not start:
-        return 0
-    
-    current = start.next
-    length = 1
-    
-    while current != start:
-        length += 1
-        current = current.next
-    
-    return length
-```
-
-<!-- slide -->
-```cpp
-int cycleLength(ListNode* head) {
-    ListNode* start = findCycleStart(head);
-    if (!start) return 0;
-    
-    ListNode* current = start->next;
-    int length = 1;
-    
-    while (current != start) {
-        length++;
-        current = current->next;
-    }
-    
-    return length;
-}
-```
-
-<!-- slide -->
-```java
-public int cycleLength(ListNode head) {
-    ListNode start = findCycleStart(head);
-    if (start == null) return 0;
-    
-    ListNode current = start.next;
-    int length = 1;
-    
-    while (current != start) {
-        length++;
-        current = current.next;
-    }
-    
-    return length;
-}
-```
-
-<!-- slide -->
-```javascript
-function cycleLength(head) {
-    const start = findCycleStart(head);
-    if (!start) return 0;
-    
-    let current = start.next;
-    let length = 1;
-    
-    while (current !== start) {
-        length++;
-        current = current.next;
-    }
-    
-    return length;
-}
-```
-````
-
-### 2. Remove Cycle from Linked List
-
-````carousel
-```python
-def remove_cycle(head):
-    """Remove cycle from linked list."""
-    if not head:
-        return head
-    
-    # Find cycle start
-    start = find_cycle_start(head)
-    if not start:
-        return head
-    
-    # Find the last node in cycle
-    current = start
-    while current.next != start:
-        current = current.next
-    
-    # Remove cycle
-    current.next = None
-    return head
-```
-
-<!-- slide -->
-```cpp
-ListNode* removeCycle(ListNode* head) {
-    if (!head) return head;
-    
-    ListNode* start = findCycleStart(head);
-    if (!start) return head;
-    
-    ListNode* current = start;
-    while (current->next != start) {
-        current = current->next;
-    }
-    
-    current->next = nullptr;
-    return head;
-}
-```
-
-<!-- slide -->
-```java
-public ListNode removeCycle(ListNode head) {
-    if (head == null) return head;
-    
-    ListNode start = findCycleStart(head);
-    if (start == null) return head;
-    
-    ListNode current = start;
-    while (current.next != start) {
-        current = current.next;
-    }
-    
-    current.next = null;
-    return head;
-}
-```
-
-<!-- slide -->
-```javascript
-function removeCycle(head) {
-    if (!head) return head;
-    
-    const start = findCycleStart(head);
-    if (!start) return head;
-    
-    let current = start;
-    while (current.next !== start) {
-        current = current.next;
-    }
-    
-    current.next = null;
-    return head;
-}
-```
-````
-
-### 3. Middle of Linked List (First Middle for Even)
-
-````carousel
-```python
-def find_middle_first(head):
-    """Find first middle for even-length lists."""
-    if not head:
-        return None
-    
-    slow = head
-    fast = head.next  # Start from second element
-    
-    while fast and fast.next:
-        slow = slow.next
-        fast = fast.next.next
-    
-    return slow
-```
-
-<!-- slide -->
-```cpp
-ListNode* findMiddleFirst(ListNode* head) {
-    if (!head) return nullptr;
-    
-    ListNode* slow = head;
-    ListNode* fast = head->next;  // Start from second element
-    
-    while (fast && fast->next) {
-        slow = slow->next;
-        fast = fast->next->next;
-    }
-    
-    return slow;
-}
-```
-
-<!-- slide -->
-```java
-public ListNode findMiddleFirst(ListNode head) {
-    if (head == null) return null;
-    
-    ListNode slow = head;
-    ListNode fast = head.next;  // Start from second element
-    
-    while (fast != null && fast.next != null) {
-        slow = slow.next;
-        fast = fast.next.next;
-    }
-    
-    return slow;
-}
-```
-
-<!-- slide -->
-```javascript
-function findMiddleFirst(head) {
-    if (!head) return null;
-    
-    let slow = head;
-    let fast = head.next;  // Start from second element
-    
-    while (fast && fast.next) {
-        slow = slow.next;
-        fast = fast.next.next;
-    }
-    
-    return slow;
-}
-```
-````
-
-### 4. Nth Node from End
-
-````carousel
-```python
-def nth_from_end(head, n):
-    """Find nth node from end in one pass."""
-    if not head or n <= 0:
-        return None
-    
-    slow = head
-    fast = head
-    
-    # Move fast n steps ahead
-    for _ in range(n):
-        if not fast:
-            return None
-        fast = fast.next
-    
-    # Move both until fast reaches end
-    while fast:
-        slow = slow.next
-        fast = fast.next
-    
-    return slow
-```
-
-<!-- slide -->
-```cpp
-ListNode* nthFromEnd(ListNode* head, int n) {
-    if (!head || n <= 0) return nullptr;
-    
-    ListNode* slow = head;
-    ListNode* fast = head;
-    
-    // Move fast n steps ahead
-    for (int i = 0; i < n; i++) {
-        if (!fast) return nullptr;
-        fast = fast->next;
-    }
-    
-    // Move both until fast reaches end
-    while (fast) {
-        slow = slow->next;
-        fast = fast->next;
-    }
-    
-    return slow;
-}
-```
-
-<!-- slide -->
-```java
-public ListNode nthFromEnd(ListNode head, int n) {
-    if (head == null || n <= 0) return null;
-    
-    ListNode slow = head;
-    ListNode fast = head;
-    
-    // Move fast n steps ahead
-    for (int i = 0; i < n; i++) {
-        if (fast == null) return null;
-        fast = fast.next;
-    }
-    
-    // Move both until fast reaches end
-    while (fast != null) {
-        slow = slow.next;
-        fast = fast.next;
-    }
-    
-    return slow;
-}
-```
-
-<!-- slide -->
-```javascript
-function nthFromEnd(head, n) {
-    if (!head || n <= 0) return null;
-    
-    let slow = head;
-    let fast = head;
-    
-    // Move fast n steps ahead
-    for (let i = 0; i < n; i++) {
-        if (!fast) return null;
-        fast = fast.next;
-    }
-    
-    // Move both until fast reaches end
-    while (fast) {
-        slow = slow.next;
-        fast = fast.next;
-    }
-    
-    return slow;
-}
-```
-````
-
-### 5. Palindrome Linked List
-
-````carousel
-```python
-def is_palindrome(head):
-    """Check if linked list is palindrome."""
-    if not head or not head.next:
-        return True
-    
-    # Find middle
-    slow = head
-    fast = head
-    while fast.next and fast.next.next:
-        slow = slow.next
-        fast = fast.next.next
-    
-    # Reverse second half
-    prev = None
-    current = slow.next
-    while current:
-        next_node = current.next
-        current.next = prev
-        prev = current
-        current = next_node
-    
-    # Compare both halves
-    left = head
-    right = prev
-    while right:
-        if left.val != right.val:
-            return False
-        left = left.next
-        right = right.next
-    
-    return True
-```
-
-<!-- slide -->
-```cpp
-bool isPalindrome(ListNode* head) {
-    if (!head || !head->next) return true;
-    
-    // Find middle
-    ListNode* slow = head;
-    ListNode* fast = head;
-    while (fast->next && fast->next->next) {
-        slow = slow->next;
-        fast = fast->next->next;
-    }
-    
-    // Reverse second half
-    ListNode* prev = nullptr;
-    ListNode* current = slow->next;
-    while (current) {
-        ListNode* nextNode = current->next;
-        current->next = prev;
-        prev = current;
-        current = nextNode;
-    }
-    
-    // Compare both halves
-    ListNode* left = head;
-    ListNode* right = prev;
-    while (right) {
-        if (left->val != right->val) return false;
-        left = left->next;
-        right = right->next;
-    }
-    
-    return true;
-}
-```
-
-<!-- slide -->
-```java
-public boolean isPalindrome(ListNode head) {
-    if (head == null || head.next == null) return true;
-    
-    // Find middle
-    ListNode slow = head;
-    ListNode fast = head;
-    while (fast.next != null && fast.next.next != null) {
-        slow = slow.next;
-        fast = fast.next.next;
-    }
-    
-    // Reverse second half
-    ListNode prev = null;
-    ListNode current = slow.next;
-    while (current != null) {
-        ListNode nextNode = current.next;
-        current.next = prev;
-        prev = current;
-        current = nextNode;
-    }
-    
-    // Compare both halves
-    ListNode left = head;
-    ListNode right = prev;
-    while (right != null) {
-        if (left.val != right.val) return false;
-        left = left.next;
-        right = right.next;
-    }
-    
-    return true;
-}
-```
-
-<!-- slide -->
-```javascript
-function isPalindrome(head) {
-    if (!head || !head.next) return true;
-    
-    // Find middle
-    let slow = head;
-    let fast = head;
-    while (fast.next && fast.next.next) {
-        slow = slow.next;
-        fast = fast.next.next;
-    }
-    
-    // Reverse second half
-    let prev = null;
-    let current = slow.next;
-    while (current) {
-        const nextNode = current.next;
-        current.next = prev;
-        prev = current;
-        current = nextNode;
-    }
-    
-    // Compare both halves
-    let left = head;
-    let right = prev;
-    while (right) {
-        if (left.val !== right.val) return false;
-        left = left.next;
-        right = right.next;
-    }
-    
-    return true;
-}
-```
-````
 
 ---
 
@@ -1523,7 +645,7 @@ function isPalindrome(head) {
 
 **Description:** Given the head of a linked list, determine if the linked list has a cycle in it.
 
-**How to Apply Fast & Slow Pointers:**
+**How to Apply:**
 - Initialize both pointers at head
 - Move slow by 1, fast by 2
 - If they meet → cycle exists
@@ -1537,7 +659,7 @@ function isPalindrome(head) {
 
 **Description:** Given the head of a linked list, return the node where the cycle begins. If there is no cycle, return null.
 
-**How to Apply Fast & Slow Pointers:**
+**How to Apply:**
 - Phase 1: Detect cycle using standard algorithm
 - Phase 2: Reset slow to head, keep fast at meeting point
 - Move both by 1 until they meet again
@@ -1551,7 +673,7 @@ function isPalindrome(head) {
 
 **Description:** Write an algorithm to determine if a number n is happy. A happy number is a number where repeatedly summing squares of digits eventually reaches 1.
 
-**How to Apply Fast & Slow Pointers:**
+**How to Apply:**
 - Treat the digit transformation as "next pointer"
 - Use Floyd's algorithm to detect cycle
 - If ends at 1 → happy
@@ -1565,7 +687,7 @@ function isPalindrome(head) {
 
 **Description:** Given an array of integers nums containing (n + 1) integers where each integer is in the range [1, n] inclusive, find the duplicate number.
 
-**How to Apply Fast & Slow Pointers:**
+**How to Apply:**
 - Treat array as linked list: index i → nums[i]
 - Duplicate creates a cycle
 - Use cycle detection to find duplicate
@@ -1573,13 +695,13 @@ function isPalindrome(head) {
 
 ---
 
-### Problem 5: Middle of Linked List
+### Problem 5: Middle of the Linked List
 
 **Problem:** [LeetCode 876 - Middle of the Linked List](https://leetcode.com/problems/middle-of-the-linked-list/)
 
-**Description:** Given the head of a singly linked list, return the middle node of the linked list. If there are two middle nodes, return the second middle node.
+**Description:** Given the head of a singly linked list, return the middle node. If there are two middle nodes, return the second middle node.
 
-**How to Apply Fast & Slow Pointers:**
+**How to Apply:**
 - Standard 1:2 speed ratio
 - When fast reaches end, slow is at middle
 - Returns second middle for even-length lists
@@ -1592,7 +714,7 @@ function isPalindrome(head) {
 
 **Description:** Given the head of a linked list, remove the nth node from the end and return its head.
 
-**How to Apply Fast & Slow Pointers:**
+**How to Apply:**
 - Move fast n steps ahead of slow
 - Then move both together
 - When fast reaches end, slow is at node to delete
@@ -1626,12 +748,16 @@ function isPalindrome(head) {
 
 This is exactly how the "Find Duplicate Number" problem works - treating the array indices as pointers.
 
+---
+
 ### Q2: What if the fast pointer moves more than 2 steps?
 
 **Answer:** It can, but there are tradeoffs:
 - **Speed 3**: Still O(n) but may meet faster
 - **General case**: Works for any speed difference
 - **Speed 2 is optimal**: Minimal iterations while guaranteeing meeting if cycle exists
+
+---
 
 ### Q3: How do you find the length of the cycle?
 
@@ -1640,6 +766,8 @@ This is exactly how the "Find Duplicate Number" problem works - treating the arr
 2. **Mathematical**: λ = 2d - d = d (distance traveled by slow equals cycle length)
 3. **Simple**: After finding cycle start, traverse until you return to start, counting nodes
 
+---
+
 ### Q4: Can this technique detect multiple cycles?
 
 **Answer:** The standard algorithm assumes a single cycle. For multiple cycles:
@@ -1647,16 +775,18 @@ This is exactly how the "Find Duplicate Number" problem works - treating the arr
 - Not a common interview problem
 - Consider graph algorithms for complex cycle detection
 
+---
+
 ### Q5: Why does the two-pointer technique find the cycle start?
 
 **Answer:** Mathematical proof:
 - Let μ = distance from head to cycle start
 - Let λ = cycle length
 - Let d = distance from cycle start to meeting point
-- Slow travels: μ + d
+- Slow travels: μ + d steps
 - Fast travels: μ + d + kλ (for some k)
 - Since fast = 2 × slow: μ + d + kλ = 2(μ + d)
-- Therefore: μ = d
+- Therefore: μ = kλ - d
 - Distance from head to cycle start equals distance from meeting to cycle start
 
 ---
@@ -1679,12 +809,3 @@ When to use:
 - ✅ Palindrome linked list problems
 
 This technique is essential for solving linked list problems efficiently and is a fundamental pattern in competitive programming and technical interviews.
-
----
-
-## Related Algorithms
-
-- [Two Pointers](./two-pointers.md) - Similar concept, different applications
-- [Sliding Window](./sliding-window.md) - Another O(n) traversal pattern
-- [Binary Search](./binary-search.md) - Divide and conquer approach
-- [Floyd's Algorithm](./floyd-warshall.md) - All-pairs shortest path (different Floyd!)

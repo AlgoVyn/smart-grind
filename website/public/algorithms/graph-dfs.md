@@ -1,23 +1,655 @@
-# Graph DFS
+# Graph DFS (Depth-First Search)
 
 ## Category
 Graphs
 
 ## Description
+
 Depth-First Search (DFS) is a fundamental graph traversal algorithm that explores as far as possible along each branch before backtracking. It goes deep into the graph before exploring siblings, making it ideal for problems involving path finding, cycle detection, topological sorting, and connected components.
+
+DFS uses a **stack** (either the call stack via recursion or an explicit stack) to keep track of the traversal path. This depth-first nature makes it particularly effective for problems requiring exhaustive search or exploration of all possible paths.
+
+---
+
+## Concepts
+
+The DFS algorithm is built on several fundamental concepts that make it powerful for graph traversal and analysis.
+
+### 1. Stack-Based Exploration
+
+DFS uses a **Last-In-First-Out (LIFO)** approach for exploration:
+
+| Concept | Description |
+|---------|-------------|
+| **Push** | Add unvisited neighbors to stack |
+| **Pop** | Remove and process vertex from top |
+| **LIFO Order** | Ensures depth-first exploration |
+
+### 2. Visited Tracking
+
+Preventing revisits is essential to avoid infinite loops:
+
+| Approach | Description | Best For |
+|----------|-------------|----------|
+| **Two-State** | Unvisited / Visited | Simple traversal, undirected graphs |
+| **Three-State** | Unvisited / In-Progress / Done | Cycle detection in directed graphs |
+| **Timestamp** | Entry/Exit times | Edge classification, topological sort |
+
+### 3. Recursion vs Iteration
+
+Two ways to implement DFS:
+
+| Implementation | Space | Pros | Cons |
+|----------------|-------|------|------|
+| **Recursive** | O(depth) | Clean, intuitive | Stack overflow risk |
+| **Iterative** | O(depth) | No overflow, explicit control | More verbose |
+
+### 4. Edge Classification
+
+In DFS, edges can be classified into types:
+
+| Edge Type | Description | Identified By |
+|-----------|-------------|---------------|
+| **Tree Edge** | Part of DFS forest | To unvisited vertex |
+| **Back Edge** | To ancestor in DFS tree | To vertex in progress (gray) |
+| **Forward Edge** | To descendant (non-tree) | To done vertex (black) that is descendant |
+| **Cross Edge** | Between non-ancestor subtrees | To done vertex (black) in different subtree |
+
+---
+
+## Frameworks
+
+Structured approaches for solving DFS problems.
+
+### Framework 1: Recursive DFS Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  RECURSIVE DFS FRAMEWORK                            │
+├─────────────────────────────────────────────────────┤
+│  1. Define recursive function with vertex parameter │
+│  2. Mark current vertex as visited                  │
+│  3. Process current vertex (add to result, etc.)  │
+│  4. For each unvisited neighbor:                    │
+│     - Recursively call DFS on neighbor              │
+│  5. Post-processing (if needed)                    │
+│  6. Return                                          │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Clean, readable code; tree-like graphs; backtracking problems.
+
+### Framework 2: Iterative DFS Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  ITERATIVE DFS FRAMEWORK                            │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize stack with starting vertex          │
+│  2. While stack not empty:                          │
+│     a. Pop vertex from stack                        │
+│     b. If not visited:                              │
+│        - Mark as visited                            │
+│        - Process vertex                             │
+│        - Push all neighbors (in reverse order)      │
+│  3. Return result                                   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Avoiding recursion limit, explicit stack control needed.
+
+### Framework 3: DFS with Cycle Detection Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  DFS WITH CYCLE DETECTION FRAMEWORK                 │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize state array (0=unvisited, 1=visiting,│
+│     2=done)                                        │
+│  2. For each unvisited vertex:                      │
+│     a. Mark as visiting (state = 1)                 │
+│     b. For each neighbor:                           │
+│        - If state = 1: CYCLE DETECTED!              │
+│        - If unvisited: recurse                        │
+│     c. Mark as done (state = 2)                     │
+│  3. Return cycle status                             │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Directed/undirected cycle detection, topological sort validation.
+
+---
+
+## Forms
+
+Different manifestations of the DFS pattern.
+
+### Form 1: Standard DFS Traversal
+
+Basic DFS returning vertices in traversal order.
+
+| Aspect | Description |
+|--------|-------------|
+| **Input** | Graph, starting vertex |
+| **Output** | List of vertices in DFS order |
+| **Use Case** | General traversal, reachable vertices |
+
+### Form 2: Path Finding
+
+DFS for finding any path between two vertices.
+
+| Aspect | Description |
+|--------|-------------|
+| **Key Insight** | DFS explores one path completely before trying others |
+| **Optimization** | Stop when target found |
+| **Use Case** | Maze solving, any path existence |
+
+### Form 3: Connected Components
+
+DFS for finding all connected components.
+
+| Aspect | Description |
+|--------|-------------|
+| **Approach** | Run DFS from each unvisited vertex |
+| **Result** | Groups of vertices (components) |
+| **Use Case** | Network analysis, clustering |
+
+### Form 4: Topological Sort (DFS-based)
+
+Ordering vertices in a Directed Acyclic Graph (DAG).
+
+| Aspect | Description |
+|--------|-------------|
+| **Key Insight** | Add vertex to result after exploring all neighbors |
+| **Output** | Reverse of completion order |
+| **Use Case** | Task scheduling, dependency resolution |
+
+### Form 5: Grid DFS
+
+DFS adapted for 2D grids.
+
+| Aspect | Description |
+|--------|-------------|
+| **Movement** | 4 or 8 directional |
+| **Visited** | Mark cells as visited |
+| **Use Case** | Island counting, flood fill |
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Path Recording with Backtracking
+
+Track and record paths during DFS:
+
+```python
+def dfs_find_path(graph, start, target):
+    """Find any path from start to target."""
+    visited = set()
+    path = []
+    
+    def dfs(vertex):
+        if vertex == target:
+            path.append(vertex)
+            return True
+        
+        visited.add(vertex)
+        path.append(vertex)
+        
+        for neighbor in graph[vertex]:
+            if neighbor not in visited:
+                if dfs(neighbor):
+                    return True
+        
+        path.pop()  # Backtrack
+        return False
+    
+    if dfs(start):
+        return path
+    return None
+```
+
+### Tactic 2: All Paths Finding
+
+Find all paths between two vertices:
+
+```python
+def dfs_all_paths(graph, start, target):
+    """Find all paths from start to target."""
+    all_paths = []
+    path = []
+    
+    def dfs(vertex):
+        path.append(vertex)
+        
+        if vertex == target:
+            all_paths.append(path.copy())
+        else:
+            for neighbor in graph[vertex]:
+                if neighbor not in path:  # Avoid revisiting in current path
+                    dfs(neighbor)
+        
+        path.pop()
+    
+    dfs(start)
+    return all_paths
+```
+
+### Tactic 3: Three-State Cycle Detection
+
+Detect cycles in directed graphs:
+
+```python
+def has_cycle_dfs(graph):
+    """
+    Detect cycle in directed graph.
+    States: 0 = unvisited, 1 = visiting, 2 = done
+    """
+    state = {}
+    
+    def dfs(vertex):
+        state[vertex] = 1  # Mark as visiting
+        
+        for neighbor in graph.get(vertex, []):
+            if neighbor in state:
+                if state[neighbor] == 1:  # Back edge found
+                    return True
+            else:
+                if dfs(neighbor):
+                    return True
+        
+        state[vertex] = 2  # Mark as done
+        return False
+    
+    # Check all vertices (handles disconnected)
+    all_vertices = set(graph.keys())
+    for neighbors in graph.values():
+        all_vertices.update(neighbors)
+    
+    for vertex in all_vertices:
+        if vertex not in state:
+            if dfs(vertex):
+                return True
+    
+    return False
+```
+
+### Tactic 4: DFS with Entry/Exit Times
+
+Track discovery and finish times:
+
+```python
+def dfs_with_times(graph, start):
+    """
+    DFS tracking entry and exit times.
+    Useful for edge classification.
+    """
+    visited = set()
+    entry = {}
+    exit = {}
+    time = [0]
+    
+    def dfs(vertex):
+        entry[vertex] = time[0]
+        time[0] += 1
+        visited.add(vertex)
+        
+        for neighbor in graph[vertex]:
+            if neighbor not in visited:
+                dfs(neighbor)
+        
+        exit[vertex] = time[0]
+        time[0] += 1
+    
+    dfs(start)
+    return entry, exit
+```
+
+### Tactic 5: Grid DFS with Island Counting
+
+Count connected components in 2D grid:
+
+```python
+def num_islands_dfs(grid):
+    """Count number of islands using DFS."""
+    if not grid or not grid[0]:
+        return 0
+    
+    rows, cols = len(grid), len(grid[0])
+    visited = set()
+    
+    def dfs(r, c):
+        if (r < 0 or r >= rows or c < 0 or c >= cols or
+            grid[r][c] == '0' or (r, c) in visited):
+            return
+        
+        visited.add((r, c))
+        
+        # Explore 4 directions
+        for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            dfs(r + dr, c + dc)
+    
+    count = 0
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == '1' and (r, c) not in visited:
+                dfs(r, c)
+                count += 1
+    
+    return count
+```
+
+---
+
+## Python Templates
+
+### Template 1: Recursive DFS Traversal
+
+```python
+from typing import List, Dict, Set, Optional
+
+def dfs_recursive(graph: Dict[str, List[str]], start: str, 
+                  visited: Optional[Set[str]] = None) -> List[str]:
+    """
+    Depth-First Search using recursion.
+    
+    Time Complexity: O(V + E)
+    Space Complexity: O(V) for visited + O(depth) for recursion stack
+    
+    Args:
+        graph: Adjacency list representation
+        start: Starting vertex
+        visited: Set of visited vertices (for tracking)
+    
+    Returns:
+        List of vertices in DFS order
+    """
+    if visited is None:
+        visited = set()
+    
+    result = []
+    
+    def _dfs(vertex: str):
+        if vertex in visited:
+            return
+        
+        visited.add(vertex)
+        result.append(vertex)
+        
+        # Visit all unvisited neighbors
+        for neighbor in graph.get(vertex, []):
+            if neighbor not in visited:
+                _dfs(neighbor)
+    
+    _dfs(start)
+    return result
+```
+
+### Template 2: Iterative DFS Traversal
+
+```python
+def dfs_iterative(graph: Dict[str, List[str]], start: str) -> List[str]:
+    """
+    Depth-First Search using explicit stack (iterative).
+    
+    Time: O(V + E)
+    Space: O(V)
+    
+    Args:
+        graph: Adjacency list representation
+        start: Starting vertex
+    
+    Returns:
+        List of vertices in DFS order
+    """
+    visited = set()
+    stack = [start]
+    result = []
+    
+    while stack:
+        vertex = stack.pop()
+        
+        if vertex in visited:
+            continue
+        
+        visited.add(vertex)
+        result.append(vertex)
+        
+        # Add neighbors in reverse order to maintain left-to-right
+        for neighbor in reversed(graph.get(vertex, [])):
+            if neighbor not in visited:
+                stack.append(neighbor)
+    
+    return result
+```
+
+### Template 3: DFS with Path Finding
+
+```python
+from typing import Optional
+
+def dfs_find_path(graph: Dict[str, List[str]], start: str, 
+                  target: str) -> Optional[List[str]]:
+    """
+    Find any path from start to target using DFS.
+    
+    Time: O(V + E)
+    Space: O(V)
+    
+    Args:
+        graph: Adjacency list representation
+        start: Starting vertex
+        target: Target vertex
+    
+    Returns:
+        Path as list of vertices, or None if no path exists
+    """
+    visited = set()
+    path = []
+    
+    def dfs(vertex: str) -> bool:
+        if vertex == target:
+            path.append(vertex)
+            return True
+        
+        visited.add(vertex)
+        path.append(vertex)
+        
+        for neighbor in graph.get(vertex, []):
+            if neighbor not in visited:
+                if dfs(neighbor):
+                    return True
+        
+        path.pop()  # Backtrack
+        return False
+    
+    if dfs(start):
+        return path
+    return None
+```
+
+### Template 4: DFS Cycle Detection (Directed)
+
+```python
+def has_cycle_directed(graph: Dict[str, List[str]]) -> bool:
+    """
+    Detect if directed graph has a cycle using DFS.
+    
+    Uses three states:
+    0 = unvisited (white)
+    1 = visiting (gray) - in current recursion stack
+    2 = done (black) - fully processed
+    
+    Time: O(V + E)
+    Space: O(V)
+    """
+    state = {}  # vertex -> state
+    
+    def dfs(vertex: str) -> bool:
+        state[vertex] = 1  # Mark as visiting
+        
+        for neighbor in graph.get(vertex, []):
+            if neighbor in state:
+                if state[neighbor] == 1:  # Back edge - cycle!
+                    return True
+            else:
+                if dfs(neighbor):
+                    return True
+        
+        state[vertex] = 2  # Mark as done
+        return False
+    
+    # Check all vertices (handles disconnected graphs)
+    all_vertices = set(graph.keys())
+    for neighbors in graph.values():
+        all_vertices.update(neighbors)
+    
+    for vertex in all_vertices:
+        if vertex not in state:
+            if dfs(vertex):
+                return True
+    
+    return False
+```
+
+### Template 5: DFS Cycle Detection (Undirected)
+
+```python
+def has_cycle_undirected(graph: Dict[str, List[str]]) -> bool:
+    """
+    Detect if undirected graph has a cycle using DFS.
+    
+    Time: O(V + E)
+    Space: O(V)
+    """
+    visited = set()
+    
+    def dfs(vertex: str, parent: str) -> bool:
+        visited.add(vertex)
+        
+        for neighbor in graph.get(vertex, []):
+            if neighbor not in visited:
+                if dfs(neighbor, vertex):
+                    return True
+            elif neighbor != parent:  # Found a back edge
+                return True
+        
+        return False
+    
+    # Check all vertices (handles disconnected graphs)
+    all_vertices = set(graph.keys())
+    for neighbors in graph.values():
+        all_vertices.update(neighbors)
+    
+    for vertex in all_vertices:
+        if vertex not in visited:
+            if dfs(vertex, None):
+                return True
+    
+    return False
+```
+
+### Template 6: Connected Components DFS
+
+```python
+def find_connected_components(graph: Dict[str, List[str]]) -> List[List[str]]:
+    """
+    Find all connected components using DFS.
+    
+    Time: O(V + E)
+    Space: O(V)
+    
+    Returns:
+        List of connected components (each is a list of vertices)
+    """
+    visited = set()
+    components = []
+    
+    # Get all vertices
+    all_vertices = set(graph.keys())
+    for neighbors in graph.values():
+        all_vertices.update(neighbors)
+    
+    def dfs(vertex: str, component: List[str]):
+        visited.add(vertex)
+        component.append(vertex)
+        
+        for neighbor in graph.get(vertex, []):
+            if neighbor not in visited:
+                dfs(neighbor, component)
+    
+    for vertex in all_vertices:
+        if vertex not in visited:
+            component = []
+            dfs(vertex, component)
+            components.append(component)
+    
+    return components
+```
+
+### Template 7: Topological Sort (DFS-based)
+
+```python
+def topological_sort_dfs(n: int, edges: List[List[int]]) -> List[int]:
+    """
+    Topological sort using DFS.
+    
+    Time: O(V + E)
+    Space: O(V)
+    
+    Args:
+        n: Number of vertices (0 to n-1)
+        edges: List of [from, to] edges
+    
+    Returns:
+        Topological ordering, or empty list if cycle exists
+    """
+    # Build graph
+    graph = [[] for _ in range(n)]
+    for u, v in edges:
+        graph[u].append(v)
+    
+    # 0 = unvisited, 1 = visiting, 2 = done
+    visited = [0] * n
+    result = []
+    
+    def dfs(vertex: int) -> bool:
+        visited[vertex] = 1
+        
+        for neighbor in graph[vertex]:
+            if visited[neighbor] == 1:  # Back edge - cycle!
+                return False
+            if visited[neighbor] == 0:
+                if not dfs(neighbor):
+                    return False
+        
+        visited[vertex] = 2
+        result.append(vertex)
+        return True
+    
+    # Process all vertices
+    for v in range(n):
+        if visited[v] == 0:
+            if not dfs(v):
+                return []  # Cycle detected
+    
+    return result[::-1]  # Reverse for correct order
+```
 
 ---
 
 ## When to Use
 
-Use the DFS algorithm when you need to solve problems involving:
+Use DFS when you need to solve problems involving:
 
 - **Graph Traversal**: Visiting all nodes in a graph
-- **Path Finding**: Finding any path between two nodes
+- **Path Finding**: Finding any path between two nodes (not necessarily shortest)
 - **Cycle Detection**: Detecting cycles in directed or undirected graphs
 - **Topological Sorting**: Ordering vertices in a DAG
 - **Connected Components**: Finding all connected components in a graph
-- **Tree/Graph Memorization**: Solving problems with overlapping subproblems
+- **Backtracking Problems**: Exploring all possible solutions
 
 ### Comparison with Alternatives
 
@@ -26,7 +658,7 @@ Use the DFS algorithm when you need to solve problems involving:
 | **DFS** | O(V + E) | O(V) | Deep traversal, path finding, cycle detection |
 | **BFS** | O(V + E) | O(V) | Shortest path in unweighted graphs, level-order |
 | **Dijkstra** | O((V + E) log V) | O(V) | Shortest path with weighted edges |
-| **Bellman-Ford** | O(V × E) | O(V) | Negative weights, path counting |
+| **Union-Find** | O(α(V)) amortized | O(V) | Dynamic connectivity, quick cycle check |
 
 ### When to Choose DFS vs BFS
 
@@ -91,1642 +723,21 @@ Order: [0, 1, 2, 4, 3, 5]
 - **Preorder/Postorder**: Order of visiting nodes matters for certain problems
 - **Entry/Exit Times**: Timestamps useful for tree edge classification and topological sort
 
-### Implementation Approaches
-
-1. **Recursive**: Uses call stack, elegant but uses O(V) stack space
-2. **Iterative**: Uses explicit stack, more memory efficient, better for deep graphs
-
-### Applications
-
-- Detecting cycles in graphs
-- Topological sorting of DAGs
-- Finding strongly connected components
-- Solving maze puzzles
-- Path finding between two nodes
-- Binary tree traversals (in-order, pre-order, post-order)
-- Finding connected components
-- Word ladder problems
-
----
-
-## Algorithm Steps
-
-### Recursive Approach
-
-1. **Initialize**: Create a visited set and result list
-2. **Mark visited**: Add current node to visited set
-3. **Process**: Process current node (add to result, etc.)
-4. **Recurse**: For each unvisited neighbor, recursively call DFS
-5. **Backtrack**: Return when all neighbors are visited
-
-### Iterative Approach
-
-1. **Initialize**: Create empty visited set, stack, and result list
-2. **Push start**: Add starting node to stack
-3. **While stack not empty**:
-   - Pop node from stack
-   - If node not visited:
-     - Mark as visited
-     - Add to result
-     - Push all unvisited neighbors (in reverse order for consistent ordering)
-4. **Return**: Return result when stack is empty
-
-### Step-by-Step Example
-
-For graph with adjacency list `{0: [1, 3], 1: [0, 2, 4], ...}`:
-
-| Step | Action | Stack | Visited | Result |
-|------|--------|-------|---------|--------|
-| 1 | Push 0 | [0] | {} | [] |
-| 2 | Pop 0, visit | [] | {0} | [0] |
-| 3 | Push 1, 3 | [1, 3] | {0} | [0] |
-| 4 | Pop 3, visit | [1] | {0,3} | [0,3] |
-| 5 | Push 4, 5 | [1, 4, 5] | {0,3} | [0,3] |
-| 6 | Pop 5, visit | [1, 4] | {0,3,5} | [0,3,5] |
-| 7 | Pop 4, visit | [1] | {0,3,5,4} | [0,3,5,4] |
-| 8 | Pop 1, visit | [] | {0,3,5,4,1} | [0,3,5,4,1] |
-| 9 | Push 2 | [2] | {0,3,5,4,1} | [0,3,5,4,1] |
-| 10 | Pop 2, visit | [] | {0,3,5,4,1,2} | [0,3,5,4,1,2] |
-
----
-
-## Implementation
-
-### Template Code (Recursive and Iterative DFS)
-
-````carousel
-```python
-from typing import List, Dict, Set, Optional
-from collections import defaultdict
-
-
-def dfs_recursive(graph: Dict[int, List[int]], start: int, visited: Optional[Set[int]] = None) -> List[int]:
-    """
-    Depth-First Search using recursion.
-    
-    Args:
-        graph: Adjacency list representation
-        start: Starting node
-        visited: Set of visited nodes (for tracking)
-    
-    Returns:
-        List of nodes visited in DFS order
-    
-    Time: O(V + E)
-    Space: O(V) for recursion stack + visited set
-    """
-    if visited is None:
-        visited = set()
-    
-    result = []
-    
-    def _dfs(node: int):
-        if node in visited:
-            return
-        
-        visited.add(node)
-        result.append(node)
-        
-        # Visit all unvisited neighbors
-        for neighbor in graph.get(node, []):
-            if neighbor not in visited:
-                _dfs(neighbor)
-    
-    _dfs(start)
-    return result
-
-
-def dfs_iterative(graph: Dict[int, List[int]], start: int) -> List[int]:
-    """
-    Depth-First Search using explicit stack (iterative).
-    
-    Args:
-        graph: Adjacency list representation
-        start: Starting node
-    
-    Returns:
-        List of nodes visited in DFS order
-    
-    Time: O(V + E)
-    Space: O(V) for stack and visited set
-    """
-    visited = set()
-    stack = [start]
-    result = []
-    
-    while stack:
-        node = stack.pop()
-        
-        if node in visited:
-            continue
-        
-        visited.add(node)
-        result.append(node)
-        
-        # Add neighbors in reverse order to maintain left-to-right processing
-        for neighbor in reversed(graph.get(node, [])):
-            if neighbor not in visited:
-                stack.append(neighbor)
-    
-    return result
-
-
-def dfs_all_components(graph: Dict[int, List[int]]) -> List[List[int]]:
-    """
-    Find all connected components using DFS.
-    
-    Returns:
-        List of components, each component is a list of nodes
-    
-    Time: O(V + E)
-    Space: O(V)
-    """
-    visited = set()
-    components = []
-    
-    # Get all nodes (handles isolated nodes)
-    all_nodes = set(graph.keys())
-    for node in graph.values():
-        all_nodes.update(node)
-    
-    for node in all_nodes:
-        if node not in visited:
-            component = dfs_recursive(graph, node, visited)
-            components.append(component)
-    
-    return components
-
-
-def has_cycle_dfs(graph: Dict[int, List[int]]) -> bool:
-    """
-    Detect if graph has a cycle using DFS.
-    
-    Uses three states: 0 = unvisited, 1 = in progress (in current path), 2 = done
-    
-    Args:
-        graph: Adjacency list (assumes directed or undirected)
-    
-    Returns:
-        True if cycle exists, False otherwise
-    
-    Time: O(V + E)
-    Space: O(V)
-    """
-    # 0 = white (unvisited), 1 = gray (in progress), 2 = black (done)
-    state = {}
-    
-    def _has_cycle(node: int, parent: int) -> bool:
-        state[node] = 1  # Mark as in progress
-        
-        for neighbor in graph.get(node, []):
-            if neighbor not in state:
-                if _has_cycle(neighbor, node):
-                    return True
-            elif state[neighbor] == 1 and neighbor != parent:
-                # Found a back edge - cycle detected
-                return True
-        
-        state[node] = 2  # Mark as done
-        return False
-    
-    # Check all nodes (handles disconnected graphs)
-    all_nodes = set(graph.keys())
-    for node in graph.values():
-        all_nodes.update(node)
-    
-    for node in all_nodes:
-        if node not in state:
-            if _has_cycle(node, -1):
-                return True
-    
-    return False
-
-
-def dfs_with_prepost(graph: Dict[int, List[int]], start: int) -> dict:
-    """
-    DFS with pre-order and post-order timestamps.
-    
-    Returns:
-        Dictionary with visited order, entry and exit times
-    
-    Time: O(V + E)
-    Space: O(V)
-    """
-    visited = set()
-    visited_order = []
-    entry_time = {}
-    exit_time = {}
-    time = [0]  # Use list to allow modification in nested function
-    
-    def _dfs(node: int):
-        entry_time[node] = time[0]
-        time[0] += 1
-        
-        visited.add(node)
-        visited_order.append(node)
-        
-        for neighbor in graph.get(node, []):
-            if neighbor not in visited:
-                _dfs(neighbor)
-        
-        exit_time[node] = time[0]
-        time[0] += 1
-    
-    _dfs(start)
-    
-    return {
-        'order': visited_order,
-        'entry': entry_time,
-        'exit': exit_time
-    }
-
-
-# Example usage
-if __name__ == "__main__":
-    print("Graph DFS (Depth-First Search)")
-    print("=" * 40)
-    
-    # Create graph using adjacency list
-    # Graph:
-    #   0 --- 1 --- 2
-    #   |     |
-    #   3 --- 4
-    #   |
-    #   5
-    
-    graph = {
-        0: [1, 3],
-        1: [0, 2, 4],
-        2: [1],
-        3: [0, 4, 5],
-        4: [1, 3],
-        5: [3]
-    }
-    
-    print("\nGraph adjacency list:", dict(graph))
-    print("Graph visualization:")
-    print("  0 --- 1 --- 2")
-    print("  |     |")
-    print("  3 --- 4")
-    print("  |")
-    print("  5")
-    
-    # Test DFS
-    print("\nDFS from node 0 (recursive):", dfs_recursive(graph, 0))
-    print("DFS from node 0 (iterative):", dfs_iterative(graph, 0))
-    
-    # DFS with timestamps
-    result = dfs_with_prepost(graph, 0)
-    print("\nDFS with timestamps:")
-    print(f"  Visit order: {result['order']}")
-    print(f"  Entry times: {result['entry']}")
-    print(f"  Exit times: {result['exit']}")
-    
-    # Cycle detection
-    print("\nCycle detection:")
-    print(f"  Has cycle: {has_cycle_dfs(graph)}")
-    
-    # Add a cycle
-    graph_with_cycle = graph.copy()
-    graph_with_cycle[2].append(0)  # Create cycle: 0-1-2-0
-    print(f"  After adding edge 2->0: {has_cycle_dfs(graph_with_cycle)}")
-    
-    # Connected components
-    print("\nConnected components:")
-    disconnected_graph = {
-        0: [1],
-        1: [0],
-        2: [3],
-        3: [2],
-        4: []  # Isolated node
-    }
-    print(f"  Components: {dfs_all_components(disconnected_graph)}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <stack>
-#include <unordered_set>
-#include <unordered_map>
-using namespace std;
-
-/**
- * Graph DFS Implementation
- * 
- * Time Complexity: O(V + E)
- * Space Complexity: O(V)
- */
-
-// DFS using recursion
-vector<int> dfsRecursive(const unordered_map<int, vector<int>>& graph, int start) {
-    unordered_set<int> visited;
-    vector<int> result;
-    
-    function<void(int)> dfs = [&](int node) {
-        if (visited.count(node)) return;
-        
-        visited.insert(node);
-        result.push_back(node);
-        
-        // Visit all unvisited neighbors
-        auto it = graph.find(node);
-        if (it != graph.end()) {
-            for (int neighbor : it->second) {
-                if (!visited.count(neighbor)) {
-                    dfs(neighbor);
-                }
-            }
-        }
-    };
-    
-    dfs(start);
-    return result;
-}
-
-// DFS using explicit stack (iterative)
-vector<int> dfsIterative(const unordered_map<int, vector<int>>& graph, int start) {
-    unordered_set<int> visited;
-    stack<int> st;
-    vector<int> result;
-    
-    st.push(start);
-    
-    while (!st.empty()) {
-        int node = st.top();
-        st.pop();
-        
-        if (visited.count(node)) continue;
-        
-        visited.insert(node);
-        result.push_back(node);
-        
-        // Add neighbors in reverse order
-        auto it = graph.find(node);
-        if (it != graph.end()) {
-            const auto& neighbors = it->second;
-            for (int i = neighbors.size() - 1; i >= 0; i--) {
-                if (!visited.count(neighbors[i])) {
-                    st.push(neighbors[i]);
-                }
-            }
-        }
-    }
-    
-    return result;
-}
-
-// Detect cycle in graph using DFS
-bool hasCycleDFS(const unordered_map<int, vector<int>>& graph) {
-    unordered_map<int, int> state;  // 0 = unvisited, 1 = in progress, 2 = done
-    
-    function<bool(int, int)> dfs = [&](int node, int parent) -> bool {
-        state[node] = 1;  // Mark as in progress
-        
-        auto it = graph.find(node);
-        if (it != graph.end()) {
-            for (int neighbor : it->second) {
-                if (!state.count(neighbor)) {
-                    if (dfs(neighbor, node)) return true;
-                } else if (state[neighbor] == 1 && neighbor != parent) {
-                    // Found a back edge - cycle detected
-                    return true;
-                }
-            }
-        }
-        
-        state[node] = 2;  // Mark as done
-        return false;
-    };
-    
-    // Check all nodes
-    unordered_set<int> allNodes;
-    for (const auto& pair : graph) {
-        allNodes.insert(pair.first);
-        for (int n : pair.second) {
-            allNodes.insert(n);
-        }
-    }
-    
-    for (int node : allNodes) {
-        if (!state.count(node)) {
-            if (dfs(node, -1)) return true;
-        }
-    }
-    
-    return false;
-}
-
-// Find all connected components
-vector<vector<int>> findAllComponents(const unordered_map<int, vector<int>>& graph) {
-    unordered_set<int> visited;
-    vector<vector<int>> components;
-    
-    function<void(int, vector<int>&)> dfs = [&](int node, vector<int>& component) {
-        visited.insert(node);
-        component.push_back(node);
-        
-        auto it = graph.find(node);
-        if (it != graph.end()) {
-            for (int neighbor : it->second) {
-                if (!visited.count(neighbor)) {
-                    dfs(neighbor, component);
-                }
-            }
-        }
-    };
-    
-    unordered_set<int> allNodes;
-    for (const auto& pair : graph) {
-        allNodes.insert(pair.first);
-        for (int n : pair.second) {
-            allNodes.insert(n);
-        }
-    }
-    
-    for (int node : allNodes) {
-        if (!visited.count(node)) {
-            vector<int> component;
-            dfs(node, component);
-            components.push_back(component);
-        }
-    }
-    
-    return components;
-}
-
-int main() {
-    // Create graph using adjacency list
-    unordered_map<int, vector<int>> graph = {
-        {0, {1, 3}},
-        {1, {0, 2, 4}},
-        {2, {1}},
-        {3, {0, 4, 5}},
-        {4, {1, 3}},
-        {5, {3}}
-    };
-    
-    cout << "Graph DFS (Depth-First Search)" << endl;
-    cout << "==============================" << endl;
-    
-    cout << "\nDFS from node 0 (recursive): ";
-    vector<int> result1 = dfsRecursive(graph, 0);
-    for (int v : result1) cout << v << " ";
-    cout << endl;
-    
-    cout << "DFS from node 0 (iterative): ";
-    vector<int> result2 = dfsIterative(graph, 0);
-    for (int v : result2) cout << v << " ";
-    cout << endl;
-    
-    cout << "\nCycle detection:" << endl;
-    cout << "  Has cycle: " << (hasCycleDFS(graph) ? "Yes" : "No") << endl;
-    
-    // Add a cycle
-    unordered_map<int, vector<int>> graphWithCycle = graph;
-    graphWithCycle[2].push_back(0);
-    cout << "  After adding edge 2->0: " << (hasCycleDFS(graphWithCycle) ? "Yes" : "No") << endl;
-    
-    cout << "\nConnected components:" << endl;
-    unordered_map<int, vector<int>> disconnectedGraph = {
-        {0, {1}},
-        {1, {0}},
-        {2, {3}},
-        {3, {2}},
-        {4, {}}
-    };
-    
-    vector<vector<int>> components = findAllComponents(disconnectedGraph);
-    for (size_t i = 0; i < components.size(); i++) {
-        cout << "  Component " << i + 1 << ": ";
-        for (int v : components[i]) cout << v << " ";
-        cout << endl;
-    }
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-/**
- * Graph DFS Implementation
- * 
- * Time Complexity: O(V + E)
- * Space Complexity: O(V)
- */
-public class GraphDFS {
-    
-    // DFS using recursion
-    public static List<Integer> dfsRecursive(Map<Integer, List<Integer>> graph, int start) {
-        Set<Integer> visited = new HashSet<>();
-        List<Integer> result = new ArrayList<>();
-        
-        dfsHelper(graph, start, visited, result);
-        return result;
-    }
-    
-    private static void dfsHelper(Map<Integer, List<Integer>> graph, int node, 
-                                  Set<Integer> visited, List<Integer> result) {
-        if (visited.contains(node)) return;
-        
-        visited.add(node);
-        result.add(node);
-        
-        List<Integer> neighbors = graph.getOrDefault(node, Collections.emptyList());
-        for (int neighbor : neighbors) {
-            if (!visited.contains(neighbor)) {
-                dfsHelper(graph, neighbor, visited, result);
-            }
-        }
-    }
-    
-    // DFS using explicit stack (iterative)
-    public static List<Integer> dfsIterative(Map<Integer, List<Integer>> graph, int start) {
-        Set<Integer> visited = new HashSet<>();
-        Stack<Integer> stack = new Stack<>();
-        List<Integer> result = new ArrayList<>();
-        
-        stack.push(start);
-        
-        while (!stack.isEmpty()) {
-            int node = stack.pop();
-            
-            if (visited.contains(node)) continue;
-            
-            visited.add(node);
-            result.add(node);
-            
-            // Add neighbors in reverse order
-            List<Integer> neighbors = graph.getOrDefault(node, Collections.emptyList());
-            for (int i = neighbors.size() - 1; i >= 0; i--) {
-                if (!visited.contains(neighbors.get(i))) {
-                    stack.push(neighbors.get(i));
-                }
-            }
-        }
-        
-        return result;
-    }
-    
-    // Detect cycle in graph using DFS
-    public static boolean hasCycleDFS(Map<Integer, List<Integer>> graph) {
-        Map<Integer, Integer> state = new HashMap<>();  // 0 = unvisited, 1 = in progress, 2 = done
-        
-        // Get all nodes
-        Set<Integer> allNodes = new HashSet<>();
-        for (Map.Entry<Integer, List<Integer>> entry : graph.entrySet()) {
-            allNodes.add(entry.getKey());
-            allNodes.addAll(entry.getValue());
-        }
-        
-        for (int node : allNodes) {
-            if (!state.containsKey(node)) {
-                if (dfsCycleHelper(graph, node, -1, state)) {
-                    return true;
-                }
-            }
-        }
-        
-        return false;
-    }
-    
-    private static boolean dfsCycleHelper(Map<Integer, List<Integer>> graph, int node, 
-                                         int parent, Map<Integer, Integer> state) {
-        state.put(node, 1);  // Mark as in progress
-        
-        List<Integer> neighbors = graph.getOrDefault(node, Collections.emptyList());
-        for (int neighbor : neighbors) {
-            if (!state.containsKey(neighbor)) {
-                if (dfsCycleHelper(graph, neighbor, node, state)) {
-                    return true;
-                }
-            } else if (state.get(neighbor) == 1 && neighbor != parent) {
-                // Found a back edge - cycle detected
-                return true;
-            }
-        }
-        
-        state.put(node, 2);  // Mark as done
-        return false;
-    }
-    
-    // Find all connected components
-    public static List<List<Integer>> findAllComponents(Map<Integer, List<Integer>> graph) {
-        Set<Integer> visited = new HashSet<>();
-        List<List<Integer>> components = new ArrayList<>();
-        
-        // Get all nodes
-        Set<Integer> allNodes = new HashSet<>();
-        for (Map.Entry<Integer, List<Integer>> entry : graph.entrySet()) {
-            allNodes.add(entry.getKey());
-            allNodes.addAll(entry.getValue());
-        }
-        
-        for (int node : allNodes) {
-            if (!visited.contains(node)) {
-                List<Integer> component = new ArrayList<>();
-                dfsComponentHelper(graph, node, visited, component);
-                components.add(component);
-            }
-        }
-        
-        return components;
-    }
-    
-    private static void dfsComponentHelper(Map<Integer, List<Integer>> graph, int node,
-                                          Set<Integer> visited, List<Integer> component) {
-        visited.add(node);
-        component.add(node);
-        
-        List<Integer> neighbors = graph.getOrDefault(node, Collections.emptyList());
-        for (int neighbor : neighbors) {
-            if (!visited.contains(neighbor)) {
-                dfsComponentHelper(graph, neighbor, visited, component);
-            }
-        }
-    }
-    
-    public static void main(String[] args) {
-        // Create graph using adjacency list
-        Map<Integer, List<Integer>> graph = new HashMap<>();
-        graph.put(0, Arrays.asList(1, 3));
-        graph.put(1, Arrays.asList(0, 2, 4));
-        graph.put(2, Arrays.asList(1));
-        graph.put(3, Arrays.asList(0, 4, 5));
-        graph.put(4, Arrays.asList(1, 3));
-        graph.put(5, Arrays.asList(3));
-        
-        System.out.println("Graph DFS (Depth-First Search)");
-        System.out.println("==============================");
-        
-        System.out.print("\nDFS from node 0 (recursive): ");
-        System.out.println(dfsRecursive(graph, 0));
-        
-        System.out.print("DFS from node 0 (iterative): ");
-        System.out.println(dfsIterative(graph, 0));
-        
-        System.out.println("\nCycle detection:");
-        System.out.println("  Has cycle: " + hasCycleDFS(graph));
-        
-        // Add a cycle
-        Map<Integer, List<Integer>> graphWithCycle = new HashMap<>(graph);
-        graphWithCycle.put(2, Arrays.asList(1, 0));
-        System.out.println("  After adding edge 2->0: " + hasCycleDFS(graphWithCycle));
-        
-        System.out.println("\nConnected components:");
-        Map<Integer, List<Integer>> disconnectedGraph = new HashMap<>();
-        disconnectedGraph.put(0, Arrays.asList(1));
-        disconnectedGraph.put(1, Arrays.asList(0));
-        disconnectedGraph.put(2, Arrays.asList(3));
-        disconnectedGraph.put(3, Arrays.asList(2));
-        disconnectedGraph.put(4, Collections.emptyList());
-        
-        List<List<Integer>> components = findAllComponents(disconnectedGraph);
-        for (int i = 0; i < components.size(); i++) {
-            System.out.println("  Component " + (i + 1) + ": " + components.get(i));
-        }
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Graph DFS Implementation
- * 
- * Time Complexity: O(V + E)
- * Space Complexity: O(V)
- */
-
-// DFS using recursion
-function dfsRecursive(graph, start) {
-    const visited = new Set();
-    const result = [];
-    
-    function dfs(node) {
-        if (visited.has(node)) return;
-        
-        visited.add(node);
-        result.push(node);
-        
-        const neighbors = graph[node] || [];
-        for (const neighbor of neighbors) {
-            if (!visited.has(neighbor)) {
-                dfs(neighbor);
-            }
-        }
-    }
-    
-    dfs(start);
-    return result;
-}
-
-// DFS using explicit stack (iterative)
-function dfsIterative(graph, start) {
-    const visited = new Set();
-    const stack = [start];
-    const result = [];
-    
-    while (stack.length > 0) {
-        const node = stack.pop();
-        
-        if (visited.has(node)) continue;
-        
-        visited.add(node);
-        result.push(node);
-        
-        // Add neighbors in reverse order
-        const neighbors = (graph[node] || []).slice().reverse();
-        for (const neighbor of neighbors) {
-            if (!visited.has(neighbor)) {
-                stack.push(neighbor);
-            }
-        }
-    }
-    
-    return result;
-}
-
-// Detect cycle in graph using DFS
-function hasCycleDFS(graph) {
-    const state = {};  // 0 = unvisited, 1 = in progress, 2 = done
-    
-    // Get all nodes
-    const allNodes = new Set();
-    for (const [node, neighbors] of Object.entries(graph)) {
-        allNodes.add(parseInt(node));
-        neighbors.forEach(n => allNodes.add(n));
-    }
-    
-    function dfs(node, parent) {
-        state[node] = 1;  // Mark as in progress
-        
-        const neighbors = graph[node] || [];
-        for (const neighbor of neighbors) {
-            if (!(neighbor in state)) {
-                if (dfs(neighbor, node)) return true;
-            } else if (state[neighbor] === 1 && neighbor !== parent) {
-                // Found a back edge - cycle detected
-                return true;
-            }
-        }
-        
-        state[node] = 2;  // Mark as done
-        return false;
-    }
-    
-    for (const node of allNodes) {
-        if (!(node in state)) {
-            if (dfs(node, -1)) return true;
-        }
-    }
-    
-    return false;
-}
-
-// Find all connected components
-function findAllComponents(graph) {
-    const visited = new Set();
-    const components = [];
-    
-    // Get all nodes
-    const allNodes = new Set();
-    for (const [node, neighbors] of Object.entries(graph)) {
-        allNodes.add(parseInt(node));
-        neighbors.forEach(n => allNodes.add(n));
-    }
-    
-    function dfs(node, component) {
-        visited.add(node);
-        component.push(node);
-        
-        const neighbors = graph[node] || [];
-        for (const neighbor of neighbors) {
-            if (!visited.has(neighbor)) {
-                dfs(neighbor, component);
-            }
-        }
-    }
-    
-    for (const node of allNodes) {
-        if (!visited.has(node)) {
-            const component = [];
-            dfs(node, component);
-            components.push(component);
-        }
-    }
-    
-    return components;
-}
-
-// Example usage
-const graph = {
-    0: [1, 3],
-    1: [0, 2, 4],
-    2: [1],
-    3: [0, 4, 5],
-    4: [1, 3],
-    5: [3]
-};
-
-console.log("Graph DFS (Depth-First Search)");
-console.log("==============================");
-
-console.log("\nDFS from node 0 (recursive):", dfsRecursive(graph, 0));
-console.log("DFS from node 0 (iterative):", dfsIterative(graph, 0));
-
-console.log("\nCycle detection:");
-console.log("  Has cycle:", hasCycleDFS(graph));
-
-// Add a cycle
-const graphWithCycle = {
-    ...graph,
-    2: [1, 0]
-};
-console.log("  After adding edge 2->0:", hasCycleDFS(graphWithCycle));
-
-console.log("\nConnected components:");
-const disconnectedGraph = {
-    0: [1],
-    1: [0],
-    2: [3],
-    3: [2],
-    4: []
-};
-console.log("  Components:", findAllComponents(disconnectedGraph));
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Traversal** | O(V + E) | Visit each vertex and edge once |
-| **Cycle Detection** | O(V + E) | DFS with state tracking |
-| **Topological Sort** | O(V + E) | DFS-based with ordering |
-| **Connected Components** | O(V + E) | Run DFS from unvisited nodes |
-| **Path Finding** | O(V + E) | DFS until target found |
-
-### Detailed Breakdown
-
-- **Visited Check**: O(1) using hash set
-- **Neighbor Traversal**: Each edge is examined twice (once from each endpoint) for undirected graphs
-- **Total**: V (vertices) + E (edges) = O(V + E)
-
----
-
-## Space Complexity Analysis
-
-| Component | Space Complexity | Description |
-|-----------|----------------|-------------|
-| **Visited Set** | O(V) | Stores all visited vertices |
-| **Stack (Recursive)** | O(V) | Call stack depth (worst case: linear graph) |
-| **Stack (Iterative)** | O(V) | Explicit stack (worst case: linear graph) |
-| **Result Array** | O(V) | Stores traversal order |
-| **Total** | O(V) | Dominated by above components |
-
-### Space Optimization Tips
-
-1. **Use iterative**: For very deep graphs, avoid stack overflow with iterative version
-2. **Early termination**: Stop traversing when target is found (for path existence)
-3. **In-place marking**: Modify graph structure if allowed to save visited set space
-
----
-
-## Common Variations
-
-### 1. DFS with Path Recording
-
-Track the actual path taken during DFS traversal.
-
-````carousel
-```python
-def dfs_with_path(graph: Dict[int, List[int]], start: int, target: int) -> Optional[List[int]]:
-    """
-    Find path from start to target using DFS.
-    
-    Returns:
-        Path as list of nodes, or None if no path exists
-    
-    Time: O(V + E)
-    Space: O(V)
-    """
-    visited = set()
-    path = []
-    
-    def dfs(node: int) -> bool:
-        if node == target:
-            path.append(node)
-            return True
-        
-        visited.add(node)
-        path.append(node)
-        
-        for neighbor in graph.get(node, []):
-            if neighbor not in visited:
-                if dfs(neighbor):
-                    return True
-        
-        path.pop()  # Backtrack
-        return False
-    
-    if dfs(start):
-        return path
-    return None
-```
-
-<!-- slide -->
-```cpp
-#include <vector>
-#include <unordered_map>
-#include <unordered_set>
-using namespace std;
-
-vector<int> dfsWithPath(const unordered_map<int, vector<int>>& graph, int start, int target) {
-    unordered_set<int> visited;
-    vector<int> path;
-    vector<int> result;
-    bool found = false;
-    
-    function<void(int)> dfs = [&](int node) {
-        if (found) return;
-        if (node == target) {
-            path.push_back(node);
-            result = path;
-            found = true;
-            return;
-        }
-        
-        visited.insert(node);
-        path.push_back(node);
-        
-        auto it = graph.find(node);
-        if (it != graph.end()) {
-            for (int neighbor : it->second) {
-                if (!visited.count(neighbor)) {
-                    dfs(neighbor);
-                    if (found) return;
-                }
-            }
-        }
-        
-        path.pop_back();  // Backtrack
-    };
-    
-    dfs(start);
-    return result;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-public class DFSPath {
-    public static List<Integer> dfsWithPath(Map<Integer, List<Integer>> graph, int start, int target) {
-        Set<Integer> visited = new HashSet<>();
-        List<Integer> path = new ArrayList<>();
-        List<Integer> result = new ArrayList<>();
-        boolean[] found = {false};
-        
-        dfsHelper(graph, start, target, visited, path, result, found);
-        return result;
-    }
-    
-    private static void dfsHelper(Map<Integer, List<Integer>> graph, int node, int target,
-                                  Set<Integer> visited, List<Integer> path, 
-                                  List<Integer> result, boolean[] found) {
-        if (found[0]) return;
-        if (node == target) {
-            path.add(node);
-            result.addAll(path);
-            found[0] = true;
-            return;
-        }
-        
-        visited.add(node);
-        path.add(node);
-        
-        List<Integer> neighbors = graph.getOrDefault(node, Collections.emptyList());
-        for (int neighbor : neighbors) {
-            if (!visited.contains(neighbor)) {
-                dfsHelper(graph, neighbor, target, visited, path, result, found);
-                if (found[0]) return;
-            }
-        }
-        
-        path.remove(path.size() - 1);  // Backtrack
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-function dfsWithPath(graph, start, target) {
-    const visited = new Set();
-    const path = [];
-    const result = [];
-    let found = false;
-    
-    function dfs(node) {
-        if (found) return;
-        if (node === target) {
-            path.push(node);
-            result.push(...path);
-            found = true;
-            return;
-        }
-        
-        visited.add(node);
-        path.push(node);
-        
-        const neighbors = graph[node] || [];
-        for (const neighbor of neighbors) {
-            if (!visited.has(neighbor)) {
-                dfs(neighbor);
-                if (found) return;
-            }
-        }
-        
-        path.pop();  // Backtrack
-    }
-    
-    dfs(start);
-    return result;
-}
-```
-````
-
-### 2. DFS with State Tracking (Cycle Detection)
-
-Three-state approach for detecting cycles in directed graphs.
-
-````carousel
-```python
-def has_cycle_directed(graph: Dict[int, List[int]]) -> bool:
-    """
-    Detect cycle in directed graph using three-state DFS.
-    
-    States: 0 = unvisited, 1 = in current recursion stack, 2 = fully processed
-    
-    Time: O(V + E)
-    Space: O(V)
-    """
-    # 0 = white (unvisited), 1 = gray (in progress), 2 = black (done)
-    state = {}
-    
-    def dfs(node: int) -> bool:
-        state[node] = 1  # Mark as in progress
-        
-        for neighbor in graph.get(node, []):
-            if neighbor not in state:
-                if dfs(neighbor):
-                    return True
-            elif state[neighbor] == 1:
-                # Back edge found - cycle exists
-                return True
-        
-        state[node] = 2  # Mark as done
-        return False
-    
-    # Check all nodes
-    all_nodes = set(graph.keys())
-    for node in graph.values():
-        all_nodes.update(node)
-    
-    for node in all_nodes:
-        if node not in state:
-            if dfs(node):
-                return True
-    
-    return False
-```
-
-<!-- slide -->
-```cpp
-#include <unordered_map>
-#include <vector>
-using namespace std;
-
-bool hasCycleDirected(const unordered_map<int, vector<int>>& graph) {
-    unordered_map<int, int> state;  // 0 = unvisited, 1 = in progress, 2 = done
-    
-    function<bool(int)> dfs = [&](int node) -> bool {
-        state[node] = 1;  // Mark as in progress
-        
-        auto it = graph.find(node);
-        if (it != graph.end()) {
-            for (int neighbor : it->second) {
-                if (!state.count(neighbor)) {
-                    if (dfs(neighbor)) return true;
-                } else if (state[neighbor] == 1) {
-                    // Back edge found - cycle exists
-                    return true;
-                }
-            }
-        }
-        
-        state[node] = 2;  // Mark as done
-        return false;
-    };
-    
-    // Check all nodes
-    unordered_set<int> allNodes;
-    for (const auto& pair : graph) {
-        allNodes.insert(pair.first);
-        for (int n : pair.second) allNodes.insert(n);
-    }
-    
-    for (int node : allNodes) {
-        if (!state.count(node)) {
-            if (dfs(node)) return true;
-        }
-    }
-    
-    return false;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-public class CycleDetection {
-    public static boolean hasCycleDirected(Map<Integer, List<Integer>> graph) {
-        Map<Integer, Integer> state = new HashMap<>();  // 0 = unvisited, 1 = in progress, 2 = done
-        
-        // Get all nodes
-        Set<Integer> allNodes = new HashSet<>();
-        for (Map.Entry<Integer, List<Integer>> entry : graph.entrySet()) {
-            allNodes.add(entry.getKey());
-            allNodes.addAll(entry.getValue());
-        }
-        
-        for (int node : allNodes) {
-            if (!state.containsKey(node)) {
-                if (dfsHelper(graph, node, state)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-    
-    private static boolean dfsHelper(Map<Integer, List<Integer>> graph, int node, 
-                                     Map<Integer, Integer> state) {
-        state.put(node, 1);  // Mark as in progress
-        
-        List<Integer> neighbors = graph.getOrDefault(node, Collections.emptyList());
-        for (int neighbor : neighbors) {
-            if (!state.containsKey(neighbor)) {
-                if (dfsHelper(graph, neighbor, state)) {
-                    return true;
-                }
-            } else if (state.get(neighbor) == 1) {
-                // Back edge found - cycle exists
-                return true;
-            }
-        }
-        
-        state.put(node, 2);  // Mark as done
-        return false;
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-function hasCycleDirected(graph) {
-    const state = {};  // 0 = unvisited, 1 = in progress, 2 = done
-    
-    function dfs(node) {
-        state[node] = 1;  // Mark as in progress
-        
-        const neighbors = graph[node] || [];
-        for (const neighbor of neighbors) {
-            if (!(neighbor in state)) {
-                if (dfs(neighbor)) return true;
-            } else if (state[neighbor] === 1) {
-                // Back edge found - cycle exists
-                return true;
-            }
-        }
-        
-        state[node] = 2;  // Mark as done
-        return false;
-    }
-    
-    // Check all nodes
-    const allNodes = new Set();
-    for (const [node, neighbors] of Object.entries(graph)) {
-        allNodes.add(parseInt(node));
-        neighbors.forEach(n => allNodes.add(n));
-    }
-    
-    for (const node of allNodes) {
-        if (!(node in state)) {
-            if (dfs(node)) return true;
-        }
-    }
-    
-    return false;
-}
-```
-````
-
-### 3. Topological Sort using DFS
-
-Order vertices in a DAG such that for every edge (u, v), u comes before v.
-
-````carousel
-```python
-def topological_sort_dfs(graph: Dict[int, List[int]]) -> List[int]:
-    """
-    Perform topological sort using DFS.
-    
-    Returns:
-        Topological ordering of vertices
-    
-    Time: O(V + E)
-    Space: O(V)
-    """
-    visited = set()
-    result = []
-    
-    def dfs(node: int):
-        visited.add(node)
-        
-        for neighbor in graph.get(node, []):
-            if neighbor not in visited:
-                dfs(neighbor)
-        
-        result.append(node)  # Post-order: add after exploring
-    
-    # Process all nodes
-    all_nodes = set(graph.keys())
-    for node in graph.values():
-        all_nodes.update(node)
-    
-    for node in all_nodes:
-        if node not in visited:
-            dfs(node)
-    
-    return result[::-1]  # Reverse for correct topological order
-```
-
-<!-- slide -->
-```cpp
-#include <vector>
-#include <unordered_map>
-#include <unordered_set>
-#include <algorithm>
-using namespace std;
-
-vector<int> topologicalSortDFS(const unordered_map<int, vector<int>>& graph) {
-    unordered_set<int> visited;
-    vector<int> result;
-    
-    function<void(int)> dfs = [&](int node) {
-        visited.insert(node);
-        
-        auto it = graph.find(node);
-        if (it != graph.end()) {
-            for (int neighbor : it->second) {
-                if (!visited.count(neighbor)) {
-                    dfs(neighbor);
-                }
-            }
-        }
-        
-        result.push_back(node);  // Post-order: add after exploring
-    };
-    
-    // Process all nodes
-    unordered_set<int> allNodes;
-    for (const auto& pair : graph) {
-        allNodes.insert(pair.first);
-        for (int n : pair.second) allNodes.insert(n);
-    }
-    
-    for (int node : allNodes) {
-        if (!visited.count(node)) {
-            dfs(node);
-        }
-    }
-    
-    reverse(result.begin(), result.end());  // Reverse for correct topological order
-    return result;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-public class TopologicalSort {
-    public static List<Integer> topologicalSortDFS(Map<Integer, List<Integer>> graph) {
-        Set<Integer> visited = new HashSet<>();
-        List<Integer> result = new ArrayList<>();
-        
-        // Get all nodes
-        Set<Integer> allNodes = new HashSet<>();
-        for (Map.Entry<Integer, List<Integer>> entry : graph.entrySet()) {
-            allNodes.add(entry.getKey());
-            allNodes.addAll(entry.getValue());
-        }
-        
-        for (int node : allNodes) {
-            if (!visited.contains(node)) {
-                dfsHelper(graph, node, visited, result);
-            }
-        }
-        
-        Collections.reverse(result);  // Reverse for correct topological order
-        return result;
-    }
-    
-    private static void dfsHelper(Map<Integer, List<Integer>> graph, int node,
-                                  Set<Integer> visited, List<Integer> result) {
-        visited.add(node);
-        
-        List<Integer> neighbors = graph.getOrDefault(node, Collections.emptyList());
-        for (int neighbor : neighbors) {
-            if (!visited.contains(neighbor)) {
-                dfsHelper(graph, neighbor, visited, result);
-            }
-        }
-        
-        result.add(node);  // Post-order: add after exploring
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-function topologicalSortDFS(graph) {
-    const visited = new Set();
-    const result = [];
-    
-    function dfs(node) {
-        visited.add(node);
-        
-        const neighbors = graph[node] || [];
-        for (const neighbor of neighbors) {
-            if (!visited.has(neighbor)) {
-                dfs(neighbor);
-            }
-        }
-        
-        result.push(node);  // Post-order: add after exploring
-    }
-    
-    // Process all nodes
-    const allNodes = new Set();
-    for (const [node, neighbors] of Object.entries(graph)) {
-        allNodes.add(parseInt(node));
-        neighbors.forEach(n => allNodes.add(n));
-    }
-    
-    for (const node of allNodes) {
-        if (!visited.has(node)) {
-            dfs(node);
-        }
-    }
-    
-    return result.reverse();  // Reverse for correct topological order
-}
-```
-````
-
-### 4. Number of Islands (Grid DFS)
-
-DFS applied to 2D grid for counting connected components.
-
-````carousel
-```python
-def num_islands(grid: List[List[str]]) -> int:
-    """
-    Count number of islands in a 2D grid.
-    
-    Args:
-        grid: 2D array of '1's (land) and '0's (water)
-    
-    Returns:
-        Number of islands
-    
-    Time: O(V + E) where V = rows * cols
-    Space: O(V) for recursion stack
-    """
-    if not grid or not grid[0]:
-        return 0
-    
-    rows, cols = len(grid), len(grid[0])
-    visited = set()
-    directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-    
-    def dfs(r: int, c: int):
-        if (r, c) in visited or grid[r][c] == '0':
-            return
-        
-        visited.add((r, c))
-        
-        for dr, dc in directions:
-            nr, nc = r + dr, c + dc
-            if 0 <= nr < rows and 0 <= nc < cols:
-                dfs(nr, nc)
-    
-    count = 0
-    for r in range(rows):
-        for c in range(cols):
-            if grid[r][c] == '1' and (r, c) not in visited:
-                dfs(r, c)
-                count += 1
-    
-    return count
-```
-
-<!-- slide -->
-```cpp
-#include <vector>
-#include <unordered_set>
-#include <string>
-using namespace std;
-
-int numIslands(vector<vector<char>>& grid) {
-    if (grid.empty() || grid[0].empty()) return 0;
-    
-    int rows = grid.size();
-    int cols = grid[0].size();
-    vector<vector<bool>> visited(rows, vector<bool>(cols, false));
-    int count = 0;
-    
-    vector<pair<int, int>> directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
-    
-    function<void(int, int)> dfs = [&](int r, int c) {
-        if (r < 0 || r >= rows || c < 0 || c >= cols || 
-            visited[r][c] || grid[r][c] == '0') {
-            return;
-        }
-        
-        visited[r][c] = true;
-        
-        for (auto [dr, dc] : directions) {
-            dfs(r + dr, c + dc);
-        }
-    };
-    
-    for (int r = 0; r < rows; r++) {
-        for (int c = 0; c < cols; c++) {
-            if (grid[r][c] == '1' && !visited[r][c]) {
-                dfs(r, c);
-                count++;
-            }
-        }
-    }
-    
-    return count;
-}
-```
-
-<!-- slide -->
-```java
-public class NumberOfIslands {
-    private static final int[][] DIRECTIONS = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
-    
-    public int numIslands(char[][] grid) {
-        if (grid == null || grid.length == 0 || grid[0].length == 0) {
-            return 0;
-        }
-        
-        int rows = grid.length;
-        int cols = grid[0].length;
-        boolean[][] visited = new boolean[rows][cols];
-        int count = 0;
-        
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                if (grid[r][c] == '1' && !visited[r][c]) {
-                    dfs(grid, r, c, visited);
-                    count++;
-                }
-            }
-        }
-        
-        return count;
-    }
-    
-    private void dfs(char[][] grid, int r, int c, boolean[][] visited) {
-        int rows = grid.length;
-        int cols = grid[0].length;
-        
-        if (r < 0 || r >= rows || c < 0 || c >= cols || 
-            visited[r][c] || grid[r][c] == '0') {
-            return;
-        }
-        
-        visited[r][c] = true;
-        
-        for (int[] dir : DIRECTIONS) {
-            dfs(grid, r + dir[0], c + dir[1], visited);
-        }
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-const DIRECTIONS = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-
-function numIslands(grid) {
-    if (!grid || grid.length === 0 || grid[0].length === 0) {
-        return 0;
-    }
-    
-    const rows = grid.length;
-    const cols = grid[0].length;
-    const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
-    let count = 0;
-    
-    function dfs(r, c) {
-        if (r < 0 || r >= rows || c < 0 || c >= cols || 
-            visited[r][c] || grid[r][c] === '0') {
-            return;
-        }
-        
-        visited[r][c] = true;
-        
-        for (const [dr, dc] of DIRECTIONS) {
-            dfs(r + dr, c + dc);
-        }
-    }
-    
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            if (grid[r][c] === '1' && !visited[r][c]) {
-                dfs(r, c);
-                count++;
-            }
-        }
-    }
-    
-    return count;
-}
-```
-````
-
----
-
-## Example
-
-**Input:**
-```
-Graph adjacency list:
-{
-  0: [1, 3],
-  1: [0, 2, 4],
-  2: [1],
-  3: [0, 4, 5],
-  4: [1, 3],
-  5: [3]
-}
-
-Graph visualization:
-  0 --- 1 --- 2
-  |     |
-  3 --- 4
-  |
-  5
-```
-
-**Output:**
-```
-DFS from node 0 (recursive): [0, 1, 2, 4, 3, 5]
-DFS from node 0 (iterative): [0, 3, 5, 4, 1, 2]
-
-DFS with timestamps:
-  Visit order: [0, 1, 2, 4, 3, 5]
-  Entry times: {0: 0, 1: 1, 2: 2, 4: 3, 3: 4, 5: 5}
-  Exit times: {0: 11, 1: 10, 2: 3, 4: 9, 3: 8, 5: 7}
-
-Cycle detection:
-  Has cycle: False
-  After adding edge 2->0: True
-
-Connected components (for disconnected graph):
-  Components: [[0, 1], [2, 3], [4]]
-
-Explanation:
-- Recursive: visits deep before backtracking [0→1→2→back→4→back→3→5]
-- Iterative: similar but uses explicit stack
-- Entry/exit times useful for tree edge classification
-- Cycle detected when back edge found
-```
+### Why It Works
+
+DFS guarantees complete exploration because:
+1. Every vertex is marked visited when first encountered
+2. All neighbors are explored from each vertex
+3. The algorithm continues until no unvisited vertices remain
+4. For disconnected graphs, we restart DFS from each unvisited component
+
+### Limitations
+
+| Limitation | Description | Mitigation |
+|------------|-------------|------------|
+| **No Shortest Path** | DFS does not find shortest path in unweighted graphs | Use BFS for shortest path |
+| **Stack Overflow** | Recursive DFS can overflow on deep graphs | Use iterative DFS |
+| **Infinite Paths** | Can get stuck exploring infinite paths | Use visited set |
 
 ---
 
@@ -1738,10 +749,13 @@ Explanation:
 
 **Description:** Given a 2D grid of '1's (land) and '0's (water), count the number of islands.
 
-**How to Apply DFS:**
+**How to Apply:**
 - Use DFS to explore each island (connected component of '1's)
 - Mark visited cells to avoid counting them again
 - Increment count when a new unvisited island is found
+- Explore all 4 adjacent directions
+
+**Key Insight:** Each DFS call from an unvisited land cell discovers one complete island.
 
 ---
 
@@ -1751,10 +765,13 @@ Explanation:
 
 **Description:** Determine if you can finish all courses given prerequisites (directed cycle detection).
 
-**How to Apply DFS:**
+**How to Apply:**
 - Build directed graph from prerequisites
 - Use three-state DFS to detect cycles
 - If cycle exists, impossible to complete all courses
+- Otherwise, all courses can be finished
+
+**Key Insight:** Cycle in prerequisite graph means circular dependencies - impossible to satisfy.
 
 ---
 
@@ -1764,36 +781,46 @@ Explanation:
 
 **Description:** Find cells that can reach both Pacific and Atlantic oceans.
 
-**How to Apply DFS:**
-- Run DFS from Pacific border cells
-- Run DFS from Atlantic border cells
+**How to Apply:**
+- Run DFS from Pacific border cells (can flow to Pacific)
+- Run DFS from Atlantic border cells (can flow to Atlantic)
 - Cells visited in both DFS are the answer
+- Water flows from higher/equal to lower/equal elevation
+
+**Key Insight:** Reverse the flow - start from oceans and work backwards to find reachable cells.
 
 ---
 
-### Problem 4: Word Ladder
-
-**Problem:** [LeetCode 127 - Word Ladder](https://leetcode.com/problems/word-ladder/)
-
-**Description:** Find the shortest transformation sequence from beginWord to endWord.
-
-**How to Apply DFS:**
-- Build graph where words are nodes
-- Connect words differing by one letter
-- Use DFS (or BFS for shortest) to find transformation sequence
-
----
-
-### Problem 5: Clone Graph
+### Problem 4: Clone Graph
 
 **Problem:** [LeetCode 133 - Clone Graph](https://leetcode.com/problems/clone-graph/)
 
 **Description:** Deep copy a connected undirected graph.
 
-**How to Apply DFS:**
+**How to Apply:**
 - Use DFS to traverse original graph
-- Maintain a hashmap of cloned nodes
+- Maintain a hashmap of cloned nodes (original -> clone)
 - Recursively clone neighbors while traversing
+- Handle cycles by checking if node already cloned
+
+**Key Insight:** DFS naturally handles the recursive structure of cloning interconnected nodes.
+
+---
+
+### Problem 5: Graph Valid Tree
+
+**Problem:** [LeetCode 261 - Graph Valid Tree](https://leetcode.com/problems/graph-valid-tree/)
+
+**Description:** Given n nodes and edges, determine if they make a valid tree.
+
+**How to Apply:**
+- Check two conditions for a valid tree:
+  1. No cycles (use DFS cycle detection)
+  2. All nodes are connected (single component)
+- Tree with n nodes must have exactly n-1 edges
+- Run DFS to check both conditions
+
+**Key Insight:** A valid tree is a connected acyclic graph. DFS can verify both properties.
 
 ---
 
@@ -1828,8 +855,8 @@ The iterative version uses an explicit stack and has the same time complexity bu
 
 ### Q2: How do you detect cycles in an undirected graph vs directed graph?
 
-**Answer:** 
-- **Unirected**: Track parent node. If you encounter a visited node that is NOT the parent, there's a cycle.
+**Answer:**
+- **Undirected**: Track parent node. If you encounter a visited node that is NOT the parent, there's a cycle.
 - **Directed**: Use three-state approach (0=unvisited, 1=in progress, 2=done). If you encounter a node in state 1 (in progress), there's a cycle.
 
 ### Q3: Can DFS find the shortest path?
@@ -1844,7 +871,7 @@ The iterative version uses an explicit stack and has the same time complexity bu
 
 Post-order is useful for:
 - Topological sorting
-- Deleting/nodes in trees
+- Deleting nodes in trees
 - Computing subtree sizes
 
 ### Q5: How does memoization work with DFS?
@@ -1862,30 +889,29 @@ This transforms exponential DFS into polynomial time for problems with optimal s
 
 Depth-First Search (DFS) is a versatile graph traversal algorithm essential for solving many graph and tree problems. Key takeaways:
 
+### Core Concepts
 - **Go Deep First**: Explore one branch completely before backtracking
 - **Time Complexity**: O(V + E) - visits each vertex and edge once
 - **Space Complexity**: O(V) - for visited set and stack
 - **Two Implementations**: Recursive (elegant) vs Iterative (memory-safe)
 
-When to use:
+### When to Use
 - ✅ Cycle detection in graphs
 - ✅ Topological sorting
 - ✅ Finding connected components
 - ✅ Path finding (not necessarily shortest)
 - ✅ Tree/graph traversal problems
+- ✅ Backtracking and exhaustive search
 
-When not to use:
+### When NOT to Use
 - ❌ Shortest path in unweighted graphs (use BFS instead)
 - ❌ Very deep graphs without iterative optimization
 - ❌ When path order matters (BFS provides level-order)
 
+### Implementation Tips
+1. Always use visited set to prevent infinite loops
+2. For directed cycle detection, use three-state approach
+3. Consider iterative implementation for deep graphs
+4. Use timestamps for edge classification problems
+
 DFS is the foundation for many advanced algorithms including topological sort, strongly connected components, and is frequently combined with memoization for dynamic programming solutions.
-
----
-
-## Related Algorithms
-
-- [BFS Level Order](./bfs-level-order.md) - Breadth-first traversal
-- [Detect Cycle](./detect-cycle.md) - Cycle detection algorithms
-- [Binary Lifting](./binary-lifting.md) - Tree ancestor queries
-- [Topological Sort](./topological-sort.md) - DAG ordering

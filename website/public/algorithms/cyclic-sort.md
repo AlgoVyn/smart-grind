@@ -7,17 +7,449 @@ Arrays & Strings
 
 Cyclic Sort is an **in-place sorting algorithm** that works optimally for arrays containing numbers in a **specific range** (typically 1 to n or 0 to n-1). It places each element at its correct index by cycling through the array, achieving O(n) time complexity with O(1) space complexity - making it one of the most efficient sorting algorithms for constrained input ranges.
 
+This pattern is fundamental in competitive programming and technical interviews for finding missing numbers, finding duplicates, and sorting constrained arrays efficiently.
+
+---
+
+## Concepts
+
+The Cyclic Sort technique is built on several fundamental concepts that make it powerful for solving constrained array problems.
+
+### 1. Index Mapping
+
+Each element's value tells us exactly where it should be placed. For an array with n elements containing values from 1 to n:
+
+| Value | Target Index | Formula |
+|-------|--------------|---------|
+| 1 | 0 | value - 1 |
+| 2 | 1 | value - 1 |
+| k | k - 1 | value - 1 |
+| n | n - 1 | value - 1 |
+
+This one-to-one mapping enables O(1) placement decisions.
+
+### 2. Cycle Detection
+
+The algorithm detects cycles when elements are already in place or when duplicates exist:
+
+```
+If arr[i] == arr[correct_idx]:
+    - Element is already correct, OR
+    - A duplicate exists at target position
+```
+
+### 3. In-Place Swapping
+
+Elements are swapped directly to their target positions without extra storage:
+
+```
+New position = value - 1
+Swap arr[i] with arr[new_position]
+```
+
+### 4. Incremental Progress
+
+Each swap places at least one element correctly:
+
+- **Best case**: Element already in correct position → move forward
+- **Swap case**: Element moved to correct position → stay at same index
+- **Worst case**: O(n) swaps total (each element moved at most once)
+
+---
+
+## Frameworks
+
+Structured approaches for solving cyclic sort problems.
+
+### Framework 1: Standard Cyclic Sort Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  STANDARD CYCLIC SORT FRAMEWORK                     │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize i = 0                                 │
+│  2. While i < n:                                   │
+│     a. Calculate correct_idx = arr[i] - 1          │
+│     b. If arr[i] != arr[correct_idx]:              │
+│        - Swap arr[i] with arr[correct_idx]         │
+│        - Stay at i (check new element at i)        │
+│     c. Else:                                         │
+│        - Increment i (element in correct place)    │
+│  3. Return sorted array                              │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Values in range [1, n], need to sort array in-place.
+
+### Framework 2: Find Missing Number Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  FIND MISSING NUMBER FRAMEWORK                      │
+├─────────────────────────────────────────────────────┤
+│  1. Apply cyclic sort to place elements              │
+│     - Ignore values outside range [1, n]           │
+│     - Skip duplicates (don't swap if equal)        │
+│  2. Scan sorted array:                               │
+│     - Find first index where arr[i] != i + 1       │
+│  3. Missing number = index + 1                       │
+│  4. If all match, missing number = n + 1           │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Array has n elements with values in [1, n+1], one number missing.
+
+### Framework 3: Find Duplicates Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  FIND DUPLICATES FRAMEWORK                          │
+├─────────────────────────────────────────────────────┤
+│  1. Apply cyclic sort                               │
+│  2. During sorting, detect duplicates:              │
+│     - If arr[i] == arr[correct_idx] AND i != correct │
+│       → Found duplicate!                            │
+│  3. Collect all duplicates found during process     │
+│  4. Alternative: After sort, scan for arr[i]==arr[i+1]│
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Need to find all duplicate numbers in constrained range.
+
+---
+
+## Forms
+
+Different manifestations of the cyclic sort pattern.
+
+### Form 1: Standard Range [1, n]
+
+Array contains values from 1 to n, each appearing once.
+
+| Step | Action | Time |
+|------|--------|------|
+| Place element | Swap to correct index | O(1) |
+| Check placement | Verify arr[i] == i + 1 | O(1) |
+| Complete sort | Each element moved at most once | O(n) |
+
+### Form 2: Range [0, n-1]
+
+Array contains values from 0 to n-1.
+
+| Formula | Standard [1,n] | Zero-based [0,n-1] |
+|---------|----------------|-------------------|
+| Correct index | arr[i] - 1 | arr[i] |
+| First element | goes to index 0 | stays at index 0 |
+
+**Adjustment**: Remove the `- 1` from the index calculation.
+
+### Form 3: With Missing Numbers
+
+Array has values in range but some are missing.
+
+```
+Example: [4, 3, 2, 7, 8, 2, 3, 1]
+After cyclic sort: [1, 2, 3, 4, 3, 2, 7, 8]
+Index scan: position 4 has 3 (should be 5), position 5 has 2 (should be 6)
+Missing: 5, 6
+```
+
+### Form 4: With Duplicates
+
+Array has n+1 elements in range [1, n], one duplicate exists.
+
+```
+Example: [1, 3, 4, 2, 2]  (n=4, but 5 elements)
+During sort: when trying to place second 2, find 2 already at position 1
+Duplicate detected: 2
+```
+
+### Form 5: First Missing Positive
+
+Handle arbitrary integers, find smallest missing positive.
+
+```
+Strategy:
+1. Ignore non-positive numbers and numbers > n
+2. Place valid numbers at correct indices
+3. Scan for first position where arr[i] != i + 1
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Bounds Checking
+
+Handle values outside the expected range:
+
+```python
+def cyclic_sort_with_bounds(nums):
+    """Sort with bounds checking for first missing positive."""
+    i = 0
+    n = len(nums)
+    while i < n:
+        correct_idx = nums[i] - 1
+        # Only place if in valid range and not already correct
+        if 0 <= correct_idx < n and nums[i] != nums[correct_idx]:
+            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
+        else:
+            i += 1
+    return nums
+```
+
+### Tactic 2: Duplicate Detection During Sort
+
+Detect duplicates without extra space:
+
+```python
+def find_duplicate(nums):
+    """Find duplicate using cyclic sort principle."""
+    i = 0
+    while i < len(nums):
+        correct_idx = nums[i] - 1
+        if nums[i] != nums[correct_idx]:
+            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
+        else:
+            if i != correct_idx:  # Duplicate found!
+                return nums[i]
+            i += 1
+    return -1
+```
+
+### Tactic 3: Find All Missing Numbers
+
+Scan after sorting to find all missing:
+
+```python
+def find_all_missing(nums):
+    """Find all missing numbers in range [1, n]."""
+    i = 0
+    n = len(nums)
+    while i < n:
+        correct_idx = nums[i] - 1
+        if 0 <= correct_idx < n and nums[i] != nums[correct_idx]:
+            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
+        else:
+            i += 1
+    
+    # Collect missing numbers
+    missing = []
+    for i in range(n):
+        if nums[i] != i + 1:
+            missing.append(i + 1)
+    return missing
+```
+
+### Tactic 4: Set Mismatch (Duplicate + Missing)
+
+Find both duplicate and missing in one pass:
+
+```python
+def find_error_nums(nums):
+    """Find [duplicate, missing]."""
+    i = 0
+    while i < len(nums):
+        correct_idx = nums[i] - 1
+        if nums[i] != nums[correct_idx]:
+            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
+        else:
+            i += 1
+    
+    for i in range(len(nums)):
+        if nums[i] != i + 1:
+            return [nums[i], i + 1]  # [duplicate, missing]
+    return [-1, -1]
+```
+
+### Tactic 5: Handling Negative Numbers
+
+Ignore negatives when finding first missing positive:
+
+```python
+def first_missing_positive(nums):
+    """Find smallest missing positive integer."""
+    n = len(nums)
+    i = 0
+    while i < n:
+        correct_idx = nums[i] - 1
+        # Only place if positive, in range, and not already correct
+        if (0 < nums[i] <= n and 
+            nums[i] != nums[correct_idx]):
+            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
+        else:
+            i += 1
+    
+    for i in range(n):
+        if nums[i] != i + 1:
+            return i + 1
+    return n + 1
+```
+
+### Tactic 6: Zero-Based Index Adjustment
+
+For arrays with values [0, n-1]:
+
+```python
+def cyclic_sort_zero_based(nums):
+    """Cyclic sort for range [0, n-1]."""
+    i = 0
+    while i < len(nums):
+        correct_idx = nums[i]  # No -1 needed
+        if nums[i] != nums[correct_idx]:
+            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
+        else:
+            i += 1
+    return nums
+```
+
+---
+
+## Python Templates
+
+### Template 1: Standard Cyclic Sort
+
+```python
+def cyclic_sort(nums: list[int]) -> list[int]:
+    """
+    Template 1: Standard cyclic sort for range [1, n].
+    Time: O(n), Space: O(1)
+    """
+    i = 0
+    while i < len(nums):
+        correct_idx = nums[i] - 1
+        if nums[i] != nums[correct_idx]:
+            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
+        else:
+            i += 1
+    return nums
+```
+
+### Template 2: Find Missing Number
+
+```python
+def find_missing_number(nums: list[int]) -> int:
+    """
+    Template 2: Find missing number in range [0, n].
+    Time: O(n), Space: O(1)
+    """
+    i = 0
+    n = len(nums)
+    while i < n:
+        correct_idx = nums[i]
+        if 0 <= correct_idx < n and nums[i] != nums[correct_idx]:
+            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
+        else:
+            i += 1
+    
+    for i in range(n):
+        if nums[i] != i:
+            return i
+    return n
+```
+
+### Template 3: Find All Missing Numbers
+
+```python
+def find_all_missing_numbers(nums: list[int]) -> list[int]:
+    """
+    Template 3: Find all missing numbers in range [1, n].
+    Time: O(n), Space: O(1) excluding output
+    """
+    i = 0
+    while i < len(nums):
+        correct_idx = nums[i] - 1
+        if 0 <= correct_idx < len(nums) and nums[i] != nums[correct_idx]:
+            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
+        else:
+            i += 1
+    
+    missing = []
+    for i in range(len(nums)):
+        if nums[i] != i + 1:
+            missing.append(i + 1)
+    return missing
+```
+
+### Template 4: Find Duplicate Number
+
+```python
+def find_duplicate_number(nums: list[int]) -> int:
+    """
+    Template 4: Find duplicate in array of n+1 elements with values in [1, n].
+    Time: O(n), Space: O(1)
+    """
+    i = 0
+    while i < len(nums):
+        if nums[i] != i + 1:
+            correct_idx = nums[i] - 1
+            if nums[i] == nums[correct_idx]:
+                return nums[i]  # Found duplicate
+            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
+        else:
+            i += 1
+    return -1
+```
+
+### Template 5: First Missing Positive
+
+```python
+def first_missing_positive(nums: list[int]) -> int:
+    """
+    Template 5: Find first missing positive integer.
+    Handles arbitrary integers including negatives.
+    Time: O(n), Space: O(1)
+    """
+    n = len(nums)
+    i = 0
+    while i < n:
+        correct_idx = nums[i] - 1
+        if (0 < nums[i] <= n and 
+            nums[i] != nums[correct_idx]):
+            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
+        else:
+            i += 1
+    
+    for i in range(n):
+        if nums[i] != i + 1:
+            return i + 1
+    return n + 1
+```
+
+### Template 6: Set Mismatch
+
+```python
+def set_mismatch(nums: list[int]) -> list[int]:
+    """
+    Template 6: Find [duplicate, missing] in set 1..n with one error.
+    Time: O(n), Space: O(1)
+    """
+    i = 0
+    while i < len(nums):
+        correct_idx = nums[i] - 1
+        if nums[i] != nums[correct_idx]:
+            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
+        else:
+            i += 1
+    
+    for i in range(len(nums)):
+        if nums[i] != i + 1:
+            return [nums[i], i + 1]
+    return [-1, -1]
+```
+
 ---
 
 ## When to Use
 
 Use the Cyclic Sort algorithm when you need to solve problems involving:
 
-- **Arrays with values in range [1, n] or [0, n-1]**: When elements are unique and fall within a known, constrained range
+- **Arrays with values in range [1, n] or [0, n-1]**: When elements are in a known, constrained range
 - **Finding missing numbers**: Efficiently identify which numbers are missing from a sequence
-- **Finding duplicate numbers**: Identify which numbers appear more than once in a sequence
+- **Finding duplicate numbers**: Identify which numbers appear more than once
 - **In-place sorting requirements**: When you need O(1) extra space and O(n) time complexity
-- **Cycle detection in arrays**: Problems involving cycles or misplaced elements
 
 ### Comparison with Alternatives
 
@@ -27,9 +459,9 @@ Use the Cyclic Sort algorithm when you need to solve problems involving:
 | **Quicksort** | O(n log n) avg | O(log n) | General purpose sorting |
 | **Merge Sort** | O(n log n) | O(n) | Stable sorting, linked lists |
 | **Counting Sort** | O(n + k) | O(k) | Small range of integers |
-| **Bucket Sort** | O(n + k) | O(n + k) | Uniformly distributed data |
+| **Hash Set** | O(n) | O(n) | Finding duplicates with any range |
 
-### When to Choose Cyclic Sort vs Other Sorting Algorithms
+### When to Choose Cyclic Sort vs Other Approaches
 
 - **Choose Cyclic Sort** when:
   - Array contains unique integers in range [1, n] or [0, n-1]
@@ -41,9 +473,10 @@ Use the Cyclic Sort algorithm when you need to solve problems involving:
   - Elements are not necessarily unique
   - You can afford O(k) extra space
 
-- **Choose Quicksort/Merge Sort** when:
+- **Choose Hash Set** when:
   - Values are not in a constrained range
-  - You need a general-purpose sorting algorithm
+  - You need to find duplicates in arbitrary arrays
+  - O(n) space is acceptable
 
 ---
 
@@ -75,28 +508,28 @@ For array `[3, 1, 5, 4, 2]`:
 
 ```
 Initial: [3, 1, 5, 4, 2]
-           ↑
-         i=0, val=3, correct_idx=2
+            ↑
+          i=0, val=3, correct_idx=2
 
 Step 1:  Swap arr[0] and arr[2]
-         [5, 1, 3, 4, 2]
-          ↑
-         i=0, val=5, correct_idx=4
+          [5, 1, 3, 4, 2]
+           ↑
+          i=0, val=5, correct_idx=4
 
 Step 2:  Swap arr[0] and arr[4]
-         [2, 1, 3, 4, 5]
-          ↑
-         i=0, val=2, correct_idx=1
+          [2, 1, 3, 4, 5]
+           ↑
+          i=0, val=2, correct_idx=1
 
 Step 3:  Swap arr[0] and arr[1]
-         [1, 2, 3, 4, 5]
-          ↑
-         i=0, val=1, correct_idx=0 ✓ (correct place)
+          [1, 2, 3, 4, 5]
+           ↑
+          i=0, val=1, correct_idx=0 ✓ (correct place)
 
 Step 4:  Move to i=1
-         [1, 2, 3, 4, 5]
-             ↑
-         i=1, val=2, correct_idx=1 ✓ (already correct)
+          [1, 2, 3, 4, 5]
+              ↑
+          i=1, val=2, correct_idx=1 ✓ (already correct)
 
 Continue... all elements are now in correct positions!
 ```
@@ -105,596 +538,18 @@ Continue... all elements are now in correct positions!
 
 Each element is swapped at most once to reach its correct position. Even though we have nested logic (while loop inside for loop), each swap places at least one element correctly, and we never move an element out of its correct position once placed.
 
+**Proof**: Each iteration either:
+1. Places one element in its correct position (swap case), OR
+2. Moves the pointer forward (element already in place)
+
+Since we can place at most n elements correctly, and we move the pointer n times, total operations ≤ 2n = O(n).
+
 ### Limitations
 
 - **Only works for specific ranges**: Values must be in range [1, n] or [0, n-1]
 - **Requires unique values** (for the basic version): Duplicates need special handling
 - **Modifies the original array**: Sorts in-place
 - **Not a stable sort**: Relative order of equal elements is not preserved
-
----
-
-## Algorithm Steps
-
-### Basic Cyclic Sort
-
-1. **Initialize pointer**: Set `i = 0` to start at the first element
-2. **Calculate correct index**: For element at `arr[i]`, compute `correct_idx = arr[i] - 1`
-3. **Check placement**:
-   - If `arr[i] == arr[correct_idx]`: Element is in correct position (or duplicate), increment `i`
-   - Else: Swap `arr[i]` with `arr[correct_idx]` (don't increment `i`)
-4. **Repeat** until `i` reaches the end of the array
-
-### For Finding Missing Numbers
-
-1. **Apply cyclic sort** to place all possible elements in their correct positions
-2. **Scan the sorted array**: Find indices where `arr[i] != i + 1`
-3. **Missing number** at index `i` is `i + 1`
-
-### For Finding Duplicates
-
-1. **Apply cyclic sort**: During sorting, if `arr[i] == arr[correct_idx]` before swapping, it's a duplicate
-2. **Collect duplicates**: Store all such values found during the process
-
----
-
-## Implementation
-
-````carousel
-```python
-def cyclic_sort(nums):
-    """
-    Cyclic Sort - sort array with values in range [1, n]
-    Time: O(n), Space: O(1)
-    
-    Args:
-        nums: List of integers with values in range [1, len(nums)]
-    
-    Returns:
-        Sorted array (modified in place)
-    """
-    i = 0
-    while i < len(nums):
-        # Calculate correct index (value - 1 because 0-indexed)
-        correct_idx = nums[i] - 1
-        
-        # Swap if element is not at correct position
-        if nums[i] != nums[correct_idx]:
-            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
-        else:
-            i += 1
-    
-    return nums
-
-
-def find_missing_number(nums):
-    """
-    Find the missing number in range [1, n] using cyclic sort.
-    Time: O(n), Space: O(1)
-    """
-    i = 0
-    while i < len(nums):
-        correct_idx = nums[i] - 1
-        if 0 <= correct_idx < len(nums) and nums[i] != nums[correct_idx]:
-            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
-        else:
-            i += 1
-    
-    # Find the missing number
-    for i in range(len(nums)):
-        if nums[i] != i + 1:
-            return i + 1
-    
-    return len(nums) + 1
-
-
-def find_all_missing_numbers(nums):
-    """
-    Find all missing numbers in range [1, n].
-    Time: O(n), Space: O(1) excluding output
-    """
-    i = 0
-    while i < len(nums):
-        correct_idx = nums[i] - 1
-        if 0 <= correct_idx < len(nums) and nums[i] != nums[correct_idx]:
-            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
-        else:
-            i += 1
-    
-    missing = []
-    for i in range(len(nums)):
-        if nums[i] != i + 1:
-            missing.append(i + 1)
-    
-    return missing
-
-
-def find_duplicate(nums):
-    """
-    Find the duplicate number in array containing n+1 integers 
-    where each integer is between 1 and n (inclusive).
-    Time: O(n), Space: O(1)
-    """
-    i = 0
-    while i < len(nums):
-        if nums[i] != i + 1:
-            correct_idx = nums[i] - 1
-            if nums[i] == nums[correct_idx]:
-                return nums[i]  # Found duplicate
-            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
-        else:
-            i += 1
-    return -1
-
-
-# Example usage
-if __name__ == "__main__":
-    # Test cyclic sort
-    nums = [3, 1, 5, 4, 2]
-    print(f"Original: {nums}")
-    print(f"Sorted: {cyclic_sort(nums.copy())}")
-    
-    # Test find missing
-    nums2 = [4, 3, 2, 7, 8, 2, 3, 1]
-    print(f"\nAll missing in {nums2}: {find_all_missing_numbers(nums2.copy())}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-using namespace std;
-
-/**
- * Cyclic Sort - sort array with values in range [1, n]
- * Time: O(n), Space: O(1)
- */
-class CyclicSort {
-public:
-    static void sort(vector<int>& nums) {
-        int i = 0;
-        while (i < nums.size()) {
-            int correctIdx = nums[i] - 1;
-            
-            // Swap if element is not at correct position
-            if (nums[i] != nums[correctIdx]) {
-                swap(nums[i], nums[correctIdx]);
-            } else {
-                i++;
-            }
-        }
-    }
-    
-    static int findMissingNumber(vector<int>& nums) {
-        int i = 0;
-        while (i < nums.size()) {
-            int correctIdx = nums[i] - 1;
-            if (correctIdx >= 0 && correctIdx < nums.size() && 
-                nums[i] != nums[correctIdx]) {
-                swap(nums[i], nums[correctIdx]);
-            } else {
-                i++;
-            }
-        }
-        
-        // Find the missing number
-        for (int i = 0; i < nums.size(); i++) {
-            if (nums[i] != i + 1) {
-                return i + 1;
-            }
-        }
-        return nums.size() + 1;
-    }
-    
-    static vector<int> findAllMissingNumbers(vector<int>& nums) {
-        int i = 0;
-        while (i < nums.size()) {
-            int correctIdx = nums[i] - 1;
-            if (correctIdx >= 0 && correctIdx < nums.size() && 
-                nums[i] != nums[correctIdx]) {
-                swap(nums[i], nums[correctIdx]);
-            } else {
-                i++;
-            }
-        }
-        
-        vector<int> missing;
-        for (int i = 0; i < nums.size(); i++) {
-            if (nums[i] != i + 1) {
-                missing.push_back(i + 1);
-            }
-        }
-        return missing;
-    }
-    
-    static int findDuplicate(vector<int>& nums) {
-        int i = 0;
-        while (i < nums.size()) {
-            if (nums[i] != i + 1) {
-                int correctIdx = nums[i] - 1;
-                if (nums[i] == nums[correctIdx]) {
-                    return nums[i];  // Found duplicate
-                }
-                swap(nums[i], nums[correctIdx]);
-            } else {
-                i++;
-            }
-        }
-        return -1;
-    }
-};
-
-int main() {
-    vector<int> nums = {3, 1, 5, 4, 2};
-    
-    cout << "Original: ";
-    for (int x : nums) cout << x << " ";
-    cout << endl;
-    
-    CyclicSort::sort(nums);
-    
-    cout << "Sorted: ";
-    for (int x : nums) cout << x << " ";
-    cout << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Cyclic Sort - sort array with values in range [1, n]
- * Time: O(n), Space: O(1)
- */
-public class CyclicSort {
-    
-    public static void sort(int[] nums) {
-        int i = 0;
-        while (i < nums.length) {
-            int correctIdx = nums[i] - 1;
-            
-            // Swap if element is not at correct position
-            if (nums[i] != nums[correctIdx]) {
-                int temp = nums[i];
-                nums[i] = nums[correctIdx];
-                nums[correctIdx] = temp;
-            } else {
-                i++;
-            }
-        }
-    }
-    
-    public static int findMissingNumber(int[] nums) {
-        int i = 0;
-        while (i < nums.length) {
-            int correctIdx = nums[i] - 1;
-            if (correctIdx >= 0 && correctIdx < nums.length && 
-                nums[i] != nums[correctIdx]) {
-                int temp = nums[i];
-                nums[i] = nums[correctIdx];
-                nums[correctIdx] = temp;
-            } else {
-                i++;
-            }
-        }
-        
-        // Find the missing number
-        for (i = 0; i < nums.length; i++) {
-            if (nums[i] != i + 1) {
-                return i + 1;
-            }
-        }
-        return nums.length + 1;
-    }
-    
-    public static List<Integer> findAllMissingNumbers(int[] nums) {
-        int i = 0;
-        while (i < nums.length) {
-            int correctIdx = nums[i] - 1;
-            if (correctIdx >= 0 && correctIdx < nums.length && 
-                nums[i] != nums[correctIdx]) {
-                int temp = nums[i];
-                nums[i] = nums[correctIdx];
-                nums[correctIdx] = temp;
-            } else {
-                i++;
-            }
-        }
-        
-        List<Integer> missing = new ArrayList<>();
-        for (i = 0; i < nums.length; i++) {
-            if (nums[i] != i + 1) {
-                missing.add(i + 1);
-            }
-        }
-        return missing;
-    }
-    
-    public static int findDuplicate(int[] nums) {
-        int i = 0;
-        while (i < nums.length) {
-            if (nums[i] != i + 1) {
-                int correctIdx = nums[i] - 1;
-                if (nums[i] == nums[correctIdx]) {
-                    return nums[i];  // Found duplicate
-                }
-                int temp = nums[i];
-                nums[i] = nums[correctIdx];
-                nums[correctIdx] = temp;
-            } else {
-                i++;
-            }
-        }
-        return -1;
-    }
-    
-    public static void main(String[] args) {
-        int[] nums = {3, 1, 5, 4, 2};
-        
-        System.out.print("Original: ");
-        for (int x : nums) System.out.print(x + " ");
-        System.out.println();
-        
-        sort(nums);
-        
-        System.out.print("Sorted: ");
-        for (int x : nums) System.out.print(x + " ");
-        System.out.println();
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Cyclic Sort - sort array with values in range [1, n]
- * Time: O(n), Space: O(1)
- */
-
-class CyclicSort {
-    static sort(nums) {
-        let i = 0;
-        while (i < nums.length) {
-            const correctIdx = nums[i] - 1;
-            
-            // Swap if element is not at correct position
-            if (nums[i] !== nums[correctIdx]) {
-                [nums[i], nums[correctIdx]] = [nums[correctIdx], nums[i]];
-            } else {
-                i++;
-            }
-        }
-        return nums;
-    }
-    
-    static findMissingNumber(nums) {
-        let i = 0;
-        while (i < nums.length) {
-            const correctIdx = nums[i] - 1;
-            if (correctIdx >= 0 && correctIdx < nums.length && 
-                nums[i] !== nums[correctIdx]) {
-                [nums[i], nums[correctIdx]] = [nums[correctIdx], nums[i]];
-            } else {
-                i++;
-            }
-        }
-        
-        // Find the missing number
-        for (let i = 0; i < nums.length; i++) {
-            if (nums[i] !== i + 1) {
-                return i + 1;
-            }
-        }
-        return nums.length + 1;
-    }
-    
-    static findAllMissingNumbers(nums) {
-        let i = 0;
-        while (i < nums.length) {
-            const correctIdx = nums[i] - 1;
-            if (correctIdx >= 0 && correctIdx < nums.length && 
-                nums[i] !== nums[correctIdx]) {
-                [nums[i], nums[correctIdx]] = [nums[correctIdx], nums[i]];
-            } else {
-                i++;
-            }
-        }
-        
-        const missing = [];
-        for (let i = 0; i < nums.length; i++) {
-            if (nums[i] !== i + 1) {
-                missing.push(i + 1);
-            }
-        }
-        return missing;
-    }
-    
-    static findDuplicate(nums) {
-        let i = 0;
-        while (i < nums.length) {
-            if (nums[i] !== i + 1) {
-                const correctIdx = nums[i] - 1;
-                if (nums[i] === nums[correctIdx]) {
-                    return nums[i];  // Found duplicate
-                }
-                [nums[i], nums[correctIdx]] = [nums[correctIdx], nums[i]];
-            } else {
-                i++;
-            }
-        }
-        return -1;
-    }
-}
-
-// Example usage
-const nums = [3, 1, 5, 4, 2];
-console.log("Original:", nums);
-console.log("Sorted:", CyclicSort.sort([...nums]));
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Sorting** | O(n) | Each element is swapped at most once to its correct position |
-| **Finding Missing Number** | O(n) | O(n) for sorting + O(n) for scanning = O(n) |
-| **Finding Duplicate** | O(n) | O(n) for sorting + O(n) for detection = O(n) |
-| **Finding All Missing** | O(n) | O(n) for sorting + O(n) for scanning = O(n) |
-
-### Detailed Breakdown
-
-- **Outer while loop**: Runs n times in the worst case
-- **Inner swap operations**: Each swap places at least one element correctly
-- **Total swaps**: At most n swaps (each element moved to correct place once)
-- **Why not O(n²)?**: Unlike bubble sort, we don't revisit correctly placed elements
-
-### Proof of O(n) Complexity
-
-Each iteration either:
-1. Places one element in its correct position (swap case), OR
-2. Moves the pointer forward (element already in place)
-
-Since we can place at most n elements correctly, and we move the pointer n times, total operations ≤ 2n = O(n).
-
----
-
-## Space Complexity Analysis
-
-| Aspect | Space Complexity | Description |
-|--------|------------------|-------------|
-| **Main Algorithm** | O(1) | In-place sorting, only uses a few variables |
-| **Output (missing numbers)** | O(k) | Where k is the count of missing numbers |
-
-### Space Breakdown
-
-- **Input array**: Modified in-place
-- **Variables**: Only need index variable `i` and temporary swap variable
-- **No recursion**: Iterative approach
-- **No auxiliary data structures**: Unlike merge sort which needs O(n) extra space
-
----
-
-## Common Variations
-
-### 1. Cyclic Sort with Duplicates (0 to n-1 range)
-
-When array contains numbers from 0 to n-1 instead of 1 to n:
-
-````carousel
-```python
-def cyclic_sort_zero_based(nums):
-    """
-    Cyclic Sort for range [0, n-1]
-    Time: O(n), Space: O(1)
-    """
-    i = 0
-    while i < len(nums):
-        correct_idx = nums[i]  # No -1 needed for 0-based
-        
-        if nums[i] != nums[correct_idx]:
-            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
-        else:
-            i += 1
-    
-    return nums
-```
-````
-
-### 2. Find the Duplicate Number (LeetCode 287)
-
-When array has n+1 integers where each integer is between 1 and n:
-
-````carousel
-```python
-def find_duplicate(nums):
-    """
-    Find duplicate using cyclic sort principle.
-    Time: O(n), Space: O(1)
-    """
-    i = 0
-    while i < len(nums):
-        correct_idx = nums[i] - 1
-        
-        if nums[i] != nums[correct_idx]:
-            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
-        else:
-            if i != correct_idx:  # Duplicate found!
-                return nums[i]
-            i += 1
-    
-    return -1
-```
-````
-
-### 3. First Missing Positive (LeetCode 41)
-
-Find the smallest missing positive integer:
-
-````carousel
-```python
-def first_missing_positive(nums):
-    """
-    Find first missing positive integer.
-    Time: O(n), Space: O(1)
-    """
-    n = len(nums)
-    i = 0
-    
-    while i < n:
-        correct_idx = nums[i] - 1
-        
-        # Only place if it's in valid range and not already correct
-        if (0 <= correct_idx < n and 
-            nums[i] != nums[correctIdx]):
-            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
-        else:
-            i += 1
-    
-    # Find first missing positive
-    for i in range(n):
-        if nums[i] != i + 1:
-            return i + 1
-    
-    return n + 1
-```
-````
-
-### 4. Set Mismatch (LeetCode 645)
-
-Find the duplicate and missing number:
-
-````carousel
-```python
-def find_error_nums(nums):
-    """
-    Find duplicate and missing number.
-    Returns [duplicate, missing]
-    Time: O(n), Space: O(1)
-    """
-    i = 0
-    while i < len(nums):
-        correct_idx = nums[i] - 1
-        
-        if nums[i] != nums[correct_idx]:
-            nums[i], nums[correct_idx] = nums[correct_idx], nums[i]
-        else:
-            i += 1
-    
-    # Find duplicate and missing
-    for i in range(len(nums)):
-        if nums[i] != i + 1:
-            return [nums[i], i + 1]
-    
-    return [-1, -1]
-```
-````
 
 ---
 
@@ -707,7 +562,7 @@ def find_error_nums(nums):
 **Description:** Given an array `nums` containing `n` distinct numbers in the range `[0, n]`, return the only number in the range that is missing from the array.
 
 **How to Apply Cyclic Sort:**
-- Use cyclic sort to place each number at its correct index
+- Use cyclic sort to place each number at its correct index (value goes to index = value)
 - After sorting, the index where `nums[i] != i` reveals the missing number
 - If all are in place, n is missing
 
@@ -865,12 +720,3 @@ When NOT to use:
 - ❌ General-purpose sorting needs
 
 This algorithm is essential for technical interviews and competitive programming, particularly for problems involving finding missing or duplicate elements in arrays.
-
----
-
-## Related Algorithms
-
-- [Two Pointers](./two-pointers.md) - Alternative approach for some cyclic sort problems
-- [Fast & Slow Pointers](./fast-slow-pointers.md) - Floyd's cycle detection for finding duplicates
-- [Bit Manipulation](./bit-manipulation.md) - XOR approach for finding missing numbers
-- [Hash Table](./hash-table.md) - Alternative for finding duplicates with more space

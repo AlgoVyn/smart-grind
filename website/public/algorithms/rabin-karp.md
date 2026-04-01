@@ -4,7 +4,522 @@
 Advanced
 
 ## Description
+
 Rabin-Karp is a string matching algorithm that uses **rolling hash** to find patterns in text efficiently. It combines the power of hashing with the sliding window technique to search for one or more patterns in a larger text string in average O(n + m) time complexity.
+
+The algorithm is particularly effective for multiple pattern search scenarios and forms the foundation for many plagiarism detection systems, DNA sequence matching, and other applications requiring efficient substring search.
+
+---
+
+## Concepts
+
+The Rabin-Karp algorithm is built on several fundamental concepts that enable efficient string matching.
+
+### 1. Rolling Hash
+
+A hash function where the input is processed in a sliding window:
+
+```
+Hash of window at position i: h[i] = hash(text[i:i+m])
+
+Rolling update: h[i+1] can be computed from h[i] in O(1)
+Instead of rehashing the entire window from scratch
+```
+
+### 2. Polynomial Rolling Hash
+
+Compute hash using a polynomial formula:
+
+```
+hash("s[0...m-1]") = (s[0] × d^(m-1) + s[1] × d^(m-2) + ... + s[m-1] × d^0) mod q
+
+Where:
+- d = base (number of possible characters, typically 256 for ASCII)
+- q = large prime number (modulus to prevent overflow)
+```
+
+### 3. Rolling Hash Update Formula
+
+Efficiently update hash when sliding window:
+
+```
+hash("s[i+1...i+m]") = (d × (hash("s[i...i+m-1]") - s[i] × h) + s[i+m]) mod q
+
+Where h = d^(m-1) mod q (precomputed)
+```
+
+### 4. Hash Collisions and Verification
+
+| Scenario | Action | Reason |
+|----------|--------|--------|
+| **Hashes differ** | Skip comparison | Strings definitely different |
+| **Hashes match** | Verify character-by-character | Handle hash collisions |
+| **Verification passes** | Report match | Confirmed match |
+| **Verification fails** | Continue (spurious hit) | False positive due to collision |
+
+---
+
+## Frameworks
+
+Structured approaches for string matching with Rabin-Karp.
+
+### Framework 1: Single Pattern Matching
+
+```
+┌─────────────────────────────────────────────────────┐
+│  SINGLE PATTERN RABIN-KARP FRAMEWORK                 │
+├─────────────────────────────────────────────────────┤
+│  1. Choose parameters:                              │
+│     - d = base (e.g., 256 for ASCII)                │
+│     - q = large prime (e.g., 101, 1000003)          │
+│  2. Precompute h = d^(m-1) mod q                   │
+│  3. Calculate pattern hash                          │
+│  4. Calculate hash of first text window             │
+│  5. For each position i from 0 to n-m:              │
+│     a. If pattern_hash == text_hash:               │
+│        - Verify: compare text[i:i+m] with pattern   │
+│        - If match: add i to results                │
+│     b. If i < n-m: update hash using rolling formula│
+│  6. Return all match positions                       │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Single pattern search, simple implementation needed.
+
+### Framework 2: Multiple Pattern Matching
+
+```
+┌─────────────────────────────────────────────────────┐
+│  MULTIPLE PATTERN RABIN-KARP FRAMEWORK               │
+├─────────────────────────────────────────────────────┤
+│  1. Group patterns by length                        │
+│  2. For each length group:                          │
+│     a. Compute hash for all patterns of that length │
+│     b. Store in hash table: hash → list of patterns │
+│  3. Slide through text once per unique length:      │
+│     a. Compute rolling hash for current window       │
+│     b. If hash in table: verify each pattern       │
+│     c. Report matches                                 │
+│  4. Return results organized by pattern              │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Multiple patterns, Rabin-Karp's key advantage.
+
+### Framework 3: Two-Dimensional Pattern Matching
+
+```
+┌─────────────────────────────────────────────────────┐
+│  2D RABIN-KARP FRAMEWORK                             │
+├─────────────────────────────────────────────────────┤
+│  1. Compute hash for each row of pattern            │
+│  2. Combine row hashes to get pattern fingerprint   │
+│  3. Compute rolling hashes for each text row         │
+│  4. For each row position:                          │
+│     a. Form column of row hashes                    │
+│     b. Apply rolling hash vertically               │
+│     c. Compare with pattern fingerprint             │
+│  5. Verify matches with direct comparison           │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Image matching, 2D pattern search.
+
+---
+
+## Forms
+
+Different manifestations of the Rabin-Karp pattern.
+
+### Form 1: Single Pattern Search
+
+Standard string matching:
+
+| Phase | Time | Description |
+|-------|------|-------------|
+| Preprocessing | O(m) | Compute pattern hash |
+| Initial window | O(m) | Hash first text window |
+| Rolling search | O(n-m) | O(1) per position |
+| Verification | O(m) per match | Character comparison |
+| **Total Average** | **O(n + m)** | With good hash |
+| **Total Worst** | **O(nm)** | Many spurious hits |
+
+### Form 2: Multiple Pattern Search
+
+Search for k patterns simultaneously:
+
+```
+Time: O(n + m1 + m2 + ... + mk) average
+Space: O(total pattern length)
+
+Key advantage: One pass through text checks all patterns
+```
+
+### Form 3: Fingerprint Matching
+
+Compare file/document similarity:
+
+```
+Approach:
+1. Compute hash of all k-length substrings in document A
+2. Compute hash of all k-length substrings in document B
+3. Count common hash values
+4. High overlap indicates similarity
+```
+
+### Form 4: DNA Sequence Matching
+
+Optimized for small alphabet (A, C, G, T):
+
+```
+Base d = 4 (only 4 characters)
+Direct character to value mapping: {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+More efficient than general ASCII approach
+```
+
+### Form 5: Double Hashing
+
+Use two different hash functions to reduce collisions:
+
+```
+Pattern matches only if:
+- hash1(text[i:i+m]) == hash1(pattern) AND
+- hash2(text[i:i+m]) == hash2(pattern)
+
+Collision probability drops from 1/q to 1/(q1*q2)
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Efficient Rolling Hash Update
+
+Implement O(1) hash update:
+
+```python
+def update_hash(old_hash, text, i, m, h, d, q):
+    """
+    Update hash when sliding window by 1.
+    Remove leftmost char, add rightmost char.
+    """
+    # Remove contribution of leftmost character
+    new_hash = (old_hash - ord(text[i]) * h) % q
+    
+    # Shift (multiply by d) and add new character
+    new_hash = (new_hash * d + ord(text[i + m])) % q
+    
+    return new_hash
+```
+
+### Tactic 2: Precomputation for Speed
+
+Precompute powers of base:
+
+```python
+def precompute_powers(d, m, q):
+    """Precompute d^(m-1) mod q for rolling hash."""
+    h = 1
+    for _ in range(m - 1):
+        h = (h * d) % q
+    return h
+```
+
+### Tactic 3: Handling Large Text
+
+Process text in chunks for memory efficiency:
+
+```python
+def rabin_karp_streaming(pattern, text_stream, chunk_size=10000):
+    """
+    Process large text in streaming fashion.
+    Yields match positions as found.
+    """
+    m = len(pattern)
+    pattern_hash = compute_hash(pattern)
+    
+    # Initialize with first chunk
+    buffer = next(text_stream)
+    window_hash = compute_hash(buffer[:m])
+    
+    position = 0
+    while buffer:
+        # Process current buffer
+        while position <= len(buffer) - m:
+            if window_hash == pattern_hash:
+                if buffer[position:position+m] == pattern:
+                    yield position
+            
+            # Update for next position
+            if position < len(buffer) - m:
+                window_hash = update_hash(window_hash, ...)
+            position += 1
+        
+        # Load next chunk
+        new_buffer = next(text_stream, '')
+        if not new_buffer:
+            break
+        
+        # Handle overlap between chunks
+        overlap = buffer[-m+1:] if m > 1 else ''
+        buffer = overlap + new_buffer
+        position = 0
+        window_hash = compute_hash(buffer[:m])
+```
+
+### Tactic 4: Multiple Pattern Optimization
+
+Group patterns by length for efficiency:
+
+```python
+def rabin_karp_multi(text, patterns):
+    """Search for multiple patterns efficiently."""
+    from collections import defaultdict
+    
+    # Group patterns by length
+    by_length = defaultdict(list)
+    for pattern in patterns:
+        by_length[len(pattern)].append(pattern)
+    
+    results = {p: [] for p in patterns}
+    
+    # Search each length group
+    for length, pattern_list in by_length.items():
+        if length > len(text):
+            continue
+        
+        # Build hash table for this length
+        pattern_hashes = defaultdict(list)
+        for p in pattern_list:
+            h = compute_hash(p)
+            pattern_hashes[h].append(p)
+        
+        # Slide through text
+        window_hash = compute_hash(text[:length])
+        for i in range(len(text) - length + 1):
+            if window_hash in pattern_hashes:
+                # Verify all patterns with this hash
+                for pattern in pattern_hashes[window_hash]:
+                    if text[i:i+length] == pattern:
+                        results[pattern].append(i)
+            
+            # Update hash
+            if i < len(text) - length:
+                window_hash = update_hash(window_hash, ...)
+    
+    return results
+```
+
+### Tactic 5: Double Hash for Safety
+
+Use two hash functions to reduce collision risk:
+
+```python
+def rabin_karp_double_hash(text, pattern):
+    """Rabin-Karp with double hashing."""
+    # Two different parameter sets
+    d1, q1 = 256, 1000003
+    d2, q2 = 256, 1000033
+    
+    m = len(pattern)
+    
+    # Precompute for both
+    h1 = pow(d1, m - 1, q1)
+    h2 = pow(d2, m - 1, q2)
+    
+    # Compute both hashes for pattern
+    p_hash1 = compute_hash(pattern, d1, q1)
+    p_hash2 = compute_hash(pattern, d2, q2)
+    
+    # Initial window hashes
+    t_hash1 = compute_hash(text[:m], d1, q1)
+    t_hash2 = compute_hash(text[:m], d2, q2)
+    
+    results = []
+    for i in range(len(text) - m + 1):
+        # Both hashes must match
+        if t_hash1 == p_hash1 and t_hash2 == p_hash2:
+            if text[i:i+m] == pattern:
+                results.append(i)
+        
+        # Update both hashes
+        if i < len(text) - m:
+            t_hash1 = update_hash(t_hash1, text, i, m, h1, d1, q1)
+            t_hash2 = update_hash(t_hash2, text, i, m, h2, d2, q2)
+    
+    return results
+```
+
+---
+
+## Python Templates
+
+### Template 1: Single Pattern Rabin-Karp
+
+```python
+def rabin_karp(text: str, pattern: str) -> list[int]:
+    """
+    Template 1: Find all occurrences of pattern in text using Rabin-Karp.
+    
+    Time: O(n + m) average, O(nm) worst case
+    Space: O(1)
+    """
+    n, m = len(text), len(pattern)
+    
+    # Edge cases
+    if m == 0:
+        return [0]
+    if n < m:
+        return []
+    
+    # Base and modulus
+    d = 256          # Number of characters in alphabet
+    q = 101          # Large prime number
+    
+    # Precompute d^(m-1) mod q
+    h = 1
+    for _ in range(m - 1):
+        h = (h * d) % q
+    
+    # Calculate initial hash values
+    pattern_hash = 0
+    text_hash = 0
+    
+    for i in range(m):
+        pattern_hash = (d * pattern_hash + ord(pattern[i])) % q
+        text_hash = (d * text_hash + ord(text[i])) % q
+    
+    # Slide the pattern over the text
+    results = []
+    
+    for i in range(n - m + 1):
+        # Check if hashes match
+        if pattern_hash == text_hash:
+            # Verify the actual strings (handle collisions)
+            if text[i:i + m] == pattern:
+                results.append(i)
+        
+        # Calculate hash for next window
+        if i < n - m:
+            # Remove leftmost character, add rightmost
+            text_hash = (d * (text_hash - ord(text[i]) * h) + ord(text[i + m])) % q
+            
+            # Handle negative hash value
+            if text_hash < 0:
+                text_hash += q
+    
+    return results
+```
+
+### Template 2: Multiple Pattern Rabin-Karp
+
+```python
+from collections import defaultdict
+
+def rabin_karp_multi(text: str, patterns: list[str]) -> dict[str, list[int]]:
+    """
+    Template 2: Search for multiple patterns simultaneously.
+    
+    Time: O(n + total_pattern_length) average
+    Space: O(total_pattern_length)
+    """
+    if not text or not patterns:
+        return {p: [] for p in patterns} if patterns else {}
+    
+    # Group patterns by length
+    by_length = defaultdict(list)
+    for pattern in patterns:
+        by_length[len(pattern)].append(pattern)
+    
+    results = {p: [] for p in patterns}
+    
+    d = 256
+    q = 101
+    
+    # Process each length group
+    for length, pattern_list in by_length.items():
+        if length > len(text):
+            continue
+        
+        # Build hash table for patterns of this length
+        pattern_hashes = defaultdict(list)
+        for p in pattern_list:
+            h = 0
+            for ch in p:
+                h = (d * h + ord(ch)) % q
+            pattern_hashes[h].append(p)
+        
+        # Precompute h = d^(length-1) mod q
+        h_power = 1
+        for _ in range(length - 1):
+            h_power = (h_power * d) % q
+        
+        # Calculate hash of first window
+        window_hash = 0
+        for i in range(length):
+            window_hash = (d * window_hash + ord(text[i])) % q
+        
+        # Slide through text
+        for i in range(len(text) - length + 1):
+            if window_hash in pattern_hashes:
+                # Verify all patterns with this hash
+                for pattern in pattern_hashes[window_hash]:
+                    if text[i:i+length] == pattern:
+                        results[pattern].append(i)
+            
+            # Update hash
+            if i < len(text) - length:
+                window_hash = (d * (window_hash - ord(text[i]) * h_power) 
+                                + ord(text[i + length])) % q
+                if window_hash < 0:
+                    window_hash += q
+    
+    return results
+```
+
+### Template 3: DNA Sequence Rabin-Karp
+
+```python
+def rabin_karp_dna(text: str, pattern: str) -> list[int]:
+    """
+    Template 3: Optimized for DNA sequences (A, C, G, T).
+    
+    Time: O(n + m), Space: O(1)
+    """
+    # Map DNA bases to numbers
+    dna_map = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+    
+    n, m = len(text), len(pattern)
+    if m == 0 or n < m:
+        return [] if m > 0 else [0]
+    
+    d = 4  # Only 4 possible characters
+    q = 1000003
+    
+    # Precompute d^(m-1) mod q
+    h = pow(d, m - 1, q)
+    
+    # Calculate hashes
+    pattern_hash = 0
+    text_hash = 0
+    
+    for i in range(m):
+        pattern_hash = (d * pattern_hash + dna_map.get(pattern[i], 0)) % q
+        text_hash = (d * text_hash + dna_map.get(text[i], 0)) % q
+    
+    results = []
+    for i in range(n - m + 1):
+        if pattern_hash == text_hash and text[i:i+m] == pattern:
+            results.append(i)
+        
+        if i < n - m:
+            text_hash = (d * (text_hash - dna_map.get(text[i], 0) * h) 
+                        + dna_map.get(text[i + m], 0)) % q
+    
+    return results
+```
 
 ---
 
@@ -78,7 +593,7 @@ Where h = d^(m-1) mod q
 4. **Roll**: Efficiently update hash using the rolling formula for next window
 5. **Repeat**: Continue until end of text
 
-### Visual Example
+### Visual Representation
 
 ```
 Text: "AABAACAADAABAABA"
@@ -102,802 +617,19 @@ Result: [0, 9, 12]
 
 Since multiple strings can have the same hash value (collision), we must verify the actual strings when hashes match. This ensures correctness at the cost of only O(1) extra check per potential match.
 
+### Why It Works
+
+- **Rolling hash**: O(1) window updates instead of O(m) rehashing
+- **Fingerprint comparison**: Fast hash comparison eliminates most positions
+- **Verification**: Ensures correctness despite possible collisions
+- **Average case**: Good hash function makes collisions rare
+
 ### Limitations
 
 - **Hash Collisions**: Can cause false positives (mitigated by verification)
 - **Worst Case**: O(nm) when many spurious hits occur
 - **Prime Selection**: Choosing a good prime affects collision rate
 - **Numerical Overflow**: Use modulo to prevent overflow
-
----
-
-## Algorithm Steps
-
-### Step-by-Step Approach
-
-1. **Choose Parameters**:
-   - Select base `d` (typically 256 for ASCII characters)
-   - Select modulus `q` (a large prime number like 101, 1000003)
-
-2. **Calculate Pattern Hash**:
-   - Convert each character to numeric value
-   - Compute: `pattern_hash = Σ(pattern[i] × d^(m-1-i)) mod q`
-
-3. **Calculate Initial Text Hash**:
-   - Compute hash for first `m` characters of text
-
-4. **Slide Window**:
-   - For each position i from 0 to n-m:
-     - If `pattern_hash == text_hash`: verify by comparing strings
-     - Update `text_hash` for next position using rolling formula
-
-5. **Handle Negative Values**:
-   - After subtraction, add modulus if value is negative
-
----
-
-## Implementation
-
-### Template Code (Pattern Matching)
-
-````carousel
-```python
-def rabin_karp(text: str, pattern: str) -> list[int]:
-    """
-    Find all occurrences of pattern in text using Rabin-Karp algorithm.
-    
-    Args:
-        text: String to search in
-        pattern: Pattern to search for
-    
-    Returns:
-        List of starting indices where pattern is found
-    
-    Time: O(n + m) average, O(nm) worst
-    Space: O(1)
-    """
-    n, m = len(text), len(pattern)
-    
-    # Edge cases
-    if m == 0:
-        return [0]  # Empty pattern matches at start
-    if n < m:
-        return []
-    
-    # Base and modulus
-    d = 256          # Number of characters in alphabet
-    q = 101          # Large prime number
-    
-    # Precompute d^(m-1) mod q
-    h = 1
-    for _ in range(m - 1):
-        h = (h * d) % q
-    
-    # Calculate initial hash values
-    pattern_hash = 0
-    text_hash = 0
-    
-    for i in range(m):
-        pattern_hash = (d * pattern_hash + ord(pattern[i])) % q
-        text_hash = (d * text_hash + ord(text[i])) % q
-    
-    # Slide the pattern over the text
-    results = []
-    
-    for i in range(n - m + 1):
-        # Check if hashes match
-        if pattern_hash == text_hash:
-            # Verify the actual strings (handle collisions)
-            if text[i:i + m] == pattern:
-                results.append(i)
-        
-        # Calculate hash for next window
-        if i < n - m:
-            # Remove leftmost character, add rightmost
-            text_hash = (d * (text_hash - ord(text[i]) * h) + ord(text[i + m])) % q
-            
-            # Handle negative hash value
-            if text_hash < 0:
-                text_hash += q
-    
-    return results
-
-
-def rabin_karp_multi(text: str, patterns: list[str]) -> dict[str, list[int]]:
-    """
-    Search for multiple patterns simultaneously.
-    
-    This is the key advantage of Rabin-Karp - efficient multi-pattern search.
-    
-    Args:
-        text: String to search in
-        patterns: List of patterns to search for
-    
-    Returns:
-        Dictionary mapping each pattern to list of occurrence indices
-    
-    Time: O(n + m1 + m2 + ... + mk) average
-    Space: O(k) where k is number of patterns
-    """
-    n = len(text)
-    if n == 0 or not patterns:
-        return {p: [] for p in patterns} if patterns else {}
-    
-    # Base and modulus
-    d = 256
-    q = 101
-    
-    results = {p: [] for p in patterns}
-    
-    # Precompute pattern hashes
-    pattern_hashes = {}
-    pattern_lengths = {}
-    h_values = {}
-    
-    for pattern in patterns:
-        m = len(pattern)
-        if m == 0 or n < m:
-            continue
-        
-        # Calculate h = d^(m-1) mod q
-        h = 1
-        for _ in range(m - 1):
-            h = (h * d) % q
-        
-        # Calculate pattern hash
-        ph = 0
-        for ch in pattern:
-            ph = (d * ph + ord(ch)) % q
-        
-        pattern_hashes[pattern] = ph
-        pattern_lengths[pattern] = m
-        h_values[pattern] = h
-    
-    # Search for each unique pattern length
-    length_groups = {}
-    for pattern, m in pattern_lengths.items():
-        if m not in length_groups:
-            length_groups[m] = []
-        length_groups[m].append(pattern)
-    
-    # For each length group, slide through text once
-    for m, patterns_of_length in length_groups.items():
-        if m > n:
-            continue
-        
-        h = 1
-        for _ in range(m - 1):
-            h = (h * d) % q
-        
-        # Calculate initial hash for first window
-        th = 0
-        for i in range(m):
-            th = (d * th + ord(text[i])) % q
-        
-        # Slide through text
-        for i in range(n - m + 1):
-            # Check all patterns of this length
-            for pattern in patterns_of_length:
-                ph = pattern_hashes[pattern]
-                if ph == th:
-                    if text[i:i + m] == pattern:
-                        results[pattern].append(i)
-            
-            # Roll to next window
-            if i < n - m:
-                th = (d * (th - ord(text[i]) * h) + ord(text[i + m])) % q
-                if th < 0:
-                    th += q
-    
-    return results
-
-
-# Example usage
-if __name__ == "__main__":
-    # Test single pattern
-    text = "AABAACAADAABAABA"
-    pattern = "AABA"
-    
-    result = rabin_karp(text, pattern)
-    print(f"Text: {text}")
-    print(f"Pattern: {pattern}")
-    print(f"Found at indices: {result}")
-    # Output: [0, 9, 12]
-    
-    print()
-    
-    # Test multiple patterns
-    patterns = ["AABA", "CA", "ABA"]
-    results = rabin_karp_multi(text, patterns)
-    print(f"Searching for: {patterns}")
-    for pattern, indices in results.items():
-        print(f"  '{pattern}': {indices}")
-    # Output: {'AABA': [0, 9, 12], 'CA': [5], 'ABA': [1, 10]}
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <string>
-#include <cmath>
-using namespace std;
-
-/**
- * Rabin-Karp string matching algorithm.
- * 
- * Time: O(n + m) average, O(nm) worst
- * Space: O(1)
- */
-class RabinKarp {
-private:
-    static const int d = 256;    // Number of characters in alphabet
-    int q;                        // Large prime number
-    
-public:
-    RabinKarp(int prime = 101) : q(prime) {}
-    
-    /**
-     * Find all occurrences of pattern in text.
-     * @param text Text to search in
-     * @param pattern Pattern to search for
-     * @return Vector of starting indices
-     */
-    vector<int> search(const string& text, const string& pattern) {
-        int n = text.length();
-        int m = pattern.length();
-        
-        if (m == 0) return {0};
-        if (n < m) return {};
-        
-        vector<int> results;
-        
-        // Calculate h = d^(m-1) mod q
-        int h = 1;
-        for (int i = 0; i < m - 1; i++) {
-            h = (h * d) % q;
-        }
-        
-        // Calculate initial hashes
-        int patternHash = 0;
-        int textHash = 0;
-        
-        for (int i = 0; i < m; i++) {
-            patternHash = (d * patternHash + pattern[i]) % q;
-            textHash = (d * textHash + text[i]) % q;
-        }
-        
-        // Slide the pattern
-        for (int i = 0; i <= n - m; i++) {
-            // Check if hashes match
-            if (patternHash == textHash) {
-                // Verify the actual strings
-                bool match = true;
-                for (int j = 0; j < m; j++) {
-                    if (text[i + j] != pattern[j]) {
-                        match = false;
-                        break;
-                    }
-                }
-                if (match) {
-                    results.push_back(i);
-                }
-            }
-            
-            // Calculate hash for next window
-            if (i < n - m) {
-                textHash = (d * (textHash - text[i] * h) + text[i + m]) % q;
-                if (textHash < 0) {
-                    textHash += q;
-                }
-            }
-        }
-        
-        return results;
-    }
-    
-    /**
-     * Search for multiple patterns simultaneously.
-     * @param text Text to search in
-     * @param patterns Vector of patterns
-     * @return Vector of vectors, one for each pattern
-     */
-    vector<vector<int>> searchMultiple(const string& text, 
-                                       const vector<string>& patterns) {
-        vector<vector<int>> results(patterns.size());
-        
-        for (size_t i = 0; i < patterns.size(); i++) {
-            results[i] = search(text, patterns[i]);
-        }
-        
-        return results;
-    }
-};
-
-int main() {
-    RabinKarp rk(101);
-    
-    // Test single pattern
-    string text = "AABAACAADAABAABA";
-    string pattern = "AABA";
-    
-    vector<int> result = rk.search(text, pattern);
-    
-    cout << "Text: " << text << endl;
-    cout << "Pattern: " << pattern << endl;
-    cout << "Found at indices: ";
-    for (int idx : result) {
-        cout << idx << " ";
-    }
-    cout << endl;
-    // Output: 0 9 12
-    
-    cout << endl;
-    
-    // Test multiple patterns
-    vector<string> patterns = {"AABA", "CA", "ABA"};
-    auto results = rk.searchMultiple(text, patterns);
-    
-    cout << "Searching for: ";
-    for (const auto& p : patterns) cout << p << " ";
-    cout << endl;
-    
-    for (size_t i = 0; i < patterns.size(); i++) {
-        cout << "  '" << patterns[i] << "': ";
-        for (int idx : results[i]) {
-            cout << idx << " ";
-        }
-        cout << endl;
-    }
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * Rabin-Karp string matching algorithm.
- * 
- * Time: O(n + m) average, O(nm) worst
- * Space: O(1)
- */
-public class RabinKarp {
-    
-    private static final int d = 256;  // Number of characters
-    private final int q;               // Large prime number
-    
-    public RabinKarp(int q) {
-        this.q = q;
-    }
-    
-    public RabinKarp() {
-        this(101);
-    }
-    
-    /**
-     * Find all occurrences of pattern in text.
-     * @param text Text to search in
-     * @param pattern Pattern to search for
-     * @return ArrayList of starting indices
-     */
-    public int[] search(String text, String pattern) {
-        int n = text.length();
-        int m = pattern.length();
-        
-        if (m == 0) return new int[]{0};
-        if (n < m) return new int[]{};
-        
-        List<Integer> results = new ArrayList<>();
-        
-        // Calculate h = d^(m-1) mod q
-        int h = 1;
-        for (int i = 0; i < m - 1; i++) {
-            h = (h * d) % q;
-        }
-        
-        // Calculate initial hashes
-        int patternHash = 0;
-        int textHash = 0;
-        
-        for (int i = 0; i < m; i++) {
-            patternHash = (d * patternHash + pattern.charAt(i)) % q;
-            textHash = (d * textHash + text.charAt(i)) % q;
-        }
-        
-        // Slide the pattern over text
-        for (int i = 0; i <= n - m; i++) {
-            // Check if hashes match
-            if (patternHash == textHash) {
-                // Verify the actual strings (handle collisions)
-                if (text.substring(i, i + m).equals(pattern)) {
-                    results.add(i);
-                }
-            }
-            
-            // Calculate hash for next window
-            if (i < n - m) {
-                textHash = (d * (textHash - text.charAt(i) * h) 
-                           + text.charAt(i + m)) % q;
-                
-                if (textHash < 0) {
-                    textHash += q;
-                }
-            }
-        }
-        
-        return results.stream().mapToInt(Integer::intValue).toArray();
-    }
-    
-    /**
-     * Search for multiple patterns.
-     * @param text Text to search in
-     * @param patterns Array of patterns
-     * @return Array of arrays, one for each pattern
-     */
-    public int[][] searchMultiple(String text, String[] patterns) {
-        int[][] results = new int[patterns.length][];
-        
-        for (int i = 0; i < patterns.length; i++) {
-            results[i] = search(text, patterns[i]);
-        }
-        
-        return results;
-    }
-    
-    public static void main(String[] args) {
-        RabinKarp rk = new RabinKarp(101);
-        
-        // Test single pattern
-        String text = "AABAACAADAABAABA";
-        String pattern = "AABA";
-        
-        int[] result = rk.search(text, pattern);
-        
-        System.out.println("Text: " + text);
-        System.out.println("Pattern: " + pattern);
-        System.out.print("Found at indices: ");
-        for (int idx : result) {
-            System.out.print(idx + " ");
-        }
-        System.out.println();
-        // Output: 0 9 12
-        
-        System.out.println();
-        
-        // Test multiple patterns
-        String[] patterns = {"AABA", "CA", "ABA"};
-        int[][] results = rk.searchMultiple(text, patterns);
-        
-        System.out.print("Searching for: ");
-        for (String p : patterns) System.out.print(p + " ");
-        System.out.println();
-        
-        for (int i = 0; i < patterns.length; i++) {
-            System.out.print("  '" + patterns[i] + "': ");
-            for (int idx : results[i]) {
-                System.out.print(idx + " ");
-            }
-            System.out.println();
-        }
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Rabin-Karp string matching algorithm.
- * 
- * Time: O(n + m) average, O(nm) worst
- * Space: O(1)
- */
-class RabinKarp {
-    constructor(prime = 101) {
-        this.d = 256;  // Number of characters in alphabet
-        this.q = prime; // Large prime number
-    }
-    
-    /**
-     * Find all occurrences of pattern in text.
-     * @param {string} text - Text to search in
-     * @param {string} pattern - Pattern to search for
-     * @returns {number[]} Array of starting indices
-     */
-    search(text, pattern) {
-        const n = text.length;
-        const m = pattern.length;
-        
-        if (m === 0) return [0];
-        if (n < m) return [];
-        
-        const results = [];
-        
-        // Calculate h = d^(m-1) mod q
-        let h = 1;
-        for (let i = 0; i < m - 1; i++) {
-            h = (h * this.d) % this.q;
-        }
-        
-        // Calculate initial hashes
-        let patternHash = 0;
-        let textHash = 0;
-        
-        for (let i = 0; i < m; i++) {
-            patternHash = (this.d * patternHash + text.charCodeAt(i)) % this.q;
-            textHash = (this.d * textHash + text.charCodeAt(i)) % this.q;
-        }
-        
-        // Slide the pattern over text
-        for (let i = 0; i <= n - m; i++) {
-            // Check if hashes match
-            if (patternHash === textHash) {
-                // Verify the actual strings (handle collisions)
-                if (text.substring(i, i + m) === pattern) {
-                    results.push(i);
-                }
-            }
-            
-            // Calculate hash for next window
-            if (i < n - m) {
-                textHash = (
-                    this.d * (textHash - text.charCodeAt(i) * h) 
-                    + text.charCodeAt(i + m)
-                ) % this.q;
-                
-                if (textHash < 0) {
-                    textHash += this.q;
-                }
-            }
-        }
-        
-        return results;
-    }
-    
-    /**
-     * Search for multiple patterns simultaneously.
-     * @param {string} text - Text to search in
-     * @param {string[]} patterns - Array of patterns
-     * @returns {Object} Object with pattern -> indices mapping
-     */
-    searchMultiple(text, patterns) {
-        const results = {};
-        
-        for (const pattern of patterns) {
-            results[pattern] = this.search(text, pattern);
-        }
-        
-        return results;
-    }
-}
-
-// Example usage
-const rk = new RabinKarp(101);
-
-// Test single pattern
-const text = "AABAACAADAABAABA";
-const pattern = "AABA";
-
-const result = rk.search(text, pattern);
-console.log(`Text: ${text}`);
-console.log(`Pattern: ${pattern}`);
-console.log(`Found at indices: ${result.join(', ')}`);
-// Output: 0, 9, 12
-
-console.log();
-
-// Test multiple patterns
-const patterns = ["AABA", "CA", "ABA"];
-const multiResults = rk.searchMultiple(text, patterns);
-
-console.log(`Searching for: ${patterns.join(', ')}`);
-for (const [pattern, indices] of Object.entries(multiResults)) {
-    console.log(`  '${pattern}': ${indices.join(', ')}`);
-}
-// Output: { 'AABA': [0, 9, 12], 'CA': [5], 'ABA': [1, 10] }
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Preprocessing** | O(m) | Calculate pattern hash |
-| **Search** | O(n - m + 1) | Slide through text |
-| **Character Comparison** | O(m) per match | Only when hashes match |
-| **Total Average** | O(n + m) | With good hash function |
-| **Total Worst** | O(nm) | When many hash collisions |
-
-### Detailed Breakdown
-
-- **Hash Calculation**: O(m) for pattern + O(m) for initial text window
-- **Rolling Hash Update**: O(1) per window shift
-- **Verification**: Only performed when hashes match (rare with good hash function)
-- **Space**: O(1) - only storing a few integer variables
-
----
-
-## Space Complexity Analysis
-
-- **Main Algorithm**: O(1) - only stores hash values and indices
-- **Multiple Pattern Version**: O(k) where k = number of patterns
-- **Total**: O(1) for single pattern search
-
-### Space Optimization
-
-For extremely long texts, consider:
-1. **Chunk processing**: Process text in chunks to manage memory
-2. **Streaming**: Use rolling hash to stream through text
-3. **Mmap files**: For file-based searching, memory-map the file
-
----
-
-## Common Variations
-
-### 1. Polynomial Rolling Hash
-
-Use different base and modulus combinations:
-
-````carousel
-```python
-def polynomial_hash(s: str, base: int = 911382323, mod: int = 1000000007) -> int:
-    """Compute polynomial hash for a string."""
-    hash_val = 0
-    for ch in s:
-        hash_val = (hash_val * base + ord(ch)) % mod
-    return hash_val
-
-
-def rabin_karp_custom(text: str, pattern: str, base: int = 911382323, 
-                      mod: int = 1000000007) -> list[int]:
-    """Rabin-Karp with custom hash parameters."""
-    n, m = len(text), len(pattern)
-    if m == 0 or n < m:
-        return [] if m > 0 else [0]
-    
-    # Precompute base^(m-1) mod mod
-    h = pow(base, m - 1, mod)
-    
-    # Calculate hashes
-    pattern_hash = polynomial_hash(pattern, base, mod)
-    text_hash = polynomial_hash(text[:m], base, mod)
-    
-    results = []
-    for i in range(n - m + 1):
-        if pattern_hash == text_hash and text[i:i+m] == pattern:
-            results.append(i)
-        
-        if i < n - m:
-            text_hash = (base * (text_hash - ord(text[i]) * h) 
-                        + ord(text[i + m])) % mod
-    
-    return results
-```
-````
-
-### 2. Double Hashing
-
-Use two different hash functions to reduce collision probability:
-
-````carousel
-```python
-def rabin_karp_double(text: str, pattern: str) -> list[int]:
-    """Rabin-Karp with double hashing to reduce collisions."""
-    n, m = len(text), len(pattern)
-    if m == 0 or n < m:
-        return [] if m > 0 else [0]
-    
-    # Two different hash functions
-    d1, q1 = 256, 1000003
-    d2, q2 = 256, 1000033
-    
-    # Precompute powers
-    h1 = pow(d1, m - 1, q1)
-    h2 = pow(d2, m - 1, q2)
-    
-    # Initial hashes
-    p1 = p2 = t1 = t2 = 0
-    for i in range(m):
-        p1 = (d1 * p1 + ord(pattern[i])) % q1
-        p2 = (d2 * p2 + ord(pattern[i])) % q2
-        t1 = (d1 * t1 + ord(text[i])) % q1
-        t2 = (d2 * t2 + ord(text[i])) % q2
-    
-    results = []
-    for i in range(n - m + 1):
-        # Both hashes must match
-        if p1 == t1 and p2 == t2:
-            if text[i:i+m] == pattern:
-                results.append(i)
-        
-        if i < n - m:
-            t1 = (d1 * (t1 - ord(text[i]) * h1) + ord(text[i + m])) % q1
-            t2 = (d2 * (t2 - ord(text[i]) * h2) + ord(text[i + m])) % q2
-            if t1 < 0: t1 += q1
-            if t2 < 0: t2 += q2
-    
-    return results
-```
-````
-
-### 3. DNA Sequence Matching
-
-Optimized for DNA characters (A, C, G, T):
-
-````carousel
-```python
-def dna_rabin_karp(text: str, pattern: str) -> list[int]:
-    """Rabin-Karp optimized for DNA sequences (A, C, G, T)."""
-    # Map DNA bases to numbers
-    dna_map = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
-    
-    n, m = len(text), len(pattern)
-    if m == 0 or n < m:
-        return [] if m > 0 else [0]
-    
-    d = 4  # Only 4 possible characters
-    q = 1000003
-    
-    h = pow(d, m - 1, q)
-    
-    # Calculate hashes
-    pattern_hash = 0
-    text_hash = 0
-    
-    for i in range(m):
-        pattern_hash = (d * pattern_hash + dna_map.get(pattern[i], 0)) % q
-        text_hash = (d * text_hash + dna_map.get(text[i], 0)) % q
-    
-    results = []
-    for i in range(n - m + 1):
-        if pattern_hash == text_hash and text[i:i+m] == pattern:
-            results.append(i)
-        
-        if i < n - m:
-            text_hash = (d * (text_hash - dna_map.get(text[i], 0) * h) 
-                        + dna_map.get(text[i + m], 0)) % q
-    
-    return results
-```
-````
-
-### 4. Unicode Support
-
-Handle multi-byte characters:
-
-````carousel
-```python
-def unicode_rabin_karp(text: str, pattern: str) -> list[int]:
-    """Rabin-Karp with Unicode support."""
-    import sys
-    
-    n, m = len(text), len(pattern)
-    if m == 0 or n < m:
-        return [] if m > 0 else [0]
-    
-    # Use Unicode code points
-    d = 65537  # Large base for Unicode
-    q = 1000003
-    
-    h = pow(d, m - 1, q)
-    
-    # Calculate hashes using code points
-    pattern_hash = sum(ord(pattern[i]) * pow(d, m - 1 - i, q) for i in range(m)) % q
-    text_hash = sum(ord(text[i]) * pow(d, m - 1 - i, q) for i in range(m)) % q
-    
-    results = []
-    for i in range(n - m + 1):
-        if pattern_hash == text_hash and text[i:i+m] == pattern:
-            results.append(i)
-        
-        if i < n - m:
-            text_hash = (d * (text_hash - ord(text[i]) * h) + ord(text[i + m])) % q
-    
-    return results
-```
-````
 
 ---
 
@@ -994,6 +726,8 @@ def unicode_rabin_karp(text: str, pattern: str) -> list[int]:
 - Adding a new pattern doesn't require reprocessing the text
 - KMP would require running the algorithm separately for each pattern
 
+---
+
 ### Q2: How do you choose the prime number q?
 
 **Answer:** Consider these factors:
@@ -1002,12 +736,16 @@ def unicode_rabin_karp(text: str, pattern: str) -> list[int]:
 - **Avoid**: Powers of 2 (can cause issues with modulo)
 - **Trade-off**: q affects collision probability vs. performance
 
+---
+
 ### Q3: Can Rabin-Karp be used for approximate matching?
 
 **Answer:** Yes, with modifications:
 - Use multiple hash functions with different bases
 - Allow k mismatches by checking hashes within a window
 - More complex but possible for fuzzy matching
+
+---
 
 ### Q4: Why is verification necessary even when hashes match?
 
@@ -1016,6 +754,8 @@ def unicode_rabin_karp(text: str, pattern: str) -> list[int]:
 - This is called a "spurious hit"
 - Verification ensures correctness at minimal cost
 - With good hash function, false positives are rare
+
+---
 
 ### Q5: How does base d affect performance?
 
@@ -1045,12 +785,3 @@ When to use:
 - ❌ Very long patterns with poor hash function
 
 This algorithm is essential for competitive programming and technical interviews, especially for problems involving string searching and pattern matching.
-
----
-
-## Related Algorithms
-
-- [KMP](./knuth-morris-pratt.md) - Linear time single pattern matching
-- [Boyer-Moore](./boyer-moore.md) - Best practical performance for single pattern
-- [Rolling Hash](./rolling-hash.md) - Foundation of Rabin-Karp
-- [Z-Algorithm](./z-algorithm.md) - Another linear time string matching approach

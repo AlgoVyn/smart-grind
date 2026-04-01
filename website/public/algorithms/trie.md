@@ -7,6 +7,712 @@ Trees & BSTs
 
 A Trie (pronounced "try"), also known as a Prefix Tree, is a tree data structure used for efficient string operations. It excels at prefix-based searches and is commonly used for autocomplete, spell checking, IP routing, and word games. The key advantage of a Trie is that it provides O(m) time complexity for insertion, searching, and prefix operations, where m is the length of the key.
 
+This pattern is fundamental in competitive programming and technical interviews for solving a wide range of string and prefix-based problems efficiently.
+
+---
+
+## Concepts
+
+The Trie data structure is built on several fundamental concepts that make it powerful for solving string problems.
+
+### 1. Node Structure
+
+Each node in a Trie represents a character or prefix and contains:
+
+| Component | Type | Description |
+|-----------|------|-------------|
+| **children** | Map/Dict | Edges to child nodes (char -> node) |
+| **is_end** | Boolean | Marks if this node completes a word |
+| **word** | String | Stores complete word (optional, for retrieval) |
+
+### 2. Prefix Sharing
+
+Tries share common prefixes to save space:
+
+```
+Words: "apple", "app", "application"
+
+        root
+         |
+         a
+         |
+         p
+         |
+         p
+       / | \
+      l  e   l
+      |      |
+      e      i
+      |      |
+     (end)   c
+             |
+             a
+             |
+             t
+             |
+            (end)
+```
+
+The prefix "app" is stored only once for all three words.
+
+### 3. Edge Traversal
+
+Each edge represents a character transition:
+
+```
+New State = Traverse edge labeled with character
+If edge doesn't exist: Word/Prefix not found
+```
+
+### 4. Search Types
+
+Tries support different search operations:
+
+| Search Type | Description | Time |
+|-------------|-------------|------|
+| **Exact Match** | Find complete word | O(m) |
+| **Prefix Search** | Check if prefix exists | O(m) |
+| **Autocomplete** | Find all words with prefix | O(m + k) |
+
+---
+
+## Frameworks
+
+Structured approaches for solving Trie problems.
+
+### Framework 1: Basic Trie Operations
+
+```
+┌─────────────────────────────────────────────────────┐
+│  BASIC TRIE OPERATIONS FRAMEWORK                      │
+├─────────────────────────────────────────────────────┤
+│  INSERT(word):                                       │
+│    1. Start at root                                  │
+│    2. For each char in word:                         │
+│       a. If char not in children, create new node   │
+│       b. Move to child node                          │
+│    3. Mark final node as is_end = true               │
+│                                                      │
+│  SEARCH(word):                                       │
+│    1. Start at root                                  │
+│    2. For each char in word:                         │
+│       a. If char not in children, return False      │
+│       b. Move to child node                          │
+│    3. Return node.is_end                               │
+│                                                      │
+│  STARTS_WITH(prefix):                                │
+│    1. Same as SEARCH but ignore is_end check        │
+│    2. Return True if all chars found                  │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Standard Trie implementation with basic operations.
+
+### Framework 2: Trie with Autocomplete
+
+```
+┌─────────────────────────────────────────────────────┐
+│  TRIE AUTOCOMPLETE FRAMEWORK                          │
+├─────────────────────────────────────────────────────┤
+│  1. Build Trie by inserting all dictionary words     │
+│  2. GET_WORDS_WITH_PREFIX(prefix):                   │
+│     a. Traverse to node representing prefix          │
+│     b. If node doesn't exist, return empty list     │
+│     c. Perform DFS/BFS from this node:              │
+│        - If node.is_end, add node.word to results    │
+│        - Recursively visit all children              │
+│  3. Return collected words                             │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Implementing autocomplete or prefix-based suggestions.
+
+### Framework 3: Trie for Word Games
+
+```
+┌─────────────────────────────────────────────────────┐
+│  TRIE FOR WORD SEARCH / BOGGLE FRAMEWORK              │
+├─────────────────────────────────────────────────────┤
+│  1. Build Trie with all valid dictionary words     │
+│  2. DFS from each cell in the board:                 │
+│     a. Track current word being built               │
+│     b. Check if current prefix exists in Trie      │
+│     c. If prefix doesn't exist, prune this path    │
+│     d. If complete word found, add to results      │
+│     e. Backtrack: remove last char, mark cell unvisited │
+│  3. Return all found words                             │
+│                                                      │
+│  Key Optimization: Early termination on invalid prefix │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Word search problems, Boggle, finding words in a grid.
+
+---
+
+## Forms
+
+Different manifestations of the Trie pattern.
+
+### Form 1: Standard Trie (Hash-based Children)
+
+Uses dictionary/map for children - memory efficient for sparse alphabets.
+
+| Aspect | Implementation | When to Use |
+|--------|---------------|-------------|
+| **Children** | `Dict[char, TrieNode]` | Large/unpredictable alphabets |
+| **Space** | O(total chars in all words) | Memory-constrained |
+| **Access** | O(1) average per char | Dynamic alphabets |
+
+### Form 2: Array-based Trie (Fixed Alphabet)
+
+Uses fixed-size array for children - faster for small alphabets.
+
+| Aspect | Implementation | When to Use |
+|--------|---------------|-------------|
+| **Children** | `TrieNode[26]` or `TrieNode[128]` | Known small alphabet |
+| **Space** | O(26 × nodes) | 26 lowercase letters |
+| **Access** | O(1) guaranteed | ASCII characters |
+
+### Form 3: Compressed Trie (Radix/Patricia)
+
+Compresses single-child chains to save space:
+
+```
+Before:  a -> p -> p -> l -> e
+After:   "apple" -> (end)
+```
+
+| Aspect | Benefit | Trade-off |
+|--------|---------|-----------|
+| **Space** | Reduced by 30-50% | More complex insertion |
+| **Traversal** | Faster for long shared prefixes | Slower deletion |
+
+### Form 4: Ternary Search Tree (TST)
+
+Hybrid structure with 3 pointers per node:
+
+```
+Node contains:
+- char: single character
+- left: chars less than current
+- mid: chars equal to current (continue word)
+- right: chars greater than current
+```
+
+| Aspect | Benefit | Trade-off |
+|--------|---------|-----------|
+| **Space** | O(nodes) not O(nodes × alphabet) | O(m) time vs O(m) for standard |
+| **Search** | Similar to binary search tree | Slightly slower |
+
+### Form 5: Bitwise Trie
+
+For numeric data (XOR problems, bit manipulation):
+
+```
+Children: [0, 1] representing bit values
+Height: 31 (for 32-bit integers)
+Use: Find max XOR, find closest number
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Trie Node with Word Count
+
+Track frequency for weighted autocomplete:
+
+```python
+class TrieNodeWithCount:
+    def __init__(self):
+        self.children = {}
+        self.is_end = False
+        self.count = 0  # Frequency of word ending here
+        self.word = ""
+
+class AutocompleteTrie:
+    def insert(self, word, count=1):
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNodeWithCount()
+            node = node.children[char]
+        node.is_end = True
+        node.word = word
+        node.count += count
+    
+    def get_top_k(self, prefix, k=3):
+        """Get top k most frequent words with prefix."""
+        node = self._find_node(prefix)
+        if not node:
+            return []
+        
+        words = []
+        self._collect_all(node, words)
+        words.sort(key=lambda x: x[1], reverse=True)
+        return [w[0] for w in words[:k]]
+```
+
+### Tactic 2: Word Deletion with Cleanup
+
+Delete words and remove unused nodes:
+
+```python
+def delete(self, word: str) -> bool:
+    """Delete word and cleanup unused nodes."""
+    def _delete_helper(node, word, depth):
+        if depth == len(word):
+            if not node.is_end:
+                return False
+            node.is_end = False
+            return len(node.children) == 0
+        
+        char = word[depth]
+        if char not in node.children:
+            return False
+        
+        should_delete_child = _delete_helper(
+            node.children[char], word, depth + 1
+        )
+        
+        if should_delete_child:
+            del node.children[char]
+            return len(node.children) == 0 and not node.is_end
+        
+        return False
+    
+    return _delete_helper(self.root, word, 0)
+```
+
+### Tactic 3: Finding Longest Common Prefix
+
+Use Trie to find LCP among all words:
+
+```python
+def longest_common_prefix(strs: list[str]) -> str:
+    """Find longest common prefix using Trie."""
+    if not strs:
+        return ""
+    
+    trie = Trie()
+    for word in strs:
+        trie.insert(word)
+    
+    # Traverse until we find a branch or word end
+    prefix = []
+    node = trie.root
+    
+    while len(node.children) == 1 and not node.is_end:
+        char = list(node.children.keys())[0]
+        prefix.append(char)
+        node = node.children[char]
+    
+    return "".join(prefix)
+```
+
+### Tactic 4: Pattern Matching with Wildcards
+
+Support '.' wildcard in search:
+
+```python
+class WordDictionary:
+    def __init__(self):
+        self.root = TrieNode()
+    
+    def search_with_wildcard(self, word: str) -> bool:
+        """Search word where '.' matches any character."""
+        def dfs(node, index):
+            if index == len(word):
+                return node.is_end
+            
+            char = word[index]
+            if char == '.':
+                # Try all children
+                for child in node.children.values():
+                    if dfs(child, index + 1):
+                        return True
+                return False
+            else:
+                if char not in node.children:
+                    return False
+                return dfs(node.children[char], index + 1)
+        
+        return dfs(self.root, 0)
+```
+
+### Tactic 5: Replace Words with Shortest Root
+
+Replace words with their shortest prefix root:
+
+```python
+def replace_words(dictionary: list[str], sentence: str) -> str:
+    """Replace each word with shortest root from dictionary."""
+    trie = Trie()
+    for root in dictionary:
+        trie.insert(root)
+    
+    words = sentence.split()
+    result = []
+    
+    for word in words:
+        # Find shortest root
+        node = trie.root
+        replacement = []
+        
+        for char in word:
+            if char not in node.children or node.is_end:
+                break
+            replacement.append(char)
+            node = node.children[char]
+        
+        if node.is_end:
+            result.append("".join(replacement))
+        else:
+            result.append(word)
+    
+    return " ".join(result)
+```
+
+---
+
+## Python Templates
+
+### Template 1: Basic Trie Implementation
+
+```python
+from typing import Dict, List, Optional
+
+
+class TrieNode:
+    """A node in the Trie structure."""
+    
+    def __init__(self):
+        self.children: Dict[str, 'TrieNode'] = {}
+        self.is_end: bool = False
+        self.word: str = ""
+
+
+class Trie:
+    """
+    Basic Trie implementation for efficient string operations.
+    
+    Time Complexities:
+        - Insert: O(m) where m is word length
+        - Search: O(m)
+        - StartsWith: O(m)
+    
+    Space Complexity: O(total characters in all words)
+    """
+    
+    def __init__(self):
+        self.root = TrieNode()
+    
+    def insert(self, word: str) -> None:
+        """Insert a word into the trie."""
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_end = True
+        node.word = word
+    
+    def search(self, word: str) -> bool:
+        """Search for exact word in trie."""
+        node = self._find_node(word)
+        return node is not None and node.is_end
+    
+    def starts_with(self, prefix: str) -> bool:
+        """Check if any word starts with given prefix."""
+        return self._find_node(prefix) is not None
+    
+    def _find_node(self, prefix: str) -> Optional[TrieNode]:
+        """Find node corresponding to prefix."""
+        node = self.root
+        for char in prefix:
+            if char not in node.children:
+                return None
+            node = node.children[char]
+        return node
+    
+    def get_words_with_prefix(self, prefix: str) -> List[str]:
+        """Get all words starting with given prefix."""
+        node = self._find_node(prefix)
+        if not node:
+            return []
+        
+        words = []
+        self._collect_words(node, words)
+        return words
+    
+    def _collect_words(self, node: TrieNode, words: List[str]) -> None:
+        """Recursively collect all words from node."""
+        if node.is_end:
+            words.append(node.word)
+        for child in node.children.values():
+            self._collect_words(child, words)
+```
+
+### Template 2: Trie with Deletion
+
+```python
+class TrieWithDelete:
+    """Trie with word deletion and node cleanup."""
+    
+    def __init__(self):
+        self.root = TrieNode()
+    
+    def insert(self, word: str) -> None:
+        """Insert a word into the trie."""
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_end = True
+        node.word = word
+    
+    def search(self, word: str) -> bool:
+        """Search for exact word in trie."""
+        node = self._find_node(word)
+        return node is not None and node.is_end
+    
+    def delete(self, word: str) -> bool:
+        """Delete a word from trie and cleanup unused nodes."""
+        def _delete_helper(node: TrieNode, word: str, depth: int) -> bool:
+            if depth == len(word):
+                if not node.is_end:
+                    return False
+                node.is_end = False
+                return len(node.children) == 0
+            
+            char = word[depth]
+            if char not in node.children:
+                return False
+            
+            should_delete_child = _delete_helper(
+                node.children[char], word, depth + 1
+            )
+            
+            if should_delete_child:
+                del node.children[char]
+                return len(node.children) == 0 and not node.is_end
+            
+            return False
+        
+        return _delete_helper(self.root, word, 0)
+    
+    def _find_node(self, prefix: str) -> Optional[TrieNode]:
+        """Find node corresponding to prefix."""
+        node = self.root
+        for char in prefix:
+            if char not in node.children:
+                return None
+            node = node.children[char]
+        return node
+```
+
+### Template 3: Trie for Word Search II (Boggle)
+
+```python
+class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.word = None  # Store complete word at end node
+
+
+class WordSearchTrie:
+    """Trie optimized for word search in grid."""
+    
+    def __init__(self):
+        self.root = TrieNode()
+    
+    def insert(self, word: str) -> None:
+        """Insert word into trie."""
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.word = word  # Mark end with complete word
+    
+    def find_words(self, board: List[List[str]]) -> List[str]:
+        """Find all words from dictionary in the board."""
+        if not board or not board[0]:
+            return []
+        
+        result = set()
+        rows, cols = len(board), len(board[0])
+        
+        def dfs(node, i, j):
+            char = board[i][j]
+            if char not in node.children:
+                return
+            
+            child = node.children[char]
+            if child.word:
+                result.add(child.word)
+                child.word = None  # Avoid duplicates
+            
+            # Mark as visited
+            board[i][j] = '#'
+            
+            # Explore neighbors
+            for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                ni, nj = i + di, j + dj
+                if 0 <= ni < rows and 0 <= nj < cols and board[ni][nj] != '#':
+                    dfs(child, ni, nj)
+            
+            # Restore
+            board[i][j] = char
+        
+        for i in range(rows):
+            for j in range(cols):
+                dfs(self.root, i, j)
+        
+        return list(result)
+```
+
+### Template 4: Bitwise Trie for Maximum XOR
+
+```python
+class BitTrieNode:
+    def __init__(self):
+        self.children = [None, None]  # 0 and 1
+
+
+class BitwiseTrie:
+    """Trie for efficient bit manipulation operations."""
+    
+    def __init__(self, max_bits: int = 31):
+        self.root = BitTrieNode()
+        self.max_bits = max_bits
+    
+    def insert(self, num: int) -> None:
+        """Insert number into trie."""
+        node = self.root
+        for i in range(self.max_bits, -1, -1):
+            bit = (num >> i) & 1
+            if not node.children[bit]:
+                node.children[bit] = BitTrieNode()
+            node = node.children[bit]
+    
+    def find_max_xor(self, num: int) -> int:
+        """Find number in trie that maximizes XOR with num."""
+        node = self.root
+        result = 0
+        
+        for i in range(self.max_bits, -1, -1):
+            bit = (num >> i) & 1
+            # Try opposite bit for maximum XOR
+            opposite = 1 - bit
+            
+            if node.children[opposite]:
+                result |= (1 << i)
+                node = node.children[opposite]
+            else:
+                node = node.children[bit]
+        
+        return result
+
+
+def find_maximum_xor(nums: List[int]) -> int:
+    """Find maximum XOR of any two numbers in array."""
+    if not nums:
+        return 0
+    
+    trie = BitwiseTrie()
+    max_xor = 0
+    
+    trie.insert(nums[0])
+    for num in nums[1:]:
+        max_xor = max(max_xor, trie.find_max_xor(num))
+        trie.insert(num)
+    
+    return max_xor
+```
+
+### Template 5: Trie with Wildcard Support
+
+```python
+class WordDictionary:
+    """Trie that supports '.' wildcard matching."""
+    
+    def __init__(self):
+        self.root = TrieNode()
+    
+    def add_word(self, word: str) -> None:
+        """Add word to dictionary."""
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_end = True
+    
+    def search(self, word: str) -> bool:
+        """
+        Search word with wildcards.
+        '.' matches any single character.
+        """
+        def dfs(node: TrieNode, index: int) -> bool:
+            if index == len(word):
+                return node.is_end
+            
+            char = word[index]
+            
+            if char == '.':
+                # Try all possible children
+                for child in node.children.values():
+                    if dfs(child, index + 1):
+                        return True
+                return False
+            else:
+                if char not in node.children:
+                    return False
+                return dfs(node.children[char], index + 1)
+        
+        return dfs(self.root, 0)
+```
+
+### Template 6: Longest Common Prefix Using Trie
+
+```python
+def longest_common_prefix(strs: List[str]) -> str:
+    """
+    Find longest common prefix among all strings using Trie.
+    
+    Time: O(S) where S is sum of all characters
+    Space: O(S)
+    """
+    if not strs:
+        return ""
+    
+    # Build Trie
+    root = TrieNode()
+    for word in strs:
+        node = root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_end = True
+    
+    # Find LCP
+    prefix = []
+    node = root
+    
+    while len(node.children) == 1 and not node.is_end:
+        char = list(node.children.keys())[0]
+        prefix.append(char)
+        node = node.children[char]
+    
+    return "".join(prefix)
+```
+
 ---
 
 ## When to Use
@@ -132,1062 +838,6 @@ For inserting words ["apple", "app", "application", "apply", "banana", "band"]:
 
 ---
 
-## Algorithm Steps
-
-### Inserting a Word
-
-1. Start at the root node
-2. For each character in the word:
-   - If the current node doesn't have an edge for this character, create a new child node
-   - Move to the child node
-3. After processing all characters, mark the current node as end of word
-4. Store the complete word at the node (optional, for retrieval)
-
-### Searching for a Word
-
-1. Start at the root node
-2. For each character in the word:
-   - If the current node doesn't have an edge for this character, return False
-   - Move to the child node
-3. After processing all characters, check if current node is marked as end of word
-4. Return True if marked as end, False otherwise
-
-### Finding All Words with Prefix
-
-1. Traverse to the node representing the prefix
-2. If prefix doesn't exist, return empty list
-3. Perform DFS/BFS from this node to collect all words:
-   - If node is end of word, add to results
-   - Recursively visit all children
-
-### Deleting a Word
-
-1. First, verify the word exists (search)
-2. Use recursive deletion:
-   - If we've processed all characters, unmark end of word
-   - Recursively delete child if it's not an end of another word and has no children
-   - Return True if current node should be deleted
-
----
-
-## Implementation
-
-### Template Code
-
-````carousel
-```python
-from typing import Dict, List, Optional
-
-
-class TrieNode:
-    """A node in the Trie structure."""
-    
-    def __init__(self):
-        self.children: Dict[str, 'TrieNode'] = {}
-        self.is_end: bool = False
-        self.word: str = ""
-
-
-class Trie:
-    """
-    Trie (Prefix Tree) implementation for efficient string operations.
-    
-    Time Complexities:
-        - Insert: O(m) where m is the length of the word
-        - Search: O(m)
-        - Prefix Search: O(m)
-        - Get All Words with Prefix: O(m + k) where k is number of matches
-    
-    Space Complexities:
-        - Insert: O(m) worst case (new nodes)
-        - Overall: O(ALPHABET_SIZE × m × n) where n is number of words
-    """
-    
-    def __init__(self):
-        """Initialize the Trie with an empty root node."""
-        self.root = TrieNode()
-    
-    def insert(self, word: str) -> None:
-        """
-        Insert a word into the trie.
-        
-        Args:
-            word: Word to insert
-            
-        Time: O(m) where m is word length
-        """
-        node = self.root
-        for char in word:
-            if char not in node.children:
-                node.children[char] = TrieNode()
-            node = node.children[char]
-        node.is_end = True
-        node.word = word
-    
-    def search(self, word: str) -> bool:
-        """
-        Search for exact word in trie.
-        
-        Args:
-            word: Word to search
-        
-        Returns:
-            True if word exists in trie
-            
-        Time: O(m)
-        """
-        node = self._find_node(word)
-        return node is not None and node.is_end
-    
-    def starts_with(self, prefix: str) -> bool:
-        """
-        Check if any word starts with given prefix.
-        
-        Args:
-            prefix: Prefix to search
-        
-        Returns:
-            True if prefix exists in trie
-            
-        Time: O(m)
-        """
-        return self._find_node(prefix) is not None
-    
-    def _find_node(self, prefix: str) -> Optional[TrieNode]:
-        """Find node corresponding to prefix."""
-        node = self.root
-        for char in prefix:
-            if char not in node.children:
-                return None
-            node = node.children[char]
-        return node
-    
-    def get_all_words_with_prefix(self, prefix: str) -> List[str]:
-        """
-        Get all words starting with given prefix.
-        
-        Args:
-            prefix: Prefix to search
-        
-        Returns:
-            List of words with prefix
-            
-        Time: O(m + k) where k is number of matches
-        """
-        node = self._find_node(prefix)
-        if not node:
-            return []
-        
-        words = []
-        self._collect_words(node, words)
-        return words
-    
-    def _collect_words(self, node: TrieNode, words: List[str]) -> None:
-        """Recursively collect all words from node."""
-        if node.is_end:
-            words.append(node.word)
-        for child in node.children.values():
-            self._collect_words(child, words)
-    
-    def delete(self, word: str) -> bool:
-        """
-        Delete a word from trie.
-        
-        Args:
-            word: Word to delete
-        
-        Returns:
-            True if word was deleted
-            
-        Time: O(m)
-        """
-        def _delete(node: TrieNode, word: str, depth: int) -> bool:
-            if depth == len(word):
-                if not node.is_end:
-                    return False
-                node.is_end = False
-                return len(node.children) == 0
-            
-            char = word[depth]
-            if char not in node.children:
-                return False
-            
-            should_delete_child = _delete(node.children[char], word, depth + 1)
-            
-            if should_delete_child:
-                del node.children[char]
-                return len(node.children) == 0 and not node.is_end
-            
-            return False
-        
-        if self.search(word):
-            _delete(self.root, word, 0)
-            return True
-        return False
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    trie = Trie()
-    
-    words = ["apple", "app", "application", "apply", "banana", "band", "bandana"]
-    for word in words:
-        trie.insert(word)
-    
-    print("=" * 60)
-    print("Trie Operations Demonstration")
-    print("=" * 60)
-    print(f"\nWords inserted: {words}")
-    print()
-    
-    # Search operations
-    print("--- Search Operations ---")
-    print(f"Search 'app': {trie.search('app')}")
-    print(f"Search 'appl': {trie.search('appl')}")
-    print(f"Search 'application': {trie.search('application')}")
-    print()
-    
-    # Prefix operations
-    print("--- Prefix Operations ---")
-    print(f"Starts with 'ban': {trie.starts_with('ban')}")
-    print(f"Starts with 'cat': {trie.starts_with('cat')}")
-    print(f"Starts with 'app': {trie.starts_with('app')}")
-    print()
-    
-    # Get all words with prefix
-    print("--- Words with Prefix ---")
-    print(f"Words with prefix 'ban': {trie.get_all_words_with_prefix('ban')}")
-    print(f"Words with prefix 'app': {trie.get_all_words_with_prefix('app')}")
-    print(f"Words with prefix 'z': {trie.get_all_words_with_prefix('z')}")
-    print()
-    
-    # Delete operation
-    print("--- Delete Operation ---")
-    print(f"Delete 'app': {trie.delete('app')}")
-    print(f"Search 'app' after delete: {trie.search('app')}")
-    print(f"Starts with 'app' after delete: {trie.starts_with('app')}")
-    print(f"Words with prefix 'app': {trie.get_all_words_with_prefix('app')}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <string>
-#include <vector>
-#include <unordered_map>
-using namespace std;
-
-/**
- * Trie (Prefix Tree) implementation for efficient string operations.
- * 
- * Time Complexities:
- *     - Insert: O(m) where m is the length of the word
- *     - Search: O(m)
- *     - Prefix Search: O(m)
- * 
- * Space Complexities:
- *     - Overall: O(ALPHABET_SIZE × m × n) where n is number of words
- */
-class TrieNode {
-public:
-    unordered_map<char, TrieNode*> children;
-    bool is_end;
-    string word;
-    
-    TrieNode() {
-        is_end = false;
-    }
-};
-
-class Trie {
-private:
-    TrieNode* root;
-    
-    TrieNode* findNode(const string& prefix) {
-        TrieNode* node = root;
-        for (char c : prefix) {
-            if (node->children.find(c) == node->children.end()) {
-                return nullptr;
-            }
-            node = node->children[c];
-        }
-        return node;
-    }
-    
-    void collectWords(TrieNode* node, vector<string>& words) {
-        if (node->is_end) {
-            words.push_back(node->word);
-        }
-        for (auto& pair : node->children) {
-            collectWords(pair.second, words);
-        }
-    }
-    
-    bool deleteHelper(TrieNode* node, const string& word, int depth) {
-        if (depth == word.length()) {
-            if (!node->is_end) {
-                return false;
-            }
-            node->is_end = false;
-            return node->children.empty();
-        }
-        
-        char c = word[depth];
-        if (node->children.find(c) == node->children.end()) {
-            return false;
-        }
-        
-        TrieNode* child = node->children[c];
-        bool shouldDeleteChild = deleteHelper(child, word, depth + 1);
-        
-        if (shouldDeleteChild) {
-            delete child;
-            node->children.erase(c);
-            return node->children.empty() && !node->is_end;
-        }
-        
-        return false;
-    }
-    
-    void deleteTrie(TrieNode* node) {
-        for (auto& pair : node->children) {
-            deleteTrie(pair.second);
-        }
-        delete node;
-    }
-    
-public:
-    Trie() {
-        root = new TrieNode();
-    }
-    
-    ~Trie() {
-        deleteTrie(root);
-    }
-    
-    /**
-     * Insert a word into the trie.
-     * Time: O(m) where m is word length
-     */
-    void insert(const string& word) {
-        TrieNode* node = root;
-        for (char c : word) {
-            if (node->children.find(c) == node->children.end()) {
-                node->children[c] = new TrieNode();
-            }
-            node = node->children[c];
-        }
-        node->is_end = true;
-        node->word = word;
-    }
-    
-    /**
-     * Search for exact word in trie.
-     * Time: O(m)
-     */
-    bool search(const string& word) {
-        TrieNode* node = findNode(word);
-        return node != nullptr && node->is_end;
-    }
-    
-    /**
-     * Check if any word starts with given prefix.
-     * Time: O(m)
-     */
-    bool starts_with(const string& prefix) {
-        return findNode(prefix) != nullptr;
-    }
-    
-    /**
-     * Get all words starting with given prefix.
-     * Time: O(m + k) where k is number of matches
-     */
-    vector<string> get_all_words_with_prefix(const string& prefix) {
-        vector<string> words;
-        TrieNode* node = findNode(prefix);
-        if (node) {
-            collectWords(node, words);
-        }
-        return words;
-    }
-    
-    /**
-     * Delete a word from trie.
-     * Time: O(m)
-     */
-    bool deleteWord(const string& word) {
-        if (search(word)) {
-            deleteHelper(root, word, 0);
-            return true;
-        }
-        return false;
-    }
-};
-
-
-int main() {
-    Trie trie;
-    
-    vector<string> words = {"apple", "app", "application", "apply", "banana", "band", "bandana"};
-    for (const string& word : words) {
-        trie.insert(word);
-    }
-    
-    cout << "=" << 60 << endl;
-    cout << "Trie Operations Demonstration" << endl;
-    cout << "=" << 60 << endl;
-    cout << "\nWords inserted: ";
-    for (const string& w : words) cout << w << " ";
-    cout << endl << endl;
-    
-    // Search operations
-    cout << "--- Search Operations ---" << endl;
-    cout << "Search 'app': " << (trie.search("app") ? "true" : "false") << endl;
-    cout << "Search 'appl': " << (trie.search("appl") ? "true" : "false") << endl;
-    cout << "Search 'application': " << (trie.search("application") ? "true" : "false") << endl;
-    cout << endl;
-    
-    // Prefix operations
-    cout << "--- Prefix Operations ---" << endl;
-    cout << "Starts with 'ban': " << (trie.starts_with("ban") ? "true" : "false") << endl;
-    cout << "Starts with 'cat': " << (trie.starts_with("cat") ? "true" : "false") << endl;
-    cout << "Starts with 'app': " << (trie.starts_with("app") ? "true" : "false") << endl;
-    cout << endl;
-    
-    // Get all words with prefix
-    cout << "--- Words with Prefix ---" << endl;
-    vector<string> banWords = trie.get_all_words_with_prefix("ban");
-    cout << "Words with prefix 'ban': ";
-    for (const string& w : banWords) cout << w << " ";
-    cout << endl;
-    
-    vector<string> appWords = trie.get_all_words_with_prefix("app");
-    cout << "Words with prefix 'app': ";
-    for (const string& w : appWords) cout << w << " ";
-    cout << endl;
-    cout << endl;
-    
-    // Delete operation
-    cout << "--- Delete Operation ---" << endl;
-    cout << "Delete 'app': " << (trie.deleteWord("app") ? "true" : "false") << endl;
-    cout << "Search 'app' after delete: " << (trie.search("app") ? "true" : "false") << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-/**
- * Trie (Prefix Tree) implementation for efficient string operations.
- * 
- * Time Complexities:
- *     - Insert: O(m) where m is the length of the word
- *     - Search: O(m)
- *     - Prefix Search: O(m)
- * 
- * Space Complexities:
- *     - Overall: O(ALPHABET_SIZE × m × n) where n is number of words
- */
-class TrieNode {
-    Map<Character, TrieNode> children;
-    boolean isEnd;
-    String word;
-    
-    TrieNode() {
-        children = new HashMap<>();
-        isEnd = false;
-    }
-}
-
-public class Trie {
-    private TrieNode root;
-    
-    public Trie() {
-        root = new TrieNode();
-    }
-    
-    /**
-     * Insert a word into the trie.
-     * Time: O(m) where m is word length
-     */
-    public void insert(String word) {
-        TrieNode node = root;
-        for (char c : word.toCharArray()) {
-            node.children.putIfAbsent(c, new TrieNode());
-            node = node.children.get(c);
-        }
-        node.isEnd = true;
-        node.word = word;
-    }
-    
-    /**
-     * Search for exact word in trie.
-     * Time: O(m)
-     */
-    public boolean search(String word) {
-        TrieNode node = findNode(word);
-        return node != null && node.isEnd;
-    }
-    
-    /**
-     * Check if any word starts with given prefix.
-     * Time: O(m)
-     */
-    public boolean startsWith(String prefix) {
-        return findNode(prefix) != null;
-    }
-    
-    private TrieNode findNode(String prefix) {
-        TrieNode node = root;
-        for (char c : prefix.toCharArray()) {
-            if (!node.children.containsKey(c)) {
-                return null;
-            }
-            node = node.children.get(c);
-        }
-        return node;
-    }
-    
-    /**
-     * Get all words starting with given prefix.
-     * Time: O(m + k) where k is number of matches
-     */
-    public List<String> getAllWordsWithPrefix(String prefix) {
-        List<String> words = new ArrayList<>();
-        TrieNode node = findNode(prefix);
-        if (node != null) {
-            collectWords(node, words);
-        }
-        return words;
-    }
-    
-    private void collectWords(TrieNode node, List<String> words) {
-        if (node.isEnd) {
-            words.add(node.word);
-        }
-        for (TrieNode child : node.children.values()) {
-            collectWords(child, words);
-        }
-    }
-    
-    /**
-     * Delete a word from trie.
-     * Time: O(m)
-     */
-    public boolean delete(String word) {
-        if (search(word)) {
-            deleteHelper(root, word, 0);
-            return true;
-        }
-        return false;
-    }
-    
-    private boolean deleteHelper(TrieNode node, String word, int depth) {
-        if (depth == word.length()) {
-            if (!node.isEnd) {
-                return false;
-            }
-            node.isEnd = false;
-            return node.children.isEmpty();
-        }
-        
-        char c = word.charAt(depth);
-        TrieNode child = node.children.get(c);
-        if (child == null) {
-            return false;
-        }
-        
-        boolean shouldDeleteChild = deleteHelper(child, word, depth + 1);
-        
-        if (shouldDeleteChild) {
-            node.children.remove(c);
-            return node.children.isEmpty() && !node.isEnd;
-        }
-        
-        return false;
-    }
-    
-    public static void main(String[] args) {
-        Trie trie = new Trie();
-        
-        String[] words = {"apple", "app", "application", "apply", "banana", "band", "bandana"};
-        for (String word : words) {
-            trie.insert(word);
-        }
-        
-        System.out.println("=".repeat(60));
-        System.out.println("Trie Operations Demonstration");
-        System.out.println("=".repeat(60));
-        System.out.println("\nWords inserted: " + Arrays.toString(words));
-        System.out.println();
-        
-        // Search operations
-        System.out.println("--- Search Operations ---");
-        System.out.println("Search 'app': " + trie.search("app"));
-        System.out.println("Search 'appl': " + trie.search("appl"));
-        System.out.println("Search 'application': " + trie.search("application"));
-        System.out.println();
-        
-        // Prefix operations
-        System.out.println("--- Prefix Operations ---");
-        System.out.println("Starts with 'ban': " + trie.startsWith("ban"));
-        System.out.println("Starts with 'cat': " + trie.startsWith("cat"));
-        System.out.println("Starts with 'app': " + trie.startsWith("app"));
-        System.out.println();
-        
-        // Get all words with prefix
-        System.out.println("--- Words with Prefix ---");
-        System.out.println("Words with prefix 'ban': " + trie.getAllWordsWithPrefix("ban"));
-        System.out.println("Words with prefix 'app': " + trie.getAllWordsWithPrefix("app"));
-        System.out.println();
-        
-        // Delete operation
-        System.out.println("--- Delete Operation ---");
-        System.out.println("Delete 'app': " + trie.delete("app"));
-        System.out.println("Search 'app' after delete: " + trie.search("app"));
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Trie (Prefix Tree) implementation for efficient string operations.
- * 
- * Time Complexities:
- *     - Insert: O(m) where m is the length of the word
- *     - Search: O(m)
- *     - Prefix Search: O(m)
- * 
- * Space Complexities:
- *     - Overall: O(ALPHABET_SIZE × m × n) where n is number of words
- */
-class TrieNode {
-    constructor() {
-        this.children = new Map();
-        this.isEnd = false;
-        this.word = "";
-    }
-}
-
-class Trie {
-    /**
-     * Initialize the Trie with an empty root node.
-     */
-    constructor() {
-        this.root = new TrieNode();
-    }
-    
-    /**
-     * Insert a word into the trie.
-     * @param {string} word - Word to insert
-     * Time: O(m) where m is word length
-     */
-    insert(word) {
-        let node = this.root;
-        for (const char of word) {
-            if (!node.children.has(char)) {
-                node.children.set(char, new TrieNode());
-            }
-            node = node.children.get(char);
-        }
-        node.isEnd = true;
-        node.word = word;
-    }
-    
-    /**
-     * Search for exact word in trie.
-     * @param {string} word - Word to search
-     * @returns {boolean} True if word exists in trie
-     * Time: O(m)
-     */
-    search(word) {
-        const node = this._findNode(word);
-        return node !== null && node.isEnd;
-    }
-    
-    /**
-     * Check if any word starts with given prefix.
-     * @param {string} prefix - Prefix to search
-     * @returns {boolean} True if prefix exists in trie
-     * Time: O(m)
-     */
-    startsWith(prefix) {
-        return this._findNode(prefix) !== null;
-    }
-    
-    /**
-     * Find node corresponding to prefix.
-     * @param {string} prefix - Prefix to find
-     * @returns {TrieNode|null} Node or null if not found
-     * @private
-     */
-    _findNode(prefix) {
-        let node = this.root;
-        for (const char of prefix) {
-            if (!node.children.has(char)) {
-                return null;
-            }
-            node = node.children.get(char);
-        }
-        return node;
-    }
-    
-    /**
-     * Get all words starting with given prefix.
-     * @param {string} prefix - Prefix to search
-     * @returns {string[]} List of words with prefix
-     * Time: O(m + k) where k is number of matches
-     */
-    getAllWordsWithPrefix(prefix) {
-        const words = [];
-        const node = this._findNode(prefix);
-        if (node) {
-            this._collectWords(node, words);
-        }
-        return words;
-    }
-    
-    /**
-     * Recursively collect all words from node.
-     * @param {TrieNode} node - Current node
-     * @param {string[]} words - Array to store words
-     * @private
-     */
-    _collectWords(node, words) {
-        if (node.isEnd) {
-            words.push(node.word);
-        }
-        for (const child of node.children.values()) {
-            this._collectWords(child, words);
-        }
-    }
-    
-    /**
-     * Delete a word from trie.
-     * @param {string} word - Word to delete
-     * @returns {boolean} True if word was deleted
-     * Time: O(m)
-     */
-    delete(word) {
-        const deleteHelper = (node, word, depth) => {
-            if (depth === word.length) {
-                if (!node.isEnd) {
-                    return false;
-                }
-                node.isEnd = false;
-                return node.children.size === 0;
-            }
-            
-            const char = word[depth];
-            const child = node.children.get(char);
-            if (!child) {
-                return false;
-            }
-            
-            const shouldDeleteChild = deleteHelper(child, word, depth + 1);
-            
-            if (shouldDeleteChild) {
-                node.children.delete(char);
-                return node.children.size === 0 && !node.isEnd;
-            }
-            
-            return false;
-        };
-        
-        if (this.search(word)) {
-            deleteHelper(this.root, word, 0);
-            return true;
-        }
-        return false;
-    }
-}
-
-
-// Example usage and demonstration
-const trie = new Trie();
-
-const words = ["apple", "app", "application", "apply", "banana", "band", "bandana"];
-for (const word of words) {
-    trie.insert(word);
-}
-
-console.log("=".repeat(60));
-console.log("Trie Operations Demonstration");
-console.log("=".repeat(60));
-console.log("\nWords inserted:", words);
-console.log();
-
-// Search operations
-console.log("--- Search Operations ---");
-console.log("Search 'app':", trie.search("app"));
-console.log("Search 'appl':", trie.search("appl"));
-console.log("Search 'application':", trie.search("application"));
-console.log();
-
-// Prefix operations
-console.log("--- Prefix Operations ---");
-console.log("Starts with 'ban':", trie.startsWith("ban"));
-console.log("Starts with 'cat':", trie.startsWith("cat"));
-console.log("Starts with 'app':", trie.startsWith("app"));
-console.log();
-
-// Get all words with prefix
-console.log("--- Words with Prefix ---");
-console.log("Words with prefix 'ban':", trie.getAllWordsWithPrefix("ban"));
-console.log("Words with prefix 'app':", trie.getAllWordsWithPrefix("app"));
-console.log();
-
-// Delete operation
-console.log("--- Delete Operation ---");
-console.log("Delete 'app':", trie.delete("app"));
-console.log("Search 'app' after delete:", trie.search("app"));
-console.log("Starts with 'app' after delete:", trie.startsWith("app"));
-console.log("Words with prefix 'app':", trie.getAllWordsWithPrefix("app"));
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Insert** | O(m) | Traverse/create m nodes for word of length m |
-| **Search** | O(m) | Traverse m nodes, check end marker |
-| **Prefix Search** | O(m) | Traverse m nodes for prefix |
-| **Delete** | O(m) | Recursive traversal and cleanup |
-| **Get All Words with Prefix** | O(m + k) | m for prefix, k for all matching words |
-| **Get Longest Prefix** | O(m) | Traverse until node with no children |
-
-### Detailed Breakdown
-
-- **Insert**: For each character in the word, we either find an existing child or create a new node
-- **Search**: Must check each character to ensure path exists, then verify word end marker
-- **Prefix Search**: Same as search but without checking word end marker
-- **Delete**: Requires traversing the entire word, then potentially cleaning up unused nodes
-
----
-
-## Space Complexity Analysis
-
-| Component | Space Complexity | Description |
-|-----------|----------------|-------------|
-| **Overall** | O(ALPHABET_SIZE × m × n) | Worst case with all unique prefixes |
-| **Per Node** | O(ALPHABET_SIZE) | If using fixed array, O(1) if using hash map |
-
-### Space Optimization Strategies
-
-1. **Dictionary-based Children**: Use `Map` or `HashMap` instead of fixed arrays - only stores existing edges
-2. **Compression**: Use ternary search tree or radix trie for space efficiency
-3. **Memory Pool**: Pre-allocate nodes to reduce allocation overhead
-4. **Alpha reduction**: Store only lowercase or use case-insensitive indexing
-
----
-
-## Common Variations
-
-### 1. Ternary Search Tree (TST)
-
-A more space-efficient variant where each node stores a single character with three pointers:
-- Left: characters less than current
-- Middle: characters equal to current
-- Right: characters greater than current
-
-````carousel
-```python
-class TSTNode:
-    def __init__(self, char):
-        self.char = char
-        self.left = None
-        self.mid = None
-        self.right = None
-        self.is_end = False
-        self.word = ""
-
-
-class TernarySearchTree:
-    """Space-optimized Trie using ternary search tree structure."""
-    
-    def __init__(self):
-        self.root = None
-    
-    def insert(self, word):
-        self.root = self._insert(self.root, word, 0)
-    
-    def _insert(self, node, word, depth):
-        char = word[depth]
-        if not node:
-            node = TSTNode(char)
-        
-        if char < node.char:
-            node.left = self._insert(node.left, word, depth)
-        elif char > node.char:
-            node.right = self._insert(node.right, word, depth)
-        else:
-            if depth + 1 == len(word):
-                node.is_end = True
-                node.word = word
-            else:
-                node.mid = self._insert(node.mid, word, depth + 1)
-        
-        return node
-    
-    def search(self, word):
-        node = self._search(self.root, word, 0)
-        return node and node.is_end
-    
-    def _search(self, node, word, depth):
-        if not node:
-            return None
-        char = word[depth]
-        
-        if char < node.char:
-            return self._search(node.left, word, depth)
-        elif char > node.char:
-            return self._search(node.right, word, depth)
-        else:
-            if depth + 1 == len(word):
-                return node
-            return self._search(node.mid, word, depth + 1)
-```
-
-### 2. Radix Trie (Patricia Trie)
-
-Compresses paths with single child nodes to save space:
-
-````carousel
-```python
-class RadixNode:
-    def __init__(self, prefix=""):
-        self.prefix = prefix
-        self.children = {}
-        self.is_end = False
-        self.word = ""
-
-
-class RadixTrie:
-    """Space-optimized Trie that compresses single-child paths."""
-    
-    def __init__(self):
-        self.root = RadixNode()
-    
-    def insert(self, word):
-        self._insert(self.root, word)
-    
-    def _insert(self, node, word, depth=0):
-        # Find matching child
-        for child in node.children:
-            if word.startswith(child, depth):
-                # Found matching prefix
-                remaining = word[depth + len(child):]
-                if remaining:
-                    if child in node.children:
-                        self._insert(node.children[child], word, depth + len(child))
-                else:
-                    node.children[child].is_end = True
-                    node.children[child].word = word
-                return
-        
-        # No match found, create new branch
-        node.children[word[depth:]] = RadixNode(word[depth:])
-        node.children[word[depth:]].is_end = True
-        node.children[word[depth:]].word = word
-```
-
-### 3. Trie with Counters
-
-Add frequency counters for autocomplete with most frequent suggestions:
-
-````carousel
-```python
-class TrieNodeWithCount:
-    def __init__(self):
-        self.children = {}
-        self.is_end = False
-        self.word = ""
-        self.count = 0  # Frequency counter
-
-
-class AutocompleteTrie:
-    """Trie with frequency counters for autocomplete."""
-    
-    def __init__(self):
-        self.root = TrieNodeWithCount()
-    
-    def insert(self, word):
-        node = self.root
-        for char in word:
-            if char not in node.children:
-                node.children[char] = TrieNodeWithCount()
-            node = node.children[char]
-        node.is_end = True
-        node.word = word
-        node.count += 1
-    
-    def get_top_k(self, prefix, k=3):
-        """Get top k most frequent words with prefix."""
-        node = self._find_node(prefix)
-        if not node:
-            return []
-        
-        # Collect all words and sort by frequency
-        words = []
-        self._collect_all(node, words)
-        words.sort(key=lambda x: x[1], reverse=True)
-        
-        return [w[0] for w in words[:k]]
-```
-
-### 4. Bitwise Trie
-
-Used for efficient bit manipulation operations:
-
-````carousel
-```python
-class BitTrieNode:
-    def __init__(self):
-        self.children = [None, None]  # 0 and 1
-        self.is_end = False
-
-
-class BitwiseTrie:
-    """Trie for efficient bit manipulation operations."""
-    
-    def __init__(self, max_bits=31):
-        self.root = BitTrieNode()
-        self.max_bits = max_bits
-    
-    def insert(self, num):
-        node = self.root
-        for i in range(self.max_bits, -1, -1):
-            bit = (num >> i) & 1
-            if not node.children[bit]:
-                node.children[bit] = BitTrieNode()
-            node = node.children[bit]
-        node.is_end = True
-    
-    def find_max_xor(self, num):
-        """Find number in trie that maximizes xor with num."""
-        node = self.root
-        result = 0
-        for i in range(self.max_bits, -1, -1):
-            bit = (num >> i) & 1
-            # Try to go opposite bit for max xor
-            toggle = 1 - bit
-            if node.children[toggle]:
-                result |= (1 << i)
-                node = node.children[toggle]
-            else:
-                node = node.children[bit]
-        return result
-```
-
----
-
 ## Practice Problems
 
 ### Problem 1: Implement Trie (Prefix Tree)
@@ -1256,6 +906,18 @@ class BitwiseTrie:
 
 ---
 
+### Problem 6: Concatenated Words
+
+**Problem:** [LeetCode 472 - Concatenated Words](https://leetcode.com/problems/concatenated-words/)
+
+**Description:** Given an array of strings, find all concatenated words. A concatenated word is defined as a string that is comprised entirely of at least two shorter words in the given array.
+
+**How to Apply Trie:**
+- Build Trie from all words
+- Use DFS with memoization to check if word can be formed by other words
+
+---
+
 ## Video Tutorial Links
 
 ### Fundamentals
@@ -1281,6 +943,8 @@ class BitwiseTrie:
 - **Double-array Trie (DAWG)**: More compact representation for large dictionaries
 - **Finite-state transducer**: For more complex prefix matching
 
+---
+
 ### Q2: Can Trie be used for numeric data?
 
 **Answer:** Yes! Tries can work with any sequential data:
@@ -1289,12 +953,16 @@ class BitwiseTrie:
 - **File paths**: Use '/' as delimiter
 - **Time series**: Discretize values into buckets
 
+---
+
 ### Q3: How does Trie compare to Hash Table for dictionary lookup?
 
 **Answer:** 
 - **Hash Table**: O(m) average for lookup, no prefix support
 - **Trie**: O(m) worst-case, supports prefix operations, ordered results
 - **Trade-off**: Trie uses more memory but provides additional functionality
+
+---
 
 ### Q4: How do you handle case sensitivity in Trie?
 
@@ -1303,6 +971,8 @@ class BitwiseTrie:
 - Store both versions with separate branches
 - Use a case-insensitive index that normalizes during traversal
 - Allow case-sensitive search with separate flag
+
+---
 
 ### Q5: What is the space complexity of a Trie and how can you reduce it?
 
@@ -1334,12 +1004,3 @@ When to use:
 - ❌ When only exact match lookups are needed
 
 This data structure is essential for competitive programming and technical interviews, especially in problems involving string prefix operations and autocomplete systems.
-
----
-
-## Related Algorithms
-
-- [Binary Search Tree](./binary-search-tree.md) - Ordered key-value storage
-- [Hash Table](./hash-table.md) - Fast exact match lookups
-- [Radix Tree](./radix-tree.md) - Space-optimized prefix tree
-- [Suffix Tree](./suffix-tree.md) - All substring queries

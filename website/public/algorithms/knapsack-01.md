@@ -7,7 +7,407 @@ Dynamic Programming
 
 The 0/1 Knapsack is a classic dynamic programming problem where we have **n items**, each with a **weight** and a **value**. Given a knapsack with capacity **W**, we need to select items such that the total weight doesn't exceed W while maximizing the total value. Each item can only be taken once (0 or 1 time).
 
-This problem demonstrates fundamental dynamic programming concepts including optimal substructure and overlapping subproblems, making it essential for understanding DP fundamentals.
+This problem demonstrates fundamental dynamic programming concepts including optimal substructure and overlapping subproblems, making it essential for understanding DP fundamentals. The pattern appears frequently in resource allocation problems, subset selection, and optimization with constraints.
+
+---
+
+## Concepts
+
+The 0/1 Knapsack technique is built on several fundamental concepts that make it powerful for solving constrained optimization problems.
+
+### 1. Binary Choice
+
+Each item presents a binary decision:
+
+| Choice | Action | Result |
+|--------|--------|--------|
+| **0 (Don't take)** | Skip item i | Keep current value at capacity w |
+| **1 (Take)** | Include item i | Add item's value, reduce remaining capacity |
+
+This binary choice creates 2^n possible combinations, but DP reduces this to O(n × W).
+
+### 2. Optimal Substructure
+
+The optimal solution for n items can be built from optimal solutions of n-1 items:
+
+```
+For capacity w:
+- If we don't take item i: solution = dp[i-1][w]
+- If we take item i: solution = dp[i-1][w-weight[i]] + value[i]
+- Take the maximum of both choices
+```
+
+### 3. Overlapping Subproblems
+
+The same subproblems are computed multiple times without memoization. DP tables store these results for reuse.
+
+| Subproblem | Meaning |
+|------------|---------|
+| `dp[i][w]` | Max value using first i items with capacity w |
+| `dp[i-1][w]` | Max value without item i |
+| `dp[i-1][w-weight[i]]` | Max value with item i included |
+
+### 4. Space Optimization Principle
+
+The 2D DP can be reduced to 1D by iterating capacity backwards:
+
+| Approach | Space | Trade-off |
+|----------|-------|-----------|
+| 2D DP | O(n × W) | Can reconstruct solution |
+| 1D DP | O(W) | Cannot easily reconstruct |
+
+---
+
+## Frameworks
+
+Structured approaches for solving 0/1 Knapsack problems.
+
+### Framework 1: 2D DP Table Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  2D DP TABLE FRAMEWORK                              │
+├─────────────────────────────────────────────────────┤
+│  1. Create dp[n+1][W+1] initialized to 0            │
+│  2. For each item i from 1 to n:                   │
+│     For each capacity w from 0 to W:               │
+│       a. Don't take: dp[i][w] = dp[i-1][w]         │
+│       b. If weight[i-1] ≤ w:                       │
+│          Take: dp[i][w] = max(dp[i][w],            │
+│                      dp[i-1][w-weight[i-1]] + value[i-1])│
+│  3. Return dp[n][W]                                 │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When you need to reconstruct which items were selected.
+
+### Framework 2: 1D Space-Optimized Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  1D SPACE-OPTIMIZED FRAMEWORK                         │
+├─────────────────────────────────────────────────────┤
+│  1. Create dp[W+1] initialized to 0                  │
+│  2. For each item i from 0 to n-1:                 │
+│     For w from W down to weight[i]:                │
+│       dp[w] = max(dp[w], dp[w-weight[i]] + value[i])│
+│  3. Return dp[W]                                     │
+│                                                      │
+│  Key: Iterate BACKWARDS to prevent using same      │
+│       item multiple times                           │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When only the maximum value is needed (not which items).
+
+### Framework 3: Solution Reconstruction Framework
+
+```
+┌─────────────────────────────────────────────────────┐
+│  SOLUTION RECONSTRUCTION FRAMEWORK                  │
+├─────────────────────────────────────────────────────┤
+│  1. Build full 2D dp table                           │
+│  2. Create keep[i][w] = True if item i-1 selected    │
+│  3. Backtrack from dp[n][W]:                         │
+│     w = W                                            │
+│     for i from n down to 1:                        │
+│       if keep[i][w]:                               │
+│         add item i-1 to result                       │
+│         w -= weight[i-1]                             │
+│  4. Return selected items                            │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When you need to know exactly which items form the optimal solution.
+
+---
+
+## Forms
+
+Different manifestations of the 0/1 Knapsack pattern.
+
+### Form 1: Classic Value Maximization
+
+Maximize total value with exact or at-most weight constraint.
+
+| Problem Type | State Definition | Transition |
+|--------------|------------------|------------|
+| Max value | `dp[w] = max value` | `max(dp[w], dp[w-weight] + value)` |
+| Count ways | `dp[w] += dp[w-weight]` | Add ways to reach remaining capacity |
+| Min items | `dp[w] = min coins` | `min(dp[w], dp[w-weight] + 1)` |
+
+### Form 2: Subset Sum (Decision Variant)
+
+Determine if a subset with exact sum exists.
+
+```
+dp[i][w] = True if sum w achievable with first i items
+dp[i][w] = dp[i-1][w] OR dp[i-1][w-nums[i-1]]
+```
+
+**Example**: Partition Equal Subset Sum - can array be split into two equal sums?
+
+### Form 3: Multi-Dimensional Knapsack
+
+Multiple constraints (e.g., weight and volume).
+
+```
+dp[w][v] = max value with weight ≤ w and volume ≤ v
+```
+
+**Example**: Ones and Zeroes - maximize strings with m zeros and n ones constraint.
+
+### Form 4: Group Knapsack
+
+Items are in groups, pick at most one from each group.
+
+```
+For each group:
+    For each capacity (backwards):
+        Try each item in group
+```
+
+### Form 5: Dependent Knapsack
+
+Items have dependencies (taking item A requires taking item B).
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Backward Iteration for 0/1 Property
+
+The key to 0/1 knapsack space optimization:
+
+```python
+# WRONG - allows multiple uses (unbounded knapsack)
+for w in range(weight[i], W + 1):
+    dp[w] = max(dp[w], dp[w - weight[i]] + value[i])
+
+# CORRECT - 0/1 knapsack (each item once)
+for w in range(W, weight[i] - 1, -1):
+    dp[w] = max(dp[w], dp[w - weight[i]] + value[i])
+```
+
+**Why**: Backward iteration uses values from previous iteration, preventing reuse.
+
+### Tactic 2: Early Termination Optimization
+
+Skip items that exceed capacity:
+
+```python
+for i in range(n):
+    if weights[i] > W:
+        continue  # Item can't fit, skip it
+    for w in range(W, weights[i] - 1, -1):
+        dp[w] = max(dp[w], dp[w - weights[i]] + values[i])
+```
+
+### Tactic 3: Value-Weight Ratio Pruning
+
+For approximate solutions or heuristics:
+
+```python
+def sort_by_density(items):
+    """Sort by value/weight ratio descending."""
+    return sorted(items, key=lambda x: x.value/x.weight, reverse=True)
+```
+
+### Tactic 4: Meet-in-the-Middle for Large W
+
+When W is too large for O(n × W):
+
+```python
+def meet_in_middle(values, weights, W):
+    """Split items into two halves, enumerate all subsets of each."""
+    n = len(values)
+    mid = n // 2
+    
+    # Generate all subsets for both halves
+    left_subsets = generate_subsets(values[:mid], weights[:mid])
+    right_subsets = generate_subsets(values[mid:], weights[mid:])
+    
+    # Sort and use two-pointer to find optimal combination
+    left_subsets.sort()
+    right_subsets.sort(reverse=True)
+    
+    # Find best combination not exceeding W
+    return find_optimal_combination(left_subsets, right_subsets, W)
+```
+
+### Tactic 5: Bounded to 0/1 Conversion
+
+Convert items with limits to multiple 0/1 items using binary splitting:
+
+```python
+def binary_split(limit, value, weight):
+    """Convert k copies to log(k) 0/1 items."""
+    items = []
+    k = 1
+    while limit > 0:
+        take = min(k, limit)
+        items.append((take * value, take * weight))
+        limit -= take
+        k *= 2
+    return items
+```
+
+---
+
+## Python Templates
+
+### Template 1: 2D DP with Full Table
+
+```python
+def knapsack_01_2d(values: list[int], weights: list[int], capacity: int) -> int:
+    """
+    Template 1: 2D DP approach - can reconstruct solution.
+    Time: O(n * W), Space: O(n * W)
+    """
+    if not values or not weights or capacity <= 0:
+        return 0
+    
+    n = len(values)
+    # dp[i][w] = max value using first i items with capacity w
+    dp = [[0] * (capacity + 1) for _ in range(n + 1)]
+    
+    for i in range(1, n + 1):
+        for w in range(capacity + 1):
+            # Don't include item i-1
+            dp[i][w] = dp[i - 1][w]
+            
+            # Include item i-1 if it fits
+            if weights[i - 1] <= w:
+                dp[i][w] = max(
+                    dp[i][w],
+                    dp[i - 1][w - weights[i - 1]] + values[i - 1]
+                )
+    
+    return dp[n][capacity]
+```
+
+### Template 2: 1D Space Optimized
+
+```python
+def knapsack_01_1d(values: list[int], weights: list[int], capacity: int) -> int:
+    """
+    Template 2: Space-optimized 1D DP.
+    Time: O(n * W), Space: O(W)
+    """
+    if not values or not weights or capacity <= 0:
+        return 0
+    
+    n = len(values)
+    dp = [0] * (capacity + 1)
+    
+    for i in range(n):
+        # CRITICAL: Iterate backwards for 0/1 property
+        for w in range(capacity, weights[i] - 1, -1):
+            dp[w] = max(dp[w], dp[w - weights[i]] + values[i])
+    
+    return dp[capacity]
+```
+
+### Template 3: With Solution Reconstruction
+
+```python
+def knapsack_01_with_items(values: list[int], weights: list[int], capacity: int):
+    """
+    Template 3: Returns both max value and selected items.
+    Time: O(n * W), Space: O(n * W)
+    """
+    if not values or not weights or capacity <= 0:
+        return 0, []
+    
+    n = len(values)
+    dp = [[0] * (capacity + 1) for _ in range(n + 1)]
+    keep = [[False] * (capacity + 1) for _ in range(n + 1)]
+    
+    for i in range(1, n + 1):
+        for w in range(capacity + 1):
+            dp[i][w] = dp[i - 1][w]  # Don't take
+            
+            if weights[i - 1] <= w:
+                include_val = dp[i - 1][w - weights[i - 1]] + values[i - 1]
+                if include_val > dp[i - 1][w]:
+                    dp[i][w] = include_val
+                    keep[i][w] = True
+    
+    # Backtrack to find items
+    items = []
+    w = capacity
+    for i in range(n, 0, -1):
+        if keep[i][w]:
+            items.append(i - 1)
+            w -= weights[i - 1]
+    
+    return dp[n][capacity], items
+```
+
+### Template 4: Subset Sum (Decision Variant)
+
+```python
+def subset_sum(nums: list[int], target: int) -> bool:
+    """
+    Template 4: Check if any subset sums to target.
+    Classic knapsack variation - returns boolean.
+    Time: O(n * target), Space: O(target)
+    """
+    dp = [False] * (target + 1)
+    dp[0] = True
+    
+    for num in nums:
+        # Backwards to prevent reuse
+        for t in range(target, num - 1, -1):
+            if dp[t - num]:
+                dp[t] = True
+    
+    return dp[target]
+```
+
+### Template 5: Count Number of Subsets
+
+```python
+def count_subsets(nums: list[int], target: int) -> int:
+    """
+    Template 5: Count subsets that sum to target.
+    Time: O(n * target), Space: O(target)
+    """
+    MOD = 10**9 + 7
+    dp = [0] * (target + 1)
+    dp[0] = 1  # Empty subset
+    
+    for num in nums:
+        for t in range(target, num - 1, -1):
+            dp[t] = (dp[t] + dp[t - num]) % MOD
+    
+    return dp[target]
+```
+
+### Template 6: 2D Knapsack (Two Constraints)
+
+```python
+def knapsack_2d(strs: list[str], m: int, n: int) -> int:
+    """
+    Template 6: Two-dimensional knapsack (e.g., Ones and Zeroes).
+    dp[i][j] = max strings using i zeros and j ones.
+    Time: O(len(strs) * m * n), Space: O(m * n)
+    """
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+    
+    for s in strs:
+        zeros = s.count('0')
+        ones = len(s) - zeros
+        
+        # Backwards in both dimensions
+        for i in range(m, zeros - 1, -1):
+            for j in range(n, ones - 1, -1):
+                dp[i][j] = max(dp[i][j], dp[i - zeros][j - ones] + 1)
+    
+    return dp[m][n]
+```
 
 ---
 
@@ -19,6 +419,7 @@ Use the 0/1 Knapsack algorithm when you need to solve problems involving:
 - **Binary Choice Problems**: Every item has a "take it or leave it" decision
 - **Optimization with Constraints**: Maximize value under weight/cost constraints
 - **Selection Problems**: Choose subset of items that maximize total value
+- **Partition Problems**: Divide items into groups with constraints
 
 ### Comparison with Alternatives
 
@@ -27,7 +428,8 @@ Use the 0/1 Knapsack algorithm when you need to solve problems involving:
 | **0/1 Knapsack (DP)** | Exactly one of each item | O(n × W) | O(n × W) or O(W) |
 | **Unbounded Knapsack** | Unlimited copies of each item | O(n × W) | O(W) |
 | **Fractional Knapsack** | Can take fractions of items | O(n log n) | O(n) |
-| **Greedy** | Fractional, not 0/1 | O(n log n) | O(n) |
+| **Meet-in-Middle** | Large W (2^n/2 subsets) | O(2^(n/2)) | O(2^(n/2)) |
+| **Greedy** | Fractional only | O(n log n) | O(n) |
 
 ### When to Choose 0/1 Knapsack vs Other Variations
 
@@ -35,6 +437,7 @@ Use the 0/1 Knapsack algorithm when you need to solve problems involving:
   - Each item can be taken at most once
   - You need exact optimization (not approximation)
   - The problem explicitly states "each item can be used once"
+  - n × W is feasible (typically n ≤ 10³, W ≤ 10⁴)
 
 - **Choose Unbounded Knapsack** when:
   - You can use each item unlimited times
@@ -56,7 +459,7 @@ The **optimal substructure** property means that the optimal solution for n item
 
 ### How It Works
 
-#### DP Table Approach:
+#### 2D DP Table Approach:
 
 1. Create a 2D DP table where `dp[i][w]` represents the maximum value using the first `i` items with knapsack capacity `w`
 2. For each item `i` (from 1 to n) and each capacity `w` (from 0 to W):
@@ -65,7 +468,7 @@ The **optimal substructure** property means that the optimal solution for n item
    - Take the maximum of both choices
 3. The answer is `dp[n][W]`
 
-#### Space-Optimized Approach:
+#### Space-Optimized 1D Approach:
 
 We can use a 1D DP array by iterating capacity in **reverse order** (from W to weight[i]). This ensures we don't use the same item twice, because when going backwards, we reference values from the previous iteration that haven't been updated yet.
 
@@ -90,749 +493,18 @@ When using 1D DP, iterating forward would allow using the same item multiple tim
 - Forward: `dp[w] = max(dp[w], dp[w - weight] + value)` - dp[w-weight] is UPDATED in current iteration
 - Backward: `dp[w] = max(dp[w], dp[w - weight] + value)` - dp[w-weight] is from PREVIOUS iteration
 
----
+### Limitations
 
-## Algorithm Steps
-
-### Building the DP Table
-
-1. **Initialize**: Create dp array of size (n+1) × (W+1) filled with 0
-2. **Iterate through items**: For i from 1 to n
-3. **Iterate through capacities**: For w from 0 to W
-4. **Make decision**: 
-   - If `weights[i-1] ≤ w`: `dp[i][w] = max(dp[i-1][w], dp[i-1][w-weights[i-1]] + values[i-1])`
-   - Else: `dp[i][w] = dp[i-1][w]`
-5. **Return**: `dp[n][W]`
-
-### Space-Optimized Version
-
-1. **Initialize**: Create dp array of size (W+1) filled with 0
-2. **Iterate through items**: For each item i from 0 to n-1
-3. **Iterate capacities backwards**: For w from W down to weights[i]
-4. **Update**: `dp[w] = max(dp[w], dp[w - weights[i]] + values[i])`
-5. **Return**: `dp[W]`
-
----
-
-## Implementation
-
-### Template Code (0/1 Knapsack)
-
-````carousel
-```python
-from typing import List, Tuple
-
-def knapsack_01(values: List[int], weights: List[int], capacity: int) -> int:
-    """
-    0/1 Knapsack - maximize value with weight constraint.
-    
-    Each item can only be taken once (0 or 1 time).
-    
-    Args:
-        values: List of values for each item
-        weights: List of weights for each item  
-        capacity: Maximum weight capacity of knapsack
-    
-    Returns:
-        Maximum value that can be achieved
-    
-    Time Complexity: O(n * W)
-    Space Complexity: O(n * W)
-    """
-    if not values or not weights or capacity <= 0:
-        return 0
-    
-    n = len(values)
-    
-    # dp[i][w] = max value using first i items with capacity w
-    dp = [[0] * (capacity + 1) for _ in range(n + 1)]
-    
-    # Build the DP table
-    for i in range(1, n + 1):
-        for w in range(capacity + 1):
-            # Don't include item i-1
-            dp[i][w] = dp[i - 1][w]
-            
-            # Include item i-1 if it fits
-            if weights[i - 1] <= w:
-                dp[i][w] = max(
-                    dp[i][w],
-                    dp[i - 1][w - weights[i - 1]] + values[i - 1]
-                )
-    
-    return dp[n][capacity]
-
-
-def knapsack_01_space_optimized(values: List[int], weights: List[int], capacity: int) -> int:
-    """
-    Space-optimized 0/1 Knapsack using 1D DP array.
-    
-    Time Complexity: O(n * W)
-    Space Complexity: O(W)
-    """
-    if not values or not weights or capacity <= 0:
-        return 0
-    
-    n = len(values)
-    
-    # dp[w] = max value achievable with capacity w
-    dp = [0] * (capacity + 1)
-    
-    # Process each item
-    for i in range(n):
-        # Iterate backwards to avoid using same item twice
-        for w in range(capacity, weights[i] - 1, -1):
-            dp[w] = max(
-                dp[w],
-                dp[w - weights[i]] + values[i]
-            )
-    
-    return dp[capacity]
-
-
-def knapsack_with_items(values: List[int], weights: List[int], capacity: int) -> Tuple[int, List[int]]:
-    """
-    0/1 Knapsack that also returns which items were selected.
-    
-    Returns:
-        Tuple of (max_value, list_of_selected_item_indices)
-    """
-    n = len(values)
-    
-    # dp[i][w] = max value using first i items with capacity w
-    dp = [[0] * (capacity + 1) for _ in range(n + 1)]
-    
-    # Track which items were selected
-    selected = [[False] * (capacity + 1) for _ in range(n + 1)]
-    
-    # Build the DP table
-    for i in range(1, n + 1):
-        for w in range(capacity + 1):
-            # Don't include item i-1
-            dp[i][w] = dp[i - 1][w]
-            
-            # Include item i-1 if it fits
-            if weights[i - 1] <= w:
-                include_value = dp[i - 1][w - weights[i - 1]] + values[i - 1]
-                if include_value > dp[i - 1][w]:
-                    dp[i][w] = include_value
-                    selected[i][w] = True
-    
-    # Backtrack to find selected items
-    items_selected = []
-    w = capacity
-    for i in range(n, 0, -1):
-        if selected[i][w]:
-            items_selected.append(i - 1)
-            w -= weights[i - 1]
-    
-    return dp[n][capacity], items_selected
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    values = [60, 100, 120]
-    weights = [10, 20, 30]
-    capacity = 50
-    
-    print("=" * 60)
-    print("0/1 Knapsack Problem")
-    print("=" * 60)
-    print(f"Items: {list(zip(values, weights))}")
-    print(f"Knapsack capacity: {capacity}")
-    print()
-    
-    # Standard DP approach
-    result = knapsack_01(values, weights, capacity)
-    print(f"Maximum value (2D DP): {result}")
-    
-    # Space-optimized approach
-    result_opt = knapsack_01_space_optimized(values, weights, capacity)
-    print(f"Maximum value (1D DP): {result_opt}")
-    
-    # With item selection
-    max_value, items = knapsack_with_items(values, weights, capacity)
-    print(f"\nSelected items: {items}")
-    print(f"Selected values: {[values[i] for i in items]}")
-    print(f"Selected weights: {[weights[i] for i in items]}")
-    print(f"Total value: {sum(values[i] for i in items)}")
-    print(f"Total weight: {sum(weights[i] for i in items)}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-/**
- * 0/1 Knapsack - maximize value with weight constraint.
- * 
- * Each item can only be taken once (0 or 1 time).
- * 
- * Time Complexity: O(n * W)
- * Space Complexity: O(n * W)
- */
-int knapsack01(const vector<int>& values, const vector<int>& weights, int capacity) {
-    int n = values.size();
-    if (n == 0 || capacity <= 0) return 0;
-    
-    // dp[i][w] = max value using first i items with capacity w
-    vector<vector<int>> dp(n + 1, vector<int>(capacity + 1, 0));
-    
-    // Build the DP table
-    for (int i = 1; i <= n; i++) {
-        for (int w = 0; w <= capacity; w++) {
-            // Don't include item i-1
-            dp[i][w] = dp[i - 1][w];
-            
-            // Include item i-1 if it fits
-            if (weights[i - 1] <= w) {
-                dp[i][w] = max(
-                    dp[i][w],
-                    dp[i - 1][w - weights[i - 1]] + values[i - 1]
-                );
-            }
-        }
-    }
-    
-    return dp[n][capacity];
-}
-
-/**
- * Space-optimized 0/1 Knapsack using 1D DP array.
- * 
- * Time Complexity: O(n * W)
- * Space Complexity: O(W)
- */
-int knapsack01Optimized(const vector<int>& values, const vector<int>& weights, int capacity) {
-    int n = values.size();
-    if (n == 0 || capacity <= 0) return 0;
-    
-    // dp[w] = max value achievable with capacity w
-    vector<int> dp(capacity + 1, 0);
-    
-    // Process each item
-    for (int i = 0; i < n; i++) {
-        // Iterate backwards to avoid using same item twice
-        for (int w = capacity; w >= weights[i]; w--) {
-            dp[w] = max(dp[w], dp[w - weights[i]] + values[i]);
-        }
-    }
-    
-    return dp[capacity];
-}
-
-/**
- * 0/1 Knapsack that also returns which items were selected.
- */
-pair<int, vector<int>> knapsack01WithItems(const vector<int>& values, 
-                                            const vector<int>& weights, 
-                                            int capacity) {
-    int n = values.size();
-    
-    // dp[i][w] = max value using first i items with capacity w
-    vector<vector<int>> dp(n + 1, vector<int>(capacity + 1, 0));
-    
-    // Track decisions
-    vector<vector<bool>> take(n + 1, vector<bool>(capacity + 1, false));
-    
-    // Build the DP table
-    for (int i = 1; i <= n; i++) {
-        for (int w = 0; w <= capacity; w++) {
-            // Don't include item i-1
-            dp[i][w] = dp[i - 1][w];
-            
-            // Include item i-1 if it fits
-            if (weights[i - 1] <= w) {
-                int includeValue = dp[i - 1][w - weights[i - 1]] + values[i - 1];
-                if (includeValue > dp[i - 1][w]) {
-                    dp[i][w] = includeValue;
-                    take[i][w] = true;
-                }
-            }
-        }
-    }
-    
-    // Backtrack to find selected items
-    vector<int> selected;
-    int w = capacity;
-    for (int i = n; i > 0; i--) {
-        if (take[i][w]) {
-            selected.push_back(i - 1);
-            w -= weights[i - 1];
-        }
-    }
-    
-    return {dp[n][capacity], selected};
-}
-
-
-int main() {
-    vector<int> values = {60, 100, 120};
-    vector<int> weights = {10, 20, 30};
-    int capacity = 50;
-    
-    cout << "=" << 60 << endl;
-    cout << "0/1 Knapsack Problem" << endl;
-    cout << "=" << 60 << endl;
-    cout << "Items: ";
-    for (int i = 0; i < values.size(); i++) {
-        cout << "(" << values[i] << ", " << weights[i] << ") ";
-    }
-    cout << endl;
-    cout << "Knapsack capacity: " << capacity << endl << endl;
-    
-    // Standard DP approach
-    int result = knapsack01(values, weights, capacity);
-    cout << "Maximum value (2D DP): " << result << endl;
-    
-    // Space-optimized approach
-    int resultOpt = knapsack01Optimized(values, weights, capacity);
-    cout << "Maximum value (1D DP): " << resultOpt << endl;
-    
-    // With item selection
-    auto [maxValue, items] = knapsack01WithItems(values, weights, capacity);
-    cout << "\nSelected items: ";
-    for (int idx : items) cout << idx << " ";
-    cout << endl;
-    
-    cout << "Selected values: ";
-    for (int idx : items) cout << values[idx] << " ";
-    cout << endl;
-    
-    cout << "Total value: " << maxValue << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * 0/1 Knapsack - maximize value with weight constraint.
- * 
- * Each item can only be taken once (0 or 1 time).
- * 
- * Time Complexity: O(n * W)
- * Space Complexity: O(n * W)
- */
-public class Knapsack01 {
-    
-    /**
-     * 0/1 Knapsack using 2D DP table.
-     */
-    public static int knapsack(int[] values, int[] weights, int capacity) {
-        int n = values.length;
-        if (n == 0 || capacity <= 0) return 0;
-        
-        // dp[i][w] = max value using first i items with capacity w
-        int[][] dp = new int[n + 1][capacity + 1];
-        
-        // Build the DP table
-        for (int i = 1; i <= n; i++) {
-            for (int w = 0; w <= capacity; w++) {
-                // Don't include item i-1
-                dp[i][w] = dp[i - 1][w];
-                
-                // Include item i-1 if it fits
-                if (weights[i - 1] <= w) {
-                    dp[i][w] = Math.max(
-                        dp[i][w],
-                        dp[i - 1][w - weights[i - 1]] + values[i - 1]
-                    );
-                }
-            }
-        }
-        
-        return dp[n][capacity];
-    }
-    
-    /**
-     * Space-optimized 0/1 Knapsack using 1D DP array.
-     * 
-     * Time Complexity: O(n * W)
-     * Space Complexity: O(W)
-     */
-    public static int knapsackOptimized(int[] values, int[] weights, int capacity) {
-        int n = values.length;
-        if (n == 0 || capacity <= 0) return 0;
-        
-        // dp[w] = max value achievable with capacity w
-        int[] dp = new int[capacity + 1];
-        
-        // Process each item
-        for (int i = 0; i < n; i++) {
-            // Iterate backwards to avoid using same item twice
-            for (int w = capacity; w >= weights[i]; w--) {
-                dp[w] = Math.max(dp[w], dp[w - weights[i]] + values[i]);
-            }
-        }
-        
-        return dp[capacity];
-    }
-    
-    /**
-     * 0/1 Knapsack that also returns which items were selected.
-     * 
-     * @return int[] array where index 0 is max value, index 1 is array of selected items
-     */
-    public static Object[] knapsackWithItems(int[] values, int[] weights, int capacity) {
-        int n = values.length;
-        
-        // dp[i][w] = max value using first i items with capacity w
-        int[][] dp = new int[n + 1][capacity + 1];
-        
-        // Track decisions
-        boolean[][] take = new boolean[n + 1][capacity + 1];
-        
-        // Build the DP table
-        for (int i = 1; i <= n; i++) {
-            for (int w = 0; w <= capacity; w++) {
-                // Don't include item i-1
-                dp[i][w] = dp[i - 1][w];
-                
-                // Include item i-1 if it fits
-                if (weights[i - 1] <= w) {
-                    int includeValue = dp[i - 1][w - weights[i - 1]] + values[i - 1];
-                    if (includeValue > dp[i - 1][w]) {
-                        dp[i][w] = includeValue;
-                        take[i][w] = true;
-                    }
-                }
-            }
-        }
-        
-        // Backtrack to find selected items
-        java.util.List<Integer> selected = new java.util.ArrayList<>();
-        int w = capacity;
-        for (int i = n; i > 0; i--) {
-            if (take[i][w]) {
-                selected.add(i - 1);
-                w -= weights[i - 1];
-            }
-        }
-        
-        return new Object[]{dp[n][capacity], selected};
-    }
-    
-    public static void main(String[] args) {
-        int[] values = {60, 100, 120};
-        int[] weights = {10, 20, 30};
-        int capacity = 50;
-        
-        System.out.println("=".repeat(60));
-        System.out.println("0/1 Knapsack Problem");
-        System.out.println("=".repeat(60));
-        
-        System.out.print("Items: ");
-        for (int i = 0; i < values.length; i++) {
-            System.out.print("(" + values[i] + ", " + weights[i] + ") ");
-        }
-        System.out.println();
-        System.out.println("Knapsack capacity: " + capacity);
-        System.out.println();
-        
-        // Standard DP approach
-        int result = knapsack(values, weights, capacity);
-        System.out.println("Maximum value (2D DP): " + result);
-        
-        // Space-optimized approach
-        int resultOpt = knapsackOptimized(values, weights, capacity);
-        System.out.println("Maximum value (1D DP): " + resultOpt);
-        
-        // With item selection
-        Object[] resultWithItems = knapsackWithItems(values, weights, capacity);
-        int maxValue = (int) resultWithItems[0];
-        @SuppressWarnings("unchecked")
-        java.util.List<Integer> items = (java.util.List<Integer>) resultWithItems[1];
-        
-        System.out.println("\nSelected items: " + items);
-        System.out.println("Total value: " + maxValue);
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * 0/1 Knapsack - maximize value with weight constraint.
- * 
- * Each item can only be taken once (0 or 1 time).
- * 
- * Time Complexity: O(n * W)
- * Space Complexity: O(n * W)
- */
-
-/**
- * 0/1 Knapsack using 2D DP table.
- * @param {number[]} values - Array of values for each item
- * @param {number[]} weights - Array of weights for each item
- * @param {number} capacity - Maximum weight capacity
- * @returns {number} Maximum value achievable
- */
-function knapsack01(values, weights, capacity) {
-    const n = values.length;
-    if (n === 0 || capacity <= 0) return 0;
-    
-    // dp[i][w] = max value using first i items with capacity w
-    const dp = Array.from({ length: n + 1 }, () => 
-        Array(capacity + 1).fill(0)
-    );
-    
-    // Build the DP table
-    for (let i = 1; i <= n; i++) {
-        for (let w = 0; w <= capacity; w++) {
-            // Don't include item i-1
-            dp[i][w] = dp[i - 1][w];
-            
-            // Include item i-1 if it fits
-            if (weights[i - 1] <= w) {
-                dp[i][w] = Math.max(
-                    dp[i][w],
-                    dp[i - 1][w - weights[i - 1]] + values[i - 1]
-                );
-            }
-        }
-    }
-    
-    return dp[n][capacity];
-}
-
-/**
- * Space-optimized 0/1 Knapsack using 1D DP array.
- * 
- * Time Complexity: O(n * W)
- * Space Complexity: O(W)
- * @param {number[]} values - Array of values for each item
- * @param {number[]} weights - Array of weights for each item
- * @param {number} capacity - Maximum weight capacity
- * @returns {number} Maximum value achievable
- */
-function knapsack01Optimized(values, weights, capacity) {
-    const n = values.length;
-    if (n === 0 || capacity <= 0) return 0;
-    
-    // dp[w] = max value achievable with capacity w
-    const dp = Array(capacity + 1).fill(0);
-    
-    // Process each item
-    for (let i = 0; i < n; i++) {
-        // Iterate backwards to avoid using same item twice
-        for (let w = capacity; w >= weights[i]; w--) {
-            dp[w] = Math.max(dp[w], dp[w - weights[i]] + values[i]);
-        }
-    }
-    
-    return dp[capacity];
-}
-
-/**
- * 0/1 Knapsack that also returns which items were selected.
- * @returns {{maxValue: number, selectedItems: number[]}}
- */
-function knapsack01WithItems(values, weights, capacity) {
-    const n = values.length;
-    
-    // dp[i][w] = max value using first i items with capacity w
-    const dp = Array.from({ length: n + 1 }, () => 
-        Array(capacity + 1).fill(0)
-    );
-    
-    // Track decisions
-    const take = Array.from({ length: n + 1 }, () => 
-        Array(capacity + 1).fill(false)
-    );
-    
-    // Build the DP table
-    for (let i = 1; i <= n; i++) {
-        for (let w = 0; w <= capacity; w++) {
-            // Don't include item i-1
-            dp[i][w] = dp[i - 1][w];
-            
-            // Include item i-1 if it fits
-            if (weights[i - 1] <= w) {
-                const includeValue = dp[i - 1][w - weights[i - 1]] + values[i - 1];
-                if (includeValue > dp[i - 1][w]) {
-                    dp[i][w] = includeValue;
-                    take[i][w] = true;
-                }
-            }
-        }
-    }
-    
-    // Backtrack to find selected items
-    const selectedItems = [];
-    let w = capacity;
-    for (let i = n; i > 0; i--) {
-        if (take[i][w]) {
-            selectedItems.push(i - 1);
-            w -= weights[i - 1];
-        }
-    }
-    
-    return { maxValue: dp[n][capacity], selectedItems };
-}
-
-
-// Example usage and demonstration
-const values = [60, 100, 120];
-const weights = [10, 20, 30];
-const capacity = 50;
-
-console.log("=".repeat(60));
-console.log("0/1 Knapsack Problem");
-console.log("=".repeat(60));
-console.log(`Items: [${values.map((v, i) => `(${v}, ${weights[i]})`).join(', ')}]`);
-console.log(`Knapsack capacity: ${capacity}`);
-console.log();
-
-// Standard DP approach
-const result = knapsack01(values, weights, capacity);
-console.log(`Maximum value (2D DP): ${result}`);
-
-// Space-optimized approach
-const resultOpt = knapsack01Optimized(values, weights, capacity);
-console.log(`Maximum value (1D DP): ${resultOpt}`);
-
-// With item selection
-const { maxValue, selectedItems } = knapsack01WithItems(values, weights, capacity);
-console.log(`\nSelected items: [${selectedItems.join(', ')}]`);
-console.log(`Selected values: [${selectedItems.map(i => values[i]).join(', ')}]`);
-console.log(`Total value: ${maxValue}`);
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Standard DP** | O(n × W) | Two nested loops |
-| **Space-Optimized** | O(n × W) | Same as standard |
-| **Reconstruction** | O(n × W) | Need full table for backtracking |
-
-### Detailed Breakdown
-
-- **Outer loop**: iterates through n items
-- **Inner loop**: iterates through W capacities
-- **Total**: n × W state transitions
-
-### Complexity Factors
-
-- **n (number of items)**: Typically up to 10³-10⁴
-- **W (capacity)**: Typically up to 10⁴-10⁵
-- **n × W**: Product determines feasibility
-
----
-
-## Space Complexity Analysis
-
-| Approach | Space Complexity | Description |
-|----------|-----------------|-------------|
-| **2D DP Table** | O(n × W) | Stores all subproblem solutions |
-| **1D DP Array** | O(W) | Only stores current row |
-
-### Space Optimization Trade-offs
-
-- **2D → 1D**: Reduces space but loses ability to reconstruct solution
-- **For reconstruction**: Keep a separate `keep` boolean table
-
----
-
-## Common Variations
-
-### 1. Unbounded Knapsack
-
-Each item can be used unlimited times.
-
-````carousel
-```python
-def unbounded_knapsack(values, weights, capacity):
-    """
-    Unbounded Knapsack - each item can be used multiple times.
-    Time: O(n * W), Space: O(W)
-    """
-    n = len(values)
-    dp = [0] * (capacity + 1)
-    
-    # Iterate forward (not backward) to allow reuse
-    for w in range(capacity + 1):
-        for i in range(n):
-            if weights[i] <= w:
-                dp[w] = max(dp[w], dp[w - weights[i]] + values[i])
-    
-    return dp[capacity]
-```
-````
-
-### 2. Minimum Knapsack (Coin Change)
-
-Find minimum items to reach a target value.
-
-````carousel
-```python
-def min_items_to_reach_target(values, weights, target):
-    """
-    Minimum items to reach exact value with given weights.
-    Similar to coin change (minimum coins).
-    """
-    W = target
-    n = len(values)
-    dp = [float('inf')] * (W + 1)
-    dp[0] = 0
-    
-    for i in range(n):
-        for w in range(weights[i], W + 1):
-            dp[w] = min(dp[w], dp[w - weights[i]] + 1)
-    
-    return dp[W] if dp[W] != float('inf') else -1
-```
-````
-
-### 3. Knapsack with Item Weights as Costs
-
-When you want to minimize cost while achieving minimum value threshold.
-
-````carousel
-```python
-def knapsack_min_cost_for_value(values, weights, min_value):
-    """
-    Find minimum total weight to achieve at least min_value.
-    """
-    n = len(values)
-    total_value = sum(values)
-    W = total_value
-    
-    # dp[v] = minimum weight to achieve value v
-    dp = [float('inf')] * (W + 1)
-    dp[0] = 0
-    
-    for i in range(n):
-        for v in range(W, values[i] - 1, -1):
-            dp[v] = min(dp[v], dp[v - values[i]] + weights[i])
-    
-    # Find minimum weight for at least min_value
-    result = min(dp[min_value:])
-    return result if result != float('inf') else -1
-```
-````
-
-### 4. Multiple Knapsacks
-
-Multiple knapsacks with equal or different capacities.
-
-### 5. 0/1 Knapsack with Groups
-
-Items are in groups, pick at most one from each group.
+- **Pseudo-polynomial time**: O(n × W) - not truly polynomial if W is large
+- **Cannot handle negative weights** without modification
+- **Memory intensive** for large capacities
+- **Only works for discrete items** (not fractional)
 
 ---
 
 ## Practice Problems
 
-### Problem 1: Classic 0/1 Knapsack
+### Problem 1: Partition Equal Subset Sum
 
 **Problem:** [LeetCode 416 - Partition Equal Subset Sum](https://leetcode.com/problems/partition-equal-subset-sum/)
 
@@ -846,11 +518,11 @@ Items are in groups, pick at most one from each group.
 
 ---
 
-### Problem 2: Bounded Knapsack
+### Problem 2: Ones and Zeroes
 
 **Problem:** [LeetCode 474 - Ones and Zeroes](https://leetcode.com/problems/ones-and-zeroes/)
 
-**Description:** Given an array of binary strings, find the maximum number of strings that can be formed with at most m '0's and m '1's.
+**Description:** Given an array of binary strings, find the maximum number of strings that can be formed with at most m '0's and n '1's.
 
 **How to Apply 0/1 Knapsack:**
 - This is a 2-dimensional knapsack problem
@@ -860,7 +532,7 @@ Items are in groups, pick at most one from each group.
 
 ---
 
-### Problem 3: Value Optimization
+### Problem 3: Last Stone Weight II
 
 **Problem:** [LeetCode 1049 - Last Stone Weight II](https://leetcode.com/problems/last-stone-weight-ii/)
 
@@ -874,7 +546,7 @@ Items are in groups, pick at most one from each group.
 
 ---
 
-### Problem 4: Counting Variations
+### Problem 4: Target Sum
 
 **Problem:** [LeetCode 494 - Target Sum](https://leetcode.com/problems/target-sum/)
 
@@ -888,16 +560,16 @@ Items are in groups, pick at most one from each group.
 
 ---
 
-### Problem 5: Space-Constrained Selection
+### Problem 5: Profitable Schemes
 
-**Problem:** [LeetCode 818 - Race Car](https://leetcode.com/problems/race-car/)
+**Problem:** [LeetCode 879 - Profitable Schemes](https://leetcode.com/problems/profitable-schemes/)
 
-**Description:** Your car has target position. You can accelerate (A) or reverse (R). Find minimum instructions to reach target.
+**Description:** There are G members in a gang, and a list of various crimes they could commit. The i-th crime generates profit[i] and requires group[i] members to participate. Return the number of schemes that can be chosen such that at least P profit is generated.
 
 **How to Apply 0/1 Knapsack:**
-- Use DP where state represents position
-- Each action has cost (instructions) and moves car
-- Similar decision-making to knapsack
+- 2D DP: dp[g][p] = number of schemes with exactly g members and p profit
+- Each crime is a 0/1 choice (commit or not)
+- Combine group and profit constraints
 
 ---
 
@@ -917,7 +589,7 @@ Items are in groups, pick at most one from each group.
 
 ### Advanced Topics
 
-- [Multiple Knapsack](https://www.youtube.com/watch?v=pT m9tO59g) - Multiple capacity constraints
+- [Multiple Knapsack](https://www.youtube.com/watch?v=pT_m9tO59g) - Multiple capacity constraints
 - [DP on Trees + Knapsack](https://www.youtube.com/watch?v=o5XK-7kX8Y) - Tree DP applications
 - [Knapsack with Complexity Analysis](https://www.youtube.com/watch?v=YV3EbB3Y7Xk) - Interview-focused
 
@@ -978,12 +650,3 @@ When to use:
 - ❌ When fractions are allowed (use Fractional Knapsack with greedy)
 
 This problem is essential for competitive programming and technical interviews, serving as a foundation for understanding more complex dynamic programming problems.
-
----
-
-## Related Algorithms
-
-- [Unbounded Knapsack](./unbounded-knapsack.md) - Unlimited item usage
-- [Longest Common Subsequence](./lcs.md) - Similar DP approach
-- [Coin Change](./coin-change.md) - Unbounded variation
-- [Subset Sum](./subset-sum.md) - Special case of knapsack

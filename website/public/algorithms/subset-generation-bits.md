@@ -7,7 +7,479 @@ Bit Manipulation
 
 Subset generation using bit manipulation is an elegant technique that leverages the relationship between binary numbers and subsets. For a set of n elements, there are exactly 2^n possible subsets. This method provides a clean, iterative approach to generating all subsets without recursion, making it particularly efficient and easy to understand.
 
-The core insight is that binary numbers naturally enumerate all possible combinations - each unique bit pattern corresponds to a unique subset, where the presence or absence of each element is determined by whether its corresponding bit is 0 or 1.
+The core insight is that binary numbers naturally enumerate all possible combinations - each unique bit pattern corresponds to a unique subset, where the presence or absence of each element is determined by whether its corresponding bit is 0 or 1. This direct mapping between binary representation and set membership makes bit manipulation one of the most intuitive approaches to subset generation.
+
+---
+
+## Concepts
+
+### 1. Binary-Subset Correspondence
+
+The fundamental concept is the direct mapping between binary numbers and subsets:
+
+| Bit Position | Binary Representation | Element Included |
+|--------------|----------------------|------------------|
+| 0 (LSB) | 0001 | nums[0] |
+| 1 | 0010 | nums[1] |
+| 2 | 0100 | nums[2] |
+| 3 | 1000 | nums[3] |
+| i | 1 << i | nums[i] |
+
+### 2. Mask Enumeration
+
+For n elements, we iterate through all masks from 0 to 2^n - 1:
+
+| Mask (decimal) | Mask (binary) | Subset Generated |
+|----------------|---------------|------------------|
+| 0 | 000 | [] |
+| 1 | 001 | [nums[0]] |
+| 2 | 010 | [nums[1]] |
+| 3 | 011 | [nums[0], nums[1]] |
+| 4 | 100 | [nums[2]] |
+| 5 | 101 | [nums[0], nums[2]] |
+| 6 | 110 | [nums[1], nums[2]] |
+| 7 | 111 | [nums[0], nums[1], nums[2]] |
+
+### 3. Bit Checking
+
+To check if element i is included in subset represented by mask:
+
+```python
+if mask & (1 << i):  # Bit i is set
+    subset.append(nums[i])
+```
+
+| Operation | Meaning | Example |
+|-----------|---------|---------|
+| `1 << i` | Create bit mask with only bit i set | `1 << 2` = 4 (100) |
+| `mask & (1 << i)` | Check if bit i is set in mask | `5 & 4` = 4 (non-zero = True) |
+| `mask \| (1 << i)` | Set bit i in mask | `3 \| 4` = 7 (111) |
+| `mask & ~(1 << i)` | Clear bit i in mask | `7 & ~4` = 3 (011) |
+
+### 4. Subset Size Filtering
+
+Count set bits to filter subsets by size:
+
+```python
+if bin(mask).count('1') == k:  # Exactly k elements
+    # or: if mask.bit_count() == k:  # Python 3.8+
+    process_subset(mask)
+```
+
+---
+
+## Frameworks
+
+### Framework 1: Basic Subset Generation
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  BASIC SUBSET GENERATION FRAMEWORK                          │
+├─────────────────────────────────────────────────────────────┤
+│  1. Let n = length of input array                          │
+│  2. Calculate total = 1 << n (equals 2^n)                   │
+│  3. For mask from 0 to total - 1:                          │
+│     a. Create empty subset list                           │
+│     b. For i from 0 to n-1:                               │
+│        - If mask & (1 << i): add nums[i] to subset        │
+│     c. Add subset to result list                          │
+│  4. Return result                                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**When to use**: Standard subset generation, n ≤ 20.
+
+### Framework 2: Optimized Bit Iteration
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  OPTIMIZED BIT ITERATION FRAMEWORK                          │
+├─────────────────────────────────────────────────────────────┤
+│  1. For each mask from 0 to 2^n - 1:                        │
+│     a. subset = []                                         │
+│     b. bit = mask, idx = 0                                │
+│     c. While bit > 0:                                     │
+│        - If bit & 1: add nums[idx] to subset              │
+│        - bit >>= 1, idx += 1                               │
+│     d. Add subset to result                                │
+│  2. Return result                                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**When to use**: When average subset size is much smaller than n.
+
+### Framework 3: Subset Size Filtering
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  SIZE-FILTERED SUBSET FRAMEWORK                             │
+├─────────────────────────────────────────────────────────────┤
+│  1. Let k = target subset size                             │
+│  2. For mask from 0 to 2^n - 1:                            │
+│     a. If bit_count(mask) != k: skip                      │
+│     b. Build subset from mask (only k elements)           │
+│     c. Add subset to result                                │
+│  3. Return result                                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**When to use**: Need only subsets of specific size (combinations).
+
+---
+
+## Forms
+
+### Form 1: Complete Power Set
+
+Generate all 2^n subsets including empty set:
+
+```
+Input: [1, 2, 3]
+Output: [[], [1], [2], [1,2], [3], [1,3], [2,3], [1,2,3]]
+
+Mask: 0 (000) → []
+Mask: 1 (001) → [1]
+Mask: 2 (010) → [2]
+Mask: 3 (011) → [1,2]
+Mask: 4 (100) → [3]
+Mask: 5 (101) → [1,3]
+Mask: 6 (110) → [2,3]
+Mask: 7 (111) → [1,2,3]
+```
+
+### Form 2: Non-Empty Subsets Only
+
+Skip mask = 0 to exclude empty set:
+
+```python
+for mask in range(1, 1 << n):  # Start from 1, not 0
+    # Generate subset
+```
+
+### Form 3: Subsets of Size k (Combinations)
+
+Filter by bit count:
+
+```
+Input: [1, 2, 3, 4], k = 2
+Output: [[1,2], [1,3], [1,4], [2,3], [2,4], [3,4]]
+
+Mask: 3  (0011) → bit_count = 2 → [1,2]
+Mask: 5  (0101) → bit_count = 2 → [1,3]
+Mask: 6  (0110) → bit_count = 2 → [2,3]
+Mask: 9  (1001) → bit_count = 2 → [1,4]
+Mask: 10 (1010) → bit_count = 2 → [2,4]
+Mask: 12 (1100) → bit_count = 2 → [3,4]
+```
+
+### Form 4: Subsets with Target Sum
+
+Filter during generation:
+
+```
+Input: [1, 2, 3], target = 3
+Output: [[1,2], [3]]
+
+Mask: 3 (011) → sum = 1+2 = 3 ✓
+Mask: 4 (100) → sum = 3 = 3 ✓
+```
+
+---
+
+## Tactics
+
+### Tactic 1: Bit Iteration Optimization
+
+Instead of checking all n bits, iterate only through set bits:
+
+```python
+def subsets_bit_optimized(nums: list[int]) -> list[list[int]]:
+    """Optimized: iterate only through set bits."""
+    n = len(nums)
+    result = []
+    
+    for mask in range(1 << n):
+        subset = []
+        bit = mask
+        idx = 0
+        while bit:
+            if bit & 1:
+                subset.append(nums[idx])
+            bit >>= 1
+            idx += 1
+        result.append(subset)
+    
+    return result
+```
+
+**Performance**: O(2^n × k) where k = average number of set bits (≈ n/2), vs O(2^n × n) for naive approach.
+
+### Tactic 2: Using bit_count() for Size Filtering
+
+```python
+def subsets_of_size(nums: list[int], k: int) -> list[list[int]]:
+    """Generate subsets of exactly size k."""
+    n = len(nums)
+    result = []
+    
+    for mask in range(1 << n):
+        if mask.bit_count() == k:  # Python 3.8+
+            subset = []
+            for i in range(n):
+                if mask & (1 << i):
+                    subset.append(nums[i])
+            result.append(subset)
+    
+    return result
+```
+
+### Tactic 3: Subsets with Sum Target
+
+```python
+def subsets_with_sum(nums: list[int], target: int) -> list[list[int]]:
+    """Find all subsets that sum to target."""
+    n = len(nums)
+    result = []
+    
+    for mask in range(1 << n):
+        subset = []
+        current_sum = 0
+        for i in range(n):
+            if mask & (1 << i):
+                current_sum += nums[i]
+                subset.append(nums[i])
+        
+        if current_sum == target:
+            result.append(subset)
+    
+    return result
+```
+
+### Tactic 4: Meet-in-the-Middle Optimization
+
+For n up to 40, split array and combine:
+
+```python
+def subsets_meet_in_middle(nums: list[int]) -> list[int]:
+    """Generate all subset sums using meet-in-the-middle."""
+    n = len(nums)
+    mid = n // 2
+    
+    # Generate all subset sums for left half
+    left_sums = []
+    for mask in range(1 << mid):
+        s = 0
+        for i in range(mid):
+            if mask & (1 << i):
+                s += nums[i]
+        left_sums.append(s)
+    
+    # Generate all subset sums for right half
+    right_sums = []
+    for mask in range(1 << (n - mid)):
+        s = 0
+        for i in range(n - mid):
+            if mask & (1 << i):
+                s += nums[mid + i]
+        right_sums.append(s)
+    
+    # Combine (example: count pairs with sum = target)
+    return left_sums, right_sums
+```
+
+---
+
+## Python Templates
+
+### Template 1: Basic Subset Generation
+
+```python
+def subsets(nums: list[int]) -> list[list[int]]:
+    """
+    Generate all subsets using bit manipulation.
+    Time: O(2^n × n)
+    Space: O(1) auxiliary, O(2^n) for output
+    """
+    n = len(nums)
+    result = []
+    
+    # There are 2^n subsets (from 0 to 2^n - 1)
+    for mask in range(1 << n):
+        subset = []
+        for i in range(n):
+            # Check if i-th bit is set in mask
+            if mask & (1 << i):
+                subset.append(nums[i])
+        result.append(subset)
+    
+    return result
+```
+
+### Template 2: Optimized Bit Iteration
+
+```python
+def subsets_optimized(nums: list[int]) -> list[list[int]]:
+    """
+    Optimized version: iterate only through set bits.
+    Time: O(2^n × k) where k is avg number of set bits
+    Space: O(1) auxiliary
+    """
+    n = len(nums)
+    result = []
+    
+    for mask in range(1 << n):
+        subset = []
+        bit = mask
+        idx = 0
+        while bit:
+            if bit & 1:
+                subset.append(nums[idx])
+            bit >>= 1
+            idx += 1
+        result.append(subset)
+    
+    return result
+```
+
+### Template 3: Subsets of Specific Size
+
+```python
+def subsets_of_size(nums: list[int], k: int) -> list[list[int]]:
+    """
+    Generate subsets of exactly size k.
+    Time: O(2^n × n)
+    """
+    n = len(nums)
+    result = []
+    
+    for mask in range(1 << n):
+        # Count bits - only include if exactly k bits are set
+        if bin(mask).count('1') == k:
+            subset = []
+            for i in range(n):
+                if mask & (1 << i):
+                    subset.append(nums[i])
+            result.append(subset)
+    
+    return result
+```
+
+### Template 4: Subsets with Target Sum
+
+```python
+def subsets_with_sum(nums: list[int], target: int) -> list[list[int]]:
+    """
+    Find all subsets that sum to target.
+    Time: O(2^n × n)
+    """
+    n = len(nums)
+    result = []
+    
+    for mask in range(1 << n):
+        subset = []
+        current_sum = 0
+        for i in range(n):
+            if mask & (1 << i):
+                current_sum += nums[i]
+                subset.append(nums[i])
+        
+        if current_sum == target:
+            result.append(subset)
+    
+    return result
+```
+
+### Template 5: Check if Subset Sum Exists
+
+```python
+def has_subset_sum(nums: list[int], target: int) -> bool:
+    """
+    Check if any subset sums to target.
+    Time: O(2^n)
+    """
+    n = len(nums)
+    
+    for mask in range(1 << n):
+        current_sum = 0
+        for i in range(n):
+            if mask & (1 << i):
+                current_sum += nums[i]
+        
+        if current_sum == target:
+            return True
+    
+    return False
+```
+
+### Template 6: Minimum Subset Sum Difference
+
+```python
+def min_subset_sum_diff(nums: list[int]) -> int:
+    """
+    Find minimum difference between two subset sums.
+    Partition array into two subsets with minimum sum difference.
+    Time: O(2^n × n)
+    """
+    n = len(nums)
+    total = sum(nums)
+    min_diff = float('inf')
+    
+    for mask in range(1 << n):
+        subset_sum = 0
+        for i in range(n):
+            if mask & (1 << i):
+                subset_sum += nums[i]
+        
+        other_sum = total - subset_sum
+        diff = abs(subset_sum - other_sum)
+        min_diff = min(min_diff, diff)
+    
+    return min_diff
+```
+
+### Template 7: Count Subsets with Property
+
+```python
+def count_subsets_with_property(nums: list[int], predicate) -> int:
+    """
+    Count subsets satisfying a given predicate.
+    predicate: function that takes (subset, mask) and returns bool
+    """
+    n = len(nums)
+    count = 0
+    
+    for mask in range(1 << n):
+        subset = []
+        for i in range(n):
+            if mask & (1 << i):
+                subset.append(nums[i])
+        
+        if predicate(subset, mask):
+            count += 1
+    
+    return count
+```
+
+### Template 8: Maximum XOR Subset
+
+```python
+def max_subset_xor(nums: list[int]) -> int:
+    """
+    Find maximum XOR value of any subset.
+    Time: O(2^n)
+    """
+    n = len(nums)
+    max_xor = 0
+    
+    for mask in range(1 << n):
+        current_xor = 0
+        for i in range(n):
+            if mask & (1 << i):
+                current_xor ^= nums[i]
+        max_xor = max(max_xor, current_xor)
+    
+    return max_xor
+```
 
 ---
 
@@ -24,7 +496,7 @@ Use the bit manipulation subset generation algorithm when you need to solve prob
 ### Comparison with Alternatives
 
 | Method | Time Complexity | Space Complexity | Best Use Case |
-|--------|----------------|------------------|---------------|
+|--------|---------------|------------------|---------------|
 | **Bit Manipulation** | O(2^n × n) | O(1) aux | Small n, iterative preferred |
 | **Recursive Backtracking** | O(2^n × n) | O(n) stack | Large n, early pruning possible |
 | **Iterative Building** | O(2^n × n) | O(2^n) | When building incrementally |
@@ -50,26 +522,7 @@ Use the bit manipulation subset generation algorithm when you need to solve prob
 
 ### Core Concept
 
-The fundamental insight behind subset generation with bits is the direct correspondence between binary numbers and subsets:
-
-- For a set of n elements, we can represent each subset as an n-bit binary number
-- The i-th bit (from right, 0-indexed) corresponds to the i-th element
-- If the i-th bit is 1, the i-th element is included in the subset
-- If the i-th bit is 0, the i-th element is excluded
-
-**Example for n = 3:**
-```
-Binary    | Subset
-----------|--------
-000 (0)   | []        (empty set - no elements)
-001 (1)   | [nums[0]]
-010 (2)   | [nums[1]]
-011 (3)   | [nums[0], nums[1]]
-100 (4)   | [nums[2]]
-101 (5)   | [nums[0], nums[2]]
-110 (6)   | [nums[1], nums[2]]
-111 (7)   | [nums[0], nums[1], nums[2]]  (full set)
-```
+The fundamental insight behind subset generation with bits is the direct correspondence between binary numbers and subsets. For a set of n elements, we can represent each subset as an n-bit binary number where the i-th bit (from right, 0-indexed) corresponds to the i-th element.
 
 ### How It Works
 
@@ -80,8 +533,7 @@ Binary    | Subset
    - If bit i is set (mask & (1 << i) != 0), include nums[i] in the current subset
 3. **Build Result**: Collect all subsets into the result list
 
-#### Why Bit Manipulation Works
-
+#### Why Bit Manipulation Works:
 - **Complete Coverage**: Binary numbers from 0 to 2^n-1 cover all possible combinations of n bits
 - **No Duplicates**: Each binary number is unique, so each subset is generated exactly once
 - **Direct Mapping**: The bit pattern directly tells us which elements to include
@@ -91,714 +543,30 @@ Binary    | Subset
 
 For `nums = [1, 2, 3]`:
 
-```
-Mask (decimal) | Mask (binary) | Subset Generated
----------------|---------------|------------------
-0              | 000           | []
-1              | 001           | [1]
-2              | 010           | [2]
-3              | 011           | [1, 2]
-4              | 100           | [3]
-5              | 101           | [1, 3]
-6              | 110           | [2, 3]
-7              | 111           | [1, 2, 3]
-```
+| Mask (decimal) | Mask (binary) | Subset Generated |
+|----------------|---------------|------------------|
+| 0 | 000 | [] |
+| 1 | 001 | [1] |
+| 2 | 010 | [2] |
+| 3 | 011 | [1, 2] |
+| 4 | 100 | [3] |
+| 5 | 101 | [1, 3] |
+| 6 | 110 | [2, 3] |
+| 7 | 111 | [1, 2, 3] |
+
+### Why It Works
+
+The binary representation naturally enumerates all possible inclusion/exclusion patterns:
+- Each of the n elements has 2 choices (include or exclude)
+- Total combinations = 2 × 2 × ... × 2 (n times) = 2^n
+- Binary numbers from 0 to 2^n-1 represent all these combinations uniquely
 
 ### Limitations
 
 - **Exponential Output**: The number of subsets grows as 2^n, making it impractical for n > 20
 - **No Early Pruning**: Unlike backtracking, you cannot skip invalid subsets mid-generation
 - **Ordered Generation**: Subsets are generated in numerical order (by mask value), not lexicographically
-
----
-
-## Algorithm Steps
-
-### Basic Subset Generation
-
-1. **Get the size**: Let n = length of input array
-2. **Calculate total subsets**: Total = 1 << n (which equals 2^n)
-3. **Initialize result**: Create an empty list to store all subsets
-4. **Iterate through masks**: For mask from 0 to Total - 1:
-   - Create an empty subset list
-   - For each position i from 0 to n-1:
-     - Check if bit i is set: `if mask & (1 << i)`
-     - If set, add nums[i] to the current subset
-   - Add the subset to the result list
-5. **Return result**: Return the complete list of subsets
-
-### Subsets of Specific Size
-
-1. **Count bits in mask**: Use `bin(mask).count('1')` or `mask.bit_count()`
-2. **Filter by size**: Only add subsets where bit count equals k
-3. **Continue**: Process remaining masks as in basic generation
-
-### Optimized Bit Iteration
-
-1. **Use while loop**: Instead of checking all n bits
-2. **Track index**: Maintain an index counter while shifting
-3. **Early termination**: Stop when mask becomes 0 (no more bits set)
-
----
-
-## Implementation
-
-### Basic Subset Generation
-
-````carousel
-```python
-from typing import List
-
-def subsets_bit(nums: List[int]) -> List[List[int]]:
-    """
-    Generate all subsets using bit manipulation.
-    
-    Args:
-        nums: List of distinct elements
-        
-    Returns:
-        List of all possible subsets
-        
-    Time: O(2^n * n)
-    Space: O(1) auxiliary, O(2^n) for output
-    """
-    n = len(nums)
-    result = []
-    
-    # There are 2^n subsets (from 0 to 2^n - 1)
-    for mask in range(1 << n):
-        subset = []
-        for i in range(n):
-            # Check if i-th bit is set in mask
-            if mask & (1 << i):
-                subset.append(nums[i])
-        result.append(subset)
-    
-    return result
-
-
-def subsets_bit_optimized(nums: List[int]) -> List[List[int]]:
-    """
-    Optimized version using bit iteration instead of checking all n bits.
-    
-    Time: O(2^n * k) where k is avg number of set bits
-    Space: O(1) auxiliary, O(2^n) for output
-    """
-    n = len(nums)
-    result = []
-    
-    for mask in range(1 << n):
-        subset = []
-        bit = mask
-        idx = 0
-        while bit:
-            if bit & 1:
-                subset.append(nums[idx])
-            bit >>= 1
-            idx += 1
-        result.append(subset)
-    
-    return result
-
-
-# Get subsets of specific size k
-def subsets_of_size(nums: List[int], k: int) -> List[List[int]]:
-    """Generate subsets of exactly size k."""
-    n = len(nums)
-    result = []
-    
-    for mask in range(1 << n):
-        # Count bits - only include if exactly k bits are set
-        if bin(mask).count('1') == k:
-            subset = []
-            for i in range(n):
-                if mask & (1 << i):
-                    subset.append(nums[i])
-            result.append(subset)
-    
-    return result
-
-
-# Using built-in bit_count() for better performance (Python 3.8+)
-def subsets_of_size_fast(nums: List[int], k: int) -> List[List[int]]:
-    """Optimized using bit_count()."""
-    n = len(nums)
-    result = []
-    
-    for mask in range(1 << n):
-        if mask.bit_count() == k:
-            subset = []
-            for i in range(n):
-                if mask & (1 << i):
-                    subset.append(nums[i])
-            result.append(subset)
-    
-    return result
-
-
-# Example usage
-if __name__ == "__main__":
-    nums = [1, 2, 3]
-    print(f"Input: {nums}")
-    print(f"All subsets: {subsets_bit(nums)}")
-    print(f"\nSubsets of size 2: {subsets_of_size(nums, 2)}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-using namespace std;
-
-/**
- * Generate all subsets using bit manipulation.
- * 
- * Time: O(2^n * n)
- * Space: O(1) auxiliary, O(2^n) for output
- */
-vector<vector<int>> subsetsBit(const vector<int>& nums) {
-    int n = nums.size();
-    vector<vector<int>> result;
-    
-    // There are 2^n subsets (from 0 to 2^n - 1)
-    for (int mask = 0; mask < (1 << n); mask++) {
-        vector<int> subset;
-        for (int i = 0; i < n; i++) {
-            // Check if i-th bit is set in mask
-            if (mask & (1 << i)) {
-                subset.push_back(nums[i]);
-            }
-        }
-        result.push_back(subset);
-    }
-    
-    return result;
-}
-
-
-/**
- * Optimized version - iterate only through set bits
- */
-vector<vector<int>> subsetsBitOptimized(const vector<int>& nums) {
-    int n = nums.size();
-    vector<vector<int>> result;
-    
-    for (int mask = 0; mask < (1 << n); mask++) {
-        vector<int> subset;
-        int bit = mask;
-        int idx = 0;
-        while (bit) {
-            if (bit & 1) {
-                subset.push_back(nums[idx]);
-            }
-            bit >>= 1;
-            idx++;
-        }
-        result.push_back(subset);
-    }
-    
-    return result;
-}
-
-
-/**
- * Generate subsets of exactly size k
- */
-vector<vector<int>> subsetsOfSize(const vector<int>& nums, int k) {
-    int n = nums.size();
-    vector<vector<int>> result;
-    
-    for (int mask = 0; mask < (1 << n); mask++) {
-        // Count bits - only include if exactly k bits are set
-        int count = __builtin_popcount(mask);
-        if (count == k) {
-            vector<int> subset;
-            for (int i = 0; i < n; i++) {
-                if (mask & (1 << i)) {
-                    subset.push_back(nums[i]);
-                }
-            }
-            result.push_back(subset);
-        }
-    }
-    
-    return result;
-}
-
-
-int main() {
-    vector<int> nums = {1, 2, 3};
-    
-    cout << "Input: ";
-    for (int x : nums) cout << x << " ";
-    cout << endl;
-    
-    cout << "All subsets:" << endl;
-    vector<vector<int>> result = subsetsBit(nums);
-    for (const auto& subset : result) {
-        cout << "[";
-        for (size_t i = 0; i < subset.size(); i++) {
-            cout << subset[i];
-            if (i < subset.size() - 1) cout << ", ";
-        }
-        cout << "]" << endl;
-    }
-    
-    cout << "\nSubsets of size 2:" << endl;
-    vector<vector<int>> size2 = subsetsOfSize(nums, 2);
-    for (const auto& subset : size2) {
-        cout << "[";
-        for (size_t i = 0; i < subset.size(); i++) {
-            cout << subset[i];
-            if (i < subset.size() - 1) cout << ", ";
-        }
-        cout << "]" << endl;
-    }
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Generate all subsets using bit manipulation.
- * 
- * Time: O(2^n * n)
- * Space: O(1) auxiliary, O(2^n) for output
- */
-public class SubsetGeneration {
-    
-    public static List<List<Integer>> subsetsBit(int[] nums) {
-        int n = nums.length;
-        List<List<Integer>> result = new ArrayList<>();
-        
-        // There are 2^n subsets (from 0 to 2^n - 1)
-        for (int mask = 0; mask < (1 << n); mask++) {
-            List<Integer> subset = new ArrayList<>();
-            for (int i = 0; i < n; i++) {
-                // Check if i-th bit is set in mask
-                if ((mask & (1 << i)) != 0) {
-                    subset.add(nums[i]);
-                }
-            }
-            result.add(subset);
-        }
-        
-        return result;
-    }
-    
-    
-    /**
-     * Optimized version - iterate only through set bits
-     */
-    public static List<List<Integer>> subsetsBitOptimized(int[] nums) {
-        int n = nums.length;
-        List<List<Integer>> result = new ArrayList<>();
-        
-        for (int mask = 0; mask < (1 << n); mask++) {
-            List<Integer> subset = new ArrayList<>();
-            int bit = mask;
-            int idx = 0;
-            while (bit != 0) {
-                if ((bit & 1) != 0) {
-                    subset.add(nums[idx]);
-                }
-                bit >>= 1;
-                idx++;
-            }
-            result.add(subset);
-        }
-        
-        return result;
-    }
-    
-    
-    /**
-     * Generate subsets of exactly size k
-     */
-    public static List<List<Integer>> subsetsOfSize(int[] nums, int k) {
-        int n = nums.length;
-        List<List<Integer>> result = new ArrayList<>();
-        
-        for (int mask = 0; mask < (1 << n); mask++) {
-            // Count bits - only include if exactly k bits are set
-            if (Integer.bitCount(mask) == k) {
-                List<Integer> subset = new ArrayList<>();
-                for (int i = 0; i < n; i++) {
-                    if ((mask & (1 << i)) != 0) {
-                        subset.add(nums[i]);
-                    }
-                }
-                result.add(subset);
-            }
-        }
-        
-        return result;
-    }
-    
-    
-    public static void main(String[] args) {
-        int[] nums = {1, 2, 3};
-        
-        System.out.print("Input: ");
-        for (int x : nums) System.out.print(x + " ");
-        System.out.println();
-        
-        System.out.println("All subsets:");
-        List<List<Integer>> result = subsetsBit(nums);
-        for (List<Integer> subset : result) {
-            System.out.println(subset);
-        }
-        
-        System.out.println("\nSubsets of size 2:");
-        List<List<Integer>> size2 = subsetsOfSize(nums, 2);
-        for (List<Integer> subset : size2) {
-            System.out.println(subset);
-        }
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Generate all subsets using bit manipulation.
- * 
- * Time: O(2^n * n)
- * Space: O(1) auxiliary, O(2^n) for output
- */
-function subsetsBit(nums) {
-    const n = nums.length;
-    const result = [];
-    
-    // There are 2^n subsets (from 0 to 2^n - 1)
-    for (let mask = 0; mask < (1 << n); mask++) {
-        const subset = [];
-        for (let i = 0; i < n; i++) {
-            // Check if i-th bit is set in mask
-            if (mask & (1 << i)) {
-                subset.push(nums[i]);
-            }
-        }
-        result.push(subset);
-    }
-    
-    return result;
-}
-
-
-/**
- * Optimized version - iterate only through set bits
- */
-function subsetsBitOptimized(nums) {
-    const n = nums.length;
-    const result = [];
-    
-    for (let mask = 0; mask < (1 << n); mask++) {
-        const subset = [];
-        let bit = mask;
-        let idx = 0;
-        while (bit) {
-            if (bit & 1) {
-                subset.push(nums[idx]);
-            }
-            bit >>= 1;
-            idx++;
-        }
-        result.push(subset);
-    }
-    
-    return result;
-}
-
-
-/**
- * Generate subsets of exactly size k
- */
-function subsetsOfSize(nums, k) {
-    const n = nums.length;
-    const result = [];
-    
-    for (let mask = 0; mask < (1 << n); mask++) {
-        // Count bits - only include if exactly k bits are set
-        if (bitCount(mask) === k) {
-            const subset = [];
-            for (let i = 0; i < n; i++) {
-                if (mask & (1 << i)) {
-                    subset.push(nums[i]);
-                }
-            }
-            result.push(subset);
-        }
-    }
-    
-    return result;
-}
-
-
-/**
- * Helper function to count set bits
- */
-function bitCount(n) {
-    let count = 0;
-    while (n) {
-        n &= (n - 1);
-        count++;
-    }
-    return count;
-}
-
-
-// Example usage
-const nums = [1, 2, 3];
-console.log(`Input: [${nums.join(', ')}]`);
-console.log(`All subsets:`, subsetsBit(nums));
-console.log(`\nSubsets of size 2:`, subsetsOfSize(nums, 2));
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Generate All Subsets** | O(2^n × n) | Iterate through 2^n masks, check n bits each |
-| **Subsets of Size k** | O(2^n × n) | Same as above, with bit counting filter |
-| **Optimized Version** | O(2^n × k) | k = average number of set bits (≈ n/2) |
-
-### Detailed Breakdown
-
-- **Outer Loop**: Runs 2^n times (for each mask from 0 to 2^n - 1)
-- **Inner Loop**: For each mask, checks n bits (or k bits in optimized version)
-- **Total Operations**: 2^n × n bit checks
-
-### Complexity by Subset Size
-
-For n elements:
-- Empty subsets: 1
-- Size 1 subsets: n
-- Size 2 subsets: n(n-1)/2
-- Size k subsets: C(n,k) = n!/(k!(n-k)!)
-- Total: 2^n
-
-### Space Complexity
-
-- **Auxiliary Space**: O(1) - only uses constant extra variables
-- **Output Space**: O(2^n × n) - must store all subsets
-- **Stack Space**: O(n) - for optimized version with while loop
-
----
-
-## Common Variations
-
-### 1. Subsets with Sum Target
-
-Find all subsets that sum to a target value:
-
-````carousel
-```python
-def subsets_with_sum(nums: list, target: int) -> list:
-    """Find all subsets that sum to target."""
-    n = len(nums)
-    result = []
-    
-    for mask in range(1 << n):
-        subset = []
-        current_sum = 0
-        for i in range(n):
-            if mask & (1 << i):
-                current_sum += nums[i]
-                subset.append(nums[i])
-        
-        if current_sum == target:
-            result.append(subset)
-    
-    return result
-```
-
-<!-- slide -->
-```cpp
-vector<vector<int>> subsetsWithSum(const vector<int>& nums, int target) {
-    int n = nums.size();
-    vector<vector<int>> result;
-    
-    for (int mask = 0; mask < (1 << n); mask++) {
-        int sum = 0;
-        vector<int> subset;
-        for (int i = 0; i < n; i++) {
-            if (mask & (1 << i)) {
-                sum += nums[i];
-                subset.push_back(nums[i]);
-            }
-        }
-        
-        if (sum == target) {
-            result.push_back(subset);
-        }
-    }
-    
-    return result;
-}
-```
-
-<!-- slide -->
-```java
-public static List<List<Integer>> subsetsWithSum(int[] nums, int target) {
-    int n = nums.length;
-    List<List<Integer>> result = new ArrayList<>();
-    
-    for (int mask = 0; mask < (1 << n); mask++) {
-        int sum = 0;
-        List<Integer> subset = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            if ((mask & (1 << i)) != 0) {
-                sum += nums[i];
-                subset.add(nums[i]);
-            }
-        }
-        
-        if (sum == target) {
-            result.add(subset);
-        }
-    }
-    
-    return result;
-}
-```
-
-<!-- slide -->
-```javascript
-function subsetsWithSum(nums, target) {
-    const n = nums.length;
-    const result = [];
-    
-    for (let mask = 0; mask < (1 << n); mask++) {
-        let sum = 0;
-        const subset = [];
-        for (let i = 0; i < n; i++) {
-            if (mask & (1 << i)) {
-                sum += nums[i];
-                subset.push(nums[i]);
-            }
-        }
-        
-        if (sum === target) {
-            result.push(subset);
-        }
-    }
-    
-    return result;
-}
-```
-````
-
-### 2. Generate Subsets in Lexicographic Order
-
-````carousel
-```python
-def subsets_lexicographic(nums: list) -> list:
-    """Generate subsets in lexicographic order."""
-    n = len(nums)
-    nums.sort()  # Ensure input is sorted
-    result = []
-    
-    for mask in range(1 << n):
-        subset = []
-        for i in range(n):
-            if mask & (1 << i):
-                subset.append(nums[i])
-        result.append(subset)
-    
-    return result
-```
-````
-
-### 3. Subsets with Duplicate Elements
-
-````carousel
-```python
-def subsets_with_duplicates(nums: list) -> list:
-    """Generate unique subsets handling duplicates."""
-    nums.sort()  # Sort to group duplicates
-    n = len(nums)
-    result = []
-    
-    for mask in range(1 << n):
-        subset = []
-        for i in range(n):
-            if mask & (1 << i):
-                # Skip if this element is same as previous and previous wasn't selected
-                if i > 0 and nums[i] == nums[i-1] and not (mask & (1 << (i-1))):
-                    break
-                subset.append(nums[i])
-        else:
-            # Only add if we didn't break
-            result.append(subset)
-    
-    return result
-```
-````
-
----
-
-## Example
-
-**Input:**
-```
-nums = [1, 2, 3]
-```
-
-**Output:**
-```
-[[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
-```
-
-**Explanation:**
-- n = 3, so 2^3 = 8 subsets
-- mask 0 (000): [] - no bits set
-- mask 1 (001): [1] - only first bit set
-- mask 2 (010): [2] - only second bit set
-- mask 3 (011): [1, 2] - first and second bits set
-- mask 4 (100): [3] - only third bit set
-- mask 5 (101): [1, 3]
-- mask 6 (110): [2, 3]
-- mask 7 (111): [1, 2, 3]
-
-**Input:**
-```
-nums = [1]
-```
-
-**Output:**
-```
-[[], [1]]
-```
-
-**Input:**
-```
-nums = []
-```
-
-**Output:**
-```
-[[]]
-```
-
-**Input - Subsets of size 2:**
-```
-nums = [1, 2, 3, 4]
-k = 2
-```
-
-**Output:**
-```
-[[1, 2], [1, 3], [1, 4], [2, 3], [2, 4], [3, 4]]
-```
+- **Memory for Output**: Must store all 2^n subsets, each potentially of size n
 
 ---
 
@@ -829,7 +597,7 @@ k = 2
 
 ---
 
-### Problem 3: Maximum Number of Consecutive Values
+### Problem 3: Pascal's Triangle
 
 **Problem:** [LeetCode 118 - Pascal's Triangle](https://leetcode.com/problems/pascals-triangle/)
 
@@ -841,23 +609,23 @@ k = 2
 
 ---
 
-### Problem 4: Minimum Number of Operations
+### Problem 4: Minimize the Difference Between Target and Chosen Elements
 
 **Problem:** [LeetCode 1981 - Minimize the Difference Between Target and Chosen Elements](https://leetcode.com/problems/minimize-the-difference-between-target-and-chosen-elements/)
 
-**Description:** You are given a 0-indexed `m x n` matrix `mat` and an integer `target`. Choose one number from each row such that the difference between the chosen number and `target` is minimized.
+**Description:** Given a matrix `mat` and target, choose one number from each row such that the difference between the chosen number and `target` is minimized.
 
 **How to Apply Bit Manipulation:**
 - Use bit manipulation to explore all possible combinations
-- For small m (rows), 2^m represents all possible selections
+- For small number of rows, 2^m represents all possible selections
 
 ---
 
-### Problem 5: Count Number of Special Subsets
+### Problem 5: Closest Subset Sum Equal to Target
 
 **Problem:** [LeetCode 1755 - Closest Subset Sum Equal to Target](https://leetcode.com/problems/closest-subset-sum-equal-to-target/)
 
-**Description:** Given an array `nums` and an integer `target`, return the size of the largest subset such that the sum of its elements is closest to `target`.
+**Description:** Given an array `nums` and `target`, return the size of the largest subset such that the sum of its elements is closest to `target`.
 
 **How to Apply Bit Manipulation:**
 - Split the array into two halves (meet-in-the-middle)
@@ -889,42 +657,65 @@ k = 2
 **Answer:** The practical maximum is n ≤ 20 because:
 - 2^20 = 1,048,576 subsets
 - Each subset can have up to 20 elements
-- Total output size can be massive
+- Total output size can be massive (millions of elements)
 - For n > 20, consider meet-in-the-middle or backtracking with pruning
 
 ### Q2: How do you handle duplicate elements in the input array?
 
 **Answer:** Two approaches:
+
 1. **Skip duplicate subsets**: Sort the array, then skip masks that would create duplicate subsets (when nums[i] == nums[i-1] and previous bit not selected)
-2. **Use a set**: Generate all subsets first, then use a set to remove duplicates
+
+2. **Use a set**: Generate all subsets first, then use a set to remove duplicates (less efficient but simpler)
 
 ### Q3: Can bit manipulation be used for combinations instead of subsets?
 
 **Answer:** Yes, by:
 1. Generating all subsets first (2^n)
 2. Filtering to only those with exactly k bits set
-3. Or iterating through masks and checking `__builtin_popcount(mask) == k`
+3. Or iterating through masks and checking `mask.bit_count() == k`
+
+```python
+for mask in range(1 << n):
+    if mask.bit_count() == k:
+        # This is a k-combination
+        subset = [nums[i] for i in range(n) if mask & (1 << i)]
+```
 
 ### Q4: How does bit manipulation compare to recursive backtracking?
 
 **Answer:**
-- **Bit Manipulation**: Cleaner, iterative, O(1) auxiliary space, cannot prune
-- **Recursive Backtracking**: More flexible, can prune early, uses O(n) stack space
-- **Choice**: Use bit manipulation for small, dense cases; backtracking for large, sparse cases
+
+| Aspect | Bit Manipulation | Recursive Backtracking |
+|--------|------------------|------------------------|
+| **Code Complexity** | Simple, iterative | More complex, recursive |
+| **Auxiliary Space** | O(1) | O(n) stack |
+| **Early Pruning** | Cannot prune | Can prune early |
+| **Flexibility** | Fixed pattern | More adaptable |
+| **Best For** | Small n, all subsets | Large n, sparse valid subsets |
+
+**Choice**: Use bit manipulation for small, dense cases; backtracking for large, sparse cases.
 
 ### Q5: What is meet-in-the-middle for subset problems?
 
 **Answer:** A technique to handle n up to 40:
-- Split array into two halves (n/2 each)
-- Generate all subsets for each half (2^(n/2) each)
-- Combine results efficiently using hash maps
-- Reduces time from O(2^n) to O(2^(n/2))
+1. Split array into two halves (n/2 each)
+2. Generate all subsets for each half (2^(n/2) each)
+3. Combine results efficiently using hash maps or sorting
+4. Reduces time from O(2^n) to O(2^(n/2)) ≈ O(2^20) for n=40
+
+**Example**: For subset sum problem:
+- Generate all subset sums from left half
+- Generate all subset sums from right half
+- For each left sum, find complement in right sums using hash map
 
 ---
 
 ## Summary
 
-The bit manipulation subset generation technique is a fundamental algorithm in competitive programming and technical interviews. Key takeaways include:
+The bit manipulation subset generation technique is a fundamental algorithm in competitive programming and technical interviews.
+
+### Key Takeaways
 
 - **Direct Binary Mapping**: Each subset corresponds uniquely to a binary number from 0 to 2^n-1
 - **Simple Implementation**: Clean, iterative code without recursion overhead
@@ -932,7 +723,8 @@ The bit manipulation subset generation technique is a fundamental algorithm in c
 - **Exponential Output**: Must handle 2^n subsets, limiting practical use to n ≤ 20
 - **Easy Filtering**: Can easily filter by subset size or sum by checking each mask
 
-When to use:
+### When to Use
+
 - ✅ Small input sizes (n ≤ 20)
 - ✅ When all subsets are needed
 - ✅ When iterative solution is preferred
@@ -940,13 +732,31 @@ When to use:
 - ❌ Large inputs (use meet-in-the-middle or backtracking)
 - ❌ When only valid subsets needed (use backtracking with pruning)
 
+### Common Operations
+
+| Operation | Expression | Meaning |
+|-----------|------------|---------|
+| Check bit i | `mask & (1 << i)` | Is element i included? |
+| Set bit i | `mask \| (1 << i)` | Include element i |
+| Clear bit i | `mask & ~(1 << i)` | Exclude element i |
+| Count bits | `mask.bit_count()` | Size of subset |
+
+### Implementation Pattern
+
+```python
+for mask in range(1 << n):           # Iterate all 2^n masks
+    subset = []
+    for i in range(n):                # Check each bit
+        if mask & (1 << i):           # Bit i is set
+            subset.append(nums[i])    # Include element i
+    process(subset)                   # Use the subset
+```
+
 This technique forms the foundation for many bit manipulation problems and is essential for anyone preparing for technical interviews or competitive programming.
 
----
+### Related Algorithms
 
-## Related Algorithms
-
-- [Recursive Subset Generation](./subsets.md) - Backtracking approach
-- [Combinations](./combinations.md) - Selecting k elements
-- [Permutations](./permutations.md) - All possible arrangements
-- [Meet in the Middle](./meet-in-the-middle.md) - Optimization for large inputs
+- Recursive Subset Generation - Backtracking approach
+- Combinations - Selecting k elements
+- Permutations - All possible arrangements
+- Meet in the Middle - Optimization for large inputs

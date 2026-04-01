@@ -4,7 +4,656 @@
 Graphs
 
 ## Description
-Topological Sort is an algorithm that orders vertices of a Directed Acyclic Graph (DAG) such that for every edge u→v, vertex u comes before vertex v in the ordering. This is essential for solving problems involving dependency resolution, task scheduling, and build systems where certain tasks must be completed before others can begin.
+
+Topological Sort is an algorithm that orders vertices of a Directed Acyclic Graph (DAG) such that for every directed edge u→v, vertex u comes before vertex v in the ordering. This is essential for solving problems involving dependency resolution, task scheduling, and build systems where certain tasks must be completed before others can begin.
+
+The algorithm guarantees a valid linear ordering of vertices that respects all dependency constraints. If a cycle exists in the graph, topological sort is impossible, and the algorithm can detect this.
+
+---
+
+## Concepts
+
+The Topological Sort algorithm is built on several fundamental concepts that make it powerful for dependency resolution problems.
+
+### 1. Directed Acyclic Graphs (DAGs)
+
+Topological sort only works on DAGs:
+
+| Property | Description |
+|----------|-------------|
+| **Directed** | Edges have direction (u → v) |
+| **Acyclic** | No cycles exist in the graph |
+| **At Least One Source** | Always has at least one vertex with in-degree 0 |
+| **Partial Order** | Defines a valid ordering respecting dependencies |
+
+### 2. In-Degree Concept
+
+The number of incoming edges to a vertex:
+
+| In-Degree | Meaning | Action in Kahn's Algorithm |
+|-----------|---------|---------------------------|
+| **0** | No dependencies | Can be processed immediately |
+| **> 0** | Has dependencies | Must wait until dependencies resolved |
+| **Becomes 0** | All dependencies resolved | Add to processing queue |
+
+### 3. Ordering Properties
+
+| Property | Description |
+|----------|-------------|
+| **Not Unique** | Multiple valid topological orders may exist |
+| **Source First** | Vertices with in-degree 0 appear early |
+| **Sink Last** | Vertices with out-degree 0 appear late |
+| **Dependency Respect** | If u → v, then u always comes before v |
+
+### 4. Cycle Detection
+
+A key property of topological sort:
+
+| Scenario | Result |
+|----------|--------|
+| **Valid DAG** | Returns valid topological order |
+| **Contains Cycle** | Cannot produce complete ordering |
+| **Kahn's Algorithm** | If processed vertices < total, cycle exists |
+| **DFS Approach** | Detects back edge during traversal |
+
+---
+
+## Frameworks
+
+Structured approaches for solving topological sort problems.
+
+### Framework 1: Kahn's Algorithm (BFS-based) Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  KAHN'S ALGORITHM FRAMEWORK                          │
+├─────────────────────────────────────────────────────┤
+│  1. Build adjacency list from edges                 │
+│  2. Calculate in-degree for each vertex             │
+│  3. Initialize queue with all in-degree 0 vertices  │
+│  4. While queue not empty:                          │
+│     a. Dequeue vertex                               │
+│     b. Add to result                                │
+│     c. For each neighbor:                           │
+│        - Decrement in-degree                        │
+│        - If in-degree becomes 0: enqueue              │
+│  5. If result length < total vertices:            │
+│     - Cycle detected!                               │
+│  6. Return result                                   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: General topological sort, explicit cycle detection, easier to understand.
+
+### Framework 2: DFS-based Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  DFS-BASED TOPOLOGICAL SORT FRAMEWORK               │
+├─────────────────────────────────────────────────────┤
+│  1. Build adjacency list from edges                 │
+│  2. Initialize visited state array (0/1/2)        │
+│  3. For each unvisited vertex:                    │
+│     a. Mark as visiting (state = 1)               │
+│     b. Recursively visit all neighbors              │
+│     c. If neighbor is visiting: CYCLE!              │
+│     d. Mark as done (state = 2)                     │
+│     e. Add to result                                │
+│  4. Reverse result for correct order                │
+│  5. Return result                                   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When DFS is already being used, recursive preference.
+
+### Framework 3: Lexicographical Order Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  LEXICOGRAPHICAL TOPOLOGICAL SORT FRAMEWORK         │
+├─────────────────────────────────────────────────────┤
+│  1. Same as Kahn's but use min-heap/priority queue  │
+│  2. Always pick smallest available vertex         │
+│  3. This produces lexicographically smallest order │
+│  4. Time: O((V+E) log V) due to heap operations     │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When a specific deterministic order is required.
+
+---
+
+## Forms
+
+Different manifestations of the topological sort pattern.
+
+### Form 1: Standard Topological Sort
+
+Basic ordering of all vertices in a DAG.
+
+| Aspect | Description |
+|--------|-------------|
+| **Input** | DAG as edge list or adjacency list |
+| **Output** | List of vertices in valid order |
+| **Use Case** | General dependency resolution |
+
+### Form 2: Cycle Detection Only
+
+Use topological sort just to check for cycles.
+
+| Aspect | Description |
+|--------|-------------|
+| **Key Insight** | If processed vertices < total, cycle exists |
+| **Output** | Boolean (has cycle or not) |
+| **Optimization** | Can terminate early on cycle detection |
+
+### Form 3: Parallel Task Scheduling
+
+Determine minimum time/semesters for all tasks.
+
+| Aspect | Description |
+|--------|-------------|
+| **Key Insight** | Process all available tasks in parallel |
+| **Output** | Number of rounds/semesters needed |
+| **Use Case** | Course scheduling, project planning |
+
+### Form 4: All Topological Orders
+
+Generate all valid topological orderings.
+
+| Aspect | Description |
+|--------|-------------|
+| **Key Insight** | Use backtracking at each decision point |
+| **Complexity** | O(V! × E) worst case |
+| **Use Case** | Testing, enumeration problems |
+
+### Form 5: Longest Path in DAG
+
+Find longest path using topological order.
+
+| Aspect | Description |
+|--------|-------------|
+| **Key Insight** | Process vertices in topo order, relax edges |
+| **Output** | Longest path distances |
+| **Use Case** | Critical path analysis |
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Kahn's Algorithm with Cycle Detection
+
+Explicit cycle detection while building order:
+
+```python
+def topological_sort_kahn(n, edges):
+    """
+    Kahn's algorithm with clear cycle detection.
+    """
+    # Build graph and in-degree
+    graph = [[] for _ in range(n)]
+    in_degree = [0] * n
+    
+    for u, v in edges:
+        graph[u].append(v)
+        in_degree[v] += 1
+    
+    # Start with all sources (in-degree 0)
+    from collections import deque
+    queue = deque([i for i in range(n) if in_degree[i] == 0])
+    result = []
+    
+    while queue:
+        vertex = queue.popleft()
+        result.append(vertex)
+        
+        for neighbor in graph[vertex]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+    
+    # Cycle detection
+    if len(result) != n:
+        return []  # Cycle exists
+    
+    return result
+```
+
+### Tactic 2: Lexicographically Smallest Order
+
+Use priority queue for deterministic ordering:
+
+```python
+import heapq
+
+def topological_sort_lexicographical(n, edges):
+    """
+    Produce lexicographically smallest topological order.
+    """
+    graph = [[] for _ in range(n)]
+    in_degree = [0] * n
+    
+    for u, v in edges:
+        graph[u].append(v)
+        in_degree[v] += 1
+    
+    # Use min-heap instead of queue
+    heap = [i for i in range(n) if in_degree[i] == 0]
+    heapq.heapify(heap)
+    result = []
+    
+    while heap:
+        vertex = heapq.heappop(heap)
+        result.append(vertex)
+        
+        for neighbor in graph[vertex]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                heapq.heappush(heap, neighbor)
+    
+    return result if len(result) == n else []
+```
+
+### Tactic 3: Parallel Processing Rounds
+
+Count rounds/semesters for parallel execution:
+
+```python
+def parallel_courses_semesters(n, edges):
+    """
+    Find minimum number of semesters to complete all courses.
+    """
+    graph = [[] for _ in range(n)]
+    in_degree = [0] * n
+    
+    for u, v in edges:
+        graph[u].append(v)
+        in_degree[v] += 1
+    
+    # Track which semester each course is taken
+    semester = [0] * n
+    queue = deque()
+    
+    for i in range(n):
+        if in_degree[i] == 0:
+            queue.append(i)
+            semester[i] = 1
+    
+    max_semester = 0
+    courses_taken = 0
+    
+    while queue:
+        vertex = queue.popleft()
+        courses_taken += 1
+        max_semester = max(max_semester, semester[vertex])
+        
+        for neighbor in graph[vertex]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+                semester[neighbor] = semester[vertex] + 1
+    
+    if courses_taken != n:
+        return -1  # Cycle exists
+    
+    return max_semester
+```
+
+### Tactic 4: Longest Path in DAG
+
+Use topological order to find longest path:
+
+```python
+def longest_path_dag(n, edges):
+    """
+    Find longest path in DAG using topological sort.
+    """
+    graph = [[] for _ in range(n)]
+    in_degree = [0] * n
+    
+    for u, v in edges:
+        graph[u].append(v)
+        in_degree[v] += 1
+    
+    # Topological sort
+    topo_order = topological_sort_kahn(n, edges)
+    if not topo_order:  # Cycle exists
+        return []
+    
+    # Initialize distances
+    dist = [0] * n
+    
+    # Relax edges in topological order
+    for u in topo_order:
+        for v in graph[u]:
+            if dist[v] < dist[u] + 1:
+                dist[v] = dist[u] + 1
+    
+    return dist
+```
+
+### Tactic 5: Alien Dictionary (Building Graph from Words)
+
+Construct graph from sorted word list:
+
+```python
+def alien_dictionary(words):
+    """
+    Determine character order from sorted alien dictionary.
+    """
+    # Build graph from consecutive words
+    chars = set(''.join(words))
+    graph = {c: [] for c in chars}
+    in_degree = {c: 0 for c in chars}
+    
+    for i in range(len(words) - 1):
+        word1, word2 = words[i], words[i + 1]
+        min_len = min(len(word1), len(word2))
+        
+        # Find first differing character
+        for j in range(min_len):
+            if word1[j] != word2[j]:
+                graph[word1[j]].append(word2[j])
+                in_degree[word2[j]] += 1
+                break
+        else:
+            # word2 is prefix of word1 - invalid!
+            if len(word1) > len(word2):
+                return ""
+    
+    # Topological sort
+    from collections import deque
+    queue = deque([c for c in chars if in_degree[c] == 0])
+    result = []
+    
+    while queue:
+        char = queue.popleft()
+        result.append(char)
+        
+        for neighbor in graph[char]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+    
+    return ''.join(result) if len(result) == len(chars) else ""
+```
+
+---
+
+## Python Templates
+
+### Template 1: Kahn's Algorithm (BFS-based)
+
+```python
+from typing import List
+from collections import deque
+
+def topological_sort_kahn(n: int, edges: List[List[int]]) -> List[int]:
+    """
+    Topological sort using Kahn's algorithm (BFS-based).
+    
+    Time Complexity: O(V + E)
+    Space Complexity: O(V)
+    
+    Args:
+        n: Number of vertices (0 to n-1)
+        edges: List of directed edges [from, to]
+    
+    Returns:
+        Topological ordering of vertices, or empty list if cycle exists
+    """
+    # Step 1: Build graph and in-degree array
+    graph = [[] for _ in range(n)]
+    in_degree = [0] * n
+    
+    for u, v in edges:
+        graph[u].append(v)
+        in_degree[v] += 1
+    
+    # Step 2: Initialize queue with all vertices having in-degree 0
+    queue = deque([i for i in range(n) if in_degree[i] == 0])
+    result = []
+    
+    # Step 3: Process vertices
+    while queue:
+        vertex = queue.popleft()
+        result.append(vertex)
+        
+        # Step 4: Reduce in-degree of neighbors
+        for neighbor in graph[vertex]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+    
+    # Step 5: Check for cycle - if we couldn't process all vertices
+    if len(result) != n:
+        return []  # Cycle detected - no valid topological order
+    
+    return result
+```
+
+### Template 2: DFS-based Topological Sort
+
+```python
+def topological_sort_dfs(n: int, edges: List[List[int]]) -> List[int]:
+    """
+    Topological sort using DFS.
+    
+    Time Complexity: O(V + E)
+    Space Complexity: O(V)
+    
+    Args:
+        n: Number of vertices (0 to n-1)
+        edges: List of directed edges [from, to]
+    
+    Returns:
+        Topological ordering of vertices, or empty list if cycle exists
+    """
+    # Build graph
+    graph = [[] for _ in range(n)]
+    for u, v in edges:
+        graph[u].append(v)
+    
+    # visited: 0 = unvisited, 1 = in progress (visiting), 2 = done
+    visited = [0] * n
+    result = []
+    
+    def dfs(vertex: int) -> bool:
+        """Returns False if cycle detected, True otherwise."""
+        visited[vertex] = 1  # Mark as visiting
+        
+        for neighbor in graph[vertex]:
+            if visited[neighbor] == 1:  # Back edge found - cycle!
+                return False
+            if visited[neighbor] == 0:  # Unvisited
+                if not dfs(neighbor):
+                    return False
+        
+        visited[vertex] = 2  # Mark as done
+        result.append(vertex)  # Add to result after all neighbors
+        return True
+    
+    # Process all vertices
+    for v in range(n):
+        if visited[v] == 0:
+            if not dfs(v):
+                return []  # Cycle detected
+    
+    return result[::-1]  # Reverse for correct topological order
+```
+
+### Template 3: Course Schedule (Cycle Detection)
+
+```python
+def can_finish_courses(num_courses: int, prerequisites: List[List[int]]) -> bool:
+    """
+    Determine if all courses can be finished (no cycles in prerequisite graph).
+    
+    Time: O(V + E)
+    Space: O(V)
+    
+    Args:
+        num_courses: Total number of courses
+        prerequisites: List of [course, prerequisite] pairs
+    
+    Returns:
+        True if all courses can be finished, False otherwise
+    """
+    # Build graph
+    graph = [[] for _ in range(num_courses)]
+    in_degree = [0] * num_courses
+    
+    for course, prereq in prerequisites:
+        graph[prereq].append(course)
+        in_degree[course] += 1
+    
+    # Kahn's algorithm
+    queue = deque([i for i in range(num_courses) if in_degree[i] == 0])
+    processed = 0
+    
+    while queue:
+        vertex = queue.popleft()
+        processed += 1
+        
+        for neighbor in graph[vertex]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+    
+    return processed == num_courses
+```
+
+### Template 4: Course Schedule II (Return Ordering)
+
+```python
+def find_course_order(num_courses: int, prerequisites: List[List[int]]) -> List[int]:
+    """
+    Return a valid ordering of courses to finish all courses.
+    
+    Time: O(V + E)
+    Space: O(V)
+    
+    Returns:
+        Valid ordering, or empty list if impossible
+    """
+    # Build graph
+    graph = [[] for _ in range(num_courses)]
+    in_degree = [0] * num_courses
+    
+    for course, prereq in prerequisites:
+        graph[prereq].append(course)
+        in_degree[course] += 1
+    
+    # Kahn's algorithm
+    queue = deque([i for i in range(num_courses) if in_degree[i] == 0])
+    result = []
+    
+    while queue:
+        vertex = queue.popleft()
+        result.append(vertex)
+        
+        for neighbor in graph[vertex]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+    
+    return result if len(result) == num_courses else []
+```
+
+### Template 5: Minimum Semesters (Parallel Courses)
+
+```python
+def minimum_semesters(n: int, relations: List[List[int]]) -> int:
+    """
+    Find minimum number of semesters needed to complete all courses.
+    
+    Time: O(V + E)
+    Space: O(V)
+    
+    Args:
+        n: Number of courses
+        relations: List of [prerequisite, course] pairs
+    
+    Returns:
+        Minimum semesters, or -1 if impossible
+    """
+    # Build graph
+    graph = [[] for _ in range(n)]
+    in_degree = [0] * n
+    
+    for prereq, course in relations:
+        graph[prereq - 1].append(course - 1)  # Convert to 0-indexed
+        in_degree[course - 1] += 1
+    
+    # Track which semester each course is taken
+    semester = [0] * n
+    queue = deque()
+    
+    for i in range(n):
+        if in_degree[i] == 0:
+            queue.append(i)
+            semester[i] = 1
+    
+    max_semester = 0
+    courses_taken = 0
+    
+    while queue:
+        vertex = queue.popleft()
+        courses_taken += 1
+        max_semester = max(max_semester, semester[vertex])
+        
+        for neighbor in graph[vertex]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+                semester[neighbor] = semester[vertex] + 1
+    
+    if courses_taken != n:
+        return -1  # Cycle exists
+    
+    return max_semester
+```
+
+### Template 6: Longest Path in DAG
+
+```python
+def longest_path_in_dag(n: int, edges: List[List[int]]) -> int:
+    """
+    Find length of longest path in DAG.
+    
+    Time: O(V + E)
+    Space: O(V)
+    
+    Returns:
+        Length of longest path
+    """
+    # Build graph and reverse graph
+    graph = [[] for _ in range(n)]
+    in_degree = [0] * n
+    
+    for u, v in edges:
+        graph[u].append(v)
+        in_degree[v] += 1
+    
+    # Topological sort
+    topo_order = topological_sort_kahn(n, edges)
+    if not topo_order:
+        return -1  # Cycle
+    
+    # DP: longest path ending at each vertex
+    longest = [0] * n
+    max_length = 0
+    
+    for u in topo_order:
+        for v in graph[u]:
+            if longest[v] < longest[u] + 1:
+                longest[v] = longest[u] + 1
+                max_length = max(max_length, longest[v])
+    
+    return max_length
+```
 
 ---
 
@@ -17,20 +666,19 @@ Use the Topological Sort algorithm when you need to solve problems involving:
 - **Task Scheduling**: When activities must be performed in a specific order
 - **Course Prerequisites**: Determining valid course sequences
 - **Project Planning**: Resolving task dependencies in project management
+- **Detecting Cycles**: Determining if a valid ordering is possible
 
-### Comparison with Alternatives
+### Comparison: Kahn's Algorithm vs DFS-based
 
-| Algorithm | Use Case | Time Complexity | Space Complexity |
-|-----------|----------|------------------|-------------------|
-| **Kahn's Algorithm (BFS)** | General DAG ordering, cycle detection | O(V + E) | O(V) |
-| **DFS-based Topo Sort** | When DFS is already being performed | O(V + E) | O(V) |
-| **Cycle Detection** | Just detecting if cycle exists | O(V + E) | O(V) |
-| **All Topological Orders** | Generating all valid orderings | O(V! × (V + E)) | O(V) |
+| Algorithm | Approach | Cycle Detection | Best For |
+|-----------|----------|-----------------|----------|
+| **Kahn's (BFS)** | Remove sources iteratively | If result < V, cycle exists | General use, explicit cycle detection |
+| **DFS-based** | Post-order DFS | Back edge detection | When DFS already in use |
 
 ### When to Choose Kahn's Algorithm vs DFS-based
 
 - **Choose Kahn's Algorithm (BFS)** when:
-  - You need to detect cycles easily (if result count < V, cycle exists)
+  - You need to detect cycles easily
   - You want an intuitive level-by-level understanding
   - You're more comfortable with iterative approaches
   - You need to easily find the "starting points" (zero in-degree nodes)
@@ -93,671 +741,11 @@ Final topological order: [1, 2, 0, 3, 4]
 
 ### Limitations
 
-- **Only works on DAGs**: Cycles make topological sort impossible
-- **Not unique**: Multiple valid topological orders may exist
-- **No weight consideration**: Doesn't account for edge weights or priorities
-
----
-
-## Algorithm Steps
-
-### Kahn's Algorithm (BFS)
-
-1. **Build the graph**: Create adjacency list from edges
-2. **Calculate in-degrees**: For each vertex, count incoming edges
-3. **Initialize queue**: Push all vertices with in-degree 0
-4. **Process loop**: While queue is not empty:
-   - Pop vertex, add to result
-   - For each neighbor: decrement in-degree, add to queue if 0
-5. **Validate**: Check if result contains all vertices
-
-### DFS-based Topological Sort
-
-1. **Build adjacency list**: Create graph from edges
-2. **Initialize visited array**: Track node states (0=unvisited, 1=visiting, 2=done)
-3. **DFS traversal**: For each unvisited vertex:
-   - Mark as visiting
-   - Recursively visit all neighbors
-   - If neighbor is visiting, cycle detected
-   - Mark as done, add to result
-4. **Reverse result**: Final answer is reversed completion order
-
----
-
-## Implementation
-
-### Template Code (Kahn's Algorithm and DFS)
-
-````carousel
-```python
-from typing import List, Deque, Optional
-from collections import deque
-
-def topological_sort_kahn(n: int, edges: List[List[int]]) -> List[int]:
-    """
-    Topological sort using Kahn's algorithm (BFS-based).
-    
-    Args:
-        n: Number of vertices (0 to n-1)
-        edges: List of directed edges [from, to]
-    
-    Returns:
-        Topological ordering of vertices, or empty list if cycle exists
-    
-    Time Complexity: O(V + E)
-    Space Complexity: O(V)
-    """
-    # Step 1: Build graph and in-degree array
-    graph = [[] for _ in range(n)]
-    in_degree = [0] * n
-    
-    for u, v in edges:
-        graph[u].append(v)
-        in_degree[v] += 1
-    
-    # Step 2: Initialize queue with all vertices having in-degree 0
-    queue = deque([i for i in range(n) if in_degree[i] == 0])
-    result = []
-    
-    # Step 3: Process vertices
-    while queue:
-        vertex = queue.popleft()
-        result.append(vertex)
-        
-        # Step 4: Reduce in-degree of neighbors
-        for neighbor in graph[vertex]:
-            in_degree[neighbor] -= 1
-            if in_degree[neighbor] == 0:
-                queue.append(neighbor)
-    
-    # Step 5: Check for cycle - if we couldn't process all vertices
-    if len(result) != n:
-        return []  # Cycle detected - no valid topological order
-    
-    return result
-
-
-def topological_sort_dfs(n: int, edges: List[List[int]]) -> List[int]:
-    """
-    Topological sort using DFS.
-    
-    Args:
-        n: Number of vertices (0 to n-1)
-        edges: List of directed edges [from, to]
-    
-    Returns:
-        Topological ordering of vertices, or empty list if cycle exists
-    
-    Time Complexity: O(V + E)
-    Space Complexity: O(V)
-    """
-    # Build graph
-    graph = [[] for _ in range(n)]
-    for u, v in edges:
-        graph[u].append(v)
-    
-    # visited: 0 = unvisited, 1 = in progress (visiting), 2 = done
-    visited = [0] * n
-    result = []
-    
-    def dfs(vertex: int) -> bool:
-        """Returns False if cycle detected, True otherwise."""
-        visited[vertex] = 1  # Mark as visiting
-        
-        for neighbor in graph[vertex]:
-            if visited[neighbor] == 1:  # Back edge found - cycle!
-                return False
-            if visited[neighbor] == 0:  # Unvisited
-                if not dfs(neighbor):
-                    return False
-        
-        visited[vertex] = 2  # Mark as done
-        result.append(vertex)  # Add to result after all neighbors
-        return True
-    
-    # Process all vertices
-    for v in range(n):
-        if visited[v] == 0:
-            if not dfs(v):
-                return []  # Cycle detected
-    
-    return result[::-1]  # Reverse for correct topological order
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    # Example: Course Prerequisites
-    # 0: Algorithms
-    # 1: Data Structures
-    # 2: Operating Systems
-    # 3: Computer Networks
-    # 4: Machine Learning
-    # 
-    # Prerequisites:
-    # Data Structures (1) -> Algorithms (0)
-    # Algorithms (0) -> Machine Learning (4)
-    # Data Structures (1) -> Machine Learning (4)
-    # Operating Systems (2) -> Computer Networks (3)
-    
-    n = 5
-    edges = [
-        [1, 0],  # Data Structures -> Algorithms
-        [0, 4],  # Algorithms -> ML
-        [1, 4],  # Data Structures -> ML
-        [2, 3]   # OS -> Networks
-    ]
-    
-    print(f"Number of vertices: {n}")
-    print(f"Edges (prerequisites): {edges}")
-    print()
-    
-    # Kahn's Algorithm
-    result_kahn = topological_sort_kahn(n, edges)
-    print(f"Kahn's Algorithm order: {result_kahn}")
-    
-    # DFS-based
-    result_dfs = topological_sort_dfs(n, edges)
-    print(f"DFS-based order: {result_dfs}")
-    
-    # Verify the order
-    print("\nVerification:")
-    print("1 → 0: ", result_kahn.index(1) < result_kahn.index(0))
-    print("0 → 4: ", result_kahn.index(0) < result_kahn.index(4))
-    print("1 → 4: ", result_kahn.index(1) < result_kahn.index(4))
-    print("2 → 3: ", result_kahn.index(2) < result_kahn.index(3))
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <queue>
-using namespace std;
-
-/**
- * Topological Sort using Kahn's algorithm (BFS-based).
- * 
- * Time Complexity: O(V + E)
- * Space Complexity: O(V)
- */
-vector<int> topologicalSortKahn(int n, const vector<pair<int,int>>& edges) {
-    // Build graph and in-degree array
-    vector<vector<int>> graph(n);
-    vector<int> inDegree(n, 0);
-    
-    for (const auto& [u, v] : edges) {
-        graph[u].push_back(v);
-        inDegree[v]++;
-    }
-    
-    // Initialize queue with vertices having in-degree 0
-    queue<int> q;
-    for (int i = 0; i < n; i++) {
-        if (inDegree[i] == 0) {
-            q.push(i);
-        }
-    }
-    
-    vector<int> result;
-    
-    // Process vertices
-    while (!q.empty()) {
-        int vertex = q.front();
-        q.pop();
-        result.push_back(vertex);
-        
-        // Reduce in-degree of neighbors
-        for (int neighbor : graph[vertex]) {
-            inDegree[neighbor]--;
-            if (inDegree[neighbor] == 0) {
-                q.push(neighbor);
-            }
-        }
-    }
-    
-    // Check for cycle
-    if (result.size() != n) {
-        return {};  // Cycle detected
-    }
-    
-    return result;
-}
-
-/**
- * Topological Sort using DFS.
- * 
- * Time Complexity: O(V + E)
- * Space Complexity: O(V)
- */
-vector<int> topologicalSortDFS(int n, const vector<pair<int,int>>& edges) {
-    // Build graph
-    vector<vector<int>> graph(n);
-    for (const auto& [u, v] : edges) {
-        graph[u].push_back(v);
-    }
-    
-    // visited: 0 = unvisited, 1 = visiting, 2 = done
-    vector<int> visited(n, 0);
-    vector<int> result;
-    
-    function<bool(int)> dfs = [&](int vertex) -> bool {
-        visited[vertex] = 1;  // Mark as visiting
-        
-        for (int neighbor : graph[vertex]) {
-            if (visited[neighbor] == 1) {  // Back edge - cycle!
-                return false;
-            }
-            if (visited[neighbor] == 0) {
-                if (!dfs(neighbor)) {
-                    return false;
-                }
-            }
-        }
-        
-        visited[vertex] = 2;  // Mark as done
-        result.push_back(vertex);
-        return true;
-    };
-    
-    // Process all vertices
-    for (int v = 0; v < n; v++) {
-        if (visited[v] == 0) {
-            if (!dfs(v)) {
-                return {};  // Cycle detected
-            }
-        }
-    }
-    
-    reverse(result.begin(), result.end());
-    return result;
-}
-
-int main() {
-    int n = 5;
-    vector<pair<int,int>> edges = {
-        {1, 0},  // Data Structures -> Algorithms
-        {0, 4},  // Algorithms -> ML
-        {1, 4},  // Data Structures -> ML
-        {2, 3}   // OS -> Networks
-    };
-    
-    cout << "Number of vertices: " << n << endl;
-    cout << "Edges (prerequisites): ";
-    for (const auto& [u, v] : edges) {
-        cout << "(" << u << "->" << v << ") ";
-    }
-    cout << endl << endl;
-    
-    // Kahn's Algorithm
-    vector<int> resultKahn = topologicalSortKahn(n, edges);
-    cout << "Kahn's Algorithm order: ";
-    for (int v : resultKahn) cout << v << " ";
-    cout << endl;
-    
-    // DFS-based
-    vector<int> resultDFS = topologicalSortDFS(n, edges);
-    cout << "DFS-based order:       ";
-    for (int v : resultDFS) cout << v << " ";
-    cout << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-/**
- * Topological Sort implementations.
- * 
- * Time Complexity: O(V + E)
- * Space Complexity: O(V)
- */
-public class TopologicalSort {
-    
-    /**
-     * Topological sort using Kahn's algorithm (BFS-based).
-     */
-    public static List<Integer> topologicalSortKahn(int n, int[][] edges) {
-        // Build graph and in-degree array
-        List<List<Integer>> graph = new ArrayList<>();
-        int[] inDegree = new int[n];
-        
-        for (int i = 0; i < n; i++) {
-            graph.add(new ArrayList<>());
-        }
-        
-        for (int[] edge : edges) {
-            int u = edge[0];
-            int v = edge[1];
-            graph.get(u).add(v);
-            inDegree[v]++;
-        }
-        
-        // Initialize queue with vertices having in-degree 0
-        Queue<Integer> queue = new LinkedList<>();
-        for (int i = 0; i < n; i++) {
-            if (inDegree[i] == 0) {
-                queue.offer(i);
-            }
-        }
-        
-        List<Integer> result = new ArrayList<>();
-        
-        // Process vertices
-        while (!queue.isEmpty()) {
-            int vertex = queue.poll();
-            result.add(vertex);
-            
-            // Reduce in-degree of neighbors
-            for (int neighbor : graph.get(vertex)) {
-                inDegree[neighbor]--;
-                if (inDegree[neighbor] == 0) {
-                    queue.offer(neighbor);
-                }
-            }
-        }
-        
-        // Check for cycle
-        if (result.size() != n) {
-            return Collections.emptyList();  // Cycle detected
-        }
-        
-        return result;
-    }
-    
-    /**
-     * Topological sort using DFS.
-     */
-    public static List<Integer> topologicalSortDFS(int n, int[][] edges) {
-        // Build graph
-        List<List<Integer>> graph = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            graph.add(new ArrayList<>());
-        }
-        
-        for (int[] edge : edges) {
-            graph.get(edge[0]).add(edge[1]);
-        }
-        
-        // visited: 0 = unvisited, 1 = visiting, 2 = done
-        int[] visited = new int[n];
-        List<Integer> result = new ArrayList<>();
-        
-        // DFS using recursion
-        for (int v = 0; v < n; v++) {
-            if (visited[v] == 0) {
-                if (!dfs(v, graph, visited, result)) {
-                    return Collections.emptyList();  // Cycle detected
-                }
-            }
-        }
-        
-        Collections.reverse(result);
-        return result;
-    }
-    
-    private static boolean dfs(int vertex, List<List<Integer>> graph, 
-                              int[] visited, List<Integer> result) {
-        visited[vertex] = 1;  // Mark as visiting
-        
-        for (int neighbor : graph.get(vertex)) {
-            if (visited[neighbor] == 1) {  // Back edge - cycle!
-                return false;
-            }
-            if (visited[neighbor] == 0) {
-                if (!dfs(neighbor, graph, visited, result)) {
-                    return false;
-                }
-            }
-        }
-        
-        visited[vertex] = 2;  // Mark as done
-        result.add(vertex);
-        return true;
-    }
-    
-    public static void main(String[] args) {
-        int n = 5;
-        int[][] edges = {
-            {1, 0},  // Data Structures -> Algorithms
-            {0, 4},  // Algorithms -> ML
-            {1, 4},  // Data Structures -> ML
-            {2, 3}   // OS -> Networks
-        };
-        
-        System.out.println("Number of vertices: " + n);
-        System.out.println("Edges (prerequisites): " + Arrays.deepToString(edges));
-        System.out.println();
-        
-        // Kahn's Algorithm
-        List<Integer> resultKahn = topologicalSortKahn(n, edges);
-        System.out.println("Kahn's Algorithm order: " + resultKahn);
-        
-        // DFS-based
-        List<Integer> resultDFS = topologicalSortDFS(n, edges);
-        System.out.println("DFS-based order: " + resultDFS);
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Topological Sort implementations.
- * 
- * Time Complexity: O(V + E)
- * Space Complexity: O(V)
- */
-
-/**
- * Topological sort using Kahn's algorithm (BFS-based).
- * @param {number} n - Number of vertices
- * @param {number[][]} edges - Array of [from, to] edges
- * @returns {number[]} Topological ordering, or empty array if cycle exists
- */
-function topologicalSortKahn(n, edges) {
-    // Build graph and in-degree array
-    const graph = Array.from({ length: n }, () => []);
-    const inDegree = new Array(n).fill(0);
-    
-    for (const [u, v] of edges) {
-        graph[u].push(v);
-        inDegree[v]++;
-    }
-    
-    // Initialize queue with vertices having in-degree 0
-    const queue = [];
-    for (let i = 0; i < n; i++) {
-        if (inDegree[i] === 0) {
-            queue.push(i);
-        }
-    }
-    
-    let head = 0;
-    const result = [];
-    
-    // Process vertices
-    while (head < queue.length) {
-        const vertex = queue[head++];
-        result.push(vertex);
-        
-        // Reduce in-degree of neighbors
-        for (const neighbor of graph[vertex]) {
-            inDegree[neighbor]--;
-            if (inDegree[neighbor] === 0) {
-                queue.push(neighbor);
-            }
-        }
-    }
-    
-    // Check for cycle
-    if (result.length !== n) {
-        return [];  // Cycle detected
-    }
-    
-    return result;
-}
-
-/**
- * Topological sort using DFS.
- * @param {number} n - Number of vertices
- * @param {number[][]} edges - Array of [from, to] edges
- * @returns {number[]} Topological ordering, or empty array if cycle exists
- */
-function topologicalSortDFS(n, edges) {
-    // Build graph
-    const graph = Array.from({ length: n }, () => []);
-    for (const [u, v] of edges) {
-        graph[u].push(v);
-    }
-    
-    // visited: 0 = unvisited, 1 = visiting, 2 = done
-    const visited = new Array(n).fill(0);
-    const result = [];
-    
-    function dfs(vertex) {
-        visited[vertex] = 1;  // Mark as visiting
-        
-        for (const neighbor of graph[vertex]) {
-            if (visited[neighbor] === 1) {  // Back edge - cycle!
-                return false;
-            }
-            if (visited[neighbor] === 0) {
-                if (!dfs(neighbor)) {
-                    return false;
-                }
-            }
-        }
-        
-        visited[vertex] = 2;  // Mark as done
-        result.push(vertex);
-        return true;
-    }
-    
-    // Process all vertices
-    for (let v = 0; v < n; v++) {
-        if (visited[v] === 0) {
-            if (!dfs(v)) {
-                return [];  // Cycle detected
-            }
-        }
-    }
-    
-    return result.reverse();  // Reverse for correct order
-}
-
-// Example usage and demonstration
-const n = 5;
-const edges = [
-    [1, 0],  // Data Structures -> Algorithms
-    [0, 4],  // Algorithms -> ML
-    [1, 4],  // Data Structures -> ML
-    [2, 3]   // OS -> Networks
-];
-
-console.log(`Number of vertices: ${n}`);
-console.log(`Edges (prerequisites): ${JSON.stringify(edges)}`);
-console.log();
-
-// Kahn's Algorithm
-const resultKahn = topologicalSortKahn(n, edges);
-console.log(`Kahn's Algorithm order: [${resultKahn.join(', ')}]`);
-
-// DFS-based
-const resultDFS = topologicalSortDFS(n, edges);
-console.log(`DFS-based order:       [${resultDFS.join(', ')}]`);
-
-// Verification
-console.log('\nVerification (Kahn):');
-console.log('1 → 0:', resultKahn.indexOf(1) < resultKahn.indexOf(0));
-console.log('0 → 4:', resultKahn.indexOf(0) < resultKahn.indexOf(4));
-console.log('1 → 4:', resultKahn.indexOf(1) < resultKahn.indexOf(4));
-console.log('2 → 3:', resultKahn.indexOf(2) < resultKahn.indexOf(3));
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Kahn's Algorithm | DFS-based | Description |
-|-----------|-----------------|-----------|-------------|
-| **Build Graph** | O(V + E) | O(V + E) | Create adjacency list from edges |
-| **Calculate In-degrees** | O(E) | N/A | Count incoming edges |
-| **Main Processing** | O(V + E) | O(V + E) | Process all vertices and edges |
-| **Total Time** | **O(V + E)** | **O(V + E)** | Linear in graph size |
-| **Space (Graph)** | O(V + E) | O(V + E) | Store adjacency list |
-| **Space (Auxiliary)** | O(V) | O(V) | Queue/stack + visited array |
-
-### Detailed Breakdown
-
-- **Kahn's Algorithm**: 
-  - Building graph: O(E)
-  - Initial queue setup: O(V)
-  - Each vertex processed once: O(V)
-  - Each edge traversed once: O(E)
-  - Total: O(V + E)
-
-- **DFS-based**:
-  - Building graph: O(E)
-  - DFS visits each vertex once: O(V)
-  - DFS explores each edge once: O(E)
-  - Total: O(V + E)
-
----
-
-## Space Complexity Analysis
-
-| Component | Space | Notes |
-|-----------|-------|-------|
-| **Adjacency List** | O(V + E) | Store all edges |
-| **In-degree Array** | O(V) | Count of incoming edges |
-| **Visited/State Array** | O(V) | Track node states |
-| **Queue (Kahn's)** | O(V) | Maximum size |
-| **Result Array** | O(V) | Final ordering |
-| **DFS Call Stack** | O(V) | Maximum recursion depth |
-| **Total** | **O(V + E)** | |
-
-### Space Optimization Tips
-
-1. **In-place modification**: Modify in-degree array instead of copying
-2. **Iterative DFS**: Use explicit stack instead of recursion to avoid call stack overflow
-3. **Sparse graphs**: Use hash maps instead of arrays for adjacency lists
-
----
-
-## Common Variations
-
-### 1. Find Any Valid Topological Order
-
-Simply return the first valid order found (Kahn's algorithm naturally does this).
-
-### 2. Find All Topological Orders
-
-Use backtracking with Kahn's algorithm:
-- Track in-degrees and try each zero in-degree vertex
-- Recursively explore all possibilities
-- Time: O(V! × E) in worst case
-
-### 3. Lexicographically Smallest Topological Order
-
-Use a **min-heap** (priority queue) instead of regular queue:
-- Always pick smallest available vertex
-- Python: `heapq` | Java: `PriorityQueue` | C++: `priority_queue`
-
-### 4. Find Path Between Two Nodes
-
-After topological sort, check if source appears before destination in the order.
-
-### 5. Detect Cycle Only (No Ordering)
-
-Simplify either algorithm to just detect cycles without storing the order.
-
-### 6. Topological Sort with Specific Start/End
-
-Filter the result after computing the full topological order.
+| Limitation | Description | Mitigation |
+|------------|-------------|------------|
+| **Only works on DAGs** | Cycles make topological sort impossible | Detect cycles first, report error |
+| **Not unique** | Multiple valid topological orders may exist | Use priority queue for deterministic order |
+| **No weight consideration** | Doesn't account for edge weights or priorities | Use different algorithm for weighted scheduling |
 
 ---
 
@@ -769,10 +757,12 @@ Filter the result after computing the full topological order.
 
 **Description:** There are `numCourses` courses labeled from 0 to `numCourses - 1`. Some courses may have prerequisites. Given the total number of courses and a list of prerequisite pairs, determine if it is possible to finish all courses.
 
-**How to Apply Topological Sort:**
+**How to Apply:**
 - Build a graph where each course points to its dependents
 - Use Kahn's algorithm or DFS to detect cycles
 - If cycle exists → impossible to complete; otherwise → possible
+
+**Key Insight:** Cycle in prerequisite graph = circular dependencies = impossible to satisfy.
 
 ---
 
@@ -782,9 +772,12 @@ Filter the result after computing the full topological order.
 
 **Description:** Find one valid order of course scheduling. Return an empty array if impossible.
 
-**How to Apply Topological Sort:**
+**How to Apply:**
 - Use Kahn's algorithm to produce actual ordering
 - Return the result if all vertices processed, otherwise return empty
+- Handle edge cases (no prerequisites, cycle)
+
+**Key Insight:** This is a direct application of topological sort with actual ordering required.
 
 ---
 
@@ -792,12 +785,15 @@ Filter the result after computing the full topological order.
 
 **Problem:** [LeetCode 269 - Alien Dictionary](https://leetcode.com/problems/alien-dictionary/)
 
-**Description:** Given a sorted dictionary of alien alphabet, determine the order of characters.
+**Description:** Given a sorted dictionary of an alien language, determine the order of characters.
 
-**How to Apply Topological Sort:**
+**How to Apply:**
 - Build graph from consecutive words by finding first differing character
 - Use topological sort to find character ordering
-- Handle edge cases (invalid ordering, cycle)
+- Handle edge cases (invalid ordering, cycle detection)
+- Compare word lengths for prefix validation
+
+**Key Insight:** The sorted order of words reveals character ordering constraints.
 
 ---
 
@@ -807,9 +803,13 @@ Filter the result after computing the full topological order.
 
 **Description:** Given courses and their dependencies, find the minimum number of semesters needed to complete all courses.
 
-**How to Apply Topological Sort:**
-- Modify Kahn's algorithm to process all zero in-degree nodes in parallel (one semester)
-- Count semesters until all courses completed
+**How to Apply:**
+- Modify Kahn's algorithm to process all zero in-degree nodes in parallel
+- Each "level" represents one semester
+- Track semester number for each course
+- Return maximum semester number
+
+**Key Insight:** Courses with no remaining prerequisites can be taken in the same semester.
 
 ---
 
@@ -817,11 +817,15 @@ Filter the result after computing the full topological order.
 
 **Problem:** [LeetCode 310 - Minimum Height Trees](https://leetcode.com/problems/minimum-height-trees/)
 
-**Description:** For a tree (or graph without cycles), find all root nodes that produce minimum height trees.
+**Description:** For a tree (undirected graph without cycles), find all root nodes that produce minimum height trees.
 
-**How to Apply Topological Sort:**
+**How to Apply:**
+- This is essentially topological sort on undirected graph
 - Repeatedly remove leaf nodes (in-degree = 1) from the tree
 - The remaining 1-2 nodes are the roots of minimum height trees
+- Use layer-by-layer removal similar to Kahn's algorithm
+
+**Key Insight:** Leaves are the farthest from center; removing them layer by layer finds the center.
 
 ---
 
@@ -881,7 +885,7 @@ Filter the result after computing the full topological order.
 - There can be up to V! valid topological orders
 - Each generation takes O(V + E) time
 - This is exponential and impractical for large V
-- Use only when explicitly required
+- Use only when explicitly required (small graphs)
 
 ---
 
@@ -889,26 +893,32 @@ Filter the result after computing the full topological order.
 
 Topological Sort is an essential algorithm for solving **dependency-related problems** in directed acyclic graphs. Key takeaways:
 
+### Core Concepts
 - **Linear time**: O(V + E) time complexity makes it efficient
 - **Two main approaches**: Kahn's algorithm (BFS) and DFS-based
 - **Cycle detection**: Both methods naturally detect cycles
 - **Multiple valid orders**: Any order satisfying all constraints is valid
 
-When to use:
+### When to Use
 - ✅ Course scheduling and prerequisites
 - ✅ Build systems and dependency resolution
 - ✅ Task scheduling with dependencies
 - ✅ Detecting cycles in directed graphs
-- ❌ Undirected graphs (use DFS/Union-Find)
-- ❌ Graphs with cycles (impossible)
+- ❌ Undirected graphs (use different approach)
+- ❌ Graphs with cycles (impossible to sort)
+
+### Complexity Summary
+
+| Approach | Time | Space | Cycle Detection |
+|----------|------|-------|-----------------|
+| Kahn's | O(V + E) | O(V) | len(result) < V |
+| DFS-based | O(V + E) | O(V) | Back edge found |
+
+### Implementation Tips
+1. Kahn's algorithm is more intuitive for beginners
+2. DFS-based integrates well with other DFS problems
+3. Always check for cycles (return empty list/error)
+4. Use priority queue for deterministic ordering
+5. Process all zero in-degree nodes in parallel for minimum time problems
 
 This algorithm is fundamental for competitive programming and technical interviews, especially in problems involving ordering, scheduling, and dependency resolution.
-
----
-
-## Related Algorithms
-
-- [BFS Level Order Traversal](./bfs-level-order.md) - Breadth-first graph traversal
-- [DFS Preorder](./dfs-preorder.md) - Depth-first graph traversal
-- [Union Find](./union-find.md) - Disjoint set operations
-- [Strongly Connected Components](./strongly-connected-components.md) - Kosaraju's and Tarjan's algorithms

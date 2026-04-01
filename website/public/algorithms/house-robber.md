@@ -7,19 +7,544 @@ Dynamic Programming
 
 The House Robber is a classic dynamic programming problem where you need to find the maximum amount of money you can rob from a linear arrangement of houses without robbing two adjacent houses. Each house contains a certain amount of money, and if you rob one house, you cannot rob its immediate neighbor.
 
-The key insight is that at each house, you have two choices:
-1. **Skip the current house**: The maximum amount is the same as what you could get from houses up to the previous house.
-2. **Rob the current house**: The maximum amount is the current house's value plus the maximum amount from houses up to two houses back.
+The key insight is that at each house, you have two choices: skip the current house (keeping the previous maximum), or rob the current house (adding its value to the maximum from two houses back). This creates a Fibonacci-like recurrence relation that demonstrates optimal substructure and can be solved with O(1) space optimization.
 
-This leads to the recurrence: `dp[i] = max(dp[i-1], dp[i-2] + nums[i])`
+---
 
-We can optimize space to O(1) by only keeping track of the previous two states.
+## Concepts
+
+The House Robber technique is built on several fundamental concepts that make it powerful for solving linear sequence optimization problems.
+
+### 1. Adjacency Constraint
+
+The core constraint prevents selecting consecutive elements:
+
+| Choice | Current House | Previous House | Two Houses Back |
+|--------|---------------|----------------|-----------------|
+| **Skip** | Not selected | Can be selected | Can be selected |
+| **Rob** | Selected | Cannot be selected | Can be selected |
+
+### 2. State Dependency
+
+The optimal solution at each position depends only on two previous states:
+
+```
+dp[i] depends on:
+- dp[i-1]: Maximum if we skip current house
+- dp[i-2] + nums[i]: Maximum if we rob current house
+```
+
+This is why space can be optimized from O(n) to O(1).
+
+### 3. Optimal Substructure
+
+The global optimum can be built from local optima:
+
+| Property | Description |
+|----------|-------------|
+| Base case | dp[0] = nums[0] |
+| Second base | dp[1] = max(nums[0], nums[1]) |
+| Recurrence | dp[i] = max(dp[i-1], dp[i-2] + nums[i]) |
+
+### 4. Decision Framework
+
+At each house, the decision follows this logic:
+
+```
+If we rob house i:
+    We cannot rob house i-1
+    Total = money[i] + max money from houses 0 to i-2
+
+If we skip house i:
+    We can take max money from houses 0 to i-1
+
+Choose the maximum of these two options.
+```
+
+---
+
+## Frameworks
+
+Structured approaches for solving House Robber problems.
+
+### Framework 1: Space-Optimized Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  SPACE-OPTIMIZED FRAMEWORK                          │
+├─────────────────────────────────────────────────────┤
+│  1. Handle edge cases:                               │
+│     - Empty array: return 0                         │
+│     - Single house: return nums[0]                  │
+│                                                      │
+│  2. Initialize two variables:                        │
+│     prev2 = 0          (dp[i-2])                   │
+│     prev1 = nums[0]    (dp[i-1])                   │
+│                                                      │
+│  3. Iterate from house 1 to n-1:                    │
+│     current = max(prev1, prev2 + nums[i])           │
+│     prev2 = prev1                                   │
+│     prev1 = current                                 │
+│                                                      │
+│  4. Return prev1                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When only the maximum value is needed (not which houses).
+
+### Framework 2: Full DP Array Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  FULL DP ARRAY FRAMEWORK                            │
+├─────────────────────────────────────────────────────┤
+│  1. Create dp array of size n                      │
+│  2. dp[0] = nums[0]                                 │
+│  3. dp[1] = max(nums[0], nums[1])                   │
+│  4. For i from 2 to n-1:                           │
+│     dp[i] = max(dp[i-1], dp[i-2] + nums[i])        │
+│  5. Return dp[n-1]                                   │
+│                                                      │
+│  Benefit: Can reconstruct which houses were robbed   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When you need to know which houses were selected.
+
+### Framework 3: Circular Houses Template (House Robber II)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  CIRCULAR HOUSES FRAMEWORK                          │
+├─────────────────────────────────────────────────────┤
+│  1. Handle edge cases (empty, single house)        │
+│                                                      │
+│  2. Houses 0 and n-1 are adjacent (circular)         │
+│     Case 1: Rob house 0 → Can't rob house n-1       │
+│              Solve for houses [0, n-2]              │
+│     Case 2: Don't rob house 0 → Can rob house n-1   │
+│              Solve for houses [1, n-1]              │
+│                                                      │
+│  3. Return max(Case 1, Case 2)                       │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When houses are arranged in a circle (first and last adjacent).
+
+---
+
+## Forms
+
+Different manifestations of the House Robber pattern.
+
+### Form 1: Linear Arrangement (Classic)
+
+Houses arranged in a straight line with no wrap-around.
+
+| Houses | Values | Optimal Selection | Total |
+|--------|--------|-------------------|-------|
+| [1,2,3,1] | [1,2,3,1] | 0 and 2 | 4 |
+| [2,7,9,3,1] | [2,7,9,3,1] | 0, 2, 4 | 12 |
+| [5] | [5] | 0 | 5 |
+
+### Form 2: Circular Arrangement (House Robber II)
+
+First and last houses are adjacent (circular street).
+
+```
+Solution strategy:
+- Case A: Rob first house, don't rob last → solve for [0, n-2]
+- Case B: Don't rob first, can rob last → solve for [1, n-1]
+- Answer = max(Case A, Case B)
+```
+
+### Form 3: Binary Tree Arrangement (House Robber III)
+
+Houses form a binary tree structure.
+
+```
+At each node, return two values:
+- (rob_this, not_rob_this)
+- rob_this = node.val + left.not_rob + right.not_rob
+- not_rob_this = max(left) + max(right)
+```
+
+### Form 4: Delete and Earn Variation
+
+Transform values into House Robber format.
+
+```
+Example: [2,2,3,3,3,4]
+- Total value of 2s: 4 (indices 0,1)
+- Total value of 3s: 9 (indices 2,3,4)
+- Total value of 4s: 4 (index 5)
+- New array: [0,0,4,9,4]
+- Apply House Robber: Can't take 2 and 3 together
+```
+
+### Form 5: Maximum Non-Adjacent Sum
+
+Generic version for any array (not just houses/money).
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Pattern Recognition from Other Problems
+
+Recognize House Robber patterns in disguise:
+
+```python
+def is_house_robber_variant(problem_description):
+    """Check if problem maps to House Robber pattern."""
+    indicators = [
+        "cannot select adjacent",
+        "non-consecutive elements",
+        "skip one between selections",
+        "maximum sum without adjacent"
+    ]
+    return any(indicator in problem_description.lower() 
+               for indicator in indicators)
+
+# Examples:
+# - "Maximum sum of non-adjacent elements" → House Robber
+# - "Delete and Earn" → House Robber after transformation
+# - "Paint House" → Similar DP structure
+```
+
+### Tactic 2: Reconstruction Without Full Array
+
+Track decisions with a separate array:
+
+```python
+def rob_with_reconstruction(nums):
+    """Return max value and which houses were robbed."""
+    if not nums:
+        return 0, []
+    
+    n = len(nums)
+    if n == 1:
+        return nums[0], [0]
+    
+    # dp[i] = max money up to house i
+    dp = [0] * n
+    dp[0] = nums[0]
+    dp[1] = max(nums[0], nums[1])
+    
+    # Track which houses we robbed
+    robbed = [False] * n
+    robbed[0] = nums[0] >= nums[1]
+    robbed[1] = nums[1] > nums[0]
+    
+    for i in range(2, n):
+        skip = dp[i-1]
+        take = dp[i-2] + nums[i]
+        
+        if take > skip:
+            dp[i] = take
+            robbed[i] = True
+        else:
+            dp[i] = skip
+            robbed[i] = False
+    
+    # Backtrack to find selected houses
+    selected = []
+    i = n - 1
+    while i >= 0:
+        if robbed[i]:
+            selected.append(i)
+            i -= 2  # Skip previous (can't rob adjacent)
+        else:
+            i -= 1
+    
+    return dp[n-1], selected[::-1]
+```
+
+### Tactic 3: Circular Array Handling
+
+General approach for circular constraints:
+
+```python
+def rob_circular(nums):
+    """Template for circular House Robber."""
+    if not nums:
+        return 0
+    if len(nums) == 1:
+        return nums[0]
+    
+    def rob_linear(houses):
+        """Standard House Robber on linear array."""
+        prev2, prev1 = 0, houses[0]
+        for i in range(1, len(houses)):
+            curr = max(prev1, prev2 + houses[i])
+            prev2, prev1 = prev1, curr
+        return prev1
+    
+    # Case 1: Exclude last house
+    case1 = rob_linear(nums[:-1])
+    # Case 2: Exclude first house  
+    case2 = rob_linear(nums[1:])
+    
+    return max(case1, case2)
+```
+
+### Tactic 4: Tree DP Pattern (House Robber III)
+
+DFS approach for tree-structured problems:
+
+```python
+def rob_tree(root):
+    """
+    Returns (rob_this_node, not_rob_this_node).
+    rob_this = can't rob children
+    not_rob_this = can choose to rob or not rob children
+    """
+    def dfs(node):
+        if not node:
+            return (0, 0)  # (rob, not_rob)
+        
+        left = dfs(node.left)
+        right = dfs(node.right)
+        
+        # Rob this node: can't rob children
+        rob_this = node.val + left[1] + right[1]
+        
+        # Don't rob this node: take best of children choices
+        not_rob_this = max(left) + max(right)
+        
+        return (rob_this, not_rob_this)
+    
+    return max(dfs(root))
+```
+
+### Tactic 5: Variable Window Optimization
+
+For problems with variable "skips":
+
+```python
+def rob_with_k_gap(nums, k):
+    """
+    Maximum sum with at least k elements between selections.
+    k=1 is standard House Robber.
+    """
+    if not nums:
+        return 0
+    
+    n = len(nums)
+    dp = [0] * (n + 1)
+    
+    for i in range(n):
+        # Either skip current, or take current + best from i-k-1
+        take = nums[i] + (dp[i - k] if i - k >= 0 else 0)
+        skip = dp[i]
+        dp[i + 1] = max(dp[i + 1], max(take, skip))
+    
+    return dp[n]
+```
+
+---
+
+## Python Templates
+
+### Template 1: Space-Optimized Linear
+
+```python
+def rob_linear(nums: list[int]) -> int:
+    """
+    Template 1: Space-optimized House Robber (O(1) space).
+    Time: O(n), Space: O(1)
+    """
+    if not nums:
+        return 0
+    if len(nums) == 1:
+        return nums[0]
+    
+    # Only need previous two values
+    prev2 = 0           # dp[i-2]
+    prev1 = nums[0]     # dp[i-1]
+    
+    for i in range(1, len(nums)):
+        current = max(prev1, prev2 + nums[i])
+        prev2 = prev1
+        prev1 = current
+    
+    return prev1
+```
+
+### Template 2: With Path Reconstruction
+
+```python
+def rob_with_path(nums: list[int]):
+    """
+    Template 2: Return max value and selected house indices.
+    Time: O(n), Space: O(n)
+    """
+    if not nums:
+        return 0, []
+    
+    n = len(nums)
+    if n == 1:
+        return nums[0], [0]
+    
+    # Full DP array for reconstruction
+    dp = [0] * n
+    dp[0] = nums[0]
+    dp[1] = max(nums[0], nums[1])
+    
+    for i in range(2, n):
+        dp[i] = max(dp[i-1], dp[i-2] + nums[i])
+    
+    # Backtrack to find which houses were robbed
+    selected = []
+    i = n - 1
+    while i >= 0:
+        if i == 0:
+            # At first house, check if we robbed it
+            if (n == 1) or (dp[i] > 0 and (n == 1 or dp[i] != nums[1] if n > 1 else True)):
+                selected.append(i)
+            break
+        
+        # If dp[i] != dp[i-1], we must have robbed house i
+        if dp[i] != dp[i-1]:
+            selected.append(i)
+            i -= 2  # Skip previous house (adjacent constraint)
+        else:
+            i -= 1
+    
+    return dp[n-1], selected[::-1]
+```
+
+### Template 3: Circular Houses (House Robber II)
+
+```python
+def rob_circular(nums: list[int]) -> int:
+    """
+    Template 3: Houses arranged in a circle.
+    First and last houses are adjacent.
+    Time: O(n), Space: O(1)
+    """
+    if not nums:
+        return 0
+    if len(nums) == 1:
+        return nums[0]
+    
+    def rob_linear(houses):
+        """Helper: Standard linear House Robber."""
+        prev2, prev1 = 0, houses[0]
+        for i in range(1, len(houses)):
+            curr = max(prev1, prev2 + houses[i])
+            prev2, prev1 = prev1, curr
+        return prev1
+    
+    # Case 1: Exclude last house
+    case1 = rob_linear(nums[:-1])
+    # Case 2: Exclude first house
+    case2 = rob_linear(nums[1:])
+    
+    return max(case1, case2)
+```
+
+### Template 4: Recursive with Memoization
+
+```python
+from functools import lru_cache
+
+def rob_memoization(nums: list[int]) -> int:
+    """
+    Template 4: Top-down DP with memoization.
+    Time: O(n), Space: O(n)
+    """
+    @lru_cache(maxsize=None)
+    def dfs(i):
+        """Max money from houses i to end."""
+        if i >= len(nums):
+            return 0
+        if i == len(nums) - 1:
+            return nums[i]
+        
+        # Skip current or rob current
+        skip = dfs(i + 1)
+        take = nums[i] + dfs(i + 2)
+        
+        return max(skip, take)
+    
+    return dfs(0)
+```
+
+### Template 5: Binary Tree Houses (House Robber III)
+
+```python
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+def rob_tree(root: TreeNode) -> int:
+    """
+    Template 5: Houses arranged in binary tree.
+    Returns max amount without robbing adjacent (parent-child).
+    Time: O(n), Space: O(h) where h = tree height
+    """
+    def dfs(node):
+        """
+        Returns (rob_this, not_rob_this).
+        rob_this: max if we rob current node
+        not_rob_this: max if we don't rob current node
+        """
+        if not node:
+            return (0, 0)
+        
+        left = dfs(node.left)
+        right = dfs(node.right)
+        
+        # Rob this node: cannot rob children
+        rob_this = node.val + left[1] + right[1]
+        
+        # Don't rob this node: take max of each child's options
+        not_rob_this = max(left) + max(right)
+        
+        return (rob_this, not_rob_this)
+    
+    return max(dfs(root))
+```
+
+### Template 6: Delete and Earn Transformation
+
+```python
+def delete_and_earn(nums: list[int]) -> int:
+    """
+    Template 6: Transform to House Robber format.
+    Taking num[i] means you can't take num[i]-1 or num[i]+1.
+    Time: O(n + k) where k = max value in nums
+    """
+    if not nums:
+        return 0
+    
+    # Find max value to size our array
+    max_val = max(nums)
+    
+    # points[i] = total points earned by taking all i's
+    points = [0] * (max_val + 1)
+    for num in nums:
+        points[num] += num
+    
+    # Now it's exactly House Robber on points array
+    prev2, prev1 = 0, points[0]
+    for i in range(1, len(points)):
+        curr = max(prev1, prev2 + points[i])
+        prev2, prev1 = prev1, curr
+    
+    return prev1
+```
 
 ---
 
 ## When to Use
 
-Use this algorithm when you need to solve problems involving:
+Use the House Robber algorithm when you need to solve problems involving:
 
 - **Linear Sequence Selection**: Problems where you need to select elements from a sequence without selecting adjacent ones
 - **Optimization with Constraints**: Maximize/minimize values while avoiding conflicts between adjacent selections
@@ -42,7 +567,7 @@ Use this algorithm when you need to solve problems involving:
   - The problem has overlapping subproblems
 
 - **Consider Alternative Approaches** when:
-  - All houses have equal value (greedy works)
+  - All houses have equal value (greedy might work)
   - Circular houses (needs slight modification)
   - Multiple visits allowed (different variant)
 
@@ -78,7 +603,7 @@ dp[0] = 2                    (rob house 0)
 dp[1] = max(2, 7) = 7        (rob house 1)
 dp[2] = max(7, 2+9) = 11     (rob houses 0, 2)
 dp[3] = max(11, 7+3) = 11    (rob houses 0, 2)
-dp[4] = max(11, 7+1) = 12    (rob houses 1, 3, or 0, 2, 4)
+dp[4] = max(11, 11+1) = 12   (rob houses 0, 2, 4)
 
 Answer: 12 (houses 0, 2, 4: 2 + 9 + 1 = 12)
 ```
@@ -91,649 +616,31 @@ Since `dp[i]` only depends on `dp[i-1]` and `dp[i-2]`, we only need to keep trac
 
 This reduces space from O(n) to O(1).
 
-### Edge Cases
+### How It Works
 
-1. **Empty array**: Return 0
-2. **Single house**: Return that house's value
-3. **Two houses**: Return max of both
-4. **All zeros**: Return 0
-5. **Negative values**: Problem typically assumes non-negative (money can't be negative)
+#### Linear Arrangement:
+1. Initialize with first house value
+2. For each subsequent house, decide: skip or rob
+3. Skip: keep previous max
+4. Rob: add current to max from two houses back
+5. Take the better option
 
----
+#### Circular Arrangement:
+1. Break the circle by excluding either first or last
+2. Solve two linear subproblems
+3. Return the maximum of both
 
-## Algorithm Steps
+### Limitations
 
-### Step-by-Step Approach
-
-1. **Handle Edge Cases**
-   - If array is empty, return 0
-   - If length is 1, return the single element
-
-2. **Initialize Base Cases**
-   - `prev2 = 0` (represents dp[-1], effectively)
-   - `prev1 = nums[0]` (maximum for first house)
-
-3. **Iterate Through Houses**
-   - For each house `i` from 1 to n-1:
-     - Calculate `current = max(prev1, prev2 + nums[i])`
-     - Update: `prev2 = prev1`, `prev1 = current`
-
-4. **Return the Result**
-   - `prev1` contains the maximum amount
-
-### Decision Tree Visualization
-
-```
-For each house i:
-                    ┌─────────────────┐
-                    │   House i       │
-                    └────────┬────────┘
-                             │
-              ┌──────────────┴──────────────┐
-              ▼                             ▼
-    ┌─────────────────┐           ┌─────────────────┐
-    │  Skip House i  │           │   Rob House i   │
-    │   max = dp[i-1]│           │ max = dp[i-2]   │
-    │                 │           │      + nums[i]  │
-    └────────┬────────┘           └────────┬────────┘
-             │                             │
-             └──────────────┬──────────────┘
-                            ▼
-                    ┌─────────────────┐
-                    │ dp[i] = max()   │
-                    └─────────────────┘
-```
-
----
-
-## Implementation
-
-### Template Code (House Robber)
-
-````carousel
-```python
-def rob(nums: list[int]) -> int:
-    """
-    Calculate the maximum amount that can be robbed without robbing adjacent houses.
-    
-    Args:
-        nums: List of non-negative integers representing money in each house
-        
-    Returns:
-        Maximum amount that can be robbed
-        
-    Time: O(n)
-    Space: O(1)
-    """
-    if not nums:
-        return 0
-    
-    if len(nums) == 1:
-        return nums[0]
-    
-    # Space-optimized DP - only need previous two values
-    prev2 = 0  # Represents dp[i-2]
-    prev1 = nums[0]  # Represents dp[i-1]
-    
-    for i in range(1, len(nums)):
-        current = max(prev1, prev2 + nums[i])
-        prev2 = prev1
-        prev1 = current
-    
-    return prev1
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    # Test case 1
-    houses = [1, 2, 3, 1]
-    result = rob(houses)
-    print(f"Maximum robbery from {houses}: {result}")  # Output: 4
-    # Explanation: Rob house 0 (1) + house 2 (3) = 4
-    
-    # Test case 2
-    houses = [2, 7, 9, 3, 1]
-    result = rob(houses)
-    print(f"Maximum robbery from {houses}: {result}")  # Output: 12
-    # Explanation: Rob house 0 (2) + house 2 (9) + house 4 (1) = 12
-    
-    # Test case 3 - edge case with single house
-    houses = [5]
-    result = rob(houses)
-    print(f"Maximum robbery from {houses}: {result}")  # Output: 5
-    
-    # Test case 4 - all zeros
-    houses = [0, 0, 0]
-    result = rob(houses)
-    print(f"Maximum robbery from {houses}: {result}")  # Output: 0
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-/**
- * House Robber - Maximum amount that can be robbed without robbing adjacent houses.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(1)
- * 
- * @param nums Vector of non-negative integers representing money in each house
- * @return Maximum amount that can be robbed
- */
-int rob(vector<int>& nums) {
-    if (nums.empty()) {
-        return 0;
-    }
-    
-    if (nums.size() == 1) {
-        return nums[0];
-    }
-    
-    // Space-optimized DP - only need previous two values
-    int prev2 = 0;           // Represents dp[i-2]
-    int prev1 = nums[0];     // Represents dp[i-1]
-    
-    for (int i = 1; i < nums.size(); i++) {
-        int current = max(prev1, prev2 + nums[i]);
-        prev2 = prev1;
-        prev1 = current;
-    }
-    
-    return prev1;
-}
-
-// For reconstructing the solution (which houses to rob)
-vector<int> robWithPath(vector<int>& nums) {
-    if (nums.empty()) {
-        return {};
-    }
-    
-    if (nums.size() == 1) {
-        return {0};
-    }
-    
-    int n = nums.size();
-    vector<int> dp(n);
-    dp[0] = nums[0];
-    dp[1] = max(nums[0], nums[1]);
-    
-    for (int i = 2; i < n; i++) {
-        dp[i] = max(dp[i-1], dp[i-2] + nums[i]);
-    }
-    
-    // Backtrack to find which houses were robbed
-    vector<int> result;
-    int i = n - 1;
-    while (i >= 0) {
-        if (i == 0 || dp[i] != dp[i-1]) {
-            result.push_back(i);
-            i -= 2;
-        } else {
-            i--;
-        }
-    }
-    
-    reverse(result.begin(), result.end());
-    return result;
-}
-
-int main() {
-    // Test cases
-    vector<int> houses1 = {1, 2, 3, 1};
-    cout << "Maximum robbery from [1,2,3,1]: " << rob(houses1) << endl;  // Output: 4
-    
-    vector<int> houses2 = {2, 7, 9, 3, 1};
-    cout << "Maximum robbery from [2,7,9,3,1]: " << rob(houses2) << endl;  // Output: 12
-    
-    vector<int> houses3 = {5};
-    cout << "Maximum robbery from [5]: " << rob(houses3) << endl;  // Output: 5
-    
-    vector<int> houses4 = {0, 0, 0};
-    cout << "Maximum robbery from [0,0,0]: " << rob(houses4) << endl;  // Output: 0
-    
-    // Test with path reconstruction
-    vector<int> path = robWithPath(houses2);
-    cout << "Houses to rob (indices): ";
-    for (int idx : path) {
-        cout << idx << " ";
-    }
-    cout << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * House Robber - Maximum amount that can be robbed without robbing adjacent houses.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(1)
- */
-public class HouseRobber {
-    
-    /**
-     * Calculate the maximum amount that can be robbed.
-     * 
-     * @param nums Array of non-negative integers representing money in each house
-     * @return Maximum amount that can be robbed
-     */
-    public static int rob(int[] nums) {
-        if (nums == null || nums.length == 0) {
-            return 0;
-        }
-        
-        if (nums.length == 1) {
-            return nums[0];
-        }
-        
-        // Space-optimized DP - only need previous two values
-        int prev2 = 0;           // Represents dp[i-2]
-        int prev1 = nums[0];     // Represents dp[i-1]
-        
-        for (int i = 1; i < nums.length; i++) {
-            int current = Math.max(prev1, prev2 + nums[i]);
-            prev2 = prev1;
-            prev1 = current;
-        }
-        
-        return prev1;
-    }
-    
-    /**
-     * Get the houses to rob (for solution reconstruction).
-     * 
-     * @param nums Array of non-negative integers
-     * @return Array of indices representing which houses to rob
-     */
-    public static int[] robWithPath(int[] nums) {
-        if (nums == null || nums.length == 0) {
-            return new int[0];
-        }
-        
-        if (nums.length == 1) {
-            return new int[]{0};
-        }
-        
-        int n = nums.length;
-        int[] dp = new int[n];
-        dp[0] = nums[0];
-        dp[1] = Math.max(nums[0], nums[1]);
-        
-        for (int i = 2; i < n; i++) {
-            dp[i] = Math.max(dp[i-1], dp[i-2] + nums[i]);
-        }
-        
-        // Backtrack to find which houses were robbed
-        java.util.List<Integer> result = new java.util.ArrayList<>();
-        int i = n - 1;
-        while (i >= 0) {
-            if (i == 0 || dp[i] != dp[i-1]) {
-                result.add(i);
-                i -= 2;
-            } else {
-                i--;
-            }
-        }
-        
-        // Convert to array in reverse order
-        int[] indices = new int[result.size()];
-        for (int j = 0; j < result.size(); j++) {
-            indices[j] = result.get(result.size() - 1 - j);
-        }
-        
-        return indices;
-    }
-    
-    public static void main(String[] args) {
-        // Test cases
-        int[] houses1 = {1, 2, 3, 1};
-        System.out.println("Maximum robbery from [1,2,3,1]: " + rob(houses1));  // Output: 4
-        
-        int[] houses2 = {2, 7, 9, 3, 1};
-        System.out.println("Maximum robbery from [2,7,9,3,1]: " + rob(houses2));  // Output: 12
-        
-        int[] houses3 = {5};
-        System.out.println("Maximum robbery from [5]: " + rob(houses3));  // Output: 5
-        
-        int[] houses4 = {0, 0, 0};
-        System.out.println("Maximum robbery from [0,0,0]: " + rob(houses4));  // Output: 0
-        
-        // Test with path reconstruction
-        int[] path = robWithPath(houses2);
-        System.out.print("Houses to rob (indices): ");
-        for (int idx : path) {
-            System.out.print(idx + " ");
-        }
-        System.out.println();
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * House Robber - Maximum amount that can be robbed without robbing adjacent houses.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(1)
- * 
- * @param {number[]} nums - Array of non-negative integers representing money in each house
- * @returns {number} Maximum amount that can be robbed
- */
-function rob(nums) {
-    if (!nums || nums.length === 0) {
-        return 0;
-    }
-    
-    if (nums.length === 1) {
-        return nums[0];
-    }
-    
-    // Space-optimized DP - only need previous two values
-    let prev2 = 0;           // Represents dp[i-2]
-    let prev1 = nums[0];     // Represents dp[i-1]
-    
-    for (let i = 1; i < nums.length; i++) {
-        const current = Math.max(prev1, prev2 + nums[i]);
-        prev2 = prev1;
-        prev1 = current;
-    }
-    
-    return prev1;
-}
-
-/**
- * Get the houses to rob (for solution reconstruction).
- * 
- * @param {number[]} nums - Array of non-negative integers
- * @returns {number[]} Array of indices representing which houses to rob
- */
-function robWithPath(nums) {
-    if (!nums || nums.length === 0) {
-        return [];
-    }
-    
-    if (nums.length === 1) {
-        return [0];
-    }
-    
-    const n = nums.length;
-    const dp = new Array(n);
-    dp[0] = nums[0];
-    dp[1] = Math.max(nums[0], nums[1]);
-    
-    for (let i = 2; i < n; i++) {
-        dp[i] = Math.max(dp[i-1], dp[i-2] + nums[i]);
-    }
-    
-    // Backtrack to find which houses were robbed
-    const result = [];
-    let i = n - 1;
-    while (i >= 0) {
-        if (i === 0 || dp[i] !== dp[i-1]) {
-            result.push(i);
-            i -= 2;
-        } else {
-            i--;
-        }
-    }
-    
-    return result.reverse();
-}
-
-// Example usage and demonstration
-const houses1 = [1, 2, 3, 1];
-console.log(`Maximum robbery from [${houses1}]: ${rob(houses1)}`);  // Output: 4
-
-const houses2 = [2, 7, 9, 3, 1];
-console.log(`Maximum robbery from [${houses2}]: ${rob(houses2)}`);  // Output: 12
-
-const houses3 = [5];
-console.log(`Maximum robbery from [${houses3}]: ${rob(houses3)}`);  // Output: 5
-
-const houses4 = [0, 0, 0];
-console.log(`Maximum robbery from [${houses4}]: ${rob(houses4)}`);  // Output: 0
-
-// Test with path reconstruction
-const path = robWithPath(houses2);
-console.log(`Houses to rob (indices): ${path.join(' ')}`);  // Output: 0 2 4
-```
-````
-
----
-
-## Example
-
-**Input:**
-```
-houses = [1, 2, 3, 1]
-```
-
-**Output:**
-```
-Maximum robbery: 4
-Explanation: Rob house at index 0 (value 1) + house at index 2 (value 3) = 4
-```
-
-**Input:**
-```
-houses = [2, 7, 9, 3, 1]
-```
-
-**Output:**
-```
-Maximum robbery: 12
-Explanation: Rob house at index 0 (2) + index 2 (9) + index 4 (1) = 12
-```
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Single Pass** | O(n) | Iterate through all houses once |
-| **Space-Optimized** | O(n) | O(n) time, O(1) space |
-| **With Path Reconstruction** | O(n) | O(n) time, O(n) space for dp array |
-
-### Detailed Breakdown
-
-- **Iterating through houses**: O(n) - single pass through the array
-- **Each iteration**: O(1) - just a max operation and some assignments
-- **Total**: O(n) time
-
----
-
-## Space Complexity Analysis
-
-| Approach | Space Complexity | Description |
-|----------|-----------------|-------------|
-| **Space-Optimized** | O(1) | Only stores two variables |
-| **Standard DP** | O(n) | Stores full dp array |
-| **With Path** | O(n) | Stores dp array + result |
-
-### Space Optimization Explanation
-
-The key insight is that we only need to remember:
-- The maximum amount up to the previous house (`prev1`)
-- The maximum amount up to two houses back (`prev2`)
-
-This reduces space from O(n) to O(1).
-
----
-
-## Common Variations
-
-### 1. House Robber II (Circular Houses)
-
-Houses are arranged in a circle. You cannot rob house 0 and house n-1 together.
-
-````carousel
-```python
-def rob(nums):
-    """House Robber II - Houses in a circle."""
-    if not nums:
-        return 0
-    if len(nums) == 1:
-        return nums[0]
-    
-    # Either exclude first house or exclude last house
-    def rob_linear(houses):
-        prev2, prev1 = 0, houses[0]
-        for val in houses[1:]:
-            prev2, prev1 = prev1, max(prev1, prev2 + val)
-        return prev1
-    
-    return max(rob_linear(nums[:-1]), rob_linear(nums[1:]))
-```
-
-<!-- slide -->
-```cpp
-int robII(vector<int>& nums) {
-    if (nums.empty()) return 0;
-    if (nums.size() == 1) return nums[0];
-    
-    auto robLinear = [](vector<int>& houses) {
-        int prev2 = 0, prev1 = houses[0];
-        for (int i = 1; i < houses.size(); i++) {
-            int curr = max(prev1, prev2 + houses[i]);
-            prev2 = prev1;
-            prev1 = curr;
-        }
-        return prev1;
-    };
-    
-    return max(robLinear(vector<int>(nums.begin(), nums.end()-1)),
-               robLinear(vector<int>(nums.begin()+1, nums.end())));
-}
-```
-
-<!-- slide -->
-```java
-public int robII(int[] nums) {
-    if (nums == null || nums.length == 0) return 0;
-    if (nums.length == 1) return nums[0];
-    
-    return Math.max(
-        robLinear(nums, 0, nums.length - 2),
-        robLinear(nums, 1, nums.length - 1)
-    );
-}
-
-private int robLinear(int[] nums, int start, int end) {
-    int prev2 = 0, prev1 = nums[start];
-    for (int i = start + 1; i <= end; i++) {
-        int curr = Math.max(prev1, prev2 + nums[i]);
-        prev2 = prev1;
-        prev1 = curr;
-    }
-    return prev1;
-}
-```
-
-<!-- slide -->
-```javascript
-function robII(nums) {
-    if (!nums || nums.length === 0) return 0;
-    if (nums.length === 1) return nums[0];
-    
-    const robLinear = (houses) => {
-        let prev2 = 0, prev1 = houses[0];
-        for (let i = 1; i < houses.length; i++) {
-            const curr = Math.max(prev1, prev2 + houses[i]);
-            prev2 = prev1;
-            prev1 = curr;
-        }
-        return prev1;
-    };
-    
-    return Math.max(
-        robLinear(nums.slice(0, -1)),
-        robLinear(nums.slice(1))
-    );
-}
-```
-````
-
-### 2. House Robber III (Binary Tree)
-
-Houses are arranged in a binary tree. You cannot rob two directly connected houses.
-
-````carousel
-```python
-def rob(root):
-    """House Robber III - Houses in a binary tree."""
-    def dfs(node):
-        if not node:
-            return (0, 0)  # (rob, not_rob)
-        
-        left = dfs(node.left)
-        right = dfs(node.right)
-        
-        # Rob this node: cannot rob children
-        rob_this = node.val + left[1] + right[1]
-        # Don't rob this node: take max of children states
-        not_rob = max(left) + max(right)
-        
-        return (rob_this, not_rob)
-    
-    return max(dfs(root))
-```
-````
-
-### 3. Maximum Non-Adjacent Sum
-
-Generic version - find maximum sum of non-adjacent elements.
-
-````carousel
-```python
-def max_non_adjacent_sum(nums):
-    """Maximum sum of non-adjacent elements."""
-    if not nums:
-        return 0
-    
-    prev2, prev1 = 0, nums[0]
-    
-    for i in range(1, len(nums)):
-        prev2, prev1 = prev1, max(prev1, prev2 + nums[i])
-    
-    return prev1
-```
-````
-
-### 4. Paint House (Related Problem)
-
-Minimum cost to paint houses with no adjacent houses having the same color - uses similar DP.
-
-````carousel
-```python
-def min_cost(costs):
-    """Paint House - minimum cost to paint all houses."""
-    if not costs:
-        return 0
-    
-    n = len(costs)
-    # dp[i][c] = min cost to paint house i with color c
-    for i in range(1, n):
-        costs[i][0] += min(costs[i-1][1], costs[i-1][2])
-        costs[i][1] += min(costs[i-1][0], costs[i-1][2])
-        costs[i][2] += min(costs[i-1][0], costs[i-1][1])
-    
-    return min(costs[n-1])
-```
-````
+- **Only works for discrete selection**: Cannot handle fractional houses
+- **Assumes non-negative values**: Negative money breaks the logic
+- **Linear or tree structure**: Other graph structures need different approaches
 
 ---
 
 ## Practice Problems
 
-### Problem 1: House Robber
+### Problem 1: House Robber (Linear)
 
 **Problem:** [LeetCode 198 - House Robber](https://leetcode.com/problems/house-robber/)
 
@@ -742,10 +649,11 @@ def min_cost(costs):
 **How to Apply the Technique:**
 - Use the standard House Robber DP formula: `dp[i] = max(dp[i-1], dp[i-2] + nums[i])`
 - Optimize space to O(1) by tracking only the previous two values
+- Time: O(n), Space: O(1)
 
 ---
 
-### Problem 2: House Robber II
+### Problem 2: House Robber II (Circular)
 
 **Problem:** [LeetCode 213 - House Robber II](https://leetcode.com/problems/house-robber-ii/)
 
@@ -758,7 +666,7 @@ def min_cost(costs):
 
 ---
 
-### Problem 3: House Robber III
+### Problem 3: House Robber III (Binary Tree)
 
 **Problem:** [LeetCode 337 - House Robber III](https://leetcode.com/problems/house-robber-iii/)
 
@@ -793,6 +701,7 @@ def min_cost(costs):
 **How to Apply the Technique:**
 - Similar DP structure: at each house, choose the minimum cost that doesn't conflict with previous choice
 - Track minimum costs for each color option
+- State tracks which color was chosen for previous house
 
 ---
 
@@ -822,7 +731,7 @@ def min_cost(costs):
 **Answer:** Greedy (always picking the largest house) fails because:
 - Picking a large house might prevent robbing two adjacent smaller houses
 - Example: [10, 1, 1, 10] - Greedy picks 10 (index 0), then can't pick 10 (index 3), total = 10
-- Optimal: pick both 1's = 12
+- Optimal: pick both 1's plus last 10 = 12
 
 The DP approach considers all possibilities and guarantees the optimal solution.
 
@@ -855,6 +764,7 @@ Time: O(n), Space: O(n) for recursion stack + memo
 **Answer:** The problem typically assumes non-negative values. With negative values:
 - If all values are negative, you'd want to rob no houses (return 0)
 - The recurrence still works but needs careful initialization
+- Consider returning 0 as the minimum (don't rob any)
 
 ### Q5: How does House Robber relate to other DP problems?
 
@@ -889,12 +799,3 @@ When to use:
 - ❌ When elements can be revisited (different problem)
 
 This problem is essential for understanding dynamic programming and is frequently asked in technical interviews.
-
----
-
-## Related Algorithms
-
-- [Climbing Stairs](./climbing-stairs.md) - Similar DP foundation
-- [Maximum Subarray](./maximum-subarray.md) - Related optimization problem
-- [Knapsack 0/1](./knapsack-01.md) - Generalization of selection with constraints
-- [Longest Increasing Subsequence](./lis.md) - Another classic DP problem

@@ -5,155 +5,153 @@ Math & Number Theory
 
 ## Description
 
-The **modular multiplicative inverse** of an integer `a` modulo `m` is an integer `x` such that:
+The **modular multiplicative inverse** of an integer `a` modulo `m` is an integer `x` such that `a × x ≡ 1 (mod m)`. This is the equivalent of division in modular arithmetic—multiplying by `a^(-1)` is the same as dividing by `a` under modulo `m`. The modular inverse exists if and only if `gcd(a, m) = 1`, meaning `a` and `m` must be coprime.
 
-```
-a × x ≡ 1 (mod m)
-```
-
-This is written as `a^(-1) mod m` or `a⁻¹ (mod m)`. The modular inverse is the equivalent of division in modular arithmetic—multiplying by `a^(-1)` is the same as dividing by `a` under modulo `m`.
+This concept is essential for competitive programming and cryptographic applications. When computing combinations, linear congruences, or performing division under modulo constraints, the modular inverse enables operations that would otherwise be impossible in modular arithmetic.
 
 ---
 
-## Core Concept
+## Concepts
 
-### The Division Problem in Modular Arithmetic
+The modular inverse is built on several fundamental concepts from number theory.
 
-In regular arithmetic, dividing by `a` is the same as multiplying by `1/a`. However, in modular arithmetic, we cannot directly divide. Instead, we find a number `x` such that when we multiply `a` by `x`, we get 1 (mod m).
+### 1. Division Problem in Modular Arithmetic
+
+In regular arithmetic, dividing by `a` equals multiplying by `1/a`. In modular arithmetic:
 
 ```
 (a / b) mod m = (a × b⁻¹) mod m
 ```
 
-### Existence Condition
+| Operation | Regular Arithmetic | Modular Arithmetic |
+|-----------|-------------------|-------------------|
+| Addition | `a + b` | `(a + b) mod m` |
+| Subtraction | `a - b` | `(a - b + m) mod m` |
+| Multiplication | `a × b` | `(a × b) mod m` |
+| Division | `a / b` | `(a × b⁻¹) mod m` |
 
-The modular inverse of `a` modulo `m` **exists if and only if**:
-```
-gcd(a, m) = 1
-```
+### 2. Existence Condition
 
-This means `a` and `m` must be **coprime** (relatively prime). If `gcd(a, m) > 1`, the inverse does not exist.
+The modular inverse of `a` modulo `m` exists **if and only if** `gcd(a, m) = 1`.
 
-### Example
+| Condition | Result |
+|-----------|--------|
+| `gcd(a, m) = 1` | Inverse exists (unique) |
+| `gcd(a, m) > 1` | Inverse does not exist |
+| `a = 0` | Inverse never exists |
 
-For `a = 3` and `m = 11`:
-- We need `3 × x ≡ 1 (mod 11)`
-- Testing: `3 × 4 = 12 ≡ 1 (mod 11)` ✓
-- Therefore, `3⁻¹ ≡ 4 (mod 11)`
+### 3. Computing Methods
 
----
-
-## When to Use
-
-Use modular inverse when you need to:
-
-- **Perform Division Under Modulo**: Calculate `(a/b) mod m` when `m` is not prime
-- **Compute Combinations (nCr)**: `nCr = n! / (r! × (n-r)!)` requires modular division
-- **Solve Linear Congruences**: Find `x` in equations like `ax ≡ b (mod m)`
-- **Cryptography**: RSA encryption/decryption, Diffie-Hellman key exchange
-- **Competitive Programming**: Counting problems with modulo constraints
-
-### Comparison of Methods
-
-| Method | Time Complexity | Space Complexity | Requirements | Use Case |
-|--------|-----------------|------------------|--------------|----------|
-| **Extended Euclidean** | O(log(min(a, m))) | O(1) | `gcd(a, m) = 1` | General purpose, any modulus |
-| **Fermat's Little Theorem** | O(log m) | O(1) | `m` is prime | Fastest when m is prime |
-| **Euler's Theorem** | O(√m) + O(log m) | O(1) | `gcd(a, m) = 1` | General, but needs φ(m) |
-| **Precompute All (1..n)** | O(n) preprocessing | O(n) | `m` is prime | Multiple inverses needed |
-
-### When to Choose Each Method
-
-- **Choose Extended Euclidean** when:
-  - The modulus `m` is not prime
-  - You need a general-purpose solution
-  - You want guaranteed O(log) performance
-
-- **Choose Fermat's Little Theorem** when:
-  - The modulus `m` is prime (common in CP: 10⁹+7, 998244353)
-  - You need the fastest possible single inverse computation
-  - Built-in `pow(a, m-2, m)` is available
-
-- **Choose Precomputation** when:
-  - You need inverses for all numbers 1 to n
-  - Space is not a constraint
-  - Multiple queries need fast answers
+| Method | Time | Requirements | Best For |
+|--------|------|--------------|----------|
+| Extended Euclidean | O(log(min(a, m))) | `gcd(a, m) = 1` | Any modulus |
+| Fermat's Little Theorem | O(log m) | `m` prime | Prime modulus (fastest) |
+| Precomputation | O(n) preprocessing | `m` prime | Multiple inverses |
 
 ---
 
-## Algorithm Explanation
+## Frameworks
 
-### Method 1: Extended Euclidean Algorithm (General Case)
+### Framework 1: Extended Euclidean Algorithm
 
-The Extended Euclidean Algorithm finds integers `x` and `y` such that:
 ```
-ax + my = gcd(a, m) = 1
-```
-
-Taking modulo `m` on both sides:
-```
-ax ≡ 1 (mod m)
-```
-
-Therefore, `x` is the modular inverse of `a`.
-
-**Why it works**: Bézout's identity guarantees that if `gcd(a, m) = 1`, then there exist integers `x` and `y` such that `ax + my = 1`. Taking mod `m` gives `ax ≡ 1 (mod m)`.
-
-### Method 2: Fermat's Little Theorem (When m is Prime)
-
-If `m` is prime and `a` is not divisible by `m`:
-```
-a^(m-1) ≡ 1 (mod m)       [Fermat's Little Theorem]
-a^(m-2) ≡ a^(-1) (mod m)  [Multiply both sides by a^(-1)]
+┌─────────────────────────────────────────────────────┐
+│  EXTENDED EUCLIDEAN FRAMEWORK                       │
+├─────────────────────────────────────────────────────┤
+│  1. Apply extended GCD: find g, x, y where          │
+│     ax + my = g = gcd(a, m)                         │
+│  2. Verify existence: if g ≠ 1, inverse DNE         │
+│  3. Normalize result: return (x % m + m) % m        │
+└─────────────────────────────────────────────────────┘
 ```
 
-So the inverse is `a^(m-2) mod m`, computable with fast exponentiation in O(log m).
+**When to use**: General-purpose, works for any modulus where inverse exists.
 
-### Method 3: Euler's Theorem (Generalization)
+### Framework 2: Fermat's Little Theorem
 
-If `gcd(a, m) = 1`:
 ```
-a^φ(m) ≡ 1 (mod m)           [Euler's Theorem]
-a^(φ(m)-1) ≡ a^(-1) (mod m)  [Multiply by a^(-1)]
+┌─────────────────────────────────────────────────────┐
+│  FERMAT'S LITTLE THEOREM FRAMEWORK                  │
+├─────────────────────────────────────────────────────┤
+│  Precondition: m is prime, a not divisible by m     │
+│                                                     │
+│  1. Verify m is prime (usually known)               │
+│  2. Compute: a^(-1) ≡ a^(m-2) (mod m)               │
+│  3. Use fast exponentiation: O(log m) time          │
+│  4. Return result                                   │
+└─────────────────────────────────────────────────────┘
 ```
 
-Where `φ(m)` is Euler's totient function, counting numbers ≤ m that are coprime to m.
+**When to use**: When modulus is prime (common: 10⁹+7, 998244353).
+
+### Framework 3: Precomputation for Multiple Queries
+
+```
+┌─────────────────────────────────────────────────────┐
+│  PRECOMPUTATION FRAMEWORK                           │
+├─────────────────────────────────────────────────────┤
+│  Precondition: m is prime, need inverses 1..n     │
+│                                                     │
+│  1. Initialize: inv[1] = 1                          │
+│  2. For i = 2 to n:                                 │
+│     inv[i] = m - (m // i) × inv[m % i] % m         │
+│  3. Answer queries: O(1) per inverse              │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Many queries, bounded values, prime modulus.
 
 ---
 
-## Algorithm Steps
+## Forms
 
-### Finding Modular Inverse Using Extended Euclidean
+### Form 1: Single Inverse Computation
 
-1. **Apply Extended GCD**: Find `g, x, y` such that `ax + my = g = gcd(a, m)`
-2. **Check existence**: If `g ≠ 1`, inverse does not exist
-3. **Normalize result**: Return `(x % m + m) % m` to ensure positive result
+Compute one inverse at a time, optimal for occasional operations.
 
-### Finding Modular Inverse Using Fermat's Theorem
+| Use Case | Method | Time | Space |
+|----------|--------|------|-------|
+| Prime modulus | Fermat's | O(log m) | O(1) |
+| Composite modulus | Extended GCD | O(log m) | O(1) |
+| Unknown modulus | Extended GCD | O(log m) | O(1) |
 
-1. **Verify precondition**: Ensure `m` is prime
-2. **Compute power**: Calculate `a^(m-2) mod m` using fast exponentiation
-3. **Return result**: The result is the modular inverse
+### Form 2: nCr with Modular Inverse
 
-### Fast Exponentiation (Binary Exponentiation)
+Combinations require division: `nCr = n! / (r! × (n-r)!)`
 
-1. **Initialize**: `result = 1`, `base = a % m`
-2. **Iterate while exp > 0**:
-   - If `exp` is odd: `result = (result × base) % m`
-   - `base = (base × base) % m`
-   - `exp = exp // 2`
-3. **Return**: `result`
+```
+Precompute: fact[0..n], inv_fact[0..n]
+nCr = fact[n] × inv_fact[r] × inv_fact[n-r] mod m
+```
+
+### Form 3: Linear Congruence Solving
+
+Solve `ax ≡ b (mod m)` using modular inverse when `gcd(a, m) = 1`.
+
+```
+x ≡ a⁻¹ × b (mod m)
+```
+
+### Form 4: Precomputed Inverse Array
+
+For problems requiring all inverses from 1 to n.
+
+| Property | Value |
+|----------|-------|
+| Preprocessing | O(n) |
+| Per query | O(1) |
+| Space | O(n) |
+| Formula | `inv[i] = m - (m//i) × inv[m%i] % m` |
 
 ---
 
-## Implementation
+## Tactics
 
-### Template Code
+### Tactic 1: Extended GCD Implementation
 
-````carousel
 ```python
 def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
-    """Extended Euclidean Algorithm. Returns (g, x, y) where ax + by = g."""
+    """Returns (g, x, y) where ax + by = g = gcd(a, b)."""
     if b == 0:
         return (a, 1, 0)
     g, x1, y1 = extended_gcd(b, a % b)
@@ -161,37 +159,102 @@ def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
 
 
 def mod_inverse(a: int, m: int) -> int | None:
-    """
-    Returns modular inverse of a under modulo m using Extended Euclidean Algorithm.
-    Returns None if inverse doesn't exist.
-    
-    Time Complexity: O(log(min(a, m)))
-    Space Complexity: O(log(min(a, m))) due to recursion
-    """
+    """Returns modular inverse or None if doesn't exist."""
     g, x, _ = extended_gcd(a % m, m)
     if g != 1:
-        return None  # Inverse doesn't exist
-    return (x % m + m) % m  # Ensure positive result
+        return None
+    return (x % m + m) % m
+```
 
+### Tactic 2: Iterative Extended GCD (Space Efficient)
 
-def mod_inverse_fermat(a: int, m: int) -> int:
-    """
-    Returns modular inverse using Fermat's Little Theorem.
-    Only works when m is prime.
+```python
+def mod_inverse_iterative(a: int, m: int) -> int | None:
+    """Iterative version - O(1) space."""
+    a = a % m
+    if a == 0:
+        return None if m != 1 else 0
     
-    Time Complexity: O(log m)
-    Space Complexity: O(1)
-    """
+    x0, x1 = 1, 0
+    original_m = m
+    
+    while m != 0:
+        q = a // m
+        a, m = m, a - q * m
+        x0, x1 = x1, x0 - q * x1
+    
+    if a != 1:
+        return None
+    return (x0 % original_m + original_m) % original_m
+```
+
+### Tactic 3: Fermat's Little Theorem
+
+```python
+def mod_inverse_fermat(a: int, m: int) -> int:
+    """Using Fermat's - requires m to be prime."""
     return pow(a, m - 2, m)
+```
 
+### Tactic 4: Handling No Inverse
 
+```python
+def safe_divide(a: int, b: int, m: int) -> int | None:
+    """Compute (a / b) mod m safely."""
+    inv_b = mod_inverse(b, m)
+    if inv_b is None:
+        return None  # Division not possible
+    return (a * inv_b) % m
+```
+
+### Tactic 5: Precomputation Formula
+
+```python
+def precompute_inverses(n: int, mod: int) -> list[int]:
+    """Precompute inverses 1 to n when mod is prime."""
+    inv = [0] * (n + 1)
+    inv[1] = 1
+    for i in range(2, n + 1):
+        inv[i] = mod - (mod // i) * inv[mod % i] % mod
+    return inv
+```
+
+---
+
+## Python Templates
+
+### Template 1: Extended Euclidean Modular Inverse
+
+```python
+def mod_inverse(a: int, m: int) -> int | None:
+    """
+    Compute modular inverse using Extended Euclidean Algorithm.
+    Returns None if inverse doesn't exist.
+    
+    Time: O(log(min(a, m)))
+    Space: O(log(min(a, m))) - recursion stack
+    """
+    def extended_gcd(a: int, b: int) -> tuple[int, int, int]:
+        if b == 0:
+            return (a, 1, 0)
+        g, x1, y1 = extended_gcd(b, a % b)
+        return (g, y1, x1 - (a // b) * y1)
+    
+    g, x, _ = extended_gcd(a % m, m)
+    if g != 1:
+        return None
+    return (x % m + m) % m
+```
+
+### Template 2: Iterative Modular Inverse
+
+```python
 def mod_inverse_iterative(a: int, m: int) -> int | None:
     """
-    Iterative version of modular inverse using Extended Euclidean Algorithm.
-    More space efficient.
+    Iterative modular inverse - O(1) space.
     
-    Time Complexity: O(log(min(a, m)))
-    Space Complexity: O(1)
+    Time: O(log(min(a, m)))
+    Space: O(1)
     """
     a = a % m
     if a == 0:
@@ -206,363 +269,42 @@ def mod_inverse_iterative(a: int, m: int) -> int | None:
         x0, x1 = x1, x0 - q * x1
     
     if a != 1:
-        return None  # Inverse doesn't exist
-    
+        return None
     return (x0 % original_m + original_m) % original_m
-
-
-# Example usage
-if __name__ == "__main__":
-    a, m = 3, 11
-    inv = mod_inverse(a, m)
-    print(f"Inverse of {a} mod {m} = {inv}")
-    print(f"Verification: {a} × {inv} = {(a * inv) % m} ≡ 1 (mod {m})")
-    
-    # Using Fermat (m is prime)
-    inv_fermat = mod_inverse_fermat(a, m)
-    print(f"Using Fermat: {inv_fermat}")
 ```
 
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <tuple>
-using namespace std;
+### Template 3: Fermat's Little Theorem (Prime Modulus)
 
-/**
- * Extended Euclidean Algorithm
- * Returns (gcd, x, y) where ax + by = gcd(a, b)
- */
-tuple<int, int, int> extendedGCD(int a, int b) {
-    if (b == 0) return {a, 1, 0};
-    auto [g, x1, y1] = extendedGCD(b, a % b);
-    return {g, y1, x1 - (a / b) * y1};
-}
+```python
+def mod_inverse_fermat(a: int, m: int) -> int:
+    """
+    Compute inverse using Fermat's Little Theorem.
+    REQUIRES: m is prime, a not divisible by m.
+    
+    Time: O(log m)
+    Space: O(1)
+    """
+    return pow(a, m - 2, m)
 
-/**
- * Modular Inverse using Extended Euclidean Algorithm
- * Time: O(log(min(a, m)))
- * Returns -1 if inverse doesn't exist
- */
-int modInverse(int a, int m) {
-    auto [g, x, _] = extendedGCD((a % m + m) % m, m);
-    if (g != 1) return -1;  // Inverse doesn't exist
-    return (x % m + m) % m;  // Ensure positive
-}
 
-/**
- * Fast exponentiation for Fermat's Little Theorem
- * Time: O(log exp)
- */
-long long power(long long base, long long exp, long long mod) {
-    long long result = 1;
-    base %= mod;
-    while (exp > 0) {
-        if (exp & 1) result = (result * base) % mod;
-        base = (base * base) % mod;
-        exp >>= 1;
-    }
-    return result;
-}
+# For common competitive programming moduli
+MOD = 10**9 + 7
 
-/**
- * Modular Inverse using Fermat's Little Theorem
- * Only works when mod is prime
- * Time: O(log m)
- */
-int modInverseFermat(int a, int m) {
-    return power(a, m - 2, m);
-}
-
-/**
- * Iterative Extended Euclidean for better space efficiency
- * Time: O(log(min(a, m))), Space: O(1)
- */
-int modInverseIterative(int a, int m) {
-    a = (a % m + m) % m;
-    if (a == 0) return (m == 1) ? 0 : -1;
-    
-    int x0 = 1, x1 = 0;
-    int original_m = m;
-    
-    while (m != 0) {
-        int q = a / m;
-        int temp = m;
-        m = a - q * m;
-        a = temp;
-        
-        temp = x1;
-        x1 = x0 - q * x1;
-        x0 = temp;
-    }
-    
-    if (a != 1) return -1;
-    return (x0 % original_m + original_m) % original_m;
-}
-
-int main() {
-    int a = 3, m = 11;
-    int inv = modInverse(a, m);
-    
-    cout << "Inverse of " << a << " mod " << m << " = " << inv << endl;
-    cout << "Verification: " << a << " × " << inv << " = " << (1LL * a * inv) % m << endl;
-    
-    // Using Fermat's method
-    int invFermat = modInverseFermat(a, m);
-    cout << "Using Fermat: " << invFermat << endl;
-    
-    return 0;
-}
+def mod_inv(a: int) -> int:
+    """Inverse under MOD = 10^9 + 7."""
+    return pow(a, MOD - 2, MOD)
 ```
 
-<!-- slide -->
-```java
-public class ModularInverse {
-    
-    /**
-     * Extended GCD result container
-     */
-    public static class Result {
-        int gcd, x, y;
-        Result(int gcd, int x, int y) {
-            this.gcd = gcd; this.x = x; this.y = y;
-        }
-    }
-    
-    /**
-     * Extended Euclidean Algorithm
-     * Returns (gcd, x, y) where ax + by = gcd(a, b)
-     */
-    public static Result extendedGCD(int a, int b) {
-        if (b == 0) return new Result(a, 1, 0);
-        Result next = extendedGCD(b, a % b);
-        return new Result(next.gcd, next.y, next.x - (a / b) * next.y);
-    }
-    
-    /**
-     * Modular Inverse using Extended Euclidean
-     * Returns -1 if inverse doesn't exist
-     * Time: O(log(min(a, m)))
-     */
-    public static int modInverse(int a, int m) {
-        Result result = extendedGCD(((a % m) + m) % m, m);
-        if (result.gcd != 1) return -1;
-        return ((result.x % m) + m) % m;
-    }
-    
-    /**
-     * Fast exponentiation (binary exponentiation)
-     * Time: O(log exp)
-     */
-    public static long power(long base, long exp, long mod) {
-        long result = 1;
-        base %= mod;
-        while (exp > 0) {
-            if ((exp & 1) == 1) result = (result * base) % mod;
-            base = (base * base) % mod;
-            exp >>= 1;
-        }
-        return result;
-    }
-    
-    /**
-     * Modular Inverse using Fermat's Little Theorem
-     * Only works when mod is prime
-     * Time: O(log m)
-     */
-    public static long modInverseFermat(long a, long m) {
-        return power(a, m - 2, m);
-    }
-    
-    /**
-     * Iterative Extended Euclidean for space efficiency
-     * Time: O(log(min(a, m))), Space: O(1)
-     */
-    public static int modInverseIterative(int a, int m) {
-        a = ((a % m) + m) % m;
-        if (a == 0) return (m == 1) ? 0 : -1;
-        
-        int x0 = 1, x1 = 0;
-        int originalM = m;
-        
-        while (m != 0) {
-            int q = a / m;
-            int temp = m;
-            m = a - q * m;
-            a = temp;
-            
-            temp = x1;
-            x1 = x0 - q * x1;
-            x0 = temp;
-        }
-        
-        if (a != 1) return -1;
-        return ((x0 % originalM) + originalM) % originalM;
-    }
-    
-    public static void main(String[] args) {
-        int a = 3, m = 11;
-        int inv = modInverse(a, m);
-        
-        System.out.printf("Inverse of %d mod %d = %d%n", a, m, inv);
-        System.out.printf("Verification: %d × %d ≡ %d (mod %d)%n", 
-            a, inv, (a * inv) % m, m);
-        
-        // Using Fermat
-        long invFermat = modInverseFermat(a, m);
-        System.out.printf("Using Fermat: %d%n", invFermat);
-    }
-}
-```
+### Template 4: Precompute All Inverses
 
-<!-- slide -->
-```javascript
-/**
- * Extended Euclidean Algorithm
- * Returns [gcd, x, y] where ax + by = gcd(a, b)
- */
-function extendedGCD(a, b) {
-    if (b === 0) return [a, 1, 0];
-    const [g, x1, y1] = extendedGCD(b, a % b);
-    return [g, y1, x1 - Math.floor(a / b) * y1];
-}
-
-/**
- * Modular Inverse using Extended Euclidean
- * Returns null if inverse doesn't exist
- * Time: O(log(min(a, m)))
- */
-function modInverse(a, m) {
-    const [g, x] = extendedGCD(((a % m) + m) % m, m);
-    if (g !== 1) return null;
-    return ((x % m) + m) % m;
-}
-
-/**
- * Fast exponentiation (binary exponentiation)
- * Time: O(log exp)
- */
-function power(base, exp, mod) {
-    let result = 1n;
-    base = BigInt(base) % BigInt(mod);
-    exp = BigInt(exp);
-    mod = BigInt(mod);
-    
-    while (exp > 0n) {
-        if (exp & 1n) result = (result * base) % mod;
-        base = (base * base) % mod;
-        exp >>= 1n;
-    }
-    return Number(result);
-}
-
-/**
- * Modular Inverse using Fermat's Little Theorem
- * Only works when mod is prime
- * Time: O(log m)
- */
-function modInverseFermat(a, m) {
-    return power(a, m - 2, m);
-}
-
-/**
- * Iterative Extended Euclidean for space efficiency
- * Time: O(log(min(a, m))), Space: O(1)
- */
-function modInverseIterative(a, m) {
-    a = ((a % m) + m) % m;
-    if (a === 0) return m === 1 ? 0 : null;
-    
-    let x0 = 1, x1 = 0;
-    const originalM = m;
-    
-    while (m !== 0) {
-        const q = Math.floor(a / m);
-        [a, m] = [m, a - q * m];
-        [x0, x1] = [x1, x0 - q * x1];
-    }
-    
-    if (a !== 1) return null;
-    return ((x0 % originalM) + originalM) % originalM;
-}
-
-// Example usage
-const a = 3, m = 11;
-const inv = modInverse(a, m);
-console.log(`Inverse of ${a} mod ${m} = ${inv}`);
-console.log(`Verification: ${a} × ${inv} ≡ ${(a * inv) % m} (mod ${m})`);
-
-// Using Fermat
-const invFermat = modInverseFermat(a, m);
-console.log(`Using Fermat: ${invFermat}`);
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Extended Euclidean** | O(log(min(a, m))) | Each recursion reduces the problem size significantly |
-| **Fermat's Little Theorem** | O(log m) | Binary exponentiation requires log m multiplications |
-| **Iterative Extended GCD** | O(log(min(a, m))) | Same complexity, better space |
-| **Precompute (1..n)** | O(n) | Linear preprocessing for all inverses |
-
-### Detailed Breakdown
-
-**Extended Euclidean Algorithm:**
-- Each recursive call reduces `(a, b)` to `(b, a mod b)`
-- Similar to Euclidean GCD, which takes O(log(min(a, b))) steps
-- Each step performs constant-time arithmetic operations
-
-**Fermat's Little Theorem (with binary exponentiation):**
-- Computing `a^(m-2) mod m` using binary exponentiation
-- Each bit of the exponent requires at most one multiplication
-- Total multiplications: O(log(m-2)) = O(log m)
-- Each multiplication is O(1) for fixed-size integers
-
-**Precomputation Method:**
-- Uses the recurrence: `inv[i] = mod - (mod // i) * inv[mod % i] % mod`
-- Single pass through 1 to n: O(n) time
-- O(n) space to store all inverses
-
----
-
-## Space Complexity Analysis
-
-| Method | Space Complexity | Notes |
-|--------|-----------------|-------|
-| **Extended Euclidean (Recursive)** | O(log(min(a, m))) | Call stack depth |
-| **Extended Euclidean (Iterative)** | O(1) | Constant extra space |
-| **Fermat's Theorem** | O(1) | Constant extra space |
-| **Precompute All** | O(n) | Storage for n inverses |
-
-### Space Optimization Tips
-
-1. **Use iterative version** when stack depth is a concern
-2. **Precompute factorials and inverse factorials** together for nCr calculations
-3. **Clear unused precomputed arrays** after use to free memory
-
----
-
-## Common Variations
-
-### 1. Precomputation for Multiple Inverses
-
-When computing many modular inverses (e.g., for all numbers 1 to n), use this O(n) approach:
-
-````carousel
 ```python
 def precompute_inverses(n: int, mod: int) -> list[int]:
     """
-    Precompute modular inverses for all numbers 1 to n.
-    Only works when mod is prime.
+    Precompute modular inverses for 1 to n.
+    REQUIRES: mod is prime.
     
-    Time Complexity: O(n)
-    Space Complexity: O(n)
-    
-    Formula: inv[i] = mod - (mod // i) * inv[mod % i] % mod
+    Time: O(n)
+    Space: O(n)
     """
     inv = [0] * (n + 1)
     inv[1] = 1
@@ -573,297 +315,47 @@ def precompute_inverses(n: int, mod: int) -> list[int]:
     return inv
 
 
-# Example: Precompute all inverses mod 13
-mod = 13
-inverses = precompute_inverses(12, mod)
-for i in range(1, 13):
-    print(f"{i}^(-1) ≡ {inverses[i]} (mod {mod})")
+# Example: Precompute and use
+inv = precompute_inverses(100000, 10**9 + 7)
+# inv[i] gives i^(-1) mod 10^9+7
 ```
 
-<!-- slide -->
-```cpp
-#include <vector>
-#include <iostream>
-using namespace std;
+### Template 5: Binomial Coefficients with Precomputation
 
-/**
- * Precompute modular inverses for 1 to n
- * Time: O(n), Space: O(n)
- * Requires: mod is prime
- */
-vector<int> precomputeInverses(int n, int mod) {
-    vector<int> inv(n + 1);
-    inv[1] = 1;
-    
-    for (int i = 2; i <= n; i++) {
-        inv[i] = mod - (int)((mod / i) * 1LL * inv[mod % i] % mod);
-    }
-    
-    return inv;
-}
-
-int main() {
-    int mod = 13;
-    auto inv = precomputeInverses(12, mod);
-    
-    for (int i = 1; i <= 12; i++) {
-        cout << i << "^(-1) ≡ " << inv[i] << " (mod " << mod << ")" << endl;
-    }
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.Arrays;
-
-public class PrecomputeInverses {
-    
-    /**
-     * Precompute modular inverses for 1 to n
-     * Time: O(n), Space: O(n)
-     * Requires: mod is prime
-     */
-    public static int[] precomputeInverses(int n, int mod) {
-        int[] inv = new int[n + 1];
-        inv[1] = 1;
-        
-        for (int i = 2; i <= n; i++) {
-            inv[i] = mod - (int)((mod / i) * 1L * inv[mod % i] % mod);
-        }
-        
-        return inv;
-    }
-    
-    public static void main(String[] args) {
-        int mod = 13;
-        int[] inv = precomputeInverses(12, mod);
-        
-        for (int i = 1; i <= 12; i++) {
-            System.out.printf("%d^(-1) ≡ %d (mod %d)%n", i, inv[i], mod);
-        }
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Precompute modular inverses for 1 to n
- * Time: O(n), Space: O(n)
- * Requires: mod is prime
- */
-function precomputeInverses(n, mod) {
-    const inv = new Array(n + 1).fill(0);
-    inv[1] = 1;
-    
-    for (let i = 2; i <= n; i++) {
-        inv[i] = mod - Math.floor(mod / i) * inv[mod % i] % mod;
-    }
-    
-    return inv;
-}
-
-// Example
-const mod = 13;
-const inv = precomputeInverses(12, mod);
-
-for (let i = 1; i <= 12; i++) {
-    console.log(`${i}^(-1) ≡ ${inv[i]} (mod ${mod})`);
-}
-```
-````
-
-### 2. Computing nCr (Binomial Coefficients)
-
-````carousel
 ```python
-MOD = 10**9 + 7
-
-def mod_inverse(a, m=MOD):
-    """Using Fermat's Little Theorem since MOD is prime."""
-    return pow(a, m - 2, m)
-
-def nCr(n, r, mod=MOD):
-    """
-    Compute binomial coefficient nCr mod prime.
-    Time: O(r + log mod) per query
-    """
-    if r < 0 or r > n:
-        return 0
-    
-    # nCr = n! / (r! * (n-r)!)
-    numerator = 1
-    for i in range(n, n - r, -1):
-        numerator = (numerator * i) % mod
-    
-    denominator = 1
-    for i in range(1, r + 1):
-        denominator = (denominator * i) % mod
-    
-    return (numerator * mod_inverse(denominator, mod)) % mod
-
-
-# Optimized: Precompute factorials and inverse factorials
 class BinomialCoefficients:
-    def __init__(self, max_n, mod=MOD):
+    """Compute nCr mod prime with O(1) queries after O(n) preprocessing."""
+    
+    def __init__(self, max_n: int, mod: int = 10**9 + 7):
         self.mod = mod
-        self.fact = [1] * (max_n + 1)
-        self.inv_fact = [1] * (max_n + 1)
+        self.max_n = max_n
         
         # Precompute factorials
-        for i in range(2, max_n + 1):
-            self.fact[i] = (self.fact[i-1] * i) % mod
+        self.fact = [1] * (max_n + 1)
+        for i in range(1, max_n + 1):
+            self.fact[i] = (self.fact[i - 1] * i) % mod
         
         # Precompute inverse factorials
+        self.inv_fact = [1] * (max_n + 1)
         self.inv_fact[max_n] = pow(self.fact[max_n], mod - 2, mod)
         for i in range(max_n - 1, -1, -1):
             self.inv_fact[i] = (self.inv_fact[i + 1] * (i + 1)) % mod
     
-    def nCr(self, n, r):
-        """Compute nCr in O(1) after preprocessing."""
-        if r < 0 or r > n:
+    def nCr(self, n: int, r: int) -> int:
+        """Compute C(n, r) mod mod."""
+        if r < 0 or r > n or n > self.max_n:
             return 0
         return (self.fact[n] * self.inv_fact[r] % self.mod * 
                 self.inv_fact[n - r]) % self.mod
 ```
 
-<!-- slide -->
-```cpp
-#include <vector>
-using namespace std;
+### Template 6: Linear Congruence Solver
 
-const int MOD = 1e9 + 7;
-
-long long power(long long base, long long exp, long long mod) {
-    long long result = 1;
-    base %= mod;
-    while (exp > 0) {
-        if (exp & 1) result = (result * base) % mod;
-        base = (base * base) % mod;
-        exp >>= 1;
-    }
-    return result;
-}
-
-class BinomialCoefficients {
-private:
-    vector<long long> fact, invFact;
-    int mod;
-    
-public:
-    BinomialCoefficients(int maxN, int m = MOD) : mod(m) {
-        fact.resize(maxN + 1);
-        invFact.resize(maxN + 1);
-        
-        fact[0] = 1;
-        for (int i = 1; i <= maxN; i++) {
-            fact[i] = (fact[i-1] * i) % mod;
-        }
-        
-        invFact[maxN] = power(fact[maxN], mod - 2, mod);
-        for (int i = maxN - 1; i >= 0; i--) {
-            invFact[i] = (invFact[i + 1] * (i + 1)) % mod;
-        }
-    }
-    
-    long long nCr(int n, int r) {
-        if (r < 0 || r > n) return 0;
-        return (fact[n] * invFact[r] % mod * invFact[n - r]) % mod;
-    }
-};
-```
-
-<!-- slide -->
-```java
-public class BinomialCoefficients {
-    private long[] fact, invFact;
-    private int mod;
-    
-    public BinomialCoefficients(int maxN, int mod) {
-        this.mod = mod;
-        this.fact = new long[maxN + 1];
-        this.invFact = new long[maxN + 1];
-        
-        fact[0] = 1;
-        for (int i = 1; i <= maxN; i++) {
-            fact[i] = (fact[i-1] * i) % mod;
-        }
-        
-        invFact[maxN] = power(fact[maxN], mod - 2);
-        for (int i = maxN - 1; i >= 0; i--) {
-            invFact[i] = (invFact[i + 1] * (i + 1)) % mod;
-        }
-    }
-    
-    private long power(long base, long exp) {
-        long result = 1;
-        base %= mod;
-        while (exp > 0) {
-            if ((exp & 1) == 1) result = (result * base) % mod;
-            base = (base * base) % mod;
-            exp >>= 1;
-        }
-        return result;
-    }
-    
-    public long nCr(int n, int r) {
-        if (r < 0 || r > n) return 0;
-        return (fact[n] * invFact[r] % mod * invFact[n - r]) % mod;
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-class BinomialCoefficients {
-    constructor(maxN, mod) {
-        this.mod = mod;
-        this.fact = new Array(maxN + 1);
-        this.invFact = new Array(maxN + 1);
-        
-        this.fact[0] = 1n;
-        for (let i = 1; i <= maxN; i++) {
-            this.fact[i] = (this.fact[i-1] * BigInt(i)) % BigInt(mod);
-        }
-        
-        this.invFact[maxN] = this.power(this.fact[maxN], BigInt(mod - 2));
-        for (let i = maxN - 1; i >= 0; i--) {
-            this.invFact[i] = (this.invFact[i + 1] * BigInt(i + 1)) % BigInt(mod);
-        }
-    }
-    
-    power(base, exp) {
-        let result = 1n;
-        const mod = BigInt(this.mod);
-        base %= mod;
-        
-        while (exp > 0n) {
-            if (exp & 1n) result = (result * base) % mod;
-            base = (base * base) % mod;
-            exp >>= 1n;
-        }
-        return result;
-    }
-    
-    nCr(n, r) {
-        if (r < 0 || r > n) return 0n;
-        const mod = BigInt(this.mod);
-        return (this.fact[n] * this.invFact[r] % mod * this.invFact[n - r]) % mod;
-    }
-}
-```
-````
-
-### 3. Solving Linear Congruence
-
-````carousel
 ```python
 def solve_linear_congruence(a: int, b: int, m: int) -> int | None:
     """
     Solve ax ≡ b (mod m).
-    Returns smallest non-negative solution or None if no solution.
+    Returns smallest non-negative solution or None.
     
     Time: O(log(min(a, m)))
     """
@@ -871,7 +363,7 @@ def solve_linear_congruence(a: int, b: int, m: int) -> int | None:
     
     g = gcd(a, m)
     if b % g != 0:
-        return None  # No solution
+        return None
     
     # Reduce to: (a/g)x ≡ (b/g) (mod m/g)
     a_reduced = a // g
@@ -879,274 +371,172 @@ def solve_linear_congruence(a: int, b: int, m: int) -> int | None:
     m_reduced = m // g
     
     # Find inverse of a_reduced mod m_reduced
-    def mod_inv(a, m):
-        g, x, _ = extended_gcd(a % m, m)
-        return (x % m + m) % m if g == 1 else None
-    
-    inv = mod_inv(a_reduced, m_reduced)
-    if inv is None:
-        return None
-    
-    x = (b_reduced * inv) % m_reduced
-    return x
-
-
-def solve_linear_congruence_all_solutions(a, b, m):
-    """
-    Returns all solutions to ax ≡ b (mod m).
-    Returns list of solutions or empty list if no solution.
-    """
-    from math import gcd
-    
-    g = gcd(a, m)
-    if b % g != 0:
-        return []
-    
-    # Find one solution
-    a_reduced, b_reduced, m_reduced = a // g, b // g, m // g
-    
     def extended_gcd(a, b):
         if b == 0:
             return (a, 1, 0)
-        g, x1, y1 = extended_gcd(b, a % b)
-        return (g, y1, x1 - (a // b) * y1)
+        g, x, y = extended_gcd(b, a % b)
+        return (g, y, x - (a // b) * y)
     
-    _, x0, _ = extended_gcd(a_reduced, m_reduced)
-    x0 = (x0 % m_reduced + m_reduced) % m_reduced
-    x0 = (x0 * b_reduced) % m_reduced
+    _, inv, _ = extended_gcd(a_reduced, m_reduced)
+    inv = (inv % m_reduced + m_reduced) % m_reduced
     
-    # All solutions: x = x0 + k * (m/g) for k = 0, 1, ..., g-1
-    solutions = [(x0 + k * m_reduced) % m for k in range(g)]
-    return sorted(solutions)
+    x = (b_reduced * inv) % m_reduced
+    return x
 ```
 
-<!-- slide -->
-```cpp
-#include <vector>
-#include <algorithm>
-using namespace std;
+---
 
-// Extended GCD
-tuple<int, int, int> extendedGCD(int a, int b) {
-    if (b == 0) return {a, 1, 0};
-    auto [g, x1, y1] = extendedGCD(b, a % b);
-    return {g, y1, x1 - (a / b) * y1};
-}
+## When to Use
 
-/**
- * Solve ax ≡ b (mod m)
- * Returns smallest non-negative solution, or -1 if no solution
- */
-int solveLinearCongruence(int a, int b, int m) {
-    int g = gcd(a, m);
-    if (b % g != 0) return -1;
-    
-    int aRed = a / g, bRed = b / g, mRed = m / g;
-    
-    auto [g2, x, y] = extendedGCD(aRed, mRed);
-    x = ((x % mRed) + mRed) % mRed;
-    
-    return (int)((1LL * x * bRed) % mRed);
-}
+Use modular inverse when you need to:
+- Perform division under modulo constraints
+- Compute binomial coefficients mod m
+- Solve linear congruences
+- Implement cryptographic algorithms
 
-/**
- * Find all solutions to ax ≡ b (mod m)
- */
-vector<int> solveLinearCongruenceAll(int a, int b, int m) {
-    int g = gcd(a, m);
-    if (b % g != 0) return {};
-    
-    int aRed = a / g, bRed = b / g, mRed = m / g;
-    
-    auto [g2, x0, y] = extendedGCD(aRed, mRed);
-    x0 = ((x0 % mRed) + mRed) % mRed;
-    x0 = (int)((1LL * x0 * bRed) % mRed);
-    
-    vector<int> solutions;
-    for (int k = 0; k < g; k++) {
-        solutions.push_back((x0 + k * mRed) % m);
-    }
-    sort(solutions.begin(), solutions.end());
-    return solutions;
-}
+### Comparison of Methods
+
+| Method | Time | Space | Requirements | Best Use Case |
+|--------|------|-------|--------------|---------------|
+| Extended Euclidean | O(log m) | O(1) | `gcd(a,m)=1` | General purpose |
+| Fermat's Theorem | O(log m) | O(1) | `m` prime | Prime modulus |
+| Precomputation | O(n) prep | O(n) | `m` prime | Many queries |
+
+### When to Choose Each Method
+
+- **Choose Extended Euclidean** when:
+  - The modulus is not prime
+  - You need a general-purpose solution
+  - Guaranteed O(log m) performance required
+
+- **Choose Fermat's Little Theorem** when:
+  - The modulus is prime (10⁹+7, 998244353)
+  - You need the fastest single inverse computation
+  - Using Python's built-in `pow(a, m-2, m)`
+
+- **Choose Precomputation** when:
+  - You need inverses for many values 1 to n
+  - Space is not a constraint
+  - Multiple queries on same modulus
+
+---
+
+## Algorithm Explanation
+
+### Core Concept
+
+The modular inverse extends the concept of division to modular arithmetic. While we cannot directly divide in modular arithmetic, we can multiply by the modular inverse to achieve the same result.
+
+**Key Insight**: If `a × x ≡ 1 (mod m)`, then multiplying any number `b` by `x` is equivalent to dividing `b` by `a` under modulo `m`.
+
+### How It Works
+
+#### Extended Euclidean Algorithm:
+1. Find integers `x` and `y` such that `ax + my = gcd(a, m)`
+2. If `gcd(a, m) = 1`, then `ax ≡ 1 (mod m)`
+3. Therefore, `x` is the modular inverse of `a`
+
+#### Fermat's Little Theorem (Prime Modulus):
+1. If `m` is prime: `a^(m-1) ≡ 1 (mod m)`
+2. Multiply both sides by `a^(-1)`: `a^(m-2) ≡ a^(-1) (mod m)`
+3. Compute `a^(m-2) mod m` using fast exponentiation
+
+### Visual Representation
+
+Finding inverse of 3 mod 11:
+
+```
+We need: 3 × x ≡ 1 (mod 11)
+
+Testing values:
+3 × 1 = 3  ≡ 3 (mod 11)
+3 × 2 = 6  ≡ 6 (mod 11)
+3 × 3 = 9  ≡ 9 (mod 11)
+3 × 4 = 12 ≡ 1 (mod 11) ✓
+
+Therefore: 3^(-1) ≡ 4 (mod 11)
+Verification: 3 × 4 = 12 = 11 + 1 ≡ 1 (mod 11)
 ```
 
-<!-- slide -->
-```java
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+### Why It Works
 
-public class LinearCongruence {
-    
-    static class Result {
-        int gcd, x, y;
-        Result(int g, int x, int y) { this.gcd = g; this.x = x; this.y = y; }
-    }
-    
-    static Result extendedGCD(int a, int b) {
-        if (b == 0) return new Result(a, 1, 0);
-        Result next = extendedGCD(b, a % b);
-        return new Result(next.gcd, next.y, next.x - (a / b) * next.y);
-    }
-    
-    static int gcd(int a, int b) {
-        return b == 0 ? a : gcd(b, a % b);
-    }
-    
-    /**
-     * Solve ax ≡ b (mod m)
-     * Returns smallest solution or -1 if no solution
-     */
-    static int solve(int a, int b, int m) {
-        int g = gcd(a, m);
-        if (b % g != 0) return -1;
-        
-        int aRed = a / g, bRed = b / g, mRed = m / g;
-        
-        Result res = extendedGCD(aRed, mRed);
-        int x = ((res.x % mRed) + mRed) % mRed;
-        
-        return (int)((1L * x * bRed) % mRed);
-    }
-    
-    /**
-     * Find all solutions
-     */
-    static List<Integer> solveAll(int a, int b, int m) {
-        int g = gcd(a, m);
-        List<Integer> sols = new ArrayList<>();
-        
-        if (b % g != 0) return sols;
-        
-        int aRed = a / g, bRed = b / g, mRed = m / g;
-        
-        Result res = extendedGCD(aRed, mRed);
-        int x0 = ((res.x % mRed) + mRed) % mRed;
-        x0 = (int)((1L * x0 * bRed) % mRed);
-        
-        for (int k = 0; k < g; k++) {
-            sols.add((x0 + k * mRed) % m);
-        }
-        Collections.sort(sols);
-        return sols;
-    }
-}
-```
+**Extended Euclidean**: Bézout's identity guarantees that if `gcd(a, m) = 1`, there exist integers `x` and `y` such that `ax + my = 1`. Taking modulo `m` eliminates `my`, leaving `ax ≡ 1 (mod m)`.
 
-<!-- slide -->
-```javascript
-/**
- * Extended GCD
- */
-function extendedGCD(a, b) {
-    if (b === 0) return [a, 1, 0];
-    const [g, x1, y1] = extendedGCD(b, a % b);
-    return [g, y1, x1 - Math.floor(a / b) * y1];
-}
+**Fermat's Theorem**: For prime `m`, the multiplicative group has order `m-1`. By Lagrange's theorem, `a^(m-1) ≡ 1`, so `a^(m-2)` is the inverse.
 
-function gcd(a, b) {
-    return b === 0 ? a : gcd(b, a % b);
-}
+### Limitations
 
-/**
- * Solve ax ≡ b (mod m)
- * Returns smallest solution or null if no solution
- */
-function solveLinearCongruence(a, b, m) {
-    const g = gcd(a, m);
-    if (b % g !== 0) return null;
-    
-    const aRed = a / g, bRed = b / g, mRed = m / g;
-    
-    const [g2, x, y] = extendedGCD(aRed, mRed);
-    const xNorm = ((x % mRed) + mRed) % mRed;
-    
-    return (xNorm * bRed) % mRed;
-}
-
-/**
- * Find all solutions
- */
-function solveLinearCongruenceAll(a, b, m) {
-    const g = gcd(a, m);
-    if (b % g !== 0) return [];
-    
-    const aRed = a / g, bRed = b / g, mRed = m / g;
-    
-    const [g2, x0, y] = extendedGCD(aRed, mRed);
-    let x0Norm = ((x0 % mRed) + mRed) % mRed;
-    x0Norm = (x0Norm * bRed) % mRed;
-    
-    const solutions = [];
-    for (let k = 0; k < g; k++) {
-        solutions.push((x0Norm + k * mRed) % m);
-    }
-    return solutions.sort((a, b) => a - b);
-}
-```
-````
+- **Existence**: Inverse only exists when `gcd(a, m) = 1`
+- **Zero**: 0 has no modular inverse
+- **Composite moduli**: Fermat's theorem only works for primes
+- **Large numbers**: Must use arbitrary precision or careful modulo operations
 
 ---
 
 ## Practice Problems
 
-### Problem 1: Calculate Division Under Modulo
+### Problem 1: Count Ways to Make Array With Product
 
-**Problem**: [LeetCode 1912 - Design Movie Rental System](https://leetcode.com/problems/design-movie-rental-system/)
+**Problem:** [LeetCode 1735 - Count Ways to Make Array With Product](https://leetcode.com/problems/count-ways-to-make-array-with-product/)
 
-**Description**: Design a movie rental system with operations to search, rent, drop, and report rented movies. While not directly about modular inverse, understanding modular arithmetic is crucial for the underlying data structure design.
+**Description:** Given queries `[ni, ki]`, find the number of ways to place positive integers into an array of size `ni` such that the product is `ki`.
 
-**How to Apply**: Use modular arithmetic principles for hashing and ID generation.
-
----
-
-### Problem 2: Count Ways to Make Array With Product
-
-**Problem**: [LeetCode 1735 - Count Ways to Make Array With Product](https://leetcode.com/problems/count-ways-to-make-array-with-product/)
-
-**Description**: You are given a 2D integer array, `queries`. For each `queries[i]`, where `queries[i] = [ni, ki]`, find the number of different ways you can place positive integers into an array of size `ni` such that the product of the integers is `ki`.
-
-**How to Apply Modular Inverse**:
+**How to Apply Modular Inverse:**
 - Use prime factorization of `ki`
 - Apply stars and bars counting with modular division
 - Use modular inverse for dividing by factorials
 
 ---
 
-### Problem 3: Number of Ways to Reorder Array to Get Same BST
+### Problem 2: Number of Ways to Reorder Array to Get Same BST
 
-**Problem**: [LeetCode 1569 - Number of Ways to Reorder Array to Get Same BST](https://leetcode.com/problems/number-of-ways-to-reorder-array-to-get-same-bst/)
+**Problem:** [LeetCode 1569 - Number of Ways to Reorder Array to Get Same BST](https://leetcode.com/problems/number-of-ways-to-reorder-array-to-get-same-bst/)
 
-**Description**: Given an array `nums` that represents a permutation of integers from `1` to `n`, return the number of ways to reorder `nums` such that the resulting BST is identical to the BST formed by the original array.
+**Description:** Given a permutation array representing a BST, return the number of ways to reorder it such that the constructed BST is identical.
 
-**How to Apply Modular Inverse**:
+**How to Apply Modular Inverse:**
 - Use Catalan numbers and binomial coefficients
 - Calculate combinations nCr using modular inverses
 - Precompute factorials and inverse factorials
 
 ---
 
-### Problem 4: Ways to Make a Fair Array
+### Problem 3: Factorial Trailing Zeroes
 
-**Problem**: [LeetCode 1664 - Ways to Make a Fair Array](https://leetcode.com/problems/ways-to-make-a-fair-array/)
+**Problem:** [LeetCode 172 - Factorial Trailing Zeroes](https://leetcode.com/problems/factorial-trailing-zeroes/)
 
-**Description**: You are given an integer array `nums`. You can choose exactly one index and remove the element at that index. Return the number of indices that, if removed, would make the sum of the even-indexed values equal to the sum of the odd-indexed values.
+**Description:** Given an integer `n`, return the number of trailing zeroes in `n!`.
 
-**How to Apply**: While this problem doesn't directly use modular inverse, it builds the foundation for understanding array manipulation with modular constraints.
-
----
-
-### Problem 5: Factorial Trailing Zeroes
-
-**Problem**: [LeetCode 172 - Factorial Trailing Zeroes](https://leetcode.com/problems/factorial-trailing-zeroes/)
-
-**Description**: Given an integer `n`, return the number of trailing zeroes in `n!`.
-
-**How to Apply Modular Inverse (Advanced)**:
+**How to Apply Modular Inverse (Advanced):**
 - Understand prime factorization which is key to modular inverse calculations
 - Extend to compute n! mod p efficiently using Wilson's theorem
 - Use modular inverse for computing combinations in modular space
+
+---
+
+### Problem 4: Count Arrays Which Can be Sorted by Swapping Adjacent Elements
+
+**Problem:** [LeetCode 2495 - Number of Subarrays Having Even Product](https://leetcode.com/problems/number-of-subarrays-having-even-product/)
+
+**Description:** Given an array of integers, count subarrays with even product.
+
+**How to Apply Modular Inverse:**
+- Use inclusion-exclusion principle with counting
+- Apply modular arithmetic for large counts
+- Use precomputed inverses for combination calculations
+
+---
+
+### Problem 5: Super Pow
+
+**Problem:** [LeetCode 372 - Super Pow](https://leetcode.com/problems/super-pow/)
+
+**Description:** Calculate `a^b mod 1337` where `b` is a very large number represented as an array.
+
+**How to Apply Modular Inverse:**
+- Use properties of modular exponentiation
+- Apply Euler's theorem for modular inverse calculations
+- Handle large exponents using modular arithmetic
 
 ---
 
@@ -1170,31 +560,31 @@ function solveLinearCongruenceAll(a, b, m) {
 
 ### Q1: Why does Fermat's Little Theorem only work for prime moduli?
 
-**Answer**: Fermat's theorem states `a^(p-1) ≡ 1 (mod p)` for prime `p` because the multiplicative group modulo a prime has order `p-1`. For composite `m`, we use Euler's theorem: `a^φ(m) ≡ 1 (mod m)`. The general formula `a^(-1) ≡ a^(φ(m)-1) (mod m)` works when `gcd(a, m) = 1`, but computing `φ(m)` requires factorization, which is expensive (O(√m)). Extended Euclidean is preferred for composite moduli.
+**Answer:** Fermat's theorem states `a^(p-1) ≡ 1 (mod p)` for prime `p` because the multiplicative group modulo a prime has order `p-1`. For composite `m`, we use Euler's theorem: `a^φ(m) ≡ 1 (mod m)`. The general formula `a^(-1) ≡ a^(φ(m)-1) (mod m)` works when `gcd(a, m) = 1`, but computing `φ(m)` requires factorization, which is expensive (O(√m)). Extended Euclidean is preferred for composite moduli.
 
 ---
 
 ### Q2: What if I need to compute inverse of 0?
 
-**Answer**: 0 has no modular inverse. By definition, we'd need `0 × x ≡ 1 (mod m)`, which is impossible since `0 × x = 0` for all `x`. In code, always check if `a % m == 0` before computing the inverse.
+**Answer:** 0 has no modular inverse. By definition, we'd need `0 × x ≡ 1 (mod m)`, which is impossible since `0 × x = 0` for all `x`. In code, always check if `a % m == 0` before computing the inverse.
 
 ---
 
 ### Q3: Can I use modular inverse for non-prime moduli?
 
-**Answer**: Yes, using the Extended Euclidean Algorithm. Fermat's method only works for primes, but Extended Euclidean works for any modulus as long as `gcd(a, m) = 1`. This is why Extended Euclidean is the general-purpose solution.
+**Answer:** Yes, using the Extended Euclidean Algorithm. Fermat's method only works for primes, but Extended Euclidean works for any modulus as long as `gcd(a, m) = 1`. This is why Extended Euclidean is the general-purpose solution.
 
 ---
 
 ### Q4: Why is modular inverse important for nCr?
 
-**Answer**: `nCr = n! / (r!(n-r)!)`. In modular arithmetic, division becomes multiplication by the modular inverse. So: `nCr mod m = n! × (r!)^(-1) × ((n-r)!)^(-1) mod m`. Without modular inverses, we couldn't compute combinations under modulo.
+**Answer:** `nCr = n! / (r!(n-r)!)`. In modular arithmetic, division becomes multiplication by the modular inverse. So: `nCr mod m = n! × (r!)^(-1) × ((n-r)!)^(-1) mod m`. Without modular inverses, we couldn't compute combinations under modulo.
 
 ---
 
 ### Q5: Which method should I use in competitive programming?
 
-**Answer**: 
+**Answer:**
 - **For prime modulus (10⁹+7, 998244353)**: Use Fermat's with `pow(a, m-2, m)` - fastest and simplest
 - **For unknown/composite modulus**: Use Extended Euclidean - always works when inverse exists
 - **For many queries on same modulus**: Precompute all inverses in O(n) then answer in O(1)
@@ -1223,12 +613,3 @@ The modular inverse is a fundamental operation in modular arithmetic that enable
 | Linear congruences | Extended Euclidean |
 
 This algorithm is essential for competitive programming and technical interviews, especially in problems involving counting under modulo constraints.
-
----
-
-## Related Algorithms
-
-- [Extended Euclidean](./extended-euclidean.md) - Foundation for modular inverse
-- [Binomial Coefficients](./ncr-binomial.md) - Uses modular inverse extensively
-- [Modular Exponentiation](./modular-exponentiation.md) - Used in Fermat's method
-- [Chinese Remainder Theorem](./chinese-remainder.md) - Uses modular inverses for combining congruences

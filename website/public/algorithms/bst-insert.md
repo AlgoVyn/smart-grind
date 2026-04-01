@@ -7,6 +7,569 @@ Trees & BSTs
 
 Insert a new node into a Binary Search Tree (BST) while maintaining the BST property. This fundamental operation enables dynamic tree construction and is the basis for BST-based data structures like sets and maps. The algorithm ensures that after insertion, the tree maintains the critical invariant: for every node, all values in the left subtree are smaller, and all values in the right subtree are larger.
 
+BST insertion is a core building block for more advanced tree algorithms and data structures. Understanding the nuances of both recursive and iterative implementations, handling duplicates, and recognizing performance characteristics across different tree shapes is essential for effective tree manipulation.
+
+---
+
+## Concepts
+
+The BST Insert algorithm is built on several fundamental concepts that ensure correct tree construction.
+
+### 1. Binary Search Property
+
+The invariant that defines a BST:
+
+| Property | Description | Implication |
+|----------|-------------|-------------|
+| **Left Subtree** | All values < node.val | Search left for smaller values |
+| **Right Subtree** | All values > node.val | Search right for larger values |
+| **No Duplicates** | Standard BST doesn't allow duplicates | Each value is unique |
+
+### 2. Insertion Position
+
+Finding the correct leaf position for a new value:
+
+```
+Value to insert: 6
+
+        8
+       / \
+      3   10
+     / \
+    1   5
+
+Step 1: 6 < 8, go left
+Step 2: 6 > 3, go right
+Step 3: 6 > 5, but 5 has no right child
+→ Insert 6 as right child of 5
+```
+
+### 3. Traversal Comparison
+
+| Aspect | Recursive | Iterative |
+|--------|-----------|-----------|
+| **Code Style** | Elegant, mathematical | Explicit, step-by-step |
+| **Space** | O(h) call stack | O(1) extra space |
+| **Risk** | Stack overflow for skewed trees | No stack overflow risk |
+| **Return Value** | Modified subtree root | Original root (unchanged) |
+
+### 4. Duplicate Handling Strategies
+
+| Strategy | Implementation | Use Case |
+|----------|----------------|----------|
+| **Ignore** | Skip if value exists | Standard sets |
+| **Right Subtree** | Use `<=` for left | Allow duplicates |
+| **Frequency Count** | Increment counter | Multi-set/bag |
+| **Error** | Raise exception | Strict uniqueness |
+
+---
+
+## Frameworks
+
+Structured approaches for BST insertion.
+
+### Framework 1: Recursive Insertion Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  BST RECURSIVE INSERTION FRAMEWORK                  │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  function insert(node, value):                      │
+│      // Base case: found insertion position         │
+│      if node is null:                               │
+│          return new Node(value)                     │
+│                                                     │
+│      // Recursive case: navigate to position        │
+│      if value < node.val:                           │
+│          node.left = insert(node.left, value)       │
+│      else if value > node.val:                      │
+│          node.right = insert(node.right, value)     │
+│      // else: value == node.val → do nothing        │
+│                                                     │
+│      return node                                    │
+│                                                     │
+│  Main:                                              │
+│      root = insert(root, value)                     │
+│                                                     │
+│  Complexity: O(h) time, O(h) stack space           │
+└─────────────────────────────────────────────────────┘
+```
+
+### Framework 2: Iterative Insertion Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  BST ITERATIVE INSERTION FRAMEWORK                    │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  function insert(root, value):                        │
+│      // Empty tree case                             │
+│      if root is null:                               │
+│          return new Node(value)                     │
+│                                                     │
+│      current = root                                 │
+│                                                     │
+│      while true:                                    │
+│          if value < current.val:                    │
+│              if current.left is null:               │
+│                  current.left = new Node(value)     │
+│                  break                              │
+│              current = current.left                 │
+│                                                     │
+│          else if value > current.val:               │
+│              if current.right is null:              │
+│                  current.right = new Node(value)    │
+│                  break                              │
+│              current = current.right                │
+│                                                     │
+│          else:  // value == current.val             │
+│              break  // Duplicate, do nothing          │
+│                                                     │
+│      return root                                    │
+│                                                     │
+│  Complexity: O(h) time, O(1) extra space           │
+└─────────────────────────────────────────────────────┘
+```
+
+### Framework 3: Duplicate-Handling Insertion Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  BST DUPLICATE-HANDLING FRAMEWORK                     │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Strategy: Store duplicates in right subtree          │
+│  Modification: Use <= for left comparison           │
+│                                                     │
+│  function insert_with_duplicates(node, value):      │
+│      if node is null:                               │
+│          return new Node(value)                     │
+│                                                     │
+│      if value <= node.val:   // Changed: <=          │
+│          node.left = insert_with_duplicates(        │
+│              node.left, value)                      │
+│      else:                                          │
+│          node.right = insert_with_duplicates(       │
+│              node.right, value)                     │
+│                                                     │
+│      return node                                    │
+│                                                     │
+│  Result: All duplicates stored in left subtree      │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## Forms
+
+Different manifestations of the BST insertion pattern.
+
+### Form 1: Standard BST (No Duplicates)
+
+Most common form - each value appears at most once.
+
+| Operation | Condition | Action |
+|-----------|-----------|--------|
+| **Insert** | value < node.val | Go left |
+| **Insert** | value > node.val | Go right |
+| **Insert** | value == node.val | Do nothing |
+| **Search** | Same conditions | Return node or null |
+
+### Form 2: BST with Duplicates
+
+Allows multiple instances of same value.
+
+| Strategy | Left Condition | Where Duplicates Go |
+|----------|----------------|---------------------|
+| **Left Bias** | value <= node.val | Left subtree |
+| **Right Bias** | value < node.val | Right subtree |
+| **Frequency Count** | value == node.val | Increment counter |
+
+### Form 3: Balanced BST Building
+
+Building balanced tree from sorted array (avoid skew).
+
+```
+Sorted Array: [1, 2, 3, 4, 5, 6, 7]
+
+Approach 1: Sequential Insert (BAD - creates skew)
+Insert 1, 2, 3, 4, 5, 6, 7 → Completely right-skewed
+
+Approach 2: Middle-First (GOOD - creates balance)
+       4
+      / \
+     2   6
+    / \  / \
+   1  3 5  7
+
+Build from middle: O(n log n) → perfectly balanced
+```
+
+### Form 4: Self-Balancing BST (AVL/Red-Black)
+
+Insertion with automatic rebalancing.
+
+| Tree Type | Balance Factor | Rebalancing Operation |
+|-----------|----------------|----------------------|
+| **AVL** | -1, 0, or 1 | Rotations on violation |
+| **Red-Black** | Black height | Color flips + rotations |
+| **Treap** | Heap priority | Rotations by priority |
+
+### Form 5: Threaded BST
+
+Uses null pointers as threads for efficient traversal.
+
+| Pointer | Standard | Threaded |
+|---------|----------|----------|
+| Left null | Always null | Points to inorder predecessor |
+| Right null | Always null | Points to inorder successor |
+| Insertion | Simple | Must update threads |
+
+---
+
+## Tactics
+
+Specific techniques and optimizations for BST insertion.
+
+### Tactic 1: Parent Pointer Tracking
+
+Track parent for easier insertion and future operations:
+
+```python
+def insert_iterative(root: Optional[TreeNode], val: int) -> TreeNode:
+    """Insert while tracking parent node."""
+    if root is None:
+        return TreeNode(val)
+    
+    current = root
+    parent = None
+    
+    # Find position and track parent
+    while current:
+        parent = current
+        if val < current.val:
+            current = current.left
+        elif val > current.val:
+            current = current.right
+        else:
+            return root  # Duplicate, do nothing
+    
+    # Attach to parent
+    if val < parent.val:
+        parent.left = TreeNode(val)
+    else:
+        parent.right = TreeNode(val)
+    
+    return root
+```
+
+**Benefits:**
+- Clear separation of search and attach phases
+- Parent reference available for other operations
+- Easier to extend for delete operations
+
+### Tactic 2: Return Root Pattern
+
+Always return root for consistent API:
+
+```python
+# Good: Works for empty and non-empty trees
+def build_bst(values: List[int]) -> Optional[TreeNode]:
+    root = None
+    for val in values:
+        root = insert_recursive(root, val)
+    return root
+
+# Root returned can be stored and reused
+root = build_bst([5, 3, 7, 1, 4, 6, 8])
+root = insert_recursive(root, 2)  # Works with existing tree
+```
+
+### Tactic 3: Duplicate Handling with Frequency
+
+Track occurrences without storing multiple nodes:
+
+```python
+class TreeNodeWithCount:
+    """Node that tracks frequency of values."""
+    def __init__(self, val: int):
+        self.val = val
+        self.count = 1  # Frequency
+        self.left: Optional[TreeNodeWithCount] = None
+        self.right: Optional[TreeNodeWithCount] = None
+
+def insert_with_count(root: Optional[TreeNodeWithCount], 
+                       val: int) -> TreeNodeWithCount:
+    """Insert with frequency counting for duplicates."""
+    if root is None:
+        return TreeNodeWithCount(val)
+    
+    if val < root.val:
+        root.left = insert_with_count(root.left, val)
+    elif val > root.val:
+        root.right = insert_with_count(root.right, val)
+    else:
+        root.count += 1  # Increment frequency
+    
+    return root
+```
+
+### Tactic 4: Validation After Insertion
+
+Verify BST property remains valid:
+
+```python
+def is_valid_bst(root: Optional[TreeNode], 
+                   min_val: float = float('-inf'),
+                   max_val: float = float('inf')) -> bool:
+    """Validate BST property using range checking."""
+    if root is None:
+        return True
+    
+    if root.val <= min_val or root.val >= max_val:
+        return False
+    
+    return (is_valid_bst(root.left, min_val, root.val) and
+            is_valid_bst(root.right, root.val, max_val))
+
+# Usage after insertion
+def insert_and_validate(root, val):
+    root = insert_recursive(root, val)
+    assert is_valid_bst(root), "BST property violated!"
+    return root
+```
+
+### Tactic 5: Bulk Insertion Optimization
+
+Sort first, then build balanced tree:
+
+```python
+def sorted_array_to_bst(values: List[int], 
+                        left: int, 
+                        right: int) -> Optional[TreeNode]:
+    """Build balanced BST from sorted array."""
+    if left > right:
+        return None
+    
+    mid = (left + right) // 2
+    node = TreeNode(values[mid])
+    node.left = sorted_array_to_bst(values, left, mid - 1)
+    node.right = sorted_array_to_bst(values, mid + 1, right)
+    return node
+
+def build_balanced_bst(values: List[int]) -> Optional[TreeNode]:
+    """Build balanced BST from unsorted values."""
+    sorted_values = sorted(values)
+    return sorted_array_to_bst(sorted_values, 0, len(sorted_values) - 1)
+
+# Complexity: O(n log n) for sort + O(n) for build = O(n log n)
+# Result: Perfectly balanced tree vs skewed from sequential insert
+```
+
+---
+
+## Python Templates
+
+### Template 1: Recursive BST Insertion
+
+```python
+from typing import Optional
+
+class TreeNode:
+    """Node class for Binary Search Tree."""
+    def __init__(self, val: int):
+        self.val = val
+        self.left: Optional[TreeNode] = None
+        self.right: Optional[TreeNode] = None
+
+
+def insert_recursive(root: Optional[TreeNode], 
+                     val: int) -> TreeNode:
+    """
+    Insert a value into BST recursively.
+    
+    Args:
+        root: Root of the BST (can be None for empty tree)
+        val: Value to insert
+    
+    Returns:
+        Root of the modified BST
+    
+    Time: O(h) where h is height
+    Space: O(h) for recursion stack
+    """
+    # Base case: found the position
+    if root is None:
+        return TreeNode(val)
+    
+    # Recursively find the correct position
+    if val < root.val:
+        root.left = insert_recursive(root.left, val)
+    elif val > root.val:
+        root.right = insert_recursive(root.right, val)
+    # If val == root.val, do nothing (no duplicates)
+    
+    return root
+```
+
+### Template 2: Iterative BST Insertion
+
+```python
+def insert_iterative(root: Optional[TreeNode], 
+                     val: int) -> TreeNode:
+    """
+    Insert a value into BST iteratively.
+    
+    Args:
+        root: Root of the BST (can be None for empty tree)
+        val: Value to insert
+    
+    Returns:
+        Root of the modified BST
+    
+    Time: O(h) where h is height
+    Space: O(1)
+    """
+    # If tree is empty, create root
+    if root is None:
+        return TreeNode(val)
+    
+    # Traverse to find the correct position
+    current = root
+    while True:
+        if val < current.val:
+            if current.left is None:
+                current.left = TreeNode(val)
+                break
+            current = current.left
+        elif val > current.val:
+            if current.right is None:
+                current.right = TreeNode(val)
+                break
+            current = current.right
+        else:
+            # Duplicate value - do nothing
+            break
+    
+    return root
+```
+
+### Template 3: BST with Duplicate Handling
+
+```python
+class BSTWithDuplicates:
+    """BST that stores duplicate values in right subtree."""
+    
+    def insert(self, root: Optional[TreeNode], 
+               val: int) -> TreeNode:
+        """Insert allowing duplicates in right subtree."""
+        if root is None:
+            return TreeNode(val)
+        
+        if val <= root.val:  # <= for left subtree
+            root.left = self.insert(root.left, val)
+        else:
+            root.right = self.insert(root.right, val)
+        
+        return root
+```
+
+### Template 4: BST with Frequency Count
+
+```python
+class TreeNodeWithCount:
+    """Node that tracks frequency of values."""
+    def __init__(self, val: int):
+        self.val = val
+        self.count = 1
+        self.left: Optional['TreeNodeWithCount'] = None
+        self.right: Optional['TreeNodeWithCount'] = None
+
+
+class BSTMWithFrequency:
+    """BST with frequency counting for duplicates."""
+    
+    def insert(self, root: Optional[TreeNodeWithCount], 
+               val: int) -> TreeNodeWithCount:
+        """Insert with frequency counting."""
+        if root is None:
+            return TreeNodeWithCount(val)
+        
+        if val < root.val:
+            root.left = self.insert(root.left, val)
+        elif val > root.val:
+            root.right = self.insert(root.right, val)
+        else:
+            root.count += 1  # Increment frequency
+        
+        return root
+    
+    def count(self, root: Optional[TreeNodeWithCount], 
+              val: int) -> int:
+        """Get frequency of a value."""
+        if root is None:
+            return 0
+        
+        if val < root.val:
+            return self.count(root.left, val)
+        elif val > root.val:
+            return self.count(root.right, val)
+        else:
+            return root.count
+```
+
+### Template 5: Complete BST Builder (Balanced)
+
+```python
+def sorted_array_to_bst(values: List[int], 
+                        left: int, 
+                        right: int) -> Optional[TreeNode]:
+    """
+    Build balanced BST from sorted array segment.
+    
+    Time: O(n)
+    Space: O(log n) for recursion
+    """
+    if left > right:
+        return None
+    
+    mid = (left + right) // 2
+    node = TreeNode(values[mid])
+    node.left = sorted_array_to_bst(values, left, mid - 1)
+    node.right = sorted_array_to_bst(values, mid + 1, right)
+    return node
+
+
+def build_balanced_bst(values: List[int]) -> Optional[TreeNode]:
+    """
+    Build balanced BST from any array.
+    Sorts first, then builds balanced.
+    
+    Time: O(n log n) - dominated by sorting
+    Space: O(n)
+    """
+    if not values:
+        return None
+    
+    sorted_values = sorted(values)
+    return sorted_array_to_bst(sorted_values, 0, len(sorted_values) - 1)
+
+
+def build_bst_sequential(values: List[int]) -> Optional[TreeNode]:
+    """
+    Build BST by sequential insertion.
+    May create unbalanced tree.
+    
+    Time: O(n²) worst case (sorted input)
+    Space: O(n)
+    """
+    root = None
+    for val in values:
+        root = insert_iterative(root, val)
+    return root
+```
+
 ---
 
 ## When to Use
@@ -83,26 +646,27 @@ Inserting value `6` into the following BST:
     8
    / \
   3   10
- / \    \
-1   6    14
-   /
-  4
-   \
-    5
+ / \
+1   5
 ```
 
 **Step-by-step insertion of 6:**
 1. Start at root (8): 6 < 8, go left
 2. At node (3): 6 > 3, go right
-3. At node (6): 6 == 6, handle duplicate
-4. If allowing duplicates in right subtree: attach as right child of existing 6
+3. At node (5): 6 > 5, but 5 has no right child
+4. Create new node with value 6
+5. Attach as right child of 5
 
-### Handling Duplicates
-
-Three common strategies:
-1. **Ignore**: Don't insert if value exists (standard)
-2. **Count**: Store frequency count in node
-3. **Right-Only**: Always insert duplicates in right subtree
+**Result:**
+```
+    8
+   / \
+  3   10
+ / \
+1   5
+     \
+      6
+```
 
 ### Time Complexity Variations
 
@@ -113,860 +677,19 @@ Three common strategies:
 | **Skewed (Right)** | n | O(n) | Sorted ascending input |
 | **Degenerate** | n | O(n) | Single-child nodes only |
 
----
-
-## Algorithm Steps
-
-### Recursive Insertion
-
-1. **Base Case**: If current node is `null`, create and return new node
-2. **Compare Value**: 
-   - If new value < current value, recurse on left subtree
-   - If new value > current value, recurse on right subtree
-   - If equal, handle according to duplicate policy
-3. **Return Root**: Return (possibly modified) current node
-
-### Iterative Insertion
-
-1. **Empty Tree Check**: If root is `null`, create root and return
-2. **Traversal**: Initialize `current = root`, `parent = null`
-3. **Find Position**: While `current` is not `null`:
-   - Store `parent = current`
-   - Move left if value < current.val, else right
-   - Break if duplicate found (per policy)
-4. **Attach Node**: Create new node as left/right child of `parent`
-5. **Return Root**: Return unchanged root
-
----
-
-## Implementation
-
-````carousel
-```python
-from typing import Optional
-
-
-class TreeNode:
-    """Node class for Binary Search Tree."""
-    def __init__(self, val: int):
-        self.val = val
-        self.left: Optional[TreeNode] = None
-        self.right: Optional[TreeNode] = None
-
-
-def insert_recursive(root: Optional[TreeNode], val: int) -> TreeNode:
-    """
-    Insert a value into BST recursively.
-    
-    Args:
-        root: Root of the BST (can be None for empty tree)
-        val: Value to insert
-    
-    Returns:
-        Root of the modified BST
-    
-    Time: O(h) where h is height
-    Space: O(h) for recursion stack
-    """
-    # Base case: found the position
-    if root is None:
-        return TreeNode(val)
-    
-    # Recursively find the correct position
-    if val < root.val:
-        root.left = insert_recursive(root.left, val)
-    elif val > root.val:
-        root.right = insert_recursive(root.right, val)
-    # If val == root.val, do nothing (no duplicates in standard BST)
-    
-    return root
-
-
-def insert_iterative(root: Optional[TreeNode], val: int) -> TreeNode:
-    """
-    Insert a value into BST iteratively.
-    
-    Args:
-        root: Root of the BST (can be None for empty tree)
-        val: Value to insert
-    
-    Returns:
-        Root of the modified BST
-    
-    Time: O(h) where h is height
-    Space: O(1)
-    """
-    # If tree is empty, create root
-    if root is None:
-        return TreeNode(val)
-    
-    # Traverse to find the correct position
-    current = root
-    while True:
-        if val < current.val:
-            if current.left is None:
-                current.left = TreeNode(val)
-                break
-            current = current.left
-        elif val > current.val:
-            if current.right is None:
-                current.right = TreeNode(val)
-                break
-            current = current.right
-        else:
-            # Duplicate value - do nothing
-            break
-    
-    return root
-
-
-class BSTWithDuplicates:
-    """BST that stores duplicate values in right subtree."""
-    
-    def insert(self, root: Optional[TreeNode], val: int) -> TreeNode:
-        """Insert allowing duplicates in right subtree."""
-        if root is None:
-            return TreeNode(val)
-        
-        if val <= root.val:  # <= for left subtree
-            root.left = self.insert(root.left, val)
-        else:
-            root.right = self.insert(root.right, val)
-        
-        return root
-
-
-def inorder_traversal(root: Optional[TreeNode]) -> list:
-    """Inorder traversal to verify BST property."""
-    result = []
-    
-    def _inorder(node):
-        if node:
-            _inorder(node.left)
-            result.append(node.val)
-            _inorder(node.right)
-    
-    _inorder(root)
-    return result
-
-
-def build_bst(values: list) -> Optional[TreeNode]:
-    """Build BST from a list of values."""
-    root = None
-    for val in values:
-        root = insert_iterative(root, val)
-    return root
-
-
-# Example usage
-if __name__ == "__main__":
-    print("BST Insertion")
-    print("=" * 40)
-    
-    # Insert values into BST
-    values = [7, 3, 9, 1, 5, 8, 10]
-    
-    print(f"\nInserting values: {values}")
-    root = None
-    for val in values:
-        root = insert_iterative(root, val)
-        print(f"  Inserted {val}, Inorder: {inorder_traversal(root)}")
-    
-    print("\nFinal tree (inorder):", inorder_traversal(root))
-    
-    # Build tree and verify
-    print("\nBuilding from [5, 3, 7, 1, 4, 6, 8]:")
-    root2 = build_bst([5, 3, 7, 1, 4, 6, 8])
-    print("Inorder:", inorder_traversal(root2))
-    
-    # Insert more values
-    print("\nInserting 2 and 9:")
-    root2 = insert_iterative(root2, 2)
-    root2 = insert_iterative(root2, 9)
-    print("Inorder:", inorder_traversal(root2))
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-using namespace std;
-
-/**
- * Node structure for Binary Search Tree
- */
-struct TreeNode {
-    int val;
-    TreeNode* left;
-    TreeNode* right;
-    
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-};
-
-/**
- * Insert a value into BST recursively
- * 
- * Time: O(h) where h is height
- * Space: O(h) for recursion stack
- */
-TreeNode* insertRecursive(TreeNode* root, int val) {
-    // Base case: found the position
-    if (root == nullptr) {
-        return new TreeNode(val);
-    }
-    
-    // Recursively find the correct position
-    if (val < root->val) {
-        root->left = insertRecursive(root->left, val);
-    } else if (val > root->val) {
-        root->right = insertRecursive(root->right, val);
-    }
-    // If val == root->val, do nothing (no duplicates)
-    
-    return root;
-}
-
-/**
- * Insert a value into BST iteratively
- * 
- * Time: O(h) where h is height
- * Space: O(1)
- */
-TreeNode* insertIterative(TreeNode* root, int val) {
-    // If tree is empty, create root
-    if (root == nullptr) {
-        return new TreeNode(val);
-    }
-    
-    TreeNode* current = root;
-    TreeNode* parent = nullptr;
-    
-    // Find the correct position
-    while (current != nullptr) {
-        parent = current;
-        if (val < current->val) {
-            current = current->left;
-        } else if (val > current->val) {
-            current = current->right;
-        } else {
-            // Duplicate found, do nothing
-            return root;
-        }
-    }
-    
-    // Attach new node to parent
-    if (val < parent->val) {
-        parent->left = new TreeNode(val);
-    } else {
-        parent->right = new TreeNode(val);
-    }
-    
-    return root;
-}
-
-/**
- * BST that allows duplicates in right subtree
- */
-class BSTWithDuplicates {
-public:
-    TreeNode* insert(TreeNode* root, int val) {
-        if (root == nullptr) {
-            return new TreeNode(val);
-        }
-        
-        if (val <= root->val) {  // <= for left subtree
-            root->left = insert(root->left, val);
-        } else {
-            root->right = insert(root->right, val);
-        }
-        
-        return root;
-    }
-};
-
-/**
- * Inorder traversal to verify BST property
- */
-void inorderTraversal(TreeNode* root, vector<int>& result) {
-    if (root == nullptr) return;
-    
-    inorderTraversal(root->left, result);
-    result.push_back(root->val);
-    inorderTraversal(root->right, result);
-}
-
-/**
- * Build BST from vector of values
- */
-TreeNode* buildBST(const vector<int>& values) {
-    TreeNode* root = nullptr;
-    for (int val : values) {
-        root = insertIterative(root, val);
-    }
-    return root;
-}
-
-// Helper to print vector
-void printVector(const vector<int>& vec) {
-    cout << "[";
-    for (size_t i = 0; i < vec.size(); i++) {
-        cout << vec[i];
-        if (i < vec.size() - 1) cout << ", ";
-    }
-    cout << "]";
-}
-
-int main() {
-    cout << "BST Insertion" << endl;
-    cout << "========================================" << endl;
-    
-    // Insert values into BST
-    vector<int> values = {7, 3, 9, 1, 5, 8, 10};
-    
-    cout << "\nInserting values: ";
-    printVector(values);
-    cout << endl;
-    
-    TreeNode* root = nullptr;
-    for (int val : values) {
-        root = insertIterative(root, val);
-        vector<int> inorder;
-        inorderTraversal(root, inorder);
-        cout << "  Inserted " << val << ", Inorder: ";
-        printVector(inorder);
-        cout << endl;
-    }
-    
-    vector<int> finalInorder;
-    inorderTraversal(root, finalInorder);
-    cout << "\nFinal tree (inorder): ";
-    printVector(finalInorder);
-    cout << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * Node class for Binary Search Tree
- */
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    
-    TreeNode(int x) {
-        val = x;
-        left = null;
-        right = null;
-    }
-}
-
-/**
- * BST Insert implementation with recursive and iterative approaches
- */
-public class BSTInsert {
-    
-    /**
-     * Insert a value into BST recursively
-     * 
-     * Time: O(h) where h is height
-     * Space: O(h) for recursion stack
-     */
-    public TreeNode insertRecursive(TreeNode root, int val) {
-        // Base case: found the position
-        if (root == null) {
-            return new TreeNode(val);
-        }
-        
-        // Recursively find the correct position
-        if (val < root.val) {
-            root.left = insertRecursive(root.left, val);
-        } else if (val > root.val) {
-            root.right = insertRecursive(root.right, val);
-        }
-        // If val == root.val, do nothing (no duplicates)
-        
-        return root;
-    }
-    
-    /**
-     * Insert a value into BST iteratively
-     * 
-     * Time: O(h) where h is height
-     * Space: O(1)
-     */
-    public TreeNode insertIterative(TreeNode root, int val) {
-        // If tree is empty, create root
-        if (root == null) {
-            return new TreeNode(val);
-        }
-        
-        TreeNode current = root;
-        TreeNode parent = null;
-        
-        // Find the correct position
-        while (current != null) {
-            parent = current;
-            if (val < current.val) {
-                current = current.left;
-            } else if (val > current.val) {
-                current = current.right;
-            } else {
-                // Duplicate found, do nothing
-                return root;
-            }
-        }
-        
-        // Attach new node to parent
-        if (val < parent.val) {
-            parent.left = new TreeNode(val);
-        } else {
-            parent.right = new TreeNode(val);
-        }
-        
-        return root;
-    }
-    
-    /**
-     * BST that allows duplicates in right subtree
-     */
-    public TreeNode insertWithDuplicates(TreeNode root, int val) {
-        if (root == null) {
-            return new TreeNode(val);
-        }
-        
-        if (val <= root.val) {  // <= for left subtree
-            root.left = insertWithDuplicates(root.left, val);
-        } else {
-            root.right = insertWithDuplicates(root.right, val);
-        }
-        
-        return root;
-    }
-    
-    /**
-     * Inorder traversal to verify BST property
-     */
-    public void inorderTraversal(TreeNode root, java.util.List<Integer> result) {
-        if (root == null) return;
-        
-        inorderTraversal(root.left, result);
-        result.add(root.val);
-        inorderTraversal(root.right, result);
-    }
-    
-    /**
-     * Build BST from array of values
-     */
-    public TreeNode buildBST(int[] values) {
-        TreeNode root = null;
-        for (int val : values) {
-            root = insertIterative(root, val);
-        }
-        return root;
-    }
-    
-    public static void main(String[] args) {
-        BSTInsert solution = new BSTInsert();
-        
-        System.out.println("BST Insertion");
-        System.out.println("========================================");
-        
-        // Insert values into BST
-        int[] values = {7, 3, 9, 1, 5, 8, 10};
-        
-        System.out.println("\nInserting values: " + java.util.Arrays.toString(values));
-        TreeNode root = null;
-        
-        for (int val : values) {
-            root = solution.insertIterative(root, val);
-            java.util.List<Integer> inorder = new java.util.ArrayList<>();
-            solution.inorderTraversal(root, inorder);
-            System.out.println("  Inserted " + val + ", Inorder: " + inorder);
-        }
-        
-        java.util.List<Integer> finalInorder = new java.util.ArrayList<>();
-        solution.inorderTraversal(root, finalInorder);
-        System.out.println("\nFinal tree (inorder): " + finalInorder);
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Node class for Binary Search Tree
- */
-class TreeNode {
-    constructor(val) {
-        this.val = val;
-        this.left = null;
-        this.right = null;
-    }
-}
-
-/**
- * Insert a value into BST recursively
- * 
- * Time: O(h) where h is height
- * Space: O(h) for recursion stack
- * 
- * @param {TreeNode} root - Root of the BST
- * @param {number} val - Value to insert
- * @returns {TreeNode} Root of the modified BST
- */
-function insertRecursive(root, val) {
-    // Base case: found the position
-    if (root === null) {
-        return new TreeNode(val);
-    }
-    
-    // Recursively find the correct position
-    if (val < root.val) {
-        root.left = insertRecursive(root.left, val);
-    } else if (val > root.val) {
-        root.right = insertRecursive(root.right, val);
-    }
-    // If val == root.val, do nothing (no duplicates)
-    
-    return root;
-}
-
-/**
- * Insert a value into BST iteratively
- * 
- * Time: O(h) where h is height
- * Space: O(1)
- * 
- * @param {TreeNode} root - Root of the BST
- * @param {number} val - Value to insert
- * @returns {TreeNode} Root of the modified BST
- */
-function insertIterative(root, val) {
-    // If tree is empty, create root
-    if (root === null) {
-        return new TreeNode(val);
-    }
-    
-    let current = root;
-    
-    // Find the correct position
-    while (true) {
-        if (val < current.val) {
-            if (current.left === null) {
-                current.left = new TreeNode(val);
-                break;
-            }
-            current = current.left;
-        } else if (val > current.val) {
-            if (current.right === null) {
-                current.right = new TreeNode(val);
-                break;
-            }
-            current = current.right;
-        } else {
-            // Duplicate found, do nothing
-            break;
-        }
-    }
-    
-    return root;
-}
-
-/**
- * BST that allows duplicates in right subtree
- */
-class BSTWithDuplicates {
-    insert(root, val) {
-        if (root === null) {
-            return new TreeNode(val);
-        }
-        
-        if (val <= root.val) {  // <= for left subtree
-            root.left = this.insert(root.left, val);
-        } else {
-            root.right = this.insert(root.right, val);
-        }
-        
-        return root;
-    }
-}
-
-/**
- * Inorder traversal to verify BST property
- * 
- * @param {TreeNode} root - Root of the BST
- * @returns {number[]} Array of values in sorted order
- */
-function inorderTraversal(root) {
-    const result = [];
-    
-    function inorder(node) {
-        if (node === null) return;
-        inorder(node.left);
-        result.push(node.val);
-        inorder(node.right);
-    }
-    
-    inorder(root);
-    return result;
-}
-
-/**
- * Build BST from array of values
- * 
- * @param {number[]} values - Array of values
- * @returns {TreeNode} Root of the built BST
- */
-function buildBST(values) {
-    let root = null;
-    for (const val of values) {
-        root = insertIterative(root, val);
-    }
-    return root;
-}
-
-// Example usage
-console.log("BST Insertion");
-console.log("========================================");
-
-// Insert values into BST
-const values = [7, 3, 9, 1, 5, 8, 10];
-
-console.log("\nInserting values:", values);
-let root = null;
-
-for (const val of values) {
-    root = insertIterative(root, val);
-    console.log(`  Inserted ${val}, Inorder: [${inorderTraversal(root).join(", ")}]`);
-}
-
-console.log("\nFinal tree (inorder):", inorderTraversal(root));
-
-// Build tree and verify
-console.log("\nBuilding from [5, 3, 7, 1, 4, 6, 8]:");
-const root2 = buildBST([5, 3, 7, 1, 4, 6, 8]);
-console.log("Inorder:", inorderTraversal(root2));
-```
-````
-
----
-
-## Example
-
-**Input:**
-```
-Insert values: [7, 3, 9, 1, 5, 8, 10] into an empty BST
-```
-
-**Output:**
-```
-Inserting values: [7, 3, 9, 1, 5, 8, 10]
-  Inserted 7, Inorder: [7]
-  Inserted 3, Inorder: [3, 7]
-  Inserted 9, Inorder: [3, 7, 9]
-  Inserted 1, Inorder: [1, 3, 7, 9]
-  Inserted 5, Inorder: [1, 3, 5, 7, 9]
-  Inserted 8, Inorder: [1, 3, 5, 7, 8, 9]
-  Inserted 10, Inorder: [1, 3, 5, 7, 8, 9, 10]
-
-Final tree (inorder): [1, 3, 5, 7, 8, 9, 10]
-
-Tree structure:
-        7
-       / \
-      3   9
-     / \ / \
-    1  5 8  10
-```
-
----
-
-## Time Complexity Analysis
-
-| Case | Time Complexity | Description |
-|------|-----------------|-------------|
-| **Best Case** | O(log n) | Balanced tree, height = log₂(n) |
-| **Average Case** | O(log n) | Random insertion order |
-| **Worst Case** | O(n) | Skewed tree (sorted input) |
-| **Amortized** | O(log n) | With self-balancing (AVL/Red-Black) |
-
-### Detailed Breakdown
-
-- **Balanced BST**: Height h = ⌊log₂(n)⌋, so insertion takes O(log n)
-  - At each level, we do one comparison and move to a child
-  - Total work: number of levels = height
-
-- **Skewed BST**: Height h = n (single chain), insertion takes O(n)
-  - Must traverse through all n nodes
-  - Occurs with sorted/ nearly sorted input
-
-- **Recursive vs Iterative**:
-  - Both have same time complexity: O(h)
-  - Recursive has O(h) space overhead from call stack
-  - Iterative uses O(1) extra space
-
----
-
-## Space Complexity Analysis
-
-| Component | Space Complexity | Description |
-|-----------|------------------|-------------|
-| **Tree Structure** | O(n) | n nodes, each with 2 pointers + value |
-| **Recursive Insert** | O(h) | Call stack depth equals tree height |
-| **Iterative Insert** | O(1) | Only uses a few pointers |
-| **Total (Recursive)** | O(n + h) = O(n) | Dominated by tree storage |
-| **Total (Iterative)** | O(n) | Just the tree structure |
-
-### Space Optimization Notes
-
-1. **Pointer Overhead**: Each node stores 2 child pointers (16 bytes on 64-bit)
-2. **Memory Pool**: For many insertions, use object pool to reduce allocation overhead
-3. **Parent Pointer**: Adding parent pointer increases space but enables certain operations
-
----
-
-## Common Variations
-
-### 1. BST with Duplicate Handling
-
-Store frequency count for duplicate values:
-
-````carousel
-```python
-class TreeNodeWithCount:
-    """Node that tracks frequency of values."""
-    def __init__(self, val: int):
-        self.val = val
-        self.count = 1  # Frequency of this value
-        self.left: Optional[TreeNodeWithCount] = None
-        self.right: Optional[TreeNodeWithCount] = None
-
-def insert_with_count(root: Optional[TreeNodeWithCount], val: int) -> TreeNodeWithCount:
-    """Insert with frequency counting for duplicates."""
-    if root is None:
-        return TreeNodeWithCount(val)
-    
-    if val < root.val:
-        root.left = insert_with_count(root.left, val)
-    elif val > root.val:
-        root.right = insert_with_count(root.right, val)
-    else:
-        root.count += 1  # Increment frequency
-    
-    return root
-```
-````
-
-### 2. Threaded BST Insert
-
-Optimize space by using null pointers as threads to successors:
-
-````carousel
-```python
-class ThreadedTreeNode:
-    """Node with threading for inorder traversal without stack."""
-    def __init__(self, val: int):
-        self.val = val
-        self.left = None
-        self.right = None
-        self.left_thread = False  # True if left is thread
-        self.right_thread = False  # True if right is thread
-
-def insert_threaded(root: ThreadedTreeNode, val: int) -> ThreadedTreeNode:
-    """Insert into threaded BST."""
-    if root is None:
-        return ThreadedTreeNode(val)
-    
-    # Find insertion point and update threads
-    # Implementation maintains threading invariants
-    # ... (full implementation would update threads)
-    
-    return root
-```
-````
-
-### 3. Parent-Pointer BST
-
-Each node stores reference to parent for easier traversal:
-
-````carousel
-```python
-class TreeNodeWithParent:
-    """Node with parent reference for upward traversal."""
-    def __init__(self, val: int, parent=None):
-        self.val = val
-        self.parent = parent
-        self.left: Optional[TreeNodeWithParent] = None
-        self.right: Optional[TreeNodeWithParent] = None
-
-def insert_with_parent(root: Optional[TreeNodeWithParent], val: int) -> TreeNodeWithParent:
-    """Insert while maintaining parent pointers."""
-    if root is None:
-        return TreeNodeWithParent(val)
-    
-    if val < root.val:
-        if root.left is None:
-            root.left = TreeNodeWithParent(val, root)
-        else:
-            root.left = insert_with_parent(root.left, val)
-    elif val > root.val:
-        if root.right is None:
-            root.right = TreeNodeWithParent(val, root)
-        else:
-            root.right = insert_with_parent(root.right, val)
-    
-    return root
-```
-````
-
-### 4. Randomized BST Insert
-
-Randomize insertion to maintain balance probabilistically:
-
-````carousel
-```python
-import random
-
-def insert_randomized(root: Optional[TreeNode], val: int) -> TreeNode:
-    """
-    Randomized insertion that maintains balance in expectation.
-    With probability 1/(size+1), make new node the root.
-    """
-    if root is None:
-        return TreeNode(val)
-    
-    # Get size (in practice, store size in node)
-    size = get_size(root)
-    
-    # With probability 1/(size+1), insert at root
-    if random.randint(1, size + 1) == 1:
-        return insert_at_root(root, val)
-    
-    # Otherwise, insert recursively
-    if val < root.val:
-        root.left = insert_randomized(root.left, val)
-    elif val > root.val:
-        root.right = insert_randomized(root.right, val)
-    
-    return root
-
-def insert_at_root(root: TreeNode, val: int) -> TreeNode:
-    """Insert val as new root, splitting existing tree."""
-    # Split tree and make val the new root
-    # ... implementation using tree split operation
-    pass
-
-def get_size(root: TreeNode) -> int:
-    """Get size of subtree (would be O(1) with stored size)."""
-    if root is None:
-        return 0
-    return 1 + get_size(root.left) + get_size(root.right)
-```
-````
+### Why It Works
+
+- **Binary search property**: Guarantees correct position for any value
+- **Leaf insertion**: New nodes are always leaves, preserving existing structure
+- **Deterministic**: Same sequence of insertions produces same tree
+- **No rebalancing needed**: Simple version accepts any tree shape
+
+### Limitations
+
+- **No balance guarantee**: Can become skewed, degrading to O(n) operations
+- **Duplicate handling**: Must explicitly decide policy
+- **No backtracking**: Once inserted, position is fixed (unless rebalancing)
+- **Sequential insertion risk**: Sorted input creates worst-case skew
 
 ---
 
@@ -978,10 +701,10 @@ def get_size(root: TreeNode) -> int:
 
 **Description:** You are given the root node of a BST and a value to insert. Return the root node of the BST after the insertion.
 
-**Key Learning:**
-- Basic BST insertion mechanics
-- Handling empty tree case
-- Return value management in recursive solution
+**How to Apply:**
+- Implement standard BST insertion (recursive or iterative)
+- Handle empty tree case
+- Maintain BST property throughout
 
 ---
 
@@ -991,10 +714,10 @@ def get_size(root: TreeNode) -> int:
 
 **Description:** Given the root of BST and a value, find the node with that value and return the subtree rooted with that node.
 
-**Key Learning:**
+**How to Apply:**
 - BST search follows same logic as insert
 - Understanding the BST property for navigation
-- Recursive and iterative approaches
+- Return subtree or null if not found
 
 ---
 
@@ -1004,10 +727,10 @@ def get_size(root: TreeNode) -> int:
 
 **Description:** Given a root node and a key, delete the node with the given key and return the new root.
 
-**Key Learning:**
+**How to Apply:**
 - Natural extension of insertion
 - Three cases: leaf, one child, two children
-- Finding inorder successor/predecessor
+- Finding inorder successor/predecessor for replacement
 
 ---
 
@@ -1017,7 +740,7 @@ def get_size(root: TreeNode) -> int:
 
 **Description:** Determine if a given binary tree is a valid BST.
 
-**Key Learning:**
+**How to Apply:**
 - Understanding BST invariants
 - Range-based validation
 - Inorder traversal verification
@@ -1030,9 +753,9 @@ def get_size(root: TreeNode) -> int:
 
 **Description:** Given the root of a BST and an integer k, return the kth smallest value.
 
-**Key Learning:**
+**How to Apply:**
 - Inorder traversal gives sorted order
-- Augmenting nodes with subtree sizes
+- Augmenting nodes with subtree sizes for O(log n)
 - Order statistics on BSTs
 
 ---
@@ -1067,7 +790,7 @@ def get_size(root: TreeNode) -> int:
 
 **Answer:** Three common strategies:
 1. **Ignore**: Don't insert duplicates (standard approach)
-2. **Count**: Store frequency in node, increment on duplicate
+2. **Count**: Store frequency count in node, increment on duplicate
 3. **Right subtree**: Insert duplicates in right subtree (use `<=` for left comparison)
 
 ### Q3: What's the difference between recursive and iterative insertion?
@@ -1115,13 +838,3 @@ When to use:
 - ❌ Only need existence checks (use hash table instead)
 
 Mastering BST insertion is essential for understanding tree-based data structures and forms the basis for more advanced algorithms in computer science.
-
----
-
-## Related Algorithms
-
-- [BST Search](./bst-search.md) - Finding elements in a BST
-- [BST Delete](./bst-delete.md) - Removing elements from a BST
-- [AVL Tree](./avl-tree.md) - Self-balancing BST variant
-- [Red-Black Tree](./red-black-tree.md) - Another self-balancing BST
-- [Binary Tree Traversal](./binary-tree-traversal.md) - Inorder, preorder, postorder

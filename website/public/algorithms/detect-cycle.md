@@ -4,7 +4,581 @@
 Linked List
 
 ## Description
-Floyd's Tortoise and Hare algorithm (also known as cycle detection) is an efficient algorithm to detect if a linked list has a cycle. It's named after the two pointers that move at different speeds - like the fabled race between a tortoise and a hare. This algorithm is a fundamental technique in computer science for detecting cycles in linked lists and other data structures.
+
+Floyd's Tortoise and Hare algorithm (also known as cycle detection) is an efficient algorithm to detect if a linked list has a cycle. It's named after the two pointers that move at different speeds - like the fabled race between a tortoise and a hare. This algorithm is a fundamental technique in computer science for detecting cycles in linked lists and other data structures with **O(n) time** and **O(1) space** complexity.
+
+The algorithm is particularly valuable because it achieves optimal space complexity without modifying the original data structure, making it ideal for memory-constrained environments and immutable data scenarios.
+
+---
+
+## Concepts
+
+The Floyd's algorithm is built on several fundamental concepts that make it powerful for cycle detection.
+
+### 1. Relative Motion Principle
+
+When two pointers move at different speeds through a sequence:
+
+| Pointer | Speed | Steps per Iteration | Role |
+|---------|-------|---------------------|------|
+| **Tortoise (Slow)** | 1x | 1 step | Baseline traversal |
+| **Hare (Fast)** | 2x | 2 steps | Cycle detection |
+
+The key insight: In a cyclic sequence, the faster pointer will eventually catch up to the slower pointer from behind.
+
+### 2. Cycle Detection Mechanics
+
+```
+Mathematical Foundation:
+- Let C = cycle length
+- Let μ = distance from start to cycle entrance
+- Let d = distance from entrance to meeting point
+- 
+- Slow travels: μ + d steps to reach meeting point
+- Fast travels: 2(μ + d) steps = μ + d + kC (k extra laps)
+- Therefore: μ + d = kC
+- From meeting point, moving μ steps reaches cycle start
+```
+
+### 3. Two-Phase Algorithm Structure
+
+| Phase | Purpose | Operation | Result |
+|-------|---------|-----------|--------|
+| **Phase 1** | Detect cycle | Move fast 2x, slow 1x | Meeting point or null |
+| **Phase 2** | Find start | Move both 1x from meeting | Cycle entrance node |
+
+### 4. Invariants
+
+Properties that remain true throughout execution:
+
+- **Non-cycle path**: If fast reaches null, no cycle exists
+- **Cycle exists**: Fast and slow must meet within cycle length iterations
+- **Meeting point**: Always within the cycle, never on the pre-cycle path
+
+---
+
+## Frameworks
+
+Structured approaches for solving cycle detection problems.
+
+### Framework 1: Basic Cycle Detection Template
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  BASIC CYCLE DETECTION FRAMEWORK                          │
+├─────────────────────────────────────────────────────────┤
+│  1. Edge case: If head is None or head.next is None      │
+│     → Return False (no cycle possible)                   │
+│                                                           │
+│  2. Initialize: tortoise = head, hare = head             │
+│                                                           │
+│  3. While hare and hare.next exist:                      │
+│     a. tortoise = tortoise.next (move 1 step)            │
+│     b. hare = hare.next.next (move 2 steps)              │
+│     c. If tortoise == hare: return True (cycle found)    │
+│                                                           │
+│  4. Loop ended → hare reached null                       │
+│     → Return False (no cycle)                            │
+└─────────────────────────────────────────────────────────┘
+```
+
+**When to use**: Simple cycle detection without needing the start position.
+
+### Framework 2: Complete Cycle Analysis Template
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  COMPLETE CYCLE ANALYSIS FRAMEWORK                        │
+├─────────────────────────────────────────────────────────┤
+│  Phase 1: Detect if cycle exists                        │
+│  1. Find meeting point using basic detection             │
+│  2. If no meeting point, return (no cycle, no start)    │
+│                                                           │
+│  Phase 2: Find cycle start                              │
+│  1. Reset tortoise to head                              │
+│  2. Keep hare at meeting point                          │
+│  3. Move both one step at a time                        │
+│  4. When they meet again → that's cycle start           │
+│                                                           │
+│  Phase 3: Calculate cycle length (optional)             │
+│  1. From cycle start, count nodes until return          │
+│  2. Store count as cycle length                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**When to use**: When you need both cycle detection and the exact entry point.
+
+### Framework 3: Alternative Data Structures Template
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  ALTERNATIVE STRUCTURES FRAMEWORK                         │
+├─────────────────────────────────────────────────────────┤
+│  For Arrays (Find Duplicate):                           │
+│  1. Treat array as linked list: index → array[index]    │
+│  2. Apply standard Floyd's algorithm                    │
+│  3. Cycle start = duplicate value                       │
+│                                                           │
+│  For Number Sequences (Happy Number):                   │
+│  1. Define next(num) = sum of squared digits             │
+│  2. Apply standard Floyd's algorithm                    │
+│  3. If cycle includes 1 → happy number                  │
+│                                                           │
+│  For Circular Arrays:                                   │
+│  1. next(i) = (i + array[i]) % n                        │
+│  2. Apply standard Floyd's algorithm                    │
+└─────────────────────────────────────────────────────────┘
+```
+
+**When to use**: When applying cycle detection to non-linked-list structures.
+
+---
+
+## Forms
+
+Different manifestations of the cycle detection pattern.
+
+### Form 1: Linked List Cycle Detection
+
+The classic application - detecting cycles in singly linked lists.
+
+| Scenario | Detection Method | Time | Space |
+|----------|------------------|------|-------|
+| **Simple cycle** | Tortoise & Hare | O(n) | O(1) |
+| **Self-loop** | Single node.next == node | O(1) | O(1) |
+| **Multiple cycles** | Standard algorithm finds first | O(n) | O(1) |
+| **No cycle** | Fast reaches null | O(n) | O(1) |
+
+### Form 2: Array as Linked List
+
+Treat array indices as pointers to create an implicit linked list.
+
+```
+Array: [1, 3, 4, 2, 2]
+       ↓  ↓  ↓  ↓  ↓
+Next:  1  3  4  2  2
+
+Path: 0 → 1 → 3 → 2 → 4 → 2 (cycle at index 2, value 4)
+Duplicate = value at cycle start = 2
+```
+
+**Applications**: Finding duplicate, finding missing number, circular array problems.
+
+### Form 3: Number Transformation Sequences
+
+Use a mathematical transformation as the "next" operation.
+
+```
+Happy Number Example:
+19 → 82 → 68 → 100 → 1 (happy, terminates)
+2 → 4 → 16 → 37 → 58 → 89 → 145 → 42 → 20 → 4 (cycle, not happy)
+
+The sequence either:
+1. Reaches 1 (terminates)
+2. Enters a cycle (not happy)
+```
+
+**Applications**: Happy numbers, digit manipulation problems.
+
+### Form 4: Circular Array Loop
+
+Detect valid cycles in circular arrays with direction constraints.
+
+```
+Conditions for valid loop:
+1. All elements in cycle same direction (all + or all -)
+2. Cycle length > 1
+3. Not stuck at single index
+
+Example: [2, -1, 1, 2, 2]
+- Forward path: 0 → 2 → 3 → 0 (valid cycle)
+```
+
+**Applications**: Circular array loop detection (LeetCode 457).
+
+### Form 5: Graph Edge Cases
+
+Special considerations for different graph types.
+
+| Graph Type | Cycle Detection | Notes |
+|------------|-----------------|-------|
+| **Undirected** | Union-Find or DFS preferred | Floyd's not directly applicable |
+| **Directed (linked list)** | Floyd's optimal | Natural fit |
+| **Directed (general)** | DFS with state tracking | Floyd's limited |
+| **Multigraph** | Standard Floyd's works | Multiple edges between nodes |
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Hash Set Alternative
+
+When O(n) space is acceptable and you need simplicity:
+
+```python
+def has_cycle_hash_set(head: ListNode) -> bool:
+    """
+    Alternative using hash set - O(n) space.
+    Simpler but uses more memory.
+    """
+    seen = set()
+    current = head
+    
+    while current:
+        if current in seen:
+            return True
+        seen.add(current)
+        current = current.next
+    
+    return False
+```
+
+### Tactic 2: Cycle Length Calculation
+
+Once cycle start is found:
+
+```python
+def cycle_length(head: ListNode) -> int:
+    """
+    Calculate the length of the cycle.
+    Must find cycle start first.
+    """
+    start = find_cycle_start(head)
+    if not start:
+        return 0
+    
+    current = start.next
+    length = 1
+    
+    while current != start:
+        length += 1
+        current = current.next
+    
+    return length
+```
+
+### Tactic 3: Remove Cycle
+
+Break a detected cycle:
+
+```python
+def remove_cycle(head: ListNode) -> ListNode:
+    """
+    Remove cycle by breaking the last node's link.
+    """
+    start = find_cycle_start(head)
+    if not start:
+        return head
+    
+    # Find the last node in the cycle
+    current = start
+    while current.next != start:
+        current = current.next
+    
+    # Break the cycle
+    current.next = None
+    return head
+```
+
+### Tactic 4: First Node in Cycle
+
+Variant that finds the first node (for problems requiring it):
+
+```python
+def first_node_in_cycle(head: ListNode) -> ListNode:
+    """
+    Find the first node that is part of a cycle.
+    Alternative interpretation of cycle start.
+    """
+    if not head or not head.next:
+        return None
+    
+    tortoise, hare = head, head
+    
+    # Phase 1: Find meeting point
+    while hare and hare.next:
+        tortoise = tortoise.next
+        hare = hare.next.next
+        if tortoise == hare:
+            break
+    
+    if not hare or not hare.next:
+        return None
+    
+    # Phase 2: Find entry point
+    tortoise = head
+    while tortoise != hare:
+        tortoise = tortoise.next
+        hare = hare.next
+    
+    return tortoise
+```
+
+### Tactic 5: Count Nodes Before Cycle
+
+Calculate the distance from head to cycle start:
+
+```python
+def nodes_before_cycle(head: ListNode) -> int:
+    """
+    Count nodes before the cycle starts.
+    """
+    if not head:
+        return 0
+    
+    cycle_start = find_cycle_start(head)
+    if not cycle_start:
+        return count_nodes(head)  # No cycle, all nodes are "before"
+    
+    count = 0
+    current = head
+    while current != cycle_start:
+        count += 1
+        current = current.next
+    
+    return count
+
+def count_nodes(head: ListNode) -> int:
+    """Helper to count nodes in a non-cyclic list."""
+    count = 0
+    current = head
+    while current:
+        count += 1
+        current = current.next
+    return count
+```
+
+### Tactic 6: Early Termination Optimization
+
+Optimization for known constraints:
+
+```python
+def has_cycle_optimized(head: ListNode, max_iterations: int = 10000) -> bool:
+    """
+    Cycle detection with early termination.
+    Useful when list length is bounded.
+    """
+    if not head or not head.next:
+        return False
+    
+    tortoise, hare = head, head
+    iterations = 0
+    
+    while hare and hare.next and iterations < max_iterations:
+        tortoise = tortoise.next
+        hare = hare.next.next
+        iterations += 1
+        
+        if tortoise == hare:
+            return True
+    
+    return False
+```
+
+---
+
+## Python Templates
+
+### Template 1: Basic Cycle Detection
+
+```python
+from typing import Optional
+
+class ListNode:
+    def __init__(self, val: int = 0, next: Optional['ListNode'] = None):
+        self.val = val
+        self.next = next
+
+def has_cycle(head: Optional[ListNode]) -> bool:
+    """
+    Template: Detect if a linked list has a cycle.
+    Time: O(n), Space: O(1)
+    """
+    if not head or not head.next:
+        return False
+    
+    tortoise, hare = head, head
+    
+    while hare and hare.next:
+        tortoise = tortoise.next        # Move 1 step
+        hare = hare.next.next           # Move 2 steps
+        
+        if tortoise == hare:            # They met - cycle exists!
+            return True
+    
+    return False  # No cycle found
+```
+
+### Template 2: Find Cycle Start
+
+```python
+def detect_cycle_start(head: Optional[ListNode]) -> Optional[ListNode]:
+    """
+    Template: Find the starting node of the cycle.
+    Uses two-phase Floyd's algorithm.
+    Time: O(n), Space: O(1)
+    """
+    if not head or not head.next:
+        return None
+    
+    # Phase 1: Find intersection point
+    tortoise, hare = head, head
+    
+    while hare and hare.next:
+        tortoise = tortoise.next
+        hare = hare.next.next
+        
+        if tortoise == hare:
+            break
+    
+    # No cycle found
+    if not hare or not hare.next:
+        return None
+    
+    # Phase 2: Find cycle start
+    # Move both pointers one step at a time
+    # They will meet at the cycle start
+    tortoise = head
+    while tortoise != hare:
+        tortoise = tortoise.next
+        hare = hare.next
+    
+    return tortoise
+```
+
+### Template 3: Find Duplicate in Array (Cycle Detection)
+
+```python
+def find_duplicate(nums: list[int]) -> int:
+    """
+    Template: Find duplicate in array [1..n] using cycle detection.
+    Treats array as linked list: index i points to nums[i].
+    Time: O(n), Space: O(1)
+    """
+    # Phase 1: Find intersection
+    tortoise, hare = nums[0], nums[0]
+    
+    while True:
+        tortoise = nums[tortoise]           # Move 1 step
+        hare = nums[nums[hare]]             # Move 2 steps
+        if tortoise == hare:
+            break
+    
+    # Phase 2: Find cycle start (the duplicate)
+    tortoise = nums[0]
+    while tortoise != hare:
+        tortoise = nums[tortoise]           # Move 1 step
+        hare = nums[hare]                   # Move 1 step
+    
+    return tortoise
+```
+
+### Template 4: Happy Number
+
+```python
+def is_happy(n: int) -> bool:
+    """
+    Template: Determine if a number is happy using cycle detection.
+    Time: O(log n), Space: O(1)
+    """
+    def get_next(num: int) -> int:
+        """Calculate sum of squares of digits."""
+        total = 0
+        while num > 0:
+            digit = num % 10
+            total += digit * digit
+            num //= 10
+        return total
+    
+    if n <= 0:
+        return False
+    
+    tortoise, hare = n, get_next(n)
+    
+    while hare != 1 and tortoise != hare:
+        tortoise = get_next(tortoise)       # Move 1 step
+        hare = get_next(get_next(hare))     # Move 2 steps
+    
+    return hare == 1
+```
+
+### Template 5: Circular Array Loop
+
+```python
+def circular_array_loop(nums: list[int]) -> bool:
+    """
+    Template: Detect circular array loop with direction constraint.
+    Time: O(n), Space: O(1)
+    """
+    n = len(nums)
+    if n < 2:
+        return False
+    
+    def next_idx(i: int) -> int:
+        """Calculate next index with wrap-around."""
+        return ((i + nums[i]) % n + n) % n
+    
+    def is_same_direction(i: int, j: int) -> bool:
+        """Check if both indices move in same direction."""
+        return nums[i] * nums[j] > 0
+    
+    for i in range(n):
+        if nums[i] == 0:
+            continue
+        
+        tortoise, hare = i, next_idx(i)
+        
+        # Move while maintaining same direction
+        while is_same_direction(tortoise, hare) and \
+              is_same_direction(tortoise, next_idx(hare)):
+            if tortoise == hare:
+                # Check if it's a single element loop
+                if tortoise == next_idx(tortoise):
+                    break
+                return True
+            
+            tortoise = next_idx(tortoise)
+            hare = next_idx(next_idx(hare))
+        
+        # Mark visited by setting to 0
+        j = i
+        while nums[j] * nums[next_idx(j)] > 0:
+            temp = j
+            j = next_idx(j)
+            nums[temp] = 0
+    
+    return False
+```
+
+### Template 6: Cycle Length Calculation
+
+```python
+def get_cycle_length(head: Optional[ListNode]) -> int:
+    """
+    Template: Calculate the length of a cycle.
+    Returns 0 if no cycle exists.
+    Time: O(n), Space: O(1)
+    """
+    if not head or not head.next:
+        return 0
+    
+    # Find cycle start
+    start = detect_cycle_start(head)
+    if not start:
+        return 0
+    
+    # Count nodes in cycle
+    length = 1
+    current = start.next
+    
+    while current != start:
+        length += 1
+        current = current.next
+    
+    return length
+```
 
 ---
 
@@ -12,33 +586,34 @@ Floyd's Tortoise and Hare algorithm (also known as cycle detection) is an effici
 
 Use Floyd's Cycle Detection algorithm when you need to solve problems involving:
 
-- **Linked List Cycle Detection**: Determining if a singly or doubly linked list contains a cycle
-- **Finding Cycle Start**: Locating where a cycle begins in a linked list
-- **Meeting Point Detection**: Finding if two paths ever meet in a graph or sequence
-- **Periodic Sequence Detection**: Identifying repeating patterns in sequences
-- **Space-Constrained Solutions**: When O(1) space complexity is required
+- **Linked List Cycle Detection**: Determining if a linked list contains a cycle
+- **Finding Cycle Start**: Locating where a cycle begins
+- **Finding Duplicate Numbers**: In arrays with specific constraints
+- **Happy Number Problems**: Detecting cycles in number transformations
+- **Circular Array Problems**: Valid loop detection with constraints
 
 ### Comparison with Alternatives
 
-| Algorithm | Time Complexity | Space Complexity | Can Find Cycle Start | Notes |
-|-----------|-----------------|------------------|---------------------|-------|
-| **Floyd's (Tortoise & Hare)** | O(n) | O(1) | ✅ Yes | Optimal for linked lists |
-| **Hash Set** | O(n) | O(n) | ❌ No | Stores visited nodes |
-| **Mark Visited (Modify List)** | O(n) | O(1) | ❌ No | Modifies the list |
-| **Brute Force** | O(n²) | O(1) | ❌ No | Follow each node's path |
+| Algorithm | Time | Space | Can Find Start | Best For |
+|-----------|------|-------|----------------|----------|
+| **Floyd's (Tortoise & Hare)** | O(n) | O(1) | ✅ Yes | Linked lists, O(1) space |
+| **Hash Set** | O(n) | O(n) | ❌ No | Simplicity, path tracking |
+| **Mark Visited** | O(n) | O(1) | ❌ No | When modification allowed |
+| **Brute Force** | O(n²) | O(1) | ❌ No | Never (education only) |
 
-### When to Choose Floyd's vs Hash Set
+### When to Choose Floyd's Algorithm
 
-- **Choose Floyd's Algorithm** when:
-  - You need O(1) space complexity
-  - You cannot modify the linked list
-  - You need to find where the cycle starts
-  - Memory is constrained
+- ✅ You need O(1) space complexity
+- ✅ You cannot modify the linked list
+- ✅ You need to find where the cycle starts
+- ✅ Memory is constrained
+- ✅ Working with implicit linked structures (arrays, number sequences)
 
-- **Choose Hash Set** when:
-  - Space is not a concern
-  - You need to track the actual path taken
-  - You need O(n) time with simpler implementation
+### When NOT to Use
+
+- ❌ You need to track the actual path taken (use Hash Set)
+- ❌ Space is not a concern and simplicity is preferred
+- ❌ Modifying the list is acceptable (use marking approach)
 
 ---
 
@@ -46,51 +621,67 @@ Use Floyd's Cycle Detection algorithm when you need to solve problems involving:
 
 ### Core Concept
 
-The key insight behind Floyd's algorithm is that if there is a cycle in a linked list, a faster-moving pointer will eventually "lap" a slower-moving pointer. This is analogous to two runners on a circular track - the faster runner will eventually catch up to the slower runner.
+The key insight is that if there is a cycle, a faster-moving pointer will eventually "lap" a slower-moving pointer. This is analogous to two runners on a circular track - the faster runner will eventually catch up to the slower runner.
 
 ### How It Works
 
-The algorithm uses two pointers moving at different speeds:
-
-- **Tortoise (slow pointer)**: Moves 1 step at a time
-- **Hare (fast pointer)**: Moves 2 steps at a time
-
 #### Phase 1: Detect if Cycle Exists
+
 1. Initialize both pointers at the head of the list
-2. Move slow pointer by 1 step and fast pointer by 2 steps
-3. If they ever meet, a cycle exists
-4. If fast reaches null, there is no cycle
+2. Move tortoise (slow) by 1 step
+3. Move hare (fast) by 2 steps
+4. If they ever meet, a cycle exists
+5. If hare reaches null, there is no cycle
 
 #### Phase 2: Find Cycle Start (Optional)
-Once a cycle is detected, to find where it starts:
-1. Reset one pointer to the head
-2. Move both pointers one step at a time
-3. Where they meet is the start of the cycle
+
+Once a cycle is detected:
+1. Reset tortoise to the head
+2. Keep hare at the meeting point
+3. Move both pointers one step at a time
+4. Where they meet is the start of the cycle
 
 ### Mathematical Proof
 
-Why does this work?
+**Why do they meet in Phase 1?**
 
-1. **In a cycle of length C**: After the slow pointer enters the cycle, the fast pointer is at most C-1 steps behind
-2. Since fast moves 1 extra step per iteration relative to slow, they must meet within C iterations
-3. Let `a` = distance from head to cycle start, `b` = distance from cycle start to meeting point
-4. Slow travels: `a + b` steps
-5. Fast travels: `a + b + C` steps (one extra lap)
-6. Since fast travels exactly 2x slow: `2(a + b) = a + b + C` → `a + b = C`
-7. Therefore, from meeting point, traveling `a` more steps returns to cycle start
+In a cycle of length C:
+1. After tortoise enters the cycle, hare is at most C-1 steps behind
+2. Since hare moves 1 extra step per iteration, they close the gap by 1 each step
+3. They must meet within C iterations
+
+**Why does Phase 2 find the cycle start?**
+
+Let:
+- a = distance from head to cycle start
+- b = distance from cycle start to meeting point
+- C = cycle length
+
+From Phase 1:
+- Tortoise traveled: a + b steps
+- Hare traveled: a + b + kC steps (k extra laps)
+- Since hare moves 2x speed: 2(a + b) = a + b + kC
+- Simplifying: a + b = kC, therefore a = kC - b
+
+In Phase 2:
+- Tortoise starts at head, travels a steps to cycle start
+- Hare starts at meeting point, travels a steps = kC - b steps
+- From meeting point, kC - b steps = (k-1)C + (C - b) steps
+- This brings hare back to cycle start
+- Both meet at cycle start
 
 ### Visual Representation
 
 ```
-List: 3 -> 2 -> 0 -> -4
-            ^         |
+List: 3 → 2 → 0 → -4
+            ↑         |
             |_________|
 
-Step 1: Both at 3
-Step 2: Slow at 2, Fast at 0
-Step 3: Slow at 0, Fast at 2 (they met!)
-Step 4: Reset slow to head, both move 1 step
-Step 5: Slow at 2, Fast at 2 (meeting point = cycle start!)
+Step 0: Tortoise=3, Hare=3
+Step 1: Tortoise=2, Hare=0
+Step 2: Tortoise=0, Hare=2 (they met!)
+Step 3: Reset Tortoise to 3, keep Hare at 2
+Step 4: Tortoise=2, Hare=2 (meeting point = cycle start!)
 ```
 
 ### Key Properties
@@ -100,1393 +691,12 @@ Step 5: Slow at 2, Fast at 2 (meeting point = cycle start!)
 - **No modifications needed**: Doesn't modify the original list
 - **Optimal**: Proven that O(1) space solution must use this approach
 
----
-
-## Algorithm Steps
-
-### Basic Cycle Detection
-
-1. **Initialize**: Set both slow and fast pointers to the head of the list
-2. **Traverse**: While fast and fast.next are not null:
-   - Move slow by 1: `slow = slow.next`
-   - Move fast by 2: `fast = fast.next.next`
-   - If slow equals fast: cycle detected, return true
-3. **End**: If loop exits, no cycle exists, return false
-
-### Finding Cycle Start
-
-1. **Phase 1 - Detect**: Use the basic algorithm to find if a cycle exists
-2. **Phase 2 - Find Start**: 
-   - If cycle exists, reset slow to head
-   - Move both slow and fast one step at a time
-   - Where they meet is the cycle start node
-
----
-
-## Implementation
-
-### Template Code (Cycle Detection)
-
-````carousel
-```python
-from typing import Optional
-
-
-class ListNode:
-    """Node class for linked list."""
-    def __init__(self, val: int = 0, next: Optional['ListNode'] = None):
-        self.val = val
-        self.next = next
-
-
-def has_cycle(head: Optional[ListNode]) -> bool:
-    """
-    Detect if a linked list has a cycle using Floyd's algorithm.
-    
-    Args:
-        head: Head of the linked list
-    
-    Returns:
-        True if cycle exists, False otherwise
-    
-    Time: O(n)
-    Space: O(1)
-    """
-    if not head or not head.next:
-        return False
-    
-    slow = head
-    fast = head
-    
-    while fast and fast.next:
-        slow = slow.next        # Move 1 step
-        fast = fast.next.next   # Move 2 steps
-        
-        if slow == fast:
-            return True
-    
-    return False
-
-
-def detect_cycle_start(head: Optional[ListNode]) -> Optional[ListNode]:
-    """
-    Find the starting node of the cycle if it exists.
-    
-    Args:
-        head: Head of the linked list
-    
-    Returns:
-        Node where cycle starts, or None if no cycle
-    
-    Time: O(n)
-    Space: O(1)
-    """
-    if not head or not head.next:
-        return None
-    
-    # Phase 1: Find intersection point
-    slow = head
-    fast = head
-    
-    while fast and fast.next:
-        slow = slow.next
-        fast = fast.next.next
-        
-        if slow == fast:
-            break
-    
-    # No cycle found
-    if not fast or not fast.next:
-        return None
-    
-    # Phase 2: Find cycle start
-    # Move both pointers one step at a time
-    # They will meet at the cycle start
-    slow = head
-    while slow != fast:
-        slow = slow.next
-        fast = fast.next
-    
-    return slow
-
-
-def create_linked_list_with_cycle(values: list, cycle_pos: int) -> Optional[ListNode]:
-    """
-    Create a linked list with an optional cycle for testing.
-    
-    Args:
-        values: List of values to create nodes from
-        cycle_pos: Index where cycle should point to (-1 for no cycle)
-    
-    Returns:
-        Head of the linked list
-    """
-    if not values:
-        return None
-    
-    # Create nodes
-    nodes = [ListNode(val) for val in values]
-    
-    # Connect nodes
-    for i in range(len(nodes) - 1):
-        nodes[i].next = nodes[i + 1]
-    
-    # Create cycle if specified
-    if cycle_pos >= 0 and cycle_pos < len(nodes):
-        nodes[-1].next = nodes[cycle_pos]
-    
-    return nodes[0]
-
-
-def list_to_array(head: Optional[ListNode], max_len: int = 20) -> list:
-    """Convert linked list to array for display."""
-    result = []
-    current = head
-    count = 0
-    
-    while current and count < max_len:
-        result.append(current.val)
-        current = current.next
-        count += 1
-    
-    if current:
-        result.append("...")
-    
-    return result
-
-
-# Example usage
-if __name__ == "__main__":
-    print("Floyd's Cycle Detection Algorithm")
-    print("=" * 40)
-    
-    # Test case 1: Linked list with cycle
-    # 3 -> 2 -> 0 -> -4 -> (back to 2)
-    values1 = [3, 2, 0, -4]
-    head1 = create_linked_list_with_cycle(values1, cycle_pos=1)
-    
-    print("\nTest 1: List with cycle [3,2,0,-4] -> cycle at index 1")
-    print(f"  Has cycle: {has_cycle(head1)}")
-    
-    cycle_node = detect_cycle_start(head1)
-    if cycle_node:
-        print(f"  Cycle starts at node with value: {cycle_node.val}")
-    
-    # Test case 2: Linked list without cycle
-    values2 = [1, 2, 3, 4, 5]
-    head2 = create_linked_list_with_cycle(values2, cycle_pos=-1)
-    
-    print("\nTest 2: List without cycle [1,2,3,4,5]")
-    print(f"  Has cycle: {has_cycle(head2)}")
-    
-    # Test case 3: Single node with self-loop
-    head3 = ListNode(1)
-    head3.next = head3  # Self-loop
-    
-    print("\nTest 3: Single node with self-loop")
-    print(f"  Has cycle: {has_cycle(head3)}")
-    
-    # Test case 4: Single node without cycle
-    head4 = ListNode(1)
-    
-    print("\nTest 4: Single node without cycle")
-    print(f"  Has cycle: {has_cycle(head4)}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <unordered_set>
-using namespace std;
-
-/**
- * Definition for singly-linked list node.
- */
-struct ListNode {
-    int val;
-    ListNode* next;
-    ListNode(int x) : val(x), next(nullptr) {}
-};
-
-/**
- * Detect if a linked list has a cycle using Floyd's algorithm.
- * 
- * Time: O(n)
- * Space: O(1)
- */
-bool hasCycle(ListNode* head) {
-    if (!head || !head->next) {
-        return false;
-    }
-    
-    ListNode* slow = head;
-    ListNode* fast = head;
-    
-    while (fast && fast->next) {
-        slow = slow->next;           // Move 1 step
-        fast = fast->next->next;     // Move 2 steps
-        
-        if (slow == fast) {
-            return true;  // Cycle detected
-        }
-    }
-    
-    return false;  // No cycle
-}
-
-/**
- * Find the starting node of the cycle.
- * 
- * Time: O(n)
- * Space: O(1)
- */
-ListNode* detectCycleStart(ListNode* head) {
-    if (!head || !head->next) {
-        return nullptr;
-    }
-    
-    // Phase 1: Find intersection point
-    ListNode* slow = head;
-    ListNode* fast = head;
-    
-    while (fast && fast->next) {
-        slow = slow->next;
-        fast = fast->next->next;
-        
-        if (slow == fast) {
-            break;
-        }
-    }
-    
-    // No cycle found
-    if (!fast || !fast->next) {
-        return nullptr;
-    }
-    
-    // Phase 2: Find cycle start
-    slow = head;
-    while (slow != fast) {
-        slow = slow->next;
-        fast = fast->next;
-    }
-    
-    return slow;
-}
-
-/**
- * Alternative: Hash Set Approach (O(n) space)
- */
-bool hasCycleHashSet(ListNode* head) {
-    unordered_set<ListNode*> seen;
-    
-    while (head) {
-        if (seen.count(head)) {
-            return true;
-        }
-        seen.insert(head);
-        head = head->next;
-    }
-    
-    return false;
-}
-
-// Test main function
-int main() {
-    // Test case 1: List with cycle
-    ListNode* n1 = new ListNode(3);
-    ListNode* n2 = new ListNode(2);
-    ListNode* n3 = new ListNode(0);
-    ListNode* n4 = new ListNode(-4);
-    
-    n1->next = n2;
-    n2->next = n3;
-    n3->next = n4;
-    n4->next = n2;  // Creates cycle back to node 2
-    
-    cout << "Test 1: List with cycle [3,2,0,-4] -> cycle at 2" << endl;
-    cout << "  Has cycle: " << (hasCycle(n1) ? "true" : "false") << endl;
-    
-    ListNode* cycleStart = detectCycleStart(n1);
-    if (cycleStart) {
-        cout << "  Cycle starts at node with value: " << cycleStart->val << endl;
-    }
-    
-    // Test case 2: List without cycle
-    ListNode* m1 = new ListNode(1);
-    ListNode* m2 = new ListNode(2);
-    ListNode* m3 = new ListNode(3);
-    m1->next = m2;
-    m2->next = m3;
-    
-    cout << "\nTest 2: List without cycle [1,2,3]" << endl;
-    cout << "  Has cycle: " << (hasCycle(m1) ? "true" : "false") << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * Definition for singly-linked list node.
- */
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode(int x) {
-        val = x;
-        next = null;
-    }
-}
-
-/**
- * Floyd's Cycle Detection Algorithm
- * 
- * Time: O(n)
- * Space: O(1)
- */
-public class Solution {
-    
-    /**
-     * Detect if a linked list has a cycle using Floyd's algorithm.
-     */
-    public boolean hasCycle(ListNode head) {
-        if (head == null || head.next == null) {
-            return false;
-        }
-        
-        ListNode slow = head;
-        ListNode fast = head;
-        
-        while (fast != null && fast.next != null) {
-            slow = slow.next;           // Move 1 step
-            fast = fast.next.next;      // Move 2 steps
-            
-            if (slow == fast) {
-                return true;  // Cycle detected
-            }
-        }
-        
-        return false;  // No cycle
-    }
-    
-    /**
-     * Find the starting node of the cycle.
-     * 
-     * Time: O(n)
-     * Space: O(1)
-     */
-    public ListNode detectCycleStart(ListNode head) {
-        if (head == null || head.next == null) {
-            return null;
-        }
-        
-        // Phase 1: Find intersection point
-        ListNode slow = head;
-        ListNode fast = head;
-        
-        while (fast != null && fast.next != null) {
-            slow = slow.next;
-            fast = fast.next.next;
-            
-            if (slow == fast) {
-                break;
-            }
-        }
-        
-        // No cycle found
-        if (fast == null || fast.next == null) {
-            return null;
-        }
-        
-        // Phase 2: Find cycle start
-        slow = head;
-        while (slow != fast) {
-            slow = slow.next;
-            fast = fast.next;
-        }
-        
-        return slow;
-    }
-    
-    /**
-     * Alternative: Hash Set Approach (O(n) space)
-     */
-    public boolean hasCycleHashSet(ListNode head) {
-        Set<ListNode> seen = new HashSet<>();
-        
-        while (head != null) {
-            if (seen.contains(head)) {
-                return true;
-            }
-            seen.add(head);
-            head = head.next;
-        }
-        
-        return false;
-    }
-    
-    // Test the implementation
-    public static void main(String[] args) {
-        Solution solution = new Solution();
-        
-        // Test case 1: List with cycle
-        ListNode n1 = new ListNode(3);
-        ListNode n2 = new ListNode(2);
-        ListNode n3 = new ListNode(0);
-        ListNode n4 = new ListNode(-4);
-        
-        n1.next = n2;
-        n2.next = n3;
-        n3.next = n4;
-        n4.next = n2;  // Creates cycle
-        
-        System.out.println("Test 1: List with cycle [3,2,0,-4] -> cycle at 2");
-        System.out.println("  Has cycle: " + solution.hasCycle(n1));
-        
-        ListNode cycleStart = solution.detectCycleStart(n1);
-        if (cycleStart != null) {
-            System.out.println("  Cycle starts at node with value: " + cycleStart.val);
-        }
-        
-        // Test case 2: List without cycle
-        ListNode m1 = new ListNode(1);
-        ListNode m2 = new ListNode(2);
-        ListNode m3 = new ListNode(3);
-        m1.next = m2;
-        m2.next = m3;
-        
-        System.out.println("\nTest 2: List without cycle [1,2,3]");
-        System.out.println("  Has cycle: " + solution.hasCycle(m1));
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Floyd's Cycle Detection Algorithm
- * 
- * Time: O(n)
- * Space: O(1)
- */
-
-/**
- * Definition for singly-linked list node.
- */
-class ListNode {
-    constructor(val = 0, next = null) {
-        this.val = val;
-        this.next = next;
-    }
-}
-
-/**
- * Detect if a linked list has a cycle using Floyd's algorithm.
- * @param {ListNode} head - Head of the linked list
- * @returns {boolean} True if cycle exists, False otherwise
- */
-function hasCycle(head) {
-    if (!head || !head.next) {
-        return false;
-    }
-    
-    let slow = head;
-    let fast = head;
-    
-    while (fast && fast.next) {
-        slow = slow.next;           // Move 1 step
-        fast = fast.next.next;      // Move 2 steps
-        
-        if (slow === fast) {
-            return true;  // Cycle detected
-        }
-    }
-    
-    return false;  // No cycle
-}
-
-/**
- * Find the starting node of the cycle.
- * @param {ListNode} head - Head of the linked list
- * @returns {ListNode|null} Node where cycle starts, or null if no cycle
- */
-function detectCycleStart(head) {
-    if (!head || !head.next) {
-        return null;
-    }
-    
-    // Phase 1: Find intersection point
-    let slow = head;
-    let fast = head;
-    
-    while (fast && fast.next) {
-        slow = slow.next;
-        fast = fast.next.next;
-        
-        if (slow === fast) {
-            break;
-        }
-    }
-    
-    // No cycle found
-    if (!fast || !fast.next) {
-        return null;
-    }
-    
-    // Phase 2: Find cycle start
-    slow = head;
-    while (slow !== fast) {
-        slow = slow.next;
-        fast = fast.next;
-    }
-    
-    return slow;
-}
-
-/**
- * Alternative: Hash Set Approach (O(n) space)
- * @param {ListNode} head - Head of the linked list
- * @returns {boolean} True if cycle exists, False otherwise
- */
-function hasCycleHashSet(head) {
-    const seen = new Set();
-    
-    while (head) {
-        if (seen.has(head)) {
-            return true;
-        }
-        seen.add(head);
-        head = head.next;
-    }
-    
-    return false;
-}
-
-// Helper function to create linked list with cycle
-function createLinkedListWithCycle(values, cyclePos) {
-    if (!values || values.length === 0) {
-        return null;
-    }
-    
-    const nodes = values.map(val => new ListNode(val));
-    
-    for (let i = 0; i < nodes.length - 1; i++) {
-        nodes[i].next = nodes[i + 1];
-    }
-    
-    if (cyclePos >= 0 && cyclePos < nodes.length) {
-        nodes[nodes.length - 1].next = nodes[cyclePos];
-    }
-    
-    return nodes[0];
-}
-
-// Test the implementation
-console.log("Floyd's Cycle Detection Algorithm");
-console.log("=".repeat(40));
-
-// Test case 1: List with cycle
-const head1 = createLinkedListWithCycle([3, 2, 0, -4], 1);
-console.log("\nTest 1: List with cycle [3,2,0,-4] -> cycle at index 1");
-console.log(`  Has cycle: ${hasCycle(head1)}`);
-
-const cycleNode = detectCycleStart(head1);
-if (cycleNode) {
-    console.log(`  Cycle starts at node with value: ${cycleNode.val}`);
-}
-
-// Test case 2: List without cycle
-const head2 = createLinkedListWithCycle([1, 2, 3, 4, 5], -1);
-console.log("\nTest 2: List without cycle [1,2,3,4,5]");
-console.log(`  Has cycle: ${hasCycle(head2)}`);
-
-// Test case 3: Single node with self-loop
-const head3 = new ListNode(1);
-head3.next = head3;
-console.log("\nTest 3: Single node with self-loop");
-console.log(`  Has cycle: ${hasCycle(head3)}`);
-
-// Test case 4: Single node without cycle
-const head4 = new ListNode(1);
-console.log("\nTest 4: Single node without cycle");
-console.log(`  Has cycle: ${hasCycle(head4)}`);
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|------------|-----------------|-------------|
-| **Cycle Detection** | O(n) | Each pointer traverses at most n nodes |
-| **Find Cycle Start** | O(n) | Two phases, each O(n) |
-| **Total (with start)** | O(n) | Linear in list length |
-| **Space** | O(1) | Only two pointers used |
-
-### Detailed Breakdown
-
-- **Best Case**: O(1) - Cycle at the very first position (head.next points to head)
-- **Worst Case**: O(n) - Cycle at the end, or no cycle
-- **Average Case**: O(n) - Linear traversal
-
-### Why O(n) Works
-
-1. **Slow pointer**: Travels at most n nodes before either reaching end or meeting fast
-2. **Fast pointer**: Travels at most 2n nodes for the same reason
-3. **Total operations**: At most 3n pointer moves = O(n)
-
----
-
-## Space Complexity Analysis
-
-- **Floyd's Algorithm**: O(1) - Only two pointers regardless of list size
-- **Hash Set Approach**: O(n) - Stores all visited nodes
-- **Modify List Approach**: O(1) - Uses node marking
-
-### Space Optimization
-
-Floyd's algorithm achieves optimal O(1) space by:
-1. Using two pointers with different speeds
-2. Not storing any visited nodes
-3. Not modifying the original list
-
----
-
-## Common Variations
-
-### 1. Detect Cycle in Circular Array
-
-Apply the same principle to detect cycles in arrays or sequences.
-
-````carousel
-```python
-def has_circular_array(arr: list) -> bool:
-    """
-    Detect if array represents a circular buffer that cycles.
-    Similar concept to linked list cycle detection.
-    """
-    n = len(arr)
-    if n == 0:
-        return False
-    
-    slow = arr[0] % n
-    fast = arr[0] % n
-    
-    while True:
-        # Move slow 1 step
-        slow = arr[slow] % n
-        # Move fast 2 steps
-        fast = arr[arr[fast] % n] % n
-        
-        if slow == fast:
-            return True
-        
-        # Check if we've traversed entire array
-        if slow == arr[0] % n:
-            return False
-```
-
-<!-- slide -->
-```cpp
-#include <vector>
-using namespace std;
-
-/**
- * Detect if array represents a circular buffer that cycles.
- * Similar concept to linked list cycle detection.
- */
-bool hasCircularArray(const vector<int>& arr) {
-    int n = arr.size();
-    if (n == 0) return false;
-    
-    int slow = arr[0] % n;
-    int fast = arr[0] % n;
-    
-    while (true) {
-        // Move slow 1 step
-        slow = arr[slow] % n;
-        // Move fast 2 steps
-        fast = arr[arr[fast] % n] % n;
-        
-        if (slow == fast) return true;
-        
-        // Check if we've traversed entire array
-        if (slow == arr[0] % n) return false;
-    }
-}
-```
-
-<!-- slide -->
-```java
-/**
- * Detect if array represents a circular buffer that cycles.
- * Similar concept to linked list cycle detection.
- */
-public class CircularArrayCycle {
-    public boolean hasCircularArray(int[] arr) {
-        int n = arr.length;
-        if (n == 0) return false;
-        
-        int slow = arr[0] % n;
-        int fast = arr[0] % n;
-        
-        while (true) {
-            // Move slow 1 step
-            slow = arr[slow] % n;
-            // Move fast 2 steps
-            fast = arr[arr[fast] % n] % n;
-            
-            if (slow == fast) return true;
-            
-            // Check if we've traversed entire array
-            if (slow == arr[0] % n) return false;
-        }
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Detect if array represents a circular buffer that cycles.
- * Similar concept to linked list cycle detection.
- * @param {number[]} arr - Input array
- * @returns {boolean} True if cycle exists
- */
-function hasCircularArray(arr) {
-    const n = arr.length;
-    if (n === 0) return false;
-    
-    let slow = arr[0] % n;
-    let fast = arr[0] % n;
-    
-    while (true) {
-        // Move slow 1 step
-        slow = arr[slow] % n;
-        // Move fast 2 steps
-        fast = arr[arr[fast] % n] % n;
-        
-        if (slow === fast) return true;
-        
-        // Check if we've traversed entire array
-        if (slow === arr[0] % n) return false;
-    }
-}
-```
-````
-
-### 2. Find Meeting Point in Circular Race
-
-When two runners start at different positions on a circular track.
-
-````carousel
-```python
-def find_meeting_point(distance: int, speed1: int, speed2: int) -> int:
-    """
-    Find when two runners meet on a circular track.
-    
-    Args:
-        distance: Circumference of the track
-        speed1: Speed of first runner
-        speed2: Speed of second runner
-    
-    Returns:
-        Time when they meet (or -1 if never)
-    """
-    if speed1 == speed2:
-        return -1  # Never meet if same speed
-    
-    # Relative speed
-    relative_speed = abs(speed1 - speed2)
-    
-    # Time to meet = distance / relative_speed
-    # They meet when relative distance = multiple of circumference
-    for t in range(1, distance + 1):
-        if (relative_speed * t) % distance == 0:
-            return t
-    
-    return -1
-```
-
-<!-- slide -->
-```cpp
-#include <cmath>
-using namespace std;
-
-/**
- * Find when two runners meet on a circular track.
- * 
- * @param distance: Circumference of the track
- * @param speed1: Speed of first runner
- * @param speed2: Speed of second runner
- * @return: Time when they meet (or -1 if never)
- */
-int findMeetingPoint(int distance, int speed1, int speed2) {
-    if (speed1 == speed2) {
-        return -1;  // Never meet if same speed
-    }
-    
-    // Relative speed
-    int relativeSpeed = abs(speed1 - speed2);
-    
-    // They meet when relative distance = multiple of circumference
-    for (int t = 1; t <= distance; t++) {
-        if ((relativeSpeed * t) % distance == 0) {
-            return t;
-        }
-    }
-    
-    return -1;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * Find when two runners meet on a circular track.
- */
-public class CircularRace {
-    /**
-     * Find meeting time of two runners.
-     * 
-     * @param distance: Circumference of the track
-     * @param speed1: Speed of first runner
-     * @param speed2: Speed of second runner
-     * @return: Time when they meet (or -1 if never)
-     */
-    public int findMeetingPoint(int distance, int speed1, int speed2) {
-        if (speed1 == speed2) {
-            return -1;  // Never meet if same speed
-        }
-        
-        // Relative speed
-        int relativeSpeed = Math.abs(speed1 - speed2);
-        
-        // They meet when relative distance = multiple of circumference
-        for (int t = 1; t <= distance; t++) {
-            if ((relativeSpeed * t) % distance == 0) {
-                return t;
-            }
-        }
-        
-        return -1;
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Find when two runners meet on a circular track.
- * 
- * @param {number} distance - Circumference of the track
- * @param {number} speed1 - Speed of first runner
- * @param {number} speed2 - Speed of second runner
- * @returns {number} Time when they meet (or -1 if never)
- */
-function findMeetingPoint(distance, speed1, speed2) {
-    if (speed1 === speed2) {
-        return -1;  // Never meet if same speed
-    }
-    
-    // Relative speed
-    const relativeSpeed = Math.abs(speed1 - speed2);
-    
-    // They meet when relative distance = multiple of circumference
-    for (let t = 1; t <= distance; t++) {
-        if ((relativeSpeed * t) % distance === 0) {
-            return t;
-        }
-    }
-    
-    return -1;
-}
-```
-````
-
-### 3. Happy Number Detection
-
- Floyd's algorithm can detect cycles in number sequences.
-
-````carousel
-```python
-def is_happy(n: int) -> bool:
-    """
-    Determine if a number is happy using cycle detection.
-    
-    A happy number is one where repeatedly summing squares of digits
-    eventually reaches 1. If it enters a cycle (not reaching 1), it's not happy.
-    """
-    def get_next(num):
-        total = 0
-        while num > 0:
-            digit = num % 10
-            total += digit * digit
-            num //= 10
-        return total
-    
-    slow = n
-    fast = get_next(n)
-    
-    while fast != 1 and slow != fast:
-        slow = get_next(slow)
-        fast = get_next(get_next(fast))
-    
-    return fast == 1
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-using namespace std;
-
-/**
- * Determine if a number is happy using cycle detection.
- * A happy number eventually reaches 1; otherwise it enters a cycle.
- */
-class HappyNumber {
-private:
-    int getNext(int num) {
-        int total = 0;
-        while (num > 0) {
-            int digit = num % 10;
-            total += digit * digit;
-            num /= 10;
-        }
-        return total;
-    }
-    
-public:
-    bool isHappy(int n) {
-        int slow = n;
-        int fast = getNext(n);
-        
-        while (fast != 1 && slow != fast) {
-            slow = getNext(slow);
-            fast = getNext(getNext(fast));
-        }
-        
-        return fast == 1;
-    }
-};
-```
-
-<!-- slide -->
-```java
-/**
- * Determine if a number is happy using cycle detection.
- * A happy number eventually reaches 1; otherwise it enters a cycle.
- */
-public class HappyNumber {
-    private int getNext(int num) {
-        int total = 0;
-        while (num > 0) {
-            int digit = num % 10;
-            total += digit * digit;
-            num /= 10;
-        }
-        return total;
-    }
-    
-    public boolean isHappy(int n) {
-        int slow = n;
-        int fast = getNext(n);
-        
-        while (fast != 1 && slow != fast) {
-            slow = getNext(slow);
-            fast = getNext(getNext(fast));
-        }
-        
-        return fast == 1;
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Determine if a number is happy using cycle detection.
- * A happy number eventually reaches 1; otherwise it enters a cycle.
- * 
- * @param {number} n - Number to check
- * @returns {boolean} True if happy number
- */
-function isHappy(n) {
-    const getNext = (num) => {
-        let total = 0;
-        while (num > 0) {
-            const digit = num % 10;
-            total += digit * digit;
-            num = Math.floor(num / 10);
-        }
-        return total;
-    };
-    
-    let slow = n;
-    let fast = getNext(n);
-    
-    while (fast !== 1 && slow !== fast) {
-        slow = getNext(slow);
-        fast = getNext(getNext(fast));
-    }
-    
-    return fast === 1;
-}
-```
-````
-
-### 4. Linked List with Random Pointer
-
-Detect cycle in linked list with additional random pointers.
-
-````carousel
-```python
-class RandomListNode:
-    def __init__(self, x):
-        self.label = x
-        self.next = None
-        self.random = None
-
-def detect_cycle_random(head: RandomListNode) -> bool:
-    """
-    Detect cycle in linked list with random pointers.
-    Floyd's algorithm still works - random pointer doesn't affect cycle detection.
-    """
-    if not head or not head.next:
-        return False
-    
-    slow = head
-    fast = head
-    
-    while fast and fast.next:
-        slow = slow.next
-        fast = fast.next.next
-        
-        if slow == fast:
-            return True
-    
-    return False
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-using namespace std;
-
-/**
- * Node class for linked list with random pointer.
- */
-struct RandomListNode {
-    int label;
-    RandomListNode* next;
-    RandomListNode* random;
-    RandomListNode(int x) : label(x), next(nullptr), random(nullptr) {}
-};
-
-/**
- * Detect cycle in linked list with random pointers.
- * Floyd's algorithm still works - random pointer doesn't affect cycle detection.
- */
-bool detectCycleRandom(RandomListNode* head) {
-    if (!head || !head->next) {
-        return false;
-    }
-    
-    RandomListNode* slow = head;
-    RandomListNode* fast = head;
-    
-    while (fast && fast->next) {
-        slow = slow->next;
-        fast = fast->next->next;
-        
-        if (slow == fast) {
-            return true;
-        }
-    }
-    
-    return false;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * Node class for linked list with random pointer.
- */
-class RandomListNode {
-    int label;
-    RandomListNode next;
-    RandomListNode random;
-    RandomListNode(int x) {
-        this.label = x;
-        this.next = null;
-        this.random = null;
-    }
-}
-
-/**
- * Detect cycle in linked list with random pointers.
- * Floyd's algorithm still works - random pointer doesn't affect cycle detection.
- */
-public class RandomListCycle {
-    public boolean detectCycleRandom(RandomListNode head) {
-        if (head == null || head.next == null) {
-            return false;
-        }
-        
-        RandomListNode slow = head;
-        RandomListNode fast = head;
-        
-        while (fast != null && fast.next != null) {
-            slow = slow.next;
-            fast = fast.next.next;
-            
-            if (slow == fast) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Node class for linked list with random pointer.
- */
-class RandomListNode {
-    constructor(val) {
-        this.label = val;
-        this.next = null;
-        this.random = null;
-    }
-}
-
-/**
- * Detect cycle in linked list with random pointers.
- * Floyd's algorithm still works - random pointer doesn't affect cycle detection.
- * 
- * @param {RandomListNode} head - Head of the linked list
- * @returns {boolean} True if cycle exists
- */
-function detectCycleRandom(head) {
-    if (!head || !head.next) {
-        return false;
-    }
-    
-    let slow = head;
-    let fast = head;
-    
-    while (fast && fast.next) {
-        slow = slow.next;
-        fast = fast.next.next;
-        
-        if (slow === fast) {
-            return true;
-        }
-    }
-    
-    return false;
-}
-```
-````
-
-### 5. Find Length of Cycle
-
-After detecting a cycle, find its length.
-
-````carousel
-```python
-def cycle_length(head: Optional[ListNode]) -> int:
-    """
-    Find the length of the cycle in a linked list.
-    
-    Args:
-        head: Head of the linked list
-    
-    Returns:
-        Length of cycle, or 0 if no cycle
-    """
-    if not head or not head.next:
-        return 0
-    
-    # Find meeting point
-    slow = head
-    fast = head
-    
-    while fast and fast.next:
-        slow = slow.next
-        fast = fast.next.next
-        
-        if slow == fast:
-            break
-    
-    if not fast or not fast.next:
-        return 0  # No cycle
-    
-    # Count nodes in cycle
-    length = 1
-    current = slow.next
-    while current != slow:
-        length += 1
-        current = current.next
-    
-    return length
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode* next;
-    ListNode(int x) : val(x), next(nullptr) {}
-};
-
-/**
- * Find the length of the cycle in a linked list.
- * 
- * @param head: Head of the linked list
- * @return: Length of cycle, or 0 if no cycle
- */
-int cycleLength(ListNode* head) {
-    if (!head || !head->next) {
-        return 0;
-    }
-    
-    // Find meeting point
-    ListNode* slow = head;
-    ListNode* fast = head;
-    
-    while (fast && fast->next) {
-        slow = slow->next;
-        fast = fast->next->next;
-        
-        if (slow == fast) {
-            break;
-        }
-    }
-    
-    if (!fast || !fast->next) {
-        return 0;  // No cycle
-    }
-    
-    // Count nodes in cycle
-    int length = 1;
-    ListNode* current = slow->next;
-    while (current != slow) {
-        length++;
-        current = current->next;
-    }
-    
-    return length;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * Find the length of the cycle in a linked list.
- */
-public class CycleLength {
-    static class ListNode {
-        int val;
-        ListNode next;
-        ListNode(int x) {
-            val = x;
-            next = null;
-        }
-    }
-    
-    /**
-     * Find the length of the cycle.
-     * 
-     * @param head: Head of the linked list
-     * @return: Length of cycle, or 0 if no cycle
-     */
-    public int cycleLength(ListNode head) {
-        if (head == null || head.next == null) {
-            return 0;
-        }
-        
-        // Find meeting point
-        ListNode slow = head;
-        ListNode fast = head;
-        
-        while (fast != null && fast.next != null) {
-            slow = slow.next;
-            fast = fast.next.next;
-            
-            if (slow == fast) {
-                break;
-            }
-        }
-        
-        if (fast == null || fast.next == null) {
-            return 0;  // No cycle
-        }
-        
-        // Count nodes in cycle
-        int length = 1;
-        ListNode current = slow.next;
-        while (current != slow) {
-            length++;
-            current = current.next;
-        }
-        
-        return length;
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Find the length of the cycle in a linked list.
- * 
- * @param {ListNode} head - Head of the linked list
- * @returns {number} Length of cycle, or 0 if no cycle
- */
-function cycleLength(head) {
-    if (!head || !head.next) {
-        return 0;
-    }
-    
-    // Find meeting point
-    let slow = head;
-    let fast = head;
-    
-    while (fast && fast.next) {
-        slow = slow.next;
-        fast = fast.next.next;
-        
-        if (slow === fast) {
-            break;
-        }
-    }
-    
-    if (!fast || !fast.next) {
-        return 0;  // No cycle
-    }
-    
-    // Count nodes in cycle
-    let length = 1;
-    let current = slow.next;
-    while (current !== slow) {
-        length++;
-        current = current.next;
-    }
-    
-    return length;
-}
-```
-````
+### Limitations
+
+- **Only works for linear traversal**: Cannot detect cycles in general graphs
+- **Single cycle assumption**: Finds the first cycle encountered
+- **Requires "next" pointer**: Needs ability to traverse sequentially
+- **Cannot identify all cycle nodes**: Only detects existence and start
 
 ---
 
@@ -1498,11 +708,11 @@ function cycleLength(head) {
 
 **Description:** Given a linked list, determine if it has a cycle in it.
 
-**How to Apply Floyd's Algorithm:**
-- Use slow and fast pointers starting from head
-- Move slow by 1, fast by 2 in each iteration
-- If they meet, there is a cycle
-- This is the classic application of the technique
+**How to Apply:**
+- Use tortoise and hare starting from head
+- Move slow by 1, fast by 2
+- If they meet → cycle exists
+- This is the classic application of Floyd's algorithm
 
 ---
 
@@ -1513,9 +723,10 @@ function cycleLength(head) {
 **Description:** Given a linked list, return the node where the cycle begins. If there is no cycle, return null.
 
 **How to Apply:**
-- Phase 1: Detect cycle using Floyd's algorithm
-- Phase 2: Reset one pointer to head and move both one step at a time
-- Where they meet is the cycle start (mathematical proof: a + b = C)
+- Phase 1: Detect cycle using standard Floyd's algorithm
+- Phase 2: Reset slow to head, keep fast at meeting point
+- Move both one step at a time
+- Meeting point = cycle start (proven by: a + b = C)
 
 ---
 
@@ -1525,9 +736,9 @@ function cycleLength(head) {
 
 **Description:** Write an algorithm to determine if a number n is happy. A happy number is a number where repeatedly summing squares of digits eventually reaches 1.
 
-**How to Apply Floyd's Algorithm:**
+**How to Apply:**
 - Create a function that transforms a number by summing squares of its digits
-- This transformation creates a sequence that either reaches 1 or enters a cycle
+- This creates a sequence that either reaches 1 or enters a cycle
 - Use Floyd's algorithm to detect if the sequence enters a cycle
 - If cycle reaches 1, it's happy; otherwise, it's not
 
@@ -1537,12 +748,13 @@ function cycleLength(head) {
 
 **Problem:** [LeetCode 287 - Find the Duplicate Number](https://leetcode.com/problems/find-the-duplicate-number/)
 
-**Description:** Given an array nums containing n + 1 integers where each integer is in the range [1, n], find the duplicate number.
+**Description:** Given an array of integers nums containing n + 1 integers where each integer is in the range [1, n], find the duplicate number.
 
-**How to Apply Floyd's Algorithm:**
-- Treat the array as a linked list where index i points to nums[i]
-- Since there's a duplicate, multiple indices point to the same value, creating a cycle
-- Use Floyd's to find the entrance to the cycle, which is the duplicate
+**How to Apply:**
+- Treat array as linked list: index i points to nums[i]
+- Duplicate creates a cycle (multiple indices point to same value)
+- Use Floyd's algorithm to find the cycle entrance
+- Cycle entrance = duplicate number
 
 ---
 
@@ -1550,12 +762,26 @@ function cycleLength(head) {
 
 **Problem:** [LeetCode 457 - Circular Array Loop](https://leetcode.com/problems/circular-array-loop/)
 
-**Description:** You are given a circular array nums of n positive integers. Determine if there is a cycle that meets certain conditions.
+**Description:** You are given a circular array nums of positive integers. Determine if there is a cycle that meets certain conditions (same direction, length > 1).
 
-**How to Apply Floyd's Algorithm:**
-- Treat each index as a node, and the next node is (i + nums[i]) % n
-- Use Floyd's to detect if there's a cycle
-- Check additional conditions (all forward or all backward)
+**How to Apply:**
+- Treat each index as a node
+- Next node = (i + nums[i]) % n
+- Use Floyd's to detect if there's a valid cycle
+- Check additional conditions: all forward or all backward
+
+---
+
+### Problem 6: First Missing Positive
+
+**Problem:** [LeetCode 41 - First Missing Positive](https://leetcode.com/problems/first-missing-positive/)
+
+**Description:** Given an unsorted integer array nums, return the smallest missing positive integer.
+
+**How to Apply:**
+- Related concept: array indices as implicit pointers
+- Place each number at its correct index (cycle detection variant)
+- First index with wrong number = answer
 
 ---
 
@@ -1569,9 +795,9 @@ function cycleLength(head) {
 
 ### Advanced Topics
 
-- [Finding Cycle Start (Take U Forward)](https://www.youtube.com/watch?v=iZJ4jT2SGaA) - Mathematical proof
+- [Finding Cycle Start (Take U Forward)](https://www.youtube.com/watch?v=iZJ4jT2SGaA) - Mathematical proof explained
 - [Floyd's Algorithm for Happy Numbers](https://www.youtube.com/watch?v=ckQq1Za75I0) - Application variations
-- [Cycle Detection in Arrays](https://www.youtube.com/watch?v=6U3T4dXv1Ng) - Similar concepts
+- [Cycle Detection in Arrays](https://www.youtube.com/watch?v=6U3T4dXv1Ng) - Array as linked list concept
 
 ---
 
@@ -1579,34 +805,69 @@ function cycleLength(head) {
 
 ### Q1: Why does Floyd's algorithm work mathematically?
 
-**Answer:** In a cycle of length C, after the slow pointer enters, the fast pointer is at most C-1 steps behind. Since fast moves 1 extra step per iteration relative to slow, they must meet within C iterations. This is guaranteed because:
-- Let `a` = distance from head to cycle start
-- Let `b` = distance from cycle start to meeting point  
-- Slow travels: `a + b` steps
-- Fast travels: `2(a + b)` steps = `a + b + C` (one extra lap)
-- Solving: `a + b = C`, meaning from meeting point, traveling `a` steps returns to cycle start
+**Answer:** In a cycle of length C, after the slow pointer enters, the fast pointer is at most C-1 steps behind. Since fast moves 1 extra step per iteration relative to slow, they must meet within C iterations.
+
+Let:
+- a = distance from head to cycle start
+- b = distance from cycle start to meeting point
+- Slow travels: a + b steps
+- Fast travels: a + b + kC steps (k extra laps)
+- Since fast = 2 × slow: a + b + kC = 2(a + b)
+- Therefore: a + b = kC, meaning a = kC - b
+- From meeting point, traveling a more steps returns to cycle start
+
+---
 
 ### Q2: Can Floyd's algorithm be used for doubly linked lists?
 
-**Answer:** Yes, but it's unnecessary for simple cycle detection in doubly linked lists because you can traverse backwards. However, Floyd's algorithm is still useful if you need to find where the cycle starts or want O(1) space without modifying the list.
+**Answer:** Yes, but it's often unnecessary for simple cycle detection since you can traverse backwards. However, Floyd's algorithm is still useful when:
+- You need O(1) space
+- You cannot modify the list
+- You need to find the exact cycle start position
+- Backward traversal is expensive or disallowed
+
+---
 
 ### Q3: What happens if the fast pointer moves more than 2 steps?
 
-**Answer:** The algorithm still works as long as fast moves faster than slow. Moving more than 2 steps may find the cycle faster but:
+**Answer:** The algorithm still works as long as fast moves faster than slow:
+- Moving more than 2 steps may detect the cycle faster in some cases
 - The mathematical guarantee still holds (they'll meet eventually)
-- Finding cycle start becomes more complex
-- 2 steps is optimal for balanced performance
+- However, finding the cycle start becomes more complex with different speed ratios
+- Speed 2 is optimal for balanced performance and simplicity
+
+---
 
 ### Q4: Can this algorithm detect multiple cycles?
 
-**Answer:** No, Floyd's algorithm detects if there is *any* cycle, not how many. Once the first cycle is detected, it returns. Finding all cycles would require different approaches like DFS or hash-based methods.
+**Answer:** No, Floyd's algorithm detects if there is *any* cycle, not how many. Once the first cycle is detected, it returns. Finding all cycles would require:
+- Different approaches like DFS or Union-Find
+- Marking visited nodes
+- Graph traversal algorithms
+
+---
 
 ### Q5: How does this compare to using a hash set?
 
 **Answer:**
-- **Hash Set**: O(n) time, O(n) space - simpler but uses more memory
-- **Floyd's**: O(n) time, O(1) space - optimal but only detects cycle, doesn't track path
-- Choose Hash Set when you need to know the actual path or modify the list is acceptable
+
+| Aspect | Floyd's Algorithm | Hash Set |
+|--------|-------------------|----------|
+| Time | O(n) | O(n) |
+| Space | O(1) | O(n) |
+| Implementation | Slightly complex | Simple |
+| Path tracking | No | Yes |
+| Finding start | Yes | No |
+
+**Choose Hash Set** when:
+- Space is not a concern
+- You need to track the actual path
+- Simplicity is preferred
+
+**Choose Floyd's** when:
+- Space is constrained
+- You need O(1) space
+- You need to find cycle start
 
 ---
 
@@ -1614,26 +875,21 @@ function cycleLength(head) {
 
 Floyd's Tortoise and Hare algorithm is a classic technique for cycle detection in linked lists and sequences. Key takeaways:
 
-- **Optimal Space**: Achieves O(1) space - the theoretical minimum for this problem
+- **Optimal Space**: Achieves O(1) space - the theoretical minimum
 - **Two Phases**: First detect cycle, then find its starting point
 - **Mathematical Guarantee**: Proven to work within n iterations
 - **Non-destructive**: Doesn't modify the original list
-- **Versatile**: Applies to various problems beyond linked lists
+- **Versatile**: Applies to linked lists, arrays, number sequences
 
 When to use:
 - ✅ Need O(1) space complexity
 - ✅ Cannot modify the linked list
 - ✅ Need to find cycle start location
-- ❌ Need to track the actual path taken (use Hash Set instead)
-- ❌ For doubly linked lists with simple forward-only traversal
+- ✅ Working with implicit linked structures
 
-This algorithm is essential for technical interviews and competitive programming, forming the foundation for understanding cycle detection in graphs and other data structures.
+When NOT to use:
+- ❌ Need to track the actual path taken (use Hash Set)
+- ❌ For doubly linked lists with simple traversal needs
+- ❌ When simplicity outweighs space optimization
 
----
-
-## Related Algorithms
-
-- [Linked List](./linked-list.md) - Basic linked list operations
-- [Two Pointers](./two-pointers.md) - Related technique
-- [Graph Cycle Detection](./graph-cycle.md) - Cycle detection in graphs
-- [Binary Search](./binary-search.md) - Another O(log n) search technique
+This algorithm is essential for technical interviews and competitive programming, forming the foundation for understanding cycle detection in various data structures.

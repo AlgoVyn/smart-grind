@@ -7,6 +7,493 @@ Dynamic Programming
 
 The Word Break problem is a classic dynamic programming problem where we need to determine if a string can be segmented into a sequence of one or more words from a given dictionary. This problem appears frequently in text processing, natural language processing, and autocomplete systems.
 
+The algorithm uses dynamic programming where each state represents whether a prefix of the string can be segmented into dictionary words. By building up solutions for smaller substrings, we can efficiently determine if the entire string can be validly segmented without exhaustive search.
+
+---
+
+## Concepts
+
+The Word Break technique is built on several fundamental concepts that make it powerful for solving string segmentation problems.
+
+### 1. DP State Definition
+
+The state represents whether a prefix can be segmented:
+
+| State | Definition | Initialization |
+|-------|------------|----------------|
+| **dp[i]** | True if substring `s[0:i]` can be segmented | `dp[0] = True` (empty string) |
+| **Transition** | `dp[i] = dp[j] AND s[j:i] in dict` | For all j < i |
+
+### 2. Substring Validation
+
+Checking if a substring exists in the dictionary:
+
+| Approach | Lookup Time | Space | Best For |
+|----------|-------------|-------|----------|
+| **Hash Set** | O(1) average | O(dict size) | Small to medium dictionaries |
+| **Trie** | O(L) where L = word length | O(total chars) | Large dictionaries, prefix matching |
+| **Hash Map** | O(1) average | O(dict size) | When need additional word info |
+
+### 3. Optimal Substructure
+
+The key property enabling DP:
+
+```
+If s[0:j] can be segmented AND s[j:i] is a word
+→ Then s[0:i] can be segmented
+```
+
+### 4. Early Termination
+
+Optimization to stop checking once a valid segmentation is found:
+
+```python
+if dp[i]:
+    break  # No need to check other j values
+```
+
+---
+
+## Frameworks
+
+Structured approaches for solving word break problems.
+
+### Framework 1: Bottom-Up DP Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  BOTTOM-UP WORD BREAK FRAMEWORK                     │
+├─────────────────────────────────────────────────────┤
+│  1. Convert wordDict to set for O(1) lookup        │
+│  2. Initialize dp[0] = True (empty string valid)   │
+│  3. For each position i from 1 to n:             │
+│     a. For each break point j from 0 to i-1:      │
+│        - If dp[j] AND s[j:i] in wordSet:          │
+│          dp[i] = True, break (early term)         │
+│  4. Return dp[n]                                  │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Standard word break, need boolean result.
+
+### Framework 2: BFS/Graph Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  BFS WORD BREAK FRAMEWORK                           │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize queue with position 0              │
+│  2. Initialize visited set to track explored     │
+│  3. While queue not empty:                        │
+│     a. Dequeue position 'start'                   │
+│     b. If start == n: return True                 │
+│     c. If visited[start]: continue                │
+│     d. Mark visited[start] = True                 │
+│     e. For each end from start+1 to n:            │
+│        - If s[start:end] in dict: enqueue end     │
+│  4. Return False (no valid path)                  │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Need path information, prefer iterative approach.
+
+### Framework 3: All Segmentations Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  ALL SEGMENTATIONS FRAMEWORK                        │
+├─────────────────────────────────────────────────────┤
+│  1. dp[i] = list of all ways to segment s[0:i]   │
+│  2. Initialize dp[0] = [[]] (empty list of words) │
+│  3. For each position i from 1 to n:               │
+│     a. For each break point j from 0 to i-1:      │
+│        - word = s[j:i]                            │
+│        - If dp[j] not empty AND word in dict:     │
+│          For each segmentation in dp[j]:          │
+│            dp[i].append(segmentation + [word])    │
+│  4. Return dp[n] (all valid segmentations)          │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Need all possible word break sequences.
+
+---
+
+## Forms
+
+Different manifestations of the word break pattern.
+
+### Form 1: Boolean Word Break
+
+Determine if segmentation is possible (yes/no).
+
+| Feature | Specification |
+|---------|---------------|
+| Output | Boolean |
+| DP Type | 1D Boolean array |
+| Space | O(n) |
+| Time | O(n²) with hash set |
+
+### Form 2: All Possible Segmentations
+
+Return all ways to segment the string.
+
+| Feature | Specification |
+|---------|---------------|
+| Output | List of word lists |
+| DP Type | 1D list of lists |
+| Space | O(n × output_size) |
+| Time | O(n² × output_size) |
+
+### Form 3: Minimum Words Break
+
+Find the segmentation using fewest words.
+
+| DP State | Definition |
+|----------|------------|
+| **dp[i]** | Minimum words to segment s[0:i], or infinity |
+| **Transition** | `dp[i] = min(dp[i], dp[j] + 1)` if s[j:i] in dict |
+
+### Form 4: Word Break with Trie
+
+Use Trie for efficient prefix-based dictionary lookup.
+
+| Feature | Benefit |
+|---------|---------|
+| Prefix sharing | Reduced memory for common prefixes |
+| Early termination | Stop when no prefix matches |
+| Character-by-char | Efficient for very long words |
+
+### Form 5: Word Break with Length Constraints
+
+Only consider words within specific length bounds.
+
+```python
+for j in range(max(0, i - max_len), i):
+    if i - j < min_len:
+        continue
+    # Check s[j:i] in dict
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Hash Set Optimization
+
+```python
+def word_break_set(s: str, word_dict: list[str]) -> bool:
+    """Optimized with hash set for O(1) lookups."""
+    word_set = set(word_dict)
+    n = len(s)
+    dp = [False] * (n + 1)
+    dp[0] = True
+    
+    for i in range(1, n + 1):
+        for j in range(i):
+            if dp[j] and s[j:i] in word_set:
+                dp[i] = True
+                break  # Early termination
+    
+    return dp[n]
+```
+
+### Tactic 2: Length-Based Pruning
+
+```python
+def word_break_pruned(s: str, word_dict: list[str]) -> bool:
+    """Only check relevant word lengths."""
+    word_set = set(word_dict)
+    word_lengths = {len(word) for word in word_dict}
+    n = len(s)
+    dp = [False] * (n + 1)
+    dp[0] = True
+    
+    for i in range(1, n + 1):
+        for length in word_lengths:
+            if i >= length and dp[i - length]:
+                if s[i - length:i] in word_set:
+                    dp[i] = True
+                    break
+    
+    return dp[n]
+```
+
+### Tactic 3: Memoization (Top-Down)
+
+```python
+from functools import lru_cache
+
+def word_break_memo(s: str, word_dict: list[str]) -> bool:
+    """Top-down approach with memoization."""
+    word_set = set(word_dict)
+    
+    @lru_cache(maxsize=None)
+    def can_break(start: int) -> bool:
+        if start == len(s):
+            return True
+        
+        for end in range(start + 1, len(s) + 1):
+            if s[start:end] in word_set and can_break(end):
+                return True
+        return False
+    
+    return can_break(0)
+```
+
+### Tactic 4: BFS Approach
+
+```python
+from collections import deque
+
+def word_break_bfs(s: str, word_dict: list[str]) -> bool:
+    """BFS approach for word break."""
+    word_set = set(word_dict)
+    n = len(s)
+    visited = [False] * (n + 1)
+    queue = deque([0])
+    
+    while queue:
+        start = queue.popleft()
+        
+        if start == n:
+            return True
+        
+        if visited[start]:
+            continue
+        
+        visited[start] = True
+        
+        for end in range(start + 1, n + 1):
+            if s[start:end] in word_set:
+                queue.append(end)
+    
+    return False
+```
+
+### Tactic 5: Trie-Based Optimization
+
+```python
+class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_word = False
+
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+    
+    def insert(self, word: str) -> None:
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_word = True
+
+def word_break_trie(s: str, word_dict: list[str]) -> bool:
+    """Word break using Trie for efficient matching."""
+    trie = Trie()
+    for word in word_dict:
+        trie.insert(word)
+    
+    n = len(s)
+    dp = [False] * (n + 1)
+    dp[0] = True
+    
+    for i in range(1, n + 1):
+        node = trie.root
+        for j in range(i - 1, -1, -1):
+            char = s[j]
+            if char not in node.children:
+                break
+            node = node.children[char]
+            if node.is_word and dp[j]:
+                dp[i] = True
+                break
+    
+    return dp[n]
+```
+
+---
+
+## Python Templates
+
+### Template 1: Basic Word Break (Bottom-Up DP)
+
+```python
+def word_break(s: str, word_dict: list[str]) -> bool:
+    """
+    Determine if a string can be segmented into dictionary words.
+    
+    Time: O(n² × m) where n = len(s), m = max word length
+    Space: O(n + k) where k = total characters in dictionary
+    """
+    # Convert to set for O(1) lookup
+    word_set = set(word_dict)
+    n = len(s)
+    
+    # dp[i] = True if s[0:i] can be segmented into dictionary words
+    dp = [False] * (n + 1)
+    dp[0] = True  # Empty string can always be segmented
+    
+    for i in range(1, n + 1):
+        for j in range(i):
+            # If we can segment up to position j AND s[j:i] is a word
+            if dp[j] and s[j:i] in word_set:
+                dp[i] = True
+                break  # Early termination
+    
+    return dp[n]
+```
+
+### Template 2: Word Break with All Segmentations
+
+```python
+def word_break_all(s: str, word_dict: list[str]) -> list[list[str]]:
+    """
+    Return ALL possible word segmentations.
+    
+    Time: O(n² × output_size)
+    Space: O(n × output_size)
+    """
+    word_set = set(word_dict)
+    n = len(s)
+    
+    # dp[i] = list of all ways to segment s[0:i]
+    dp = [[] for _ in range(n + 1)]
+    dp[0] = [[]]  # One way to segment empty string: no words
+    
+    for i in range(1, n + 1):
+        for j in range(i):
+            word = s[j:i]
+            if dp[j] and word in word_set:
+                for partial in dp[j]:
+                    dp[i].append(partial + [word])
+    
+    return dp[n]
+```
+
+### Template 3: Minimum Word Break
+
+```python
+def word_break_min_words(s: str, word_dict: list[str]) -> int:
+    """
+    Find minimum number of words needed to segment the string.
+    
+    Returns: Minimum number of words, or -1 if not possible
+    Time: O(n²)
+    Space: O(n)
+    """
+    word_set = set(word_dict)
+    n = len(s)
+    
+    # dp[i] = minimum words to segment s[0:i], or infinity if not possible
+    dp = [float('inf')] * (n + 1)
+    dp[0] = 0
+    
+    for i in range(1, n + 1):
+        for j in range(i):
+            word = s[j:i]
+            if dp[j] != float('inf') and word in word_set:
+                dp[i] = min(dp[i], dp[j] + 1)
+    
+    return dp[n] if dp[n] != float('inf') else -1
+```
+
+### Template 4: Word Break II (All Sentences)
+
+```python
+def word_break_ii(s: str, word_dict: list[str]) -> list[str]:
+    """
+    Return all sentences formed by segmenting the string.
+    Each sentence is a space-separated string of dictionary words.
+    
+    Time: O(n² × output_size)
+    Space: O(n × output_size)
+    """
+    word_set = set(word_dict)
+    n = len(s)
+    
+    dp = [[] for _ in range(n + 1)]
+    dp[0] = [""]  # Empty sentence for empty string
+    
+    for i in range(1, n + 1):
+        for j in range(i):
+            word = s[j:i]
+            if word in word_set and dp[j]:
+                for sentence in dp[j]:
+                    dp[i].append((sentence + " " + word).strip())
+    
+    return dp[n]
+```
+
+### Template 5: Word Break with Length Optimization
+
+```python
+def word_break_optimized(s: str, word_dict: list[str]) -> bool:
+    """
+    Optimized word break using word length pre-processing.
+    Only checks substrings of lengths present in dictionary.
+    
+    Time: O(n × L × avg_lookup) where L = number of unique lengths
+    Space: O(n + k)
+    """
+    word_set = set(word_dict)
+    word_lengths = {len(word) for word in word_dict}
+    n = len(s)
+    
+    dp = [False] * (n + 1)
+    dp[0] = True
+    
+    for i in range(1, n + 1):
+        for length in word_lengths:
+            if i >= length and dp[i - length]:
+                if s[i - length:i] in word_set:
+                    dp[i] = True
+                    break
+    
+    return dp[n]
+```
+
+### Template 6: Concatenated Words Detection
+
+```python
+def find_concatenated_words(words: list[str]) -> list[str]:
+    """
+    Find all words that can be formed by concatenating other words in the list.
+    
+    Time: O(n × L²) where n = number of words, L = average length
+    Space: O(n × L)
+    """
+    word_set = set(words)
+    result = []
+    
+    def can_form(word: str) -> bool:
+        """Check if word can be formed by concatenating other words."""
+        n = len(word)
+        dp = [False] * (n + 1)
+        dp[0] = True
+        
+        for i in range(1, n + 1):
+            for j in range(i):
+                if dp[j] and word[j:i] in word_set and word[j:i] != word:
+                    dp[i] = True
+                    break
+        
+        return dp[n]
+    
+    # Sort by length to ensure shorter words are processed first
+    for word in sorted(words, key=len):
+        if can_form(word):
+            result.append(word)
+        # Don't add to word_set until after checking
+    
+    return result
+```
+
 ---
 
 ## When to Use
@@ -24,7 +511,7 @@ Use the Word Break algorithm when you need to solve problems involving:
 | Approach | Time Complexity | Space Complexity | Best Use Case |
 |----------|-----------------|------------------|---------------|
 | **DP (Bottom-up)** | O(n² × m) | O(n) | Most cases, simple implementation |
-| **DP with Trie** | O(n²) avg, O(n × m) best | O(n + m × | Dictionary-heavy, long words |
+| **DP with Trie** | O(n²) avg, O(n × m) best | O(n + m) | Dictionary-heavy, long words |
 | **BFS/DFS** | O(n²) | O(n) | Finding all segmentations |
 | **Memoization** | O(n²) | O(n) | Recursive, top-down approach |
 
@@ -102,831 +589,6 @@ dp[8] = True (s[4:8] = "code" is in dict AND dp[4]=True)
 
 ---
 
-## Algorithm Steps
-
-### Step-by-Step Approach
-
-1. **Convert Dictionary**: Transform the word list into a Hash Set for O(1) lookups
-   
-2. **Initialize DP Array**: Create a boolean array `dp` of size `n+1`, where `n` is the string length. Set `dp[0] = True`
-
-3. **Iterate Through Positions**: For each position `i` from 1 to n:
-   - For each position `j` from 0 to i-1:
-     - If `dp[j]` is True AND `s[j:i]` exists in the word set:
-       - Set `dp[i] = True`
-       - Break (early termination)
-
-4. **Return Result**: Return `dp[n]`
-
-### Pseudocode
-
-```
-function wordBreak(s, wordDict):
-    wordSet = set(wordDict)
-    n = length(s)
-    dp = array of (n+1) false values
-    dp[0] = true
-    
-    for i from 1 to n:
-        for j from 0 to i-1:
-            if dp[j] AND s[j:i] in wordSet:
-                dp[i] = true
-                break
-    
-    return dp[n]
-```
-
----
-
-## Implementation
-
-### Template Code (Word Break)
-
-````carousel
-```python
-from typing import List, Set, Optional
-
-
-def word_break(s: str, word_dict: List[str]) -> bool:
-    """
-    Determine if a string can be segmented into dictionary words.
-    
-    Args:
-        s: String to segment
-        word_dict: List of words (dictionary)
-    
-    Returns:
-        True if s can be segmented into words from word_dict
-    
-    Time: O(n² × m) where n = len(s), m = max word length
-    Space: O(n + k) where k = total characters in dictionary
-    """
-    # Convert to set for O(1) lookup
-    word_set: Set[str] = set(word_dict)
-    n = len(s)
-    
-    # dp[i] = True if s[0:i] can be segmented into dictionary words
-    dp: List[bool] = [False] * (n + 1)
-    dp[0] = True  # Empty string can always be segmented
-    
-    for i in range(1, n + 1):
-        for j in range(i):
-            # If we can segment up to position j AND s[j:i] is a word
-            if dp[j] and s[j:i] in word_set:
-                dp[i] = True
-                break  # Early termination - no need to check more j values
-    
-    return dp[n]
-
-
-def word_break_bfs(s: str, word_dict: List[str]) -> bool:
-    """
-    BFS approach - useful when we need path information.
-    
-    Time: O(n²)
-    Space: O(n)
-    """
-    word_set: Set[str] = set(word_dict)
-    n = len(s)
-    
-    # visited[i] = whether we've explored starting from position i
-    visited: List[bool] = [False] * (n + 1)
-    queue: List[int] = [0]
-    
-    while queue:
-        start = queue.pop(0)
-        
-        if start == n:
-            return True
-        
-        if visited[start]:
-            continue
-        
-        visited[start] = True
-        
-        for end in range(start + 1, n + 1):
-            word = s[start:end]
-            if word in word_set:
-                queue.append(end)
-    
-    return False
-
-
-def word_break_all(s: str, word_dict: List[str]) -> List[List[str]]:
-    """
-    Return ALL possible word segmentations.
-    
-    Time: O(n² × output_size)
-    Space: O(n × output_size)
-    """
-    word_set: Set[str] = set(word_dict)
-    n = len(s)
-    
-    # dp[i] = list of all ways to segment s[0:i]
-    dp: List[List[List[str]]] = [[] for _ in range(n + 1)]
-    dp[0] = [[]]  # One way to segment empty string: no words
-    
-    for i in range(1, n + 1):
-        for j in range(i):
-            word = s[j:i]
-            if dp[j] and word in word_set:
-                for partial in dp[j]:
-                    dp[i].append(partial + [word])
-    
-    return dp[n]
-
-
-def word_break_min_words(s: str, word_dict: List[str]) -> int:
-    """
-    Find minimum number of words needed to segment the string.
-    
-    Returns:
-        Minimum number of words, or -1 if not possible
-    
-    Time: O(n²)
-    Space: O(n)
-    """
-    word_set: Set[str] = set(word_dict)
-    n = len(s)
-    
-    # dp[i] = minimum words to segment s[0:i], or infinity if not possible
-    dp: List[int] = [float('inf')] * (n + 1)
-    dp[0] = 0
-    
-    for i in range(1, n + 1):
-        for j in range(i):
-            word = s[j:i]
-            if dp[j] != float('inf') and word in word_set:
-                dp[i] = min(dp[i], dp[j] + 1)
-    
-    return dp[n] if dp[n] != float('inf') else -1
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    # Test cases
-    test_cases = [
-        ("leetcode", ["leet", "code"]),
-        ("applepenapple", ["apple", "pen"]),
-        ("catsandog", ["cats", "dog", "sand", "and", "cat"]),
-        ("a", ["a"]),
-        ("aaaaaaa", ["aaaa", "aaa"]),
-        ("dogs", ["dog", "dogs", "s"]),
-    ]
-    
-    print("Word Break Results:")
-    print("-" * 60)
-    
-    for s, word_dict in test_cases:
-        result = word_break(s, word_dict)
-        print(f"s = \"{s}\"")
-        print(f"word_dict = {word_dict}")
-        print(f"Result: {result}")
-        print()
-    
-    # Test all segmentations
-    print("\nAll Segmentations for 'catsandcat':")
-    print("-" * 60)
-    s = "catsandcat"
-    word_dict = ["cats", "cat", "and", "sand"]
-    all_segmentations = word_break_all(s, word_dict)
-    print(f"s = \"{s}\"")
-    print(f"word_dict = {word_dict}")
-    print(f"All segmentations: {all_segmentations}")
-    
-    # Test minimum words
-    print("\nMinimum Words Test:")
-    print("-" * 60)
-    s = "applepenapple"
-    word_dict = ["apple", "pen"]
-    min_words = word_break_min_words(s, word_dict)
-    print(f"s = \"{s}\"")
-    print(f"word_dict = {word_dict}")
-    print(f"Minimum words: {min_words}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <string>
-#include <unordered_set>
-#include <queue>
-using namespace std;
-
-/**
- * Word Break - Dynamic Programming Solution
- * 
- * Time Complexity: O(n² × m) where n = string length, m = max word length
- * Space Complexity: O(n + k) where k = total characters in dictionary
- */
-class WordBreak {
-public:
-    /**
-     * Determine if string can be segmented into dictionary words.
-     */
-    static bool wordBreak(string s, vector<string> wordDict) {
-        unordered_set<string> wordSet(wordDict.begin(), wordDict.end());
-        int n = s.length();
-        
-        // dp[i] = true if s[0:i] can be segmented
-        vector<bool> dp(n + 1, false);
-        dp[0] = true;
-        
-        for (int i = 1; i <= n; i++) {
-            for (int j = 0; j < i; j++) {
-                if (dp[j]) {
-                    string word = s.substr(j, i - j);
-                    if (wordSet.find(word) != wordSet.end()) {
-                        dp[i] = true;
-                        break;  // Early termination
-                    }
-                }
-            }
-        }
-        
-        return dp[n];
-    }
-    
-    /**
-     * BFS approach - returns true if segmentation is possible
-     */
-    static bool wordBreakBFS(string s, vector<string> wordDict) {
-        unordered_set<string> wordSet(wordDict.begin(), wordDict.end());
-        int n = s.length();
-        
-        vector<bool> visited(n + 1, false);
-        queue<int> q;
-        q.push(0);
-        
-        while (!q.empty()) {
-            int start = q.front();
-            q.pop();
-            
-            if (start == n) return true;
-            if (visited[start]) continue;
-            visited[start] = true;
-            
-            for (int end = start + 1; end <= n; end++) {
-                string word = s.substr(start, end - start);
-                if (wordSet.find(word) != wordSet.end()) {
-                    q.push(end);
-                }
-            }
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Return minimum number of words needed
-     */
-    static int minWords(string s, vector<string> wordDict) {
-        unordered_set<string> wordSet(wordDict.begin(), wordDict.end());
-        int n = s.length();
-        
-        const int INF = n + 1;
-        vector<int> dp(n + 1, INF);
-        dp[0] = 0;
-        
-        for (int i = 1; i <= n; i++) {
-            for (int j = 0; j < i; j++) {
-                string word = s.substr(j, i - j);
-                if (dp[j] != INF && wordSet.find(word) != wordSet.end()) {
-                    dp[i] = min(dp[i], dp[j] + 1);
-                }
-            }
-        }
-        
-        return dp[n] == INF ? -1 : dp[n];
-    }
-};
-
-int main() {
-    // Test cases
-    vector<pair<string, vector<string>>> testCases = {
-        {"leetcode", {"leet", "code"}},
-        {"applepenapple", {"apple", "pen"}},
-        {"catsandog", {"cats", "dog", "sand", "and", "cat"}},
-        {"a", {"a"}},
-    };
-    
-    cout << "Word Break Results:" << endl;
-    cout << "--------------------" << endl;
-    
-    for (const auto& test : testCases) {
-        string s = test.first;
-        vector<string> dict = test.second;
-        
-        bool result = WordBreak::wordBreak(s, dict);
-        
-        cout << "s = \"" << s << "\"" << endl;
-        cout << "word_dict = [";
-        for (size_t i = 0; i < dict.size(); i++) {
-            cout << "\"" << dict[i] << "\"";
-            if (i < dict.size() - 1) cout << ", ";
-        }
-        cout << "]" << endl;
-        cout << "Result: " << (result ? "true" : "false") << endl;
-        cout << endl;
-    }
-    
-    // Test minimum words
-    cout << "Minimum Words Test:" << endl;
-    cout << "--------------------" << endl;
-    string s = "applepenapple";
-    vector<string> dict = {"apple", "pen"};
-    int minWords = WordBreak::minWords(s, dict);
-    cout << "s = \"" << s << "\"" << endl;
-    cout << "Minimum words: " << minWords << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-/**
- * Word Break - Dynamic Programming Solution
- * 
- * Time Complexity: O(n² × m) where n = string length, m = max word length
- * Space Complexity: O(n + k) where k = total characters in dictionary
- */
-public class WordBreak {
-    
-    /**
-     * Determine if string can be segmented into dictionary words.
-     */
-    public static boolean wordBreak(String s, List<String> wordDict) {
-        Set<String> wordSet = new HashSet<>(wordDict);
-        int n = s.length();
-        
-        // dp[i] = true if s[0:i] can be segmented
-        boolean[] dp = new boolean[n + 1];
-        dp[0] = true;
-        
-        for (int i = 1; i <= n; i++) {
-            for (int j = 0; j < i; j++) {
-                if (dp[j]) {
-                    String word = s.substring(j, i);
-                    if (wordSet.contains(word)) {
-                        dp[i] = true;
-                        break;  // Early termination
-                    }
-                }
-            }
-        }
-        
-        return dp[n];
-    }
-    
-    /**
-     * BFS approach
-     */
-    public static boolean wordBreakBFS(String s, List<String> wordDict) {
-        Set<String> wordSet = new HashSet<>(wordDict);
-        int n = s.length();
-        
-        boolean[] visited = new boolean[n + 1];
-        Queue<Integer> queue = new LinkedList<>();
-        queue.offer(0);
-        
-        while (!queue.isEmpty()) {
-            int start = queue.poll();
-            
-            if (start == n) return true;
-            if (visited[start]) continue;
-            visited[start] = true;
-            
-            for (int end = start + 1; end <= n; end++) {
-                String word = s.substring(start, end);
-                if (wordSet.contains(word)) {
-                    queue.offer(end);
-                }
-            }
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Return minimum number of words needed
-     */
-    public static int minWords(String s, List<String> wordDict) {
-        Set<String> wordSet = new HashSet<>(wordDict);
-        int n = s.length();
-        
-        int[] dp = new int[n + 1];
-        Arrays.fill(dp, Integer.MAX_VALUE);
-        dp[0] = 0;
-        
-        for (int i = 1; i <= n; i++) {
-            for (int j = 0; j < i; j++) {
-                String word = s.substring(j, i);
-                if (dp[j] != Integer.MAX_VALUE && wordSet.contains(word)) {
-                    dp[i] = Math.min(dp[i], dp[j] + 1);
-                }
-            }
-        }
-        
-        return dp[n] == Integer.MAX_VALUE ? -1 : dp[n];
-    }
-    
-    /**
-     * Return all possible segmentations
-     */
-    public static List<List<String>> wordBreakAll(String s, List<String> wordDict) {
-        Set<String> wordSet = new HashSet<>(wordDict);
-        int n = s.length();
-        
-        List<List<List<String>>> dp = new ArrayList<>(n + 1);
-        for (int i = 0; i <= n; i++) {
-            dp.add(new ArrayList<>());
-        }
-        dp.get(0).add(new ArrayList<>());
-        
-        for (int i = 1; i <= n; i++) {
-            for (int j = 0; j < i; j++) {
-                String word = s.substring(j, i);
-                if (!dp.get(j).isEmpty() && wordSet.contains(word)) {
-                    for (List<String> partial : dp.get(j)) {
-                        List<String> newList = new ArrayList<>(partial);
-                        newList.add(word);
-                        dp.get(i).add(newList);
-                    }
-                }
-            }
-        }
-        
-        return dp.get(n);
-    }
-    
-    public static void main(String[] args) {
-        // Test cases
-        String[][] testCases = {
-            {"leetcode", "leet", "code"},
-            {"applepenapple", "apple", "pen"},
-            {"catsandog", "cats", "dog", "sand", "and", "cat"},
-            {"a", "a"},
-        };
-        
-        System.out.println("Word Break Results:");
-        System.out.println("--------------------");
-        
-        for (String[] test : testCases) {
-            String s = test[0];
-            List<String> dict = Arrays.asList(Arrays.copyOfRange(test, 1, test.length));
-            
-            boolean result = wordBreak(s, dict);
-            
-            System.out.println("s = \"" + s + "\"");
-            System.out.println("word_dict = " + dict);
-            System.out.println("Result: " + result);
-            System.out.println();
-        }
-        
-        // Test all segmentations
-        System.out.println("All Segmentations:");
-        System.out.println("--------------------");
-        String str = "catsandcat";
-        List<String> dict = Arrays.asList("cats", "cat", "and", "sand");
-        List<List<String>> all = wordBreakAll(str, dict);
-        System.out.println("s = \"" + str + "\"");
-        System.out.println("word_dict = " + dict);
-        System.out.println("All segmentations: " + all);
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Word Break - Dynamic Programming Solution
- * 
- * Time Complexity: O(n² × m) where n = string length, m = max word length
- * Space Complexity: O(n + k) where k = total characters in dictionary
- */
-
-/**
- * Determine if string can be segmented into dictionary words.
- * @param {string} s - String to segment
- * @param {string[]} wordDict - Array of dictionary words
- * @returns {boolean} - True if s can be segmented
- */
-function wordBreak(s, wordDict) {
-    const wordSet = new Set(wordDict);
-    const n = s.length;
-    
-    // dp[i] = true if s[0:i] can be segmented
-    const dp = new Array(n + 1).fill(false);
-    dp[0] = true;
-    
-    for (let i = 1; i <= n; i++) {
-        for (let j = 0; j < i; j++) {
-            if (dp[j] && wordSet.has(s.substring(j, i))) {
-                dp[i] = true;
-                break;  // Early termination
-            }
-        }
-    }
-    
-    return dp[n];
-}
-
-/**
- * BFS approach
- * @param {string} s - String to segment
- * @param {string[]} wordDict - Array of dictionary words
- * @returns {boolean} - True if s can be segmented
- */
-function wordBreakBFS(s, wordDict) {
-    const wordSet = new Set(wordDict);
-    const n = s.length;
-    
-    const visited = new Array(n + 1).fill(false);
-    const queue = [0];
-    
-    while (queue.length > 0) {
-        const start = queue.shift();
-        
-        if (start === n) return true;
-        if (visited[start]) continue;
-        
-        visited[start] = true;
-        
-        for (let end = start + 1; end <= n; end++) {
-            const word = s.substring(start, end);
-            if (wordSet.has(word)) {
-                queue.push(end);
-            }
-        }
-    }
-    
-    return false;
-}
-
-/**
- * Return minimum number of words needed
- * @param {string} s - String to segment
- * @param {string[]} wordDict - Array of dictionary words
- * @returns {number} - Minimum words or -1 if not possible
- */
-function minWords(s, wordDict) {
-    const wordSet = new Set(wordDict);
-    const n = s.length;
-    
-    const dp = new Array(n + 1).fill(Infinity);
-    dp[0] = 0;
-    
-    for (let i = 1; i <= n; i++) {
-        for (let j = 0; j < i; j++) {
-            const word = s.substring(j, i);
-            if (dp[j] !== Infinity && wordSet.has(word)) {
-                dp[i] = Math.min(dp[i], dp[j] + 1);
-            }
-        }
-    }
-    
-    return dp[n] === Infinity ? -1 : dp[n];
-}
-
-/**
- * Return all possible segmentations
- * @param {string} s - String to segment
- * @param {string[]} wordDict - Array of dictionary words
- * @returns {string[][]} - All possible segmentations
- */
-function wordBreakAll(s, wordDict) {
-    const wordSet = new Set(wordDict);
-    const n = s.length;
-    
-    const dp = Array.from({ length: n + 1 }, () => []);
-    dp[0] = [[]];
-    
-    for (let i = 1; i <= n; i++) {
-        for (let j = 0; j < i; j++) {
-            const word = s.substring(j, i);
-            if (dp[j].length > 0 && wordSet.has(word)) {
-                for (const partial of dp[j]) {
-                    dp[i].push([...partial, word]);
-                }
-            }
-        }
-    }
-    
-    return dp[n];
-}
-
-// Example usage and demonstration
-const testCases = [
-    { s: "leetcode", wordDict: ["leet", "code"] },
-    { s: "applepenapple", wordDict: ["apple", "pen"] },
-    { s: "catsandog", wordDict: ["cats", "dog", "sand", "and", "cat"] },
-    { s: "a", wordDict: ["a"] },
-];
-
-console.log("Word Break Results:");
-console.log("--------------------");
-
-for (const { s, wordDict } of testCases) {
-    const result = wordBreak(s, wordDict);
-    console.log(`s = "${s}"`);
-    console.log(`word_dict = [${wordDict.map(w => `"${w}"`).join(", ")}]`);
-    console.log(`Result: ${result}`);
-    console.log();
-}
-
-// Test all segmentations
-console.log("All Segmentations:");
-console.log("--------------------");
-const s = "catsandcat";
-const wordDict = ["cats", "cat", "and", "sand"];
-const allSegmentations = wordBreakAll(s, wordDict);
-console.log(`s = "${s}"`);
-console.log(`word_dict = [${wordDict.map(w => `"${w}"`).join(", ")}]`);
-console.log(`All segmentations: ${JSON.stringify(allSegmentations)}`);
-
-// Test minimum words
-console.log("\nMinimum Words Test:");
-console.log("--------------------");
-const minWordsResult = minWords("applepenapple", ["apple", "pen"]);
-console.log(`s = "applepenapple"`);
-console.log(`Minimum words: ${minWordsResult}`);
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|-----------------|-------------|
-| **Basic DP** | O(n² × m) | n = string length, m = max word length for substring extraction |
-| **With Set Lookup** | O(n²) | Set provides O(1) word lookup |
-| **BFS/DFS** | O(n²) | Same complexity but different approach |
-| **All Segmentations** | O(n² × output) | Depends on number of valid segmentations |
-| **Min Words** | O(n²) | Similar to basic DP |
-
-### Detailed Breakdown
-
-- **Nested loops**: For each position i (1 to n), we check all j (0 to i-1)
-- **Substring extraction**: O(m) where m is the substring length
-- **Set lookup**: O(1) average case with hash set
-- **Total comparisons**: n × (n-1) / 2 = O(n²)
-
----
-
-## Space Complexity Analysis
-
-| Data Structure | Space Complexity | Description |
-|----------------|------------------|-------------|
-| **DP Array** | O(n) | Boolean array of size n+1 |
-| **Word Set** | O(k) | k = total characters in dictionary |
-| **BFS Queue** | O(n) | Maximum queue size |
-| **All Segmentations** | O(n × output) | Stores all possible results |
-
----
-
-## Common Variations
-
-### 1. Word Break II - Return All Segmentations
-
-Return all possible ways to segment the string into dictionary words.
-
-````carousel
-```python
-def word_break_ii(s: str, word_dict: List[str]) -> List[str]:
-    """Return all sentences formed by segmenting the string."""
-    word_set = set(word_dict)
-    n = len(s)
-    
-    dp = [[] for _ in range(n + 1)]
-    dp[0] = [""]
-    
-    for i in range(1, n + 1):
-        for j in range(i):
-            word = s[j:i]
-            if word in word_set and dp[j]:
-                for sentence in dp[j]:
-                    dp[i].append((sentence + " " + word).strip())
-    
-    return dp[n]
-```
-````
-
-### 2. Word Break with Trie
-
-Use a Trie for more efficient word lookups, especially with large dictionaries.
-
-````carousel
-```python
-class TrieNode:
-    def __init__(self):
-        self.children = {}
-        self.is_word = False
-
-class Trie:
-    def __init__(self):
-        self.root = TrieNode()
-    
-    def insert(self, word):
-        node = self.root
-        for char in word:
-            if char not in node.children:
-                node.children[char] = TrieNode()
-            node = node.children[char]
-        node.is_word = True
-    
-    def starts_with(self, prefix):
-        node = self.root
-        for char in prefix:
-            if char not in node.children:
-                return None
-            node = node.children[char]
-        return node
-    
-    def is_word(self, word):
-        node = self.starts_with(word)
-        return node is not None and node.is_word
-
-def word_break_trie(s: str, word_dict: List[str]) -> bool:
-    """Word break using Trie for efficient prefix matching."""
-    trie = Trie()
-    for word in word_dict:
-        trie.insert(word)
-    
-    n = len(s)
-    dp = [False] * (n + 1)
-    dp[0] = True
-    
-    for i in range(1, n + 1):
-        node = trie.root
-        for j in range(i - 1, -1, -1):
-            char = s[j]
-            if char not in node.children:
-                break
-            node = node.children[char]
-            if node.is_word and dp[j]:
-                dp[i] = True
-                break
-    
-    return dp[n]
-```
-````
-
-### 3. Minimum Words Break
-
-Find the minimum number of words needed to break the string.
-
-````carousel
-```python
-def min_word_break(s: str, word_dict: List[str]) -> int:
-    """Find minimum number of words to break the string."""
-    word_set = set(word_dict)
-    n = len(s)
-    
-    dp = [float('inf')] * (n + 1)
-    dp[0] = 0
-    
-    for i in range(1, n + 1):
-        for j in range(i):
-            if s[j:i] in word_set and dp[j] != float('inf'):
-                dp[i] = min(dp[i], dp[j] + 1)
-    
-    return dp[n] if dp[n] != float('inf') else -1
-```
-````
-
-### 4. Word Break with Word Length Constraints
-
-Handle variations where word lengths have constraints.
-
-````carousel
-```python
-def word_break_with_constraints(s: str, word_dict: List[str], 
-                                 min_len: int, max_len: int) -> bool:
-    """Word break with word length constraints."""
-    word_set = set(word_dict)
-    n = len(s)
-    dp = [False] * (n + 1)
-    dp[0] = True
-    
-    for i in range(1, n + 1):
-        for j in range(max(0, i - max_len), i):
-            if i - j < min_len:
-                continue
-            if dp[j] and s[j:i] in word_set:
-                dp[i] = True
-                break
-    
-    return dp[n]
-```
-````
-
----
-
 ## Practice Problems
 
 ### Problem 1: Word Break (Classic)
@@ -968,7 +630,7 @@ def word_break_with_constraints(s: str, word_dict: List[str],
 
 ---
 
-### Problem 4: Maximum Number of Words
+### Problem 4: Palindrome Partitioning IV
 
 **Problem:** [LeetCode 1745 - Palindrome Partitioning IV](https://leetcode.com/problems/palindrome-partitioning-iv/)
 
@@ -977,18 +639,20 @@ def word_break_with_constraints(s: str, word_dict: List[str],
 **How to Apply Word Break:**
 - Combine word break logic with palindrome checking
 - Use DP to track both valid segmentation and count
+- Precompute palindrome table for O(1) lookups
 
 ---
 
-### Problem 5: Word Break III
+### Problem 5: Minimum Number of Operations to Make Array Equal
 
-**Problem:** [LeetCode 1775 - Minimum Number of Operations to Make Array Equal](https://leetcode.com/problems/minimum-number-of-operations-to-make-array-equal/) (similar pattern)
+**Problem:** [LeetCode 1775 - Minimum Number of Operations to Make Array Equal](https://leetcode.com/problems/minimum-number-of-operations-to-make-array-equal/)
 
-**Description:** Similar word break pattern applied to array/sequence problems where you need to partition based on valid segments.
+**Description:** You are given two arrays of integers `nums1` and `nums2`, possibly of different lengths. The values in the arrays are between 1 and 6, inclusive. In one operation, you can change any integer's value in any of the arrays to any value between 1 and 6, inclusive. Return the minimum number of operations required to make the sum of values in `nums1` equal to the sum of values in `nums2`.
 
 **How to Apply Word Break:**
-- Adapt the DP approach to work with arrays instead of strings
-- Define valid segments based on problem constraints
+- Adapt the DP approach to work with difference tracking
+- Similar state building: can we achieve a certain difference?
+- Use the minimum operations variant pattern
 
 ---
 
@@ -1018,6 +682,8 @@ def word_break_with_constraints(s: str, word_dict: List[str],
 - **Trie-based**: Use Trie for efficient prefix matching
 - However, DP is often the most intuitive and commonly used approach
 
+---
+
 ### Q2: How do you handle very large dictionaries?
 
 **Answer:** For large dictionaries:
@@ -1026,12 +692,16 @@ def word_break_with_constraints(s: str, word_dict: List[str],
 - **Hash-based**: Use hash set for O(1) lookups
 - **Filter irrelevant words**: Remove words longer than the input string
 
+---
+
 ### Q3: What is the time complexity if dictionary contains very long words?
 
 **Answer:** With long words in dictionary:
 - Substring extraction becomes more expensive: O(m) where m is word length
 - Total: O(n² × m) where m is max word length
 - Optimization: Pre-compute substring hashes, use rolling hash for O(1) comparison
+
+---
 
 ### Q4: How does Word Break relate to other DP problems?
 
@@ -1040,6 +710,8 @@ def word_break_with_constraints(s: str, word_dict: List[str],
 - **Coin Change**: Partition problem variant
 - **Palindrome Partitioning**: Uses similar breaking point approach
 - **Climbing Stairs**: Basic 1D DP pattern
+
+---
 
 ### Q5: Can Word Break be solved in O(n × max_word_length)?
 
@@ -1061,7 +733,7 @@ The Word Break problem is a fundamental dynamic programming problem with many pr
 - **Variations**: Multiple extensions including all segmentations, minimum words
 - **Optimization**: Use Trie or length-based pruning for large dictionaries
 
-When to use:
+### When to use:
 - ✅ Text segmentation and word validation
 - ✅ Dictionary-based string processing
 - ✅ Autocomplete and spell checking
@@ -1069,13 +741,3 @@ When to use:
 - ❌ When order doesn't matter (use combination problems instead)
 
 This algorithm is essential for competitive programming and technical interviews, particularly in companies working with text processing, search engines, or language applications.
-
----
-
-## Related Algorithms
-
-- [House Robber](./house-robber.md) - Similar DP pattern
-- [Climbing Stairs](./climbing-stairs.md) - Basic 1D DP
-- [Coin Change](./coin-change.md) - Partition-based DP
-- [Palindrome Partitioning](./palindrome-partitioning.md) - Similar breaking approach
-- [Trie](./trie.md) - Efficient prefix matching data structure

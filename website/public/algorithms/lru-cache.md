@@ -5,13 +5,717 @@ Advanced
 
 ## Description
 
-A Least Recently Used (LRU) Cache is a data structure that provides O(1) time complexity for both retrieval and insertion operations while maintaining a fixed capacity. When the cache reaches its capacity, it evicts the least recently accessed item to make room for new entries. This algorithm is fundamental in system design and is used in real-world caching systems like Redis, Memcached, operating system page caches, and browser caches.
+The LRU (Least Recently Used) Cache is a data structure that provides O(1) time complexity for both retrieval and insertion operations while maintaining a fixed capacity. When the cache reaches its capacity, it evicts the least recently accessed item to make room for new entries. This algorithm is fundamental in system design and is used in real-world caching systems like Redis, Memcached, operating system page caches, and browser caches.
+
+This pattern combines two fundamental data structures - a hash map for O(1) lookup and a doubly linked list for O(1) order maintenance. Understanding this algorithm is essential for technical interviews at major tech companies and for designing performant systems.
+
+---
+
+## Concepts
+
+The LRU Cache is built on several fundamental concepts that enable its efficient operations.
+
+### 1. Recency Tracking
+
+The cache must track access order to identify which item is least recently used:
+
+| Tracking Method | Time Complexity | Space Complexity | Implementation |
+|-----------------|-----------------|------------------|----------------|
+| **Linked List** | O(1) move | O(n) | Doubly linked with head/tail |
+| **Timestamp** | O(1) update | O(n) | Unix timestamp per entry |
+| **Counter** | O(1) update | O(n) | Incrementing access counter |
+| **Array** | O(n) shift | O(n) | Linear scan for LRU |
+
+### 2. Fast Lookup
+
+Hash map provides O(1) access to any cached item:
+
+- **Key → Node Reference**: Direct pointer to linked list node
+- **Eliminates Search**: No traversal needed to find items
+- **Critical Integration**: Enables O(1) move-to-front operation
+
+### 3. Eviction Policy
+
+When cache is full and new item arrives:
+
+```
+1. Check if key exists → Update value, move to front
+2. If new key → Create node, add to front
+3. If capacity exceeded → Remove tail node (LRU)
+4. Return value or -1 for cache miss
+```
+
+### 4. Memory Management
+
+Considerations for production systems:
+
+| Aspect | Strategy | Trade-off |
+|--------|----------|-----------|
+| **Fixed Capacity** | Hard limit at initialization | Predictable memory |
+| **Dynamic Growth** | Expand under load | Risk of OOM |
+| **TTL Support** | Time-based expiration | Additional complexity |
+| **Lazy Eviction** | Clean on access | Delayed cleanup |
+
+---
+
+## Frameworks
+
+Structured approaches for implementing LRU Cache.
+
+### Framework 1: Hash Map + Doubly Linked List
+
+```
+┌─────────────────────────────────────────────────────┐
+│  LRU CACHE FRAMEWORK (Hash Map + Linked List)       │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Data Structures:                                   │
+│  ┌─────────────┐      ┌─────────────────────────┐   │
+│  │ Hash Map    │      │ Doubly Linked List      │   │
+│  │ Key→Node    │      │ Head ↔ ... ↔ Tail       │   │
+│  └─────────────┘      └─────────────────────────┘   │
+│                                                     │
+│  Operations:                                        │
+│  1. GET(key):                                       │
+│     - Lookup in hash map → O(1)                     │
+│     - Move node to front → O(1)                     │
+│     - Return value                                  │
+│                                                     │
+│  2. PUT(key, value):                                │
+│     - If exists: update, move to front → O(1)       │
+│     - If new: create node, add to front → O(1)      │
+│     - If full: remove tail, evict from map → O(1)   │
+│                                                     │
+│  Helper Methods:                                    │
+│  - _remove(node): Unlink from current position      │
+│  - _add_to_front(node): Insert after head           │
+│  - _move_to_front(node): Remove + Add to front     │
+└─────────────────────────────────────────────────────┘
+```
+
+### Framework 2: Ordered Dictionary (Python)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  LRU CACHE FRAMEWORK (OrderedDict)                  │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Python's collections.OrderedDict:                  │
+│  - Maintains insertion order                        │
+│  - move_to_end(key) for marking recent            │
+│  - popitem(last=False) for LRU eviction            │
+│                                                     │
+│  Operations:                                        │
+│  1. GET(key):                                       │
+│     - if key in cache: cache.move_to_end(key)       │
+│     - return cache.get(key, -1)                     │
+│                                                     │
+│  2. PUT(key, value):                                │
+│     - if key in cache: cache.move_to_end(key)       │
+│     - cache[key] = value                            │
+│     - if len(cache) > capacity:                     │
+│         cache.popitem(last=False)  # Remove LRU     │
+│                                                     │
+│  Trade-offs:                                        │
+│  + Simpler implementation                           │
+│  + No custom node class needed                      │
+│  - Less control over internals                      │
+│  - Language-specific (Python only)                  │
+└─────────────────────────────────────────────────────┘
+```
+
+### Framework 3: LFU Extension Pattern
+
+```
+┌─────────────────────────────────────────────────────┐
+│  LFU CACHE FRAMEWORK (Frequency-Based)              │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Data Structures:                                   │
+│  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  │
+│  │ Key→Value   │  │ Key→Freq    │  │ Freq→Keys  │  │
+│  │ (Hash Map)  │  │ (Hash Map)  │  │ (Ordered)  │  │
+│  └─────────────┘  └─────────────┘  └────────────┘  │
+│                                                     │
+│  Operations:                                        │
+│  1. GET(key):                                       │
+│     - Increment frequency                           │
+│     - Move to higher frequency bucket               │
+│     - Update min_freq if needed                     │
+│                                                     │
+│  2. PUT(key, value):                                │
+│     - If full: evict from min_freq bucket           │
+│     - Add new key with frequency = 1                │
+│     - Set min_freq = 1                              │
+│                                                     │
+│  Eviction: Remove least frequent, then oldest      │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## Forms
+
+Different manifestations of the LRU Cache pattern.
+
+### Form 1: Standard LRU Cache
+
+Fixed capacity with recency-based eviction.
+
+| Component | Implementation | Purpose |
+|-----------|----------------|---------|
+| **Hash Map** | dict / unordered_map | O(1) key lookup |
+| **Linked List** | Doubly linked | O(1) move/remove |
+| **Dummy Nodes** | Head and Tail sentinels | Simplify edge cases |
+| **Node Storage** | Key, Value, Prev, Next | Complete cache entry |
+
+### Form 2: LRU with TTL (Time To Live)
+
+Items expire after a specified time regardless of access.
+
+| Feature | Implementation | Consideration |
+|---------|----------------|---------------|
+| **Expiry Tracking** | Timestamp per node | Unix time or datetime |
+| **Lazy Expiration** | Check on access | Simple but stale data possible |
+| **Active Cleanup** | Background thread | More complex, prevents staleness |
+| **TTL per Item** | Configurable duration | Default + custom per key |
+
+### Form 3: Size-Based LRU
+
+Eviction based on total memory size, not item count.
+
+```
+Traditional LRU:     Size-Based LRU:
+capacity = 3         max_size = 100 bytes
+items = 3            items = variable
+
+[A:10B]              [A:30B]
+[B:20B]              [B:40B]
+[C:30B]              [C:30B] ← total 100B
+
+Add D:25B:           Add D:40B:
+→ Evict A            → Cannot add (would exceed)
+→ Or reject D        → Or evict A+B to fit D
+```
+
+### Form 4: Multi-Level LRU (L1/L2 Cache)
+
+Hierarchical caching with different speeds.
+
+| Level | Speed | Size | Eviction Policy |
+|-------|-------|------|-----------------|
+| **L1 (Hot)** | Fastest (In-Memory) | Small | LRU |
+| **L2 (Warm)** | Medium (Local Disk) | Medium | LRU |
+| **L3 (Cold)** | Slow (Network/DB) | Large | FIFO or LRU |
+
+### Form 5: Distributed LRU
+
+Cache shared across multiple servers.
+
+| Approach | Consistency | Complexity | Use Case |
+|----------|-------------|------------|----------|
+| **Consistent Hashing** | Eventual | Medium | Sharded cache |
+| **Replicated** | Strong | High | Small cluster |
+| **Single Writer** | Strong | Low | Single cache server |
+
+---
+
+## Tactics
+
+Specific techniques and optimizations for LRU Cache.
+
+### Tactic 1: Dummy Head and Tail Pattern
+
+Eliminate null checks with sentinel nodes:
+
+```python
+class DListNode:
+    def __init__(self, key=0, val=0):
+        self.key = key
+        self.val = val
+        self.prev = None
+        self.next = None
+
+class LRUCache:
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        self.cache = {}
+        
+        # Dummy head and tail - never removed
+        self.head = DListNode()
+        self.tail = DListNode()
+        self.head.next = self.tail
+        self.tail.prev = self.head
+```
+
+**Benefits:**
+- No null checks in `_remove()` or `_add_to_front()`
+- `_move_to_front()` always has valid neighbors
+- Simpler, cleaner code with fewer edge cases
+
+### Tactic 2: Move-to-Front Optimization
+
+Combine remove and add operations efficiently:
+
+```python
+def _move_to_front(self, node: DListNode):
+    """Move existing node to front in O(1)."""
+    # Remove from current position
+    prev_node = node.prev
+    next_node = node.next
+    prev_node.next = next_node
+    next_node.prev = prev_node
+    
+    # Add to front
+    node.prev = self.head
+    node.next = self.head.next
+    self.head.next.prev = node
+    self.head.next = node
+```
+
+**Key Points:**
+- 4 pointer updates for removal
+- 4 pointer updates for insertion
+- Total 8 operations, all O(1)
+
+### Tactic 3: Reference Equality Check for XOR Swap Safety
+
+When using XOR swap (if applicable), ensure different memory locations:
+
+```python
+def _remove(self, node: DListNode):
+    """Remove node with safety check (if using XOR swap)."""
+    # Standard approach (always safe):
+    prev_node = node.prev
+    next_node = node.next
+    prev_node.next = next_node
+    next_node.prev = prev_node
+    
+    # XOR swap would fail if prev == next (should never happen with dummy nodes)
+```
+
+### Tactic 4: Capacity Zero Handling
+
+Handle edge case of zero capacity gracefully:
+
+```python
+def put(self, key: int, value: int):
+    """Handle zero capacity as no-op."""
+    if self.capacity <= 0:
+        return
+    
+    # Rest of implementation...
+```
+
+### Tactic 5: Thread Safety with RLock
+
+Make LRU Cache thread-safe for concurrent access:
+
+```python
+from threading import RLock
+
+class ThreadSafeLRUCache:
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        self.cache = {}
+        self.head = DListNode()
+        self.tail = DListNode()
+        self.head.next = self.tail
+        self.tail.prev = self.head
+        self.lock = RLock()
+    
+    def get(self, key: int) -> int:
+        with self.lock:
+            if key not in self.cache:
+                return -1
+            node = self.cache[key]
+            self._move_to_front(node)
+            return node.val
+    
+    def put(self, key: int, value: int):
+        with self.lock:
+            # ... implementation
+```
+
+### Tactic 6: LRU Cache for Function Memoization
+
+Decorator pattern for automatic function result caching:
+
+```python
+from functools import lru_cache
+
+@lru_cache(maxsize=128)
+def fibonacci(n: int) -> int:
+    """LRU cache handles memoization automatically."""
+    if n < 2:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+# Manual implementation for learning:
+class MemoizeLRU:
+    def __init__(self, func, capacity=128):
+        self.func = func
+        self.cache = LRUCache(capacity)
+    
+    def __call__(self, *args):
+        key = str(args)
+        result = self.cache.get(key)
+        if result == -1:
+            result = self.func(*args)
+            self.cache.put(key, result)
+        return result
+```
+
+---
+
+## Python Templates
+
+### Template 1: Complete LRU Cache Implementation
+
+```python
+class DListNode:
+    """Doubly linked list node for LRU Cache."""
+    def __init__(self, key: int = 0, val: int = 0):
+        self.key = key
+        self.val = val
+        self.prev = None
+        self.next = None
+
+
+class LRUCache:
+    """
+    Least Recently Used (LRU) cache implementation.
+    Uses hashmap + doubly linked list for O(1) operations.
+    
+    Time: O(1) for get and put
+    Space: O(capacity)
+    """
+    
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        self.cache = {}  # key -> node
+        
+        # Dummy head and tail for easy operations
+        self.head = DListNode()
+        self.tail = DListNode()
+        self.head.next = self.tail
+        self.tail.prev = self.head
+    
+    def _remove(self, node: DListNode) -> None:
+        """Remove node from linked list."""
+        prev_node = node.prev
+        next_node = node.next
+        prev_node.next = next_node
+        next_node.prev = prev_node
+    
+    def _add_to_front(self, node: DListNode) -> None:
+        """Add node right after head (most recently used)."""
+        node.prev = self.head
+        node.next = self.head.next
+        self.head.next.prev = node
+        self.head.next = node
+    
+    def _move_to_front(self, node: DListNode) -> None:
+        """Move existing node to front."""
+        self._remove(node)
+        self._add_to_front(node)
+    
+    def get(self, key: int) -> int:
+        """Get value by key. Returns -1 if not found."""
+        if key not in self.cache:
+            return -1
+        
+        node = self.cache[key]
+        self._move_to_front(node)
+        return node.val
+    
+    def put(self, key: int, value: int) -> None:
+        """Put key-value pair into cache."""
+        if self.capacity <= 0:
+            return
+        
+        if key in self.cache:
+            node = self.cache[key]
+            node.val = value
+            self._move_to_front(node)
+        else:
+            node = DListNode(key, value)
+            self.cache[key] = node
+            self._add_to_front(node)
+            
+            if len(self.cache) > self.capacity:
+                lru_node = self.tail.prev
+                self._remove(lru_node)
+                del self.cache[lru_node.key]
+```
+
+### Template 2: Simplified OrderedDict LRU
+
+```python
+from collections import OrderedDict
+
+class LRUCacheOrderedDict:
+    """
+    LRU Cache using OrderedDict (Python 3.7+).
+    Simpler but less control over internals.
+    
+    Time: O(1) for get and put
+    Space: O(capacity)
+    """
+    
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        self.cache = OrderedDict()
+    
+    def get(self, key: int) -> int:
+        """Get value by key. Returns -1 if not found."""
+        if key not in self.cache:
+            return -1
+        # Move to end (most recently used)
+        self.cache.move_to_end(key)
+        return self.cache[key]
+    
+    def put(self, key: int, value: int) -> None:
+        """Put key-value pair into cache."""
+        if key in self.cache:
+            self.cache.move_to_end(key)
+        
+        self.cache[key] = value
+        
+        if len(self.cache) > self.capacity:
+            # Remove first item (least recently used)
+            self.cache.popitem(last=False)
+```
+
+### Template 3: LFU Cache Implementation
+
+```python
+from collections import defaultdict, OrderedDict
+
+class LFUCache:
+    """
+    Least Frequently Used (LFU) cache.
+    Evicts least frequently used item when full.
+    
+    Time: O(1) for get and put
+    Space: O(capacity)
+    """
+    
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        self.min_freq = 0
+        self.key_to_val = {}  # key -> value
+        self.key_to_freq = {}  # key -> frequency
+        # freq -> {key: None} (OrderedDict for LRU within same freq)
+        self.freq_to_keys = defaultdict(OrderedDict)
+    
+    def get(self, key: int) -> int:
+        """Get value by key. Returns -1 if not found."""
+        if key not in self.key_to_val:
+            return -1
+        
+        self._increase_freq(key)
+        return self.key_to_val[key]
+    
+    def put(self, key: int, value: int) -> None:
+        """Put key-value pair into cache."""
+        if self.capacity <= 0:
+            return
+        
+        if key in self.key_to_val:
+            self.key_to_val[key] = value
+            self._increase_freq(key)
+            return
+        
+        # Evict if at capacity
+        if len(self.key_to_val) >= self.capacity:
+            self._evict_lfu()
+        
+        # Add new key with frequency 1
+        self.key_to_val[key] = value
+        self.key_to_freq[key] = 1
+        self.freq_to_keys[1][key] = None
+        self.min_freq = 1
+    
+    def _increase_freq(self, key: int) -> None:
+        """Increase frequency of key."""
+        freq = self.key_to_freq[key]
+        self.key_to_freq[key] = freq + 1
+        
+        # Remove from old frequency list
+        del self.freq_to_keys[freq][key]
+        if not self.freq_to_keys[freq] and freq == self.min_freq:
+            self.min_freq += 1
+        
+        # Add to new frequency list
+        self.freq_to_keys[freq + 1][key] = None
+    
+    def _evict_lfu(self) -> None:
+        """Evict least frequently used item."""
+        # Remove oldest key with minimum frequency
+        key, _ = self.freq_to_keys[self.min_freq].popitem(last=False)
+        del self.key_to_val[key]
+        del self.key_to_freq[key]
+```
+
+### Template 4: LRU Cache with TTL Support
+
+```python
+import time
+from typing import Optional
+
+class TTLNode:
+    """Node with time-to-live support."""
+    def __init__(self, key: int, val: int, expiry: float):
+        self.key = key
+        self.val = val
+        self.expiry = expiry
+        self.prev = None
+        self.next = None
+
+
+class TTLRUCache:
+    """LRU Cache with Time-To-Live support."""
+    
+    def __init__(self, capacity: int, default_ttl: int = 60):
+        self.capacity = capacity
+        self.default_ttl = default_ttl  # seconds
+        self.cache = {}
+        self.head = TTLNode(0, 0, 0)
+        self.tail = TTLNode(0, 0, 0)
+        self.head.next = self.tail
+        self.tail.prev = self.head
+    
+    def _remove(self, node: TTLNode) -> None:
+        """Remove node from linked list."""
+        node.prev.next = node.next
+        node.next.prev = node.prev
+    
+    def _add_to_front(self, node: TTLNode) -> None:
+        """Add node to front (most recent)."""
+        node.prev = self.head
+        node.next = self.head.next
+        self.head.next.prev = node
+        self.head.next = node
+    
+    def get(self, key: int) -> int:
+        """Get value, checking expiry first."""
+        if key not in self.cache:
+            return -1
+        
+        node = self.cache[key]
+        if time.time() > node.expiry:
+            # Item expired
+            self._remove(node)
+            del self.cache[key]
+            return -1
+        
+        # Update expiry on access (optional)
+        node.expiry = time.time() + self.default_ttl
+        self._remove(node)
+        self._add_to_front(node)
+        return node.val
+    
+    def put(self, key: int, value: int, ttl: Optional[int] = None) -> None:
+        """Put with optional custom TTL."""
+        ttl = ttl or self.default_ttl
+        expiry = time.time() + ttl
+        
+        if key in self.cache:
+            node = self.cache[key]
+            node.val = value
+            node.expiry = expiry
+            self._remove(node)
+            self._add_to_front(node)
+        else:
+            node = TTLNode(key, value, expiry)
+            self.cache[key] = node
+            self._add_to_front(node)
+            
+            if len(self.cache) > self.capacity:
+                # Remove expired items first
+                self._cleanup_expired()
+                
+                if len(self.cache) > self.capacity:
+                    lru = self.tail.prev
+                    self._remove(lru)
+                    del self.cache[lru.key]
+    
+    def _cleanup_expired(self) -> None:
+        """Remove all expired entries."""
+        current = self.head.next
+        now = time.time()
+        while current != self.tail:
+            next_node = current.next
+            if now > current.expiry:
+                self._remove(current)
+                del self.cache[current.key]
+            current = next_node
+```
+
+### Template 5: Thread-Safe LRU Cache
+
+```python
+from threading import RLock
+
+class ThreadSafeLRUCache:
+    """Thread-safe LRU Cache using RLock."""
+    
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        self.cache = {}
+        self.head = DListNode()
+        self.tail = DListNode()
+        self.head.next = self.tail
+        self.tail.prev = self.head
+        self.lock = RLock()
+    
+    def _remove(self, node: DListNode) -> None:
+        """Remove node from linked list."""
+        node.prev.next = node.next
+        node.next.prev = node.prev
+    
+    def _add_to_front(self, node: DListNode) -> None:
+        """Add node to front."""
+        node.prev = self.head
+        node.next = self.head.next
+        self.head.next.prev = node
+        self.head.next = node
+    
+    def get(self, key: int) -> int:
+        """Thread-safe get."""
+        with self.lock:
+            if key not in self.cache:
+                return -1
+            node = self.cache[key]
+            self._remove(node)
+            self._add_to_front(node)
+            return node.val
+    
+    def put(self, key: int, value: int) -> None:
+        """Thread-safe put."""
+        with self.lock:
+            if key in self.cache:
+                node = self.cache[key]
+                node.val = value
+                self._remove(node)
+                self._add_to_front(node)
+            else:
+                node = DListNode(key, value)
+                self.cache[key] = node
+                self._add_to_front(node)
+                
+                if len(self.cache) > self.capacity:
+                    lru = self.tail.prev
+                    self._remove(lru)
+                    del self.cache[lru.key]
+```
 
 ---
 
 ## When to Use
 
-Use the LRU Cache algorithm when you need to solve problems involving:
+Use the LRU Cache when you need to solve problems involving:
 
 - **Fixed-Size Caching**: When you need to store limited items with fast access
 - **Recency-Based Eviction**: When least recently used items should be removed first
@@ -97,14 +801,7 @@ Hash Map:                    Doubly Linked List (MRU → LRU)
      - Remove tail node (LRU) from linked list → O(1)
      - Remove corresponding key from hash map → O(1)
 
-### Why Doubly Linked List?
-
-- **O(1) removal**: Given a node reference, we can remove it in constant time by adjusting pointers
-- **O(1) add to front**: Can insert at head immediately
-- **O(1) remove from tail**: Can access the LRU item directly via tail.prev
-- **Bidirectional traversal**: Needed for efficient removal
-
-### Visual Walkthrough
+### Visual Representation
 
 Cache capacity = 2, initial state: `[]`
 
@@ -133,898 +830,34 @@ Step 4: put(3, 30) → Evicts key 2 (LRU)
 Step 5: get(2) → returns -1 (evicted)
 ```
 
----
-
-## Algorithm Steps
-
-### Building the LRU Cache
-
-1. **Initialize data structures**:
-   - Create empty hash map for key → node lookup
-   - Create dummy head and tail nodes for the linked list
-   - Set capacity limit
-
-2. **Implement helper operations**:
-   - `_remove(node)`: Remove node from linked list by adjusting pointers
-   - `_add_to_front(node)`: Insert node right after head (mark as MRU)
-   - `_move_to_front(node)`: Combination of remove and add
-
-3. **Implement get operation**:
-   - Check hash map for key
-   - Return -1 if not found
-   - Move found node to front and return value
-
-4. **Implement put operation**:
-   - If key exists: update value and move to front
-   - If new key: create node, add to front, add to hash map
-   - If over capacity: remove tail node and delete from hash map
-
----
-
-## Implementation
-
-### Template Code (LRU Cache)
-
-````carousel
-```python
-class DListNode:
-    """Doubly linked list node."""
-    def __init__(self, key=0, val=0):
-        self.key = key
-        self.val = val
-        self.prev = None
-        self.next = None
-
-
-class LRUCache:
-    """
-    Least Recently Used (LRU) cache implementation.
-    Uses hashmap + doubly linked list for O(1) operations.
-    
-    Time Complexities:
-        - get: O(1)
-        - put: O(1)
-    
-    Space Complexity: O(capacity)
-    """
-    
-    def __init__(self, capacity: int):
-        """
-        Initialize LRU cache.
-        
-        Args:
-            capacity: Maximum number of items to store
-        """
-        self.capacity = capacity
-        self.cache = {}  # key -> node
-        
-        # Dummy head and tail for easy operations
-        self.head = DListNode()
-        self.tail = DListNode()
-        self.head.next = self.tail
-        self.tail.prev = self.head
-    
-    def _remove(self, node: DListNode):
-        """Remove node from the linked list."""
-        prev_node = node.prev
-        next_node = node.next
-        prev_node.next = next_node
-        next_node.prev = prev_node
-    
-    def _add_to_front(self, node: DListNode):
-        """Add node right after head (most recently used)."""
-        node.prev = self.head
-        node.next = self.head.next
-        self.head.next.prev = node
-        self.head.next = node
-    
-    def _move_to_front(self, node: DListNode):
-        """Move existing node to front (most recently used)."""
-        self._remove(node)
-        self._add_to_front(node)
-    
-    def get(self, key: int) -> int:
-        """
-        Get value by key. Returns -1 if not found.
-        Marks item as recently used.
-        
-        Time: O(1)
-        """
-        if key not in self.cache:
-            return -1
-        
-        node = self.cache[key]
-        self._move_to_front(node)
-        return node.val
-    
-    def put(self, key: int, value: int):
-        """
-        Put key-value pair into cache.
-        If key exists, update value and mark as recently used.
-        If cache is full, evict least recently used item.
-        
-        Time: O(1)
-        """
-        if key in self.cache:
-            # Update existing node
-            node = self.cache[key]
-            node.val = value
-            self._move_to_front(node)
-        else:
-            # Create new node
-            node = DListNode(key, value)
-            self.cache[key] = node
-            self._add_to_front(node)
-            
-            # Evict if over capacity
-            if len(self.cache) > self.capacity:
-                # Remove from tail (least recently used)
-                lru_node = self.tail.prev
-                self._remove(lru_node)
-                del self.cache[lru_node.key]
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    cache = LRUCache(2)
-    
-    print("Operations on LRUCache(capacity=2):")
-    print("-" * 40)
-    
-    cache.put(1, 10)
-    print(f"put(1, 10): Cache state: {list(cache.cache.keys())}")
-    
-    cache.put(2, 20)
-    print(f"put(2, 20): Cache state: {list(cache.cache.keys())}")
-    
-    val = cache.get(1)
-    print(f"get(1) = {val}: Accessed key 1, moved to MRU")
-    
-    cache.put(3, 30)
-    print(f"put(3, 30): Evicted key 2, Cache state: {list(cache.cache.keys())}")
-    
-    val = cache.get(2)
-    print(f"get(2) = {val}: Key 2 was evicted")
-    
-    val = cache.get(3)
-    print(f"get(3) = {val}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <unordered_map>
-using namespace std;
-
-/**
- * Doubly Linked List Node
- */
-struct DListNode {
-    int key;
-    int val;
-    DListNode* prev;
-    DListNode* next;
-    
-    DListNode(int k = 0, int v = 0) 
-        : key(k), val(v), prev(nullptr), next(nullptr) {}
-};
-
-/**
- * LRU Cache Implementation
- * 
- * Time Complexities:
- *     - get: O(1)
- *     - put: O(1)
- * 
- * Space Complexity: O(capacity)
- */
-class LRUCache {
-private:
-    int capacity;
-    unordered_map<int, DListNode*> cache;
-    DListNode* head;  // Dummy head (MRU side)
-    DListNode* tail;  // Dummy tail (LRU side)
-    
-    void remove(DListNode* node) {
-        DListNode* prevNode = node->prev;
-        DListNode* nextNode = node->next;
-        prevNode->next = nextNode;
-        nextNode->prev = prevNode;
-    }
-    
-    void addToFront(DListNode* node) {
-        node->prev = head;
-        node->next = head->next;
-        head->next->prev = node;
-        head->next = node;
-    }
-    
-    void moveToFront(DListNode* node) {
-        remove(node);
-        addToFront(node);
-    }
-
-public:
-    LRUCache(int cap) : capacity(cap) {
-        head = new DListNode();
-        tail = new DListNode();
-        head->next = tail;
-        tail->prev = head;
-    }
-    
-    ~LRUCache() {
-        // Clean up all nodes
-        DListNode* curr = head;
-        while (curr) {
-            DListNode* next = curr->next;
-            delete curr;
-            curr = next;
-        }
-    }
-    
-    int get(int key) {
-        if (cache.find(key) == cache.end()) {
-            return -1;
-        }
-        
-        DListNode* node = cache[key];
-        moveToFront(node);
-        return node->val;
-    }
-    
-    void put(int key, int value) {
-        if (cache.find(key) != cache.end()) {
-            // Update existing
-            DListNode* node = cache[key];
-            node->val = value;
-            moveToFront(node);
-        } else {
-            // Create new node
-            DListNode* node = new DListNode(key, value);
-            cache[key] = node;
-            addToFront(node);
-            
-            // Evict if necessary
-            if (cache.size() > capacity) {
-                DListNode* lru = tail->prev;
-                remove(lru);
-                cache.erase(lru->key);
-                delete lru;
-            }
-        }
-    }
-};
-
-int main() {
-    LRUCache cache(2);
-    
-    cout << "Operations on LRUCache(capacity=2):" << endl;
-    cout << string(40, '-') << endl;
-    
-    cache.put(1, 10);
-    cout << "put(1, 10): Cache contains keys 1" << endl;
-    
-    cache.put(2, 20);
-    cout << "put(2, 20): Cache contains keys 1, 2" << endl;
-    
-    cout << "get(1) = " << cache.get(1) << ": Accessed key 1, moved to MRU" << endl;
-    
-    cache.put(3, 30);
-    cout << "put(3, 30): Evicted key 2" << endl;
-    
-    cout << "get(2) = " << cache.get(2) << ": Key 2 was evicted" << endl;
-    cout << "get(3) = " << cache.get(3) << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Doubly Linked List Node
- */
-class DListNode {
-    int key;
-    int val;
-    DListNode prev;
-    DListNode next;
-    
-    DListNode() {}
-    
-    DListNode(int key, int val) {
-        this.key = key;
-        this.val = val;
-    }
-}
-
-/**
- * LRU Cache Implementation
- * 
- * Time Complexities:
- *     - get: O(1)
- *     - put: O(1)
- * 
- * Space Complexity: O(capacity)
- */
-public class LRUCache {
-    private int capacity;
-    private Map<Integer, DListNode> cache;
-    private DListNode head;  // Dummy head (MRU side)
-    private DListNode tail;  // Dummy tail (LRU side)
-    
-    public LRUCache(int capacity) {
-        this.capacity = capacity;
-        this.cache = new HashMap<>();
-        
-        // Initialize dummy head and tail
-        head = new DListNode();
-        tail = new DListNode();
-        head.next = tail;
-        tail.prev = head;
-    }
-    
-    private void remove(DListNode node) {
-        DListNode prevNode = node.prev;
-        DListNode nextNode = node.next;
-        prevNode.next = nextNode;
-        nextNode.prev = prevNode;
-    }
-    
-    private void addToFront(DListNode node) {
-        node.prev = head;
-        node.next = head.next;
-        head.next.prev = node;
-        head.next = node;
-    }
-    
-    private void moveToFront(DListNode node) {
-        remove(node);
-        addToFront(node);
-    }
-    
-    public int get(int key) {
-        if (!cache.containsKey(key)) {
-            return -1;
-        }
-        
-        DListNode node = cache.get(key);
-        moveToFront(node);
-        return node.val;
-    }
-    
-    public void put(int key, int value) {
-        if (cache.containsKey(key)) {
-            // Update existing
-            DListNode node = cache.get(key);
-            node.val = value;
-            moveToFront(node);
-        } else {
-            // Create new node
-            DListNode node = new DListNode(key, value);
-            cache.put(key, node);
-            addToFront(node);
-            
-            // Evict if necessary
-            if (cache.size() > capacity) {
-                DListNode lru = tail.prev;
-                remove(lru);
-                cache.remove(lru.key);
-            }
-        }
-    }
-    
-    public static void main(String[] args) {
-        LRUCache cache = new LRUCache(2);
-        
-        System.out.println("Operations on LRUCache(capacity=2):");
-        System.out.println("-".repeat(40));
-        
-        cache.put(1, 10);
-        System.out.println("put(1, 10): Cache contains key 1");
-        
-        cache.put(2, 20);
-        System.out.println("put(2, 20): Cache contains keys 1, 2");
-        
-        System.out.println("get(1) = " + cache.get(1) + ": Accessed key 1");
-        
-        cache.put(3, 30);
-        System.out.println("put(3, 30): Evicted key 2");
-        
-        System.out.println("get(2) = " + cache.get(2) + ": Key 2 was evicted");
-        System.out.println("get(3) = " + cache.get(3));
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Doubly Linked List Node
- */
-class DListNode {
-    constructor(key = 0, val = 0) {
-        this.key = key;
-        this.val = val;
-        this.prev = null;
-        this.next = null;
-    }
-}
-
-/**
- * LRU Cache Implementation
- * 
- * Time Complexities:
- *     - get: O(1)
- *     - put: O(1)
- * 
- * Space Complexity: O(capacity)
- */
-class LRUCache {
-    /**
-     * @param {number} capacity - Maximum number of items
-     */
-    constructor(capacity) {
-        this.capacity = capacity;
-        this.cache = new Map(); // key -> node
-        
-        // Dummy head and tail
-        this.head = new DListNode();
-        this.tail = new DListNode();
-        this.head.next = this.tail;
-        this.tail.prev = this.head;
-    }
-    
-    /**
-     * Remove node from linked list
-     * @param {DListNode} node
-     * @private
-     */
-    _remove(node) {
-        const prevNode = node.prev;
-        const nextNode = node.next;
-        prevNode.next = nextNode;
-        nextNode.prev = prevNode;
-    }
-    
-    /**
-     * Add node to front (after head)
-     * @param {DListNode} node
-     * @private
-     */
-    _addToFront(node) {
-        node.prev = this.head;
-        node.next = this.head.next;
-        this.head.next.prev = node;
-        this.head.next = node;
-    }
-    
-    /**
-     * Move existing node to front
-     * @param {DListNode} node
-     * @private
-     */
-    _moveToFront(node) {
-        this._remove(node);
-        this._addToFront(node);
-    }
-    
-    /**
-     * Get value by key
-     * @param {number} key
-     * @returns {number} Value or -1 if not found
-     * 
-     * Time: O(1)
-     */
-    get(key) {
-        if (!this.cache.has(key)) {
-            return -1;
-        }
-        
-        const node = this.cache.get(key);
-        this._moveToFront(node);
-        return node.val;
-    }
-    
-    /**
-     * Put key-value pair into cache
-     * @param {number} key
-     * @param {number} value
-     * 
-     * Time: O(1)
-     */
-    put(key, value) {
-        if (this.cache.has(key)) {
-            // Update existing
-            const node = this.cache.get(key);
-            node.val = value;
-            this._moveToFront(node);
-        } else {
-            // Create new node
-            const node = new DListNode(key, value);
-            this.cache.set(key, node);
-            this._addToFront(node);
-            
-            // Evict if necessary
-            if (this.cache.size > this.capacity) {
-                const lru = this.tail.prev;
-                this._remove(lru);
-                this.cache.delete(lru.key);
-            }
-        }
-    }
-}
-
-// Example usage
-const cache = new LRUCache(2);
-
-console.log("Operations on LRUCache(capacity=2):");
-console.log("-".repeat(40));
-
-cache.put(1, 10);
-console.log("put(1, 10): Cache contains key 1");
-
-cache.put(2, 20);
-console.log("put(2, 20): Cache contains keys 1, 2");
-
-console.log("get(1) =", cache.get(1), ": Accessed key 1");
-
-cache.put(3, 30);
-console.log("put(3, 30): Evicted key 2");
-
-console.log("get(2) =", cache.get(2), ": Key 2 was evicted");
-console.log("get(3) =", cache.get(3));
-```
-````
-
----
-
-## Example Walkthrough
-
-**Input:**
-```
-LRUCache capacity = 2
-Operations:
-  1. put(1, 1)
-  2. put(2, 2)
-  3. get(1)     -> returns 1
-  4. put(3, 3)  -> evicts key 2
-  5. get(2)     -> returns -1
-  6. put(4, 4)  -> evicts key 1
-  7. get(1)     -> returns -1
-  8. get(3)     -> returns 3
-  9. get(4)     -> returns 4
-```
-
-**Step-by-Step Execution:**
-
-| Step | Operation | Cache State (MRU → LRU) | Evicted | Output |
-|------|-----------|------------------------|---------|--------|
-| 1 | put(1, 1) | [1] | - | - |
-| 2 | put(2, 2) | [2, 1] | - | - |
-| 3 | get(1) | [1, 2] | - | 1 |
-| 4 | put(3, 3) | [3, 1] | 2 | - |
-| 5 | get(2) | [3, 1] | - | -1 |
-| 6 | put(4, 4) | [4, 3] | 1 | - |
-| 7 | get(1) | [4, 3] | - | -1 |
-| 8 | get(3) | [3, 4] | - | 3 |
-| 9 | get(4) | [4, 3] | - | 4 |
-
-**Key Observations:**
-- After `get(1)`, key 1 becomes MRU (most recently used)
-- When putting key 3 at capacity, key 2 (LRU) is evicted
-- Key 2 and key 1 are permanently gone after eviction
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **get** | O(1) | Hash map lookup + linked list pointer updates |
-| **put** | O(1) | Hash map operations + linked list pointer updates |
-| **evict** | O(1) | Remove tail node and hash map entry |
-
-### Detailed Breakdown
-
-**Get Operation:**
-- Hash map lookup: O(1) average case
-- Move to front (3 pointer updates): O(1)
-- **Total: O(1)**
-
-**Put Operation:**
-- Hash map lookup/insertion: O(1) average case
-- Linked list operations (add/move): O(1)
-- Possible eviction (remove tail): O(1)
-- **Total: O(1)**
-
-**Why O(1)?**
-- Hash map provides direct access to any node
-- Doubly linked list allows O(1) removal/insertion with node reference
-- No iteration or searching required
-
----
-
-## Space Complexity Analysis
-
-| Component | Space | Description |
-|-----------|-------|-------------|
-| **Hash Map** | O(capacity) | Stores at most `capacity` key-node pairs |
-| **Linked List** | O(capacity) | Stores at most `capacity` nodes |
-| **Total** | O(capacity) | Linear in cache capacity |
-
-### Space Considerations
-
-- **Fixed upper bound**: Space never exceeds O(capacity)
-- **Overhead**: Each entry has hash map overhead + two pointer overhead in linked list
-- **Capacity = 0**: Edge case, cache should reject all puts
-- **Large capacities**: Consider memory constraints in embedded systems
-
----
-
-## Common Variations
-
-### 1. LFU (Least Frequently Used) Cache
-
-Evicts the least frequently accessed item, not just the oldest.
-
-````carousel
-```python
-class LFUCache:
-    """
-    LFU Cache - Evicts least frequently used item.
-    Uses: key->value, key->freq, freq->keys (ordered dict)
-    
-    Time: O(1) for get and put
-    Space: O(capacity)
-    """
-    from collections import defaultdict, OrderedDict
-    
-    def __init__(self, capacity: int):
-        self.capacity = capacity
-        self.min_freq = 0
-        self.key_to_val = {}  # key -> value
-        self.key_to_freq = {}  # key -> frequency
-        self.freq_to_keys = defaultdict(OrderedDict)  # freq -> {key: None}
-    
-    def get(self, key: int) -> int:
-        if key not in self.key_to_val:
-            return -1
-        
-        self._increase_freq(key)
-        return self.key_to_val[key]
-    
-    def put(self, key: int, value: int):
-        if self.capacity <= 0:
-            return
-        
-        if key in self.key_to_val:
-            self.key_to_val[key] = value
-            self._increase_freq(key)
-            return
-        
-        # Evict if at capacity
-        if len(self.key_to_val) >= self.capacity:
-            self._evict_lfu()
-        
-        # Add new key
-        self.key_to_val[key] = value
-        self.key_to_freq[key] = 1
-        self.freq_to_keys[1][key] = None
-        self.min_freq = 1
-    
-    def _increase_freq(self, key: int):
-        freq = self.key_to_freq[key]
-        self.key_to_freq[key] = freq + 1
-        
-        # Remove from old freq list
-        del self.freq_to_keys[freq][key]
-        if not self.freq_to_keys[freq] and freq == self.min_freq:
-            self.min_freq += 1
-        
-        # Add to new freq list
-        self.freq_to_keys[freq + 1][key] = None
-    
-    def _evict_lfu(self):
-        # Evict oldest key with min frequency
-        key, _ = self.freq_to_keys[self.min_freq].popitem(last=False)
-        del self.key_to_val[key]
-        del self.key_to_freq[key]
-```
-````
-
-### 2. LRU Cache with TTL (Time To Live)
-
-Items expire after a certain time regardless of access.
-
-````carousel
-```python
-import time
-
-class TTLNode:
-    def __init__(self, key, val, expiry):
-        self.key = key
-        self.val = val
-        self.expiry = expiry  # Timestamp when item expires
-        self.prev = None
-        self.next = None
-
-class TTLRUCache:
-    """LRU Cache with Time-To-Live support."""
-    
-    def __init__(self, capacity: int, default_ttl: int = 60):
-        self.capacity = capacity
-        self.default_ttl = default_ttl  # seconds
-        self.cache = {}
-        self.head = TTLNode(0, 0, 0)
-        self.tail = TTLNode(0, 0, 0)
-        self.head.next = self.tail
-        self.tail.prev = self.head
-    
-    def get(self, key: int) -> int:
-        if key not in self.cache:
-            return -1
-        
-        node = self.cache[key]
-        if time.time() > node.expiry:
-            # Item expired
-            self._remove(node)
-            del self.cache[key]
-            return -1
-        
-        self._move_to_front(node)
-        return node.val
-    
-    def put(self, key: int, value: int, ttl: int = None):
-        ttl = ttl or self.default_ttl
-        expiry = time.time() + ttl
-        
-        if key in self.cache:
-            node = self.cache[key]
-            node.val = value
-            node.expiry = expiry
-            self._move_to_front(node)
-        else:
-            node = TTLNode(key, value, expiry)
-            self.cache[key] = node
-            self._add_to_front(node)
-            
-            if len(self.cache) > self.capacity:
-                lru = self.tail.prev
-                self._remove(lru)
-                del self.cache[lru.key]
-    
-    def _remove(self, node):
-        node.prev.next = node.next
-        node.next.prev = node.prev
-    
-    def _add_to_front(self, node):
-        node.prev = self.head
-        node.next = self.head.next
-        self.head.next.prev = node
-        self.head.next = node
-    
-    def _move_to_front(self, node):
-        self._remove(node)
-        self._add_to_front(node)
-```
-````
-
-### 3. Thread-Safe LRU Cache
-
-Concurrent access safe implementation using locks.
-
-````carousel
-```python
-from threading import RLock
-
-class ThreadSafeLRUCache:
-    """Thread-safe LRU Cache using RLock."""
-    
-    def __init__(self, capacity: int):
-        self.capacity = capacity
-        self.cache = {}
-        self.head = DListNode()
-        self.tail = DListNode()
-        self.head.next = self.tail
-        self.tail.prev = self.head
-        self.lock = RLock()
-    
-    def get(self, key: int) -> int:
-        with self.lock:
-            if key not in self.cache:
-                return -1
-            node = self.cache[key]
-            self._move_to_front(node)
-            return node.val
-    
-    def put(self, key: int, value: int):
-        with self.lock:
-            if key in self.cache:
-                node = self.cache[key]
-                node.val = value
-                self._move_to_front(node)
-            else:
-                node = DListNode(key, value)
-                self.cache[key] = node
-                self._add_to_front(node)
-                
-                if len(self.cache) > self.capacity:
-                    lru = self.tail.prev
-                    self._remove(lru)
-                    del self.cache[lru.key]
-    
-    def _remove(self, node):
-        node.prev.next = node.next
-        node.next.prev = node.prev
-    
-    def _add_to_front(self, node):
-        node.prev = self.head
-        node.next = self.head.next
-        self.head.next.prev = node
-        self.head.next = node
-    
-    def _move_to_front(self, node):
-        self._remove(node)
-        self._add_to_front(node)
-```
-````
-
-### 4. LRU Cache Using OrderedDict (Python Only)
-
-Simplified implementation using Python's OrderedDict.
-
-````carousel
-```python
-from collections import OrderedDict
-
-class SimpleLRUCache:
-    """
-    Simple LRU Cache using OrderedDict.
-    Python 3.7+ maintains insertion order in dict, but OrderedDict
-    provides move_to_end() which is convenient.
-    """
-    
-    def __init__(self, capacity: int):
-        self.capacity = capacity
-        self.cache = OrderedDict()
-    
-    def get(self, key: int) -> int:
-        if key not in self.cache:
-            return -1
-        # Move to end (most recently used)
-        self.cache.move_to_end(key)
-        return self.cache[key]
-    
-    def put(self, key: int, value: int):
-        if key in self.cache:
-            # Update and move to end
-            self.cache.move_to_end(key)
-        self.cache[key] = value
-        
-        # Evict oldest if over capacity
-        if len(self.cache) > self.capacity:
-            self.cache.popitem(last=False)
-```
-````
+### Why It Works
+
+- **O(1) get**: Hash map provides direct node access
+- **O(1) put**: Hash map insertion + linked list operations
+- **O(1) eviction**: Tail pointer gives immediate LRU access
+- **Doubly linked list**: Enables O(1) removal given a node reference
+
+### Limitations
+
+- **Fixed capacity**: Must be set at initialization (though some implementations support dynamic resizing)
+- **No persistence**: Data lost when program terminates (unless extended)
+- **Not thread-safe by default**: Requires locking for concurrent access
+- **Memory overhead**: Each entry requires hash map + node overhead
 
 ---
 
 ## Practice Problems
 
-### Problem 1: Basic LRU Cache
+### Problem 1: LRU Cache
 
 **Problem:** [LeetCode 146 - LRU Cache](https://leetcode.com/problems/lru-cache/)
 
 **Description:** Design a data structure that follows the constraints of a Least Recently Used (LRU) cache. Implement the `LRUCache` class with O(1) time complexity for get and put operations.
 
-**Key Concepts:**
-- Hash map + doubly linked list combination
-- O(1) get and put operations
-- Capacity-based eviction
+**How to Apply:**
+- Implement hash map + doubly linked list combination
+- Handle edge cases: capacity 0, duplicate keys
+- Ensure O(1) for both get and put operations
 
 ---
 
@@ -1034,10 +867,10 @@ class SimpleLRUCache:
 
 **Description:** Design and implement a data structure for a Least Frequently Used (LFU) cache. When the cache reaches capacity, invalidate the least frequently used key before inserting.
 
-**Key Concepts:**
-- Multiple frequency buckets
-- Maintaining min frequency
-- O(1) operations with auxiliary data structures
+**How to Apply:**
+- Use multiple frequency buckets
+- Maintain min frequency for O(1) eviction
+- Track frequency per key and keys per frequency
 
 ---
 
@@ -1047,9 +880,9 @@ class SimpleLRUCache:
 
 **Description:** Design an in-memory file system to simulate the following functions: ls, mkdir, addContentToFile, readContentFromFile. You can use LRU caching for file content.
 
-**Key Concepts:**
-- Tree structure for directories
-- LRU cache for file contents
+**How to Apply:**
+- Use tree structure for directories
+- LRU cache for frequently accessed file contents
 - Path parsing and traversal
 
 ---
@@ -1060,10 +893,10 @@ class SimpleLRUCache:
 
 **Description:** Design a logger system that receives a stream of messages along with their timestamps. Each unique message should only be printed at most every 10 seconds.
 
-**Key Concepts:**
-- Time-based eviction similar to LRU
-- Hash map with timestamp tracking
-- Simple cache invalidation logic
+**How to Apply:**
+- Use hash map with timestamp (similar to LRU cache structure)
+- Time-based eviction logic
+- Simple cache invalidation
 
 ---
 
@@ -1073,8 +906,8 @@ class SimpleLRUCache:
 
 **Description:** You have a browser with one tab where you start on the homepage. You can visit a new URL, go back in history, or go forward in history. Implement the BrowserHistory class.
 
-**Key Concepts:**
-- Doubly linked list pattern (similar to LRU)
+**How to Apply:**
+- Use doubly linked list pattern (similar to LRU list structure)
 - Navigation with back/forward pointers
 - Truncation on new visits
 
@@ -1168,12 +1001,3 @@ When NOT to use:
 - ❌ Unbounded storage available (use hash map only)
 
 This data structure is essential for technical interviews (especially at FAANG companies) and real-world system design, appearing frequently in problems related to caching, operating systems, and distributed systems.
-
----
-
-## Related Algorithms
-
-- [LFU Cache](./lfu-cache.md) - Frequency-based eviction
-- [FIFO Cache](./fifo-cache.md) - First-in-first-out eviction
-- [Hash Map](./hash-map.md) - Underlying lookup structure
-- [Linked List](./linked-list.md) - Underlying order maintenance

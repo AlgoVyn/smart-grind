@@ -5,9 +5,629 @@ Trees & BSTs
 
 ## Description
 
-The **Recover BST** algorithm fixes a Binary Search Tree where exactly **two nodes have been swapped**, violating the BST property. This is a classic tree traversal problem that leverages the fundamental property of BSTs: an **in-order traversal yields values in sorted (ascending) order**.
+The Recover BST algorithm fixes a Binary Search Tree where exactly **two nodes have been swapped**, violating the BST property. This is a classic tree traversal problem that leverages the fundamental property of BSTs: an **in-order traversal yields values in sorted (ascending) order**.
 
-When two nodes in a BST are swapped, the in-order sequence will have **at most two violations** where a value is smaller than its predecessor. By identifying these violations during traversal, we can locate and swap the two misplaced nodes to restore the BST property.
+When two nodes in a BST are swapped, the in-order sequence will have **at most two violations** where a value is smaller than its predecessor. By identifying these violations during traversal, we can locate and swap the two misplaced nodes to restore the BST property without changing the tree structure.
+
+---
+
+## Concepts
+
+The Recover BST algorithm is built on several fundamental concepts from tree traversal and BST properties.
+
+### 1. In-Order Traversal Property
+
+The key insight that enables this algorithm:
+
+| Tree State | In-Order Sequence | Sorted? |
+|------------|-------------------|---------|
+| **Valid BST** | [1, 2, 3, 4, 5, 6, 7] | Yes |
+| **Two nodes swapped** | [1, 2, 7, 4, 5, 6, 3] | No (violations at 7>4, 6>3) |
+| **Adjacent swap** | [1, 2, 4, 3, 5, 6, 7] | No (violation at 4>3) |
+
+### 2. Violation Detection
+
+During in-order traversal, compare each node with its predecessor:
+
+```
+When current.val < prev.val:
+    → Found a violation!
+    → First violation: first = prev
+    → Second violation: second = current (always update)
+```
+
+### 3. Two Cases of Swaps
+
+**Case 1: Non-adjacent nodes**
+```
+Original:  [1, 2, 3, 4, 5, 6, 7, 8]
+Swapped:   [1, 2, 7, 4, 5, 6, 3, 8]  (3 and 7 swapped)
+                  ↑        ↑
+             first=7    second=3
+Two violations found
+```
+
+**Case 2: Adjacent nodes**
+```
+Original:  [1, 2, 3, 4, 5, 6, 7, 8]
+Swapped:   [1, 2, 4, 3, 5, 6, 7, 8]  (3 and 4 swapped)
+                  ↑  ↑
+             first=4  second=3
+One violation found, but second always updated
+```
+
+### 4. Traversal Approaches
+
+| Approach | Time | Space | Best For |
+|----------|------|-------|----------|
+| **Iterative** | O(n) | O(h) | Production, balanced trees |
+| **Recursive** | O(n) | O(h) | Interviews, simple code |
+| **Morris** | O(n) | O(1) | Space-critical scenarios |
+
+**h = height of tree, n = number of nodes**
+
+---
+
+## Frameworks
+
+Structured approaches for recovering a corrupted BST.
+
+### Framework 1: Iterative In-Order Recovery
+
+```
+┌─────────────────────────────────────────────────────┐
+│  RECOVER BST FRAMEWORK (Iterative)                  │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Initialize:                                        │
+│  - stack = []                                       │
+│  - current = root                                   │
+│  - prev = None                                      │
+│  - first = None, second = None                      │
+│                                                     │
+│  While stack not empty OR current not null:        │
+│                                                     │
+│    1. TRAVERSE LEFT:                                │
+│       while current:                                │
+│           stack.push(current)                       │
+│           current = current.left                    │
+│                                                     │
+│    2. PROCESS NODE:                                 │
+│       current = stack.pop()                         │
+│                                                     │
+│       if prev AND current.val < prev.val:          │
+│           if first is None:                        │
+│               first = prev          ← 1st violation│
+│           second = current            ← 2nd violation│
+│                                                     │
+│       prev = current                                │
+│                                                     │
+│    3. GO RIGHT:                                     │
+│       current = current.right                       │
+│                                                     │
+│  SWAP: first.val, second.val = second.val, first.val│
+│                                                     │
+│  Complexity: O(n) time, O(h) space                  │
+└─────────────────────────────────────────────────────┘
+```
+
+### Framework 2: Morris Traversal Recovery
+
+```
+┌─────────────────────────────────────────────────────┐
+│  RECOVER BST FRAMEWORK (Morris - O(1) Space)        │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Initialize:                                        │
+│  - current = root                                   │
+│  - prev = None                                      │
+│  - first = None, second = None                      │
+│                                                     │
+│  While current is not null:                         │
+│                                                     │
+│    if current.left is null:                         │
+│        // Process current (no left subtree)         │
+│        if prev AND current.val < prev.val:          │
+│            if first is None: first = prev          │
+│            second = current                         │
+│        prev = current                               │
+│        current = current.right                      │
+│                                                     │
+│    else:                                            │
+│        // Find inorder predecessor                  │
+│        pred = current.left                          │
+│        while pred.right AND pred.right != current: │
+│            pred = pred.right                        │
+│                                                     │
+│        if pred.right is null:                       │
+│            // Create temporary thread               │
+│            pred.right = current                     │
+│            current = current.left                   │
+│        else:                                        │
+│            // Thread exists, remove and process     │
+│            pred.right = null                        │
+│            if prev AND current.val < prev.val:     │
+│                if first is None: first = prev        │
+│                second = current                     │
+│            prev = current                           │
+│            current = current.right                  │
+│                                                     │
+│  SWAP: first.val, second.val = second.val, first.val│
+│                                                     │
+│  Complexity: O(n) time, O(1) space                  │
+└─────────────────────────────────────────────────────┘
+```
+
+### Framework 3: Recursive Recovery
+
+```
+┌─────────────────────────────────────────────────────┐
+│  RECOVER BST FRAMEWORK (Recursive)                    │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Global/Nonlocal: first, second, prev               │
+│                                                     │
+│  function inorder(node):                            │
+│      if node is null: return                        │
+│                                                     │
+│      // 1. Traverse left                              │
+│      inorder(node.left)                             │
+│                                                     │
+│      // 2. Process current                            │
+│      if prev AND node.val < prev.val:               │
+│          if first is None: first = prev              │
+│          second = node                              │
+│      prev = node                                    │
+│                                                     │
+│      // 3. Traverse right                             │
+│      inorder(node.right)                            │
+│                                                     │
+│  Main:                                              │
+│      first = second = prev = null                   │
+│      inorder(root)                                  │
+│      swap(first.val, second.val)                    │
+│                                                     │
+│  Complexity: O(n) time, O(h) stack space            │
+│  Risk: Stack overflow for skewed trees              │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## Forms
+
+Different manifestations and variations of the Recover BST pattern.
+
+### Form 1: Non-Adjacent Node Swap
+
+Two swapped nodes are far apart in in-order sequence.
+
+| Characteristic | Description |
+|----------------|-------------|
+| **Violations** | Exactly 2 |
+| **First node** | Predecessor of first violation |
+| **Second node** | Current node of second violation |
+| **Example** | [1,2,7,4,5,6,3,8] → swap 7 and 3 |
+
+### Form 2: Adjacent Node Swap
+
+Two swapped nodes are next to each other in in-order sequence.
+
+| Characteristic | Description |
+|----------------|-------------|
+| **Violations** | Exactly 1 |
+| **First node** | Predecessor of violation |
+| **Second node** | Current node of violation |
+| **Example** | [1,2,4,3,5,6,7,8] → swap 4 and 3 |
+
+### Form 3: Morris Traversal Form
+
+Space-optimized version using temporary threads.
+
+| Aspect | Description |
+|--------|-------------|
+| **Threads** | Temporary right pointers to inorder successors |
+| **Space** | O(1) extra space |
+| **Tree modification** | Temporarily modified, restored at end |
+| **Use case** | Space-constrained environments |
+
+### Form 4: BST Validation Form
+
+Detect violations without fixing (validation only).
+
+```python
+def is_valid_bst(root):
+    """Return True if BST is valid, False otherwise."""
+    prev = None
+    
+    def inorder(node):
+        nonlocal prev
+        if not node:
+            return True
+        
+        if not inorder(node.left):
+            return False
+        
+        if prev and node.val <= prev.val:
+            return False
+        
+        prev = node
+        return inorder(node.right)
+    
+    return inorder(root)
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations for recovering BST.
+
+### Tactic 1: Always Update Second Node
+
+Handle both adjacent and non-adjacent cases uniformly:
+
+```python
+def recover_tree(root):
+    first = second = prev = None
+    
+    def inorder(node):
+        nonlocal first, second, prev
+        if not node:
+            return
+        
+        inorder(node.left)
+        
+        # Check violation
+        if prev and node.val < prev.val:
+            if first is None:
+                first = prev  # First violation found
+            second = node     # Always update second!
+            
+        prev = node
+        inorder(node.right)
+    
+    inorder(root)
+    
+    # Swap values
+    if first and second:
+        first.val, second.val = second.val, first.val
+```
+
+**Why this works:**
+- Non-adjacent: First violation sets `first`, second violation sets `second`
+- Adjacent: Only one violation, but `second` correctly captures the adjacent node
+
+### Tactic 2: Morris Traversal Predecessor Finding
+
+Find inorder predecessor without parent pointers:
+
+```python
+def find_predecessor(current):
+    """Find rightmost node in left subtree."""
+    pred = current.left
+    while pred.right and pred.right != current:
+        pred = pred.right
+    return pred
+```
+
+**Usage:**
+- If `pred.right` is null: Create thread, go left
+- If `pred.right` is current: Remove thread, process current, go right
+
+### Tactic 3: BST Iterator Pattern
+
+Encapsulate traversal logic for cleaner code:
+
+```python
+class BSTIterator:
+    """Iterator for in-order traversal of BST."""
+    
+    def __init__(self, root):
+        self.stack = []
+        self._push_left(root)
+    
+    def _push_left(self, node):
+        while node:
+            self.stack.append(node)
+            node = node.left
+    
+    def next(self):
+        node = self.stack.pop()
+        self._push_left(node.right)
+        return node
+    
+    def has_next(self):
+        return len(self.stack) > 0
+
+
+def recover_tree_iterator(root):
+    """Recover using BST iterator pattern."""
+    iterator = BSTIterator(root)
+    first = second = prev = None
+    
+    while iterator.has_next():
+        current = iterator.next()
+        if prev and current.val < prev.val:
+            if first is None:
+                first = prev
+            second = current
+        prev = current
+    
+    if first and second:
+        first.val, second.val = second.val, first.val
+```
+
+### Tactic 4: Value Swap vs Node Swap
+
+Swap values, not nodes (simpler and more efficient):
+
+| Aspect | Value Swap | Node Swap |
+|--------|------------|-----------|
+| **Complexity** | O(1) | O(n) |
+| **Implementation** | Simple | Complex (update parent pointers) |
+| **Problem requirement** | Satisfied ("recover the tree") | Not required |
+| **Recommended** | ✅ Yes | ❌ No |
+
+```python
+# Recommended: Value swap
+first.val, second.val = second.val, first.val
+
+# NOT recommended: Node swap (would require parent pointers,
+# handling children correctly, updating hash maps, etc.)
+```
+
+### Tactic 5: Handling Edge Cases
+
+Defensive programming for various tree structures:
+
+```python
+def recover_tree(root):
+    """Handle all edge cases."""
+    # Edge case: empty tree
+    if not root:
+        return
+    
+    # Edge case: single node (already valid)
+    if not root.left and not root.right:
+        return
+    
+    first = second = prev = None
+    
+    # ... traversal logic ...
+    
+    # Edge case: no violations found (already valid)
+    if not first or not second:
+        return
+    
+    # Swap values
+    first.val, second.val = second.val, first.val
+```
+
+---
+
+## Python Templates
+
+### Template 1: Iterative In-Order Recovery
+
+```python
+from typing import Optional, List
+
+class TreeNode:
+    def __init__(self, val: int = 0, 
+                 left: 'TreeNode' = None, 
+                 right: 'TreeNode' = None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+
+def recover_tree_iterative(root: Optional[TreeNode]) -> None:
+    """
+    Recover BST using iterative in-order traversal.
+    
+    Time: O(n) - visit each node once
+    Space: O(h) - stack space, h = tree height
+    """
+    if not root:
+        return
+    
+    stack: List[TreeNode] = []
+    current = root
+    first: Optional[TreeNode] = None
+    second: Optional[TreeNode] = None
+    prev: Optional[TreeNode] = None
+    
+    while stack or current:
+        # Go to leftmost node
+        while current:
+            stack.append(current)
+            current = current.left
+        
+        # Process current node
+        current = stack.pop()
+        
+        # Check for violation
+        if prev and current.val < prev.val:
+            if first is None:
+                first = prev
+            second = current
+        
+        prev = current
+        current = current.right
+    
+    # Swap values
+    if first and second:
+        first.val, second.val = second.val, first.val
+```
+
+### Template 2: Morris Traversal Recovery
+
+```python
+def recover_tree_morris(root: Optional[TreeNode]) -> None:
+    """
+    Recover BST using Morris Traversal - O(1) space solution.
+    
+    Time: O(n) - each edge traversed at most twice
+    Space: O(1) - only pointers used
+    """
+    if not root:
+        return
+    
+    current = root
+    first: Optional[TreeNode] = None
+    second: Optional[TreeNode] = None
+    prev: Optional[TreeNode] = None
+    
+    while current:
+        if not current.left:
+            # Visit node - no left subtree
+            if prev and current.val < prev.val:
+                if first is None:
+                    first = prev
+                second = current
+            prev = current
+            current = current.right
+        else:
+            # Find inorder predecessor
+            pred = current.left
+            while pred.right and pred.right != current:
+                pred = pred.right
+            
+            if not pred.right:
+                # Create temporary thread link
+                pred.right = current
+                current = current.left
+            else:
+                # Thread exists, remove it and visit node
+                pred.right = None
+                if prev and current.val < prev.val:
+                    if first is None:
+                        first = prev
+                    second = current
+                prev = current
+                current = current.right
+    
+    # Swap values
+    if first and second:
+        first.val, second.val = second.val, first.val
+```
+
+### Template 3: Recursive Recovery
+
+```python
+def recover_tree_recursive(root: Optional[TreeNode]) -> None:
+    """
+    Recover BST using recursive in-order traversal.
+    
+    Time: O(n)
+    Space: O(h) - recursion stack
+    
+    Note: Risk of stack overflow for skewed trees.
+    """
+    first: Optional[TreeNode] = None
+    second: Optional[TreeNode] = None
+    prev: Optional[TreeNode] = None
+    
+    def inorder(node: Optional[TreeNode]) -> None:
+        nonlocal first, second, prev
+        if not node:
+            return
+        
+        # Traverse left
+        inorder(node.left)
+        
+        # Process current
+        if prev and node.val < prev.val:
+            if first is None:
+                first = prev
+            second = node
+        
+        prev = node
+        
+        # Traverse right
+        inorder(node.right)
+    
+    inorder(root)
+    
+    if first and second:
+        first.val, second.val = second.val, first.val
+```
+
+### Template 4: BST Iterator Recovery
+
+```python
+class BSTIterator:
+    """Iterator for in-order traversal of BST."""
+    
+    def __init__(self, root: Optional[TreeNode]):
+        self.stack: List[TreeNode] = []
+        self._push_left(root)
+    
+    def _push_left(self, node: Optional[TreeNode]) -> None:
+        while node:
+            self.stack.append(node)
+            node = node.left
+    
+    def next(self) -> TreeNode:
+        node = self.stack.pop()
+        self._push_left(node.right)
+        return node
+    
+    def has_next(self) -> bool:
+        return len(self.stack) > 0
+
+
+def recover_tree_iterator(root: Optional[TreeNode]) -> None:
+    """
+    Recover BST using BST iterator pattern.
+    Clean separation of traversal and logic.
+    
+    Time: O(n)
+    Space: O(h)
+    """
+    if not root:
+        return
+    
+    iterator = BSTIterator(root)
+    first: Optional[TreeNode] = None
+    second: Optional[TreeNode] = None
+    prev: Optional[TreeNode] = None
+    
+    while iterator.has_next():
+        current = iterator.next()
+        if prev and current.val < prev.val:
+            if first is None:
+                first = prev
+            second = current
+        prev = current
+    
+    if first and second:
+        first.val, second.val = second.val, first.val
+```
+
+### Template 5: Complete Solution with All Approaches
+
+```python
+def recover_tree(root: Optional[TreeNode], 
+                 method: str = "iterative") -> None:
+    """
+    Recover BST with selectable method.
+    
+    Methods:
+        - "iterative": Stack-based in-order (recommended)
+        - "morris": O(1) space, modifies tree temporarily
+        - "recursive": Simple but stack overflow risk
+    """
+    if method == "iterative":
+        recover_tree_iterative(root)
+    elif method == "morris":
+        recover_tree_morris(root)
+    elif method == "recursive":
+        recover_tree_recursive(root)
+    else:
+        raise ValueError(f"Unknown method: {method}")
+```
 
 ---
 
@@ -65,6 +685,7 @@ Swapped Nodes (3, 7):   [1, 2, 7, 4, 5, 6, 3, 8]
 ### How It Works
 
 #### Detecting Violations:
+
 During in-order traversal, we compare each node with its predecessor:
 - If `current.val < prev.val`, we've found a violation
 - The first violation gives us the **first swapped node** (the predecessor)
@@ -76,16 +697,16 @@ During in-order traversal, we compare each node with its predecessor:
 ```
 Original:  [1, 2, 3, 4, 5, 6, 7, 8]
 Swapped:   [1, 2, 7, 4, 5, 6, 3, 8]  (3 and 7 swapped)
-                ↑        ↑
-           first=7    second=3
+                  ↑        ↑
+             first=7    second=3
 ```
 
 **Case 2: Adjacent nodes in in-order sequence**
 ```
 Original:  [1, 2, 3, 4, 5, 6, 7, 8]
 Swapped:   [1, 2, 4, 3, 5, 6, 7, 8]  (3 and 4 swapped)
-                ↑  ↑
-           first=4  second=3
+                  ↑  ↑
+             first=4  second=3
 ```
 
 ### Visual Representation
@@ -103,10 +724,10 @@ Before Recovery:
       6
 
 In-order traversal: [1, 3, 7, 6, 5, 8, 9]
-                         ↑  ↑
-                    violation 1 (7 > 6)
-                              ↑     ↑
-                         violation 2 (6 > 5)
+                     ↑  ↑
+                violation 1 (7 > 6)
+                           ↑     ↑
+                      violation 2 (6 > 5)
 
 After Recovery (swap 3 and 7):
         5
@@ -128,1127 +749,12 @@ When two elements in a sorted array are swapped:
 
 This property allows us to identify both nodes with a single traversal.
 
----
-
-## Algorithm Steps
-
-### Iterative In-order Approach (O(h) Space)
-
-1. **Initialize**: Create an empty stack, set `current = root`, `prev = None`, `first = None`, `second = None`
-
-2. **Traverse Left**: Push all left children onto the stack until reaching the leftmost node
-
-3. **Process Node**:
-   - Pop from stack to get the current node
-   - If `prev` exists and `current.val < prev.val`:
-     - **First violation**: Set `first = prev` (if not already set)
-     - Always set `second = current` (captures both adjacent and non-adjacent cases)
-   - Update `prev = current`
-
-4. **Traverse Right**: Move to the right child and repeat steps 2-3
-
-5. **Swap Values**: Exchange values of `first` and `second` nodes
-
-### Morris Traversal Approach (O(1) Space)
-
-1. **Initialize**: Set `current = root`, `prev = None`, `first = None`, `second = None`
-
-2. **While current is not null**:
-   - **If no left child**: Process current node and move right
-   - **If left child exists**: Find the in-order predecessor (rightmost node in left subtree)
-     - If predecessor.right is null: Create temporary link, move left
-     - If predecessor.right is current: Remove link, process current, move right
-
-3. **Process Node**: Same violation detection as iterative approach
-
-4. **Swap Values**: Exchange values of `first` and `second` nodes
-
----
-
-## Implementation
-
-### Complete Solution with All Approaches
-
-````carousel
-```python
-from typing import Optional, List
-
-class TreeNode:
-    """Binary tree node with value and left/right children."""
-    def __init__(self, val: int = 0, left: 'TreeNode' = None, right: 'TreeNode' = None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-
-def recover_tree_iterative(root: Optional[TreeNode]) -> None:
-    """
-    Recover BST using iterative in-order traversal.
-    
-    Time Complexity: O(n) - visit each node once
-    Space Complexity: O(h) - stack space, h = tree height
-    
-    Args:
-        root: Root of BST with two swapped nodes
-    """
-    if not root:
-        return
-    
-    stack: List[TreeNode] = []
-    current = root
-    first: Optional[TreeNode] = None
-    second: Optional[TreeNode] = None
-    prev: Optional[TreeNode] = None
-    
-    while stack or current:
-        # Go to leftmost node
-        while current:
-            stack.append(current)
-            current = current.left
-        
-        # Process current node
-        current = stack.pop()
-        
-        # Check for violation: current should be > prev in valid BST
-        if prev and current.val < prev.val:
-            # First violation found
-            if first is None:
-                first = prev  # First swapped node
-            # Second swapped node (always update for adjacent case)
-            second = current
-        
-        prev = current
-        current = current.right
-    
-    # Swap values of the two misplaced nodes
-    if first and second:
-        first.val, second.val = second.val, first.val
-
-
-def recover_tree_morris(root: Optional[TreeNode]) -> None:
-    """
-    Recover BST using Morris Traversal - O(1) space solution.
-    
-    Time Complexity: O(n) - each edge traversed at most twice
-    Space Complexity: O(1) - only pointers used
-    
-    Args:
-        root: Root of BST with two swapped nodes
-    """
-    if not root:
-        return
-    
-    current = root
-    first: Optional[TreeNode] = None
-    second: Optional[TreeNode] = None
-    prev: Optional[TreeNode] = None
-    
-    while current:
-        if not current.left:
-            # Visit node - no left subtree
-            if prev and current.val < prev.val:
-                if first is None:
-                    first = prev
-                second = current
-            prev = current
-            current = current.right
-        else:
-            # Find inorder predecessor (rightmost in left subtree)
-            pred = current.left
-            while pred.right and pred.right != current:
-                pred = pred.right
-            
-            if not pred.right:
-                # Create temporary thread link
-                pred.right = current
-                current = current.left
-            else:
-                # Thread exists, remove it and visit node
-                pred.right = None
-                if prev and current.val < prev.val:
-                    if first is None:
-                        first = prev
-                    second = current
-                prev = current
-                current = current.right
-    
-    # Swap values
-    if first and second:
-        first.val, second.val = second.val, first.val
-
-
-def recover_tree_recursive(root: Optional[TreeNode]) -> None:
-    """
-    Recover BST using recursive in-order traversal.
-    
-    Time Complexity: O(n)
-    Space Complexity: O(h) - recursion stack
-    
-    Note: Risk of stack overflow for skewed trees.
-    """
-    first: Optional[TreeNode] = None
-    second: Optional[TreeNode] = None
-    prev: Optional[TreeNode] = None
-    
-    def inorder(node: Optional[TreeNode]) -> None:
-        nonlocal first, second, prev
-        if not node:
-            return
-        
-        # Traverse left
-        inorder(node.left)
-        
-        # Process current
-        if prev and node.val < prev.val:
-            if first is None:
-                first = prev
-            second = node
-        
-        prev = node
-        
-        # Traverse right
-        inorder(node.right)
-    
-    inorder(root)
-    
-    if first and second:
-        first.val, second.val = second.val, first.val
-
-
-# Helper functions for testing
-def build_tree(values: List[Optional[int]]) -> Optional[TreeNode]:
-    """Build tree from level-order list (None represents missing node)."""
-    if not values:
-        return None
-    
-    nodes = [None if v is None else TreeNode(v) for v in values]
-    kids = nodes[::-1]
-    root = kids.pop()
-    for node in nodes:
-        if node:
-            if kids: 
-                node.left = kids.pop()
-            if kids: 
-                node.right = kids.pop()
-    return root
-
-
-def inorder_traversal(root: Optional[TreeNode]) -> List[int]:
-    """Get in-order traversal values."""
-    result = []
-    stack = []
-    current = root
-    while stack or current:
-        while current:
-            stack.append(current)
-            current = current.left
-        current = stack.pop()
-        result.append(current.val)
-        current = current.right
-    return result
-
-
-def print_tree(root: Optional[TreeNode], level: int = 0) -> None:
-    """Pretty print tree structure."""
-    if root:
-        print_tree(root.right, level + 1)
-        print(' ' * 4 * level + '->', root.val)
-        print_tree(root.left, level + 1)
-
-
-# Example usage
-if __name__ == "__main__":
-    # Test Case 1: Non-adjacent swap (3 and 7)
-    #       5
-    #      / \
-    #     3   8
-    #    / \   \
-    #   1   7   9
-    print("=" * 60)
-    print("Test Case 1: Non-adjacent swap (3 and 7)")
-    print("=" * 60)
-    root1 = build_tree([5, 3, 8, 1, 7, None, 9])
-    print("Before recovery:", inorder_traversal(root1))
-    recover_tree_iterative(root1)
-    print("After recovery: ", inorder_traversal(root1))
-    print("Is sorted:", inorder_traversal(root1) == sorted(inorder_traversal(root1)))
-    
-    # Test Case 2: Adjacent swap (3 and 5)
-    #       5
-    #      / \
-    #     3   8
-    #    /     \
-    #   1       9
-    print("\n" + "=" * 60)
-    print("Test Case 2: Adjacent swap (3 and 5)")
-    print("=" * 60)
-    root2 = build_tree([3, 1, 8, None, None, 5, 9])
-    print("Before recovery:", inorder_traversal(root2))
-    recover_tree_morris(root2)
-    print("After recovery: ", inorder_traversal(root2))
-    print("Is sorted:", inorder_traversal(root2) == sorted(inorder_traversal(root2)))
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <stack>
-using namespace std;
-
-/**
- * Binary Tree Node
- */
-struct TreeNode {
-    int val;
-    TreeNode* left;
-    TreeNode* right;
-    
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode* left, TreeNode* right) : val(x), left(left), right(right) {}
-};
-
-/**
- * Recover BST using iterative in-order traversal.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(h) where h is tree height
- */
-class SolutionIterative {
-private:
-    TreeNode* first;
-    TreeNode* second;
-    TreeNode* prev;
-    
-public:
-    void recoverTree(TreeNode* root) {
-        first = nullptr;
-        second = nullptr;
-        prev = nullptr;
-        
-        TreeNode* current = root;
-        stack<TreeNode*> st;
-        
-        while (current || !st.empty()) {
-            // Go to leftmost
-            while (current) {
-                st.push(current);
-                current = current->left;
-            }
-            
-            // Process node
-            current = st.top();
-            st.pop();
-            
-            // Check for violation
-            if (prev && current->val < prev->val) {
-                if (!first) {
-                    first = prev;
-                }
-                second = current;
-            }
-            
-            prev = current;
-            current = current->right;
-        }
-        
-        // Swap values
-        if (first && second) {
-            swap(first->val, second->val);
-        }
-    }
-};
-
-/**
- * Recover BST using Morris Traversal - O(1) space.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(1)
- */
-class SolutionMorris {
-public:
-    void recoverTree(TreeNode* root) {
-        TreeNode* first = nullptr;
-        TreeNode* second = nullptr;
-        TreeNode* prev = nullptr;
-        TreeNode* current = root;
-        
-        while (current) {
-            if (!current->left) {
-                // Visit node
-                if (prev && current->val < prev->val) {
-                    if (!first) {
-                        first = prev;
-                    }
-                    second = current;
-                }
-                prev = current;
-                current = current->right;
-            } else {
-                // Find inorder predecessor
-                TreeNode* pred = current->left;
-                while (pred->right && pred->right != current) {
-                    pred = pred->right;
-                }
-                
-                if (!pred->right) {
-                    // Create thread
-                    pred->right = current;
-                    current = current->left;
-                } else {
-                    // Remove thread and visit
-                    pred->right = nullptr;
-                    if (prev && current->val < prev->val) {
-                        if (!first) {
-                            first = prev;
-                        }
-                        second = current;
-                    }
-                    prev = current;
-                    current = current->right;
-                }
-            }
-        }
-        
-        // Swap values
-        if (first && second) {
-            swap(first->val, second->val);
-        }
-    }
-};
-
-/**
- * Recover BST using recursive in-order traversal.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(h) - recursion stack
- */
-class SolutionRecursive {
-private:
-    TreeNode* first;
-    TreeNode* second;
-    TreeNode* prev;
-    
-    void inorder(TreeNode* node) {
-        if (!node) return;
-        
-        // Left
-        inorder(node->left);
-        
-        // Current
-        if (prev && node->val < prev->val) {
-            if (!first) {
-                first = prev;
-            }
-            second = node;
-        }
-        prev = node;
-        
-        // Right
-        inorder(node->right);
-    }
-    
-public:
-    void recoverTree(TreeNode* root) {
-        first = nullptr;
-        second = nullptr;
-        prev = nullptr;
-        
-        inorder(root);
-        
-        if (first && second) {
-            swap(first->val, second->val);
-        }
-    }
-};
-
-// Helper functions
-TreeNode* buildTree(const vector<int*>& values, int index = 0) {
-    if (index >= values.size() || values[index] == nullptr) {
-        return nullptr;
-    }
-    TreeNode* node = new TreeNode(*values[index]);
-    node->left = buildTree(values, 2 * index + 1);
-    node->right = buildTree(values, 2 * index + 2);
-    return node;
-}
-
-vector<int> inorderTraversal(TreeNode* root) {
-    vector<int> result;
-    stack<TreeNode*> st;
-    TreeNode* current = root;
-    
-    while (current || !st.empty()) {
-        while (current) {
-            st.push(current);
-            current = current->left;
-        }
-        current = st.top();
-        st.pop();
-        result.push_back(current->val);
-        current = current->right;
-    }
-    
-    return result;
-}
-
-int main() {
-    // Test Case: Swap 3 and 7
-    // Values: [5, 3, 8, 1, 7, nullptr, 9]
-    vector<int*> values = {
-        new int(5), new int(3), new int(8),
-        new int(1), new int(7), nullptr, new int(9)
-    };
-    
-    TreeNode* root = buildTree(values);
-    
-    cout << "Before recovery: ";
-    vector<int> before = inorderTraversal(root);
-    for (int x : before) cout << x << " ";
-    cout << endl;
-    
-    SolutionIterative sol;
-    sol.recoverTree(root);
-    
-    cout << "After recovery:  ";
-    vector<int> after = inorderTraversal(root);
-    for (int x : after) cout << x << " ";
-    cout << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-/**
- * Binary Tree Node
- */
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    
-    TreeNode(int x) {
-        val = x;
-    }
-    
-    TreeNode(int x, TreeNode left, TreeNode right) {
-        val = x;
-        this.left = left;
-        this.right = right;
-    }
-}
-
-/**
- * Recover BST using iterative in-order traversal.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(h) where h is tree height
- */
-class SolutionIterative {
-    private TreeNode first;
-    private TreeNode second;
-    private TreeNode prev;
-    
-    public void recoverTree(TreeNode root) {
-        first = null;
-        second = null;
-        prev = null;
-        
-        Deque<TreeNode> stack = new ArrayDeque<>();
-        TreeNode current = root;
-        
-        while (current != null || !stack.isEmpty()) {
-            // Go to leftmost
-            while (current != null) {
-                stack.push(current);
-                current = current.left;
-            }
-            
-            // Process node
-            current = stack.pop();
-            
-            // Check for violation
-            if (prev != null && current.val < prev.val) {
-                if (first == null) {
-                    first = prev;
-                }
-                second = current;
-            }
-            
-            prev = current;
-            current = current.right;
-        }
-        
-        // Swap values
-        if (first != null && second != null) {
-            int temp = first.val;
-            first.val = second.val;
-            second.val = temp;
-        }
-    }
-}
-
-/**
- * Recover BST using Morris Traversal - O(1) space.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(1)
- */
-class SolutionMorris {
-    public void recoverTree(TreeNode root) {
-        TreeNode first = null;
-        TreeNode second = null;
-        TreeNode prev = null;
-        TreeNode current = root;
-        
-        while (current != null) {
-            if (current.left == null) {
-                // Visit node
-                if (prev != null && current.val < prev.val) {
-                    if (first == null) {
-                        first = prev;
-                    }
-                    second = current;
-                }
-                prev = current;
-                current = current.right;
-            } else {
-                // Find inorder predecessor
-                TreeNode pred = current.left;
-                while (pred.right != null && pred.right != current) {
-                    pred = pred.right;
-                }
-                
-                if (pred.right == null) {
-                    // Create thread
-                    pred.right = current;
-                    current = current.left;
-                } else {
-                    // Remove thread and visit
-                    pred.right = null;
-                    if (prev != null && current.val < prev.val) {
-                        if (first == null) {
-                            first = prev;
-                        }
-                        second = current;
-                    }
-                    prev = current;
-                    current = current.right;
-                }
-            }
-        }
-        
-        // Swap values
-        if (first != null && second != null) {
-            int temp = first.val;
-            first.val = second.val;
-            second.val = temp;
-        }
-    }
-}
-
-/**
- * Recover BST using recursive in-order traversal.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(h) - recursion stack
- */
-class SolutionRecursive {
-    private TreeNode first;
-    private TreeNode second;
-    private TreeNode prev;
-    
-    public void recoverTree(TreeNode root) {
-        first = null;
-        second = null;
-        prev = null;
-        
-        inorder(root);
-        
-        if (first != null && second != null) {
-            int temp = first.val;
-            first.val = second.val;
-            second.val = temp;
-        }
-    }
-    
-    private void inorder(TreeNode node) {
-        if (node == null) return;
-        
-        // Left
-        inorder(node.left);
-        
-        // Current
-        if (prev != null && node.val < prev.val) {
-            if (first == null) {
-                first = prev;
-            }
-            second = node;
-        }
-        prev = node;
-        
-        // Right
-        inorder(node.right);
-    }
-}
-
-// Helper class
-public class RecoverBST {
-    
-    public static TreeNode buildTree(Integer[] values) {
-        if (values == null || values.length == 0) return null;
-        
-        TreeNode root = new TreeNode(values[0]);
-        Queue<TreeNode> queue = new LinkedList<>();
-        queue.offer(root);
-        int i = 1;
-        
-        while (!queue.isEmpty() && i < values.length) {
-            TreeNode current = queue.poll();
-            
-            if (i < values.length && values[i] != null) {
-                current.left = new TreeNode(values[i]);
-                queue.offer(current.left);
-            }
-            i++;
-            
-            if (i < values.length && values[i] != null) {
-                current.right = new TreeNode(values[i]);
-                queue.offer(current.right);
-            }
-            i++;
-        }
-        
-        return root;
-    }
-    
-    public static List<Integer> inorderTraversal(TreeNode root) {
-        List<Integer> result = new ArrayList<>();
-        Deque<TreeNode> stack = new ArrayDeque<>();
-        TreeNode current = root;
-        
-        while (current != null || !stack.isEmpty()) {
-            while (current != null) {
-                stack.push(current);
-                current = current.left;
-            }
-            current = stack.pop();
-            result.add(current.val);
-            current = current.right;
-        }
-        
-        return result;
-    }
-    
-    public static void main(String[] args) {
-        // Test Case: Swap 3 and 7
-        Integer[] values = {5, 3, 8, 1, 7, null, 9};
-        TreeNode root = buildTree(values);
-        
-        System.out.println("Before: " + inorderTraversal(root));
-        
-        SolutionIterative sol = new SolutionIterative();
-        sol.recoverTree(root);
-        
-        System.out.println("After:  " + inorderTraversal(root));
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Binary Tree Node
- */
-class TreeNode {
-    constructor(val, left = null, right = null) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
-    }
-}
-
-/**
- * Recover BST using iterative in-order traversal.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(h) where h is tree height
- * 
- * @param {TreeNode} root - Root of BST with two swapped nodes
- */
-function recoverTreeIterative(root) {
-    if (!root) return;
-    
-    const stack = [];
-    let current = root;
-    let first = null;
-    let second = null;
-    let prev = null;
-    
-    while (stack.length > 0 || current) {
-        // Go to leftmost node
-        while (current) {
-            stack.push(current);
-            current = current.left;
-        }
-        
-        // Process current node
-        current = stack.pop();
-        
-        // Check for violation
-        if (prev && current.val < prev.val) {
-            if (!first) {
-                first = prev;
-            }
-            second = current;
-        }
-        
-        prev = current;
-        current = current.right;
-    }
-    
-    // Swap values
-    if (first && second) {
-        [first.val, second.val] = [second.val, first.val];
-    }
-}
-
-/**
- * Recover BST using Morris Traversal - O(1) space.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(1)
- * 
- * @param {TreeNode} root - Root of BST with two swapped nodes
- */
-function recoverTreeMorris(root) {
-    if (!root) return;
-    
-    let current = root;
-    let first = null;
-    let second = null;
-    let prev = null;
-    
-    while (current) {
-        if (!current.left) {
-            // Visit node - no left subtree
-            if (prev && current.val < prev.val) {
-                if (!first) {
-                    first = prev;
-                }
-                second = current;
-            }
-            prev = current;
-            current = current.right;
-        } else {
-            // Find inorder predecessor
-            let pred = current.left;
-            while (pred.right && pred.right !== current) {
-                pred = pred.right;
-            }
-            
-            if (!pred.right) {
-                // Create temporary thread link
-                pred.right = current;
-                current = current.left;
-            } else {
-                // Thread exists, remove it and visit node
-                pred.right = null;
-                if (prev && current.val < prev.val) {
-                    if (!first) {
-                        first = prev;
-                    }
-                    second = current;
-                }
-                prev = current;
-                current = current.right;
-            }
-        }
-    }
-    
-    // Swap values
-    if (first && second) {
-        [first.val, second.val] = [second.val, first.val];
-    }
-}
-
-/**
- * Recover BST using recursive in-order traversal.
- * 
- * Time Complexity: O(n)
- * Space Complexity: O(h) - recursion stack
- * 
- * @param {TreeNode} root - Root of BST with two swapped nodes
- */
-function recoverTreeRecursive(root) {
-    let first = null;
-    let second = null;
-    let prev = null;
-    
-    function inorder(node) {
-        if (!node) return;
-        
-        // Traverse left
-        inorder(node.left);
-        
-        // Process current
-        if (prev && node.val < prev.val) {
-            if (!first) {
-                first = prev;
-            }
-            second = node;
-        }
-        prev = node;
-        
-        // Traverse right
-        inorder(node.right);
-    }
-    
-    inorder(root);
-    
-    if (first && second) {
-        [first.val, second.val] = [second.val, first.val];
-    }
-}
-
-// Helper functions
-function buildTree(values) {
-    if (!values || values.length === 0) return null;
-    
-    const nodes = values.map(v => v === null ? null : new TreeNode(v));
-    const kids = [...nodes].reverse();
-    const root = kids.pop();
-    
-    for (const node of nodes) {
-        if (node) {
-            if (kids.length) node.left = kids.pop();
-            if (kids.length) node.right = kids.pop();
-        }
-    }
-    
-    return root;
-}
-
-function inorderTraversal(root) {
-    const result = [];
-    const stack = [];
-    let current = root;
-    
-    while (stack.length > 0 || current) {
-        while (current) {
-            stack.push(current);
-            current = current.left;
-        }
-        current = stack.pop();
-        result.push(current.val);
-        current = current.right;
-    }
-    
-    return result;
-}
-
-function isSorted(arr) {
-    for (let i = 1; i < arr.length; i++) {
-        if (arr[i] < arr[i - 1]) return false;
-    }
-    return true;
-}
-
-// Example usage
-console.log("=".repeat(60));
-console.log("Test Case 1: Non-adjacent swap (3 and 7)");
-console.log("=".repeat(60));
-const root1 = buildTree([5, 3, 8, 1, 7, null, 9]);
-console.log("Before recovery:", inorderTraversal(root1).join(", "));
-recoverTreeIterative(root1);
-console.log("After recovery: ", inorderTraversal(root1).join(", "));
-console.log("Is sorted:", isSorted(inorderTraversal(root1)));
-
-console.log("\n" + "=".repeat(60));
-console.log("Test Case 2: Morris Traversal (adjacent swap)");
-console.log("=".repeat(60));
-const root2 = buildTree([3, 1, 8, null, null, 5, 9]);
-console.log("Before recovery:", inorderTraversal(root2).join(", "));
-recoverTreeMorris(root2);
-console.log("After recovery: ", inorderTraversal(root2).join(", "));
-console.log("Is sorted:", isSorted(inorderTraversal(root2)));
-
-module.exports = {
-    TreeNode,
-    recoverTreeIterative,
-    recoverTreeMorris,
-    recoverTreeRecursive
-};
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Approach | Time Complexity | Description |
-|----------|----------------|-------------|
-| **Iterative In-order** | O(n) | Visit each node exactly once |
-| **Morris Traversal** | O(n) | Each edge traversed at most twice |
-| **Recursive In-order** | O(n) | Visit each node exactly once |
-| **In-order + Sort** | O(n log n) | Extract values, sort, then rebuild |
-
-### Detailed Breakdown
-
-**Iterative In-order:**
-- Each node is pushed and popped from the stack exactly once
-- Total operations: 2n (push + pop) = O(n)
-
-**Morris Traversal:**
-- For nodes without left children: O(1) each
-- For nodes with left children: traverse to predecessor twice (create + remove thread)
-- Total: O(n) as each edge is traversed at most twice
-
-**Recursive In-order:**
-- Each node visited exactly once
-- Function call overhead: O(n) total
-- Risk of stack overflow for skewed trees
-
----
-
-## Space Complexity Analysis
-
-| Approach | Space Complexity | Description |
-|----------|-----------------|-------------|
-| **Iterative In-order** | O(h) | Stack holds at most h nodes |
-| **Morris Traversal** | O(1) | Only pointer variables used |
-| **Recursive In-order** | O(h) | Recursion stack depth |
-| **In-order + Sort** | O(n) | Array to store all values |
-
-**Legend**: h = height of tree, n = number of nodes
-
-### Detailed Breakdown
-
-**Iterative In-order:**
-- Stack holds nodes along the current path from root
-- Maximum stack size = tree height h
-- Balanced BST: O(log n), Skewed BST: O(n)
-
-**Morris Traversal:**
-- No extra data structures
-- Only uses a few pointer variables: current, prev, first, second, pred
-- Modifies tree temporarily but restores it (no permanent change)
-
-**Recursive In-order:**
-- Each recursive call adds a stack frame
-- Maximum recursion depth = tree height h
-- Risk of stack overflow for h > ~10,000
-
----
-
-## Common Variations
-
-### 1. Morris Traversal (O(1) Space)
-
-The optimal space solution that modifies the tree temporarily to create threads:
-
-````carousel
-```python
-def morris_traversal_template(root):
-    """
-    Template for Morris In-order Traversal.
-    Time: O(n), Space: O(1)
-    """
-    current = root
-    while current:
-        if not current.left:
-            # Visit current
-            print(current.val)
-            current = current.right
-        else:
-            # Find predecessor
-            pred = current.left
-            while pred.right and pred.right != current:
-                pred = pred.right
-            
-            if not pred.right:
-                # Create thread
-                pred.right = current
-                current = current.left
-            else:
-                # Remove thread and visit
-                pred.right = None
-                print(current.val)
-                current = current.right
-```
-````
-
-### 2. Recursive In-order (Simplest)
-
-Best for understanding, but risky for production with large/deep trees:
-
-```python
-def recover_tree_recursive(root):
-    """Simple recursive solution - not recommended for deep trees."""
-    def inorder(node):
-        nonlocal first, second, prev
-        if not node:
-            return
-        inorder(node.left)
-        if prev and node.val < prev.val:
-            if not first:
-                first = prev
-            second = node
-        prev = node
-        inorder(node.right)
-    
-    first = second = prev = None
-    inorder(root)
-    if first and second:
-        first.val, second.val = second.val, first.val
-```
-
-### 3. Using BST Iterator Pattern
-
-Abstract the traversal using an iterator:
-
-```python
-class BSTIterator:
-    """Iterator for in-order traversal of BST."""
-    
-    def __init__(self, root):
-        self.stack = []
-        self._push_left(root)
-    
-    def _push_left(self, node):
-        while node:
-            self.stack.append(node)
-            node = node.left
-    
-    def next(self):
-        node = self.stack.pop()
-        self._push_left(node.right)
-        return node
-    
-    def has_next(self):
-        return len(self.stack) > 0
-
-
-def recover_tree_with_iterator(root):
-    """Recover using BST iterator pattern."""
-    iterator = BSTIterator(root)
-    first = second = prev = None
-    
-    while iterator.has_next():
-        current = iterator.next()
-        if prev and current.val < prev.val:
-            if not first:
-                first = prev
-            second = current
-        prev = current
-    
-    if first and second:
-        first.val, second.val = second.val, first.val
-```
+### Limitations
+
+- **Exactly two nodes swapped**: Algorithm assumes this constraint
+- **Value swap only**: Swaps values, not entire nodes (simpler and valid)
+- **In-order traversal required**: Must traverse entire tree
+- **Not for general sorting**: Only fixes BST-specific violations
 
 ---
 
@@ -1266,8 +772,6 @@ def recover_tree_with_iterator(root):
 - Second violation: mark `second = current`
 - Swap values of `first` and `second`
 
-**Key Insight:** In-order traversal of BST gives sorted order. Two swapped elements create at most two violations.
-
 ---
 
 ### Problem 2: Validate Binary Search Tree
@@ -1281,8 +785,6 @@ def recover_tree_with_iterator(root):
 - Track previous node and ensure `current.val > prev.val`
 - Return false if any violation found
 - This is essentially the detection phase without the recovery
-
-**Extension:** If invalid, can you recover it by swapping at most two nodes?
 
 ---
 
@@ -1323,7 +825,6 @@ def recover_tree_with_iterator(root):
 - Use BST iterator for forward in-order traversal (ascending)
 - Use reverse BST iterator for backward in-order traversal (descending)
 - Two-pointer technique: if sum < target, move left iterator; if sum > target, move right iterator
-- This combines BST iterator pattern with two-pointer technique
 
 ---
 
@@ -1415,12 +916,3 @@ The **Recover BST** algorithm is a classic tree traversal problem that demonstra
 - Two Sum in BST (forward + reverse iterators)
 
 Mastering this algorithm provides a foundation for many BST-related problems in competitive programming and technical interviews.
-
----
-
-## Related Algorithms
-
-- [BST Insert](./bst-insert.md) - Building and modifying BSTs
-- [Binary Search](./binary-search.md) - Searching in sorted structures
-- [Inorder Traversal](./graph-dfs.md) - Tree traversal patterns
-- [Kth Largest Element](./kth-largest.md) - Order statistics in trees

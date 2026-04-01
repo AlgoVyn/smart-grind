@@ -5,9 +5,490 @@ Greedy
 
 ## Description
 
-The **Interval Scheduling** problem (also known as the **Activity Selection Problem**) is a classic greedy algorithm that finds the maximum number of mutually compatible activities (non-overlapping intervals). Given a set of intervals with start and end times, the goal is to select the largest possible subset where no two intervals overlap.
+The Interval Scheduling problem (also known as the Activity Selection Problem) is a classic greedy algorithm that finds the maximum number of mutually compatible activities (non-overlapping intervals). Given a set of intervals with start and end times, the goal is to select the largest possible subset where no two intervals overlap.
 
-This algorithm exemplifies the power of the **greedy choice property** - making locally optimal choices at each step leads to a globally optimal solution. The key insight is that selecting the interval that finishes earliest leaves the maximum room for future selections.
+This algorithm exemplifies the power of the greedy choice property - making locally optimal choices at each step leads to a globally optimal solution. The key insight is that selecting the interval that finishes earliest leaves the maximum room for future selections, ensuring we can fit as many intervals as possible.
+
+---
+
+## Concepts
+
+The Interval Scheduling technique is built on several fundamental concepts that make it powerful for resource allocation problems.
+
+### 1. Greedy Choice Property
+
+The fundamental principle that makes this algorithm work:
+
+| Property | Description |
+|----------|-------------|
+| **Local Optimal** | At each step, select the interval that finishes earliest |
+| **Global Optimal** | This leads to the maximum number of intervals overall |
+| **No Regret** | Selecting earliest finisher never blocks a better solution |
+
+### 2. Optimal Substructure
+
+After making a greedy choice, the remaining problem has the same structure:
+
+```
+Problem: Select max intervals from [start, end] times
+Step 1: Select earliest finishing interval (ends at t)
+Step 2: Recursively solve for intervals starting at or after t
+```
+
+### 3. Compatibility
+
+Two intervals are compatible (non-overlapping) if:
+
+| Condition | Formula | Example |
+|-----------|---------|---------|
+| **Non-overlapping** | `interval1.end <= interval2.start` | [1,3] and [3,5] are compatible |
+| **Overlapping** | `interval1.end > interval2.start` | [1,4] and [2,5] overlap |
+| **Touching** | `interval1.end == interval2.start` | [1,3] and [3,5] touch (usually OK) |
+
+### 4. Problem Variations
+
+| Variation | Objective | Approach |
+|-----------|-----------|----------|
+| **Maximum Intervals** | Select max non-overlapping | Greedy (earliest finish) |
+| **Minimum Removals** | Remove minimum to make non-overlapping | Greedy (same as above) |
+| **Weighted Scheduling** | Maximize total weight | DP + Binary Search |
+| **Interval Partitioning** | Minimize resources needed | Greedy (earliest start) |
+
+---
+
+## Frameworks
+
+Structured approaches for solving interval scheduling problems.
+
+### Framework 1: Maximum Non-Overlapping Intervals
+
+```
+┌─────────────────────────────────────────────────────┐
+│  MAXIMUM NON-OVERLAPPING INTERVALS FRAMEWORK        │
+├─────────────────────────────────────────────────────┤
+│  1. Sort intervals by end time (ascending)           │
+│  2. Select first interval (earliest finish)          │
+│  3. Set last_end = selected.end                     │
+│  4. For each remaining interval:                     │
+│     a. If interval.start >= last_end:                │
+│        - Select this interval                       │
+│        - Update last_end = interval.end              │
+│     b. Else:                                         │
+│        - Skip (it overlaps)                           │
+│  5. Return count or list of selected intervals       │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Maximizing throughput on a single resource.
+
+### Framework 2: Weighted Interval Scheduling
+
+```
+┌─────────────────────────────────────────────────────┐
+│  WEIGHTED INTERVAL SCHEDULING (DP) FRAMEWORK        │
+├─────────────────────────────────────────────────────┤
+│  1. Sort intervals by end time                       │
+│  2. For each interval i, find p[i]:                  │
+│     - Last interval that doesn't overlap with i      │
+│     - Use binary search for O(log n)                 │
+│  3. Initialize dp[0] = weight[0]                     │
+│  4. For each i from 1 to n-1:                        │
+│     a. Include: weight[i] + dp[p[i]] (if p[i] >= 0) │
+│     b. Exclude: dp[i-1]                               │
+│     c. dp[i] = max(include, exclude)                 │
+│  5. Return dp[n-1]                                   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When intervals have different values/profits.
+
+### Framework 3: Meeting Rooms II (Interval Partitioning)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  MEETING ROOMS II FRAMEWORK                         │
+├─────────────────────────────────────────────────────┤
+│  1. Separate all start and end times                 │
+│  2. Sort both arrays                                 │
+│  3. Use two pointers (i for starts, j for ends)    │
+│  4. Initialize rooms = 0, max_rooms = 0               │
+│  5. While i < n:                                     │
+│     a. If starts[i] < ends[j]:                     │
+│        - Need new room: rooms++                     │
+│        - max_rooms = max(max_rooms, rooms)          │
+│        - i++                                          │
+│     b. Else:                                         │
+│        - Free a room: rooms--                        │
+│        - j++                                          │
+│  6. Return max_rooms                                 │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Finding minimum resources needed.
+
+---
+
+## Forms
+
+Different manifestations of the interval scheduling pattern.
+
+### Form 1: Maximum Interval Selection
+
+Select maximum number of non-overlapping intervals (classic greedy).
+
+| Input | Sorted by End | Selected | Count |
+|-------|---------------|----------|-------|
+| [[1,4], [2,3], [3,5]] | [[2,3], [1,4], [3,5]] | [[2,3], [3,5]] | 2 |
+| [[1,2], [2,3], [3,4]] | [[1,2], [2,3], [3,4]] | All | 3 |
+| [[1,5], [2,3], [4,6]] | [[2,3], [1,5], [4,6]] | [[2,3], [4,6]] | 2 |
+
+### Form 2: Minimum Removals
+
+Convert minimum removals problem to maximum selection.
+
+```
+Problem: Minimum intervals to remove to make non-overlapping
+Solution: Remove = Total - Maximum_Non_Overlapping
+
+Example: 5 intervals, can select 3 non-overlapping
+         Answer = 5 - 3 = 2 intervals to remove
+```
+
+### Form 3: Balloon Bursting (Arrows)
+
+Minimum arrows to burst all balloons (intervals on a line).
+
+| Balloon | Interval | Arrow Position |
+|---------|----------|----------------|
+| 1 | [1,6] | Shoot at 6, burst overlapping |
+| 2 | [2,8] | Next non-overlapping balloon |
+| 3 | [10,16] | Shoot at 16 |
+
+### Form 4: Maximum Length Pair Chain
+
+Similar to activity selection with pairs instead of intervals.
+
+```
+pairs[i] = [left, right], pair p2 follows p1 if b < c
+Same algorithm: sort by right, greedily select
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Sorting Tie-Breaker
+
+```python
+def interval_scheduling_with_tiebreaker(intervals):
+    """
+    When multiple intervals have same end time,
+    prefer the one with earlier start time.
+    """
+    # Sort by end time, then by start time
+    intervals.sort(key=lambda x: (x[1], x[0]))
+    
+    selected = []
+    last_end = float('-inf')
+    
+    for start, end in intervals:
+        if start >= last_end:
+            selected.append((start, end))
+            last_end = end
+    
+    return selected
+```
+
+### Tactic 2: Binary Search for Weighted Version
+
+```python
+import bisect
+
+def find_last_non_overlapping(intervals, i):
+    """
+    Find the rightmost interval that ends <= intervals[i].start.
+    Returns -1 if no such interval exists.
+    """
+    # intervals must be sorted by end time
+    start_i = intervals[i][0]
+    
+    # Binary search for the largest end <= start_i
+    lo, hi = 0, i - 1
+    result = -1
+    
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if intervals[mid][1] <= start_i:
+            result = mid
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    
+    return result
+```
+
+### Tactic 3: Two-Pointer for Meeting Rooms
+
+```python
+def min_meeting_rooms_two_pointer(intervals):
+    """
+    Alternative two-pointer approach for meeting rooms.
+    """
+    if not intervals:
+        return 0
+    
+    # Separate and sort
+    starts = sorted([i[0] for i in intervals])
+    ends = sorted([i[1] for i in intervals])
+    
+    rooms = 0
+    end_ptr = 0
+    
+    for i in range(len(intervals)):
+        if starts[i] < ends[end_ptr]:
+            # Meeting starts before one ends, need new room
+            rooms += 1
+        else:
+            # Meeting ends, free up a room
+            end_ptr += 1
+    
+    return rooms
+```
+
+### Tactic 4: Greedy Exchange Proof
+
+```python
+def prove_greedy_optimal(intervals):
+    """
+    Understanding why greedy works:
+    
+    Exchange Argument:
+    1. Let G = greedy solution, O = optimal solution
+    2. Both solutions have same size (or G is larger)
+    3. If they differ at position k, replace O's interval
+       with G's interval (which ends no later)
+    4. This doesn't reduce the number of remaining slots
+    5. Therefore G is also optimal
+    """
+    # This is a conceptual proof, not executable code
+    pass
+```
+
+### Tactic 5: Counting at Most K
+
+```python
+def count_non_overlapping_at_most_k(intervals, k):
+    """
+    Count intervals with at most k overlaps at any point.
+    Uses sweep line technique.
+    """
+    events = []
+    for start, end in intervals:
+        events.append((start, 1))   # +1 overlap at start
+        events.append((end, -1))      # -1 overlap at end
+    
+    # Sort: ends before starts if same time
+    events.sort(key=lambda x: (x[0], x[1]))
+    
+    current_overlap = 0
+    valid_intervals = 0
+    
+    for time, delta in events:
+        current_overlap += delta
+        if current_overlap <= k:
+            valid_intervals += 1
+    
+    return valid_intervals
+```
+
+---
+
+## Python Templates
+
+### Template 1: Maximum Non-Overlapping Intervals (Count)
+
+```python
+def interval_scheduling_max(intervals: list[tuple[int, int]]) -> int:
+    """
+    Find maximum number of non-overlapping intervals.
+    Uses greedy algorithm - pick earliest finishing interval.
+    
+    Args:
+        intervals: List of tuples (start, end) where start < end
+    
+    Returns:
+        Maximum number of non-overlapping intervals
+    
+    Time: O(n log n) - dominated by sorting
+    Space: O(1) - only using a few variables
+    """
+    if not intervals:
+        return 0
+    
+    # Sort by end time (greedy choice: earliest finishing first)
+    intervals.sort(key=lambda x: x[1])
+    
+    count = 1  # Select first interval (earliest end)
+    last_end = intervals[0][1]
+    
+    # Iterate through remaining intervals
+    for start, end in intervals[1:]:
+        # Select if it starts after or at the end of last selected
+        if start >= last_end:
+            count += 1
+            last_end = end
+    
+    return count
+```
+
+### Template 2: Return Selected Intervals
+
+```python
+def interval_scheduling_select(intervals: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    """
+    Return the actual selected intervals (not just count).
+    
+    Time: O(n log n)
+    Space: O(n) - storing selected intervals
+    """
+    if not intervals:
+        return []
+    
+    # Sort by end time
+    intervals.sort(key=lambda x: x[1])
+    
+    selected = [intervals[0]]
+    last_end = intervals[0][1]
+    
+    for start, end in intervals[1:]:
+        if start >= last_end:
+            selected.append((start, end))
+            last_end = end
+    
+    return selected
+```
+
+### Template 3: Minimum Intervals to Remove
+
+```python
+def min_intervals_to_remove(intervals: list[tuple[int, int]]) -> int:
+    """
+    Find minimum number of intervals to remove to make non-overlapping.
+    This is equivalent to: total - max_non_overlapping
+    
+    Problem: LeetCode 435 - Non-overlapping Intervals
+    
+    Time: O(n log n)
+    Space: O(1)
+    """
+    if not intervals:
+        return 0
+    
+    # Sort by end time
+    intervals.sort(key=lambda x: x[1])
+    
+    count = 1  # Count of kept intervals
+    last_end = intervals[0][1]
+    
+    for start, end in intervals[1:]:
+        if start >= last_end:
+            # Non-overlapping - keep it
+            count += 1
+            last_end = end
+        # else: overlapping - this interval will be removed
+    
+    # Minimum to remove = total - kept
+    return len(intervals) - count
+```
+
+### Template 4: Weighted Interval Scheduling (Dynamic Programming)
+
+```python
+def weighted_interval_scheduling(intervals: list[tuple[int, int, int]]) -> int:
+    """
+    Weighted interval scheduling using dynamic programming.
+    Each interval is (start, end, weight).
+    Returns maximum total weight of compatible intervals.
+    
+    Time: O(n log n) with binary search
+    Space: O(n)
+    """
+    if not intervals:
+        return 0
+    
+    # Sort by end time
+    intervals.sort(key=lambda x: x[1])
+    n = len(intervals)
+    
+    # dp[i] = max weight using intervals[0..i]
+    dp = [0] * n
+    dp[0] = intervals[0][2]  # Weight of first interval
+    
+    for i in range(1, n):
+        start, end, weight = intervals[i]
+        
+        # Find the last interval that doesn't overlap with current
+        # Binary search for largest j where intervals[j][1] <= start
+        lo, hi = 0, i - 1
+        best_j = -1
+        while lo <= hi:
+            mid = (lo + hi) // 2
+            if intervals[mid][1] <= start:
+                best_j = mid
+                lo = mid + 1
+            else:
+                hi = mid - 1
+        
+        # Option 1: Include current interval
+        include = weight
+        if best_j != -1:
+            include += dp[best_j]
+        
+        # Option 2: Exclude current interval
+        exclude = dp[i - 1]
+        
+        dp[i] = max(include, exclude)
+    
+    return dp[-1]
+```
+
+### Template 5: Meeting Rooms II
+
+```python
+import heapq
+
+def min_meeting_rooms(intervals: list[list[int]]) -> int:
+    """
+    Find minimum number of meeting rooms required.
+    Uses min-heap to track end times of ongoing meetings.
+    
+    Args:
+        intervals: List of [start, end] meeting times
+    
+    Returns:
+        Minimum rooms needed
+    """
+    if not intervals:
+        return 0
+    
+    # Sort by start time
+    intervals.sort(key=lambda x: x[0])
+    
+    # Min heap to track end times of ongoing meetings
+    min_heap = []
+    
+    for start, end in intervals:
+        # If a meeting ended before this starts, reuse room
+        if min_heap and min_heap[0] <= start:
+            heapq.heappop(min_heap)
+        
+        # Allocate room (new or reused)
+        heapq.heappush(min_heap, end)
+    
+    return len(min_heap)
+```
 
 ---
 
@@ -56,41 +537,19 @@ The fundamental insight of interval scheduling is the **Earliest Finish Time** g
 
 > **Greedy Choice:** Always select the interval with the earliest finish time that doesn't conflict with previously selected intervals.
 
-### Why This Works
+### How It Works
 
-**Proof Sketch (Greedy Exchange Argument):**
+#### The Algorithm Steps
+1. **Sort Intervals**: Sort all intervals by their end time in ascending order
+2. **Initialize**: Select the first interval (earliest end), set `last_end = end_time`
+3. **Iterate**: For each remaining interval:
+   - If `start_time >= last_end`: Select this interval, update `last_end`
+   - Else: Skip this interval (it overlaps)
+4. **Return**: Count or list of selected intervals
 
-1. Let `G` be the greedy solution (earliest finish time strategy)
-2. Let `O` be any optimal solution
-3. Both select the same number of intervals (or `G` selects more)
-4. We can transform `O` into `G` without decreasing its size:
-   - At each step where `O` and `G` differ, replace `O`'s choice with `G`'s choice
-   - Since `G` always picks the earliest finishing interval, `G`'s choice ends no later than `O`'s choice
-   - This leaves at least as much room for remaining intervals
-
-### Visual Representation
+#### Visual Representation
 
 Consider intervals: `[(1, 4), (2, 3), (3, 5), (5, 7), (6, 8), (8, 10)]`
-
-```
-Time:  1   2   3   4   5   6   7   8   9   10
-       |---|---|---|---|---|---|---|---|---|
-A: [1      4)                               (ends at 4)
-B:     [2 3)                                 (ends at 3) ✓ SELECTED (earliest end)
-C:         [3    5)                          (ends at 5)
-D:                 [5   7)                   (ends at 7)
-E:                   [6 8)                   (ends at 8)
-F:                         [8      10]       (ends at 10) ✓ SELECTED
-
-Timeline of selected intervals:
-1. Select B (2,3) - ends at 3
-2. Skip A (starts at 1 < 3), Skip C (starts at 3 = 3, but we check: 3 >= 3 ✓)
-   Actually: C starts at 3, B ends at 3, so 3 >= 3, we can select C!
-   
-Let me redraw:
-```
-
-**Better Visualization:**
 
 ```
 Intervals sorted by end time:
@@ -108,1022 +567,23 @@ Intervals sorted by end time:
 Result: 4 intervals selected (B, C, D, F)
 ```
 
+### Why This Works
+
+**Proof Sketch (Greedy Exchange Argument):**
+
+1. Let `G` be the greedy solution (earliest finish time strategy)
+2. Let `O` be any optimal solution
+3. Both select the same number of intervals (or `G` selects more)
+4. We can transform `O` into `G` without decreasing its size:
+   - At each step where `O` and `G` differ, replace `O`'s choice with `G`'s choice
+   - Since `G` always picks the earliest finishing interval, `G`'s choice ends no later than `O`'s choice
+   - This leaves at least as much room for remaining intervals
+
 ### Key Properties
 
 1. **Greedy Choice Property**: A globally optimal solution can be achieved by making locally optimal choices
 2. **Optimal Substructure**: After selecting an interval, the problem reduces to the same problem on remaining compatible intervals
 3. **No Lookahead Needed**: The greedy choice doesn't depend on future choices
-
-### Common Variations
-
-| Variation | Problem Statement | Approach |
-|-----------|------------------|----------|
-| **Maximum Intervals** | Select max non-overlapping intervals | Greedy (earliest finish) |
-| **Minimum Removals** | Remove minimum to make non-overlapping | Greedy (same as above) |
-| **Weighted Scheduling** | Maximize total weight | DP + Binary Search |
-| **Interval Partitioning** | Minimize resources needed | Greedy (earliest start) |
-| **Interval Merging** | Merge overlapping intervals | Sort + Linear scan |
-
----
-
-## Algorithm Steps
-
-### Standard Greedy Approach (Maximum Non-overlapping Intervals)
-
-1. **Sort Intervals**: Sort all intervals by their end time in ascending order
-2. **Initialize**: Select the first interval (earliest end), set `last_end = end_time`
-3. **Iterate**: For each remaining interval:
-   - If `start_time >= last_end`: Select this interval, update `last_end`
-   - Else: Skip this interval (it overlaps)
-4. **Return**: Count or list of selected intervals
-
-### Step-by-Step Example
-
-**Input:** `intervals = [(1, 3), (2, 4), (3, 5), (7, 9), (6, 8)]`
-
-```
-Step 1: Sort by end time
-  Original: [(1,3), (2,4), (3,5), (7,9), (6,8)]
-  Sorted:   [(1,3), (2,4), (3,5), (6,8), (7,9)]
-               ↑                            ↑
-             end=3                       end=9
-
-Step 2: Select first interval
-  Selected: [(1,3)]
-  last_end = 3
-  Count = 1
-
-Step 3: Check (2,4)
-  start=2, last_end=3
-  2 >= 3? No (overlaps) → Skip
-
-Step 4: Check (3,5)
-  start=3, last_end=3
-  3 >= 3? Yes → Select!
-  Selected: [(1,3), (3,5)]
-  last_end = 5
-  Count = 2
-
-Step 5: Check (6,8)
-  start=6, last_end=5
-  6 >= 5? Yes → Select!
-  Selected: [(1,3), (3,5), (6,8)]
-  last_end = 8
-  Count = 3
-
-Step 6: Check (7,9)
-  start=7, last_end=8
-  7 >= 8? No (overlaps) → Skip
-
-Final Result: 3 intervals
-Selected: [(1,3), (3,5), (6,8)]
-```
-
----
-
-## Implementation
-
-### Template Code (Maximum Non-overlapping Intervals)
-
-````carousel
-```python
-from typing import List, Tuple
-
-def interval_scheduling_max(intervals: List[Tuple[int, int]]) -> int:
-    """
-    Find maximum number of non-overlapping intervals.
-    Uses greedy algorithm - pick earliest finishing interval.
-    
-    Args:
-        intervals: List of tuples (start, end) where start < end
-        
-    Returns:
-        Maximum number of non-overlapping intervals
-        
-    Time Complexity: O(n log n) - dominated by sorting
-    Space Complexity: O(1) - only using a few variables
-        
-    Example:
-        >>> intervals = [(1, 3), (2, 4), (3, 5), (7, 9)]
-        >>> interval_scheduling_max(intervals)
-        3  # [(1,3), (3,5), (7,9)]
-    """
-    if not intervals:
-        return 0
-    
-    # Sort by end time (greedy choice: earliest finishing first)
-    intervals.sort(key=lambda x: x[1])
-    
-    count = 1  # Select first interval (earliest end)
-    last_end = intervals[0][1]
-    
-    # Iterate through remaining intervals
-    for start, end in intervals[1:]:
-        # Select if it starts after or at the end of last selected
-        if start >= last_end:
-            count += 1
-            last_end = end
-    
-    return count
-
-
-def interval_scheduling_select(intervals: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
-    """
-    Return the actual selected intervals (not just count).
-    
-    Time Complexity: O(n log n)
-    Space Complexity: O(n) - storing selected intervals
-    """
-    if not intervals:
-        return []
-    
-    # Sort by end time
-    intervals.sort(key=lambda x: x[1])
-    
-    selected = [intervals[0]]
-    last_end = intervals[0][1]
-    
-    for start, end in intervals[1:]:
-        if start >= last_end:
-            selected.append((start, end))
-            last_end = end
-    
-    return selected
-
-
-def min_intervals_to_remove(intervals: List[Tuple[int, int]]) -> int:
-    """
-    Find minimum number of intervals to remove to make non-overlapping.
-    This is equivalent to: total - max_non_overlapping
-    
-    Problem: LeetCode 435 - Non-overlapping Intervals
-    
-    Time Complexity: O(n log n)
-    Space Complexity: O(1)
-    """
-    if not intervals:
-        return 0
-    
-    # Sort by end time
-    intervals.sort(key=lambda x: x[1])
-    
-    count = 1  # Count of kept intervals
-    last_end = intervals[0][1]
-    
-    for start, end in intervals[1:]:
-        if start >= last_end:
-            # Non-overlapping - keep it
-            count += 1
-            last_end = end
-        # else: overlapping - this interval will be removed
-    
-    # Minimum to remove = total - kept
-    return len(intervals) - count
-
-
-def weighted_interval_scheduling(intervals: List[Tuple[int, int, int]]) -> int:
-    """
-    Weighted interval scheduling using dynamic programming.
-    Each interval is (start, end, weight).
-    Returns maximum total weight of compatible intervals.
-    
-    Time Complexity: O(n log n) with binary search
-    Space Complexity: O(n)
-    """
-    if not intervals:
-        return 0
-    
-    # Sort by end time
-    intervals.sort(key=lambda x: x[1])
-    n = len(intervals)
-    
-    # dp[i] = max weight using intervals[0..i]
-    dp = [0] * n
-    dp[0] = intervals[0][2]  # Weight of first interval
-    
-    for i in range(1, n):
-        start, end, weight = intervals[i]
-        
-        # Find the last interval that doesn't overlap with current
-        # Binary search for largest j where intervals[j][1] <= start
-        lo, hi = 0, i - 1
-        best_j = -1
-        while lo <= hi:
-            mid = (lo + hi) // 2
-            if intervals[mid][1] <= start:
-                best_j = mid
-                lo = mid + 1
-            else:
-                hi = mid - 1
-        
-        # Option 1: Include current interval
-        include = weight
-        if best_j != -1:
-            include += dp[best_j]
-        
-        # Option 2: Exclude current interval
-        exclude = dp[i - 1]
-        
-        dp[i] = max(include, exclude)
-    
-    return dp[-1]
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    print("=" * 60)
-    print("INTERVAL SCHEDULING DEMONSTRATION")
-    print("=" * 60)
-    
-    # Example 1: Basic interval scheduling
-    intervals = [(1, 4), (2, 3), (3, 4), (5, 7), (6, 8), (8, 10)]
-    print(f"\nIntervals: {intervals}")
-    print(f"Maximum non-overlapping: {interval_scheduling_max(intervals)}")
-    print(f"Selected: {interval_scheduling_select(intervals)}")
-    print(f"Minimum to remove: {min_intervals_to_remove(intervals)}")
-    
-    # Example 2: Already sorted scenario
-    intervals2 = [(1, 2), (2, 3), (3, 4), (4, 5)]
-    print(f"\nIntervals: {intervals2}")
-    print(f"Maximum non-overlapping: {interval_scheduling_max(intervals2)}")
-    print(f"Selected: {interval_scheduling_select(intervals2)}")
-    
-    # Example 3: All overlapping
-    intervals3 = [(1, 10), (2, 9), (3, 8)]
-    print(f"\nIntervals: {intervals3}")
-    print(f"Maximum non-overlapping: {interval_scheduling_max(intervals3)}")
-    print(f"Selected: {interval_scheduling_select(intervals3)}")
-    
-    # Example 4: Weighted interval scheduling
-    weighted = [(1, 3, 50), (2, 5, 20), (4, 6, 30), (6, 7, 40)]
-    print(f"\nWeighted intervals (start, end, weight): {weighted}")
-    print(f"Maximum weight: {weighted_interval_scheduling(weighted)}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-/**
- * Interval Scheduling - Maximum Non-overlapping Intervals
- * 
- * Time Complexity: O(n log n) - dominated by sorting
- * Space Complexity: O(1) for count, O(n) for selection
- */
-
-// Structure to represent an interval
-struct Interval {
-    int start;
-    int end;
-    
-    Interval(int s, int e) : start(s), end(e) {}
-};
-
-/**
- * Find maximum number of non-overlapping intervals
- */
-int intervalSchedulingMax(vector<Interval>& intervals) {
-    if (intervals.empty()) {
-        return 0;
-    }
-    
-    // Sort by end time (greedy choice)
-    sort(intervals.begin(), intervals.end(), 
-         [](const Interval& a, const Interval& b) {
-             return a.end < b.end;
-         });
-    
-    int count = 1;  // Select first interval
-    int lastEnd = intervals[0].end;
-    
-    for (size_t i = 1; i < intervals.size(); i++) {
-        if (intervals[i].start >= lastEnd) {
-            count++;
-            lastEnd = intervals[i].end;
-        }
-    }
-    
-    return count;
-}
-
-/**
- * Return the actual selected intervals
- */
-vector<Interval> intervalSchedulingSelect(vector<Interval>& intervals) {
-    if (intervals.empty()) {
-        return {};
-    }
-    
-    sort(intervals.begin(), intervals.end(), 
-         [](const Interval& a, const Interval& b) {
-             return a.end < b.end;
-         });
-    
-    vector<Interval> selected;
-    selected.push_back(intervals[0]);
-    int lastEnd = intervals[0].end;
-    
-    for (size_t i = 1; i < intervals.size(); i++) {
-        if (intervals[i].start >= lastEnd) {
-            selected.push_back(intervals[i]);
-            lastEnd = intervals[i].end;
-        }
-    }
-    
-    return selected;
-}
-
-/**
- * Minimum intervals to remove to make non-overlapping
- * LeetCode 435 - Non-overlapping Intervals
- */
-int minIntervalsToRemove(vector<Interval>& intervals) {
-    if (intervals.empty()) {
-        return 0;
-    }
-    
-    sort(intervals.begin(), intervals.end(), 
-         [](const Interval& a, const Interval& b) {
-             return a.end < b.end;
-         });
-    
-    int count = 1;  // Count of kept intervals
-    int lastEnd = intervals[0].end;
-    
-    for (size_t i = 1; i < intervals.size(); i++) {
-        if (intervals[i].start >= lastEnd) {
-            count++;
-            lastEnd = intervals[i].end;
-        }
-    }
-    
-    return intervals.size() - count;
-}
-
-/**
- * Weighted interval scheduling using dynamic programming
- * Each interval has (start, end, weight)
- */
-struct WeightedInterval {
-    int start;
-    int end;
-    int weight;
-    
-    WeightedInterval(int s, int e, int w) : start(s), end(e), weight(w) {}
-};
-
-int weightedIntervalScheduling(vector<WeightedInterval>& intervals) {
-    if (intervals.empty()) {
-        return 0;
-    }
-    
-    sort(intervals.begin(), intervals.end(), 
-         [](const WeightedInterval& a, const WeightedInterval& b) {
-             return a.end < b.end;
-         });
-    
-    int n = intervals.size();
-    vector<int> dp(n, 0);
-    dp[0] = intervals[0].weight;
-    
-    for (int i = 1; i < n; i++) {
-        int include = intervals[i].weight;
-        
-        // Binary search for last non-overlapping interval
-        int lo = 0, hi = i - 1, bestJ = -1;
-        while (lo <= hi) {
-            int mid = lo + (hi - lo) / 2;
-            if (intervals[mid].end <= intervals[i].start) {
-                bestJ = mid;
-                lo = mid + 1;
-            } else {
-                hi = mid - 1;
-            }
-        }
-        
-        if (bestJ != -1) {
-            include += dp[bestJ];
-        }
-        
-        dp[i] = max(include, dp[i - 1]);
-    }
-    
-    return dp[n - 1];
-}
-
-int main() {
-    cout << "=" << string(60, '=') << endl;
-    cout << "INTERVAL SCHEDULING DEMONSTRATION" << endl;
-    cout << "=" << string(60, '=') << endl;
-    
-    // Example 1: Basic interval scheduling
-    vector<Interval> intervals = {
-        {1, 4}, {2, 3}, {3, 4}, {5, 7}, {6, 8}, {8, 10}
-    };
-    
-    cout << "\nExample 1: Basic Interval Scheduling" << endl;
-    cout << "Intervals: ";
-    for (const auto& iv : intervals) {
-        cout << "(" << iv.start << "," << iv.end << ") ";
-    }
-    cout << endl;
-    
-    cout << "Maximum non-overlapping: " << intervalSchedulingMax(intervals) << endl;
-    
-    // Need to copy since sorting modifies original
-    vector<Interval> intervalsCopy = intervals;
-    auto selected = intervalSchedulingSelect(intervalsCopy);
-    cout << "Selected intervals: ";
-    for (const auto& iv : selected) {
-        cout << "(" << iv.start << "," << iv.end << ") ";
-    }
-    cout << endl;
-    
-    intervalsCopy = intervals;
-    cout << "Minimum to remove: " << minIntervalsToRemove(intervalsCopy) << endl;
-    
-    // Example 2: All overlapping
-    vector<Interval> intervals2 = {{1, 10}, {2, 9}, {3, 8}};
-    cout << "\nExample 2: All Overlapping" << endl;
-    cout << "Intervals: (1,10) (2,9) (3,8)" << endl;
-    cout << "Maximum non-overlapping: " << intervalSchedulingMax(intervals2) << endl;
-    
-    // Example 3: Weighted interval scheduling
-    vector<WeightedInterval> weighted = {
-        {1, 3, 50}, {2, 5, 20}, {4, 6, 30}, {6, 7, 40}
-    };
-    cout << "\nExample 3: Weighted Interval Scheduling" << endl;
-    cout << "Weighted maximum: " << weightedIntervalScheduling(weighted) << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Interval Scheduling - Maximum Non-overlapping Intervals
- * 
- * Time Complexity: O(n log n) - dominated by sorting
- * Space Complexity: O(1) for count, O(n) for selection
- */
-
-class Interval {
-    int start;
-    int end;
-    
-    Interval(int start, int end) {
-        this.start = start;
-        this.end = end;
-    }
-    
-    @Override
-    public String toString() {
-        return "(" + start + "," + end + ")";
-    }
-}
-
-class WeightedInterval extends Interval {
-    int weight;
-    
-    WeightedInterval(int start, int end, int weight) {
-        super(start, end);
-        this.weight = weight;
-    }
-}
-
-public class IntervalScheduling {
-    
-    /**
-     * Find maximum number of non-overlapping intervals
-     */
-    public static int intervalSchedulingMax(Interval[] intervals) {
-        if (intervals == null || intervals.length == 0) {
-            return 0;
-        }
-        
-        // Sort by end time (greedy choice)
-        Arrays.sort(intervals, Comparator.comparingInt(i -> i.end));
-        
-        int count = 1;
-        int lastEnd = intervals[0].end;
-        
-        for (int i = 1; i < intervals.length; i++) {
-            if (intervals[i].start >= lastEnd) {
-                count++;
-                lastEnd = intervals[i].end;
-            }
-        }
-        
-        return count;
-    }
-    
-    /**
-     * Return the actual selected intervals
-     */
-    public static List<Interval> intervalSchedulingSelect(Interval[] intervals) {
-        if (intervals == null || intervals.length == 0) {
-            return new ArrayList<>();
-        }
-        
-        Arrays.sort(intervals, Comparator.comparingInt(i -> i.end));
-        
-        List<Interval> selected = new ArrayList<>();
-        selected.add(intervals[0]);
-        int lastEnd = intervals[0].end;
-        
-        for (int i = 1; i < intervals.length; i++) {
-            if (intervals[i].start >= lastEnd) {
-                selected.add(intervals[i]);
-                lastEnd = intervals[i].end;
-            }
-        }
-        
-        return selected;
-    }
-    
-    /**
-     * Minimum intervals to remove to make non-overlapping
-     * LeetCode 435 - Non-overlapping Intervals
-     */
-    public static int minIntervalsToRemove(Interval[] intervals) {
-        if (intervals == null || intervals.length == 0) {
-            return 0;
-        }
-        
-        Arrays.sort(intervals, Comparator.comparingInt(i -> i.end));
-        
-        int count = 1;  // Count of kept intervals
-        int lastEnd = intervals[0].end;
-        
-        for (int i = 1; i < intervals.length; i++) {
-            if (intervals[i].start >= lastEnd) {
-                count++;
-                lastEnd = intervals[i].end;
-            }
-        }
-        
-        return intervals.length - count;
-    }
-    
-    /**
-     * Weighted interval scheduling using dynamic programming
-     */
-    public static int weightedIntervalScheduling(WeightedInterval[] intervals) {
-        if (intervals == null || intervals.length == 0) {
-            return 0;
-        }
-        
-        Arrays.sort(intervals, Comparator.comparingInt(i -> i.end));
-        
-        int n = intervals.length;
-        int[] dp = new int[n];
-        dp[0] = intervals[0].weight;
-        
-        for (int i = 1; i < n; i++) {
-            int include = intervals[i].weight;
-            
-            // Binary search for last non-overlapping interval
-            int lo = 0, hi = i - 1, bestJ = -1;
-            while (lo <= hi) {
-                int mid = lo + (hi - lo) / 2;
-                if (intervals[mid].end <= intervals[i].start) {
-                    bestJ = mid;
-                    lo = mid + 1;
-                } else {
-                    hi = mid - 1;
-                }
-            }
-            
-            if (bestJ != -1) {
-                include += dp[bestJ];
-            }
-            
-            dp[i] = Math.max(include, dp[i - 1]);
-        }
-        
-        return dp[n - 1];
-    }
-    
-    /**
-     * Alternative: Sort by start time (for different problems)
-     * Sometimes we need to sort by start time for interval merging
-     */
-    public static List<Interval> mergeIntervals(Interval[] intervals) {
-        if (intervals == null || intervals.length == 0) {
-            return new ArrayList<>();
-        }
-        
-        // Sort by start time for merging
-        Arrays.sort(intervals, Comparator.comparingInt(i -> i.start));
-        
-        List<Interval> merged = new ArrayList<>();
-        merged.add(intervals[0]);
-        
-        for (int i = 1; i < intervals.length; i++) {
-            Interval last = merged.get(merged.size() - 1);
-            Interval current = intervals[i];
-            
-            if (current.start <= last.end) {
-                // Overlapping - merge
-                last.end = Math.max(last.end, current.end);
-            } else {
-                // Non-overlapping - add new
-                merged.add(current);
-            }
-        }
-        
-        return merged;
-    }
-    
-    public static void main(String[] args) {
-        System.out.println("=".repeat(60));
-        System.out.println("INTERVAL SCHEDULING DEMONSTRATION");
-        System.out.println("=".repeat(60));
-        
-        // Example 1: Basic interval scheduling
-        Interval[] intervals = {
-            new Interval(1, 4),
-            new Interval(2, 3),
-            new Interval(3, 4),
-            new Interval(5, 7),
-            new Interval(6, 8),
-            new Interval(8, 10)
-        };
-        
-        System.out.println("\nExample 1: Basic Interval Scheduling");
-        System.out.print("Intervals: ");
-        for (Interval iv : intervals) {
-            System.out.print(iv + " ");
-        }
-        System.out.println();
-        
-        // Need copies since sorting modifies the array
-        Interval[] copy1 = Arrays.copyOf(intervals, intervals.length);
-        System.out.println("Maximum non-overlapping: " + intervalSchedulingMax(copy1));
-        
-        Interval[] copy2 = Arrays.copyOf(intervals, intervals.length);
-        System.out.println("Selected: " + intervalSchedulingSelect(copy2));
-        
-        Interval[] copy3 = Arrays.copyOf(intervals, intervals.length);
-        System.out.println("Minimum to remove: " + minIntervalsToRemove(copy3));
-        
-        // Example 2: Weighted
-        WeightedInterval[] weighted = {
-            new WeightedInterval(1, 3, 50),
-            new WeightedInterval(2, 5, 20),
-            new WeightedInterval(4, 6, 30),
-            new WeightedInterval(6, 7, 40)
-        };
-        System.out.println("\nExample 2: Weighted Interval Scheduling");
-        System.out.println("Maximum weight: " + weightedIntervalScheduling(weighted));
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Interval Scheduling - Maximum Non-overlapping Intervals
- * 
- * Time Complexity: O(n log n) - dominated by sorting
- * Space Complexity: O(1) for count, O(n) for selection
- */
-
-/**
- * Find maximum number of non-overlapping intervals
- * @param {number[][]} intervals - Array of [start, end] pairs
- * @returns {number} Maximum count of non-overlapping intervals
- */
-function intervalSchedulingMax(intervals) {
-    if (!intervals || intervals.length === 0) {
-        return 0;
-    }
-    
-    // Sort by end time (greedy choice: earliest finishing first)
-    intervals.sort((a, b) => a[1] - b[1]);
-    
-    let count = 1;  // Select first interval
-    let lastEnd = intervals[0][1];
-    
-    for (let i = 1; i < intervals.length; i++) {
-        const [start, end] = intervals[i];
-        if (start >= lastEnd) {
-            count++;
-            lastEnd = end;
-        }
-    }
-    
-    return count;
-}
-
-/**
- * Return the actual selected intervals
- * @param {number[][]} intervals - Array of [start, end] pairs
- * @returns {number[][]} Selected non-overlapping intervals
- */
-function intervalSchedulingSelect(intervals) {
-    if (!intervals || intervals.length === 0) {
-        return [];
-    }
-    
-    // Create a copy to avoid modifying original
-    const sorted = [...intervals].sort((a, b) => a[1] - b[1]);
-    
-    const selected = [sorted[0]];
-    let lastEnd = sorted[0][1];
-    
-    for (let i = 1; i < sorted.length; i++) {
-        const [start, end] = sorted[i];
-        if (start >= lastEnd) {
-            selected.push(sorted[i]);
-            lastEnd = end;
-        }
-    }
-    
-    return selected;
-}
-
-/**
- * Minimum intervals to remove to make non-overlapping
- * LeetCode 435 - Non-overlapping Intervals
- * @param {number[][]} intervals - Array of [start, end] pairs
- * @returns {number} Minimum number of intervals to remove
- */
-function minIntervalsToRemove(intervals) {
-    if (!intervals || intervals.length === 0) {
-        return 0;
-    }
-    
-    const sorted = [...intervals].sort((a, b) => a[1] - b[1]);
-    
-    let count = 1;  // Count of kept intervals
-    let lastEnd = sorted[0][1];
-    
-    for (let i = 1; i < sorted.length; i++) {
-        const [start, end] = sorted[i];
-        if (start >= lastEnd) {
-            count++;
-            lastEnd = end;
-        }
-    }
-    
-    return intervals.length - count;
-}
-
-/**
- * Weighted interval scheduling using dynamic programming
- * @param {number[][]} intervals - Array of [start, end, weight] triples
- * @returns {number} Maximum total weight
- */
-function weightedIntervalScheduling(intervals) {
-    if (!intervals || intervals.length === 0) {
-        return 0;
-    }
-    
-    // Sort by end time
-    const sorted = [...intervals].sort((a, b) => a[1] - b[1]);
-    const n = sorted.length;
-    
-    // dp[i] = max weight using intervals[0..i]
-    const dp = new Array(n).fill(0);
-    dp[0] = sorted[0][2];
-    
-    for (let i = 1; i < n; i++) {
-        const [start, end, weight] = sorted[i];
-        
-        // Binary search for last non-overlapping interval
-        let lo = 0, hi = i - 1, bestJ = -1;
-        while (lo <= hi) {
-            const mid = Math.floor((lo + hi) / 2);
-            if (sorted[mid][1] <= start) {
-                bestJ = mid;
-                lo = mid + 1;
-            } else {
-                hi = mid - 1;
-            }
-        }
-        
-        // Option 1: Include current
-        let include = weight;
-        if (bestJ !== -1) {
-            include += dp[bestJ];
-        }
-        
-        // Option 2: Exclude current
-        const exclude = dp[i - 1];
-        
-        dp[i] = Math.max(include, exclude);
-    }
-    
-    return dp[n - 1];
-}
-
-/**
- * Merge overlapping intervals
- * @param {number[][]} intervals - Array of [start, end] pairs
- * @returns {number[][]} Merged intervals
- */
-function mergeIntervals(intervals) {
-    if (!intervals || intervals.length === 0) {
-        return [];
-    }
-    
-    // Sort by start time for merging
-    const sorted = [...intervals].sort((a, b) => a[0] - b[0]);
-    
-    const merged = [sorted[0]];
-    
-    for (let i = 1; i < sorted.length; i++) {
-        const last = merged[merged.length - 1];
-        const current = sorted[i];
-        
-        if (current[0] <= last[1]) {
-            // Overlapping - merge
-            last[1] = Math.max(last[1], current[1]);
-        } else {
-            // Non-overlapping - add new
-            merged.push(current);
-        }
-    }
-    
-    return merged;
-}
-
-/**
- * Interval partitioning - minimum number of resources needed
- * LeetCode 253 - Meeting Rooms II
- * @param {number[][]} intervals - Array of [start, end] pairs
- * @returns {number} Minimum number of resources needed
- */
-function minMeetingRooms(intervals) {
-    if (!intervals || intervals.length === 0) {
-        return 0;
-    }
-    
-    // Extract start and end times
-    const starts = intervals.map(i => i[0]).sort((a, b) => a - b);
-    const ends = intervals.map(i => i[1]).sort((a, b) => a - b);
-    
-    let rooms = 0;
-    let endPtr = 0;
-    
-    for (let i = 0; i < intervals.length; i++) {
-        if (starts[i] >= ends[endPtr]) {
-            // A meeting has ended, reuse the room
-            endPtr++;
-        } else {
-            // Need a new room
-            rooms++;
-        }
-    }
-    
-    return rooms;
-}
-
-// Example usage and demonstration
-console.log("=".repeat(60));
-console.log("INTERVAL SCHEDULING DEMONSTRATION");
-console.log("=".repeat(60));
-
-// Example 1: Basic interval scheduling
-const intervals = [[1, 4], [2, 3], [3, 4], [5, 7], [6, 8], [8, 10]];
-console.log("\nExample 1: Basic Interval Scheduling");
-console.log("Intervals:", JSON.stringify(intervals));
-console.log("Maximum non-overlapping:", intervalSchedulingMax([...intervals]));
-console.log("Selected:", JSON.stringify(intervalSchedulingSelect(intervals)));
-console.log("Minimum to remove:", minIntervalsToRemove([...intervals]));
-
-// Example 2: Already sorted
-const intervals2 = [[1, 2], [2, 3], [3, 4], [4, 5]];
-console.log("\nExample 2: Adjacent Intervals");
-console.log("Intervals:", JSON.stringify(intervals2));
-console.log("Maximum non-overlapping:", intervalSchedulingMax([...intervals2]));
-
-// Example 3: All overlapping
-const intervals3 = [[1, 10], [2, 9], [3, 8]];
-console.log("\nExample 3: All Overlapping");
-console.log("Intervals:", JSON.stringify(intervals3));
-console.log("Maximum non-overlapping:", intervalSchedulingMax([...intervals3]));
-
-// Example 4: Weighted
-const weighted = [[1, 3, 50], [2, 5, 20], [4, 6, 30], [6, 7, 40]];
-console.log("\nExample 4: Weighted Interval Scheduling");
-console.log("Weighted intervals (start, end, weight):", JSON.stringify(weighted));
-console.log("Maximum weight:", weightedIntervalScheduling(weighted));
-
-// Example 5: Meeting rooms
-const meetings = [[0, 30], [5, 10], [15, 20]];
-console.log("\nExample 5: Meeting Rooms II");
-console.log("Meetings:", JSON.stringify(meetings));
-console.log("Minimum rooms needed:", minMeetingRooms(meetings));
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Sorting** | O(n log n) | Dominated by sorting intervals by end time |
-| **Greedy Selection** | O(n) | Single pass through sorted intervals |
-| **Total** | **O(n log n)** | Overall time complexity |
-
-### Detailed Breakdown
-
-**Greedy Interval Scheduling:**
-- **Sorting**: O(n log n) using comparison-based sort (Timsort in Python, Dual-Pivot Quicksort in Java)
-- **Selection**: O(n) - single linear scan through intervals
-- **Total**: O(n log n) + O(n) = **O(n log n)**
-
-**Weighted Interval Scheduling (with Binary Search):**
-- **Sorting**: O(n log n)
-- **DP with binary search**: O(n log n) - each of n intervals requires O(log n) binary search
-- **Total**: **O(n log n)**
-
-**Weighted Interval Scheduling (without Binary Search):**
-- **Sorting**: O(n log n)
-- **DP with linear scan**: O(n²) - each interval scans all previous
-- **Total**: **O(n²)**
-
----
-
-## Space Complexity Analysis
-
-| Approach | Space Complexity | Description |
-|----------|------------------|-------------|
-| **Basic Greedy** | O(1) | Only need count and last_end variables |
-| **With Selection** | O(n) | Store selected intervals |
-| **Weighted DP** | O(n) | DP array for storing intermediate results |
-
-### Detailed Breakdown
-
-- **Greedy (count only)**: O(1) auxiliary space (in-place sort)
-- **Greedy (with selection)**: O(n) for storing selected intervals
-- **Weighted DP**: O(n) for DP array + O(n) for sorted intervals = O(n)
-- **Interval Partitioning**: O(n) for storing start/end arrays
-
----
-
-## Common Variations
-
-### 1. Weighted Interval Scheduling
-
-When intervals have different values/profits, use dynamic programming instead of greedy:
-
-```
-Problem: Select intervals to maximize total weight (not count)
-Approach: DP with binary search for O(n log n)
-Recurrence: dp[i] = max(dp[i-1], weight[i] + dp[p[i]])
-where p[i] is the last interval that doesn't overlap with i
-```
-
-### 2. Interval Partitioning (Meeting Rooms II)
-
-Find minimum number of resources (rooms) needed to schedule all intervals:
-
-```
-Problem: LeetCode 253 - Meeting Rooms II
-Approach: Sort starts and ends separately, use two-pointer technique
-Time: O(n log n), Space: O(n)
-```
-
-### 3. Interval Merging
-
-Merge all overlapping intervals into a single interval:
-
-```
-Problem: LeetCode 56 - Merge Intervals
-Approach: Sort by start time, then merge overlapping
-Time: O(n log n), Space: O(n)
-```
-
-### 4. Insert Interval
-
-Insert a new interval into existing set, merging if necessary:
-
-```
-Problem: LeetCode 57 - Insert Interval
-Approach: Find position, insert, then merge adjacent if needed
-Time: O(n), Space: O(n)
-```
-
-### 5. Find Minimum Arrows to Burst Balloons
-
-```
-Problem: LeetCode 452 - Minimum Number of Arrows to Burst Balloons
-Approach: Similar to interval scheduling - sort by end, count when new arrow needed
-Time: O(n log n), Space: O(1)
-```
 
 ---
 
@@ -1161,22 +621,7 @@ Time: O(n log n), Space: O(1)
 
 ---
 
-### Problem 3: Data Stream as Disjoint Intervals
-
-**Problem:** [LeetCode 352 - Data Stream as Disjoint Intervals](https://leetcode.com/problems/data-stream-as-disjoint-intervals/)
-
-**Description:** Given a data stream input of non-negative integers, summarize the numbers seen so far as a list of disjoint intervals.
-
-**How to Apply:**
-- Use TreeMap (Java) or SortedDict (Python) to maintain intervals
-- When adding a number, merge with adjacent intervals if they touch
-- Keep intervals sorted by start time for O(log n) insertion
-
-**Time Complexity:** O(log n) per addNum, O(n) per getIntervals
-
----
-
-### Problem 4: Minimum Number of Arrows to Burst Balloons
+### Problem 3: Minimum Number of Arrows to Burst Balloons
 
 **Problem:** [LeetCode 452 - Minimum Number of Arrows to Burst Balloons](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/)
 
@@ -1191,7 +636,7 @@ Time: O(n log n), Space: O(1)
 
 ---
 
-### Problem 5: Maximum Length of Pair Chain
+### Problem 4: Maximum Length of Pair Chain
 
 **Problem:** [LeetCode 646 - Maximum Length of Pair Chain](https://leetcode.com/problems/maximum-length-of-pair-chain/)
 
@@ -1202,6 +647,21 @@ Time: O(n log n), Space: O(1)
 - Sort by second element (righti)
 - Greedily select pairs that can follow the previous one
 - Classic greedy: O(n log n) time, O(1) space
+
+---
+
+### Problem 5: Data Stream as Disjoint Intervals
+
+**Problem:** [LeetCode 352 - Data Stream as Disjoint Intervals](https://leetcode.com/problems/data-stream-as-disjoint-intervals/)
+
+**Description:** Given a data stream input of non-negative integers, summarize the numbers seen so far as a list of disjoint intervals.
+
+**How to Apply:**
+- Use TreeMap (Java) or SortedDict (Python) to maintain intervals
+- When adding a number, merge with adjacent intervals if they touch
+- Keep intervals sorted by start time for O(log n) insertion
+
+**Time Complexity:** O(log n) per addNum, O(n) per getIntervals
 
 ---
 
@@ -1237,6 +697,8 @@ By start time: Select (1,100) → blocks all others → result: 1
 By end time: Select (2,3), (3,4), (4,5) → result: 3 ✓
 ```
 
+---
+
 ### Q2: Can we use dynamic programming for the unweighted interval scheduling problem?
 
 **Answer:** Yes, but it's overkill:
@@ -1245,12 +707,16 @@ By end time: Select (2,3), (3,4), (4,5) → result: 3 ✓
 
 DP is necessary only for **weighted** interval scheduling where greedy fails.
 
+---
+
 ### Q3: How do we handle intervals that can touch (start == end of previous)?
 
 **Answer:** The condition `start >= last_end` naturally handles this:
 - If `start == last_end`, intervals touch but don't overlap
 - This is typically allowed in interval scheduling
 - If strict non-overlapping required (start > last_end), change the condition
+
+---
 
 ### Q4: What if intervals are given in a streaming fashion (online)?
 
@@ -1260,6 +726,8 @@ DP is necessary only for **weighted** interval scheduling where greedy fails.
   - If intervals arrive sorted by end time: greedy works in O(n)
   - Otherwise: need more complex data structures or approximation algorithms
   - Consider using a segment tree or interval tree for dynamic insertion
+
+---
 
 ### Q5: How does interval scheduling relate to other greedy problems?
 
@@ -1310,13 +778,3 @@ The Interval Scheduling algorithm is a fundamental greedy technique for maximizi
 - [253. Meeting Rooms II](https://leetcode.com/problems/meeting-rooms-ii/)
 - [452. Minimum Number of Arrows](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/)
 - [646. Maximum Length of Pair Chain](https://leetcode.com/problems/maximum-length-of-pair-chain/)
-
----
-
-## Related Algorithms
-
-- [Segment Tree](./segment-tree.md) - For dynamic interval queries
-- [Fenwick Tree](./fenwick-tree.md) - For prefix sum operations
-- [Dynamic Programming](./dynamic-programming.md) - For weighted interval scheduling
-- [Merge Intervals](./merge-intervals.md) - For combining overlapping intervals
-- [Meeting Rooms](./meeting-rooms.md) - For interval partitioning problems

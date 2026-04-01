@@ -5,34 +5,486 @@ Math & Number Theory
 
 ## Description
 
-The **binomial coefficient** `C(n, r)` or `nCr` represents the number of ways to choose `r` elements from a set of `n` distinct elements without regard to order. It's read as "n choose r" and is fundamental in combinatorics, probability, and counting problems.
+The **binomial coefficient** `C(n, r)` or `nCr` represents the number of ways to choose `r` elements from a set of `n` distinct elements without regard to order. It's read as "n choose r" and is fundamental in combinatorics, probability, and counting problems. The formula `C(n, r) = n! / (r! × (n-r)!)` forms Pascal's Triangle and appears in the expansion of `(a + b)^n`.
+
+Computing binomial coefficients efficiently is crucial in competitive programming where direct factorial computation causes overflow. The key insight is to use symmetry, iterative multiplication, and modular inverses to compute values without overflow. This pattern appears frequently in counting paths, probability calculations, and subset enumeration problems.
+
+---
+
+## Concepts
+
+The binomial coefficient computation relies on several mathematical concepts.
+
+### 1. Symmetry Property
+
+Always work with the smaller value: `C(n, r) = C(n, n-r)`.
+
+| n | r | C(n, r) | C(n, n-r) | Min Iterations |
+|---|-----|---------|-----------|----------------|
+| 10 | 3 | 120 | C(10, 7) = 120 | 3 |
+| 10 | 7 | 120 | C(10, 3) = 120 | 3 (not 7) |
+| 100 | 98 | 4950 | C(100, 2) = 4950 | 2 (not 98) |
+
+### 2. Iterative Computation
+
+Build the result step by step to keep numbers small:
 
 ```
-C(n, r) = n! / (r! × (n-r)!)
+C(n, r) = n × (n-1) × ... × (n-r+1) / (r × (r-1) × ... × 1)
 ```
 
-The binomial coefficients form **Pascal's Triangle** and appear in the expansion of `(a + b)^n`.
+| Step | Operation | Result |
+|------|-----------|--------|
+| 1 | 10 / 1 | 10 |
+| 2 | 10 × 9 / 2 | 45 |
+| 3 | 45 × 8 / 3 | 120 |
+| Final | C(10, 3) | 120 |
+
+### 3. Pascal's Identity
+
+```
+C(n, r) = C(n-1, r-1) + C(n-1, r)
+```
+
+Useful for DP-based computation and building Pascal's Triangle.
+
+### 4. Modular Computation
+
+For large values, compute under modulo using modular inverses:
+
+```
+C(n, r) mod m = n! × (r!)^(-1) × ((n-r)!)^(-1) mod m
+```
+
+---
+
+## Frameworks
+
+### Framework 1: Single Query Iterative
+
+```
+┌─────────────────────────────────────────────────────┐
+│  SINGLE QUERY ITERATIVE FRAMEWORK                   │
+├─────────────────────────────────────────────────────┤
+│  1. Handle edge cases: return 0 if r < 0 or r > n   │
+│  2. Apply symmetry: r = min(r, n - r)               │
+│  3. Initialize result = 1                           │
+│  4. For i from 0 to r-1:                           │
+│     - result = result × (n - i)                     │
+│     - result = result // (i + 1)                    │
+│  5. Return result                                   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Single query, small r, no modulo needed.
+
+### Framework 2: Precomputation for Multiple Queries
+
+```
+┌─────────────────────────────────────────────────────┐
+│  PRECOMPUTATION FRAMEWORK                           │
+├─────────────────────────────────────────────────────┤
+│  Precondition: n bounded, prime modulus           │
+│                                                     │
+│  1. Precompute factorials: fact[i] = i! mod m     │
+│  2. Precompute inverse factorials:                 │
+│     inv_fact[n] = fact[n]^(m-2) mod m             │
+│     inv_fact[i] = inv_fact[i+1] × (i+1) mod m     │
+│  3. Query: C(n,r) = fact[n] × inv_fact[r] ×       │
+│     inv_fact[n-r] mod m                           │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Multiple queries, bounded n, prime modulus.
+
+### Framework 3: Lucas Theorem (Large n)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  LUCAS THEOREM FRAMEWORK                            │
+├─────────────────────────────────────────────────────┤
+│  Precondition: n very large, small prime modulus    │
+│                                                     │
+│  1. Write n and r in base p: n = n_k...n_0,         │
+│     r = r_k...r_0                                   │
+│  2. Lucas Theorem: C(n,r) mod p = Π C(n_i, r_i)   │
+│  3. Precompute C(n_i, r_i) for 0 ≤ n_i, r_i < p   │
+│  4. Multiply all components mod p                   │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Very large n (n > 10^9), small prime modulus.
+
+---
+
+## Forms
+
+### Form 1: Direct Computation
+
+Compute C(n, r) directly for small values.
+
+| Property | Value |
+|----------|-------|
+| Time | O(r) where r = min(r, n-r) |
+| Space | O(1) |
+| Overflow limit | C(66, 33) for 64-bit integers |
+| Use case | Single query, small r |
+
+### Form 2: Precomputed Factorials
+
+Precompute for O(1) queries after O(n) preprocessing.
+
+| Property | Value |
+|----------|-------|
+| Preprocessing | O(n) |
+| Per query | O(1) |
+| Space | O(n) |
+| Requirements | Prime modulus |
+| Use case | Multiple queries |
+
+### Form 3: Pascal's Triangle DP
+
+Build full triangle for all nCr values.
+
+| Property | Value |
+|----------|-------|
+| Time | O(n²) |
+| Space | O(n²) or O(n) optimized |
+| Use case | Need all values, small n |
+
+### Form 4: Lucas Theorem
+
+For large n with small prime modulus.
+
+| Property | Value |
+|----------|-------|
+| Time | O(p + log_p(n)) |
+| Space | O(p) |
+| Requirements | Small prime p |
+| Use case | n > 10^9, nCr mod small prime |
+
+### Form 5: Catalan Numbers (Special Case)
+
+Catalan numbers are a special case: `Catalan(n) = C(2n, n) / (n+1)`.
+
+---
+
+## Tactics
+
+### Tactic 1: Symmetry Optimization
+
+```python
+def nCr(n: int, r: int) -> int:
+    """Compute nCr with symmetry optimization."""
+    if r < 0 or r > n:
+        return 0
+    r = min(r, n - r)  # Use symmetry
+    
+    result = 1
+    for i in range(r):
+        result = result * (n - i) // (i + 1)
+    return result
+```
+
+### Tactic 2: Modular nCr with Precomputation
+
+```python
+MOD = 10**9 + 7
+
+def precompute(max_n: int):
+    fact = [1] * (max_n + 1)
+    for i in range(1, max_n + 1):
+        fact[i] = fact[i-1] * i % MOD
+    
+    inv_fact = [1] * (max_n + 1)
+    inv_fact[max_n] = pow(fact[max_n], MOD - 2, MOD)
+    for i in range(max_n - 1, -1, -1):
+        inv_fact[i] = inv_fact[i + 1] * (i + 1) % MOD
+    
+    return fact, inv_fact
+
+def nCr_mod(n: int, r: int, fact, inv_fact) -> int:
+    if r < 0 or r > n:
+        return 0
+    return fact[n] * inv_fact[r] % MOD * inv_fact[n-r] % MOD
+```
+
+### Tactic 3: Lucas Theorem Implementation
+
+```python
+def lucas_theorem(n: int, r: int, p: int) -> int:
+    """Compute C(n, r) mod p using Lucas Theorem."""
+    # Precompute factorials and inverses up to p-1
+    fact = [1] * p
+    for i in range(1, p):
+        fact[i] = fact[i-1] * i % p
+    
+    inv_fact = [1] * p
+    inv_fact[p-1] = pow(fact[p-1], p - 2, p)
+    for i in range(p - 2, -1, -1):
+        inv_fact[i] = inv_fact[i + 1] * (i + 1) % p
+    
+    def nCr_small(n, r):
+        if r < 0 or r > n:
+            return 0
+        return fact[n] * inv_fact[r] % p * inv_fact[n-r] % p
+    
+    result = 1
+    while n > 0 or r > 0:
+        ni, ri = n % p, r % p
+        result = result * nCr_small(ni, ri) % p
+        n //= p
+        r //= p
+    
+    return result
+```
+
+### Tactic 4: Catalan Number Computation
+
+```python
+def catalan_number(n: int, mod: int = None) -> int:
+    """Compute nth Catalan number."""
+    # Catalan(n) = C(2n, n) / (n + 1)
+    if mod is None:
+        from math import comb
+        return comb(2 * n, n) // (n + 1)
+    else:
+        # With modulo - need modular inverse of (n+1)
+        inv_n_plus_1 = pow(n + 1, mod - 2, mod)
+        # Compute C(2n, n) mod mod using precomputation
+        # ... (implementation depends on available fact/inv_fact)
+        pass
+```
+
+---
+
+## Python Templates
+
+### Template 1: Iterative nCr (No Modulo)
+
+```python
+def nCr(n: int, r: int) -> int:
+    """
+    Compute binomial coefficient C(n, r).
+    May overflow for large n (n > 66 for 64-bit).
+    
+    Time: O(r) where r = min(r, n-r)
+    Space: O(1)
+    """
+    if r < 0 or r > n:
+        return 0
+    
+    # Use symmetry: C(n, r) = C(n, n-r)
+    r = min(r, n - r)
+    
+    result = 1
+    for i in range(r):
+        result = result * (n - i) // (i + 1)
+    
+    return result
+```
+
+### Template 2: Modular nCr (Single Query)
+
+```python
+def nCr_mod(n: int, r: int, mod: int) -> int:
+    """
+    Compute C(n, r) mod 'mod' using modular inverse.
+    Requires 'mod' to be prime for Fermat's inverse method.
+    
+    Time: O(r + log(mod))
+    Space: O(1)
+    """
+    if r < 0 or r > n:
+        return 0
+    
+    r = min(r, n - r)
+    
+    numerator = 1
+    for i in range(n, n - r, -1):
+        numerator = (numerator * i) % mod
+    
+    denominator = 1
+    for i in range(1, r + 1):
+        denominator = (denominator * i) % mod
+    
+    # Modular inverse using Fermat's Little Theorem
+    return numerator * pow(denominator, mod - 2, mod) % mod
+```
+
+### Template 3: Precomputation Class for Multiple Queries
+
+```python
+class BinomialCoefficients:
+    """
+    Precompute factorials and inverse factorials for O(1) nCr queries.
+    REQUIRES: mod is prime (common: 10^9 + 7)
+    """
+    
+    def __init__(self, max_n: int, mod: int = 10**9 + 7):
+        self.mod = mod
+        self.max_n = max_n
+        
+        # Precompute factorials
+        self.fact = [1] * (max_n + 1)
+        for i in range(1, max_n + 1):
+            self.fact[i] = (self.fact[i - 1] * i) % mod
+        
+        # Precompute inverse factorials
+        self.inv_fact = [1] * (max_n + 1)
+        self.inv_fact[max_n] = pow(self.fact[max_n], mod - 2, mod)
+        for i in range(max_n - 1, -1, -1):
+            self.inv_fact[i] = (self.inv_fact[i + 1] * (i + 1)) % mod
+    
+    def nCr(self, n: int, r: int) -> int:
+        """Compute C(n, r) mod mod in O(1)."""
+        if r < 0 or r > n or n > self.max_n:
+            return 0
+        return (self.fact[n] * self.inv_fact[r] % self.mod * 
+                self.inv_fact[n - r]) % self.mod
+```
+
+### Template 4: Pascal's Triangle Construction
+
+```python
+def build_pascals_triangle(max_n: int) -> list[list[int]]:
+    """
+    Build Pascal's Triangle up to row max_n.
+    C[n][r] gives binomial coefficient.
+    
+    Time: O(max_n^2)
+    Space: O(max_n^2)
+    """
+    C = [[0] * (i + 1) for i in range(max_n + 1)]
+    
+    for i in range(max_n + 1):
+        C[i][0] = C[i][i] = 1
+        for j in range(1, i):
+            C[i][j] = C[i-1][j-1] + C[i-1][j]
+    
+    return C
+
+
+# Space-optimized version (only previous row)
+def nCr_from_pascal(n: int, r: int) -> int:
+    """Compute nCr using space-optimized Pascal's Triangle."""
+    if r < 0 or r > n:
+        return 0
+    
+    prev = [1]
+    for i in range(1, n + 1):
+        curr = [1] * (i + 1)
+        for j in range(1, i):
+            curr[j] = prev[j-1] + prev[j]
+        prev = curr
+    
+    return prev[r]
+```
+
+### Template 5: Lucas Theorem (Large n, Small Prime Mod)
+
+```python
+def lucas_theorem(n: int, r: int, p: int) -> int:
+    """
+    Compute C(n, r) mod p using Lucas Theorem.
+    For large n (n > 10^9) with small prime p.
+    
+    Lucas: C(n, r) mod p = Π C(n_i, r_i) mod p
+    where n_i, r_i are base-p digits.
+    
+    Time: O(p + log_p(n))
+    Space: O(p)
+    """
+    # Precompute factorials and inverse factorials up to p-1
+    fact = [1] * p
+    for i in range(1, p):
+        fact[i] = (fact[i-1] * i) % p
+    
+    inv_fact = [1] * p
+    inv_fact[p-1] = pow(fact[p-1], p - 2, p)
+    for i in range(p - 2, -1, -1):
+        inv_fact[i] = (inv_fact[i+1] * (i+1)) % p
+    
+    def nCr_small(ni: int, ri: int) -> int:
+        """Compute C(ni, ri) mod p where 0 <= ni, ri < p."""
+        if ri < 0 or ri > ni:
+            return 0
+        return fact[ni] * inv_fact[ri] % p * inv_fact[ni-ri] % p
+    
+    result = 1
+    while n > 0 or r > 0:
+        ni = n % p
+        ri = r % p
+        result = (result * nCr_small(ni, ri)) % p
+        n //= p
+        r //= p
+    
+    return result
+```
+
+### Template 6: Catalan Numbers
+
+```python
+def catalan_number(n: int, mod: int = None) -> int:
+    """
+    Compute nth Catalan number.
+    Catalan(n) = C(2n, n) / (n + 1)
+    
+    Time: O(n) or O(1) with precomputation
+    """
+    if mod is None:
+        # Direct computation
+        from math import comb
+        return comb(2 * n, n) // (n + 1)
+    else:
+        # With modulo
+        # Need: C(2n, n) * inv(n+1) mod mod
+        numerator = 1
+        for i in range(n):
+            numerator = (numerator * (2 * n - i)) % mod
+        
+        denominator = 1
+        for i in range(1, n + 1):
+            denominator = (denominator * i) % mod
+        denominator = (denominator * (n + 1)) % mod
+        
+        return numerator * pow(denominator, mod - 2, mod) % mod
+
+
+# Using precomputed binomial coefficients
+class CatalanNumbers:
+    def __init__(self, max_n: int, mod: int = 10**9 + 7):
+        self.mod = mod
+        self.bc = BinomialCoefficients(2 * max_n, mod)
+        self.max_n = max_n
+    
+    def catalan(self, n: int) -> int:
+        """Catalan(n) = C(2n, n) * inv(n+1) mod mod."""
+        if n > self.max_n:
+            return 0
+        c_2n_n = self.bc.nCr(2 * n, n)
+        inv_n_plus_1 = pow(n + 1, self.mod - 2, self.mod)
+        return c_2n_n * inv_n_plus_1 % self.mod
+```
 
 ---
 
 ## When to Use
 
 Use binomial coefficients when you need to count:
-
-- **Combinations**: Ways to select items where order doesn't matter
-- **Paths in Grids**: Number of paths from (0,0) to (m,n) moving only right/up
-- **Probability**: Binomial distribution calculations
-- **Subsets**: Number of r-element subsets of an n-element set
-- **Catalan Numbers**: Related counting problems
+- Combinations (ways to select items where order doesn't matter)
+- Paths in grids (from (0,0) to (m,n) moving only right/up)
+- Subsets (r-element subsets of n elements)
+- Catalan-related problems
 
 ### Comparison with Computation Methods
 
 | Method | Precompute Time | Query Time | Space | Use Case |
 |--------|----------------|------------|-------|----------|
-| **Iterative** | O(r) | O(r) | O(1) | Single query, small r |
-| **Precomputed Factorials** | O(max_n) | O(1) | O(max_n) | Multiple queries |
-| **Pascal's Triangle** | O(n²) | O(1) | O(n²) | Need all nCr values |
-| **Lucas Theorem** | O(p) | O(log_p n) | O(p) | Large n, small prime mod |
+| Iterative | O(r) | O(r) | O(1) | Single query, small r |
+| Precomputed Factorials | O(max_n) | O(1) | O(max_n) | Multiple queries |
+| Pascal's Triangle | O(n²) | O(1) | O(n²) | Need all values |
+| Lucas Theorem | O(p) | O(log_p n) | O(p) | Large n, small prime mod |
 
 ### When to Choose Each Method
 
@@ -107,587 +559,20 @@ n=4: 1   4   6   4   1
 
 Each number is the sum of the two numbers above it (Pascal's Identity).
 
+### Why It Works
+
+**Symmetry**: Choosing r elements from n is the same as choosing which n-r elements to exclude. Both operations produce the same count.
+
+**Iterative Computation**: By building the result incrementally, we avoid computing large intermediate factorials. The division at each step keeps the result as an integer because binomial coefficients are always integers.
+
+**Lucas Theorem**: Decomposing n and r into base-p digits leverages the property that C(n, r) mod p can be computed digit by digit when p is prime.
+
 ### Limitations
 
 - **Overflow**: Standard 64-bit integers can only hold `C(66, 33)` ≈ 7.2 × 10^18
 - **Computational limits**: Direct factorial computation fails for n > 20
 - **Modular constraints**: Fermat's Little Theorem requires prime modulus
-
----
-
-## Algorithm Steps
-
-### Iterative Computation (Single Query)
-
-1. **Handle edge cases**: Return 0 if r < 0 or r > n
-2. **Apply symmetry**: Set `r = min(r, n - r)` to minimize iterations
-3. **Initialize result**: `result = 1`
-4. **Iterate**: For `i` from 0 to `r-1`:
-   - Multiply: `result = result * (n - i)`
-   - Divide: `result = result // (i + 1)`
-5. **Return result**
-
-### Precomputation Method (Multiple Queries)
-
-1. **Precompute factorials**: `fact[i] = fact[i-1] * i % mod` for i from 1 to max_n
-2. **Precompute inverse factorials**: `inv_fact[max_n] = pow(fact[max_n], mod-2, mod)`
-3. **Fill inverse factorials backwards**: `inv_fact[i] = inv_fact[i+1] * (i+1) % mod`
-4. **Query**: Return `fact[n] * inv_fact[r] % mod * inv_fact[n-r] % mod`
-
-### Pascal's Triangle Construction
-
-1. **Initialize triangle**: Create 2D array where `C[i][0] = C[i][i] = 1`
-2. **Fill using identity**: For each `i` from 2 to n, and `j` from 1 to i-1:
-   - `C[i][j] = C[i-1][j-1] + C[i-1][j]`
-3. **Result**: `C[n][r]` contains the answer
-
----
-
-## Implementation
-
-### Template Code
-
-````carousel
-```python
-from math import comb  # Python 3.8+
-
-
-def nCr(n: int, r: int) -> int:
-    """
-    Compute binomial coefficient C(n, r) using iterative method.
-    
-    Time Complexity: O(r)
-    Space Complexity: O(1)
-    
-    Note: May overflow for large n, r. Use modular version for competitive programming.
-    """
-    if r < 0 or r > n:
-        return 0
-    
-    # Use symmetry: C(n, r) = C(n, n-r)
-    r = min(r, n - r)
-    
-    result = 1
-    for i in range(r):
-        result = result * (n - i) // (i + 1)
-    
-    return result
-
-
-def nCr_mod(n: int, r: int, mod: int) -> int:
-    """
-    Compute C(n, r) mod 'mod' using modular inverse.
-    
-    Time Complexity: O(r + log(mod))
-    Space Complexity: O(1)
-    
-    Requires 'mod' to be prime for Fermat's inverse method.
-    """
-    if r < 0 or r > n:
-        return 0
-    
-    r = min(r, n - r)
-    
-    numerator = 1
-    for i in range(n, n - r, -1):
-        numerator = (numerator * i) % mod
-    
-    denominator = 1
-    for i in range(1, r + 1):
-        denominator = (denominator * i) % mod
-    
-    # Modular inverse using Fermat's Little Theorem (mod must be prime)
-    def mod_inv(a, m):
-        return pow(a, m - 2, m)
-    
-    return (numerator * mod_inv(denominator, mod)) % mod
-
-
-# Precompute factorials and inverse factorials for multiple queries
-class BinomialCoefficients:
-    def __init__(self, max_n: int, mod: int = 10**9 + 7):
-        """
-        Precompute factorials and inverse factorials up to max_n.
-        
-        Time: O(max_n)
-        Space: O(max_n)
-        """
-        self.mod = mod
-        self.max_n = max_n
-        
-        self.fact = [1] * (max_n + 1)
-        for i in range(1, max_n + 1):
-            self.fact[i] = (self.fact[i-1] * i) % mod
-        
-        self.inv_fact = [1] * (max_n + 1)
-        self.inv_fact[max_n] = pow(self.fact[max_n], mod - 2, mod)
-        
-        for i in range(max_n - 1, -1, -1):
-            self.inv_fact[i] = (self.inv_fact[i + 1] * (i + 1)) % mod
-    
-    def nCr(self, n: int, r: int) -> int:
-        """Compute C(n, r) mod 'mod' in O(1)."""
-        if r < 0 or r > n or n > self.max_n:
-            return 0
-        return (self.fact[n] * self.inv_fact[r] % self.mod * 
-                self.inv_fact[n - r]) % self.mod
-
-
-# Pascal's Triangle DP approach
-def nCr_pascal(max_n: int) -> list[list[int]]:
-    """
-    Build Pascal's Triangle up to row max_n.
-    
-    Time: O(max_n²)
-    Space: O(max_n²)
-    """
-    C = [[0] * (i + 1) for i in range(max_n + 1)]
-    
-    for i in range(max_n + 1):
-        C[i][0] = C[i][i] = 1
-        for j in range(1, i):
-            C[i][j] = C[i-1][j-1] + C[i-1][j]
-    
-    return C
-
-
-# Example usage
-if __name__ == "__main__":
-    print(f"C(5, 2) = {nCr(5, 2)}")  # 10
-    print(f"C(10, 3) = {nCr(10, 3)}")  # 120
-    
-    # Using precomputation
-    bc = BinomialCoefficients(1000)
-    print(f"C(100, 50) mod 1e9+7 = {bc.nCr(100, 50)}")
-```
-
-<!-- slide -->
-```cpp
-#include <vector>
-using namespace std;
-
-/**
- * Compute C(n, r) iteratively
- * Time: O(r), Space: O(1)
- */
-long long nCr(int n, int r) {
-    if (r < 0 || r > n) return 0;
-    
-    r = min(r, n - r);
-    long long result = 1;
-    
-    for (int i = 0; i < r; i++) {
-        result = result * (n - i) / (i + 1);
-    }
-    
-    return result;
-}
-
-/**
- * nCr mod prime using Fermat's Little Theorem
- */
-long long power(long long base, long long exp, long long mod) {
-    long long result = 1;
-    base %= mod;
-    while (exp > 0) {
-        if (exp & 1) result = (result * base) % mod;
-        base = (base * base) % mod;
-        exp >>= 1;
-    }
-    return result;
-}
-
-long long nCrMod(int n, int r, int mod) {
-    if (r < 0 || r > n) return 0;
-    
-    r = min(r, n - r);
-    long long numerator = 1, denominator = 1;
-    
-    for (int i = 0; i < r; i++) {
-        numerator = (numerator * (n - i)) % mod;
-        denominator = (denominator * (i + 1)) % mod;
-    }
-    
-    return (numerator * power(denominator, mod - 2, mod)) % mod;
-}
-
-/**
- * Precomputation class for multiple queries
- */
-class BinomialCoefficients {
-private:
-    vector<long long> fact, invFact;
-    int mod;
-    
-public:
-    BinomialCoefficients(int maxN, int m = 1e9 + 7) : mod(m) {
-        fact.resize(maxN + 1);
-        invFact.resize(maxN + 1);
-        
-        fact[0] = 1;
-        for (int i = 1; i <= maxN; i++) {
-            fact[i] = (fact[i-1] * i) % mod;
-        }
-        
-        invFact[maxN] = power(fact[maxN], mod - 2, mod);
-        for (int i = maxN - 1; i >= 0; i--) {
-            invFact[i] = (invFact[i+1] * (i+1)) % mod;
-        }
-    }
-    
-    long long nCr(int n, int r) {
-        if (r < 0 || r > n) return 0;
-        return fact[n] * invFact[r] % mod * invFact[n-r] % mod;
-    }
-};
-```
-
-<!-- slide -->
-```java
-public class BinomialCoefficients {
-    private long[] fact, invFact;
-    private int mod;
-    
-    public BinomialCoefficients(int maxN, int mod) {
-        this.mod = mod;
-        fact = new long[maxN + 1];
-        invFact = new long[maxN + 1];
-        
-        fact[0] = 1;
-        for (int i = 1; i <= maxN; i++) {
-            fact[i] = (fact[i-1] * i) % mod;
-        }
-        
-        invFact[maxN] = power(fact[maxN], mod - 2);
-        for (int i = maxN - 1; i >= 0; i--) {
-            invFact[i] = (invFact[i+1] * (i+1)) % mod;
-        }
-    }
-    
-    private long power(long base, long exp) {
-        long result = 1;
-        while (exp > 0) {
-            if ((exp & 1) == 1) result = (result * base) % mod;
-            base = (base * base) % mod;
-            exp >>= 1;
-        }
-        return result;
-    }
-    
-    public long nCr(int n, int r) {
-        if (r < 0 || r > n) return 0;
-        return fact[n] * invFact[r] % mod * invFact[n-r] % mod;
-    }
-    
-    // Static method for single computation
-    public static long computeNCR(int n, int r) {
-        if (r < 0 || r > n) return 0;
-        r = Math.min(r, n - r);
-        long result = 1;
-        for (int i = 0; i < r; i++) {
-            result = result * (n - i) / (i + 1);
-        }
-        return result;
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Compute C(n, r) iteratively
- */
-function nCr(n, r) {
-    if (r < 0 || r > n) return 0;
-    
-    r = Math.min(r, n - r);
-    let result = 1n;
-    
-    for (let i = 0; i < r; i++) {
-        result = result * BigInt(n - i) / BigInt(i + 1);
-    }
-    
-    return result;
-}
-
-/**
- * nCr mod prime
- */
-function power(base, exp, mod) {
-    let result = 1n;
-    base = BigInt(base) % BigInt(mod);
-    exp = BigInt(exp);
-    mod = BigInt(mod);
-    
-    while (exp > 0n) {
-        if (exp & 1n) result = (result * base) % mod;
-        base = (base * base) % mod;
-        exp >>= 1n;
-    }
-    return Number(result);
-}
-
-function nCrMod(n, r, mod) {
-    if (r < 0 || r > n) return 0;
-    
-    r = Math.min(r, n - r);
-    let numerator = 1, denominator = 1;
-    
-    for (let i = 0; i < r; i++) {
-        numerator = (numerator * (n - i)) % mod;
-        denominator = (denominator * (i + 1)) % mod;
-    }
-    
-    return (numerator * power(denominator, mod - 2, mod)) % mod;
-}
-
-/**
- * Precomputation class
- */
-class BinomialCoefficients {
-    constructor(maxN, mod = 1e9 + 7) {
-        this.mod = mod;
-        this.fact = new Array(maxN + 1);
-        this.invFact = new Array(maxN + 1);
-        
-        this.fact[0] = 1;
-        for (let i = 1; i <= maxN; i++) {
-            this.fact[i] = (this.fact[i-1] * i) % mod;
-        }
-        
-        this.invFact[maxN] = power(this.fact[maxN], mod - 2, mod);
-        for (let i = maxN - 1; i >= 0; i--) {
-            this.invFact[i] = (this.invFact[i+1] * (i+1)) % mod;
-        }
-    }
-    
-    nCr(n, r) {
-        if (r < 0 || r > n) return 0;
-        return this.fact[n] * this.invFact[r] % this.mod * 
-               this.invFact[n-r] % this.mod;
-    }
-}
-```
-````
-
----
-
-## Important Properties
-
-```
-1. C(n, 0) = C(n, n) = 1
-2. C(n, r) = C(n, n-r)                    (Symmetry)
-3. C(n, r) = C(n-1, r-1) + C(n-1, r)      (Pascal's Identity)
-4. Σ C(n, k) for k=0 to n = 2^n           (Sum of row in Pascal's Triangle)
-5. Σ C(n, k)² for k=0 to n = C(2n, n)     (Vandermonde's Identity special case)
-```
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Iterative nCr** | O(r) | Where r = min(r, n-r), single query |
-| **Precomputation (build)** | O(max_n) | Build factorial tables once |
-| **Precomputation (query)** | O(1) | Constant time lookup |
-| **Pascal's Triangle** | O(n²) | Build entire triangle up to n |
-| **Lucas Theorem** | O(log_p n) | For large n with small prime p |
-
-### Detailed Breakdown
-
-- **Iterative computation**: Multiply r terms, each O(1)
-  - Total: O(r) = O(min(r, n-r)) due to symmetry
-  
-- **Precomputation method**:
-  - Build factorials: O(max_n) multiplications
-  - Build inverse factorials: O(max_n) using Fermat's Little Theorem
-  - Each query: O(1) - just 3 array lookups and 2 multiplications
-  
-- **Pascal's Triangle**: Fill n rows, each with up to n elements
-  - Total: O(n²) time and space
-
----
-
-## Space Complexity Analysis
-
-| Method | Space | Description |
-|--------|-------|-------------|
-| **Iterative** | O(1) | Only stores result and loop variables |
-| **Precomputation** | O(max_n) | Two arrays: fact[] and inv_fact[] |
-| **Pascal's Triangle** | O(n²) | Full 2D triangle storage |
-| **Lucas Theorem** | O(p) | Precompute factorials up to prime p |
-
-### Space Optimization
-
-For memory-constrained environments:
-1. **Iterative**: Always O(1) space - preferred for single queries
-2. **Pascal's Triangle**: Can reduce to O(n) by keeping only previous row
-3. **Modular**: Use int instead of long long if mod < 2^31
-
----
-
-## Common Variations
-
-### 1. Lucas Theorem (Large n, Small Mod)
-
-When n is very large (n > 10^9) and mod is a small prime:
-
-````carousel
-```python
-def lucas_theorem(n, r, p):
-    """
-    Compute C(n, r) mod p using Lucas Theorem.
-    
-    Lucas Theorem: C(n, r) mod p = Π C(n_i, r_i) mod p
-    where n_i, r_i are digits of n, r in base p.
-    
-    Time: O(p + log_p(n))
-    Space: O(p)
-    """
-    # Precompute factorials and inverse factorials up to p-1
-    fact = [1] * p
-    for i in range(1, p):
-        fact[i] = (fact[i-1] * i) % p
-    
-    def mod_inv(a, m):
-        return pow(a, m - 2, m)
-    
-    inv_fact = [1] * p
-    inv_fact[p-1] = mod_inv(fact[p-1], p)
-    for i in range(p-2, -1, -1):
-        inv_fact[i] = (inv_fact[i+1] * (i+1)) % p
-    
-    def nCr_small(n, r):
-        """Compute C(n, r) mod p where 0 <= n, r < p"""
-        if r < 0 or r > n:
-            return 0
-        return fact[n] * inv_fact[r] % p * inv_fact[n-r] % p
-    
-    result = 1
-    while n > 0 or r > 0:
-        ni = n % p
-        ri = r % p
-        result = (result * nCr_small(ni, ri)) % p
-        n //= p
-        r //= p
-    
-    return result
-```
-````
-
-### 2. nCr with Non-Prime Modulus
-
-When modulus is not prime, use prime factorization or Chinese Remainder Theorem:
-
-````carousel
-```python
-def nCr_non_prime_mod(n, r, mod):
-    """
-    Compute C(n, r) mod mod where mod may not be prime.
-    Uses prime factorization approach.
-    
-    Time: O(n * log(n))
-    Space: O(n)
-    """
-    def prime_factors(x):
-        """Return prime factorization as {prime: count}"""
-        factors = {}
-        d = 2
-        while d * d <= x:
-            while x % d == 0:
-                factors[d] = factors.get(d, 0) + 1
-                x //= d
-            d += 1
-        if x > 1:
-            factors[x] = factors.get(x, 0) + 1
-        return factors
-    
-    def count_prime_in_factorial(p, n):
-        """Count power of prime p in n!"""
-        count = 0
-        power = p
-        while power <= n:
-            count += n // power
-            power *= p
-        return count
-    
-    # Get prime factorization of mod
-    mod_factors = prime_factors(mod)
-    
-    # Use CRT: compute C(n,r) mod p^k for each prime power
-    # Then combine results
-    # (Full implementation would include CRT combination)
-    
-    # Simplified: compute directly if mod is small
-    result = 1
-    for i in range(r):
-        result = (result * (n - i)) % mod
-    
-    for i in range(1, r + 1):
-        # Compute modular inverse using extended Euclidean
-        def extended_gcd(a, b):
-            if b == 0:
-                return (a, 1, 0)
-            g, x, y = extended_gcd(b, a % b)
-            return (g, y, x - (a // b) * y)
-        
-        def mod_inv(a, m):
-            g, x, _ = extended_gcd(a % m, m)
-            if g != 1:
-                return None  # No inverse exists
-            return (x % m + m) % m
-        
-        inv = mod_inv(i, mod)
-        if inv is None:
-            # Handle case where i and mod are not coprime
-            # Requires more complex handling
-            return None
-        result = (result * inv) % mod
-    
-    return result
-```
-````
-
-### 3. Catalan Numbers (Special Case)
-
-Catalan numbers are a special case of binomial coefficients:
-
-````carousel
-```python
-def catalan_number(n):
-    """
-    Compute nth Catalan number using binomial coefficient.
-    
-    Catalan(n) = C(2n, n) / (n + 1)
-    
-    Time: O(n)
-    Space: O(1)
-    """
-    # C(2n, n) / (n + 1)
-    return nCr(2 * n, n) // (n + 1)
-
-
-def catalan_number_mod(n, mod):
-    """
-    Compute nth Catalan number modulo prime.
-    
-    Time: O(n + log(mod))
-    Space: O(1)
-    """
-    # Catalan(n) = C(2n, n) * inv(n+1) mod mod
-    numerator = 1
-    for i in range(n):
-        numerator = (numerator * (2 * n - i)) % mod
-    
-    denominator = 1
-    for i in range(1, n + 1):
-        denominator = (denominator * i) % mod
-    denominator = (denominator * (n + 1)) % mod
-    
-    return (numerator * pow(denominator, mod - 2, mod)) % mod
-```
-````
+- **Large n with composite mod**: Requires Chinese Remainder Theorem or other advanced techniques
 
 ---
 
@@ -697,7 +582,7 @@ def catalan_number_mod(n, mod):
 
 **Problem:** [LeetCode 62 - Unique Paths](https://leetcode.com/problems/unique-paths/)
 
-**Description:** There is a robot on an `m x n` grid. The robot is initially located at the top-left corner (i.e., `grid[0][0]`). The robot tries to move to the bottom-right corner (i.e., `grid[m-1][n-1]`). The robot can only move either down or right at any point in time. Given the two integers `m` and `n`, return the number of possible unique paths.
+**Description:** Robot on an `m x n` grid starts at top-left and wants to reach bottom-right. Robot can only move down or right. Return number of possible unique paths.
 
 **How to Apply Binomial Coefficients:**
 - To reach from (0,0) to (m-1,n-1), need exactly (m-1) down moves and (n-1) right moves
@@ -710,7 +595,7 @@ def catalan_number_mod(n, mod):
 
 **Problem:** [LeetCode 63 - Unique Paths II](https://leetcode.com/problems/unique-paths-ii/)
 
-**Description:** You are given an `m x n` integer array `grid`. There is a robot initially located at the top-left corner. The robot tries to move to the bottom-right corner. The robot can only move either down or right at any point in time. An obstacle and space are marked as `1` or `0` respectively in `grid`. A path that the robot takes cannot include any square that is an obstacle. Return the number of possible unique paths.
+**Description:** Same as Unique Paths but with obstacles. Grid contains 0 (space) and 1 (obstacle). Return number of unique paths avoiding obstacles.
 
 **How to Apply Binomial Coefficients:**
 - Standard combinatorics won't work due to obstacles
@@ -723,10 +608,7 @@ def catalan_number_mod(n, mod):
 
 **Problem:** [LeetCode 1639 - Number of Ways to Form a Target String Given a Dictionary](https://leetcode.com/problems/number-of-ways-to-form-a-target-string-given-a-database/)
 
-**Description:** You are given a list of strings of the same length `words` and a string `target`. Your task is to form `target` using the given `words` under the following rules:
-- `target` should be formed from left to right
-- To form the `i`th character (0-indexed) of `target`, you can choose the `k`th character of the `j`th string in `words` if `target[i] = words[j][k]`
-- Once you use the `k`th character of the `j`th string of `words`, you can no longer use the `x`th character of any string in `words` where `x <= k`
+**Description:** Given a list of strings `words` and a string `target`, form `target` using characters from `words` with constraints on position usage.
 
 **How to Apply Binomial Coefficients:**
 - Count occurrences of each character at each position
@@ -739,7 +621,7 @@ def catalan_number_mod(n, mod):
 
 **Problem:** [LeetCode 1569 - Number of Ways to Reorder Array to Get Same BST](https://leetcode.com/problems/number-of-ways-to-reorder-array-to-get-same-bst/)
 
-**Description:** Given an array `nums` that represents a permutation of integers from `1` to `n`, we are going to construct a binary search tree (BST) by inserting the elements of `nums` in order into an initially empty BST. Return the number of different ways to reorder `nums` so that the constructed BST is identical to that formed from the original array `nums`.
+**Description:** Given a permutation array, return the number of ways to reorder it so that the constructed BST is identical to the original.
 
 **How to Apply Binomial Coefficients:**
 - Use recursive divide and conquer with combinatorics
@@ -752,7 +634,7 @@ def catalan_number_mod(n, mod):
 
 **Problem:** [LeetCode 2320 - Count Number of Ways to Place Houses](https://leetcode.com/problems/count-number-of-ways-to-place-houses/)
 
-**Description:** There is a street with `n * 2` plots, where there are `n` plots on each side of the street. The plots on each side are numbered from `1` to `n`. On each plot, you can place a house. No two houses can occupy adjacent plots on the same side of the street. Return the total number of ways to place houses such that no two houses are adjacent.
+**Description:** Street with `n * 2` plots (n on each side). Place houses with no two adjacent on same side. Return total number of ways.
 
 **How to Apply Binomial Coefficients:**
 - Equivalent to placing non-attacking kings on a 2 x n board
@@ -795,6 +677,8 @@ where `n_i` and `r_i` are digits of n and r in base p.
 
 This reduces the problem to computing nCr for small values (< p) and combining them.
 
+---
+
 ### Q2: How to handle non-prime moduli?
 
 **Answer**: Factor the modulus and use **Chinese Remainder Theorem**, or compute using prime factorization of the factorial terms:
@@ -805,6 +689,8 @@ This reduces the problem to computing nCr for small values (< p) and combining t
 
 Alternative: Direct computation with careful handling of GCD cancellations.
 
+---
+
 ### Q3: What's the maximum n for 64-bit integers?
 
 **Answer**: `C(66, 33)` ≈ 7.2 × 10^18 is the largest that fits in unsigned 64-bit. For signed 64-bit, `C(60, 30)` is safe.
@@ -813,6 +699,8 @@ For larger values, you must use:
 - Arbitrary precision integers (Python's native big integers)
 - Modular arithmetic
 - Approximation formulas
+
+---
 
 ### Q4: When should I precompute vs compute on the fly?
 
@@ -825,6 +713,8 @@ Compute on the fly when:
 - Single or few queries
 - n is very large but r is small
 - Memory is limited
+
+---
 
 ### Q5: How do you compute nCr when r > n/2 efficiently?
 
@@ -847,17 +737,13 @@ Binomial coefficients are essential for counting problems. Key strategies:
 4. **Consider Lucas Theorem** for very large n with small prime modulus
 5. **Choose the right method** based on constraints: single vs multiple queries, memory limits, and modulus properties
 
-When to use each approach:
-- ✅ **Iterative**: Single query, small r, memory-constrained
-- ✅ **Precomputation**: Many queries, bounded n, fast query needed
-- ✅ **Lucas Theorem**: Very large n (> 10^9), small prime mod
-- ❌ **Direct factorials**: Never use - always causes overflow
+### When to Use Each Approach
 
----
+| Scenario | Approach | Time | Space |
+|----------|----------|------|-------|
+| Single query, small r | Iterative | O(r) | O(1) |
+| Multiple queries, bounded n | Precomputation | O(1) | O(n) |
+| Very large n (>10^9), small prime mod | Lucas Theorem | O(log_p n) | O(p) |
+| Need all nCr values up to n | Pascal's Triangle | O(n²) | O(n²) |
 
-## Related Algorithms
-
-- [Catalan Numbers](./catalan-numbers.md) - Special case of binomial coefficients
-- [Modular Inverse](./modular-inverse.md) - Essential for modular computation
-- [Pascal's Triangle](./pascals-triangle.md) - Structure of binomial coefficients
-- [Extended Euclidean](./extended-euclidean.md) - For modular inverses with non-prime mod
+This algorithm is essential for competitive programming and technical interviews, appearing frequently in combinatorics problems.

@@ -5,7 +5,641 @@ Arrays & Strings
 
 ## Description
 
-Binary Search is a **divide-and-conquer algorithm** that efficiently finds a target value within a **sorted array** by repeatedly dividing the search interval in half. With O(log n) time complexity, it's the gold standard for searching in sorted data structures.
+Binary Search is a divide-and-conquer algorithm that efficiently finds a target value within a sorted array by repeatedly dividing the search interval in half. With O(log n) time complexity, it's the gold standard for searching in sorted data structures.
+
+This algorithm is fundamental to competitive programming and technical interviews. It not only solves basic search problems but also forms the basis for solving optimization problems through "binary search on answer" - finding the minimum or maximum value that satisfies a given condition.
+
+---
+
+## Concepts
+
+The Binary Search technique is built on several fundamental concepts that make it powerful for solving search and optimization problems.
+
+### 1. Search Space Invariants
+
+Binary search maintains invariants about the search space:
+
+| Invariant | Description | Purpose |
+|-----------|-------------|---------|
+| **Sorted Array** | `arr[i] <= arr[i+1]` for all i | Enables elimination of half the array |
+| **Search Range** | `left <= target_index <= right` | Ensures target is within bounds |
+| **Monotonic Predicate** | If condition is true at x, it's true for all > x | Enables binary search on answer |
+
+### 2. The Elimination Principle
+
+At each step, binary search eliminates half of the remaining elements:
+
+```
+Step 1: n elements
+Step 2: n/2 elements
+Step 3: n/4 elements
+...
+Step k: n/(2^k) elements
+
+Stop when n/(2^k) <= 1 → k = log₂(n)
+```
+
+### 3. Mid Calculation Variants
+
+Different ways to calculate mid:
+
+| Formula | Use Case | Notes |
+|---------|----------|-------|
+| `mid = (left + right) // 2` | Simple cases | May overflow in some languages |
+| `mid = left + (right - left) // 2` | Safe calculation | Prevents integer overflow |
+| `mid = left + (right - left) >> 1` | Bit shift | Faster in some languages |
+
+### 4. Search Variants
+
+Different types of binary search:
+
+| Variant | Return Value | Use Case |
+|---------|--------------|----------|
+| **Standard** | Index of target if found, else -1 | Basic search |
+| **Lower Bound** | First index where `arr[i] >= target` | Insertion point |
+| **Upper Bound** | First index where `arr[i] > target` | Range queries |
+| **Binary Search on Answer** | Optimal value satisfying condition | Optimization problems |
+
+---
+
+## Frameworks
+
+Structured approaches for solving binary search problems.
+
+### Framework 1: Standard Binary Search
+
+```
+┌─────────────────────────────────────────────────────┐
+│  STANDARD BINARY SEARCH FRAMEWORK                   │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize: left = 0, right = len(arr) - 1       │
+│  2. While left <= right:                             │
+│     a. mid = left + (right - left) // 2             │
+│     b. If arr[mid] == target: return mid            │
+│     c. If arr[mid] < target: left = mid + 1         │
+│     d. Else: right = mid - 1                          │
+│  3. Return -1 (target not found)                     │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Basic search in sorted array, finding exact match.
+
+### Framework 2: Lower Bound (First Occurrence)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  LOWER BOUND BINARY SEARCH FRAMEWORK                │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize: left = 0, right = len(arr) - 1     │
+│  2. While left <= right:                             │
+│     a. mid = left + (right - left) // 2             │
+│     b. If arr[mid] >= target:                       │
+│        - right = mid - 1 (search left for earlier) │
+│        - record mid as potential answer              │
+│     c. Else: left = mid + 1                         │
+│  3. Return recorded answer (or -1 if not found)     │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Finding first occurrence, insertion point, floor value.
+
+### Framework 3: Upper Bound (Last Occurrence)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  UPPER BOUND BINARY SEARCH FRAMEWORK                │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize: left = 0, right = len(arr) - 1     │
+│  2. While left <= right:                             │
+│     a. mid = left + (right - left) // 2             │
+│     b. If arr[mid] <= target:                       │
+│        - left = mid + 1 (search right for later)    │
+│        - record mid as potential answer              │
+│     c. Else: right = mid - 1                         │
+│  3. Return recorded answer (or -1 if not found)     │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Finding last occurrence, ceiling value.
+
+### Framework 4: Binary Search on Answer
+
+```
+┌─────────────────────────────────────────────────────┐
+│  BINARY SEARCH ON ANSWER FRAMEWORK                  │
+├─────────────────────────────────────────────────────┤
+│  1. Define search space: low, high                   │
+│  2. Define is_valid(x) function                      │
+│  3. While low <= high:                               │
+│     a. mid = low + (high - low) // 2                 │
+│     b. If is_valid(mid):                             │
+│        - This value works, try to optimize           │
+│        - For min: high = mid - 1                     │
+│        - For max: low = mid + 1                      │
+│     c. Else:                                         │
+│        - This value doesn't work                     │
+│        - For min: low = mid + 1                      │
+│        - For max: high = mid - 1                     │
+│  4. Return best valid value found                    │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Optimization problems, finding threshold values.
+
+---
+
+## Forms
+
+Different manifestations of binary search.
+
+### Form 1: Iterative Binary Search
+
+Standard loop-based implementation.
+
+| Aspect | Details |
+|--------|---------|
+| Time | O(log n) |
+| Space | O(1) |
+| Best for | Most cases, production code |
+
+### Form 2: Recursive Binary Search
+
+Function calls itself on subarrays.
+
+| Aspect | Details |
+|--------|---------|
+| Time | O(log n) |
+| Space | O(log n) for recursion stack |
+| Best for | Educational purposes, clean code |
+
+### Form 3: Binary Search on Rotated Array
+
+Array was sorted then rotated at some pivot.
+
+```
+[4, 5, 6, 7, 0, 1, 2] - rotated at index 3
+
+Key insight: One half is always sorted!
+Determine which half is sorted, then decide where target could be.
+```
+
+### Form 4: Binary Search on 2D Matrix
+
+Matrix where rows are sorted and first element of each row > last element of previous row.
+
+```
+Treat as 1D array: index = row * num_cols + col
+Or use two binary searches: first for row, then for column
+```
+
+### Form 5: Binary Search with Predicate Function
+
+Used for optimization problems where we binary search on the answer.
+
+```
+Problem: Find minimum k such that condition(k) is true
+Approach: Binary search on k, check condition at each step
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Avoiding Integer Overflow
+
+Always use safe mid calculation:
+
+```python
+def binary_search_safe(arr, target):
+    """Binary search with overflow-safe mid calculation."""
+    left, right = 0, len(arr) - 1
+    
+    while left <= right:
+        # Safe calculation
+        mid = left + (right - left) // 2
+        
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    
+    return -1
+```
+
+### Tactic 2: Finding First and Last Position
+
+Find range of target in sorted array with duplicates:
+
+```python
+def search_range(arr, target):
+    """Find first and last position of target."""
+    def find_first():
+        left, right = 0, len(arr) - 1
+        first = -1
+        while left <= right:
+            mid = left + (right - left) // 2
+            if arr[mid] >= target:
+                first = mid
+                right = mid - 1
+            else:
+                left = mid + 1
+        return first if first != -1 and arr[first] == target else -1
+    
+    def find_last():
+        left, right = 0, len(arr) - 1
+        last = -1
+        while left <= right:
+            mid = left + (right - left) // 2
+            if arr[mid] <= target:
+                last = mid
+                left = mid + 1
+            else:
+                right = mid - 1
+        return last if last != -1 and arr[last] == target else -1
+    
+    return [find_first(), find_last()]
+```
+
+### Tactic 3: Search in Rotated Sorted Array
+
+Handle rotation by checking which half is sorted:
+
+```python
+def search_rotated(arr, target):
+    """Search in rotated sorted array."""
+    left, right = 0, len(arr) - 1
+    
+    while left <= right:
+        mid = left + (right - left) // 2
+        
+        if arr[mid] == target:
+            return mid
+        
+        # Left half is sorted
+        if arr[left] <= arr[mid]:
+            if arr[left] <= target < arr[mid]:
+                right = mid - 1
+            else:
+                left = mid + 1
+        # Right half is sorted
+        else:
+            if arr[mid] < target <= arr[right]:
+                left = mid + 1
+            else:
+                right = mid - 1
+    
+    return -1
+```
+
+### Tactic 4: Finding Square Root
+
+Binary search on answer example:
+
+```python
+def my_sqrt(x):
+    """Find integer square root using binary search."""
+    if x < 2:
+        return x
+    
+    left, right = 1, x // 2
+    
+    while left <= right:
+        mid = left + (right - left) // 2
+        square = mid * mid
+        
+        if square == x:
+            return mid
+        elif square < x:
+            left = mid + 1
+        else:
+            right = mid - 1
+    
+    # right is the largest value where right^2 <= x
+    return right
+```
+
+### Tactic 5: Capacity Problems (Ship Packages)
+
+Binary search on answer for capacity optimization:
+
+```python
+def ship_within_days(weights, days):
+    """Find minimum capacity to ship all packages within days."""
+    
+    def can_ship(capacity):
+        """Check if all packages can be shipped with given capacity."""
+        current_load = 0
+        required_days = 1
+        
+        for weight in weights:
+            if current_load + weight <= capacity:
+                current_load += weight
+            else:
+                required_days += 1
+                current_load = weight
+                if required_days > days:
+                    return False
+        return True
+    
+    # Binary search on capacity
+    left, right = max(weights), sum(weights)
+    
+    while left < right:
+        mid = left + (right - left) // 2
+        if can_ship(mid):
+            right = mid
+        else:
+            left = mid + 1
+    
+    return left
+```
+
+### Tactic 6: Finding Peak Element
+
+Binary search for local maximum:
+
+```python
+def find_peak_element(arr):
+    """Find peak element (greater than neighbors)."""
+    left, right = 0, len(arr) - 1
+    
+    while left < right:
+        mid = left + (right - left) // 2
+        
+        if arr[mid] < arr[mid + 1]:
+            # Peak is on right side
+            left = mid + 1
+        else:
+            # Peak is on left side (could be mid itself)
+            right = mid
+    
+    return left
+```
+
+---
+
+## Python Templates
+
+### Template 1: Standard Binary Search
+
+```python
+def binary_search(arr: list[int], target: int) -> int:
+    """
+    Standard binary search - returns index if found, -1 otherwise.
+    Time: O(log n), Space: O(1)
+    """
+    left, right = 0, len(arr) - 1
+    
+    while left <= right:
+        mid = left + (right - left) // 2  # Prevent overflow
+        
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    
+    return -1
+```
+
+### Template 2: Lower Bound (First Occurrence)
+
+```python
+def lower_bound(arr: list[int], target: int) -> int:
+    """
+    Find first index where arr[i] >= target.
+    Returns len(arr) if all elements are smaller.
+    Time: O(log n), Space: O(1)
+    """
+    left, right = 0, len(arr) - 1
+    result = len(arr)  # Default: not found, insert at end
+    
+    while left <= right:
+        mid = left + (right - left) // 2
+        
+        if arr[mid] >= target:
+            result = mid
+            right = mid - 1
+        else:
+            left = mid + 1
+    
+    return result
+```
+
+### Template 3: Upper Bound (Last Occurrence)
+
+```python
+def upper_bound(arr: list[int], target: int) -> int:
+    """
+    Find first index where arr[i] > target.
+    Returns -1 if all elements are smaller or equal.
+    Time: O(log n), Space: O(1)
+    """
+    left, right = 0, len(arr) - 1
+    result = -1
+    
+    while left <= right:
+        mid = left + (right - left) // 2
+        
+        if arr[mid] <= target:
+            result = mid
+            left = mid + 1
+        else:
+            right = mid - 1
+    
+    return result
+```
+
+### Template 4: Search in Rotated Sorted Array
+
+```python
+def search_rotated(arr: list[int], target: int) -> int:
+    """
+    Search in rotated sorted array (no duplicates).
+    Time: O(log n), Space: O(1)
+    """
+    left, right = 0, len(arr) - 1
+    
+    while left <= right:
+        mid = left + (right - left) // 2
+        
+        if arr[mid] == target:
+            return mid
+        
+        # Left half is sorted
+        if arr[left] <= arr[mid]:
+            if arr[left] <= target < arr[mid]:
+                right = mid - 1
+            else:
+                left = mid + 1
+        # Right half is sorted
+        else:
+            if arr[mid] < target <= arr[right]:
+                left = mid + 1
+            else:
+                right = mid - 1
+    
+    return -1
+```
+
+### Template 5: Binary Search on Answer (Minimum)
+
+```python
+def binary_search_min(left: int, right: int, is_valid) -> int:
+    """
+    Find minimum value in [left, right] that satisfies is_valid.
+    Time: O(log(right - left)) * cost_of_is_valid
+    """
+    result = -1
+    
+    while left <= right:
+        mid = left + (right - left) // 2
+        
+        if is_valid(mid):
+            result = mid
+            right = mid - 1  # Try to find smaller valid value
+        else:
+            left = mid + 1   # Need larger value
+    
+    return result
+```
+
+### Template 6: Binary Search on Answer (Maximum)
+
+```python
+def binary_search_max(left: int, right: int, is_valid) -> int:
+    """
+    Find maximum value in [left, right] that satisfies is_valid.
+    Time: O(log(right - left)) * cost_of_is_valid
+    """
+    result = -1
+    
+    while left <= right:
+        mid = left + (right - left) // 2
+        
+        if is_valid(mid):
+            result = mid
+            left = mid + 1   # Try to find larger valid value
+        else:
+            right = mid - 1  # Need smaller value
+    
+    return result
+```
+
+### Template 7: Find Peak Element
+
+```python
+def find_peak_element(arr: list[int]) -> int:
+    """
+    Find any peak element (greater than neighbors).
+    Time: O(log n), Space: O(1)
+    """
+    left, right = 0, len(arr) - 1
+    
+    while left < right:
+        mid = left + (right - left) // 2
+        
+        if arr[mid] < arr[mid + 1]:
+            left = mid + 1  # Peak is on right
+        else:
+            right = mid   # Peak is on left (or mid)
+    
+    return left
+```
+
+### Template 8: Search in 2D Matrix
+
+```python
+def search_matrix(matrix: list[list[int]], target: int) -> bool:
+    """
+    Search in matrix where rows and columns are sorted.
+    Time: O(log(m*n)), Space: O(1)
+    """
+    if not matrix or not matrix[0]:
+        return False
+    
+    rows, cols = len(matrix), len(matrix[0])
+    left, right = 0, rows * cols - 1
+    
+    while left <= right:
+        mid = left + (right - left) // 2
+        row, col = mid // cols, mid % cols
+        
+        if matrix[row][col] == target:
+            return True
+        elif matrix[row][col] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    
+    return False
+```
+
+### Template 9: Find First and Last Position
+
+```python
+def search_range(arr: list[int], target: int) -> list[int]:
+    """
+    Find first and last position of target in sorted array.
+    Time: O(log n), Space: O(1)
+    """
+    def find_first():
+        left, right = 0, len(arr) - 1
+        result = -1
+        while left <= right:
+            mid = left + (right - left) // 2
+            if arr[mid] >= target:
+                if arr[mid] == target:
+                    result = mid
+                right = mid - 1
+            else:
+                left = mid + 1
+        return result
+    
+    def find_last():
+        left, right = 0, len(arr) - 1
+        result = -1
+        while left <= right:
+            mid = left + (right - left) // 2
+            if arr[mid] <= target:
+                if arr[mid] == target:
+                    result = mid
+                left = mid + 1
+            else:
+                right = mid - 1
+        return result
+    
+    return [find_first(), find_last()]
+```
+
+### Template 10: Recursive Binary Search
+
+```python
+def binary_search_recursive(arr: list[int], target: int, left: int = 0, right: int = None) -> int:
+    """
+    Recursive binary search.
+    Time: O(log n), Space: O(log n) for recursion stack
+    """
+    if right is None:
+        right = len(arr) - 1
+    
+    if left > right:
+        return -1
+    
+    mid = left + (right - left) // 2
+    
+    if arr[mid] == target:
+        return mid
+    elif arr[mid] < target:
+        return binary_search_recursive(arr, target, mid + 1, right)
+    else:
+        return binary_search_recursive(arr, target, left, mid - 1)
+```
 
 ---
 
@@ -13,10 +647,10 @@ Binary Search is a **divide-and-conquer algorithm** that efficiently finds a tar
 
 Use the Binary Search algorithm when you need to solve problems involving:
 
-- **Searching in sorted arrays**: Finding an element in a sorted collection
-- **Finding insertion points**: Determining where an element should go
-- **Optimization problems**: Finding the minimum/maximum that satisfies a condition (binary search on answer)
-- **Bounds finding**: Finding lower bound, upper bound, or exact boundaries
+- **Searching in sorted arrays**: Finding an element efficiently
+- **Finding boundaries**: Lower bound, upper bound, insertion points
+- **Optimization problems**: Finding minimum/maximum satisfying a condition
+- **Monotonic predicates**: Problems where if x works, all values > x also work (or vice versa)
 
 ### Comparison with Alternatives
 
@@ -25,23 +659,24 @@ Use the Binary Search algorithm when you need to solve problems involving:
 | **Binary Search** | O(log n) | O(1) | Sorted array |
 | Linear Search | O(n) | O(1) | None |
 | Hash Table Lookup | O(1) avg | O(n) | Hash function |
-| Binary Search Tree | O(log n) avg | O(n) | Balanced BST |
+| Interpolation Search | O(log log n) avg | O(1) | Uniformly distributed |
 
-### When to Choose Binary Search
+### When to Choose Binary Search vs Other Approaches
 
 - **Choose Binary Search** when:
-  - The array is sorted (or can be sorted)
+  - The array is sorted (or can be sorted in O(n log n) then search many times)
   - You need O(log n) search time
+  - You're solving an optimization problem with monotonic predicate
   - You need to find exact match or closest element
 
 - **Choose Linear Search** when:
   - Array is unsorted and cannot be sorted
-  - Array is very small (under ~50 elements)
-  - You only search once
+  - Array is very small (n < 50)
+  - You only need to search once
 
 - **Choose Hash Table** when:
   - You need O(1) average lookup time
-  - You have many searches
+  - You have many searches on the same data
   - Space is not a concern
 
 ---
@@ -54,9 +689,57 @@ Binary Search works on the principle of **elimination**. At each step, we compar
 
 - If they're **equal**, we've found the target
 - If the target is **smaller**, the target must be in the left half
-- If the target is **larger**, the target must be the right half
+- If the target is **larger**, the target must be in the right half
 
 By eliminating half of the remaining elements with each comparison, we achieve O(log n) time complexity.
+
+### How It Works
+
+#### Iterative Approach:
+1. Initialize pointers: `left = 0` and `right = len(arr) - 1`
+2. Enter loop: While `left <= right`:
+   - Calculate `mid = left + (right - left) // 2` (prevents overflow)
+   - If `arr[mid] == target`, return `mid` (found!)
+   - If `arr[mid] < target`, set `left = mid + 1` (search right half)
+   - If `arr[mid] > target`, set `right = mid - 1` (search left half)
+3. Exit loop: Return -1 if target not found
+
+#### Recursive Approach:
+1. Base case: If `left > right`, return -1 (not found)
+2. Calculate mid: `mid = left + (right - left) // 2`
+3. Compare and recurse:
+   - If `arr[mid] == target`, return `mid`
+   - If `arr[mid] < target`, recurse on `[mid + 1, right]`
+   - If `arr[mid] > target`, recurse on `[left, mid - 1]`
+
+### Visual Representation
+
+For array `[1, 3, 5, 7, 9, 11, 13, 15]` searching for target `7`:
+
+```
+Step 1: [1, 3, 5, 7, 9, 11, 13, 15]
+          L       M               R
+          mid = 3, arr[3] = 7 == target ✓
+
+Search space reduced from 8 to 1 element in just 1 step!
+```
+
+For target `6` (not present):
+```
+Step 1: [1, 3, 5, 7, 9, 11, 13, 15]
+          L       M               R
+          arr[3] = 7 > 6, search left
+
+Step 2: [1, 3, 5]
+          L   M   R
+          arr[1] = 3 < 6, search right
+
+Step 3: [5]
+          L=R=M
+          arr[2] = 5 < 6, left becomes 3
+
+Step 4: left > right, return -1
+```
 
 ### Why It Works
 
@@ -66,720 +749,17 @@ Because the array is sorted, we can definitively determine which half contains (
 
 This guarantee allows us to eliminate entire halves without missing potential matches.
 
-### Visual Representation
-
-For array `[1, 3, 5, 7, 9, 11, 13, 15]` searching for target `7`:
-
-```
-Step 1: [1, 3, 5, 7, 9, 11, 13, 15]
-         L           M               R
-         mid = 3, arr[3] = 7 == target ✓ (Found at index 3)
-
-Search space reduced from 8 to 1 element in just 1 step!
-```
-
-### The Mid Calculation
-
-**Important:** Always calculate mid as `left + (right - left) // 2` instead of `(left + right) // 2`
-
-- **Problem with `(left + right) // 2`**: Can cause integer overflow in languages with fixed-size integers when dealing with large arrays (e.g., `left = 2^30, right = 2^30` would overflow)
-- **Solution**: `left + (right - left) // 2` ensures the subtraction happens first, preventing overflow
-
----
-
-## Algorithm Steps
-
-### Iterative Approach
-
-1. **Initialize pointers**: Set `left = 0` and `right = len(arr) - 1`
-2. **Enter loop**: While `left <= right`:
-   - Calculate `mid = left + (right - left) // 2` (prevents overflow)
-   - If `arr[mid] == target`, return `mid` (found!)
-   - If `arr[mid] < target`, set `left = mid + 1` (search right half)
-   - If `arr[mid] > target`, set `right = mid - 1` (search left half)
-3. **Exit loop**: Return -1 if target not found
-
-### Recursive Approach
-
-1. **Base case**: If `left > right`, return -1 (not found)
-2. **Calculate mid**: `mid = left + (right - left) // 2`
-3. **Compare and recurse**:
-   - If `arr[mid] == target`, return `mid`
-   - If `arr[mid] < target`, recurse on `[mid + 1, right]`
-   - If `arr[mid] > target`, recurse on `[left, mid - 1]`
-
-### Decision Tree
-
-```
-                    Start: [left, right]
-                          |
-                    Calculate mid
-                          |
-            ┌─────────────┼─────────────┐
-            |             |             |
-      arr[mid] ==   arr[mid] <    arr[mid] >
-       target         target         target
-            |             |             |
-        Return mid   left = mid+1   right = mid-1
-                          |             |
-                          └──────┬──────┘
-                                 |
-                           Continue loop
-```
-
----
-
-## Implementation
-
-### Template Code (Standard Binary Search)
-
-````carousel
-```python
-def binary_search_iterative(arr, target):
-    """
-    Binary Search - Iterative implementation
-    Time: O(log n)
-    Space: O(1)
-    
-    Args:
-        arr: Sorted list of elements
-        target: Element to search for
-        
-    Returns:
-        Index of target if found, -1 otherwise
-    """
-    left, right = 0, len(arr) - 1
-    
-    while left <= right:
-        mid = left + (right - left) // 2  # Prevents integer overflow
-        
-        if arr[mid] == target:
-            return mid
-        elif arr[mid] < target:
-            left = mid + 1
-        else:
-            right = mid - 1
-    
-    return -1  # Target not found
-
-
-def binary_search_recursive(arr, target, left=None, right=None):
-    """
-    Binary Search - Recursive implementation
-    Time: O(log n)
-    Space: O(log n) for recursion stack
-    
-    Args:
-        arr: Sorted list of elements
-        target: Element to search for
-        left: Left boundary (inclusive)
-        right: Right boundary (inclusive)
-        
-    Returns:
-        Index of target if found, -1 otherwise
-    """
-    if left is None:
-        left = 0
-    if right is None:
-        right = len(arr) - 1
-    
-    if left > right:
-        return -1  # Base case: target not found
-    
-    mid = left + (right - left) // 2
-    
-    if arr[mid] == target:
-        return mid
-    elif arr[mid] < target:
-        return binary_search_recursive(arr, target, mid + 1, right)
-    else:
-        return binary_search_recursive(arr, target, left, mid - 1)
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    arr = [1, 3, 5, 7, 9, 11, 13, 15]
-    target = 7
-    
-    result = binary_search_iterative(arr, target)
-    print(f"Iterative: Index of {target} is {result}")  # Output: 3
-    
-    result = binary_search_recursive(arr, target)
-    print(f"Recursive: Index of {target} is {result}")  # Output: 3
-    
-    # Test with target not in array
-    result = binary_search_iterative(arr, 6)
-    print(f"Not found: {result}")  # Output: -1
-    
-    # Test edge cases
-    print("\n--- Edge Cases ---")
-    
-    # Empty array
-    print(f"Empty array: {binary_search_iterative([], 1)}")  # -1
-    
-    # Single element
-    print(f"Single element (found): {binary_search_iterative([5], 5)}")  # 0
-    print(f"Single element (not found): {binary_search_iterative([5], 3)}")  # -1
-    
-    # First and last element
-    print(f"First element: {binary_search_iterative(arr, 1)}")  # 0
-    print(f"Last element: {binary_search_iterative(arr, 15)}")  # 7
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <stdexcept>
-using namespace std;
-
-/**
- * Binary Search - Iterative implementation
- * Time: O(log n)
- * Space: O(1)
- * 
- * @param arr Sorted vector of elements
- * @param target Element to search for
- * @return Index of target if found, -1 otherwise
- */
-int binarySearchIterative(const vector<int>& arr, int target) {
-    int left = 0;
-    int right = static_cast<int>(arr.size()) - 1;
-    
-    while (left <= right) {
-        // Prevents integer overflow
-        int mid = left + (right - left) / 2;
-        
-        if (arr[mid] == target) {
-            return mid;
-        } else if (arr[mid] < target) {
-            left = mid + 1;
-        } else {
-            right = mid - 1;
-        }
-    }
-    
-    return -1;  // Target not found
-}
-
-/**
- * Binary Search - Recursive implementation
- * Time: O(log n)
- * Space: O(log n) for recursion stack
- */
-int binarySearchRecursive(const vector<int>& arr, int target, int left, int right) {
-    if (left > right) {
-        return -1;  // Base case: target not found
-    }
-    
-    int mid = left + (right - left) / 2;
-    
-    if (arr[mid] == target) {
-        return mid;
-    } else if (arr[mid] < target) {
-        return binarySearchRecursive(arr, target, mid + 1, right);
-    } else {
-        return binarySearchRecursive(arr, target, left, mid - 1);
-    }
-}
-
-// Template version for any comparable type
-template<typename T>
-int binarySearch(const vector<T>& arr, const T& target) {
-    int left = 0;
-    int right = static_cast<int>(arr.size()) - 1;
-    
-    while (left <= right) {
-        int mid = left + (right - left) / 2;
-        
-        if (arr[mid] == target) {
-            return mid;
-        } else if (arr[mid] < target) {
-            left = mid + 1;
-        } else {
-            right = mid - 1;
-        }
-    }
-    
-    return -1;
-}
-
-
-int main() {
-    vector<int> arr = {1, 3, 5, 7, 9, 11, 13, 15};
-    int target = 7;
-    
-    cout << "Array: ";
-    for (int x : arr) cout << x << " ";
-    cout << endl;
-    
-    // Test iterative
-    int result = binarySearchIterative(arr, target);
-    cout << "Iterative: Index of " << target << " is " << result << endl;  // 3
-    
-    // Test recursive
-    result = binarySearchRecursive(arr, target, 0, arr.size() - 1);
-    cout << "Recursive: Index of " << target << " is " << result << endl;  // 3
-    
-    // Test not found
-    result = binarySearchIterative(arr, 6);
-    cout << "Not found: " << result << endl;  // -1
-    
-    // Test edge cases
-    cout << "\n--- Edge Cases ---" << endl;
-    cout << "Empty array: " << binarySearchIterative({}, 1) << endl;
-    cout << "First element: " << binarySearchIterative(arr, 1) << endl;
-    cout << "Last element: " << binarySearchIterative(arr, 15) << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * Binary Search implementation in Java
- * Time: O(log n)
- * Space: O(1) for iterative, O(log n) for recursive
- */
-public class BinarySearch {
-    
-    /**
-     * Binary Search - Iterative implementation
-     */
-    public static int binarySearchIterative(int[] arr, int target) {
-        int left = 0;
-        int right = arr.length - 1;
-        
-        while (left <= right) {
-            // Prevents integer overflow
-            int mid = left + (right - left) / 2;
-            
-            if (arr[mid] == target) {
-                return mid;
-            } else if (arr[mid] < target) {
-                left = mid + 1;
-            } else {
-                right = mid - 1;
-            }
-        }
-        
-        return -1;  // Target not found
-    }
-    
-    /**
-     * Binary Search - Recursive implementation
-     */
-    public static int binarySearchRecursive(int[] arr, int target, int left, int right) {
-        if (left > right) {
-            return -1;  // Base case: target not found
-        }
-        
-        int mid = left + (right - left) / 2;
-        
-        if (arr[mid] == target) {
-            return mid;
-        } else if (arr[mid] < target) {
-            return binarySearchRecursive(arr, target, mid + 1, right);
-        } else {
-            return binarySearchRecursive(arr, target, left, mid - 1);
-        }
-    }
-    
-    /**
-     * Generic version using Comparable
-     */
-    public static <T extends Comparable<T>> int binarySearch(T[] arr, T target) {
-        int left = 0;
-        int right = arr.length - 1;
-        
-        while (left <= right) {
-            int mid = left + (right - left) / 2;
-            int cmp = arr[mid].compareTo(target);
-            
-            if (cmp == 0) {
-                return mid;
-            } else if (cmp < 0) {
-                left = mid + 1;
-            } else {
-                right = mid - 1;
-            }
-        }
-        
-        return -1;
-    }
-    
-    public static void main(String[] args) {
-        int[] arr = {1, 3, 5, 7, 9, 11, 13, 15};
-        int target = 7;
-        
-        System.out.println("Array: " + java.util.Arrays.toString(arr));
-        
-        // Test iterative
-        int result = binarySearchIterative(arr, target);
-        System.out.println("Iterative: Index of " + target + " is " + result);  // 3
-        
-        // Test recursive
-        result = binarySearchRecursive(arr, target, 0, arr.length - 1);
-        System.out.println("Recursive: Index of " + target + " is " + result);  // 3
-        
-        // Test not found
-        result = binarySearchIterative(arr, 6);
-        System.out.println("Not found: " + result);  // -1
-        
-        // Test edge cases
-        System.out.println("\n--- Edge Cases ---");
-        System.out.println("First element: " + binarySearchIterative(arr, 1));
-        System.out.println("Last element: " + binarySearchIterative(arr, 15));
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Binary Search - Iterative implementation
- * Time: O(log n)
- * Space: O(1)
- * 
- * @param {number[]} arr - Sorted array of elements
- * @param {number} target - Element to search for
- * @returns {number} Index of target if found, -1 otherwise
- */
-function binarySearchIterative(arr, target) {
-    let left = 0;
-    let right = arr.length - 1;
-    
-    while (left <= right) {
-        // Prevents integer overflow (in JS this isn't an issue, but good practice)
-        const mid = left + Math.floor((right - left) / 2);
-        
-        if (arr[mid] === target) {
-            return mid;
-        } else if (arr[mid] < target) {
-            left = mid + 1;
-        } else {
-            right = mid - 1;
-        }
-    }
-    
-    return -1;  // Target not found
-}
-
-/**
- * Binary Search - Recursive implementation
- * Time: O(log n)
- * Space: O(log n) for recursion stack
- */
-function binarySearchRecursive(arr, target, left = 0, right = arr.length - 1) {
-    if (left > right) {
-        return -1;  // Base case: target not found
-    }
-    
-    const mid = left + Math.floor((right - left) / 2);
-    
-    if (arr[mid] === target) {
-        return mid;
-    } else if (arr[mid] < target) {
-        return binarySearchRecursive(arr, target, mid + 1, right);
-    } else {
-        return binarySearchRecursive(arr, target, left, mid - 1);
-    }
-}
-
-/**
- * Binary Search using ES6 features
- */
-const binarySearch = (arr, target) => {
-    let [left, right] = [0, arr.length - 1];
-    
-    while (left <= right) {
-        const mid = left + ((right - left) >> 1);  // Bitwise shift for division by 2
-        
-        if (arr[mid] === target) return mid;
-        if (arr[mid] < target) left = mid + 1;
-        else right = mid - 1;
-    }
-    
-    return -1;
-};
-
-
-// Example usage and demonstration
-const arr = [1, 3, 5, 7, 9, 11, 13, 15];
-const target = 7;
-
-console.log(`Array: [${arr.join(', ')}]`);
-console.log(`Target: ${target}`);
-console.log();
-
-// Test iterative
-let result = binarySearchIterative(arr, target);
-console.log(`Iterative: Index of ${target} is ${result}`);  // 3
-
-// Test recursive
-result = binarySearchRecursive(arr, target);
-console.log(`Recursive: Index of ${target} is ${result}`);  // 3
-
-// Test not found
-result = binarySearchIterative(arr, 6);
-console.log(`Not found: ${result}`);  // -1
-
-// Test edge cases
-console.log('\n--- Edge Cases ---');
-console.log(`Empty array: ${binarySearchIterative([], 1)}`);  // -1
-console.log(`First element: ${binarySearchIterative(arr, 1)}`);  // 0
-console.log(`Last element: ${binarySearchIterative(arr, 15)}`);  // 7
-console.log(`ES6 arrow function: ${binarySearch(arr, target)}`);  // 3
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Search (single)** | O(log n) | Halves search space each iteration |
-| **Search (worst case)** | O(log n) | When element is at ends or not present |
-| **Search (best case)** | O(1) | When element is at middle on first check |
-| **Space (iterative)** | O(1) | Only uses a few variables |
-| **Space (recursive)** | O(log n) | Call stack depth equals number of recursions |
-
-### Detailed Breakdown
-
-- **Number of iterations**: At most `⌊log₂(n)⌋ + 1` comparisons
-- **Each iteration**: O(1) time to calculate mid and compare
-- **Total**: O(log n)
-
-### Why O(log n)?
-
-Starting with n elements:
-- After 1 comparison: n/2 elements remaining
-- After 2 comparisons: n/4 elements remaining
-- After k comparisons: n/2^k elements remaining
-
-We stop when n/2^k ≤ 1, meaning k ≥ log₂(n)
-
----
-
-## Space Complexity Analysis
-
-| Implementation | Space Complexity | Reason |
-|---------------|-----------------|--------|
-| **Iterative** | O(1) | Only uses `left`, `right`, `mid` pointers |
-| **Recursive** | O(log n) | Recursion stack depth equals log n |
-| **In-place** | O(1) | Modifies array directly if needed |
-
----
-
-## Common Variations
-
-### 1. Lower Bound (First Position)
-
-Find the first occurrence of target (or insertion point for target).
-
-````carousel
-```python
-def lower_bound(arr, target):
-    """
-    Find the first index where arr[index] >= target
-    Time: O(log n)
-    Space: O(1)
-    """
-    left, right = 0, len(arr) - 1
-    result = -1
-    
-    while left <= right:
-        mid = left + (right - left) // 2
-        
-        if arr[mid] >= target:
-            result = mid  # Potential answer
-            right = mid - 1  # Look for earlier occurrence
-        else:
-            left = mid + 1
-    
-    return result
-```
-````
-
-### 2. Upper Bound (Last Position)
-
-Find the last occurrence of target (or insertion point after target).
-
-````carousel
-```python
-def upper_bound(arr, target):
-    """
-    Find the first index where arr[index] > target
-    Time: O(log n)
-    Space: O(1)
-    """
-    left, right = 0, len(arr) - 1
-    result = -1
-    
-    while left <= right:
-        mid = left + (right - left) // 2
-        
-        if arr[mid] > target:
-            result = mid  # Potential answer
-            right = mid - 1  # Look for earlier occurrence
-        else:
-            left = mid + 1
-    
-    return result
-```
-````
-
-### 3. Search in Rotated Sorted Array
-
-Find target in a sorted array that was rotated at some pivot.
-
-````carousel
-```python
-def search_in_rotated_array(arr, target):
-    """
-    Search in rotated sorted array
-    Time: O(log n)
-    Space: O(1)
-    
-    Example: [4, 5, 6, 7, 0, 1, 2] rotated at 7
-    """
-    if not arr:
-        return -1
-    
-    left, right = 0, len(arr) - 1
-    
-    while left <= right:
-        mid = left + (right - left) // 2
-        
-        if arr[mid] == target:
-            return mid
-        
-        # Determine which half is sorted
-        if arr[left] <= arr[mid]:  # Left half is sorted
-            if arr[left] <= target < arr[mid]:
-                right = mid - 1
-            else:
-                left = mid + 1
-        else:  # Right half is sorted
-            if arr[mid] < target <= arr[right]:
-                left = mid + 1
-            else:
-                right = mid - 1
-    
-    return -1
-```
-````
-
-### 4. Binary Search on Answer
-
-Used for optimization problems where we binary search on the answer.
-
-````carousel
-```python
-def binary_search_on_answer(low, high, is_good, find_min=True):
-    """
-    Binary search for optimal value
-    
-    Args:
-        low: Lower bound of search space
-        high: Upper bound of search space
-        is_good: Function that checks if value works
-        find_min: If True, find minimum good value; else find maximum
-    
-    Returns:
-        Optimal value
-    """
-    result = -1
-    
-    while low <= high:
-        mid = low + (high - low) // 2
-        
-        if is_good(mid):
-            result = mid
-            if find_min:
-                high = mid - 1  # Try to find smaller
-            else:
-                low = mid + 1   # Try to find larger
-        else:
-            if find_min:
-                low = mid + 1   # Need larger value
-            else:
-                high = mid - 1  # Need smaller value
-    
-    return result
-
-
-# Example: Find minimum value greater than or equal to threshold
-def find_minimum_divisor(arr, threshold):
-    """
-    Given arr and threshold, find minimum divisor such that
-    sum(ceil(arr[i]/divisor)) <= threshold
-    """
-    def can_divide(divisor):
-        return sum((x + divisor - 1) // divisor for x in arr) <= threshold
-    
-    return binary_search_on_answer(1, max(arr), can_divide, find_min=True)
-```
-````
-
-### 5. Finding Peak Element
-
-Find any peak element where neighbors are smaller.
-
-````carousel
-```python
-def find_peak_element(arr):
-    """
-    Find a peak element in the array
-    Time: O(log n)
-    Space: O(1)
-    """
-    left, right = 0, len(arr) - 1
-    
-    while left < right:
-        mid = left + (right - left) // 2
-        
-        if arr[mid] < arr[mid + 1]:
-            # Peak must be on the right side
-            left = mid + 1
-        else:
-            # Peak is on the left side (including mid)
-            right = mid
-    
-    return left
-```
-````
-
----
-
-## Example
-
-### Input:
-```
-arr = [1, 3, 5, 7, 9, 11, 13, 15]
-target = 7
-```
-
-### Step-by-step:
-
-| Step | left | right | mid | arr[mid] | Action |
-|------|------|-------|-----|----------|--------|
-| 1 | 0 | 7 | 3 | 7 | Found! Return 3 |
-
-### Output:
-```
-Iterative: Index of 7 is 3
-Recursive: Index of 7 is 3
-Not found: -1
-```
+### Limitations
+
+- **Requires sorted data**: Either the array must be sorted, or we must sort it first
+- **Random access required**: Cannot work efficiently on linked lists (O(n) to find middle)
+- **No dynamic updates**: Adding/removing elements requires re-sorting or different data structures
 
 ---
 
 ## Practice Problems
 
-### Problem 1: Basic Binary Search
+### Problem 1: Binary Search
 
 **Problem:** [LeetCode 704 - Binary Search](https://leetcode.com/problems/binary-search/)
 
@@ -787,6 +767,7 @@ Not found: -1
 
 **How to Apply Binary Search:**
 - Apply the standard iterative binary search algorithm
+- Use overflow-safe mid calculation: `left + (right - left) // 2`
 - Time complexity is O(log n) as required
 
 ---
@@ -795,37 +776,38 @@ Not found: -1
 
 **Problem:** [LeetCode 35 - Search Insert Position](https://leetcode.com/problems/search-insert-position/)
 
-**Description:** Given a sorted array and a target value, return the index if found. If not, return the index where it would be inserted.
+**Description:** Given a sorted array and a target value, return the index if found. If not, return the index where it would be inserted to maintain sorted order.
 
 **How to Apply Binary Search:**
 - Use lower bound variation
-- When target not found, return left pointer (insertion point)
+- When target not found, `left` pointer indicates insertion point
+- Return `left` at the end regardless of whether target was found
 
 ---
 
-### Problem 3: Search in Rotated Array
+### Problem 3: Search in Rotated Sorted Array
 
 **Problem:** [LeetCode 33 - Search in Rotated Sorted Array](https://leetcode.com/problems/search-in-rotated-sorted-array/)
 
-**Description:** Search for a target value in a rotated sorted array. Assume no duplicates exist.
+**Description:** There is an integer array `nums` sorted in ascending order (with distinct values). Prior to being passed to your function, `nums` is possibly rotated at an unknown pivot index. Given the rotated array and an integer target, return the index of target if it is in nums, or -1 if it is not in nums.
 
 **How to Apply Binary Search:**
-- Use the "search in rotated array" variation
 - Determine which half is sorted at each step
-- Decide which half to search based on target value
+- Check if target falls within the sorted half's range
+- Search the appropriate half based on target's possible location
 
 ---
 
-### Problem 4: Find First and Last Position
+### Problem 4: Find First and Last Position of Element
 
 **Problem:** [LeetCode 34 - Find First and Last Position of Element in Sorted Array](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
 
-**Description:** Given an array of integers `nums` sorted in non-decreasing order, find the starting and ending position of a given `target` value.
+**Description:** Given an array of integers `nums` sorted in non-decreasing order, find the starting and ending position of a given `target` value. If target is not found, return `[-1, -1]`.
 
 **How to Apply Binary Search:**
-- Use both lower_bound and upper_bound variations
-- First search for leftmost occurrence
-- Then search for rightmost occurrence
+- Use separate binary searches for first and last positions
+- For first: move right pointer when `arr[mid] >= target`
+- For last: move left pointer when `arr[mid] <= target`
 
 ---
 
@@ -833,24 +815,12 @@ Not found: -1
 
 **Problem:** [LeetCode 74 - Search a 2D Matrix](https://leetcode.com/problems/search-a-2d-matrix/)
 
-**Description:** Write an efficient algorithm that searches for a value in an m x n matrix where rows are sorted and the first integer of each row is greater than the last integer of the previous row.
+**Description:** You are given an m x n integer matrix with two properties: (1) Each row is sorted in non-decreasing order, (2) The first integer of each row is greater than the last integer of the previous row. Given an integer target, return `true` if target is in the matrix.
 
 **How to Apply Binary Search:**
-- Treat the 2D matrix as 1D array with mapping
-- Index = row * n + col
-- Apply standard binary search with virtual array
-
----
-
-### Problem 6: Minimum Number of Days to Make m Bouquets
-
-**Problem:** [LeetCode 1482 - Minimum Number of Days to Make m Bouquets](https://leetcode.com/problems/minimum-number-of-days-to-make-m-bouquets/)
-
-**Description:** Given an integer array `bloomDay`, m bouquets, and k flowers per bouquet. Find the minimum number of days to make m bouquets.
-
-**How to Apply Binary Search:**
-- Binary search on answer
-- Check if it's possible to make m bouquets on a given day
+- Treat 2D matrix as 1D sorted array using index mapping
+- Map index to (row, col): `row = index // cols`, `col = index % cols`
+- Apply standard binary search with virtual indexing
 
 ---
 
@@ -860,14 +830,13 @@ Not found: -1
 
 - [Binary Search Explained (Take U Forward)](https://www.youtube.com/watch?v=Mo5R9qQ-GQc) - Comprehensive introduction
 - [Binary Search Implementation (NeetCode)](https://www.youtube.com/watch?v=FXW2mjQaOys) - Practical implementation guide
-- [Binary Search Mastery (WilliamFiset)](https://www.youtube.com/watch?v=Moq middlesex) - Detailed visualizations
+- [Binary Search Mastery (WilliamFiset)](https://www.youtube.com/watch?v=5B697naOjAo) - Detailed visualizations
 
 ### Advanced Topics
 
 - [Search in Rotated Array](https://www.youtube.com/watch?v=6bPZS8T8zTY) - Handling rotated arrays
 - [Binary Search on Answer](https://www.youtube.com/watch?v=zD2P2m9M7kE) - Optimization problems
 - [Lower Bound & Upper Bound](https://www.youtube.com/watch?v=OEu2MXZE5T4) - Variations for finding boundaries
-- [Binary Search Variations](https://www.youtube.com/watch?v=En-2NC7N86o) - Complete overview of variations
 
 ---
 
@@ -875,7 +844,7 @@ Not found: -1
 
 ### Q1: Why use `left + (right - left) // 2` instead of `(left + right) // 2`?
 
-**Answer:** The latter can cause integer overflow in languages with fixed-size integers (like C++ and Java). When `left` and `right` are large (close to `Integer.MAX_VALUE`), their sum can exceed the maximum value, causing unexpected behavior. The subtraction first ensures we never exceed the range.
+**Answer:** The latter can cause integer overflow in languages with fixed-size integers (like C++ and Java). When `left` and `right` are large (close to `Integer.MAX_VALUE`), their sum can exceed the maximum value. The subtraction first ensures we never exceed the range. In Python this isn't an issue due to arbitrary precision integers, but it's good practice for cross-language compatibility.
 
 ### Q2: When should you use binary search over linear search?
 
@@ -884,36 +853,32 @@ Not found: -1
   - Array is sorted
   - You have multiple searches on the same array
   - n is large (log n is significantly better than n)
-  
+  - You're solving an optimization problem with monotonic predicate
+
 - **Use Linear Search** when:
   - Array is unsorted
-  - Array is very small
-  - You only need to search once (sorting would take longer)
+  - Array is very small (n < 50)
+  - You only need to search once (sorting would take O(n log n))
 
 ### Q3: Can binary search work on linked lists?
 
-**Answer:** Not efficiently. Binary search requires O(1) random access to find the middle element, but linked lists have O(n) access time. To find the middle, you'd need to traverse half the list each time, making the total time O(n log n) instead of O(log n).
+**Answer:** Not efficiently. Binary search requires O(1) random access to find the middle element, but linked lists have O(n) access time. To find the middle, you'd need to traverse half the list each time, making the total time O(n log n) instead of O(log n). For linked lists, prefer linear search or convert to array first.
 
-### Q4: What if the array is almost sorted?
+### Q4: What is "binary search on answer" and when is it used?
 
-**Answer:** Consider these alternatives:
-- **Sort once**: If you'll do multiple searches, sort the array first (O(n log n) + O(log n) per search)
-- **Binary search with modifications**: For "nearly sorted" arrays, consider interpolation search or jump search
-- **Use a balanced BST**: O(log n) for search with sorted insertion
+**Answer:** Binary search on answer is a technique for optimization problems where:
+- We need to find the minimum/maximum value that satisfies a condition
+- The condition is monotonic: if x satisfies the condition, then all values greater than x also satisfy it (or vice versa)
+
+Examples: finding minimum capacity to ship packages, minimum eating speed, minimum threshold for a property. We binary search on the possible answer values instead of array indices.
 
 ### Q5: How do you handle duplicates in binary search?
 
 **Answer:**
-- **Find first occurrence**: Use lower bound variation (search left when `arr[mid] == target`)
-- **Find last occurrence**: Use upper bound variation (search right when `arr[mid] == target`)
+- **Find first occurrence**: Use lower bound variation (move right when `arr[mid] >= target`)
+- **Find last occurrence**: Use upper bound variation (move left when `arr[mid] <= target`)
 - **Find any occurrence**: Standard binary search (any match is fine)
-
-### Q6: What is the difference between binary search and binary search tree?
-
-**Answer:**
-- **Binary Search**: Algorithm on sorted arrays, O(log n) guaranteed
-- **Binary Search Tree (BST)**: Data structure, O(log n) average but O(n) worst case if unbalanced
-- BST supports insertions/deletions; binary search on array requires O(n) for modifications
+- **Count occurrences**: Find first and last, then `last - first + 1`
 
 ---
 
@@ -936,12 +901,3 @@ When to use:
 - ❌ Single search on unsortable data (use linear search)
 
 Mastering binary search and its variations is essential for competitive programming and technical interviews. The pattern of "divide and conquer" applies to many other algorithms and problem-solving techniques.
-
----
-
-## Related Algorithms
-
-- [Two Pointers](./two-pointers.md) - Related pattern often used with sorted arrays
-- [Sliding Window](./sliding-window.md) - Another optimization technique
-- [Prefix Sum](./prefix-sum.md) - For range queries
-- [Binary Lifting](./binary-lifting.md) - Advanced binary search for ancestor queries

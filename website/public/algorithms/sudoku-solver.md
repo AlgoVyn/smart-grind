@@ -14,6 +14,621 @@ Backtracking is a depth-first search technique that explores possible solutions 
 
 ---
 
+## Concepts
+
+The Sudoku Solver algorithm is built on several fundamental concepts that make it powerful for solving constraint satisfaction problems.
+
+### 1. Constraint Satisfaction
+
+The three core constraints that must be satisfied:
+
+| Constraint | Scope | Check Method |
+|------------|-------|--------------|
+| **Row** | 9 cells in same row | Set membership |
+| **Column** | 9 cells in same column | Set membership |
+| **Box** | 9 cells in 3x3 subgrid | Set membership |
+
+### 2. Backtracking Pattern
+
+The fundamental backtracking approach:
+
+| Step | Action | Purpose |
+|------|--------|---------|
+| **Choose** | Select empty cell | Pick where to place number |
+| **Decide** | Try valid number | Find a valid digit |
+| **Check** | Validate constraints | Ensure placement is legal |
+| **Recurse** | Solve remaining | Continue solving |
+| **Backtrack** | Undo if stuck | Try next alternative |
+
+### 3. Constraint Sets
+
+O(1) constraint checking using sets:
+
+```python
+rows[i]  # Set of numbers in row i
+cols[j]  # Set of numbers in column j
+boxes[k] # Set of numbers in box k, where k = (i//3)*3 + (j//3)
+```
+
+### 4. Minimum Remaining Values (MRV)
+
+Heuristic for cell selection:
+
+| Approach | Strategy | Effect |
+|----------|----------|--------|
+| **Naive** | Row-by-row | Slower, more backtracking |
+| **MRV** | Fewest options first | Faster, fails early |
+| **Degree** | Most constrained first | Reduces branching |
+
+---
+
+## Frameworks
+
+Structured approaches for solving Sudoku and similar constraint problems.
+
+### Framework 1: MRV Backtracking Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  MRV BACKTRACKING FRAMEWORK                         │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize constraint sets (rows, cols, boxes) │
+│  2. Fill with given numbers                        │
+│  3. Define backtrack():                            │
+│     a. Find empty cell with minimum options (MRV)  │
+│     b. If no empty cells: return True (solved)     │
+│     c. For each valid number (1-9):               │
+│        - Place number, update sets                │
+│        - If backtrack(): return True               │
+│        - Remove number, restore sets (backtrack)  │
+│     d. Return False (need to backtrack)            │
+│  4. Call backtrack() and return result             │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Standard Sudoku solving, need efficiency.
+
+### Framework 2: Simple Backtracking Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  SIMPLE BACKTRACKING FRAMEWORK                      │
+├─────────────────────────────────────────────────────┤
+│  1. Define backtrack():                            │
+│     a. Find first empty cell (row-major order)      │
+│     b. If no empty cells: return True (solved)     │
+│     c. For each number (1-9):                       │
+│        - Check if valid (scan row/col/box)          │
+│        - Place number                               │
+│        - If backtrack(): return True               │
+│        - Remove number                              │
+│     d. Return False                                 │
+│  2. Call backtrack()                                │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Learning backtracking, simpler code.
+
+### Framework 3: Constraint Propagation Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  CONSTRAINT PROPAGATION FRAMEWORK                   │
+├─────────────────────────────────────────────────────┤
+│  1. While making progress:                          │
+│     a. Find cells with only one valid option        │
+│     b. Fill those cells (naked singles)            │
+│     c. Update constraints                           │
+│  2. If stuck:                                       │
+│     a. Use backtracking on remaining cells          │
+│  3. Return solution                                 │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Human-like solving, reduces search space.
+
+---
+
+## Forms
+
+Different manifestations of the Sudoku/backtracking pattern.
+
+### Form 1: Standard 9x9 Sudoku
+
+The classic puzzle with 9x9 grid and 3x3 boxes.
+
+| Property | Value |
+|----------|-------|
+| Grid size | 9×9 |
+| Numbers | 1-9 |
+| Box size | 3×3 |
+| Total cells | 81 |
+
+### Form 2: Generalized N×N Sudoku
+
+Larger or smaller Sudoku variants.
+
+| Size | Box Size | Numbers |
+|------|----------|---------|
+| 4×4 | 2×2 | 1-4 |
+| 9×9 | 3×3 | 1-9 |
+| 16×16 | 4×4 | 1-16 or 0-9,A-F |
+| 25×25 | 5×5 | 1-25 |
+
+### Form 3: Sudoku Validation
+
+Check if a given board is valid (no solving needed).
+
+| Task | Approach |
+|------|----------|
+| Validation | Check rows, cols, boxes for duplicates |
+| Complexity | O(81) = O(1) for 9×9 |
+| Method | Use sets or frequency arrays |
+
+### Form 4: Count Solutions
+
+Find all valid solutions (not just one).
+
+| Modification | Change |
+|--------------|--------|
+| Return | List of all solutions |
+| Base case | Add solution, continue searching |
+| Early exit | Remove early return |
+
+### Form 5: Generate Sudoku
+
+Create valid Sudoku puzzles.
+
+| Step | Action |
+|------|--------|
+| 1 | Fill diagonal boxes (independent) |
+| 2 | Solve the puzzle |
+| 3 | Remove numbers while maintaining unique solution |
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Constraint Set Optimization
+
+```python
+def solve_sudoku_optimized(board: list[list[int]]) -> bool:
+    """
+    Solve Sudoku using constraint sets for O(1) validation.
+    """
+    # Initialize constraint sets
+    rows = [set() for _ in range(9)]
+    cols = [set() for _ in range(9)]
+    boxes = [set() for _ in range(9)]
+    
+    def get_box(r: int, c: int) -> int:
+        return (r // 3) * 3 + (c // 3)
+    
+    def is_valid(r: int, c: int, num: int) -> bool:
+        return num not in rows[r] and \
+               num not in cols[c] and \
+               num not in boxes[get_box(r, c)]
+    
+    def place(r: int, c: int, num: int) -> None:
+        board[r][c] = num
+        rows[r].add(num)
+        cols[c].add(num)
+        boxes[get_box(r, c)].add(num)
+    
+    def remove(r: int, c: int, num: int) -> None:
+        board[r][c] = 0
+        rows[r].remove(num)
+        cols[c].remove(num)
+        boxes[get_box(r, c)].remove(num)
+    
+    # Initialize with given numbers
+    for r in range(9):
+        for c in range(9):
+            if board[r][c] != 0:
+                place(r, c, board[r][c])
+    
+    def backtrack() -> bool:
+        # Find empty cell with MRV
+        min_options = 10
+        selected = (-1, -1)
+        
+        for r in range(9):
+            for c in range(9):
+                if board[r][c] == 0:
+                    options = sum(1 for num in range(1, 10) 
+                                  if is_valid(r, c, num))
+                    if options < min_options:
+                        min_options = options
+                        selected = (r, c)
+                        if options == 1:
+                            break
+            if min_options == 1:
+                break
+        
+        if selected == (-1, -1):
+            return True  # Solved!
+        
+        r, c = selected
+        for num in range(1, 10):
+            if is_valid(r, c, num):
+                place(r, c, num)
+                if backtrack():
+                    return True
+                remove(r, c, num)
+        
+        return False
+    
+    return backtrack()
+```
+
+### Tactic 2: Naked Singles (Constraint Propagation)
+
+```python
+def fill_naked_singles(board: list[list[int]]) -> bool:
+    """
+    Fill cells that have only one possible value.
+    Returns True if progress made.
+    """
+    changed = True
+    while changed:
+        changed = False
+        for r in range(9):
+            for c in range(9):
+                if board[r][c] == 0:
+                    options = get_options(board, r, c)
+                    if len(options) == 1:
+                        board[r][c] = options[0]
+                        changed = True
+                    elif len(options) == 0:
+                        return False  # Invalid state
+    return True
+```
+
+### Tactic 3: Bitmask Representation
+
+```python
+def solve_sudoku_bitmask(board: list[list[int]]) -> bool:
+    """
+    Use bitmasks to represent possible values.
+    Efficient for constraint tracking.
+    """
+    # Each cell: bitmask of possible values (bit 1 = value 1 possible)
+    # rows[i]: bitmask of used values in row i
+    # cols[j]: bitmask of used values in col j
+    # boxes[k]: bitmask of used values in box k
+    
+    # For 9x9, use 9-bit integers
+    rows = [0] * 9
+    cols = [0] * 9
+    boxes = [0] * 9
+    
+    def get_bit(num: int) -> int:
+        return 1 << (num - 1)
+    
+    def is_valid(r: int, c: int, num: int) -> bool:
+        bit = get_bit(num)
+        return not (rows[r] & bit or cols[c] & bit or 
+                    boxes[(r//3)*3 + c//3] & bit)
+    
+    # ... rest of backtracking
+```
+
+### Tactic 4: Forward Checking
+
+```python
+def forward_check(board: list[list[int]], domains: list[list[set]]) -> bool:
+    """
+    Remove values from domains that violate constraints.
+    If any domain becomes empty, backtrack.
+    """
+    for r in range(9):
+        for c in range(9):
+            if board[r][c] == 0:
+                # Domain = possible values for this cell
+                if len(domains[r][c]) == 0:
+                    return False  # No valid options
+    return True
+```
+
+### Tactic 5: Dancing Links (Concept)
+
+```python
+# Note: Full DLX implementation is complex
+# This is the concept for exact cover problems
+
+"""
+Sudoku as exact cover problem:
+- 324 constraints: 81 cell + 81 row + 81 col + 81 box
+- Each placement satisfies exactly 4 constraints
+- Algorithm X with Dancing Links efficiently finds solution
+"""
+```
+
+---
+
+## Python Templates
+
+### Template 1: MRV Optimized Sudoku Solver
+
+```python
+def solve_sudoku(board: list[list[int]]) -> bool:
+    """
+    Solve a Sudoku puzzle using backtracking with MRV heuristic.
+    
+    Args:
+        board: 9x9 grid where 0 represents empty cells
+        
+    Returns:
+        True if solved, False if no solution exists
+        
+    Time: O(9^(n*n)) worst case, but much better with MRV
+    Space: O(n*n) for recursion stack = O(81) = O(1)
+    """
+    
+    def is_valid(row: int, col: int, num: int) -> bool:
+        """Check if placing num at board[row][col] is valid."""
+        if num in rows[row]:
+            return False
+        if num in cols[col]:
+            return False
+        box_idx = (row // 3) * 3 + (col // 3)
+        if num in boxes[box_idx]:
+            return False
+        return True
+    
+    def place(num: int, row: int, col: int) -> None:
+        """Place num at board[row][col] and update constraints."""
+        board[row][col] = num
+        rows[row].add(num)
+        cols[col].add(num)
+        box_idx = (row // 3) * 3 + (col // 3)
+        boxes[box_idx].add(num)
+    
+    def remove(num: int, row: int, col: int) -> None:
+        """Remove num from board[row][col] and update constraints."""
+        board[row][col] = 0
+        rows[row].remove(num)
+        cols[col].remove(num)
+        box_idx = (row // 3) * 3 + (col // 3)
+        boxes[box_idx].remove(num)
+    
+    def backtrack() -> bool:
+        """Recursively solve the Sudoku puzzle."""
+        # Find next empty cell using MRV heuristic
+        min_options = 10
+        selected_cell = (-1, -1)
+        
+        for i in range(9):
+            for j in range(9):
+                if board[i][j] == 0:
+                    options = sum(
+                        1 for num in range(1, 10)
+                        if is_valid(i, j, num)
+                    )
+                    if options < min_options:
+                        min_options = options
+                        selected_cell = (i, j)
+                        if options == 1:
+                            break
+            if min_options == 1:
+                break
+        
+        # No empty cells - puzzle solved!
+        if selected_cell == (-1, -1):
+            return True
+        
+        row, col = selected_cell
+        
+        for num in range(1, 10):
+            if is_valid(row, col, num):
+                place(num, row, col)
+                if backtrack():
+                    return True
+                remove(num, row, col)
+        
+        return False
+    
+    # Initialize constraint sets
+    rows = [set() for _ in range(9)]
+    cols = [set() for _ in range(9)]
+    boxes = [set() for _ in range(9)]
+    
+    # Fill constraint sets with given numbers
+    for i in range(9):
+        for j in range(9):
+            if board[i][j] != 0:
+                place(board[i][j], i, j)
+    
+    return backtrack()
+```
+
+### Template 2: Simple Sudoku Solver (No MRV)
+
+```python
+def solve_sudoku_simple(board: list[list[int]]) -> bool:
+    """
+    Simple backtracking without MRV heuristic.
+    Easier to understand but slower.
+    
+    Time: O(9^(n*n))
+    Space: O(n*n)
+    """
+    
+    def is_valid(board: list[list[int]], row: int, col: int, num: int) -> bool:
+        # Check row
+        for x in range(9):
+            if board[row][x] == num:
+                return False
+        # Check column
+        for x in range(9):
+            if board[x][col] == num:
+                return False
+        # Check 3x3 box
+        start_row, start_col = 3 * (row // 3), 3 * (col // 3)
+        for i in range(3):
+            for j in range(3):
+                if board[start_row + i][start_col + j] == num:
+                    return False
+        return True
+    
+    def backtrack() -> bool:
+        for i in range(9):
+            for j in range(9):
+                if board[i][j] == 0:
+                    for num in range(1, 10):
+                        if is_valid(board, i, j, num):
+                            board[i][j] = num
+                            if backtrack():
+                                return True
+                            board[i][j] = 0
+                    return False
+        return True
+    
+    return backtrack()
+```
+
+### Template 3: Sudoku Validator
+
+```python
+def is_valid_sudoku(board: list[list[int]]) -> bool:
+    """
+    Determine if a 9x9 Sudoku board is valid.
+    Only filled cells need to be validated.
+    
+    Time: O(81) = O(1)
+    Space: O(27) = O(1)
+    """
+    rows = [set() for _ in range(9)]
+    cols = [set() for _ in range(9)]
+    boxes = [set() for _ in range(9)]
+    
+    for r in range(9):
+        for c in range(9):
+            num = board[r][c]
+            if num == 0:
+                continue
+            
+            # Check row
+            if num in rows[r]:
+                return False
+            rows[r].add(num)
+            
+            # Check column
+            if num in cols[c]:
+                return False
+            cols[c].add(num)
+            
+            # Check box
+            box_idx = (r // 3) * 3 + (c // 3)
+            if num in boxes[box_idx]:
+                return False
+            boxes[box_idx].add(num)
+    
+    return True
+```
+
+### Template 4: Generalized N×N Sudoku Solver
+
+```python
+def solve_sudoku_general(board: list[list[int]], size: int = 3) -> bool:
+    """
+    General N×N Sudoku solver (size=3 for 9x9, 4 for 16x16).
+    
+    Args:
+        board: N×N grid
+        size: Box size (N = size×size)
+    
+    Returns:
+        True if solved
+    """
+    n = size * size
+    
+    def is_valid(row: int, col: int, num: int) -> bool:
+        # Check row and column
+        for x in range(n):
+            if board[row][x] == num or board[x][col] == num:
+                return False
+        
+        # Check box
+        start_row, start_col = size * (row // size), size * (col // size)
+        for i in range(size):
+            for j in range(size):
+                if board[start_row + i][start_col + j] == num:
+                    return False
+        return True
+    
+    def find_empty() -> tuple[int, int]:
+        for i in range(n):
+            for j in range(n):
+                if board[i][j] == 0:
+                    return (i, j)
+        return (-1, -1)
+    
+    def backtrack() -> bool:
+        row, col = find_empty()
+        if row == -1:
+            return True
+        
+        for num in range(1, n + 1):
+            if is_valid(row, col, num):
+                board[row][col] = num
+                if backtrack():
+                    return True
+                board[row][col] = 0
+        
+        return False
+    
+    return backtrack()
+```
+
+### Template 5: Count All Sudoku Solutions
+
+```python
+def count_solutions(board: list[list[int]]) -> int:
+    """
+    Count all valid solutions for a Sudoku puzzle.
+    
+    Time: Exponential in worst case
+    Space: O(n*n) for recursion
+    """
+    count = 0
+    
+    def is_valid(row: int, col: int, num: int) -> bool:
+        for x in range(9):
+            if board[row][x] == num or board[x][col] == num:
+                return False
+        
+        start_row, start_col = 3 * (row // 3), 3 * (col // 3)
+        for i in range(3):
+            for j in range(3):
+                if board[start_row + i][start_col + j] == num:
+                    return False
+        return True
+    
+    def backtrack() -> None:
+        nonlocal count
+        
+        for i in range(9):
+            for j in range(9):
+                if board[i][j] == 0:
+                    for num in range(1, 10):
+                        if is_valid(i, j, num):
+                            board[i][j] = num
+                            backtrack()
+                            board[i][j] = 0
+                    return
+        
+        # Found a solution
+        count += 1
+    
+    backtrack()
+    return count
+```
+
+---
+
 ## When to Use
 
 Use the Sudoku Solver (backtracking) algorithm when you need to solve problems involving:
@@ -30,8 +645,8 @@ Use the Sudoku Solver (backtracking) algorithm when you need to solve problems i
 |-----------|----------|-----------------|-------|-------------|
 | **Backtracking** | CSP, puzzles | O(9^(n²)) worst | O(n²) recursion | Small search spaces, hard constraints |
 | **Brute Force** | Small exhaustive search | O(n^k) | O(k) | Tiny problems only |
-| **Constraint Propagation** | Efficient CSP | Much better than brute | O(n²) | When constraints can prune heavily |
-| ** dancing Links (DLX)** | Exact cover problems | Very fast | O(k) | Algorithm X problems (Sudoku, N-Queens) |
+| **Constraint Propagation** | Efficient CSP | Much better | O(n²) | When constraints can prune heavily |
+| **Dancing Links (DLX)** | Exact cover problems | Very fast | O(k) | Algorithm X problems (Sudoku, N-Queens) |
 
 ### When to Choose Backtracking vs Other Approaches
 
@@ -62,7 +677,7 @@ The fundamental insight behind backtracking is **systematic trial and error with
 3. **Recurse**: If valid, move to the next empty cell
 4. **Backtrack**: If dead end, undo the choice and try another number
 
-The key optimization is **constraint checking in O(1)** using sets/dictionaries to track which numbers are already used in each row, column, and box. This avoids scanning entire rows/columns/boxes for each placement.
+The key optimization is **constraint checking in O(1)** using sets/dictionaries to track which numbers are already used in each row, column, and box.
 
 ### How It Works
 
@@ -108,8 +723,8 @@ Initial State:           After placing 5 at [0,0]:
 ------+-------           ------+-------
 8 . . | . 6 . | . . 3    8 . . | . 6 . | . . 3
 4 . . | 8 . 3 | . . 1    4 . . | 8 . 3 | . . 1
-7 . . | . 2 . | . . 6    7 . . | . 2 .6
-------+------- | . .            ------+-------
+7 . . | . 2 . | . . 6    7 . . | . 2 . | . . 6
+------+-------           ------+-------
 . 6 . | . . . | 2 8 .    . 6 . | . . . | 2 8 .
 . . . | 4 1 9 | . . 5    . . . | 4 1 9 | . . 5
 . . . | . 8 . | . 7 9    . . . | . 8 . | . 7 9
@@ -125,793 +740,12 @@ rows[0] = {5}     cols[0] = {5,6,8,4,7}     boxes[0] = {5}
 - **Optimal pruning**: MRV heuristic + constraint propagation = fast solving
 - **Complete**: Guarantees solution if one exists (or determines unsolvable)
 
----
+### Limitations
 
-## Algorithm Steps
-
-### Step-by-Step Approach
-
-1. **Initialize Constraint Sets**
-   - Create 3 arrays of sets: `rows[9]`, `cols[9]`, `boxes[9]`
-   - Each set tracks which numbers (1-9) are already used
-
-2. **Populate Initial Constraints**
-   - Scan the entire board
-   - For each non-zero cell: add to corresponding row, col, and box sets
-   - This is O(81) = O(1) since board is always 9x9
-
-3. **Find Next Empty Cell (with MRV)**
-   - Scan all 81 cells
-   - For empty cells (value = 0), count valid options
-   - Select cell with minimum options (MRV heuristic)
-   - If no empty cells remain: puzzle solved!
-
-4. **Try Each Valid Number**
-   - For num in 1 to 9:
-     - If num not in row, col, or box sets: it's valid
-     - Place num: update board and all three constraint sets
-     - Recursively call solve()
-     - If recursion returns True: propagate success upward
-     - Otherwise: backtrack (remove num from board and sets)
-
-5. **Backtrack if No Number Works**
-   - If loop completes without success: return False
-   - This triggers backtracking to previous level
-
-6. **Return Result**
-   - True if solved, False if no solution exists
-
----
-
-## Implementation
-
-### Template Code (Python, C++, Java, JavaScript)
-
-````carousel
-```python
-def solve_sudoku(board: list) -> bool:
-    """
-    Solve a Sudoku puzzle using backtracking with MRV heuristic.
-    
-    Args:
-        board: 9x9 grid where 0 represents empty cells
-        
-    Returns:
-        True if solved, False if no solution exists
-        
-    Time: O(9^(n*n)) worst case, but much better with MRV
-    Space: O(n*n) for recursion stack = O(81) = O(1)
-    """
-    
-    def is_valid(row: int, col: int, num: int) -> bool:
-        """Check if placing num at board[row][col] is valid."""
-        # Check row
-        if num in rows[row]:
-            return False
-        # Check column
-        if num in cols[col]:
-            return False
-        # Check 3x3 box
-        box_idx = (row // 3) * 3 + (col // 3)
-        if num in boxes[box_idx]:
-            return False
-        return True
-    
-    def place(num: int, row: int, col: int):
-        """Place num at board[row][col] and update constraints."""
-        board[row][col] = num
-        rows[row].add(num)
-        cols[col].add(num)
-        box_idx = (row // 3) * 3 + (col // 3)
-        boxes[box_idx].add(num)
-    
-    def remove(num: int, row: int, col: int):
-        """Remove num from board[row][col] and update constraints."""
-        board[row][col] = 0
-        rows[row].remove(num)
-        cols[col].remove(num)
-        box_idx = (row // 3) * 3 + (col // 3)
-        boxes[box_idx].remove(num)
-    
-    def backtrack() -> bool:
-        """Recursively solve the Sudoku puzzle."""
-        # Find next empty cell using MRV heuristic
-        min_options = 10
-        selected_cell = (-1, -1)
-        
-        for i in range(9):
-            for j in range(9):
-                if board[i][j] == 0:
-                    # Count valid options
-                    options = sum(
-                        1 for num in range(1, 10)
-                        if is_valid(i, j, num)
-                    )
-                    if options < min_options:
-                        min_options = options
-                        selected_cell = (i, j)
-                        if options == 1:
-                            break
-            if min_options == 1:
-                break
-        
-        # No empty cells - puzzle solved!
-        if selected_cell == (-1, -1):
-            return True
-        
-        row, col = selected_cell
-        
-        for num in range(1, 10):
-            if is_valid(row, col, num):
-                place(num, row, col)
-                if backtrack():
-                    return True
-                remove(num, row, col)
-        
-        return False
-    
-    # Initialize constraint sets
-    rows = [set() for _ in range(9)]
-    cols = [set() for _ in range(9)]
-    boxes = [set() for _ in range(9)]
-    
-    # Fill constraint sets with given numbers
-    for i in range(9):
-        for j in range(9):
-            if board[i][j] != 0:
-                place(board[i][j], i, j)
-    
-    return backtrack()
-
-
-def print_board(board: list):
-    """Print the Sudoku board in readable format."""
-    for i in range(9):
-        if i % 3 == 0 and i > 0:
-            print("-" * 21)
-        for j in range(9):
-            if j % 3 == 0 and j > 0:
-                print("|", end=" ")
-            print(board[i][j], end=" ")
-        print()
-
-
-# Example usage
-if __name__ == "__main__":
-    # Sample Sudoku puzzle (0 = empty)
-    board = [
-        [5, 3, 0, 0, 7, 0, 0, 0, 0],
-        [6, 0, 0, 1, 9, 5, 0, 0, 0],
-        [0, 9, 8, 0, 0, 0, 0, 6, 0],
-        [8, 0, 0, 0, 6, 0, 0, 0, 3],
-        [4, 0, 0, 8, 0, 3, 0, 0, 1],
-        [7, 0, 0, 0, 2, 0, 0, 0, 6],
-        [0, 6, 0, 0, 0, 0, 2, 8, 0],
-        [0, 0, 0, 4, 1, 9, 0, 0, 5],
-        [0, 0, 0, 0, 8, 0, 0, 7, 9]
-    ]
-    
-    print("Original Sudoku:")
-    print_board(board)
-    
-    if solve_sudoku(board):
-        print("\nSolved Sudoku:")
-        print_board(board)
-    else:
-        print("No solution exists!")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <set>
-#include <algorithm>
-using namespace std;
-
-/**
- * Sudoku Solver using backtracking with MRV heuristic.
- * 
- * Time: O(9^(n*n)) worst case, optimized with constraints
- * Space: O(n*n) for recursion stack
- */
-class SudokuSolver {
-private:
-    vector<vector<int>> board;
-    vector<set<int>> rows, cols, boxes;
-    
-    int getBoxIndex(int row, int col) const {
-        return (row / 3) * 3 + (col / 3);
-    }
-    
-    bool isValid(int row, int col, int num) const {
-        return rows[row].count(num) == 0 &&
-               cols[col].count(num) == 0 &&
-               boxes[getBoxIndex(row, col)].count(num) == 0;
-    }
-    
-    void place(int num, int row, int col) {
-        board[row][col] = num;
-        rows[row].insert(num);
-        cols[col].insert(num);
-        boxes[getBoxIndex(row, col)].insert(num);
-    }
-    
-    void remove(int num, int row, int col) {
-        board[row][col] = 0;
-        rows[row].erase(num);
-        cols[col].erase(num);
-        boxes[getBoxIndex(row, col)].erase(num);
-    }
-    
-    // Find next cell using MRV heuristic
-    pair<int, int> findNextCell() {
-        int minOptions = 10;
-        pair<int, int> selected = {-1, -1};
-        
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                if (board[i][j] == 0) {
-                    int options = 0;
-                    for (int num = 1; num <= 9; num++) {
-                        if (isValid(i, j, num)) options++;
-                    }
-                    if (options < minOptions) {
-                        minOptions = options;
-                        selected = {i, j};
-                        if (options == 1) return selected;
-                    }
-                }
-            }
-        }
-        return selected;
-    }
-    
-    bool backtrack() {
-        auto [row, col] = findNextCell();
-        
-        // No empty cells - solved!
-        if (row == -1) return true;
-        
-        for (int num = 1; num <= 9; num++) {
-            if (isValid(row, col, num)) {
-                place(num, row, col);
-                if (backtrack()) return true;
-                remove(num, row, col);
-            }
-        }
-        return false;
-    }
-    
-public:
-    bool solve(vector<vector<int>>& board) {
-        this->board = board;
-        
-        // Initialize constraint sets
-        rows.assign(9, set<int>());
-        cols.assign(9, set<int>());
-        boxes.assign(9, set<int>());
-        
-        // Fill with given numbers
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                if (board[i][j] != 0) {
-                    place(board[i][j], i, j);
-                }
-            }
-        }
-        
-        return backtrack();
-    }
-    
-    void printBoard() const {
-        for (int i = 0; i < 9; i++) {
-            if (i % 3 == 0 && i > 0) cout << string(21, '-') << endl;
-            for (int j = 0; j < 9; j++) {
-                if (j % 3 == 0 && j > 0) cout << "| ";
-                cout << board[i][j] << " ";
-            }
-            cout << endl;
-        }
-    }
-};
-
-int main() {
-    vector<vector<int>> board = {
-        {5, 3, 0, 0, 7, 0, 0, 0, 0},
-        {6, 0, 0, 1, 9, 5, 0, 0, 0},
-        {0, 9, 8, 0, 0, 0, 0, 6, 0},
-        {8, 0, 0, 0, 6, 0, 0, 0, 3},
-        {4, 0, 0, 8, 0, 3, 0, 0, 1},
-        {7, 0, 0, 0, 2, 0, 0, 0, 6},
-        {0, 6, 0, 0, 0, 0, 2, 8, 0},
-        {0, 0, 0, 4, 1, 9, 0, 0, 5},
-        {0, 0, 0, 0, 8, 0, 0, 7, 9}
-    };
-    
-    cout << "Original Sudoku:" << endl;
-    SudokuSolver solver;
-    solver.solve(board);
-    solver.printBoard();
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-/**
- * Sudoku Solver using backtracking with MRV heuristic.
- * 
- * Time: O(9^(n*n)) worst case, optimized with constraints
- * Space: O(n*n) for recursion stack
- */
-public class SudokuSolver {
-    private int[][] board;
-    private Set<Integer>[] rows, cols, boxes;
-    
-    @SuppressWarnings("unchecked")
-    public SudokuSolver(int[][] board) {
-        this.board = board;
-        
-        // Initialize constraint sets
-        rows = new HashSet[9];
-        cols = new HashSet[9];
-        boxes = new HashSet[9];
-        
-        for (int i = 0; i < 9; i++) {
-            rows[i] = new HashSet<>();
-            cols[i] = new HashSet<>();
-            boxes[i] = new HashSet<>();
-        }
-        
-        // Fill with given numbers
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                if (board[i][j] != 0) {
-                    place(board[i][j], i, j);
-                }
-            }
-        }
-    }
-    
-    private int getBoxIndex(int row, int col) {
-        return (row / 3) * 3 + (col / 3);
-    }
-    
-    private boolean isValid(int row, int col, int num) {
-        return !rows[row].contains(num) &&
-               !cols[col].contains(num) &&
-               !boxes[getBoxIndex(row, col)].contains(num);
-    }
-    
-    private void place(int num, int row, int col) {
-        board[row][col] = num;
-        rows[row].add(num);
-        cols[col].add(num);
-        boxes[getBoxIndex(row, col)].add(num);
-    }
-    
-    private void remove(int num, int row, int col) {
-        board[row][col] = 0;
-        rows[row].remove(num);
-        cols[col].remove(num);
-        boxes[getBoxIndex(row, col)].remove(num);
-    }
-    
-    // Find next cell using MRV heuristic
-    private int[] findNextCell() {
-        int minOptions = 10;
-        int[] selected = {-1, -1};
-        
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                if (board[i][j] == 0) {
-                    int options = 0;
-                    for (int num = 1; num <= 9; num++) {
-                        if (isValid(i, j, num)) options++;
-                    }
-                    if (options < minOptions) {
-                        minOptions = options;
-                        selected = new int[]{i, j};
-                        if (options == 1) return selected;
-                    }
-                }
-            }
-        }
-        return selected;
-    }
-    
-    public boolean solve() {
-        int[] cell = findNextCell();
-        int row = cell[0], col = cell[1];
-        
-        // No empty cells - solved!
-        if (row == -1) return true;
-        
-        for (int num = 1; num <= 9; num++) {
-            if (isValid(row, col, num)) {
-                place(num, row, col);
-                if (solve()) return true;
-                remove(num, row, col);
-            }
-        }
-        return false;
-    }
-    
-    public void printBoard() {
-        for (int i = 0; i < 9; i++) {
-            if (i % 3 == 0 && i > 0) {
-                System.out.println("---------------------");
-            }
-            for (int j = 0; j < 9; j++) {
-                if (j % 3 == 0 && j > 0) System.out.print("| ");
-                System.out.print(board[i][j] + " ");
-            }
-            System.out.println();
-        }
-    }
-    
-    public static void main(String[] args) {
-        int[][] board = {
-            {5, 3, 0, 0, 7, 0, 0, 0, 0},
-            {6, 0, 0, 1, 9, 5, 0, 0, 0},
-            {0, 9, 8, 0, 0, 0, 0, 6, 0},
-            {8, 0, 0, 0, 6, 0, 0, 0, 3},
-            {4, 0, 0, 8, 0, 3, 0, 0, 1},
-            {7, 0, 0, 0, 2, 0, 0, 0, 6},
-            {0, 6, 0, 0, 0, 0, 2, 8, 0},
-            {0, 0, 0, 4, 1, 9, 0, 0, 5},
-            {0, 0, 0, 0, 8, 0, 0, 7, 9}
-        };
-        
-        System.out.println("Original Sudoku:");
-        SudokuSolver solver = new SudokuSolver(board);
-        solver.solve();
-        solver.printBoard();
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Sudoku Solver using backtracking with MRV heuristic.
- * 
- * Time: O(9^(n*n)) worst case, optimized with constraints
- * Space: O(n*n) for recursion stack
- */
-class SudokuSolver {
-    constructor(board) {
-        this.board = board;
-        this.rows = Array.from({ length: 9 }, () => new Set());
-        this.cols = Array.from({ length: 9 }, () => new Set());
-        this.boxes = Array.from({ length: 9 }, () => new Set());
-        
-        // Initialize with given numbers
-        for (let i = 0; i < 9; i++) {
-            for (let j = 0; j < 9; j++) {
-                if (board[i][j] !== 0) {
-                    this.place(board[i][j], i, j);
-                }
-            }
-        }
-    }
-    
-    getBoxIndex(row, col) {
-        return Math.floor(row / 3) * 3 + Math.floor(col / 3);
-    }
-    
-    isValid(row, col, num) {
-        return !this.rows[row].has(num) &&
-               !this.cols[col].has(num) &&
-               !this.boxes[this.getBoxIndex(row, col)].has(num);
-    }
-    
-    place(num, row, col) {
-        this.board[row][col] = num;
-        this.rows[row].add(num);
-        this.cols[col].add(num);
-        this.boxes[this.getBoxIndex(row, col)].add(num);
-    }
-    
-    remove(num, row, col) {
-        this.board[row][col] = 0;
-        this.rows[row].delete(num);
-        this.cols[col].delete(num);
-        this.boxes[this.getBoxIndex(row, col)].delete(num);
-    }
-    
-    // Find next cell using MRV heuristic
-    findNextCell() {
-        let minOptions = 10;
-        let selected = [-1, -1];
-        
-        for (let i = 0; i < 9; i++) {
-            for (let j = 0; j < 9; j++) {
-                if (this.board[i][j] === 0) {
-                    let options = 0;
-                    for (let num = 1; num <= 9; num++) {
-                        if (this.isValid(i, j, num)) options++;
-                    }
-                    if (options < minOptions) {
-                        minOptions = options;
-                        selected = [i, j];
-                        if (options === 1) return selected;
-                    }
-                }
-            }
-        }
-        return selected;
-    }
-    
-    solve() {
-        const [row, col] = this.findNextCell();
-        
-        // No empty cells - solved!
-        if (row === -1) return true;
-        
-        for (let num = 1; num <= 9; num++) {
-            if (this.isValid(row, col, num)) {
-                this.place(num, row, col);
-                if (this.solve()) return true;
-                this.remove(num, row, col);
-            }
-        }
-        return false;
-    }
-    
-    printBoard() {
-        console.log("Solved Sudoku:");
-        for (let i = 0; i < 9; i++) {
-            if (i % 3 === 0 && i > 0) console.log('---------------------');
-            let row = '';
-            for (let j = 0; j < 9; j++) {
-                if (j % 3 === 0 && j > 0) row += '| ';
-                row += this.board[i][j] + ' ';
-            }
-            console.log(row);
-        }
-    }
-}
-
-// Example usage
-const board = [
-    [5, 3, 0, 0, 7, 0, 0, 0, 0],
-    [6, 0, 0, 1, 9, 5, 0, 0, 0],
-    [0, 9, 8, 0, 0, 0, 0, 6, 0],
-    [8, 0, 0, 0, 6, 0, 0, 0, 3],
-    [4, 0, 0, 8, 0, 3, 0, 0, 1],
-    [7, 0, 0, 0, 2, 0, 0, 0, 6],
-    [0, 6, 0, 0, 0, 0, 2, 8, 0],
-    [0, 0, 0, 4, 1, 9, 0, 0, 5],
-    [0, 0, 0, 0, 8, 0, 0, 7, 9]
-];
-
-const solver = new SudokuSolver(board);
-solver.solve();
-solver.printBoard();
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Worst Case** | O(9^(n²)) | Naive backtracking without optimizations |
-| **With Constraint Sets** | O(9^k) where k < n² | O(1) constraint checking prunes early |
-| **With MRV Heuristic** | Much better than worst case | k is typically small (1-3 options per cell) |
-| **Constraint Propagation** | Very fast | Eliminates candidates before backtracking |
-
-### Detailed Breakdown
-
-- **Constraint checking**: O(1) per placement using sets
-- **Finding next cell (MRV)**: O(n²) = O(81) = O(1) for 9x9
-- **Recursion depth**: Maximum n² = 81 cells to fill
-- **Typical solve time**: Milliseconds for standard Sudoku puzzles
-
-**Note**: While worst-case is exponential, well-formed Sudoku puzzles typically solve in milliseconds due to:
-1. MRV heuristic reducing branching
-2. Constraint propagation eliminating impossible states early
-3. The puzzle having a unique solution
-
----
-
-## Space Complexity Analysis
-
-| Component | Space | Description |
-|-----------|-------|-------------|
-| **Board Storage** | O(n²) = O(81) = O(1) | 9x9 grid |
-| **Constraint Sets** | O(n) = O(27) = O(1) | 9 rows + 9 cols + 9 boxes |
-| **Recursion Stack** | O(n²) = O(81) = O(1) | Max depth = number of empty cells |
-| **Total** | O(n²) = O(1) | Constant for 9x9 Sudoku |
-
-### Space Optimization Notes
-
-- Constraint sets are constant size (9 sets of max 9 elements each)
-- Recursion depth is bounded by empty cells (typically 20-40 for valid puzzles)
-- No additional data structures needed beyond the board itself
-
----
-
-## Common Variations
-
-### 1. Naive Backtracking (Without MRV)
-
-Simple row-by-row approach, easier to understand but slower:
-
-````carousel
-```python
-def solve_sudoku_naive(board):
-    """Simple backtracking without MRV heuristic."""
-    
-    def is_valid(board, row, col, num):
-        # Check row
-        for x in range(9):
-            if board[row][x] == num:
-                return False
-        # Check column
-        for x in range(9):
-            if board[x][col] == num:
-                return False
-        # Check 3x3 box
-        start_row, start_col = 3 * (row // 3), 3 * (col // 3)
-        for i in range(3):
-            for j in range(3):
-                if board[start_row + i][start_col + j] == num:
-                    return False
-        return True
-    
-    def backtrack():
-        for i in range(9):
-            for j in range(9):
-                if board[i][j] == 0:
-                    for num in range(1, 10):
-                        if is_valid(board, i, j, num):
-                            board[i][j] = num
-                            if backtrack():
-                                return True
-                            board[i][j] = 0
-                    return False
-        return True
-    
-    return backtrack()
-```
-````
-
-### 2. Constraint Propagation (Naked Singles)
-
-Eliminate candidates before backtracking:
-
-````carousel
-```python
-def solve_sudoku_propagation(board):
-    """Backtracking with constraint propagation."""
-    
-    def get_candidates(row, col):
-        if board[row][col] != 0:
-            return None
-        used = set()
-        # Check row
-        used.update(board[row])
-        # Check column
-        for r in range(9):
-            used.add(board[r][col])
-        # Check box
-        start_row, start_col = 3 * (row // 3), 3 * (col // 3)
-        for r in range(start_row, start_row + 3):
-            for c in range(start_col, start_col + 3):
-                used.add(board[r][c])
-        return [n for n in range(1, 10) if n not in used]
-    
-    def propagate():
-        """Single propagation pass - fill naked singles."""
-        changed = True
-        while changed:
-            changed = False
-            for i in range(9):
-                for j in range(9):
-                    candidates = get_candidates(i, j)
-                    if candidates and len(candidates) == 1:
-                        board[i][j] = candidates[0]
-                        changed = True
-    
-    # Main solving loop with propagation
-    def backtrack():
-        propagate()
-        
-        # Find empty cell
-        for i in range(9):
-            for j in range(9):
-                if board[i][j] == 0:
-                    candidates = get_candidates(i, j)
-                    for num in candidates:
-                        board[i][j] = num
-                        if backtrack():
-                            return True
-                        board[i][j] = 0
-                    return False
-        return True
-    
-    return backtrack()
-```
-````
-
-### 3. Solving Larger Sudoku (16x16, 25x25)
-
-The algorithm scales to any N×N Sudoku:
-
-````carousel
-```python
-def solve_sudoku_general(board, size=3):
-    """General N×N Sudoku solver (size=3 for 9x9, 4 for 16x16)."""
-    n = size * size
-    
-    def is_valid(row, col, num):
-        for x in range(n):
-            if board[row][x] == num: return False
-            if board[x][col] == num: return False
-        
-        start_row, start_col = size * (row // size), size * (col // size)
-        for i in range(size):
-            for j in range(size):
-                if board[start_row + i][start_col + j] == num:
-                    return False
-        return True
-    
-    def find_empty():
-        min_options = n + 1
-        selected = (-1, -1)
-        
-        for i in range(n):
-            for j in range(n):
-                if board[i][j] == 0:
-                    options = sum(1 for num in range(1, n + 1) if is_valid(i, j, num))
-                    if options < min_options:
-                        min_options = options
-                        selected = (i, j)
-        return selected
-    
-    def backtrack():
-        row, col = find_empty()
-        if row == -1: return True
-        
-        for num in range(1, n + 1):
-            if is_valid(row, col, num):
-                board[row][col] = num
-                if backtrack(): return True
-                board[row][col] = 0
-        return False
-    
-    return backtrack()
-```
-````
-
-### 4. Solving Sudoku with Unique Solutions
-
-Using DLX (Dancing Links) for very fast solving:
-
-````carousel
-```python
-# Note: Full DLX implementation is complex, here's the concept
-def solve_sudoku_dlx(board):
-    """
-    Dancing Links (Algorithm X) for exact cover.
-    Very fast for competitive Sudoku solving.
-    
-    The Sudoku problem is modeled as an exact cover:
-    - 324 constraints (9×9 cells, 9×9 rows, 9×9 cols, 9×9 boxes)
-    - Each placement fills exactly 4 constraints
-    """
-    # Full implementation requires DLX data structure
-    # This is a simplified explanation
-    pass
-```
-````
+- **Exponential worst case**: O(9^(n²)) for n×n Sudoku
+- **No polynomial algorithm**: Sudoku is NP-complete
+- **Memory for recursion**: Stack depth limited by empty cells
+- **Dependent on puzzle difficulty**: Hard puzzles may require more backtracking
 
 ---
 
@@ -995,7 +829,7 @@ def solve_sudoku_dlx(board):
 
 - [Dancing Links (DLX) - Fast Sudoku Solving](https://www.youtube.com/watch?v=pJ3H3S6sK8w) - Algorithm X for competitive solving
 - [Constraint Propagation Explained](https://www.youtube.com/watch?v=btn9n-LHlT4) - Forward checking and constraint propagation
-- [MRV Heuristic in Detail](https://www.youtube.com/watch?v=nQ7WS这个地方替换为真实链接) - Most constrained variable first
+- [MRV Heuristic in Detail](https://www.youtube.com/watch?v=rnOxNjZJ5P0) - Most constrained variable first
 
 ---
 
@@ -1010,6 +844,8 @@ def solve_sudoku_dlx(board):
 - **Faster solving**: Typically 10-100x faster than naive row-by-row approach
 - **Example**: Instead of trying 9 possibilities in one cell, try the cell with only 1 possibility first
 
+---
+
 ### Q2: Can Sudoku be solved in polynomial time?
 
 **Answer:** Sudoku is NP-complete in general. This means:
@@ -1017,6 +853,8 @@ def solve_sudoku_dlx(board):
 - Backtracking is the best known approach for general cases
 - However, practical puzzles solve in milliseconds due to constraints
 - Specialized algorithms (DLX, constraint propagation) are extremely fast
+
+---
 
 ### Q3: How do you handle multiple solutions in Sudoku?
 
@@ -1026,12 +864,16 @@ def solve_sudoku_dlx(board):
 - Store solutions in a list before returning
 - Important: Deep copy the board before adding to solutions
 
+---
+
 ### Q4: What is the difference between backtracking and recursion?
 
 **Answer:** 
 - **Recursion**: A programming technique where a function calls itself
 - **Backtracking**: An algorithmic paradigm using recursion to explore all possibilities, then "undo" changes when dead ends are reached
 - Backtracking IS recursion, but with the key concept of undoing decisions (removing placed numbers)
+
+---
 
 ### Q5: How would you modify the solver to check if a puzzle is solvable before solving?
 
@@ -1054,7 +896,7 @@ Sudoku Solver demonstrates the power of **backtracking** for constraint satisfac
 - **Practical efficiency**: Despite O(9^n²) worst case, real puzzles solve in milliseconds
 - **Scalability**: The algorithm works for any N×N Sudoku with appropriate modifications
 
-When to use backtracking:
+### When to use backtracking:
 - ✅ Constraint satisfaction problems (CSPs)
 - ✅ Puzzle solving (Sudoku, N-Queens, crossword)
 - ✅ Combinatorial search (subsets, permutations)
@@ -1063,13 +905,3 @@ When to use backtracking:
 - ❌ When you need optimal solution (use A* or other search algorithms)
 
 This algorithm is fundamental to competitive programming and technical interviews, appearing frequently in problems requiring systematic exploration with constraints.
-
----
-
-## Related Algorithms
-
-- [N-Queens](./n-queens.md) - Classic backtracking problem
-- [Permutations](./permutations.md) - Generate all permutations using backtracking
-- [Combinations](./combinations.md) - Generate combinations using backtracking
-- [Word Search](./word-search.md) - Grid-based backtracking
-- [Subsets](./subsets.md) - Power set generation using backtracking

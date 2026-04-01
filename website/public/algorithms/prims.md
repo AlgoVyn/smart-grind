@@ -7,6 +7,631 @@ Graphs
 
 Prim's algorithm finds the **Minimum Spanning Tree (MST)** of a weighted undirected graph. A spanning tree connects all vertices without forming cycles, and the MST is the spanning tree with the minimum total edge weight. This is a classic **greedy algorithm** that builds the MST incrementally by always selecting the minimum weight edge that connects the tree to a new vertex.
 
+The algorithm starts from an arbitrary vertex and grows the MST one edge at a time, always choosing the cheapest edge that connects a vertex in the tree to a vertex outside the tree. This local optimal choice leads to a globally optimal solution, making Prim's algorithm a fundamental tool in network design and optimization problems.
+
+---
+
+## Concepts
+
+The Prim's algorithm is built on several fundamental concepts that ensure its correctness and efficiency.
+
+### 1. The Cut Property
+
+The theoretical foundation of Prim's algorithm is the **Cut Property**: For any cut (partition) of the graph's vertices into two sets, the minimum weight edge crossing that cut belongs to some Minimum Spanning Tree.
+
+| Property | Description |
+|----------|-------------|
+| **Cut** | Partition of vertices into two disjoint sets |
+| **Crossing Edge** | Edge with one endpoint in each set |
+| **Minimum Crossing Edge** | Must be in some MST |
+
+### 2. Greedy Choice
+
+At each step, Prim's algorithm makes a locally optimal choice:
+- From all edges connecting the visited set to unvisited vertices
+- Select the one with minimum weight
+- This greedy choice never needs to be reconsidered
+
+### 3. Priority Queue (Min-Heap)
+
+Efficient implementation uses a min-heap to track candidate edges:
+
+| Operation | Time Complexity | Purpose |
+|-----------|----------------|---------|
+| Insert | O(log V) | Add new candidate edges |
+| Extract-Min | O(log V) | Get minimum weight edge |
+| Total | O(E log V) | Process all edges |
+
+### 4. Visited Set
+
+Tracks which vertices are already in the MST:
+- Prevents cycles (never add edge to already visited vertex)
+- Ensures we process exactly V-1 edges for V vertices
+- Can use boolean array for O(1) lookup
+
+---
+
+## Frameworks
+
+Structured approaches for solving Prim's algorithm problems.
+
+### Framework 1: Standard Prim's with Min-Heap (Sparse Graphs)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  STANDARD PRIM'S ALGORITHM FRAMEWORK                         │
+├─────────────────────────────────────────────────────────────┤
+│  1. Build adjacency list from edge list                    │
+│  2. Initialize:                                            │
+│     - min_heap = [(0, start_vertex, -1)]                  │
+│     - visited = [False] * n                               │
+│     - total_weight = 0                                     │
+│     - edges_used = 0                                       │
+│  3. While heap not empty and edges_used < n:               │
+│     a. Pop (weight, vertex, parent) from heap             │
+│     b. If vertex already visited: continue                │
+│     c. Mark vertex as visited                             │
+│     d. Add weight to total_weight                         │
+│     e. Increment edges_used                               │
+│     f. For each neighbor of vertex:                       │
+│        - If not visited: push (edge_weight, neighbor, vertex)│
+│  4. If edges_used == n: return total_weight               │
+│     Else: return -1 (graph disconnected)                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**When to use**: Sparse graphs (E ≈ V), adjacency list representation.
+
+### Framework 2: Dense Graph Prim's (Adjacency Matrix)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  DENSE GRAPH PRIM'S ALGORITHM FRAMEWORK                    │
+├─────────────────────────────────────────────────────────────┤
+│  1. Use adjacency matrix for O(1) edge lookup              │
+│  2. Initialize:                                            │
+│     - dist = [infinity] * n  // Min edge weight to MST    │
+│     - visited = [False] * n                               │
+│     - dist[start] = 0                                      │
+│  3. Repeat n times:                                        │
+│     a. Find unvisited vertex with minimum dist              │
+│     b. If no such vertex: return -1 (disconnected)        │
+│     c. Mark vertex as visited                             │
+│     d. Add dist[vertex] to total weight                   │
+│     e. For each unvisited neighbor:                       │
+│        - Update dist[neighbor] = min(dist[neighbor], edge_weight)│
+│  4. Return total weight                                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**When to use**: Dense graphs (E ≈ V²), adjacency matrix representation. Time: O(V²).
+
+### Framework 3: Prim's with Edge Tracking
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  PRIM'S WITH EDGE TRACKING FRAMEWORK                       │
+├─────────────────────────────────────────────────────────────┤
+│  1. Similar to standard Prim's, but track actual edges     │
+│  2. Modify heap to store: (weight, vertex, parent)        │
+│  3. When adding vertex to MST:                             │
+│     - If parent != -1: record edge (parent, vertex, weight)│
+│  4. Return both total weight and list of MST edges         │
+│  5. Useful for reconstructing the actual MST structure      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**When to use**: When you need to know which edges form the MST, not just the weight.
+
+---
+
+## Forms
+
+Different manifestations of Prim's algorithm.
+
+### Form 1: Standard MST (Minimum Weight)
+
+Basic form that finds the minimum total weight to connect all vertices.
+
+| Aspect | Details |
+|--------|---------|
+| **Goal** | Minimize total edge weight |
+| **Output** | Total weight or list of edges |
+| **Complexity** | O(E log V) with heap, O(V²) with matrix |
+
+### Form 2: Maximum Spanning Tree
+
+Same algorithm but finds maximum weight spanning tree.
+
+| Modification | Use max-heap instead of min-heap |
+|--------------|----------------------------------|
+| **Use Case** | Maximum capacity paths |
+| **Application** | Network design with capacity constraints |
+
+### Form 3: MST with Virtual Node
+
+Add a virtual source node connected to all real nodes.
+
+```
+Virtual Source (S)
+    |
+    |--(cost 0)--> Node 1
+    |--(cost 5)--> Node 2
+    |--(cost 3)--> Node 3
+```
+
+**Use case**: Problems like "optimize water distribution" where each node can be connected to a source with some cost.
+
+### Form 4: Partial MST / Steiner Tree Variant
+
+When you only need to connect a subset of vertices (Steiner tree approximation).
+
+| Approach | Run Prim's starting from any required vertex |
+|----------|---------------------------------------------|
+| **Complexity** | Same as standard MST |
+| **Note** | This gives an approximation, not optimal Steiner tree |
+
+### Form 5: MST with Constrained Edges
+
+When some edges must be included or excluded.
+
+| Constraint | Approach |
+|------------|----------|
+| **Must include** | Add these edges first, then run Prim's |
+| **Must exclude** | Remove from consideration before running |
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Choosing Between Heap and Matrix Implementation
+
+```python
+def prim(n, edges, is_dense=False):
+    """
+    Auto-select implementation based on graph density.
+    """
+    if is_dense or len(edges) > n * (n - 1) // 4:
+        # Dense graph: use matrix implementation O(V²)
+        return prim_dense(n, edges)
+    else:
+        # Sparse graph: use heap implementation O(E log V)
+        return prim_sparse(n, edges)
+```
+
+**When to use**: When graph density is unknown or varies.
+
+### Tactic 2: Early Termination
+
+If you only need to connect to a specific target:
+
+```python
+def prim_until_target(n, edges, start, target):
+    """Run Prim's until target is reached, not all vertices."""
+    # ... standard Prim's setup ...
+    
+    while min_heap:
+        weight, u, parent = heapq.heappop(min_heap)
+        
+        if visited[u]:
+            continue
+        
+        visited[u] = True
+        
+        # Early termination
+        if u == target:
+            return total_weight + weight
+        
+        total_weight += weight
+        # ... add neighbors ...
+```
+
+**When to use**: When you only need path to one specific vertex.
+
+### Tactic 3: Handling Disconnected Graphs
+
+Detect and handle disconnected components:
+
+```python
+def prim_with_component_detection(n, edges):
+    """Find MST for each connected component."""
+    graph = build_adjacency_list(n, edges)
+    visited = [False] * n
+    msts = []
+    
+    for start in range(n):
+        if not visited[start]:
+            # Run Prim's from this unvisited vertex
+            mst_weight = prim_from_source(graph, visited, start)
+            if mst_weight >= 0:
+                msts.append((start, mst_weight))
+    
+    return msts  # List of (root, weight) for each component
+```
+
+**When to use**: When graph might be disconnected and you need MST for each component.
+
+### Tactic 4: Using Edge List Output
+
+Track edges for path reconstruction:
+
+```python
+def prim_with_edges(n, edges):
+    """Return both weight and edge list."""
+    graph = build_adjacency_list(n, edges)
+    min_heap = [(0, 0, -1)]  # (weight, vertex, parent)
+    visited = [False] * n
+    mst_edges = []
+    total_weight = 0
+    
+    while min_heap:
+        weight, u, parent = heapq.heappop(min_heap)
+        
+        if visited[u]:
+            continue
+        
+        visited[u] = True
+        total_weight += weight
+        
+        if parent != -1:
+            mst_edges.append((parent, u, weight))
+        
+        # Add neighbors...
+        for v, w in graph[u]:
+            if not visited[v]:
+                heapq.heappush(min_heap, (w, v, u))
+    
+    return total_weight, mst_edges
+```
+
+**When to use**: When you need to know the structure of the MST.
+
+### Tactic 5: Parallel Edge Handling
+
+When multiple edges exist between same vertices:
+
+```python
+def build_adjacency_list_min_edges(n, edges):
+    """Keep only minimum weight edge between each pair."""
+    from collections import defaultdict
+    
+    min_edge = {}
+    for u, v, w in edges:
+        key = (min(u, v), max(u, v))
+        if key not in min_edge or w < min_edge[key]:
+            min_edge[key] = w
+    
+    graph = defaultdict(list)
+    for (u, v), w in min_edge.items():
+        graph[u].append((v, w))
+        graph[v].append((u, w))
+    
+    return graph
+```
+
+**When to use**: When input may contain multiple edges between same vertices.
+
+---
+
+## Python Templates
+
+### Template 1: Standard Prim's Algorithm (Min-Heap)
+
+```python
+import heapq
+from collections import defaultdict
+from typing import List, Tuple, Optional
+
+def prim_mst(n: int, edges: List[List[int]]) -> int:
+    """
+    Find MST using Prim's algorithm with min-heap.
+    
+    Args:
+        n: Number of vertices (0 to n-1)
+        edges: List of edges as [u, v, weight]
+    
+    Returns:
+        Total weight of MST, or -1 if graph is disconnected
+    
+    Time: O(E log V)
+    Space: O(V + E)
+    """
+    # Build adjacency list
+    graph = defaultdict(list)
+    for u, v, w in edges:
+        graph[u].append((v, w))
+        graph[v].append((u, w))
+    
+    if not graph:
+        return 0  # Single vertex with no edges
+    
+    # Min-heap: (weight, destination_vertex, parent_vertex)
+    min_heap = [(0, 0, -1)]  # Start from vertex 0
+    visited = [False] * n
+    total_weight = 0
+    edges_in_mst = 0
+    
+    while min_heap and edges_in_mst < n:
+        weight, u, parent = heapq.heappop(min_heap)
+        
+        # Skip if already visited
+        if visited[u]:
+            continue
+        
+        # Include this vertex
+        visited[u] = True
+        total_weight += weight
+        edges_in_mst += 1
+        
+        # Add all adjacent edges to heap
+        for v, w in graph[u]:
+            if not visited[v]:
+                heapq.heappush(min_heap, (w, v, u))
+    
+    # Check if all vertices were reached
+    if edges_in_mst == n:
+        return total_weight
+    return -1  # Graph is disconnected
+```
+
+### Template 2: Prim's Algorithm with Edge Tracking
+
+```python
+def prim_mst_edges(n: int, edges: List[List[int]]) -> Tuple[int, List[List[int]]]:
+    """
+    Return MST with actual edges included.
+    
+    Args:
+        n: Number of vertices
+        edges: List of edges as [u, v, weight]
+    
+    Returns:
+        Tuple of (total_weight, list_of_mst_edges)
+    """
+    graph = defaultdict(list)
+    for u, v, w in edges:
+        graph[u].append((v, w))
+        graph[v].append((u, w))
+    
+    min_heap = [(0, 0, -1)]  # (weight, vertex, parent)
+    visited = [False] * n
+    mst_edges = []
+    total_weight = 0
+    edges_count = 0
+    
+    while min_heap and edges_count < n:
+        weight, u, parent = heapq.heappop(min_heap)
+        
+        if visited[u]:
+            continue
+        
+        visited[u] = True
+        total_weight += weight
+        edges_count += 1
+        
+        if parent != -1:
+            mst_edges.append([parent, u, weight])
+        
+        for v, w in graph[u]:
+            if not visited[v]:
+                heapq.heappush(min_heap, (w, v, u))
+    
+    if edges_count == n:
+        return total_weight, mst_edges
+    return -1, []
+```
+
+### Template 3: Dense Graph Prim's (Adjacency Matrix)
+
+```python
+def prim_dense(n: int, graph: List[List[int]]) -> int:
+    """
+    Prim's algorithm using adjacency matrix.
+    Better for dense graphs where E ≈ V^2.
+    
+    Time: O(V^2)
+    Space: O(V)
+    """
+    dist = [float('inf')] * n
+    visited = [False] * n
+    dist[0] = 0
+    total_weight = 0
+    
+    for _ in range(n):
+        # Find minimum distance vertex not yet visited
+        u = -1
+        min_dist = float('inf')
+        for v in range(n):
+            if not visited[v] and dist[v] < min_dist:
+                min_dist = dist[v]
+                u = v
+        
+        if u == -1:  # Graph is disconnected
+            return -1
+        
+        visited[u] = True
+        total_weight += min_dist
+        
+        # Update distances
+        for v in range(n):
+            if not visited[v] and graph[u][v] < dist[v]:
+                dist[v] = graph[u][v]
+    
+    return total_weight
+```
+
+### Template 4: Maximum Spanning Tree
+
+```python
+def prim_max_st(n: int, edges: List[List[int]]) -> int:
+    """
+    Find Maximum Spanning Tree using Prim's.
+    Uses max-heap (negate weights for min-heap simulation).
+    """
+    graph = defaultdict(list)
+    for u, v, w in edges:
+        graph[u].append((v, w))
+        graph[v].append((u, w))
+    
+    # Use negative weights for max-heap simulation
+    max_heap = [(0, 0)]  # (-weight, vertex)
+    visited = [False] * n
+    total_weight = 0
+    edges_used = 0
+    
+    while max_heap and edges_used < n:
+        neg_weight, u = heapq.heappop(max_heap)
+        weight = -neg_weight
+        
+        if visited[u]:
+            continue
+        
+        visited[u] = True
+        total_weight += weight
+        edges_used += 1
+        
+        for v, w in graph[u]:
+            if not visited[v]:
+                heapq.heappush(max_heap, (-w, v))
+    
+    return total_weight if edges_used == n else -1
+```
+
+### Template 5: Prim's with Virtual Node
+
+```python
+def prim_with_virtual_node(n: int, edges: List[List[int]], 
+                           node_costs: List[int]) -> int:
+    """
+    MST with virtual source node.
+    Used when each node can be connected to a central source with some cost.
+    
+    Args:
+        n: Number of real nodes
+        edges: List of edges between real nodes [u, v, weight]
+        node_costs: Cost to connect each node to virtual source
+    
+    Returns:
+        Minimum cost to connect all nodes (including virtual connections)
+    """
+    # Add edges from virtual node (n) to all real nodes
+    all_edges = edges.copy()
+    for i, cost in enumerate(node_costs):
+        all_edges.append([n, i, cost])
+    
+    # Run standard Prim's on n+1 nodes
+    return prim_mst(n + 1, all_edges)
+```
+
+### Template 6: MST with Component Detection
+
+```python
+def prim_all_components(n: int, edges: List[List[int]]) -> List[Tuple[int, int]]:
+    """
+    Find MST for each connected component.
+    
+    Returns:
+        List of (root_vertex, mst_weight) for each component
+    """
+    graph = defaultdict(list)
+    for u, v, w in edges:
+        graph[u].append((v, w))
+        graph[v].append((u, w))
+    
+    visited = [False] * n
+    components = []
+    
+    def prim_from(start):
+        """Run Prim's from a starting vertex."""
+        if not graph[start]:
+            return 0  # Isolated vertex
+        
+        min_heap = [(0, start, -1)]
+        weight = 0
+        count = 0
+        
+        while min_heap:
+            w, u, p = heapq.heappop(min_heap)
+            if visited[u]:
+                continue
+            visited[u] = True
+            weight += w
+            count += 1
+            
+            for v, edge_w in graph[u]:
+                if not visited[v]:
+                    heapq.heappush(min_heap, (edge_w, v, u))
+        
+        return weight
+    
+    for i in range(n):
+        if not visited[i]:
+            w = prim_from(i)
+            components.append((i, w))
+    
+    return components
+```
+
+### Template 7: Second Best MST
+
+```python
+def second_best_mst(n: int, edges: List[List[int]]) -> int:
+    """
+    Find second best (second minimum) spanning tree.
+    
+    Approach:
+    1. Find MST
+    2. For each edge not in MST, try adding it (creates cycle)
+    3. Remove the maximum edge in that cycle that's in MST
+    4. Track minimum among all such candidates
+    """
+    # Get MST edges
+    mst_weight, mst_edges = prim_mst_edges(n, edges)
+    mst_edge_set = set()
+    for u, v, w in mst_edges:
+        mst_edge_set.add((min(u, v), max(u, v)))
+    
+    # Build adjacency list for MST (for cycle detection)
+    mst_graph = defaultdict(list)
+    for u, v, w in mst_edges:
+        mst_graph[u].append((v, w))
+        mst_graph[v].append((u, w))
+    
+    # Find max edge between any two vertices in MST (using LCA or simple BFS for small n)
+    def get_max_edge_path(start, end):
+        """Find maximum edge on path from start to end in MST."""
+        visited = [False] * n
+        max_edge = 0
+        
+        def dfs(u, target, curr_max):
+            if u == target:
+                return curr_max
+            visited[u] = True
+            for v, w in mst_graph[u]:
+                if not visited[v]:
+                    result = dfs(v, target, max(curr_max, w))
+                    if result >= 0:
+                        return result
+            return -1
+        
+        return dfs(start, end, 0)
+    
+    second_best = float('inf')
+    
+    # Try adding each non-MST edge
+    for u, v, w in edges:
+        key = (min(u, v), max(u, v))
+        if key not in mst_edge_set:
+            max_in_path = get_max_edge_path(u, v)
+            if max_in_path > 0:
+                candidate = mst_weight + w - max_in_path
+                second_best = min(second_best, candidate)
+    
+    return second_best if second_best != float('inf') else -1
+```
+
 ---
 
 ## When to Use
@@ -34,11 +659,13 @@ Use Prim's algorithm when you need to solve problems involving:
   - The graph is dense (E ≈ V²)
   - You have a starting point requirement
   - You're working with adjacency list representation
+  - Graph is given as adjacency matrix
 
 - **Choose Kruskal's** when:
-  - The graph is sparse
+  - The graph is sparse (E ≈ V)
   - Edges are already sorted or can be sorted easily
   - You want simpler implementation
+  - You only need the total weight, not the edge structure
 
 ---
 
@@ -106,889 +733,6 @@ The greedy approach is valid due to the **Cut Property**:
 - **Only works for undirected graphs**: For directed minimum spanning arborescents, use Chu–Liu/Edmonds algorithm
 - **Requires connected graph**: Disconnected graphs don't have an MST
 - **Only considers edge weights**: All edges must have comparable weights
-
----
-
-## Algorithm Steps
-
-### Step-by-Step Approach
-
-1. **Build Adjacency List**: Convert edge list to adjacency list for efficient traversal
-
-2. **Initialize Data Structures**:
-   - Create a min-heap (priority queue) with (weight, vertex, parent)
-   - Mark all vertices as unvisited
-   - Start from vertex 0
-
-3. **Main Loop**:
-   - While heap is not empty and MST is incomplete:
-     - Pop the minimum weight edge
-     - If destination is visited, skip
-     - Otherwise, add vertex to MST
-     - Add edge weight to total
-     - Push all adjacent edges to unvisited vertices
-
-4. **Verify Completeness**: Check if all vertices were included (otherwise, graph is disconnected)
-
-5. **Return Result**: Return total MST weight or -1 for disconnected graphs
-
----
-
-## Implementation
-
-### Template Code (Prim's Algorithm with Min-Heap)
-
-````carousel
-```python
-import heapq
-from collections import defaultdict
-from typing import List, Tuple, Optional
-
-def prim_mst(n: int, edges: List[List[int]]) -> int:
-    """
-    Find MST using Prim's algorithm with min-heap.
-    
-    Args:
-        n: Number of vertices (0 to n-1)
-        edges: List of edges as [u, v, weight]
-    
-    Returns:
-        Total weight of MST, or -1 if graph is disconnected
-    
-    Time: O(E log V)
-    Space: O(V + E)
-    """
-    # Build adjacency list - handle empty edges
-    graph = defaultdict(list)
-    for u, v, w in edges:
-        graph[u].append((v, w))
-        graph[v].append((u, w))
-    
-    if not graph:
-        return 0  # Single vertex with no edges
-    
-    # Min-heap: (weight, destination_vertex, parent_vertex)
-    min_heap = [(0, 0, -1)]  # Start from vertex 0
-    visited = [False] * n
-    total_weight = 0
-    edges_in_mst = 0
-    
-    while min_heap and edges_in_mst < n:
-        weight, u, parent = heapq.heappop(min_heap)
-        
-        # Skip if already visited
-        if visited[u]:
-            continue
-        
-        # Include this vertex
-        visited[u] = True
-        total_weight += weight
-        edges_in_mst += 1
-        
-        # Add all adjacent edges to heap
-        for v, w in graph[u]:
-            if not visited[v]:
-                heapq.heappush(min_heap, (w, v, u))
-    
-    # Check if all vertices were reached
-    if edges_in_mst == n:
-        return total_weight
-    return -1  # Graph is disconnected
-
-
-def prim_mst_edges(n: int, edges: List[List[int]]) -> Tuple[int, List[List[int]]]:
-    """
-    Return MST with actual edges included.
-    
-    Args:
-        n: Number of vertices
-        edges: List of edges as [u, v, weight]
-    
-    Returns:
-        Tuple of (total_weight, list_of_mst_edges)
-    """
-    graph = defaultdict(list)
-    for u, v, w in edges:
-        graph[u].append((v, w))
-        graph[v].append((u, w))
-    
-    min_heap = [(0, 0, -1)]  # (weight, vertex, parent)
-    visited = [False] * n
-    mst_edges = []
-    total_weight = 0
-    edges_count = 0
-    
-    while min_heap and edges_count < n:
-        weight, u, parent = heapq.heappop(min_heap)
-        
-        if visited[u]:
-            continue
-        
-        visited[u] = True
-        total_weight += weight
-        edges_count += 1
-        
-        if parent != -1:
-            mst_edges.append([parent, u, weight])
-        
-        for v, w in graph[u]:
-            if not visited[v]:
-                heapq.heappush(min_heap, (w, v, u))
-    
-    if edges_count == n:
-        return total_weight, mst_edges
-    return -1, []
-
-
-# Prim's with adjacency matrix (better for dense graphs)
-def prim_dense(n: int, graph: List[List[int]]) -> int:
-    """
-    Prim's algorithm using adjacency matrix.
-    Better for dense graphs where E ≈ V^2.
-    
-    Time: O(V^2)
-    Space: O(V)
-    """
-    dist = [float('inf')] * n
-    visited = [False] * n
-    dist[0] = 0
-    total_weight = 0
-    
-    for _ in range(n):
-        # Find minimum distance vertex not yet visited
-        u = -1
-        min_dist = float('inf')
-        for v in range(n):
-            if not visited[v] and dist[v] < min_dist:
-                min_dist = dist[v]
-                u = v
-        
-        if u == -1:  # Graph is disconnected
-            return -1
-        
-        visited[u] = True
-        total_weight += min_dist
-        
-        # Update distances
-        for v in range(n):
-            if not visited[v] and graph[u][v] < dist[v]:
-                dist[v] = graph[u][v]
-    
-    return total_weight
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    # Example 1: Basic graph
-    n1 = 4
-    edges1 = [[0, 1, 10], [0, 2, 6], [0, 3, 5], [1, 3, 15], [2, 3, 4]]
-    print(f"Example 1: n={n1}, edges={edges1}")
-    print(f"MST Weight: {prim_mst(n1, edges1)}")  # Output: 19
-    print()
-    
-    # Example 2: With edge list output
-    weight, mst_edges = prim_mst_edges(n1, edges1)
-    print(f"MST Edges: {mst_edges}")
-    print(f"Total Weight: {weight}")  # Output: 19
-    print()
-    
-    # Example 3: Disconnected graph
-    n2 = 3
-    edges2 = [[0, 1, 1]]  # Vertex 2 is isolated
-    result = prim_mst(n2, edges2)
-    print(f"Disconnected graph result: {result}")  # Output: -1
-    print()
-    
-    # Example 4: Larger example
-    n3 = 5
-    edges3 = [[0, 1, 2], [0, 3, 6], [1, 2, 3], [1, 3, 8], 
-              [1, 4, 5], [2, 4, 7], [3, 4, 9]]
-    print(f"Example 4: n={n3}, edges={edges3}")
-    print(f"MST Weight: {prim_mst(n3, edges3)}")  # Output: 16
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <limits>
-using namespace std;
-
-/**
- * Prim's Algorithm for MST using Min-Heap (Priority Queue)
- * 
- * Time Complexity: O(E log V)
- * Space Complexity: O(V + E)
- */
-
-struct Edge {
-    int to;
-    int weight;
-};
-
-struct PQNode {
-    int weight;
-    int vertex;
-    int parent;
-    
-    // For min-heap (priority_queue by default is max-heap)
-    bool operator>(const PQNode& other) const {
-        return weight > other.weight;
-    }
-};
-
-int primMST(int n, const vector<vector<Edge>>& graph) {
-    if (n == 0) return 0;
-    
-    // Min-heap: (weight, vertex, parent)
-    priority_queue<PQNode, vector<PQNode>, greater<PQNode>> minHeap;
-    vector<bool> visited(n, false);
-    
-    // Start from vertex 0
-    minHeap.push({0, 0, -1});
-    int totalWeight = 0;
-    int edgesCount = 0;
-    
-    while (!minHeap.empty() && edgesCount < n) {
-        PQNode current = minHeap.top();
-        minHeap.pop();
-        
-        int u = current.vertex;
-        
-        // Skip if already visited
-        if (visited[u]) continue;
-        
-        // Include this vertex
-        visited[u] = true;
-        totalWeight += current.weight;
-        edgesCount++;
-        
-        // Add all adjacent edges
-        for (const Edge& edge : graph[u]) {
-            if (!visited[edge.to]) {
-                minHeap.push({edge.weight, edge.to, u});
-            }
-        }
-    }
-    
-    return (edgesCount == n) ? totalWeight : -1;
-}
-
-// Also return MST edges
-pair<int, vector<vector<int>>> primMSTEdges(int n, const vector<vector<Edge>>& graph) {
-    if (n == 0) return {0, {}};
-    
-    priority_queue<PQNode, vector<PQNode>, greater<PQNode>> minHeap;
-    vector<bool> visited(n, false);
-    vector<vector<int>> mstEdges;
-    
-    minHeap.push({0, 0, -1});
-    int totalWeight = 0;
-    int edgesCount = 0;
-    
-    while (!minHeap.empty() && edgesCount < n) {
-        PQNode current = minHeap.top();
-        minHeap.pop();
-        
-        int u = current.vertex;
-        
-        if (visited[u]) continue;
-        
-        visited[u] = true;
-        totalWeight += current.weight;
-        edgesCount++;
-        
-        if (current.parent != -1) {
-            mstEdges.push_back({current.parent, u, current.weight});
-        }
-        
-        for (const Edge& edge : graph[u]) {
-            if (!visited[edge.to]) {
-                minHeap.push({edge.weight, edge.to, u});
-            }
-        }
-    }
-    
-    return (edgesCount == n) ? make_pair(totalWeight, mstEdges) : make_pair(-1, vector<vector<int>>());
-}
-
-// Dense graph version - O(V^2)
-int primMSTDense(int n, const vector<vector<int>>& graph) {
-    vector<int> dist(n, INT_MAX);
-    vector<bool> visited(n, false);
-    
-    dist[0] = 0;
-    int totalWeight = 0;
-    
-    for (int i = 0; i < n; i++) {
-        // Find minimum distance vertex
-        int u = -1;
-        int minDist = INT_MAX;
-        
-        for (int v = 0; v < n; v++) {
-            if (!visited[v] && dist[v] < minDist) {
-                minDist = dist[v];
-                u = v;
-            }
-        }
-        
-        if (u == -1) return -1;  // Disconnected
-        
-        visited[u] = true;
-        totalWeight += minDist;
-        
-        // Update distances
-        for (int v = 0; v < n; v++) {
-            if (!visited[v] && graph[u][v] < dist[v]) {
-                dist[v] = graph[u][v];
-            }
-        }
-    }
-    
-    return totalWeight;
-}
-
-int main() {
-    // Example 1: Basic graph
-    int n1 = 4;
-    vector<vector<Edge>> graph1(n1);
-    vector<vector<int>> edges1 = {{0, 1, 10}, {0, 2, 6}, {0, 3, 5}, {1, 3, 15}, {2, 3, 4}};
-    
-    for (auto& e : edges1) {
-        graph1[e[0]].push_back({e[1], e[2]});
-        graph1[e[1]].push_back({e[0], e[2]});
-    }
-    
-    cout << "Example 1: n=" << n1 << ", edges=[";
-    for (size_t i = 0; i < edges1.size(); i++) {
-        cout << "[" << edges1[i][0] << "," << edges1[i][1] << "," << edges1[i][2] << "]";
-        if (i < edges1.size() - 1) cout << ", ";
-    }
-    cout << "]" << endl;
-    
-    int result1 = primMST(n1, graph1);
-    cout << "MST Weight: " << result1 << endl;  // Output: 19
-    cout << endl;
-    
-    // Example 2: With edges
-    auto [weight2, mstEdges2] = primMSTEdges(n1, graph1);
-    cout << "MST Edges: [";
-    for (size_t i = 0; i < mstEdges2.size(); i++) {
-        cout << "[" << mstEdges2[i][0] << "," << mstEdges2[i][1] << "," << mstEdges2[i][2] << "]";
-        if (i < mstEdges2.size() - 1) cout << ", ";
-    }
-    cout << "]" << endl;
-    cout << "Total Weight: " << weight2 << endl << endl;
-    
-    // Example 3: Disconnected
-    int n2 = 3;
-    vector<vector<Edge>> graph2(n2);
-    graph2[0].push_back({1, 1});
-    graph2[1].push_back({0, 1});
-    
-    int result2 = primMST(n2, graph2);
-    cout << "Disconnected graph result: " << result2 << endl;  // Output: -1
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-/**
- * Prim's Algorithm for MST using Min-Heap (Priority Queue)
- * 
- * Time Complexity: O(E log V)
- * Space Complexity: O(V + E)
- */
-public class PrimMST {
-    
-    static class Edge {
-        int to;
-        int weight;
-        
-        Edge(int to, int weight) {
-            this.to = to;
-            this.weight = weight;
-        }
-    }
-    
-    static class PQNode implements Comparable<PQNode> {
-        int weight;
-        int vertex;
-        int parent;
-        
-        PQNode(int weight, int vertex, int parent) {
-            this.weight = weight;
-            this.vertex = vertex;
-            this.parent = parent;
-        }
-        
-        @Override
-        public int compareTo(PQNode other) {
-            return Integer.compare(this.weight, other.weight);
-        }
-    }
-    
-    /**
-     * Find MST weight using Prim's algorithm
-     * @param n Number of vertices
-     * @param edges List of edges [u, v, weight]
-     * @return Total MST weight, or -1 if disconnected
-     */
-    public static int primMST(int n, int[][] edges) {
-        if (n == 0) return 0;
-        
-        // Build adjacency list
-        List<Edge>[] graph = new ArrayList[n];
-        for (int i = 0; i < n; i++) {
-            graph[i] = new ArrayList<>();
-        }
-        
-        for (int[] edge : edges) {
-            int u = edge[0], v = edge[1], w = edge[2];
-            graph[u].add(new Edge(v, w));
-            graph[v].add(new Edge(u, w));
-        }
-        
-        // Min-heap
-        PriorityQueue<PQNode> minHeap = new PriorityQueue<>();
-        boolean[] visited = new boolean[n];
-        
-        // Start from vertex 0
-        minHeap.add(new PQNode(0, 0, -1));
-        int totalWeight = 0;
-        int edgesCount = 0;
-        
-        while (!minHeap.isEmpty() && edgesCount < n) {
-            PQNode current = minHeap.poll();
-            int u = current.vertex;
-            
-            if (visited[u]) continue;
-            
-            visited[u] = true;
-            totalWeight += current.weight;
-            edgesCount++;
-            
-            for (Edge edge : graph[u]) {
-                if (!visited[edge.to]) {
-                    minHeap.add(new PQNode(edge.weight, edge.to, u));
-                }
-            }
-        }
-        
-        return (edgesCount == n) ? totalWeight : -1;
-    }
-    
-    /**
-     * Find MST with actual edges
-     * @return int[0] = total weight, int[1:] = edges as [u,v,w]
-     */
-    public static List<int[]> primMSTEdges(int n, int[][] edges) {
-        if (n == 0) return new ArrayList<>();
-        
-        List<Edge>[] graph = new ArrayList[n];
-        for (int i = 0; i < n; i++) {
-            graph[i] = new ArrayList<>();
-        }
-        
-        for (int[] edge : edges) {
-            int u = edge[0], v = edge[1], w = edge[2];
-            graph[u].add(new Edge(v, w));
-            graph[v].add(new Edge(u, w));
-        }
-        
-        PriorityQueue<PQNode> minHeap = new PriorityQueue<>();
-        boolean[] visited = new boolean[n];
-        List<int[]> mstEdges = new ArrayList<>();
-        
-        minHeap.add(new PQNode(0, 0, -1));
-        int totalWeight = 0;
-        int edgesCount = 0;
-        
-        while (!minHeap.isEmpty() && edgesCount < n) {
-            PQNode current = minHeap.poll();
-            int u = current.vertex;
-            
-            if (visited[u]) continue;
-            
-            visited[u] = true;
-            totalWeight += current.weight;
-            edgesCount++;
-            
-            if (current.parent != -1) {
-                mstEdges.add(new int[]{current.parent, u, current.weight});
-            }
-            
-            for (Edge edge : graph[u]) {
-                if (!visited[edge.to]) {
-                    minHeap.add(new PQNode(edge.weight, edge.to, u));
-                }
-            }
-        }
-        
-        if (edgesCount == n) {
-            List<int[]> result = new ArrayList<>();
-            result.add(new int[]{totalWeight});
-            result.addAll(mstEdges);
-            return result;
-        }
-        return new ArrayList<>();
-    }
-    
-    /**
-     * Prim's for dense graphs - O(V^2)
-     */
-    public static int primMSTDense(int n, int[][] graph) {
-        int[] dist = new int[n];
-        boolean[] visited = new boolean[n];
-        Arrays.fill(dist, Integer.MAX_VALUE);
-        dist[0] = 0;
-        
-        int totalWeight = 0;
-        
-        for (int i = 0; i < n; i++) {
-            // Find minimum distance vertex
-            int u = -1;
-            int minDist = Integer.MAX_VALUE;
-            
-            for (int v = 0; v < n; v++) {
-                if (!visited[v] && dist[v] < minDist) {
-                    minDist = dist[v];
-                    u = v;
-                }
-            }
-            
-            if (u == -1) return -1;  // Disconnected
-            
-            visited[u] = true;
-            totalWeight += minDist;
-            
-            // Update distances
-            for (int v = 0; v < n; v++) {
-                if (!visited[v] && graph[u][v] < dist[v]) {
-                    dist[v] = graph[u][v];
-                }
-            }
-        }
-        
-        return totalWeight;
-    }
-    
-    public static void main(String[] args) {
-        // Example 1
-        int n1 = 4;
-        int[][] edges1 = {{0, 1, 10}, {0, 2, 6}, {0, 3, 5}, {1, 3, 15}, {2, 3, 4}};
-        
-        System.out.println("Example 1: n=" + n1);
-        System.out.println("MST Weight: " + primMST(n1, edges1));  // 19
-        
-        // Example 2
-        List<int[]> result2 = primMSTEdges(n1, edges1);
-        System.out.println("\nMST Edges:");
-        System.out.print("[");
-        for (int i = 1; i < result2.size(); i++) {
-            int[] e = result2.get(i);
-            System.out.print("[" + e[0] + "," + e[1] + "," + e[2] + "]");
-            if (i < result2.size() - 1) System.out.print(", ");
-        }
-        System.out.println("]");
-        System.out.println("Total Weight: " + result2.get(0)[0]);  // 19
-        
-        // Example 3: Disconnected
-        int n2 = 3;
-        int[][] edges2 = {{0, 1, 1}};
-        System.out.println("\nDisconnected graph result: " + primMST(n2, edges2));  // -1
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Prim's Algorithm for MST using Min-Heap
- * 
- * Time Complexity: O(E log V)
- * Space Complexity: O(V + E)
- */
-
-class PrimMST {
-    /**
-     * Find MST weight using Prim's algorithm
-     * @param {number} n - Number of vertices
-     * @param {number[][]} edges - List of edges [u, v, weight]
-     * @returns {number} Total MST weight, or -1 if disconnected
-     */
-    static primMST(n, edges) {
-        if (n === 0) return 0;
-        
-        // Build adjacency list
-        const graph = Array.from({ length: n }, () => []);
-        for (const [u, v, w] of edges) {
-            graph[u].push([v, w]);
-            graph[v].push([u, w]);
-        }
-        
-        // Min-heap using array with manual heapify
-        // Each element: [weight, vertex, parent]
-        const minHeap = [[0, 0, -1]];
-        const visited = new Array(n).fill(false);
-        let totalWeight = 0;
-        let edgesCount = 0;
-        
-        while (minHeap.length > 0 && edgesCount < n) {
-            // Extract minimum (since we use max-heap logic, reverse sort)
-            minHeap.sort((a, b) => b[0] - a[0]);
-            const [weight, u, parent] = minHeap.pop();
-            
-            if (visited[u]) continue;
-            
-            visited[u] = true;
-            totalWeight += weight;
-            edgesCount++;
-            
-            // Add all adjacent edges to unvisited vertices
-            for (const [v, w] of graph[u]) {
-                if (!visited[v]) {
-                    minHeap.push([w, v, u]);
-                }
-            }
-        }
-        
-        return edgesCount === n ? totalWeight : -1;
-    }
-    
-    /**
-     * Find MST with actual edges
-     * @returns {{weight: number, edges: number[][]}}
-     */
-    static primMSTEdges(n, edges) {
-        if (n === 0) return { weight: 0, edges: [] };
-        
-        const graph = Array.from({ length: n }, () => []);
-        for (const [u, v, w] of edges) {
-            graph[u].push([v, w]);
-            graph[v].push([u, w]);
-        }
-        
-        const minHeap = [[0, 0, -1]];
-        const visited = new Array(n).fill(false);
-        const mstEdges = [];
-        let totalWeight = 0;
-        let edgesCount = 0;
-        
-        while (minHeap.length > 0 && edgesCount < n) {
-            minHeap.sort((a, b) => b[0] - a[0]);
-            const [weight, u, parent] = minHeap.pop();
-            
-            if (visited[u]) continue;
-            
-            visited[u] = true;
-            totalWeight += weight;
-            edgesCount++;
-            
-            if (parent !== -1) {
-                mstEdges.push([parent, u, weight]);
-            }
-            
-            for (const [v, w] of graph[u]) {
-                if (!visited[v]) {
-                    minHeap.push([w, v, u]);
-                }
-            }
-        }
-        
-        return edgesCount === n 
-            ? { weight: totalWeight, edges: mstEdges }
-            : { weight: -1, edges: [] };
-    }
-    
-    /**
-     * Prim's for dense graphs - O(V^2)
-     * @param {number[][]} graph - Adjacency matrix
-     */
-    static primMSTDense(graph) {
-        const n = graph.length;
-        const dist = new Array(n).fill(Infinity);
-        const visited = new Array(n).fill(false);
-        
-        dist[0] = 0;
-        let totalWeight = 0;
-        
-        for (let i = 0; i < n; i++) {
-            // Find minimum distance vertex
-            let u = -1;
-            let minDist = Infinity;
-            
-            for (let v = 0; v < n; v++) {
-                if (!visited[v] && dist[v] < minDist) {
-                    minDist = dist[v];
-                    u = v;
-                }
-            }
-            
-            if (u === -1) return -1;  // Disconnected
-            
-            visited[u] = true;
-            totalWeight += minDist;
-            
-            // Update distances
-            for (let v = 0; v < n; v++) {
-                if (!visited[v] && graph[u][v] < dist[v]) {
-                    dist[v] = graph[u][v];
-                }
-            }
-        }
-        
-        return totalWeight;
-    }
-}
-
-// Example usage and demonstration
-console.log("=".repeat(50));
-console.log("Prim's Algorithm - MST Examples");
-console.log("=".repeat(50));
-
-// Example 1: Basic graph
-const n1 = 4;
-const edges1 = [[0, 1, 10], [0, 2, 6], [0, 3, 5], [1, 3, 15], [2, 3, 4]];
-
-console.log(`\nExample 1: n=${n1}, edges=${JSON.stringify(edges1)}`);
-console.log(`MST Weight: ${PrimMST.primMST(n1, edges1)}`);  // Output: 19
-
-// Example 2: With edges
-const result2 = PrimMST.primMSTEdges(n1, edges1);
-console.log(`\nMST Edges: ${JSON.stringify(result2.edges)}`);
-console.log(`Total Weight: ${result2.weight}`);  // Output: 19
-
-// Example 3: Disconnected graph
-const n2 = 3;
-const edges2 = [[0, 1, 1]];
-console.log(`\nDisconnected graph result: ${PrimMST.primMST(n2, edges2)}`);  // Output: -1
-
-// Example 4: Larger graph
-const n3 = 5;
-const edges3 = [[0, 1, 2], [0, 3, 6], [1, 2, 3], [1, 3, 8], 
-                [1, 4, 5], [2, 4, 7], [3, 4, 9]];
-console.log(`\nExample 4: n=${n3}`);
-console.log(`MST Weight: ${PrimMST.primMST(n3, edges3)}`);  // Output: 16
-
-console.log("\n" + "=".repeat(50));
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **With Min-Heap** | O(E log V) | Each edge pushed/popped at most once |
-| **With Fibonacci Heap** | O(E + V log V) | Optimal but complex implementation |
-| **Dense Graph (Matrix)** | O(V²) | Simple implementation, no heap needed |
-| **Space** | O(V + E) | Adjacency list + visited array + heap |
-
-### Detailed Breakdown
-
-- **Building adjacency list**: O(E)
-- **Each vertex extraction**: O(log V) × V = O(V log V)
-- **Each edge push**: O(log V) × E = O(E log V)
-- **Total**: O(E log V + V log V) = O(E log V) (since E ≥ V-1)
-
----
-
-## Space Complexity Analysis
-
-- **Adjacency List**: O(V + E) - stores all edges
-- **Visited Array**: O(V) - boolean array
-- **Priority Queue**: O(E) - worst case contains all edges
-- **Total**: O(V + E)
-
----
-
-## Common Variations
-
-### 1. Prim's with Fibonacci Heap
-
-For theoretically optimal O(E + V log V) time:
-
-````carousel
-```python
-import heapq
-from collections import defaultdict
-
-def prim_fibonacci(n, edges):
-    """
-    Prim's using adjacency list with potential for Fibonacci heap optimization.
-    In Python, we simulate with heapq (O(E log V) in practice).
-    """
-    graph = defaultdict(list)
-    for u, v, w in edges:
-        graph[u].append((v, w))
-        graph[v].append((u, w))
-    
-    # Key values for each vertex (minimum edge connecting to MST)
-    key = [float('inf')] * n
-    parent = [-1] * n
-    in_mst = [False] * n
-    
-    key[0] = 0
-    
-    # Use list as min-heap with decrease-key simulation
-    # (Python heapq doesn't support decrease-key directly)
-    min_heap = [(0, 0)]  # (key, vertex)
-    
-    while min_heap:
-        weight, u = heapq.heappop(min_heap)
-        
-        if in_mst[u]:
-            continue
-            
-        in_mst[u] = True
-        
-        for v, w in graph[u]:
-            if not in_mst[v] and w < key[v]:
-                key[v] = w
-                parent[v] = u
-                heapq.heappush(min_heap, (w, v))
-    
-    total = sum(key[i] for i in range(1, n))
-    return total if all(in_mst) else -1
-```
-````
-
-### 2. Prim's for Directed Graphs (Chu-Liu/Edmonds)
-
-For minimum spanning arborescents in directed graphs:
-
-````carousel
-```python
-def edmonds(n, edges, root):
-    """
-    Chu-Liu/Edmonds algorithm for minimum directed spanning tree.
-    Simplified version - finds minimum arborescence rooted at root.
-    """
-    # This is a placeholder - full implementation is complex
-    # Useful for directed MST problems
-    pass
-```
-````
-
-### 3. Parallel Prim's
-
-For multi-threaded or GPU implementations:
-
-- Process multiple edges simultaneously
-- Use concurrent data structures
-- Useful for very large graphs
-
-### 4. Lazy vs Eager Prim's
-
-- **Lazy**: Push all edges, filter when popping (simpler, more memory)
-- **Eager**: Use decrease-key operation (more efficient, complex implementation)
 
 ---
 
@@ -1127,23 +871,14 @@ Prim's algorithm is a fundamental **greedy algorithm** for finding the **Minimum
 - **Applications**: Network design, clustering, image segmentation
 
 When to use:
-- ✅ Finding MST in undirected weighted graphs
-- ✅ Network optimization problems
-- ✅ When you need a starting point/root
-- ✅ Dense graphs (use Prim's over Kruskal's)
+- Finding MST in undirected weighted graphs
+- Network optimization problems
+- When you need a starting point/root
+- Dense graphs (use Prim's over Kruskal's)
 
 When not to use:
-- ❌ Directed graphs (use Chu-Liu/Edmonds)
-- ❌ Disconnected graphs (no MST exists)
-- ❌ Very sparse graphs with sorted edges (Kruskal's may be simpler)
+- Directed graphs (use Chu-Liu/Edmonds)
+- Disconnected graphs (no MST exists)
+- Very sparse graphs with sorted edges (Kruskal's may be simpler)
 
 This algorithm is essential for competitive programming and technical interviews, especially in graph-related optimization problems.
-
----
-
-## Related Algorithms
-
-- [Kruskal's Algorithm](./kruskals.md) - Alternative MST algorithm
-- [Dijkstra's Algorithm](./dijkstras.md) - Shortest path (similar structure)
-- [Bellman-Ford](./bellman-ford.md) - Shortest path with negative weights
-- [Union-Find](./union-by-rank.md) - Used in Kruskal's algorithm

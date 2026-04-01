@@ -5,7 +5,489 @@ Arrays & Strings
 
 ## Description
 
-Prefix Sum is a fundamental technique that enables **O(1) range query time** after **O(n)** preprocessing for sum operations on static arrays. Instead of summing elements for each query (which costs O(n) per query), we precompute cumulative sums once and answer any range sum query in constant time. This makes it ideal for scenarios where the array never changes but many range sum queries need to be answered quickly.
+Prefix Sum is a fundamental technique that enables **O(1) range query time** after **O(n)** preprocessing for sum operations on static arrays. Instead of summing elements for each query (which costs O(n) per query), we precompute cumulative sums once and answer any range sum query in constant time.
+
+This makes it ideal for scenarios where the array never changes but many range sum queries need to be answered quickly. The technique is widely used in competitive programming, data analysis, and database systems for efficient aggregation queries.
+
+---
+
+## Concepts
+
+### 1. Cumulative Sum Array
+
+The foundation of prefix sums:
+
+| Index | Array | Prefix Sum | Meaning |
+|-------|-------|------------|---------|
+| 0 | 2 | 0 | Empty prefix (dummy) |
+| 0 | 2 | 2 | Sum of first 1 element |
+| 1 | 4 | 6 | Sum of first 2 elements |
+| 2 | 1 | 7 | Sum of first 3 elements |
+| 3 | 5 | 12 | Sum of first 4 elements |
+| 4 | 3 | 15 | Sum of first 5 elements |
+
+### 2. Range Query Formula
+
+The key insight that enables O(1) queries:
+
+```
+sum(left, right) = prefix[right + 1] - prefix[left]
+```
+
+Mathematical proof:
+- `prefix[right + 1]` = arr[0] + arr[1] + ... + arr[right]
+- `prefix[left]` = arr[0] + arr[1] + ... + arr[left-1]
+- Difference = arr[left] + ... + arr[right]
+
+### 3. 2D Extension (Inclusion-Exclusion)
+
+For matrix range queries:
+
+```
+sum(r1, c1, r2, c2) = prefix[r2+1][c2+1] 
+                     - prefix[r1][c2+1] 
+                     - prefix[r2+1][c1] 
+                     + prefix[r1][c1]
+```
+
+### 4. Associative Operations
+
+Prefix sum works with any associative operation:
+
+| Operation | Works | Notes |
+|-----------|-------|-------|
+| Addition | ✅ Yes | Standard prefix sum |
+| XOR | ✅ Yes | a ^ a = 0 |
+| Product | ✅ Yes | Watch for overflow |
+| Minimum | ❌ No | Not invertible |
+
+---
+
+## Frameworks
+
+### Framework 1: 1D Prefix Sum
+
+```
+┌─────────────────────────────────────────────────────┐
+│  1D PREFIX SUM FRAMEWORK                            │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize prefix array of size n+1            │
+│  2. Set prefix[0] = 0 (dummy for easier math)        │
+│  3. For i from 0 to n-1:                           │
+│     prefix[i+1] = prefix[i] + arr[i]               │
+│  4. To query [L, R]:                               │
+│     return prefix[R+1] - prefix[L]                 │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Static arrays with many range sum queries
+
+### Framework 2: 2D Prefix Sum
+
+```
+┌─────────────────────────────────────────────────────┐
+│  2D PREFIX SUM FRAMEWORK                            │
+├─────────────────────────────────────────────────────┤
+│  1. Create (m+1) × (n+1) prefix matrix             │
+│  2. Initialize first row and column to 0             │
+│  3. For each cell (i, j):                           │
+│     prefix[i+1][j+1] = arr[i][j]                  │
+│              + prefix[i][j+1]                      │
+│              + prefix[i+1][j]                      │
+│              - prefix[i][j]                       │
+│  4. Query using inclusion-exclusion               │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Matrix range sum queries
+
+### Framework 3: Difference Array (Inverse)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  DIFFERENCE ARRAY FRAMEWORK                         │
+├─────────────────────────────────────────────────────┤
+│  1. Create diff array where diff[i] = arr[i] -    │
+│     arr[i-1]                                       │
+│  2. Range update [L, R] by val:                   │
+│     diff[L] += val                                 │
+│     diff[R+1] -= val (if R+1 < n)                 │
+│  3. Convert back to array via prefix sum          │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Many range updates, few point queries
+
+---
+
+## Forms
+
+### Form 1: Standard 1D Prefix Sum
+
+For single-dimensional range queries.
+
+| Array | Prefix | Query [1,3] |
+|-------|--------|-------------|
+| [2,4,1,5,3] | [0,2,6,7,12,15] | 12-2 = 10 |
+
+### Form 2: 2D Matrix Prefix Sum
+
+For rectangular region queries.
+
+```
+Matrix:          Prefix (conceptual):
+[1, 2, 3]        [0, 0,  0,  0]
+[4, 5, 6]   →    [0, 1,  3,  6]
+[7, 8, 9]        [0, 5, 12, 21]
+                 [0,12, 27, 45]
+
+Query [0,0] to [1,1]: 1+2+4+5 = 12
+```
+
+### Form 3: Prefix XOR
+
+For range XOR queries.
+
+| Array | Prefix XOR | Query [1,3] |
+|-------|------------|-------------|
+| [1,2,3,4,5] | [0,1,3,0,4,1] | 0^3 = 3 |
+
+### Form 4: Rolling Hash (String)
+
+For O(1) substring hash comparisons.
+
+```python
+# Hash of substring [l, r]:
+hash = prefix[r+1] - prefix[l] * base^(r-l+1)
+```
+
+### Form 5: Weighted/Multiplicative Prefix
+
+For product or other operations.
+
+| Type | Formula |
+|------|---------|
+| Product | `prod[l,r] = prefix[r+1] / prefix[l]` |
+| GCD | Requires Sparse Table (not invertible) |
+
+---
+
+## Tactics
+
+### Tactic 1: Subarray Sum Equals K
+
+Use prefix sum with hashmap:
+
+```python
+from collections import defaultdict
+
+def subarray_sum_equals_k(arr: list[int], k: int) -> int:
+    """Count subarrays with sum exactly k."""
+    prefix_count = defaultdict(int)
+    prefix_count[0] = 1  # Empty prefix
+    
+    prefix_sum = 0
+    count = 0
+    
+    for num in arr:
+        prefix_sum += num
+        # If prefix_sum - k exists, those subarrays have sum k
+        count += prefix_count[prefix_sum - k]
+        prefix_count[prefix_sum] += 1
+    
+    return count
+```
+
+### Tactic 2: Maximum Size Subarray Sum Equals K
+
+Track earliest occurrence of each prefix sum:
+
+```python
+def max_subarray_sum_equals_k(arr: list[int], k: int) -> int:
+    """Maximum length subarray with sum k."""
+    prefix_index = {0: -1}  # prefix_sum -> earliest index
+    prefix_sum = 0
+    max_len = 0
+    
+    for i, num in enumerate(arr):
+        prefix_sum += num
+        
+        if prefix_sum - k in prefix_index:
+            max_len = max(max_len, i - prefix_index[prefix_sum - k])
+        
+        # Only store first occurrence for maximum length
+        if prefix_sum not in prefix_index:
+            prefix_index[prefix_sum] = i
+    
+    return max_len
+```
+
+### Tactic 3: Product of Array Except Self
+
+Use prefix and suffix products:
+
+```python
+def product_except_self(nums: list[int]) -> list[int]:
+    """Product of all elements except self without division."""
+    n = len(nums)
+    result = [1] * n
+    
+    # Prefix products
+    prefix = 1
+    for i in range(n):
+        result[i] = prefix
+        prefix *= nums[i]
+    
+    # Suffix products
+    suffix = 1
+    for i in range(n-1, -1, -1):
+        result[i] *= suffix
+        suffix *= nums[i]
+    
+    return result
+```
+
+### Tactic 4: Range Frequency Queries
+
+Use prefix frequency maps:
+
+```python
+from collections import defaultdict
+
+def range_frequency_queries(arr: list[int], queries: list[tuple]) -> list[int]:
+    """Answer queries about frequency of values in ranges."""
+    n = len(arr)
+    # prefix_freq[i] = frequency map of arr[0:i]
+    prefix_freq = [defaultdict(int) for _ in range(n + 1)]
+    
+    for i in range(n):
+        prefix_freq[i+1] = prefix_freq[i].copy()
+        prefix_freq[i+1][arr[i]] += 1
+    
+    results = []
+    for left, right, value in queries:
+        freq = prefix_freq[right+1][value] - prefix_freq[left][value]
+        results.append(freq)
+    
+    return results
+```
+
+### Tactic 5: Dynamic Range Updates (Difference Array)
+
+For O(1) range updates:
+
+```python
+class DifferenceArray:
+    """O(1) range updates, O(n) final array construction."""
+    
+    def __init__(self, n: int):
+        self.n = n
+        self.diff = [0] * (n + 1)
+    
+    def range_add(self, left: int, right: int, val: int):
+        """Add val to all elements in [left, right]."""
+        self.diff[left] += val
+        if right + 1 < self.n:
+            self.diff[right + 1] -= val
+    
+    def build(self) -> list[int]:
+        """Convert back to array."""
+        arr = [0] * self.n
+        arr[0] = self.diff[0]
+        for i in range(1, self.n):
+            arr[i] = arr[i-1] + self.diff[i]
+        return arr
+```
+
+---
+
+## Python Templates
+
+### Template 1: 1D Prefix Sum Class
+
+```python
+from typing import List
+
+class PrefixSum:
+    """
+    1D Prefix Sum for Range Sum Queries on static arrays.
+    
+    Time: Build O(n), Query O(1)
+    Space: O(n)
+    """
+    
+    def __init__(self, nums: List[int]):
+        """Initialize the Prefix Sum array."""
+        if not nums:
+            self.n = 0
+            self.prefix = [0]
+            return
+        
+        self.n = len(nums)
+        # prefix[i] = sum of nums[0:i] (first i elements)
+        self.prefix = [0] * (self.n + 1)
+        
+        for i in range(self.n):
+            self.prefix[i + 1] = self.prefix[i] + nums[i]
+    
+    def query(self, left: int, right: int) -> int:
+        """Query sum of elements in range [left, right] (inclusive)."""
+        if left < 0 or right >= self.n or left > right:
+            raise ValueError(f"Invalid range: [{left}, {right}]")
+        
+        return self.prefix[right + 1] - self.prefix[left]
+    
+    def total_sum(self) -> int:
+        """Get sum of all elements."""
+        return self.prefix[self.n]
+```
+
+### Template 2: 2D Prefix Sum Class
+
+```python
+from typing import List
+
+class PrefixSum2D:
+    """
+    2D Prefix Sum for Matrix Range Sum Queries.
+    
+    Time: Build O(m*n), Query O(1)
+    Space: O(m*n)
+    """
+    
+    def __init__(self, matrix: List[List[int]]):
+        if not matrix or not matrix[0]:
+            self.m = self.n = 0
+            self.prefix = [[0]]
+            return
+        
+        self.m = len(matrix)
+        self.n = len(matrix[0])
+        
+        # prefix[i][j] = sum of rectangle (0,0) to (i-1, j-1)
+        self.prefix = [[0] * (self.n + 1) for _ in range(self.m + 1)]
+        
+        for i in range(self.m):
+            for j in range(self.n):
+                # Inclusion-exclusion principle
+                self.prefix[i + 1][j + 1] = (
+                    matrix[i][j]
+                    + self.prefix[i][j + 1]
+                    + self.prefix[i + 1][j]
+                    - self.prefix[i][j]
+                )
+    
+    def query(self, row1: int, col1: int, row2: int, col2: int) -> int:
+        """Query sum of rectangle from (row1, col1) to (row2, col2)."""
+        return (
+            self.prefix[row2 + 1][col2 + 1]
+            - self.prefix[row1][col2 + 1]
+            - self.prefix[row2 + 1][col1]
+            + self.prefix[row1][col1]
+        )
+```
+
+### Template 3: Subarray Sum Equals K
+
+```python
+from collections import defaultdict
+from typing import List
+
+def subarray_sum_equals_k(arr: List[int], k: int) -> int:
+    """
+    Count subarrays with sum exactly k.
+    Time: O(n), Space: O(n)
+    """
+    prefix_count = defaultdict(int)
+    prefix_count[0] = 1  # Empty prefix
+    
+    prefix_sum = 0
+    count = 0
+    
+    for num in arr:
+        prefix_sum += num
+        # If prefix_sum - k exists, those subarrays have sum k
+        count += prefix_count[prefix_sum - k]
+        prefix_count[prefix_sum] += 1
+    
+    return count
+```
+
+### Template 4: Maximum Size Subarray Sum Equals K
+
+```python
+from typing import List
+
+def max_subarray_sum_equals_k(arr: List[int], k: int) -> int:
+    """
+    Maximum length subarray with sum k.
+    Time: O(n), Space: O(n)
+    """
+    prefix_index = {0: -1}  # prefix_sum -> earliest index
+    prefix_sum = 0
+    max_len = 0
+    
+    for i, num in enumerate(arr):
+        prefix_sum += num
+        
+        if prefix_sum - k in prefix_index:
+            max_len = max(max_len, i - prefix_index[prefix_sum - k])
+        
+        # Store only first occurrence for max length
+        if prefix_sum not in prefix_index:
+            prefix_index[prefix_sum] = i
+    
+    return max_len
+```
+
+### Template 5: Product of Array Except Self
+
+```python
+from typing import List
+
+def product_except_self(nums: List[int]) -> List[int]:
+    """
+    Product of all elements except self.
+    Uses prefix and suffix products.
+    Time: O(n), Space: O(1) excluding output
+    """
+    n = len(nums)
+    result = [1] * n
+    
+    # Prefix products
+    prefix = 1
+    for i in range(n):
+        result[i] = prefix
+        prefix *= nums[i]
+    
+    # Suffix products
+    suffix = 1
+    for i in range(n - 1, -1, -1):
+        result[i] *= suffix
+        suffix *= nums[i]
+    
+    return result
+```
+
+### Template 6: Prefix XOR Class
+
+```python
+from typing import List
+
+class PrefixXOR:
+    """Prefix XOR for Range XOR Queries."""
+    
+    def __init__(self, nums: List[int]):
+        self.n = len(nums)
+        self.prefix = [0] * (self.n + 1)
+        
+        for i in range(self.n):
+            self.prefix[i + 1] = self.prefix[i] ^ nums[i]
+    
+    def query(self, left: int, right: int) -> int:
+        """XOR of elements in range [left, right]."""
+        return self.prefix[right + 1] ^ self.prefix[left]
+```
 
 ---
 
@@ -71,8 +553,8 @@ Index:        0    1    2    3    4
 Array:       [2,   4,   1,   5,   3]
 
 Prefix:    0  [2,   6,   7,  12,  15]
-           ↑   ↑    ↑    ↑    ↑    ↑
-          idx 0   1    2    3    4   5
+            ↑   ↑    ↑    ↑    ↑    ↑
+           idx 0   1    2    3    4   5
 
 Query: range_sum(1, 3)
 prefix[4] - prefix[1] = 12 - 2 = 10 ✓
@@ -86,1141 +568,15 @@ The mathematical proof is straightforward:
 - `prefix[l]` = Σ(arr[0] to arr[l-1])
 - `prefix[r + 1] - prefix[l]` = Σ(arr[l] to arr[r])
 
+The key property is that subtraction "cancels out" the common prefix, leaving only the desired range.
+
 ### Limitations
 
 - **Only works for static arrays**: Array must not change between queries
 - **Only supports sum operations**: For min/max, use Sparse Table or Segment Tree
 - **Higher space complexity**: O(n) additional space required
 - **Not suitable for dynamic data**: Any change requires rebuilding the prefix array
-
----
-
-## Algorithm Steps
-
-### Building the Prefix Sum Array
-
-1. **Initialize**: Create an array of size n+1 with prefix[0] = 0
-2. **Iterate**: For i from 1 to n, compute `prefix[i] = prefix[i-1] + arr[i-1]`
-3. **Complete**: Now prefix[i] contains sum of first i elements
-
-### Querying a Range
-
-1. **Validate**: Ensure 0 ≤ left ≤ right < n
-2. **Compute**: Return `prefix[right + 1] - prefix[left]`
-3. **Done**: O(1) time!
-
-### Handling Edge Cases
-
-- **Empty array**: Return 0 or empty prefix
-- **Single element range**: Just return that element
-- **Full array range**: Return prefix[n] - prefix[0] = prefix[n]
-- **Zero-based vs One-based**: Be consistent with indexing
-
----
-
-## Implementation
-
-### Template Code (Range Sum Query)
-
-````carousel
-```python
-from typing import List, Tuple, Optional
-
-
-class PrefixSum:
-    """
-    1D Prefix Sum for Range Sum Queries on static arrays.
-    
-    Time Complexities:
-        - Build: O(n)
-        - Query: O(1)
-    
-    Space Complexity: O(n)
-    
-    Perfect for answering many range sum queries on static data.
-    """
-    
-    def __init__(self, nums: List[int]):
-        """
-        Initialize the Prefix Sum array.
-        
-        Args:
-            nums: Input array (must be static - no updates)
-            
-        Time: O(n)
-        Space: O(n)
-        """
-        if not nums:
-            self.n = 0
-            self.prefix = [0]
-            return
-            
-        self.n = len(nums)
-        # prefix[i] = sum of nums[0:i] (first i elements)
-        # prefix[0] = 0 (dummy for easier calculations)
-        self.prefix = [0] * (self.n + 1)
-        
-        for i in range(self.n):
-            self.prefix[i + 1] = self.prefix[i] + nums[i]
-    
-    def query(self, left: int, right: int) -> int:
-        """
-        Query the sum of elements in range [left, right] (inclusive).
-        
-        Args:
-            left: Left index (inclusive), 0-based
-            right: Right index (inclusive), 0-based
-            
-        Returns:
-            Sum of elements in the range
-            
-        Raises:
-            ValueError: If indices are invalid
-            
-        Time: O(1)
-        """
-        if left < 0 or right >= self.n or left > right:
-            raise ValueError(f"Invalid range: [{left}, {right}] for array of size {self.n}")
-        
-        # prefix[right + 1] - prefix[left] = sum of arr[left:right+1]
-        return self.prefix[right + 1] - self.prefix[left]
-    
-    def total_sum(self) -> int:
-        """Get the sum of all elements in the array."""
-        return self.prefix[self.n]
-    
-    def prefix_sum_at(self, idx: int) -> int:
-        """Get sum of elements from start to idx (inclusive)."""
-        if idx < 0 or idx >= self.n:
-            raise ValueError(f"Invalid index: {idx}")
-        return self.prefix[idx + 1]
-
-
-class PrefixSum2D:
-    """
-    2D Prefix Sum for Matrix Range Sum Queries.
-    
-    Time Complexities:
-        - Build: O(m * n)
-        - Query: O(1)
-    
-    Space Complexity: O(m * n)
-    """
-    
-    def __init__(self, matrix: List[List[int]]):
-        """Initialize 2D Prefix Sum."""
-        if not matrix or not matrix[0]:
-            self.m = 0
-            self.n = 0
-            self.prefix = [[]]
-            return
-            
-        self.m = len(matrix)
-        self.n = len(matrix[0])
-        
-        # prefix[i][j] = sum of all elements in rectangle (0,0) to (i-1, j-1)
-        self.prefix = [[0] * (self.n + 1) for _ in range(self.m + 1)]
-        
-        for i in range(self.m):
-            for j in range(self.n):
-                # Inclusion-exclusion principle
-                self.prefix[i + 1][j + 1] = (
-                    matrix[i][j]
-                    + self.prefix[i][j + 1]
-                    + self.prefix[i + 1][j]
-                    - self.prefix[i][j]
-                )
-    
-    def query(self, row1: int, col1: int, row2: int, col2: int) -> int:
-        """
-        Query sum of rectangle from (row1, col1) to (row2, col2) (inclusive).
-        
-        Args:
-            row1, col1: Top-left corner
-            row2, col2: Bottom-right corner
-            
-        Returns:
-            Sum of all elements in the rectangle
-        """
-        # Using inclusion-exclusion:
-        # sum = prefix[row2+1][col2+1] - prefix[row1][col2+1] 
-        #       - prefix[row2+1][col1] + prefix[row1][col1]
-        return (
-            self.prefix[row2 + 1][col2 + 1]
-            - self.prefix[row1][col2 + 1]
-            - self.prefix[row2 + 1][col1]
-            + self.prefix[row1][col1]
-        )
-
-
-# Standalone functions for simple use cases
-def build_prefix_sum(nums: List[int]) -> List[int]:
-    """Build prefix sum array."""
-    prefix = [0]
-    for num in nums:
-        prefix.append(prefix[-1] + num)
-    return prefix
-
-
-def range_sum(prefix: List[int], left: int, right: int) -> int:
-    """Query range sum using prebuilt prefix array."""
-    return prefix[right + 1] - prefix[left]
-
-
-def range_sum_queries(nums: List[int], queries: List[List[int]]) -> List[int]:
-    """
-    Answer multiple range sum queries efficiently.
-    
-    Args:
-        nums: Input array
-        queries: List of [left, right] queries
-        
-    Returns:
-        List of sums for each query
-    """
-    prefix = build_prefix_sum(nums)
-    return [range_sum(prefix, left, right) for left, right in queries]
-
-
-# Example usage and demonstration
-if __name__ == "__main__":
-    # 1D Prefix Sum demonstration
-    nums = [2, 4, 1, 5, 3]
-    print(f"Array: {nums}")
-    print()
-    
-    ps = PrefixSum(nums)
-    
-    # Query examples
-    queries = [(0, 2), (1, 3), (2, 4), (0, 4), (2, 2)]
-    
-    print("1D Range Sum Queries:")
-    print(f"{'Range':<12} {'Elements':<20} {'Sum':<5}")
-    print("-" * 45)
-    
-    for left, right in queries:
-        elements = nums[left:right+1]
-        result = ps.query(left, right)
-        print(f"[{left},{right}]:      {str(elements):<20} {result}")
-    
-    print(f"\nTotal sum: {ps.total_sum()}")
-    
-    # 2D Prefix Sum demonstration
-    print("\n" + "=" * 50)
-    print("2D Prefix Sum Demonstration:")
-    print("=" * 50)
-    
-    matrix = [
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9]
-    ]
-    
-    print("\nMatrix:")
-    for row in matrix:
-        print(row)
-    
-    ps2d = PrefixSum2D(matrix)
-    
-    # Query examples
-    rect_queries = [
-        (0, 0, 2, 2),  # Full matrix
-        (0, 0, 1, 1),  # Top-left 2x2
-        (1, 1, 2, 2),  # Bottom-right 2x2
-        (0, 1, 2, 1),  # Middle column
-    ]
-    
-    print("\n2D Range Sum Queries:")
-    print(f"{'Rectangle':<20} {'Sum':<5}")
-    print("-" * 30)
-    
-    for r1, c1, r2, c2 in rect_queries:
-        result = ps2d.query(r1, c1, r2, c2)
-        print(f"[{r1},{c1}]->[{r2},{c2}]:       {result}")
-    
-    # Demonstrate prefix array structure
-    print("\n" + "=" * 50)
-    print("Prefix Array Structure:")
-    print("=" * 50)
-    print(f"prefix array: {ps.prefix}")
-    print(f"prefix[i] = sum of first {chr(960)} elements")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <stdexcept>
-using namespace std;
-
-/**
- * 1D Prefix Sum for Range Sum Queries on static arrays.
- * 
- * Time Complexities:
- *     - Build: O(n)
- *     - Query: O(1)
- * 
- * Space Complexity: O(n)
- */
-class PrefixSum {
-private:
-    vector<long long> prefix;
-    int n;
-
-public:
-    PrefixSum(const vector<int>& nums) {
-        n = nums.size();
-        prefix.resize(n + 1, 0);
-        
-        // prefix[i] = sum of nums[0:i-1]
-        for (int i = 0; i < n; i++) {
-            prefix[i + 1] = prefix[i] + nums[i];
-        }
-    }
-    
-    /**
-     * Query sum of elements in range [left, right] (inclusive).
-     * 
-     * Time: O(1)
-     */
-    long long query(int left, int right) const {
-        if (left < 0 || right >= n || left > right) {
-            throw invalid_argument("Invalid range");
-        }
-        
-        return prefix[right + 1] - prefix[left];
-    }
-    
-    /**
-     * Get total sum of all elements.
-     */
-    long long totalSum() const {
-        return prefix[n];
-    }
-};
-
-/**
- * 2D Prefix Sum for Matrix Range Sum Queries.
- * 
- * Time Complexities:
- *     - Build: O(m * n)
- *     - Query: O(1)
- * 
- * Space Complexity: O(m * n)
- */
-class PrefixSum2D {
-private:
-    vector<vector<long long>> prefix;
-    int m, n;
-
-public:
-    PrefixSum2D(const vector<vector<int>>& matrix) {
-        if (matrix.empty() || matrix[0].empty()) {
-            m = 0;
-            n = 0;
-            return;
-        }
-        
-        m = matrix.size();
-        n = matrix[0].size();
-        
-        // prefix[i][j] = sum of rectangle (0,0) to (i-1, j-1)
-        prefix.resize(m + 1, vector<long long>(n + 1, 0));
-        
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                prefix[i + 1][j + 1] = 
-                    matrix[i][j] 
-                    + prefix[i][j + 1] 
-                    + prefix[i + 1][j] 
-                    - prefix[i][j];
-            }
-        }
-    }
-    
-    /**
-     * Query sum of rectangle from (row1, col1) to (row2, col2).
-     */
-    long long query(int row1, int col1, int row2, int col2) const {
-        return (
-            prefix[row2 + 1][col2 + 1]
-            - prefix[row1][col2 + 1]
-            - prefix[row2 + 1][col1]
-            + prefix[row1][col1]
-        );
-    }
-};
-
-// Utility function for standalone usage
-vector<long long> buildPrefixSum(const vector<int>& nums) {
-    vector<long long> prefix(nums.size() + 1, 0);
-    for (size_t i = 0; i < nums.size(); i++) {
-        prefix[i + 1] = prefix[i] + nums[i];
-    }
-    return prefix;
-}
-
-long long rangeSum(const vector<long long>& prefix, int left, int right) {
-    return prefix[right + 1] - prefix[left];
-}
-
-
-int main() {
-    // 1D Prefix Sum demonstration
-    vector<int> nums = {2, 4, 1, 5, 3};
-    
-    cout << "Array: ";
-    for (int x : nums) cout << x << " ";
-    cout << endl << endl;
-    
-    PrefixSum ps(nums);
-    
-    // Query examples
-    vector<pair<int, int>> queries = {{0, 2}, {1, 3}, {2, 4}, {0, 4}, {2, 2}};
-    
-    cout << "1D Range Sum Queries:" << endl;
-    cout << "Range      Elements          Sum" << endl;
-    cout << "-----------------------------------" << endl;
-    
-    
-    for (auto [left, right] : queries) {
-        cout << "[" << left << "," << right << "]:      ";
-        for (int i = left; i <= right; i++) {
-            cout << nums[i] << " ";
-        }
-        // Padding
-        for (int i = right - left + 1; i < 5; i++) cout << "  ";
-        cout << ps.query(left, right) << endl;
-    }
-    
-    cout << "\nTotal sum: " << ps.totalSum() << endl;
-    
-    // 2D Prefix Sum demonstration
-    cout << "\n" << "==================================" << endl;
-    cout << "2D Prefix Sum Demonstration:" << endl;
-    cout << "==================================" << endl;
-    
-    vector<vector<int>> matrix = {
-        {1, 2, 3},
-        {4, 5, 6},
-        {7, 8, 9}
-    };
-    
-    cout << "\nMatrix:" << endl;
-    for (const auto& row : matrix) {
-        for (int x : row) cout << x << " ";
-        cout << endl;
-    }
-    
-    PrefixSum2D ps2d(matrix);
-    
-    // Query examples
-    vector<array<int, 4>> rectQueries = {
-        {0, 0, 2, 2},  // Full matrix
-        {0, 0, 1, 1},  // Top-left 2x2
-        {1, 1, 2, 2},  // Bottom-right 2x2
-        {0, 1, 2, 1},  // Middle column
-    };
-    
-    cout << "\n2D Range Sum Queries:" << endl;
-    cout << "Rectangle           Sum" << endl;
-    cout << "---------------------------" << endl;
-    
-    for (const auto& q : rectQueries) {
-        cout << "[" << q[0] << "," << q[1] << "]->[" << q[2] << "," << q[3] << "]:    ";
-        cout << ps2d.query(q[0], q[1], q[2], q[3]) << endl;
-    }
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * 1D Prefix Sum for Range Sum Queries on static arrays.
- * 
- * Time Complexities:
- *     - Build: O(n)
- *     - Query: O(1)
- * 
- * Space Complexity: O(n)
- */
-public class PrefixSum {
-    private long[] prefix;
-    private int n;
-    
-    public PrefixSum(int[] nums) {
-        if (nums == null || nums.length == 0) {
-            this.n = 0;
-            this.prefix = new long[1];
-            return;
-        }
-        
-        this.n = nums.length;
-        // prefix[i] = sum of nums[0:i-1], prefix[0] = 0
-        this.prefix = new long[n + 1];
-        
-        for (int i = 0; i < n; i++) {
-            prefix[i + 1] = prefix[i] + nums[i];
-        }
-    }
-    
-    /**
-     * Query sum of elements in range [left, right] (inclusive).
-     * 
-     * Time: O(1)
-     */
-    public long query(int left, int right) {
-        if (left < 0 || right >= n || left > right) {
-            throw new IllegalArgumentException(
-                "Invalid range: [" + left + ", " + right + "]"
-            );
-        }
-        
-        return prefix[right + 1] - prefix[left];
-    }
-    
-    /**
-     * Get total sum of all elements.
-     */
-    public long totalSum() {
-        return prefix[n];
-    }
-    
-    /**
-     * Get prefix sum at index (sum of elements 0 to idx inclusive).
-     */
-    public long prefixSumAt(int idx) {
-        if (idx < 0 || idx >= n) {
-            throw new IndexOutOfBoundsException("Invalid index: " + idx);
-        }
-        return prefix[idx + 1];
-    }
-}
-
-
-/**
- * 2D Prefix Sum for Matrix Range Sum Queries.
- * 
- * Time Complexities:
- *     - Build: O(m * n)
- *     - Query: O(1)
- * 
- * Space Complexity: O(m * n)
- */
-public class PrefixSum2D {
-    private long[][] prefix;
-    private int m, n;
-    
-    public PrefixSum2D(int[][] matrix) {
-        if (matrix == null || matrix.length == 0 || matrix[0] == null || matrix[0].length == 0) {
-            this.m = 0;
-            this.n = 0;
-            this.prefix = new long[0][0];
-            return;
-        }
-        
-        this.m = matrix.length;
-        this.n = matrix[0].length;
-        
-        // prefix[i][j] = sum of rectangle (0,0) to (i-1, j-1)
-        this.prefix = new long[m + 1][n + 1];
-        
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                prefix[i + 1][j + 1] = 
-                    matrix[i][j] 
-                    + prefix[i][j + 1] 
-                    + prefix[i + 1][j] 
-                    - prefix[i][j];
-            }
-        }
-    }
-    
-    /**
-     * Query sum of rectangle from (row1, col1) to (row2, col2) (inclusive).
-     */
-    public long query(int row1, int col1, int row2, int col2) {
-        return (
-            prefix[row2 + 1][col2 + 1]
-            - prefix[row1][col2 + 1]
-            - prefix[row2 + 1][col1]
-            + prefix[row1][col1]
-        );
-    }
-}
-
-
-/**
- * Utility class with static methods for standalone usage.
- */
-public class PrefixSumUtil {
-    
-    /**
-     * Build prefix sum array from input array.
-     */
-    public static long[] buildPrefixSum(int[] nums) {
-        if (nums == null || nums.length == 0) {
-            return new long[1];
-        }
-        
-        long[] prefix = new long[nums.length + 1];
-        for (int i = 0; i < nums.length; i++) {
-            prefix[i + 1] = prefix[i] + nums[i];
-        }
-        return prefix;
-    }
-    
-    /**
-     * Query range sum using prebuilt prefix array.
-     */
-    public static long rangeSum(long[] prefix, int left, int right) {
-        return prefix[right + 1] - prefix[left];
-    }
-    
-    /**
-     * Answer multiple range sum queries.
-     */
-    public static long[] rangeSumQueries(int[] nums, int[][] queries) {
-        long[] prefix = buildPrefixSum(nums);
-        long[] results = new long[queries.length];
-        
-        for (int i = 0; i < queries.length; i++) {
-            results[i] = rangeSum(prefix, queries[i][0], queries[i][1]);
-        }
-        return results;
-    }
-}
-
-
-/**
- * Demo class for testing.
- */
-public class PrefixSumDemo {
-    public static void main(String[] args) {
-        // 1D Prefix Sum demonstration
-        int[] nums = {2, 4, 1, 5, 3};
-        
-        System.out.print("Array: ");
-        System.out.println(Arrays.toString(nums));
-        System.out.println();
-        
-        PrefixSum ps = new PrefixSum(nums);
-        
-        // Query examples
-        int[][] queries = {{0, 2}, {1, 3}, {2, 4}, {0, 4}, {2, 2}};
-        
-        System.out.println("1D Range Sum Queries:");
-        System.out.println("Range      Elements          Sum");
-        System.out.println("-----------------------------------");
-        
-        for (int[] query : queries) {
-            int left = query[0], right = query[1];
-            System.out.print("[" + left + "," + right + "]:      ");
-            for (int i = left; i <= right; i++) {
-                System.out.print(nums[i] + " ");
-            }
-            // Padding
-            for (int i = right - left + 1; i < 5; i++) System.out.print("  ");
-            System.out.println(ps.query(left, right));
-        }
-        
-        System.out.println("\nTotal sum: " + ps.totalSum());
-        
-        // 2D Prefix Sum demonstration
-        System.out.println("\n==================================");
-        System.out.println("2D Prefix Sum Demonstration:");
-        System.out.println("==================================");
-        
-        int[][] matrix = {
-            {1, 2, 3},
-            {4, 5, 6},
-            {7, 8, 9}
-        };
-        
-        System.out.println("\nMatrix:");
-        for (int[] row : matrix) {
-            System.out.println(Arrays.toString(row));
-        }
-        
-        PrefixSum2D ps2d = new PrefixSum2D(matrix);
-        
-        // Query examples
-        int[][] rectQueries = {
-            {0, 0, 2, 2},  // Full matrix
-            {0, 0, 1, 1},  // Top-left 2x2
-            {1, 1, 2, 2},  // Bottom-right 2x2
-            {0, 1, 2, 1},  // Middle column
-        };
-        
-        System.out.println("\n2D Range Sum Queries:");
-        System.out.println("Rectangle           Sum");
-        System.out.println("---------------------------");
-        
-        for (int[] q : rectQueries) {
-            System.out.println("[" + q[0] + "," + q[1] + "]->[" + q[2] + "," + q[3] + "]:    " 
-                + ps2d.query(q[0], q[1], q[2], q[3]));
-        }
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * 1D Prefix Sum for Range Sum Queries on static arrays.
- * 
- * Time Complexities:
- *     - Build: O(n)
- *     - Query: O(1)
- * 
- * Space Complexity: O(n)
- */
-class PrefixSum {
-    /**
-     * Create a Prefix Sum data structure.
-     * @param {number[]} nums - Input array (must be static)
-     */
-    constructor(nums) {
-        if (!nums || nums.length === 0) {
-            this.n = 0;
-            this.prefix = [0];
-            return;
-        }
-        
-        this.n = nums.length;
-        // prefix[i] = sum of nums[0:i-1], prefix[0] = 0
-        this.prefix = new Array(this.n + 1).fill(0);
-        
-        for (let i = 0; i < this.n; i++) {
-            this.prefix[i + 1] = this.prefix[i] + nums[i];
-        }
-    }
-    
-    /**
-     * Query sum of elements in range [left, right] (inclusive).
-     * @param {number} left - Left index (inclusive)
-     * @param {number} right - Right index (inclusive)
-     * @returns {number} Sum of elements in the range
-     * @throws {Error} If range is invalid
-     * 
-     * Time: O(1)
-     */
-    query(left, right) {
-        if (left < 0 || right >= this.n || left > right) {
-            throw new Error(`Invalid range: [${left}, ${right}] for array of size ${this.n}`);
-        }
-        
-        return this.prefix[right + 1] - this.prefix[left];
-    }
-    
-    /**
-     * Get total sum of all elements.
-     * @returns {number}
-     */
-    totalSum() {
-        return this.prefix[this.n];
-    }
-    
-    /**
-     * Get prefix sum at index (sum of elements 0 to idx inclusive).
-     * @param {number} idx 
-     * @returns {number}
-     */
-    prefixSumAt(idx) {
-        if (idx < 0 || idx >= this.n) {
-            throw new Error(`Invalid index: ${idx}`);
-        }
-        return this.prefix[idx + 1];
-    }
-}
-
-
-/**
- * 2D Prefix Sum for Matrix Range Sum Queries.
- * 
- * Time Complexities:
- *     - Build: O(m * n)
- *     - Query: O(1)
- * 
- * Space Complexity: O(m * n)
- */
-class PrefixSum2D {
-    /**
-     * Create a 2D Prefix Sum data structure.
-     * @param {number[][]} matrix - 2D array
-     */
-    constructor(matrix) {
-        if (!matrix || matrix.length === 0 || !matrix[0] || matrix[0].length === 0) {
-            this.m = 0;
-            this.n = 0;
-            this.prefix = [[]];
-            return;
-        }
-        
-        this.m = matrix.length;
-        this.n = matrix[0].length;
-        
-        // prefix[i][j] = sum of rectangle (0,0) to (i-1, j-1)
-        this.prefix = Array.from({ length: this.m + 1 }, () => 
-            new Array(this.n + 1).fill(0)
-        );
-        
-        for (let i = 0; i < this.m; i++) {
-            for (let j = 0; j < this.n; j++) {
-                this.prefix[i + 1][j + 1] = 
-                    matrix[i][j] 
-                    + this.prefix[i][j + 1] 
-                    + this.prefix[i + 1][j] 
-                    - this.prefix[i][j];
-            }
-        }
-    }
-    
-    /**
-     * Query sum of rectangle from (row1, col1) to (row2, col2) (inclusive).
-     * @param {number} row1 
-     * @param {number} col1 
-     * @param {number} row2 
-     * @param {number} col2 
-     * @returns {number}
-     */
-    query(row1, col1, row2, col2) {
-        return (
-            this.prefix[row2 + 1][col2 + 1]
-            - this.prefix[row1][col2 + 1]
-            - this.prefix[row2 + 1][col1]
-            + this.prefix[row1][col1]
-        );
-    }
-}
-
-
-/**
- * Build prefix sum array (standalone function).
- * @param {number[]} nums 
- * @returns {number[]}
- */
-function buildPrefixSum(nums) {
-    const prefix = [0];
-    for (const num of nums) {
-        prefix.push(prefix[prefix.length - 1] + num);
-    }
-    return prefix;
-}
-
-
-/**
- * Query range sum using prebuilt prefix array.
- * @param {number[]} prefix 
- * @param {number} left 
- * @param {number} right 
- * @returns {number}
- */
-function rangeSum(prefix, left, right) {
-    return prefix[right + 1] - prefix[left];
-}
-
-
-/**
- * Answer multiple range sum queries.
- * @param {number[]} nums 
- * @param {number[][]} queries 
- * @returns {number[]}
- */
-function rangeSumQueries(nums, queries) {
-    const prefix = buildPrefixSum(nums);
-    return queries.map(([left, right]) => rangeSum(prefix, left, right));
-}
-
-
-// Example usage and demonstration
-console.log("1D Prefix Sum Demonstration:");
-console.log("=".repeat(50));
-
-const nums = [2, 4, 1, 5, 3];
-console.log(`\nArray: [${nums.join(', ')}]`);
-
-const ps = new PrefixSum(nums);
-
-// Query examples
-const queries = [[0, 2], [1, 3], [2, 4], [0, 4], [2, 2]];
-
-console.log("\n1D Range Sum Queries:");
-console.log("Range      Elements          Sum");
-console.log("-".repeat(40));
-
-for (const [left, right] of queries) {
-    const elements = nums.slice(left, right + 1);
-    const result = ps.query(left, right);
-    console.log(
-        `[${left},${right}]:      ${elements.join(' ').padEnd(18)} ${result}`
-    );
-}
-
-console.log(`\nTotal sum: ${ps.totalSum()}`);
-
-// 2D Prefix Sum demonstration
-console.log("\n" + "=".repeat(50));
-console.log("2D Prefix Sum Demonstration:");
-console.log("=".repeat(50));
-
-const matrix = [
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9]
-];
-
-console.log("\nMatrix:");
-for (const row of matrix) {
-    console.log(`  [${row.join(', ')}]`);
-}
-
-const ps2d = new PrefixSum2D(matrix);
-
-// Query examples
-const rectQueries = [
-    [[0, 0], [2, 2]],  // Full matrix
-    [[0, 0], [1, 1]],  // Top-left 2x2
-    [[1, 1], [2, 2]],  // Bottom-right 2x2
-    [[0, 1], [2, 1]],  // Middle column
-];
-
-console.log("\n2D Range Sum Queries:");
-console.log("Rectangle           Sum");
-console.log("-".repeat(30));
-
-for (const [topLeft, bottomRight] of rectQueries) {
-    const [r1, c1] = topLeft;
-    const [r2, c2] = bottomRight;
-    const result = ps2d.query(r1, c1, r2, c2);
-    console.log(`[${r1},${c1}]->[${r2},${c2}]:    ${result}`);
-}
-
-// Demonstrate prefix array structure
-console.log("\n" + "=".repeat(50));
-console.log("Prefix Array Structure:");
-console.log("=".repeat(50));
-console.log(`prefix array: [${ps.prefix.join(', ')}]`);
-console.log("prefix[i] = sum of first i elements");
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|----------------|-------------|
-| **Preprocessing/Build** | O(n) | Need to iterate through array once |
-| **Query** | O(1) | Just two array lookups and one subtraction |
-| **Space** | O(n) | Need additional array of size n+1 |
-
-### Detailed Breakdown
-
-- **Building the prefix array**: For each of n elements, we add to the running sum
-  - Total: O(n)
-
-- **Query**: 
-  - Two array lookups: O(1)
-  - One subtraction: O(1)
-  - Total: O(1)
-
-### Special Cases
-
-- **2D Prefix Sum Build**: O(m × n) where m and n are matrix dimensions
-- **2D Query**: O(1) with four array lookups and three additions/subtractions
-
----
-
-## Space Complexity Analysis
-
-- **1D Prefix Sum**: O(n) - stores n+1 long integers
-- **2D Prefix Sum**: O(m × n) - stores (m+1) × (n+1) long integers
-- **Log Table**: Not needed (unlike Sparse Table)
-
-### Space Optimization (Optional)
-
-For very large arrays, consider:
-1. **In-place modification**: If original array can be modified
-2. **Memory-mapped files**: For extremely large datasets
-3. **Streaming approach**: If queries are known in advance
-
----
-
-## Common Variations
-
-### 1. Difference Array (Inverse of Prefix Sum)
-
-Used for range update, point query scenarios:
-
-````carousel
-```python
-class DifferenceArray:
-    """
-    Difference Array for O(1) range updates.
-    
-    After all updates, convert back to prefix sum to get final array.
-    
-    Operations:
-        - range_add(l, r, val): Add val to all elements in [l, r]
-        - After all updates: Convert to prefix sum for final result
-    """
-    
-    def __init__(self, nums):
-        self.n = len(nums)
-        self.diff = [0] * (self.n + 1)
-        
-        # Build difference array
-        # diff[i] = nums[i] - nums[i-1]
-        self.diff[0] = nums[0]
-        for i in range(1, self.n):
-            self.diff[i] = nums[i] - nums[i - 1]
-    
-    def range_add(self, left, right, val):
-        """Add val to all elements in range [left, right]."""
-        self.diff[left] += val
-        if right + 1 < self.n:
-            self.diff[right + 1] -= val
-    
-    def build(self):
-        """Convert difference array back to final array via prefix sum."""
-        result = [0] * self.n
-        result[0] = self.diff[0]
-        for i in range(1, self.n):
-            result[i] = result[i - 1] + self.diff[i]
-        return result
-```
-````
-
-### 2. Prefix XOR
-
-For range XOR queries (useful for finding unique elements in ranges):
-
-````carousel
-```python
-class PrefixXOR:
-    """Prefix XOR for Range XOR Queries."""
-    
-    def __init__(self, nums):
-        self.n = len(nums)
-        self.prefix = [0] * (self.n + 1)
-        
-        for i in range(self.n):
-            self.prefix[i + 1] = self.prefix[i] ^ nums[i]
-    
-    def query(self, left, right):
-        """XOR of elements in range [left, right]."""
-        return self.prefix[right + 1] ^ self.prefix[left]
-```
-````
-
-### 3. Prefix Min/Max (Cumulative Extremes)
-
-For range minimum/maximum from start:
-
-````carousel
-```python
-class PrefixMinMax:
-    """Prefix Min and Max for range queries from start."""
-    
-    def __init__(self, nums):
-        self.n = len(nums)
-        self.prefix_min = [float('inf')] * (self.n + 1)
-        self.prefix_max = [float('-inf')] * (self.n + 1)
-        
-        for i in range(self.n):
-            self.prefix_min[i + 1] = min(self.prefix_min[i], nums[i])
-            self.prefix_max[i + 1] = max(self.prefix_max[i], nums[i])
-    
-    def min_from_start(self, right):
-        """Minimum from index 0 to right."""
-        return self.prefix_min[right + 1]
-    
-    def max_from_start(self, right):
-        """Maximum from index 0 to right."""
-        return self.prefix_max[right + 1]
-```
-````
-
-### 4. Rolling Hash Prefix
-
-For string substring comparisons:
-
-````carousel
-```python
-class RollingHash:
-    """Rolling hash using prefix sums for O(1) substring hash."""
-    
-    def __init__(self, s, base=91138233, mod=10**9 + 7):
-        self.s = s
-        self.n = len(s)
-        self.base = base
-        self.mod = mod
-        self.prefix = [0] * (self.n + 1)
-        
-        for i in range(self.n):
-            self.prefix[i + 1] = (self.prefix[i] * base + ord(s[i])) % mod
-    
-    def get_hash(self, left, right):
-        """Get hash of substring [left, right]."""
-        return (
-            self.prefix[right + 1] 
-            - self.prefix[left] * pow(self.base, right - left + 1, self.mod)
-        ) % self.mod
-```
-````
-
-### 5. 2D Prefix Sum with Updates
-
-For matrices requiring range sum with point updates:
-
-````carousel
-```python
-class Fenwick2D:
-    """2D Fenwick Tree for dynamic range sum queries."""
-    
-    def __init__(self, matrix):
-        self.m = len(matrix)
-        self.n = len(matrix[0]) if matrix else 0
-        self.tree = [[0] * (self.n + 1) for _ in range(self.m + 1)]
-        
-        # Build initial tree
-        for i in range(self.m):
-            for j in range(self.n):
-                self._update(i + 1, j + 1, matrix[i][j])
-    
-    def _update(self, i, j, delta):
-        """Update point (i, j) by delta."""
-        while i <= self.m:
-            row = j
-            while row <= self.n:
-                self.tree[i][row] += delta
-                row += row & -row
-            i += i & -i
-    
-    def _query(self, i, j):
-        """Query sum of rectangle (1,1) to (i,j)."""
-        result = 0
-        while i > 0:
-            row = j
-            while row > 0:
-                result += self.tree[i][row]
-                row -= row & -row
-            i -= i & -i
-        return result
-    
-    def query(self, row1, col1, row2, col2):
-        """Query sum of rectangle (row1, col1) to (row2, col2)."""
-        return (
-            self._query(row2 + 1, col2 + 1)
-            - self._query(row1, col2 + 1)
-            - self._query(row2 + 1, col1)
-            + self._query(row1, col1)
-        )
-```
-````
+- **Integer overflow**: Very large arrays may need 64-bit integers
 
 ---
 
@@ -1243,11 +599,11 @@ class Fenwick2D:
 
 **Problem:** [LeetCode 304 - Range Sum Query 2D - Immutable](https://leetcode.com/problems/range-sum-query-2d-immutable/)
 
-**Description:** Given a 2D matrix `matrix`, find the sum of the elements inside the rectangle defined by its upper left corner `(row1, col1)` and lower right corner `(row2, col2)`.
+**Description:** Given a 2D matrix, find the sum of the elements inside the rectangle defined by its upper left corner `(row1, col1)` and lower right corner `(row2, col2)`.
 
 **How to Apply Prefix Sum:**
 - Build 2D prefix sum using inclusion-exclusion
-- Answer each query in O(1): `prefix[r2+1][c2+1] - prefix[r1][c2+1] - prefix[r2+1][c1] + prefix[r1][c1]`
+- Answer each query in O(1)
 - Essential for multiple rectangle sum queries on static matrices
 
 ---
@@ -1295,15 +651,20 @@ class Fenwick2D:
 
 ### Fundamentals
 
-- [Prefix Sum Introduction (Take U Forward)](https://www.youtube.com/watch?v=4R1LfkA3jX4) - Comprehensive introduction to prefix sum
+- [Prefix Sum Introduction (Take U Forward)](https://www.youtube.com/watch?v=4R1LfkA3jX4) - Comprehensive introduction
 - [Prefix Sum Implementation (WilliamFiset)](https://www.youtube.com/watch?v=8jI4GcjBfM8) - Detailed explanation with visualizations
-- [Range Sum Query (LeetCode)](https://www.youtube.com/watch?v=8M5h2eKHGgQ) - Practical implementation guide
+- [Range Sum Query (LeetCode)](https://www.youtube.com/watch?v=8M5h2eKHGgQ) - Practical implementation
 
 ### Advanced Topics
 
 - [2D Prefix Sum](https://www.youtube.com/watch?v=J1w2NfYmQfM) - 2D range queries
 - [Difference Array](https://www.youtube.com/watch?v=nQMYSyHGKDQ) - Range updates
 - [Prefix Sum Variations](https://www.youtube.com/watch?v=6X7fM8G94zI) - XOR, min, max variations
+
+### Problem-Specific
+
+- [Subarray Sum Equals K](https://www.youtube.com/watch?v=fFVZtDKB8-8) - Hashmap + prefix sum
+- [Product Except Self](https://www.youtube.com/watch?v=bNvIQI2wAjk) - Prefix/suffix technique
 
 ---
 
@@ -1317,6 +678,8 @@ class Fenwick2D:
 - **Product**: Works (but watch for overflow)
 - **NOT min/max**: Prefix min/max doesn't give range min/max (use Sparse Table)
 
+---
+
 ### Q2: Can Prefix Sum handle range minimum queries?
 
 **Answer:** No, Prefix Sum cannot efficiently handle range minimum queries because:
@@ -1324,12 +687,16 @@ class Fenwick2D:
 - Use **Sparse Table** for O(1) min queries on static arrays
 - Use **Segment Tree** for dynamic min queries
 
+---
+
 ### Q3: What is the maximum array size Prefix Sum can handle?
 
 **Answer:** With O(n) space, typical limits are:
-- **Memory**: ~800MB → ~10^8 elements (using 8-byte longs)
-- **Time**: Build takes O(n) → practical up to ~10^8 elements
+- **Memory**: ~800MB → ~10⁸ elements (using 8-byte longs)
+- **Time**: Build takes O(n) → practical up to ~10⁸ elements
 - For larger datasets, consider streaming or external memory approaches
+
+---
 
 ### Q4: How do you handle updates in Prefix Sum?
 
@@ -1338,9 +705,11 @@ class Fenwick2D:
 2. **Use Fenwick Tree instead**: O(log n) per query and update
 3. **Use Segment Tree**: O(log n) for both query and update
 
+---
+
 ### Q5: How does Prefix Sum compare to 2D Sparse Table?
 
-**Answer:** 
+**Answer:**
 - **Query time**: Both O(1) for sum operations
 - **Space**: Both O(n) or O(m×n)
 - **Operations**: Prefix Sum only for sums; Sparse Table for idempotent ops

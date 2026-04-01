@@ -4,7 +4,656 @@
 Graphs
 
 ## Description
+
 A* (A-Star) is a **heuristic-based pathfinding algorithm** that finds the shortest path between nodes in a weighted graph. It combines the guaranteed optimality of Dijkstra's algorithm with the efficiency of greedy best-first search by using a heuristic function to guide the search toward the goal.
+
+The algorithm works by evaluating nodes using the cost function **f(n) = g(n) + h(n)**, where g(n) is the actual cost from the start to node n, and h(n) is the heuristic estimate from n to the goal. This balance allows A* to efficiently explore the most promising paths first while still guaranteeing optimality when using an admissible heuristic. A* is fundamental in game development, robotics, GPS navigation, and any application requiring efficient pathfinding.
+
+---
+
+## Concepts
+
+The A* algorithm is built on several fundamental concepts that make it powerful for pathfinding.
+
+### 1. Cost Functions
+
+| Function | Description | Role |
+|----------|-------------|------|
+| **g(n)** | Actual cost from start to node n | Ensures optimality |
+| **h(n)** | Heuristic estimate from n to goal | Guides search efficiently |
+| **f(n)** | Total cost: f(n) = g(n) + h(n) | Evaluation priority |
+
+### 2. Heuristic Properties
+
+| Property | Definition | Guarantee |
+|----------|------------|-----------|
+| **Admissible** | h(n) ≤ actual_cost(n, goal) | Optimal path found |
+| **Consistent** | h(n) ≤ cost(n→n') + h(n') | No re-exploration needed |
+| **Informative** | h(n) close to actual cost | Faster search |
+
+### 3. Common Heuristics
+
+| Heuristic | Formula | Best For |
+|-----------|---------|----------|
+| **Manhattan** | \|x₁-x₂\| + \|y₁-y₂\| | 4-directional grid movement |
+| **Euclidean** | √((x₁-x₂)² + (y₁-y₂)²) | Continuous space, any direction |
+| **Diagonal/Chebyshev** | max(\|x₁-x₂\|, \|y₁-y₂\|) | 8-directional grid movement |
+| **Octile** | max(dx, dy) + (√2-1)*min(dx, dy) | 8-directional with diagonal cost |
+
+### 4. Priority Queue Operations
+
+The open set (frontier) is managed as a priority queue ordered by f(n):
+
+- **Push**: Add new node with its f value
+- **Pop**: Remove node with lowest f value (most promising)
+- **Update**: If better path found to existing node, update g, f, and parent
+
+---
+
+## Frameworks
+
+Structured approaches for solving pathfinding problems with A*.
+
+### Framework 1: Grid-Based A* Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  GRID-BASED A* FRAMEWORK                            │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize:                                     │
+│     - Create Node for start position                │
+│     - g(start) = 0, h(start) = heuristic(start, goal)│
+│     - Add start to open set (priority queue)        │
+│                                                     │
+│  2. While open set not empty:                       │
+│     a. current = node with lowest f in open set   │
+│     b. If current is goal: reconstruct and return │
+│     c. Move current to closed set (visited)       │
+│     d. For each neighbor of current:              │
+│        - Skip if obstacle or in closed set        │
+│        - tentative_g = current.g + movement_cost    │
+│        - If neighbor not in open set OR           │
+│          tentative_g < neighbor.g:                │
+│          * neighbor.g = tentative_g               │
+│          * neighbor.h = heuristic(neighbor, goal) │
+│          * neighbor.f = neighbor.g + neighbor.h   │
+│          * neighbor.parent = current              │
+│          * Add/update neighbor in open set       │
+│                                                     │
+│  3. If open set empty: return no path found        │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: 2D grid pathfinding, games, robotics.
+
+### Framework 2: Graph-Based A* Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  GRAPH-BASED A* FRAMEWORK                           │
+├─────────────────────────────────────────────────────┤
+│  1. Setup:                                          │
+│     - Graph: node → [(neighbor, edge_cost), ...]   │
+│     - Heuristic function h(node, goal)             │
+│     - Priority queue for open set                   │
+│                                                     │
+│  2. Main loop:                                      │
+│     - Pop minimum f node from open set            │
+│     - If goal: reconstruct path using parent map  │
+│     - For each (neighbor, cost) of current:       │
+│       - new_g = current.g + edge_cost             │
+│       - If new_g < g.get(neighbor, ∞):            │
+│         * Update g[neighbor] = new_g                │
+│         * Update parent[neighbor] = current         │
+│         * Add/Update neighbor in open set         │
+│                                                     │
+│  3. Termination: Return path or failure             │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: General weighted graphs, road networks, abstract graphs.
+
+### Framework 3: IDA* (Memory-Efficient) Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  IDA* FRAMEWORK (Iterative Deepening A*)            │
+├─────────────────────────────────────────────────────┤
+│  1. Initialize threshold = heuristic(start, goal)   │
+│                                                     │
+│  2. Loop:                                            │
+│     a. result = search(start, 0, threshold)         │
+│     b. If result found: return path                 │
+│     c. If threshold = ∞: return no path             │
+│     d. Update threshold to next minimum f         │
+│                                                     │
+│  3. Recursive search(node, g, threshold):           │
+│     a. f = g + heuristic(node, goal)                │
+│     b. If f > threshold: return f (new bound)       │
+│     c. If node is goal: return path                 │
+│     d. min_next = ∞                                 │
+│     e. For each neighbor:                           │
+│        - result = search(neighbor, g+cost, bound)   │
+│        - If result is path: return path             │
+│        - min_next = min(min_next, result)           │
+│     f. Return min_next                              │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Memory-constrained environments, very large graphs.
+
+---
+
+## Forms
+
+Different manifestations of the A* pattern.
+
+### Form 1: Standard A* (Optimal Path)
+
+Standard implementation with admissible heuristic for guaranteed optimality.
+
+| Characteristic | Implementation |
+|----------------|----------------|
+| Heuristic | Admissible (never overestimates) |
+| Optimality | Guaranteed |
+| Memory Usage | O(b^d) - stores all explored nodes |
+| Speed | Moderate - balances exploration |
+
+### Form 2: Weighted A* (Faster, Suboptimal)
+
+Uses weighted heuristic: f(n) = g(n) + w × h(n) where w > 1.
+
+| Weight | Behavior |
+|--------|----------|
+| w = 1 | Standard A*, optimal |
+| w = 2 | Faster, may be suboptimal |
+| w > 2 | Greedy-like, fastest but potentially poor |
+
+Use when speed matters more than absolute optimality.
+
+### Form 3: Dynamic Weighted A*
+
+Adjusts weight based on search progress:
+
+```
+Initial: w = 1 (optimal)
+As search progresses: gradually increase w
+Near goal: w high (fast convergence)
+```
+
+### Form 4: Multi-Goal A*
+
+For finding paths to multiple goals:
+
+| Approach | Strategy |
+|----------|----------|
+| Sequential | Run A* for each goal separately |
+| Multi-goal | Track distance to all goals in heuristic |
+| Meeting point | Search from both ends simultaneously |
+
+### Form 5: Anytime A*
+
+Provides suboptimal paths quickly, then improves:
+
+```
+First iteration: Weighted A* (fast, suboptimal)
+Second iteration: Reduce weight, reuse information
+Continue until optimal or time runs out
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Manhattan Distance Heuristic
+
+```python
+def manhattan_distance(a: tuple[int, int], b: tuple[int, int]) -> int:
+    """Manhattan distance for 4-directional grid movement."""
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+```
+
+**When to use**: Grid with only horizontal/vertical movement.
+
+### Tactic 2: Euclidean Distance Heuristic
+
+```python
+import math
+
+def euclidean_distance(a: tuple[int, int], b: tuple[int, int]) -> float:
+    """Euclidean distance for continuous or 8-directional movement."""
+    return math.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
+```
+
+**When to use**: Any-directional movement, continuous spaces.
+
+### Tactic 3: Diagonal Distance Heuristic
+
+```python
+def diagonal_distance(a: tuple[int, int], b: tuple[int, int]) -> int:
+    """Diagonal/Chebyshev distance for 8-directional movement."""
+    dx = abs(a[0] - b[0])
+    dy = abs(a[1] - b[1])
+    return max(dx, dy)
+```
+
+**When to use**: Grid allowing diagonal moves with uniform cost.
+
+### Tactic 4: Path Reconstruction
+
+```python
+def reconstruct_path(current_node) -> list:
+    """Reconstruct path from start to goal by following parents."""
+    path = []
+    while current_node:
+        path.append(current_node.position)
+        current_node = current_node.parent
+    return path[::-1]  # Reverse to get start→goal
+```
+
+### Tactic 5: Tie-Breaking for Faster Search
+
+```python
+# When f values are equal, prefer nodes closer to goal
+# This breaks ties and reduces search space
+
+def calculate_f(node, goal):
+    g = node.g
+    h = heuristic(node.position, goal)
+    # Add small bias toward goal for tie-breaking
+    h *= (1.0 + 1e-6)
+    return g + h
+```
+
+### Tactic 6: Jump Point Search (Optimization)
+
+For uniform-cost grids, skip over empty space:
+
+```python
+def jump(current, direction, goal, grid):
+    """Skip to next interesting point in grid."""
+    # Implementation of JPS pruning
+    # Returns next jump point or None
+    pass
+
+# In main loop, use jump() instead of exploring all neighbors
+```
+
+### Tactic 7: Hierarchical Pathfinding (HPA*)
+
+```python
+# Abstract level: navigate between clusters
+# Detailed level: navigate within cluster
+
+class HPAStar:
+    def find_path(self, start, goal):
+        # 1. Find abstract path between clusters
+        abstract_path = self.a_star_abstract(start, goal)
+        
+        # 2. Refine each abstract edge to detailed path
+        detailed_path = []
+        for i in range(len(abstract_path) - 1):
+            segment = self.a_star_detailed(
+                abstract_path[i], 
+                abstract_path[i+1]
+            )
+            detailed_path.extend(segment)
+        
+        return detailed_path
+```
+
+---
+
+## Python Templates
+
+### Template 1: Grid-Based A* Pathfinding
+
+```python
+import heapq
+from typing import List, Tuple, Optional
+
+class Node:
+    """Represents a node in the grid for A* pathfinding."""
+    
+    def __init__(self, position: Tuple[int, int], parent: Optional['Node'] = None):
+        self.position = position
+        self.parent = parent
+        self.g = 0  # Cost from start to this node
+        self.h = 0  # Heuristic cost from this node to goal
+        self.f = 0  # Total cost: g + h
+    
+    def __lt__(self, other: 'Node') -> bool:
+        return self.f < other.f
+    
+    def __eq__(self, other: 'Node') -> bool:
+        return self.position == other.position
+    
+    def __hash__(self) -> int:
+        return hash(self.position)
+
+
+def manhattan(a: Tuple[int, int], b: Tuple[int, int]) -> int:
+    """Manhattan distance heuristic."""
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+
+def a_star(grid: List[List[int]], start: Tuple[int, int], 
+           goal: Tuple[int, int]) -> Optional[List[Tuple[int, int]]]:
+    """
+    A* pathfinding algorithm for 2D grids.
+    
+    Args:
+        grid: 2D grid where 0 = walkable, 1 = obstacle
+        start: Starting position as (row, col)
+        goal: Goal position as (row, col)
+    
+    Returns:
+        List of positions forming the path, or None if no path exists
+    
+    Time: O(b^d) where b is branching factor, d is depth
+    Space: O(b^d) for open and closed sets
+    """
+    rows, cols = len(grid), len(grid[0])
+    
+    # Validate positions
+    if not (0 <= start[0] < rows and 0 <= start[1] < cols):
+        return None
+    if not (0 <= goal[0] < rows and 0 <= goal[1] < cols):
+        return None
+    if grid[start[0]][start[1]] == 1 or grid[goal[0]][goal[1]] == 1:
+        return None
+    
+    # 4-directional movement
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    
+    # Open and closed sets
+    open_set: List[Node] = []
+    closed_set = set()
+    
+    # Create start node
+    start_node = Node(start)
+    start_node.h = manhattan(start, goal)
+    start_node.f = start_node.g + start_node.h
+    heapq.heappush(open_set, start_node)
+    
+    # Track nodes by position
+    open_dict = {start: start_node}
+    
+    while open_set:
+        current = heapq.heappop(open_set)
+        current_pos = current.position
+        
+        if current_pos in open_dict:
+            del open_dict[current_pos]
+        
+        # Check if goal reached
+        if current_pos == goal:
+            path = []
+            node = current
+            while node:
+                path.append(node.position)
+                node = node.parent
+            return path[::-1]
+        
+        closed_set.add(current_pos)
+        
+        # Explore neighbors
+        for direction in directions:
+            new_pos = (current_pos[0] + direction[0], 
+                      current_pos[1] + direction[1])
+            
+            # Check bounds and obstacles
+            if not (0 <= new_pos[0] < rows and 0 <= new_pos[1] < cols):
+                continue
+            if grid[new_pos[0]][new_pos[1]] == 1 or new_pos in closed_set:
+                continue
+            
+            new_g = current.g + 1
+            
+            if new_pos not in open_dict or new_g < open_dict[new_pos].g:
+                neighbor = Node(new_pos, current)
+                neighbor.g = new_g
+                neighbor.h = manhattan(new_pos, goal)
+                neighbor.f = neighbor.g + neighbor.h
+                heapq.heappush(open_set, neighbor)
+                open_dict[new_pos] = neighbor
+    
+    return None  # No path found
+```
+
+### Template 2: Graph-Based A*
+
+```python
+import heapq
+from typing import Dict, List, Tuple, Optional
+
+def a_star_graph(graph: Dict[int, List[Tuple[int, int]]], 
+                 start: int, goal: int,
+                 heuristic: Dict[int, int]) -> Optional[Tuple[List[int], int]]:
+    """
+    A* for general weighted graphs.
+    
+    Args:
+        graph: Adjacency list {node: [(neighbor, cost), ...]}
+        start: Starting node
+        goal: Goal node
+        heuristic: Estimated cost from each node to goal
+    
+    Returns:
+        Tuple of (path, total_cost) or None if no path
+    """
+    # Priority queue: (f, g, node, path)
+    open_set = [(heuristic[start], 0, start, [start])]
+    g_scores = {start: 0}
+    
+    while open_set:
+        f, g, current, path = heapq.heappop(open_set)
+        
+        if current == goal:
+            return path, g
+        
+        # Skip if we've found a better path to current
+        if g > g_scores.get(current, float('inf')):
+            continue
+        
+        for neighbor, cost in graph.get(current, []):
+            new_g = g + cost
+            
+            if new_g < g_scores.get(neighbor, float('inf')):
+                g_scores[neighbor] = new_g
+                new_f = new_g + heuristic.get(neighbor, 0)
+                heapq.heappush(open_set, 
+                              (new_f, new_g, neighbor, path + [neighbor]))
+    
+    return None
+```
+
+### Template 3: 8-Directional Movement with Diagonal Costs
+
+```python
+def a_star_8direction(grid: List[List[int]], 
+                      start: Tuple[int, int], 
+                      goal: Tuple[int, int]) -> Optional[List[Tuple[int, int]]]:
+    """
+    A* with 8-directional movement (including diagonals).
+    Diagonal movement costs sqrt(2), or approximately 1.414.
+    """
+    rows, cols = len(grid), len(grid[0])
+    
+    # 8 directions: 4 cardinal + 4 diagonal
+    directions = [
+        (-1, 0), (1, 0), (0, -1), (0, 1),  # Cardinal
+        (-1, -1), (-1, 1), (1, -1), (1, 1)  # Diagonal
+    ]
+    
+    def get_cost(direction):
+        dx, dy = direction
+        if dx == 0 or dy == 0:
+            return 1  # Cardinal
+        return 1.414  # Diagonal (sqrt(2))
+    
+    def octile_distance(a, b):
+        dx = abs(a[0] - b[0])
+        dy = abs(a[1] - b[1])
+        return max(dx, dy) + (1.414 - 1) * min(dx, dy)
+    
+    open_set = []
+    heapq.heappush(open_set, (octile_distance(start, goal), 0, start, None))
+    
+    g_scores = {start: 0}
+    parents = {}
+    closed_set = set()
+    
+    while open_set:
+        f, g, current, parent = heapq.heappop(open_set)
+        
+        if current in closed_set:
+            continue
+        
+        closed_set.add(current)
+        parents[current] = parent
+        
+        if current == goal:
+            # Reconstruct path
+            path = []
+            node = current
+            while node is not None:
+                path.append(node)
+                node = parents.get(node)
+            return path[::-1]
+        
+        for direction in directions:
+            neighbor = (current[0] + direction[0], current[1] + direction[1])
+            
+            if not (0 <= neighbor[0] < rows and 0 <= neighbor[1] < cols):
+                continue
+            if grid[neighbor[0]][neighbor[1]] == 1:
+                continue
+            
+            cost = get_cost(direction)
+            new_g = g + cost
+            
+            if new_g < g_scores.get(neighbor, float('inf')):
+                g_scores[neighbor] = new_g
+                new_f = new_g + octile_distance(neighbor, goal)
+                heapq.heappush(open_set, (new_f, new_g, neighbor, current))
+    
+    return None
+```
+
+### Template 4: IDA* (Memory-Efficient)
+
+```python
+def ida_star(graph, start, goal, heuristic):
+    """
+    Iterative Deepening A* - memory efficient version.
+    
+    Time: Similar to A* in practice
+    Space: O(d) where d is solution depth
+    """
+    
+    def search(node, g, threshold, path):
+        f = g + heuristic[node]
+        
+        if f > threshold:
+            return f, None  # Return new threshold
+        
+        if node == goal:
+            return f, path  # Found!
+        
+        min_threshold = float('inf')
+        
+        for neighbor, cost in graph.get(node, []):
+            if neighbor not in path:  # Avoid cycles
+                result, solution = search(neighbor, g + cost, 
+                                         threshold, path + [neighbor])
+                if solution is not None:
+                    return result, solution
+                if result < min_threshold:
+                    min_threshold = result
+        
+        return min_threshold, None
+    
+    threshold = heuristic[start]
+    path = [start]
+    
+    while True:
+        result, solution = search(start, 0, threshold, path)
+        
+        if solution is not None:
+            return solution
+        
+        if result == float('inf'):
+            return None  # No solution
+        
+        threshold = result  # Increase threshold for next iteration
+```
+
+### Template 5: Multi-Goal A* with Tie-Breaking
+
+```python
+def a_star_tie_breaking(grid, start, goal):
+    """
+    A* with tie-breaking optimization for faster search.
+    """
+    rows, cols = len(grid), len(grid[0])
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    
+    # Use (f, -tie_breaker, node_id, g, position)
+    # Lower tie_breaker value when closer to goal
+    counter = 0
+    
+    def heuristic(a, b):
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+    
+    open_set = []
+    heapq.heappush(open_set, 
+                   (heuristic(start, goal), 0, counter, 0, start, None))
+    
+    g_scores = {start: 0}
+    parents = {}
+    closed_set = set()
+    
+    while open_set:
+        f, tie, _, g, current, parent = heapq.heappop(open_set)
+        
+        if current in closed_set:
+            continue
+        
+        parents[current] = parent
+        closed_set.add(current)
+        
+        if current == goal:
+            path = []
+            node = current
+            while node is not None:
+                path.append(node)
+                node = parents.get(node)
+            return path[::-1], g
+        
+        for direction in directions:
+            neighbor = (current[0] + direction[0], current[1] + direction[1])
+            
+            if not (0 <= neighbor[0] < rows and 0 <= neighbor[1] < cols):
+                continue
+            if grid[neighbor[0]][neighbor[1]] == 1 or neighbor in closed_set:
+                continue
+            
+            new_g = g + 1
+            
+            if new_g < g_scores.get(neighbor, float('inf')):
+                g_scores[neighbor] = new_g
+                h = heuristic(neighbor, goal)
+                # Tie-breaker: prefer nodes closer to goal
+                tie_breaker = -h
+                counter += 1
+                heapq.heappush(open_set, 
+                             (new_g + h, tie_breaker, counter, new_g, neighbor, current))
+    
+    return None, 0
+```
 
 ---
 
@@ -101,914 +750,21 @@ Where:
 - **Optimality**: If h is admissible, A* finds the optimal path
 - **Completeness**: Will find a solution if one exists (given finite edges)
 
-### Common Heuristics
+### Why It Works
 
-| Heuristic | Formula | Best For |
-|------------|---------|----------|
-| **Manhattan** | \|x₁-x₂\| + \|y₁-y₂\| | 4-directional grid movement |
-| **Euclidean** | √((x₁-x₂)² + (y₁-y₂)²) | Continuous space, any direction |
-| **Diagonal/Chebyshev** | max(\|x₁-x₂\|, \|y₁-y₂\|) | 8-directional grid movement |
-| **Octile** | max(dx, dy) + (√2-1)*min(dx, dy) | 8-directional with diagonal cost |
+A* works by maintaining two invariants:
+1. The open set always contains the most promising unexplored nodes
+2. When we expand a node, we know we've found the optimal path to it (with consistent heuristic)
 
----
+The f(n) function ensures we explore in order of increasing estimated total cost, naturally finding the optimal path without exhaustive search.
 
-## Algorithm Steps
+### Limitations
 
-### Step-by-Step Approach
-
-1. **Initialize Data Structures**
-   - Create an open set (priority queue) containing the start node
-   - Create a closed set (visited nodes)
-   - Set g(start) = 0, f(start) = h(start)
-   - Initialize parent pointers for path reconstruction
-
-2. **Main Loop** (while open set is not empty):
-   - **Pop** the node with lowest f(n) from open set
-   - **Check Goal**: If current node is the goal, reconstruct and return path
-   - **Add to Closed Set**: Mark current node as visited
-   - **Explore Neighbors**: For each neighbor:
-     - If in closed set or is obstacle, skip
-     - Calculate tentative g = g(current) + edge weight
-     - If not in open set or new g < g(neighbor):
-       - Update neighbor's g, h, f, and parent
-       - Add to open set if not present
-
-3. **Path Reconstruction** (when goal found):
-   - Start from goal node
-   - Follow parent pointers back to start
-   - Reverse the path
-
-4. **Handle No Path Found**
-   - If open set is empty and goal not reached, return empty/no path
-
----
-
-## Implementation
-
-### Template Code (Grid-Based Pathfinding)
-
-````carousel
-```python
-import heapq
-from typing import List, Tuple, Optional, Dict, Set
-
-class Node:
-    """Represents a node in the grid for A* pathfinding."""
-    def __init__(self, position: Tuple[int, int], parent: Optional['Node'] = None):
-        self.position = position
-        self.parent = parent
-        self.g: float = 0  # Cost from start to this node
-        self.h: float = 0  # Heuristic cost from this node to goal
-        self.f: float = 0  # Total cost: g + h
-    
-    def __lt__(self, other: 'Node') -> bool:
-        """Comparison for heapq - lower f value has higher priority."""
-        return self.f < other.f
-    
-    def __eq__(self, other: 'Node') -> bool:
-        """Two nodes are equal if they have the same position."""
-        return self.position == other.position
-    
-    def __hash__(self) -> int:
-        """Hash function for set membership."""
-        return hash(self.position)
-
-
-def heuristic(a: Tuple[int, int], b: Tuple[int, int]) -> float:
-    """
-    Calculate Manhattan distance heuristic between two points.
-    This is admissible for 4-directional grid movement.
-    """
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
-
-
-def a_star(grid: List[List[int]], start: Tuple[int, int], goal: Tuple[int, int]) -> Optional[List[Tuple[int, int]]]:
-    """
-    A* pathfinding algorithm implementation.
-    
-    Args:
-        grid: 2D grid where 0 = walkable, 1 = obstacle
-        start: Starting position as (row, col)
-        goal: Goal position as (row, col)
-    
-    Returns:
-        List of positions forming the path, or None if no path exists
-        
-    Time Complexity: O(b^d) where b is branching factor, d is depth
-    Space Complexity: O(b^d) for the open and closed sets
-    """
-    rows, cols = len(grid), len(grid[0])
-    
-    # Validate start and goal positions
-    if not (0 <= start[0] < rows and 0 <= start[1] < cols):
-        return None
-    if not (0 <= goal[0] < rows and 0 <= goal[1] < cols):
-        return None
-    if grid[start[0]][start[1]] == 1 or grid[goal[0]][goal[1]] == 1:
-        return None
-    
-    # 4-directional movement (up, down, left, right)
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-    
-    # Initialize open and closed sets
-    open_set: List[Node] = []
-    closed_set: Set[Tuple[int, int]] = set()
-    
-    # Create start node
-    start_node = Node(start)
-    start_node.h = heuristic(start, goal)
-    start_node.f = start_node.g + start_node.h
-    heapq.heappush(open_set, start_node)
-    
-    # Track nodes by position for quick lookup
-    open_dict: Dict[Tuple[int, int], Node] = {start: start_node}
-    
-    while open_set:
-        # Get node with lowest f score
-        current_node = heapq.heappop(open_set)
-        current_pos = current_node.position
-        
-        # Remove from open_dict
-        if current_pos in open_dict:
-            del open_dict[current_pos]
-        
-        # Check if we reached the goal
-        if current_pos == goal:
-            # Reconstruct path
-            path = []
-            node = current_node
-            while node:
-                path.append(node.position)
-                node = node.parent
-            return path[::-1]  # Reverse to get path from start to goal
-        
-        # Add current to closed set
-        closed_set.add(current_pos)
-        
-        # Explore neighbors
-        for direction in directions:
-            new_pos = (current_pos[0] + direction[0], current_pos[1] + direction[1])
-            
-            # Check bounds
-            if not (0 <= new_pos[0] < rows and 0 <= new_pos[1] < cols):
-                continue
-            
-            # Check if obstacle or already visited
-            if grid[new_pos[0]][new_pos[1]] == 1 or new_pos in closed_set:
-                continue
-            
-            # Calculate new g score
-            new_g = current_node.g + 1  # Assuming uniform cost
-            
-            # Check if this is a better path to this neighbor
-            if new_pos not in open_dict:
-                # Create new node
-                neighbor_node = Node(new_pos, current_node)
-                neighbor_node.g = new_g
-                neighbor_node.h = heuristic(new_pos, goal)
-                neighbor_node.f = neighbor_node.g + neighbor_node.h
-                heapq.heappush(open_set, neighbor_node)
-                open_dict[new_pos] = neighbor_node
-            elif new_g < open_dict[new_pos].g:
-                # Update existing node
-                neighbor_node = open_dict[new_pos]
-                neighbor_node.g = new_g
-                neighbor_node.f = neighbor_node.g + neighbor_node.h
-                neighbor_node.parent = current_node
-    
-    # No path found
-    return None
-
-
-# Example usage
-if __name__ == "__main__":
-    # 0 = walkable, 1 = obstacle
-    grid = [
-        [0, 0, 0, 0, 0],
-        [0, 1, 1, 1, 0],
-        [0, 0, 0, 1, 0],
-        [0, 1, 0, 0, 0],
-        [0, 0, 0, 0, 0]
-    ]
-    
-    start = (0, 0)
-    goal = (4, 4)
-    
-    path = a_star(grid, start, goal)
-    
-    print("Grid:")
-    for row in grid:
-        print(row)
-    print(f"\nStart: {start}, Goal: {goal}")
-    print(f"Path found: {path}")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <unordered_set>
-#include <cmath>
-#include <algorithm>
-
-using namespace std;
-
-// Structure representing a node in the grid
-struct Node {
-    pair<int, int> position;
-    Node* parent;
-    double g;  // Cost from start
-    double h;  // Heuristic to goal
-    double f;  // Total cost: g + h
-    
-    Node(pair<int, int> pos, Node* par = nullptr) 
-        : position(pos), parent(par), g(0), h(0), f(0) {}
-    
-    // Comparison for priority queue (min-heap)
-    bool operator>(const Node& other) const {
-        return f > other.f;
-    }
-};
-
-// Heuristic functions
-double manhattan(pair<int, int> a, pair<int, int> b) {
-    return abs(a.first - b.first) + abs(a.second - b.second);
-}
-
-double euclidean(pair<int, int> a, pair<int, int> b) {
-    return sqrt(pow(a.first - b.first, 2) + pow(a.second - b.second, 2));
-}
-
-double diagonal(pair<int, int> a, pair<int, int> b) {
-    int dx = abs(a.first - b.first);
-    int dy = abs(a.second - b.second);
-    return max(dx, dy);
-}
-
-// A* pathfinding algorithm
-vector<pair<int, int>> aStar(
-    const vector<vector<int>>& grid,
-    pair<int, int> start,
-    pair<int, int> goal
-) {
-    int rows = grid.size();
-    int cols = grid[0].size();
-    
-    // Validate positions
-    if (grid[start.first][start.second] == 1 || grid[goal.first][goal.second] == 1) {
-        return {};
-    }
-    
-    // 4-directional movement
-    const vector<pair<int, int>> directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-    
-    // Priority queue (min-heap) ordered by f value
-    priority_queue<Node, vector<Node>, greater<Node>> open_set;
-    unordered_set<long long> closed_set;
-    
-    // Create start node
-    Node* startNode = new Node(start);
-    startNode->h = manhattan(start, goal);
-    startNode->f = startNode->g + startNode->h;
-    open_set.push(*startNode);
-    
-    // Track nodes by position
-    unordered_map<long long, Node*> open_dict;
-    auto posToKey = [&](pair<int, int> p) {
-        return (long long)p.first * cols + p.second;
-    };
-    open_dict[posToKey(start)] = startNode;
-    
-    while (!open_set.empty()) {
-        // Get node with lowest f score
-        Node current = open_set.top();
-        open_set.pop();
-        
-        pair<int, int> currPos = current.position;
-        long long currKey = posToKey(currPos);
-        
-        // Check if we reached the goal
-        if (currPos == goal) {
-            // Reconstruct path
-            vector<pair<int, int>> path;
-            Node* node = const_cast<Node*>(&current);
-            while (node) {
-                path.push_back(node->position);
-                node = node->parent;
-            }
-            reverse(path.begin(), path.end());
-            return path;
-        }
-        
-        // Add to closed set
-        closed_set.insert(currKey);
-        if (open_dict.find(currKey) != open_dict.end()) {
-            open_dict.erase(currKey);
-        }
-        
-        // Explore neighbors
-        for (auto dir : directions) {
-            int newRow = currPos.first + dir.first;
-            int newCol = currPos.second + dir.second;
-            pair<int, int> newPos = {newRow, newCol};
-            long long newKey = posToKey(newPos);
-            
-            // Check bounds
-            if (newRow < 0 || newRow >= rows || newCol < 0 || newCol >= cols) {
-                continue;
-            }
-            
-            // Check if obstacle or already visited
-            if (grid[newRow][newCol] == 1 || closed_set.count(newKey)) {
-                continue;
-            }
-            
-            // Calculate new g score
-            double new_g = current.g + 1;
-            
-            // Check if this is a better path
-            if (open_dict.find(newKey) == open_dict.end()) {
-                Node* neighbor = new Node(newPos, const_cast<Node*>(&current));
-                neighbor->g = new_g;
-                neighbor->h = manhattan(newPos, goal);
-                neighbor->f = neighbor->g + neighbor->h;
-                open_set.push(*neighbor);
-                open_dict[newKey] = neighbor;
-            } else if (new_g < open_dict[newKey]->g) {
-                open_dict[newKey]->g = new_g;
-                open_dict[newKey]->f = open_dict[newKey]->g + open_dict[newKey]->h;
-                open_dict[newKey]->parent = const_cast<Node*>(&current);
-            }
-        }
-    }
-    
-    // No path found
-    return {};
-}
-
-// Example usage
-int main() {
-    vector<vector<int>> grid = {
-        {0, 0, 0, 0, 0},
-        {0, 1, 1, 1, 0},
-        {0, 0, 0, 1, 0},
-        {0, 1, 0, 0, 0},
-        {0, 0, 0, 0, 0}
-    };
-    
-    pair<int, int> start = {0, 0};
-    pair<int, int> goal = {4, 4};
-    
-    vector<pair<int, int>> path = aStar(grid, start, goal);
-    
-    cout << "Grid:" << endl;
-    for (const auto& row : grid) {
-        for (int cell : row) {
-            cout << cell << " ";
-        }
-        cout << endl;
-    }
-    
-    cout << "\nStart: (" << start.first << "," << start.second << ")" << endl;
-    cout << "Goal: (" << goal.first << "," << goal.second << ")" << endl;
-    
-    cout << "\nPath found: ";
-    for (auto p : path) {
-        cout << "(" << p.first << "," << p.second << ") ";
-    }
-    cout << endl;
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-import java.util.*;
-
-public class AStar {
-    
-    // Node class representing a position in the grid
-    static class Node {
-        int row, col;
-        Node parent;
-        double g;  // Cost from start
-        double h;  // Heuristic to goal
-        double f;  // Total cost: g + h
-        
-        Node(int row, int col, Node parent) {
-            this.row = row;
-            this.col = col;
-            this.parent = parent;
-            this.g = 0;
-            this.h = 0;
-            this.f = 0;
-        }
-        
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Node)) return false;
-            Node node = (Node) o;
-            return row == node.row && col == node.col;
-        }
-        
-        @Override
-        public int hashCode() {
-            return Objects.hash(row, col);
-        }
-    }
-    
-    // Heuristic functions
-    private static double manhattan(int[] a, int[] b) {
-        return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
-    }
-    
-    private static double euclidean(int[] a, int[] b) {
-        return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2));
-    }
-    
-    private static double diagonal(int[] a, int[] b) {
-        int dx = Math.abs(a[0] - b[0]);
-        int dy = Math.abs(a[1] - b[1]);
-        return Math.max(dx, dy);
-    }
-    
-    /**
-     * A* pathfinding algorithm.
-     * 
-     * @param grid 2D grid where 0 = walkable, 1 = obstacle
-     * @param start Starting position as [row, col]
-     * @param goal Goal position as [row, col]
-     * @return List of positions forming the path, or empty list if no path exists
-     */
-    public static List<int[]> aStar(int[][] grid, int[] start, int[] goal) {
-        int rows = grid.length;
-        int cols = grid[0].length;
-        
-        // Validate positions
-        if (grid[start[0]][start[1]] == 1 || grid[goal[0]][goal[1]] == 1) {
-            return new ArrayList<>();
-        }
-        
-        // 4-directional movement
-        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-        
-        // Priority queue (min-heap) ordered by f value
-        PriorityQueue<Node> openSet = new PriorityQueue<>(
-            Comparator.comparingDouble(n -> n.f)
-        );
-        
-        Set<String> closedSet = new HashSet<>();
-        Map<String, Node> openDict = new HashMap<>();
-        
-        // Create start node
-        Node startNode = new Node(start[0], start[1], null);
-        startNode.g = 0;
-        startNode.h = manhattan(start, goal);
-        startNode.f = startNode.g + startNode.h;
-        openSet.add(startNode);
-        openDict.put(start[0] + "," + start[1], startNode);
-        
-        while (!openSet.isEmpty()) {
-            // Get node with lowest f score
-            Node current = openSet.poll();
-            int[] currentPos = {current.row, current.col};
-            String currentKey = current.row + "," + current.col;
-            
-            // Check if we reached the goal
-            if (current.row == goal[0] && current.col == goal[1]) {
-                // Reconstruct path
-                List<int[]> path = new ArrayList<>();
-                Node node = current;
-                while (node != null) {
-                    path.add(new int[]{node.row, node.col});
-                    node = node.parent;
-                }
-                Collections.reverse(path);
-                return path;
-            }
-            
-            // Add to closed set
-            closedSet.add(currentKey);
-            openDict.remove(currentKey);
-            
-            // Explore neighbors
-            for (int[] dir : directions) {
-                int newRow = current.row + dir[0];
-                int newCol = current.col + dir[1];
-                String newKey = newRow + "," + newCol;
-                
-                // Check bounds
-                if (newRow < 0 || newRow >= rows || newCol < 0 || newCol >= cols) {
-                    continue;
-                }
-                
-                // Check if obstacle or already visited
-                if (grid[newRow][newCol] == 1 || closedSet.contains(newKey)) {
-                    continue;
-                }
-                
-                // Calculate new g score
-                double newG = current.g + 1;
-                
-                // Check if this is a better path
-                if (!openDict.containsKey(newKey)) {
-                    Node neighbor = new Node(newRow, newCol, current);
-                    neighbor.g = newG;
-                    neighbor.h = manhattan(new int[]{newRow, newCol}, goal);
-                    neighbor.f = neighbor.g + neighbor.h;
-                    openSet.add(neighbor);
-                    openDict.put(newKey, neighbor);
-                } else if (newG < openDict.get(newKey).g) {
-                    Node neighbor = openDict.get(newKey);
-                    neighbor.g = newG;
-                    neighbor.f = neighbor.g + neighbor.h;
-                    neighbor.parent = current;
-                }
-            }
-        }
-        
-        // No path found
-        return new ArrayList<>();
-    }
-    
-    // Example usage
-    public static void main(String[] args) {
-        int[][] grid = {
-            {0, 0, 0, 0, 0},
-            {0, 1, 1, 1, 0},
-            {0, 0, 0, 1, 0},
-            {0, 1, 0, 0, 0},
-            {0, 0, 0, 0, 0}
-        };
-        
-        int[] start = {0, 0};
-        int[] goal = {4, 4};
-        
-        List<int[]> path = aStar(grid, start, goal);
-        
-        System.out.println("Grid:");
-        for (int[] row : grid) {
-            System.out.println(Arrays.toString(row));
-        }
-        
-        System.out.println("\nStart: " + Arrays.toString(start));
-        System.out.println("Goal: " + Arrays.toString(goal));
-        
-        System.out.print("\nPath found: ");
-        for (int[] p : path) {
-            System.out.print(Arrays.toString(p) + " ");
-        }
-        System.out.println();
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * A* Pathfinding Algorithm Implementation
- * 
- * Time Complexity: O(b^d) where b is branching factor, d is depth
- * Space Complexity: O(b^d) for the open and closed sets
- */
-
-// Node class representing a position in the grid
-class Node {
-    constructor(position, parent = null) {
-        this.position = position;  // [row, col]
-        this.parent = parent;
-        this.g = 0;  // Cost from start
-        this.h = 0;  // Heuristic to goal
-        this.f = 0;  // Total cost: g + h
-    }
-    
-    // For priority queue comparison
-    compareTo(other) {
-        return this.f - other.f;
-    }
-}
-
-// Heuristic functions
-function manhattan(a, b) {
-    return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
-}
-
-function euclidean(a, b) {
-    return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2));
-}
-
-function diagonal(a, b) {
-    const dx = Math.abs(a[0] - b[0]);
-    const dy = Math.abs(a[1] - b[1]);
-    return Math.max(dx, dy);
-}
-
-function octile(a, b) {
-    const dx = Math.abs(a[0] - b[0]);
-    const dy = Math.abs(a[1] - b[1]);
-    return Math.max(dx, dy) + (Math.SQRT2 - 1) * Math.min(dx, dy);
-}
-
-/**
- * A* pathfinding algorithm
- * @param {number[][]} grid - 2D grid where 0 = walkable, 1 = obstacle
- * @param {number[]} start - Starting position as [row, col]
- * @param {number[]} goal - Goal position as [row, col]
- * @param {Function} heuristicFunc - Heuristic function (default: manhattan)
- * @returns {number[][]} Array of positions forming the path, or empty array
- */
-function aStar(grid, start, goal, heuristicFunc = manhattan) {
-    const rows = grid.length;
-    const cols = grid[0].length;
-    
-    // Validate positions
-    if (grid[start[0]][start[1]] === 1 || grid[goal[0]][goal[1]] === 1) {
-        return [];
-    }
-    
-    // 4-directional movement (up, down, left, right)
-    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-    
-    // Priority queue using min-heap
-    const openSet = new MinHeap((a, b) => a.f - b.f);
-    const closedSet = new Set();
-    const openDict = new Map();
-    
-    // Create start node
-    const startNode = new Node(start);
-    startNode.g = 0;
-    startNode.h = heuristicFunc(start, goal);
-    startNode.f = startNode.g + startNode.h;
-    openSet.push(startNode);
-    openDict.set(start.toString(), startNode);
-    
-    while (openSet.size() > 0) {
-        // Get node with lowest f score
-        const currentNode = openSet.pop();
-        const currentPos = currentNode.position;
-        const currentKey = currentPos.toString();
-        
-        // Check if we reached the goal
-        if (currentPos[0] === goal[0] && currentPos[1] === goal[1]) {
-            // Reconstruct path
-            const path = [];
-            let node = currentNode;
-            while (node) {
-                path.push(node.position);
-                node = node.parent;
-            }
-            return path.reverse();
-        }
-        
-        // Add to closed set
-        closedSet.add(currentKey);
-        openDict.delete(currentKey);
-        
-        // Explore neighbors
-        for (const dir of directions) {
-            const newRow = currentPos[0] + dir[0];
-            const newCol = currentPos[1] + dir[1];
-            const newPos = [newRow, newCol];
-            const newKey = newPos.toString();
-            
-            // Check bounds
-            if (newRow < 0 || newRow >= rows || newCol < 0 || newCol >= cols) {
-                continue;
-            }
-            
-            // Check if obstacle or already visited
-            if (grid[newRow][newCol] === 1 || closedSet.has(newKey)) {
-                continue;
-            }
-            
-            // Calculate new g score
-            const newG = currentNode.g + 1;
-            
-            // Check if this is a better path
-            if (!openDict.has(newKey)) {
-                const neighborNode = new Node(newPos, currentNode);
-                neighborNode.g = newG;
-                neighborNode.h = heuristicFunc(newPos, goal);
-                neighborNode.f = neighborNode.g + neighborNode.h;
-                openSet.push(neighborNode);
-                openDict.set(newKey, neighborNode);
-            } else if (newG < openDict.get(newKey).g) {
-                const neighborNode = openDict.get(newKey);
-                neighborNode.g = newG;
-                neighborNode.f = neighborNode.g + neighborNode.h;
-                neighborNode.parent = currentNode;
-            }
-        }
-    }
-    
-    // No path found
-    return [];
-}
-
-// Simple MinHeap implementation
-class MinHeap {
-    constructor(compareFn = (a, b) => a - b) {
-        this.heap = [];
-        this.compareFn = compareFn;
-    }
-    
-    push(node) {
-        this.heap.push(node);
-        this.bubbleUp(this.heap.length - 1);
-    }
-    
-    pop() {
-        if (this.heap.length === 0) return null;
-        if (this.heap.length === 1) return this.heap.pop();
-        
-        const min = this.heap[0];
-        this.heap[0] = this.heap.pop();
-        this.bubbleDown(0);
-        return min;
-    }
-    
-    bubbleUp(index) {
-        while (index > 0) {
-            const parentIndex = Math.floor((index - 1) / 2);
-            if (this.compareFn(this.heap[parentIndex], this.heap[index]) <= 0) break;
-            [this.heap[parentIndex], this.heap[index]] = [this.heap[index], this.heap[parentIndex]];
-            index = parentIndex;
-        }
-    }
-    
-    bubbleDown(index) {
-        while (true) {
-            const leftChild = 2 * index + 1;
-            const rightChild = 2 * index + 2;
-            let smallest = index;
-            
-            if (leftChild < this.heap.length && 
-                this.compareFn(this.heap[leftChild], this.heap[smallest]) < 0) {
-                smallest = leftChild;
-            }
-            if (rightChild < this.heap.length && 
-                this.compareFn(this.heap[rightChild], this.heap[smallest]) < 0) {
-                smallest = rightChild;
-            }
-            
-            if (smallest === index) break;
-            [this.heap[smallest], this.heap[index]] = [this.heap[index], this.heap[smallest]];
-            index = smallest;
-        }
-    }
-    
-    get size() {
-        return this.heap.length;
-    }
-}
-
-// Example usage
-const grid = [
-    [0, 0, 0, 0, 0],
-    [0, 1, 1, 1, 0],
-    [0, 0, 0, 1, 0],
-    [0, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0]
-];
-
-const start = [0, 0];
-const goal = [4, 4];
-
-const path = aStar(grid, start, goal);
-
-console.log('Grid:');
-grid.forEach(row => console.log(row.join(' ')));
-
-console.log('\nStart:', start);
-console.log('Goal:', goal);
-
-console.log('\nPath found:', path);
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Operation | Time Complexity | Description |
-|-----------|-----------------|-------------|
-| **Best Case** | O(d) | When the heuristic perfectly guides to the goal |
-| **Average Case** | O(b^d) | Where b is branching factor, d is solution depth |
-| **Worst Case** | O(V + E) | Same as Dijkstra when heuristic provides no guidance |
-| **Space** | O(b^d) | All nodes may be stored in open and closed sets |
-
-### Detailed Breakdown
-
-- **b (Branching Factor)**: Average number of successors per node
-  - 4-directional grid: b = 4
-  - 8-directional grid: b = 8
-
-- **d (Solution Depth)**: Number of steps in the optimal path
-
-- **Factors Affecting Performance**:
-  - Quality of heuristic (better heuristic = fewer nodes explored)
-  - Density of obstacles
-  - Grid size and topology
-
----
-
-## Space Complexity Analysis
-
-| Data Structure | Space | Description |
-|----------------|-------|-------------|
-| **Open Set** | O(b^d) | Priority queue may contain many nodes |
-| **Closed Set** | O(V) | Set of all visited nodes |
-| **Parent Pointers** | O(V) | For path reconstruction |
-| **Grid/Graph** | O(V + E) | Storage for the graph itself |
-
-### Space Optimization Techniques
-
-1. **Bidirectional A***: Search from both ends, reducing space to O(b^(d/2))
-2. **Iterative Deepening A* (IDA*)**: Uses DFS with depth bound by f-cost
-3. **Recursive Best-First Search (RBFS)**: Memory-efficient alternative
-
----
-
-## Common Variations
-
-### 1. Weighted A* (Weighted Heuristic)
-
-Use h'(n) = w × h(n) where w > 1 to speed up search at the cost of path quality.
-
-```python
-def weighted_astar(grid, start, goal, weight=2.0):
-    # Use weighted heuristic: f(n) = g(n) + w * h(n)
-    # Higher weight = faster but potentially suboptimal
-```
-
-### 2. Dynamic Weighting
-
-Start with w=1 (optimal) and gradually increase as we get closer to goal.
-
-### 3. A* with Dynamic Obstacles
-
-When obstacles can appear/disappear during navigation:
-- Replan from current position
-- Use D* Lite algorithm for incremental replanning
-
-### 4. IDA* (Iterative Deepening A*)
-
-Combines depth-first search with A* heuristic:
-- **Space**: O(d) - much more memory efficient
-- **Time**: Similar to A* in practice
-
-````carousel
-```python
-def ida_star(start, goal, heuristic):
-    """
-    Iterative Deepening A* - memory efficient version
-    
-    Space: O(d) where d is solution depth
-    """
-    threshold = heuristic(start, goal)
-    
-    while True:
-        result, threshold = search(start, goal, 0, threshold, heuristic)
-        if result is not None:
-            return result
-        if threshold == float('inf'):
-            return None  # No path exists
-
-
-def search(node, goal, g, threshold, heuristic):
-    f = g + heuristic(node, goal)
-    if f > threshold:
-        return None, f
-    if node == goal:
-        return [node], 0
-    min_threshold = float('inf')
-    
-    for neighbor in get_neighbors(node):
-        result, new_threshold = search(neighbor, goal, g + 1, threshold, heuristic)
-        if result is not None:
-            result.append(node)
-            return result, 0
-        min_threshold = min(min_threshold, new_threshold)
-    
-    return None, min_threshold
-```
-````
-
-### 5. Bidirectional A*
-
-Search from both start and goal simultaneously:
-- **Time**: O(b^(d/2))
-- **Space**: O(b^(d/2))
-- Requires ability to traverse backwards
-
-### 6. D* Lite
-
-Dynamic A* for incremental replanning when obstacles change:
-- Used in robot navigation
-- More efficient than re-running A* from scratch
+- **Memory Intensive**: Stores all visited nodes (open and closed sets)
+- **Time can be exponential**: With poor heuristics
+- **Requires heuristic function**: Not suitable when no good heuristic exists
+- **Not optimal**: With non-admissible heuristics
+- **Doesn't handle dynamic changes**: Efficiently (use D* Lite for dynamic obstacles)
 
 ---
 
@@ -1016,65 +772,68 @@ Dynamic A* for incremental replanning when obstacles change:
 
 ### Problem 1: Shortest Path in Binary Matrix
 
-**Problem:** [LeetCode 1293 - Shortest Path in Binary Matrix](https://leetcode.com/problems/shortest-path-in-binary-matrix/)
+**Problem:** [LeetCode 1091 - Shortest Path in Binary Matrix](https://leetcode.com/problems/shortest-path-in-binary-matrix/)
 
-**Description:** Given an n x n binary matrix grid, find the length of the shortest clear path from top-left to bottom-right. A clear path is a path that does not contain any obstacles.
+**Description:** Given an n x n binary matrix grid, return the length of the shortest clear path from top-left to bottom-right. A clear path is a path that does not contain any obstacles.
 
-**How to Apply A***:
+**How to Apply A*:**
 - Use BFS for unweighted graph (which is a special case of A*)
 - Each cell is a node, 8-directional movement
-- Return path length + 1 (including start cell)
+- Return path length including start cell
+- A* can be used with appropriate heuristic for larger grids
 
 ---
 
-### Problem 2: Minimum Cost to Reach Destination in Time
-
-**Problem:** [LeetCode 787 - Cheapest Flights Within K Stops](https://leetcode.com/problems/cheapest-flights-within-k-stops/)
-
-**Description:** There are n cities connected by flights. Find the cheapest price to reach destination within exactly k stops.
-
-**How to Apply A***:
-- Use modified Dijkstra's with stops constraint
-- Can adapt A* with path cost as g(n) and remaining stops as heuristic
-
----
-
-### Problem 3: Path With Maximum Minimum Value
-
-**Problem:** [LeetCode 1102 - Path With Maximum Minimum Value](https://leetcode.com/problems/path-with-maximum-minimum-value/)
-
-**Description:** Given a grid, find a path from top-left to bottom-right that maximizes the minimum value along the path.
-
-**How to Apply A***:
-- Use max-heap instead of min-heap
-- Priority is the maximum of visited cells
-- This is essentially a variation of A* called "Best-first search"
-
----
-
-### Problem 4: Sliding Puzzle
+### Problem 2: Sliding Puzzle
 
 **Problem:** [LeetCode 773 - Sliding Puzzle](https://leetcode.com/problems/sliding-puzzle/)
 
 **Description:** Given a 2x3 board with numbers 0-5, find the minimum moves to reach the solved state [[1,2,3],[4,5,0]].
 
-**How to Apply A***:
+**How to Apply A*:**
 - State space search problem
-- Use Manhattan distance as heuristic
-- Each state is a node, swaps are edges
+- Use Manhattan distance of tiles from their goal positions as heuristic
+- Each state is a node, tile swaps are edges
+- A* guarantees optimal solution with admissible heuristic
 
 ---
 
-### Problem 5: Word Ladder
+### Problem 3: Minimum Cost to Make at Least One Valid Path
 
-**Problem:** [LeetCode 127 - Word Ladder](https://leetcode.com/problems/word-ladder/)
+**Problem:** [LeetCode 1368 - Minimum Cost to Make at Least One Valid Path in a Grid](https://leetcode.com/problems/minimum-cost-to-make-at-least-one-valid-path-in-a-grid/)
 
-**Description:** Transform start word to end word by changing one letter at a time, where each intermediate word must exist in the word list.
+**Description:** Given a grid with arrows pointing directions, find minimum cost to reach (m-1, n-1) from (0,0). Cost is 0 if following arrow, 1 otherwise.
 
-**How to Apply A***:
-- Each word is a node
-- Edge exists if words differ by one letter
-- Use word length as additional heuristic factor
+**How to Apply A*:**
+- Grid with weighted edges (0 or 1 cost)
+- Use 0-1 BFS or Dijkstra as A* with h=0
+- Manhattan distance as heuristic for weighted A*
+
+---
+
+### Problem 4: Minimum Moves to Move a Box to Target Location
+
+**Problem:** [LeetCode 1263 - Minimum Moves to Move a Box to Target Location](https://leetcode.com/problems/minimum-moves-to-move-a-box-to-target-location/)
+
+**Description:** In a grid, move a box to target position by pushing it. Return minimum pushes needed.
+
+**How to Apply A*:**
+- State includes both box position and player position
+- Heuristic: Manhattan distance from box to target
+- Complex state space requires careful A* implementation
+
+---
+
+### Problem 5: Escape the Ghosts
+
+**Problem:** [LeetCode 789 - Escape The Ghosts](https://leetcode.com/problems/escape-the-ghosts/)
+
+**Description:** You are playing a simplified PACMAN game. You start at point (0, 0), and your destination is (target[0], target[1]). There are several ghosts on the map, the i-th ghost starts at (ghosts[i][0], ghosts[i][1]). Return true if and only if you can reach the destination before any ghost reaches you.
+
+**How to Apply A*:**
+- Calculate Manhattan distance from each ghost to target
+- Compare your Manhattan distance to the minimum ghost distance
+- Simple heuristic evaluation solves the problem
 
 ---
 
@@ -1094,7 +853,7 @@ Dynamic A* for incremental replanning when obstacles change:
 
 ### Problem-Specific
 
-- [LeetCode 1293 Solution - Shortest Path in Binary Matrix](https://www.youtube.com/watch?v=2kg0qEqy0V0)
+- [LeetCode 1091 Solution - Shortest Path in Binary Matrix](https://www.youtube.com/watch?v=2kg0qEqy0V0)
 - [LeetCode 773 Solution - Sliding Puzzle](https://www.youtube.com/watch?v=5YvSstR4aQU)
 
 ---
@@ -1135,15 +894,6 @@ Every consistent heuristic is admissible, but not vice versa. Consistent heurist
 4. **Not optimal** with non-admissible heuristics
 5. **Doesn't handle dynamic changes** efficiently (use D* Lite)
 
-### Q6: How would you optimize A* for real-time applications?
-
-**Answer:**
-1. **Use better data structures**: Fibonacci heap for priority queue
-2. **Jump point search**: Skip unnecessary nodes in uniform-cost grids
-3. **Hierarchical pathfinding**: Use abstraction (HPA*)
-4. **Parallel search**: Multi-threaded exploration
-5. **Anytime algorithms**: Return quickly then improve
-
 ---
 
 ## Summary
@@ -1164,13 +914,3 @@ When to use:
 - ❌ Dynamic obstacles (use D* Lite)
 
 This algorithm is fundamental in game development, robotics, GPS navigation, and any application requiring efficient pathfinding in known environments.
-
----
-
-## Related Algorithms
-
-- [Dijkstra's Algorithm](./dijkstra.md) - Without heuristic
-- [Greedy Best-First Search](./greedy-best-first.md) - Without g(n)
-- [Bidirectional Search](./bidirectional-search.md) - Search from both ends
-- [BFS](./graph-bfs.md) - Unweighted shortest path
-- [DFS](./graph-dfs.md) - Alternative exploration strategy

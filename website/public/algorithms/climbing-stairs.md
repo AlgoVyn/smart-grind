@@ -5,13 +5,508 @@ Dynamic Programming
 
 ## Description
 
-The **Climbing Stairs** problem is a classic dynamic programming problem that asks: "In how many distinct ways can you climb to the top of a staircase with n steps, if each time you can climb either 1 or 2 steps?" This problem serves as an excellent introduction to dynamic programming and demonstrates the Fibonacci pattern that appears in many optimization problems.
+The Climbing Stairs problem is a classic dynamic programming problem that asks: "In how many distinct ways can you climb to the top of a staircase with n steps, if each time you can climb either 1 or 2 steps?" This problem serves as an excellent introduction to dynamic programming and demonstrates the Fibonacci pattern that appears in many optimization problems.
+
+The key insight is that to reach step `n`, you can only come from step `n-1` (by taking a single step) or step `n-2` (by taking a double step). This creates the recurrence relation `ways(n) = ways(n-1) + ways(n-2)`, which is exactly the Fibonacci sequence. This pattern demonstrates optimal substructure and overlapping subproblems, core concepts in dynamic programming.
+
+---
+
+## Concepts
+
+The Climbing Stairs technique is built on several fundamental concepts that make it powerful for solving path-counting and sequence problems.
+
+### 1. Recurrence Relation
+
+The fundamental pattern behind climbing stairs:
+
+| Step | Ways to Reach | Breakdown |
+|------|---------------|-----------|
+| 1 | 1 | [1] |
+| 2 | 2 | [1,1], [2] |
+| 3 | 3 | [1,1,1], [1,2], [2,1] |
+| 4 | 5 | From step 3 (3 ways) + From step 2 (2 ways) |
+| 5 | 8 | From step 4 (5 ways) + From step 3 (3 ways) |
+
+Pattern: `ways(n) = ways(n-1) + ways(n-2)` (Fibonacci)
+
+### 2. Optimal Substructure
+
+The solution for n depends on solutions for smaller problems:
+
+```
+ways(5) depends on:
+├── ways(4): All ways to reach step 4, then take 1 step
+└── ways(3): All ways to reach step 3, then take 2 steps
+```
+
+This structure allows building solutions incrementally.
+
+### 3. Overlapping Subproblems
+
+The same subproblems are computed multiple times in naive recursion:
+
+```
+ways(5) uses ways(4) and ways(3)
+ways(4) uses ways(3) and ways(2)
+       ↑
+    ways(3) computed twice!
+```
+
+DP eliminates this redundancy.
+
+### 4. Space Optimization Principle
+
+Since we only need the last two values, we can reduce space:
+
+| Approach | Space | Values Stored |
+|----------|-------|---------------|
+| Full DP Array | O(n) | dp[0], dp[1], ..., dp[n] |
+| Space Optimized | O(1) | prev2, prev1 (rolling) |
+
+---
+
+## Frameworks
+
+Structured approaches for solving Climbing Stairs problems.
+
+### Framework 1: Space-Optimized Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  SPACE-OPTIMIZED FRAMEWORK                          │
+├─────────────────────────────────────────────────────┤
+│  1. Handle base cases:                               │
+│     - n <= 2: return n                              │
+│                                                      │
+│  2. Initialize rolling variables:                  │
+│     prev2 = 1   (ways to reach step 1)              │
+│     prev1 = 2   (ways to reach step 2)              │
+│                                                      │
+│  3. Iterate from step 3 to n:                       │
+│     current = prev1 + prev2                         │
+│     prev2 = prev1                                   │
+│     prev1 = current                                 │
+│                                                      │
+│  4. Return prev1                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: Production code, large n values, when only final count is needed.
+
+### Framework 2: DP Array Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  DP ARRAY FRAMEWORK                                 │
+├─────────────────────────────────────────────────────┤
+│  1. Create dp array of size n+1                     │
+│  2. dp[0] = 1  (one way to stay at ground)        │
+│  3. dp[1] = 1  (one way: single step)              │
+│  4. For i from 2 to n:                             │
+│     dp[i] = dp[i-1] + dp[i-2]                      │
+│  5. Return dp[n]                                     │
+│                                                      │
+│  Benefit: Can reconstruct actual paths               │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When you need all intermediate values or path reconstruction.
+
+### Framework 3: Generalized Steps Template
+
+```
+┌─────────────────────────────────────────────────────┐
+│  GENERALIZED STEPS FRAMEWORK                        │
+├─────────────────────────────────────────────────────┤
+│  For steps {1, 2, ..., k}:                          │
+│                                                      │
+│  1. Initialize k variables for base cases          │
+│  2. For i from k+1 to n:                           │
+│     current = sum of last k values                 │
+│     Shift window: drop oldest, add current          │
+│  3. Return final value                               │
+│                                                      │
+│  Example: steps {1,2,3} → Tribonacci pattern        │
+└─────────────────────────────────────────────────────┘
+```
+
+**When to use**: When allowed steps are not just 1 and 2.
+
+---
+
+## Forms
+
+Different manifestations of the Climbing Stairs pattern.
+
+### Form 1: Classic (Steps 1 or 2)
+
+Standard Fibonacci pattern:
+
+| n | Ways | Formula |
+|---|------|---------|
+| 1 | 1 | F(2) |
+| 2 | 2 | F(3) |
+| 3 | 3 | F(4) |
+| 4 | 5 | F(5) |
+| 5 | 8 | F(6) |
+
+### Form 2: Generalized Steps
+
+Can take 1, 2, or 3 steps at a time:
+
+```
+ways(n) = ways(n-1) + ways(n-2) + ways(n-3)
+
+n=1: 1
+n=2: 2  ([1,1], [2])
+n=3: 4  ([1,1,1], [1,2], [2,1], [3])
+n=4: 7  (sum of ways(3)+ways(2)+ways(1) = 4+2+1)
+```
+
+This is the Tribonacci sequence.
+
+### Form 3: Variable Step Costs
+
+Each step has a cost, find minimum cost to reach top:
+
+```
+MinCost[i] = cost[i] + min(MinCost[i-1], MinCost[i-2])
+```
+
+**Example**: LeetCode 746 - Min Cost Climbing Stairs
+
+### Form 4: Forbidden Steps
+
+Some steps are broken/unsafe:
+
+```
+If step i is broken:
+    ways[i] = 0
+Else:
+    ways[i] = ways[i-1] + ways[i-2]
+```
+
+### Form 5: Decode Ways (String Variant)
+
+Count ways to decode digit string (similar DP structure):
+
+```
+dp[i] = dp[i-1] (if s[i] is valid) + dp[i-2] (if s[i-2:i] is valid)
+```
+
+---
+
+## Tactics
+
+Specific techniques and optimizations.
+
+### Tactic 1: Matrix Exponentiation for O(log n)
+
+For extremely large n (n > 10^6):
+
+```python
+def matrix_mult(A, B, mod):
+    """Multiply two 2x2 matrices."""
+    return [[(A[0][0]*B[0][0] + A[0][1]*B[1][0]) % mod,
+             (A[0][0]*B[0][1] + A[0][1]*B[1][1]) % mod],
+            [(A[1][0]*B[0][0] + A[1][1]*B[1][0]) % mod,
+             (A[1][0]*B[0][1] + A[1][1]*B[1][1]) % mod]]
+
+def matrix_pow(M, n, mod):
+    """Calculate matrix M raised to power n."""
+    if n == 1:
+        return M
+    if n % 2 == 0:
+        half = matrix_pow(M, n // 2, mod)
+        return matrix_mult(half, half, mod)
+    else:
+        return matrix_mult(M, matrix_pow(M, n - 1, mod), mod)
+
+def climb_stairs_log_n(n, mod=10**9+7):
+    """O(log n) solution using matrix exponentiation."""
+    if n <= 2:
+        return n
+    
+    # Transformation matrix for Fibonacci
+    M = [[1, 1], [1, 0]]
+    result = matrix_pow(M, n, mod)
+    
+    # F(n+1) is at position [0][0]
+    return result[0][0]
+```
+
+### Tactic 2: Pisano Period for Modulo
+
+Fibonacci numbers modulo m are periodic:
+
+```python
+def pisano_period(m):
+    """Find the Pisano period for modulo m."""
+    prev, curr = 0, 1
+    for i in range(m * m):
+        prev, curr = curr, (prev + curr) % m
+        if prev == 0 and curr == 1:
+            return i + 1
+
+def fib_mod(n, m):
+    """F(n) mod m using Pisano period."""
+    period = pisano_period(m)
+    n = n % period
+    
+    # Compute F(n) normally
+    if n <= 1:
+        return n
+    prev, curr = 0, 1
+    for _ in range(2, n + 1):
+        prev, curr = curr, (prev + curr) % m
+    return curr
+```
+
+### Tactic 3: Binet's Formula (Closed Form)
+
+Direct computation using golden ratio:
+
+```python
+import math
+
+def fib_binet(n):
+    """
+    F(n) using Binet's formula.
+    Limitations: Floating point precision for n > 70.
+    """
+    sqrt5 = math.sqrt(5)
+    phi = (1 + sqrt5) / 2  # Golden ratio
+    
+    return round(phi**n / sqrt5)
+
+# For climbing stairs: ways(n) = F(n+1)
+def climb_stairs_binet(n):
+    return fib_binet(n + 1)
+```
+
+**Warning**: Use only for small n or when approximation is acceptable.
+
+### Tactic 4: Fast Doubling Method
+
+Recursive formulas for F(2n) and F(2n+1):
+
+```python
+def fib_fast_doubling(n, mod=None):
+    """
+    Returns (F(n), F(n+1)) using fast doubling.
+    Time: O(log n)
+    """
+    if n == 0:
+        return (0, 1)
+    
+    # Recursively find F(n//2) and F(n//2 + 1)
+    a, b = fib_fast_doubling(n >> 1, mod)
+    
+    # F(2k) = F(k) * [2*F(k+1) - F(k)]
+    # F(2k+1) = F(k+1)^2 + F(k)^2
+    c = a * ((b << 1) - a)
+    d = a * a + b * b
+    
+    if mod:
+        c %= mod
+        d %= mod
+    
+    if n & 1:  # n is odd
+        return (d, c + d)
+    else:
+        return (c, d)
+
+def climb_stairs_fast(n, mod=None):
+    """Ways(n) = F(n+1)"""
+    return fib_fast_doubling(n + 1, mod)[0]
+```
+
+### Tactic 5: Rolling Array for k-Steps
+
+General pattern for arbitrary step sizes:
+
+```python
+def climb_stairs_k_steps(n, allowed_steps):
+    """
+    Count ways with arbitrary step sizes.
+    allowed_steps: list of step sizes (e.g., [1, 2, 3])
+    """
+    max_step = max(allowed_steps)
+    
+    # Use a deque to maintain rolling window
+    from collections import deque
+    dp = deque([0] * max_step, maxlen=max_step)
+    
+    # Initialize base cases
+    dp[0] = 1  # One way to be at step 0
+    
+    for i in range(1, n + 1):
+        # Sum ways from all valid previous steps
+        ways = 0
+        for step in allowed_steps:
+            if i - step >= 0:
+                ways += dp[(i - step) % max_step]
+        
+        dp.append(ways)
+    
+    return dp[-1]
+```
+
+---
+
+## Python Templates
+
+### Template 1: Space-Optimized Classic
+
+```python
+def climb_stairs(n: int) -> int:
+    """
+    Template 1: Space-optimized solution (1 or 2 steps).
+    Time: O(n), Space: O(1)
+    """
+    if n <= 2:
+        return n
+    
+    # Only need previous two values
+    prev2, prev1 = 1, 2
+    
+    for _ in range(3, n + 1):
+        current = prev1 + prev2
+        prev2 = prev1
+        prev1 = current
+    
+    return prev1
+```
+
+### Template 2: With Modulo (Large Numbers)
+
+```python
+def climb_stairs_mod(n: int, mod: int = 10**9 + 7) -> int:
+    """
+    Template 2: With modulo for competitive programming.
+    Time: O(n), Space: O(1)
+    """
+    if n <= 2:
+        return n
+    
+    prev2, prev1 = 1, 2
+    
+    for _ in range(3, n + 1):
+        current = (prev1 + prev2) % mod
+        prev2 = prev1
+        prev1 = current
+    
+    return prev1
+```
+
+### Template 3: Memoization (Top-Down)
+
+```python
+from functools import lru_cache
+
+def climb_stairs_memo(n: int) -> int:
+    """
+    Template 3: Recursive with memoization.
+    Time: O(n), Space: O(n)
+    """
+    @lru_cache(maxsize=None)
+    def helper(i):
+        if i <= 2:
+            return i
+        return helper(i - 1) + helper(i - 2)
+    
+    return helper(n)
+```
+
+### Template 4: Generalized Steps (1, 2, or 3)
+
+```python
+def climb_stairs_three(n: int) -> int:
+    """
+    Template 4: Can take 1, 2, or 3 steps.
+    Time: O(n), Space: O(1)
+    """
+    if n <= 0:
+        return 0
+    if n == 1:
+        return 1
+    if n == 2:
+        return 2  # [1,1], [2]
+    if n == 3:
+        return 4  # [1,1,1], [1,2], [2,1], [3]
+    
+    prev3, prev2, prev1 = 1, 2, 4
+    
+    for _ in range(4, n + 1):
+        current = prev1 + prev2 + prev3
+        prev3, prev2, prev1 = prev2, prev1, current
+    
+    return prev1
+```
+
+### Template 5: Min Cost Climbing Stairs
+
+```python
+def min_cost_climbing_stairs(cost: list[int]) -> int:
+    """
+    Template 5: Variable costs per step.
+    Find minimum cost to reach the top.
+    Time: O(n), Space: O(1)
+    """
+    n = len(cost)
+    if n <= 1:
+        return 0
+    
+    # Min cost to reach step i
+    prev2 = cost[0]  # Step 0
+    prev1 = cost[1]  # Step 1
+    
+    for i in range(2, n):
+        current = cost[i] + min(prev1, prev2)
+        prev2, prev1 = prev1, current
+    
+    # Can finish from either of the last two steps
+    return min(prev1, prev2)
+```
+
+### Template 6: Decode Ways (String Variant)
+
+```python
+def num_decodings(s: str) -> int:
+    """
+    Template 6: Decode digit string (similar DP pattern).
+    '1'-'9' map to 'A'-'I', '10'-'26' map to 'J'-'Z'.
+    Time: O(n), Space: O(1)
+    """
+    if not s or s[0] == '0':
+        return 0
+    
+    n = len(s)
+    # dp[i] = ways to decode s[:i]
+    prev2, prev1 = 1, 1  # Empty string and first char
+    
+    for i in range(1, n):
+        current = 0
+        
+        # Single digit decode (if s[i] != '0')
+        if s[i] != '0':
+            current += prev1
+        
+        # Two digit decode (if '10' <= s[i-1:i+1] <= '26')
+        two_digit = int(s[i-1:i+1])
+        if 10 <= two_digit <= 26:
+            current += prev2
+        
+        prev2, prev1 = prev1, current
+    
+    return prev1
+```
 
 ---
 
 ## When to Use
 
-Use this algorithm when you need to solve problems involving:
+Use the Climbing Stairs algorithm when you need to solve problems involving:
 
 - **Counting distinct ways** to reach a target with constrained moves
 - **Fibonacci-like sequences** where each state depends on previous states
@@ -72,6 +567,25 @@ This is exactly the **Fibonacci sequence** shifted by one position:
 
 The solution leverages **optimal substructure**: the number of ways to reach step n depends only on the number of ways to reach steps n-1 and n-2. It also exhibits **overlapping subproblems**: calculating ways(5) requires ways(4) and ways(3), and calculating ways(4) also requires ways(3) - the subproblems overlap.
 
+### How It Works
+
+#### Space-Optimized Approach:
+
+1. **Handle base cases**: If n ≤ 2, return n directly
+2. **Initialize two variables**: `prev2 = 1` (ways to reach step 1), `prev1 = 2` (ways to reach step 2)
+3. **Iterate from 3 to n**:
+   - Calculate current = prev1 + prev2
+   - Update prev2 = prev1
+   - Update prev1 = current
+4. **Return prev1** as the result
+
+#### DP Array Approach:
+
+1. **Create dp array** of size n+1
+2. **Set base cases**: dp[1] = 1, dp[2] = 2
+3. **Fill array iteratively**: For i from 3 to n, dp[i] = dp[i-1] + dp[i-2]
+4. **Return dp[n]**
+
 ### Visual Representation
 
 For n = 4 stairs:
@@ -93,695 +607,15 @@ Tree representation for n=3:
   3
 ```
 
----
+### Why This Works
 
-## Algorithm Steps
+Each step's solution builds upon previous solutions. By storing intermediate results, we avoid recalculating the same subproblems exponentially many times.
 
-### Space-Optimized Approach (Recommended)
+### Limitations
 
-1. **Handle base cases**: If n ≤ 2, return n directly
-2. **Initialize two variables**: `prev2 = 1` (ways to reach step 1), `prev1 = 2` (ways to reach step 2)
-3. **Iterate from 3 to n**:
-   - Calculate current = prev1 + prev2
-   - Update prev2 = prev1
-   - Update prev1 = current
-4. **Return prev1** as the result
-
-### DP Array Approach (Useful for Variations)
-
-1. **Create dp array** of size n+1
-2. **Set base cases**: dp[1] = 1, dp[2] = 2
-3. **Fill array iteratively**: For i from 3 to n, dp[i] = dp[i-1] + dp[i-2]
-4. **Return dp[n]**
-
-### Memoization Approach
-
-1. **Define recursive function** f(n):
-   - If n ≤ 2, return n
-   - If already computed, return cached value
-   - Compute f(n-1) + f(n-2), cache and return
-2. **Call f(n)** and return result
-
----
-
-## Implementation
-
-### Space-Optimized Solution (Recommended)
-
-````carousel
-```python
-def climb_stairs(n: int) -> int:
-    """
-    Count distinct ways to climb n stairs (1 or 2 steps at a time).
-    Space-optimized dynamic programming solution.
-    
-    Args:
-        n: Number of stairs to climb
-        
-    Returns:
-        Number of distinct ways to reach the top
-        
-    Time: O(n)
-    Space: O(1)
-    """
-    if n <= 2:
-        return n
-    
-    # Only need to track previous two values
-    prev2, prev1 = 1, 2
-    
-    for _ in range(3, n + 1):
-        current = prev1 + prev2
-        prev2 = prev1
-        prev1 = current
-    
-    return prev1
-
-
-# With modulo (for large numbers)
-def climb_stairs_mod(n: int, mod: int = 10**9 + 7) -> int:
-    """
-    Count ways with modulo to prevent overflow.
-    Essential for competitive programming with large n.
-    """
-    if n <= 2:
-        return n
-    
-    prev2, prev1 = 1, 2
-    
-    for _ in range(3, n + 1):
-        current = (prev1 + prev2) % mod
-        prev2 = prev1
-        prev1 = current
-    
-    return prev1
-
-
-# Example usage
-if __name__ == "__main__":
-    test_cases = [1, 2, 3, 4, 5, 10, 20]
-    
-    print("Climbing Stairs Results:")
-    print("-" * 30)
-    for n in test_cases:
-        result = climb_stairs(n)
-        print(f"n = {n:2d}: {result} ways")
-```
-
-<!-- slide -->
-```cpp
-#include <iostream>
-#include <vector>
-using namespace std;
-
-/**
- * Count distinct ways to climb n stairs (1 or 2 steps at a time).
- * Space-optimized dynamic programming solution.
- * 
- * Time: O(n)
- * Space: O(1)
- */
-int climbStairs(int n) {
-    if (n <= 2) {
-        return n;
-    }
-    
-    // Only need to track previous two values
-    long long prev2 = 1;  // Ways to reach step 1
-    long long prev1 = 2;  // Ways to reach step 2
-    
-    for (int i = 3; i <= n; i++) {
-        long long current = prev1 + prev2;
-        prev2 = prev1;
-        prev1 = current;
-    }
-    
-    return static_cast<int>(prev1);
-}
-
-/**
- * Count ways with modulo to prevent overflow.
- */
-int climbStairsMod(int n, int mod = 1000000007) {
-    if (n <= 2) {
-        return n;
-    }
-    
-    long long prev2 = 1;
-    long long prev1 = 2;
-    
-    for (int i = 3; i <= n; i++) {
-        long long current = (prev1 + prev2) % mod;
-        prev2 = prev1;
-        prev1 = current;
-    }
-    
-    return static_cast<int>(prev1);
-}
-
-/**
- * DP array approach - useful when you need all intermediate values.
- */
-int climbStairsDP(int n) {
-    if (n <= 2) {
-        return n;
-    }
-    
-    vector<int> dp(n + 1);
-    dp[1] = 1;
-    dp[2] = 2;
-    
-    for (int i = 3; i <= n; i++) {
-        dp[i] = dp[i - 1] + dp[i - 2];
-    }
-    
-    return dp[n];
-}
-
-int main() {
-    vector<int> testCases = {1, 2, 3, 4, 5, 10, 20};
-    
-    cout << "Climbing Stairs Results:" << endl;
-    cout << "------------------------------" << endl;
-    
-    for (int n : testCases) {
-        int result = climbStairs(n);
-        cout << "n = " << n << ": " << result << " ways" << endl;
-    }
-    
-    return 0;
-}
-```
-
-<!-- slide -->
-```java
-/**
- * Count distinct ways to climb n stairs (1 or 2 steps at a time).
- * Space-optimized dynamic programming solution.
- * 
- * Time: O(n)
- * Space: O(1)
- */
-public class ClimbingStairs {
-    
-    public int climbStairs(int n) {
-        if (n <= 2) {
-            return n;
-        }
-        
-        // Only need to track previous two values
-        int prev2 = 1;  // Ways to reach step 1
-        int prev1 = 2;  // Ways to reach step 2
-        
-        for (int i = 3; i <= n; i++) {
-            int current = prev1 + prev2;
-            prev2 = prev1;
-            prev1 = current;
-        }
-        
-        return prev1;
-    }
-    
-    /**
-     * Count ways with modulo to prevent overflow.
-     */
-    public int climbStairsMod(int n, int mod) {
-        if (n <= 2) {
-            return n;
-        }
-        
-        long prev2 = 1;
-        long prev1 = 2;
-        
-        for (int i = 3; i <= n; i++) {
-            long current = (prev1 + prev2) % mod;
-            prev2 = prev1;
-            prev1 = current;
-        }
-        
-        return (int) prev1;
-    }
-    
-    /**
-     * DP array approach - useful when you need all intermediate values.
-     */
-    public int climbStairsDP(int n) {
-        if (n <= 2) {
-            return n;
-        }
-        
-        int[] dp = new int[n + 1];
-        dp[1] = 1;
-        dp[2] = 2;
-        
-        for (int i = 3; i <= n; i++) {
-            dp[i] = dp[i - 1] + dp[i - 2];
-        }
-        
-        return dp[n];
-    }
-    
-    /**
-     * Memoization approach using recursion.
-     */
-    public int climbStairsMemo(int n) {
-        int[] memo = new int[n + 1];
-        return helper(n, memo);
-    }
-    
-    private int helper(int n, int[] memo) {
-        if (n <= 2) {
-            return n;
-        }
-        if (memo[n] != 0) {
-            return memo[n];
-        }
-        memo[n] = helper(n - 1, memo) + helper(n - 2, memo);
-        return memo[n];
-    }
-    
-    public static void main(String[] args) {
-        ClimbingStairs solution = new ClimbingStairs();
-        int[] testCases = {1, 2, 3, 4, 5, 10, 20};
-        
-        System.out.println("Climbing Stairs Results:");
-        System.out.println("------------------------------");
-        
-        for (int n : testCases) {
-            int result = solution.climbStairs(n);
-            System.out.printf("n = %2d: %d ways%n", n, result);
-        }
-    }
-}
-```
-
-<!-- slide -->
-```javascript
-/**
- * Count distinct ways to climb n stairs (1 or 2 steps at a time).
- * Space-optimized dynamic programming solution.
- * 
- * Time: O(n)
- * Space: O(1)
- */
-function climbStairs(n) {
-    if (n <= 2) {
-        return n;
-    }
-    
-    // Only need to track previous two values
-    let prev2 = 1;  // Ways to reach step 1
-    let prev1 = 2;  // Ways to reach step 2
-    
-    for (let i = 3; i <= n; i++) {
-        const current = prev1 + prev2;
-        prev2 = prev1;
-        prev1 = current;
-    }
-    
-    return prev1;
-}
-
-/**
- * Count ways with modulo to prevent overflow.
- */
-function climbStairsMod(n, mod = 1000000007) {
-    if (n <= 2) {
-        return n;
-    }
-    
-    let prev2 = 1;
-    let prev1 = 2;
-    
-    for (let i = 3; i <= n; i++) {
-        const current = (prev1 + prev2) % mod;
-        prev2 = prev1;
-        prev1 = current;
-    }
-    
-    return prev1;
-}
-
-/**
- * DP array approach - useful when you need all intermediate values.
- */
-function climbStairsDP(n) {
-    if (n <= 2) {
-        return n;
-    }
-    
-    const dp = new Array(n + 1);
-    dp[1] = 1;
-    dp[2] = 2;
-    
-    for (let i = 3; i <= n; i++) {
-        dp[i] = dp[i - 1] + dp[i - 2];
-    }
-    
-    return dp[n];
-}
-
-/**
- * Memoization approach using recursion.
- */
-function climbStairsMemo(n, memo = {}) {
-    if (n <= 2) {
-        return n;
-    }
-    if (memo[n] !== undefined) {
-        return memo[n];
-    }
-    memo[n] = climbStairsMemo(n - 1, memo) + climbStairsMemo(n - 2, memo);
-    return memo[n];
-}
-
-// Example usage
-const testCases = [1, 2, 3, 4, 5, 10, 20];
-
-console.log("Climbing Stairs Results:");
-console.log("-".repeat(30));
-
-testCases.forEach(n => {
-    const result = climbStairs(n);
-    console.log(`n = ${n.toString().padStart(2)}: ${result} ways`);
-});
-```
-````
-
----
-
-## Time Complexity Analysis
-
-| Approach | Time Complexity | Description |
-|----------|----------------|-------------|
-| **Naive Recursion** | O(2ⁿ) | Exponential - recalculates same subproblems |
-| **Memoization** | O(n) | Each subproblem computed once |
-| **Tabulation (DP)** | O(n) | Single pass through array |
-| **Space-Optimized** | O(n) | Same iterations, less space |
-| **Matrix Exponentiation** | O(log n) | Uses fast power algorithm |
-
-### Detailed Breakdown
-
-- **Single loop iteration**: We perform exactly n-2 iterations (for n > 2)
-- **Constant time operations**: Each iteration does O(1) work (addition, assignment)
-- **Total**: O(n) time complexity
-- **Space-optimized version**: O(1) extra space (just two variables)
-- **DP array version**: O(n) space for the array
-
----
-
-## Space Complexity Analysis
-
-| Approach | Space Complexity | Description |
-|----------|------------------|-------------|
-| **Naive Recursion** | O(n) | Recursion stack depth |
-| **Memoization** | O(n) | Cache array + recursion stack |
-| **Tabulation (DP)** | O(n) | DP array storage |
-| **Space-Optimized** | O(1) | Only two variables needed |
-| **Matrix Exponentiation** | O(1) | Constant extra space |
-
-### Space Optimization Insight
-
-Since `ways(n)` only depends on `ways(n-1)` and `ways(n-2)`, we don't need to store the entire array. Two variables are sufficient, reducing space from O(n) to O(1).
-
----
-
-## Common Variations
-
-### 1. Generalized Steps (1, 2, or 3 steps)
-
-When you can take 1, 2, or 3 steps at a time:
-
-````carousel
-```python
-def climb_stairs_three_steps(n: int) -> int:
-    """
-    Count ways when you can take 1, 2, or 3 steps.
-    Recurrence: ways(n) = ways(n-1) + ways(n-2) + ways(n-3)
-    """
-    if n <= 0:
-        return 0
-    if n == 1:
-        return 1
-    if n == 2:
-        return 2  # [1,1], [2]
-    if n == 3:
-        return 4  # [1,1,1], [1,2], [2,1], [3]
-    
-    prev3, prev2, prev1 = 1, 2, 4
-    
-    for _ in range(4, n + 1):
-        current = prev1 + prev2 + prev3
-        prev3 = prev2
-        prev2 = prev1
-        prev1 = current
-    
-    return prev1
-```
-
-<!-- slide -->
-```cpp
-int climbStairsThreeSteps(int n) {
-    if (n <= 0) return 0;
-    if (n == 1) return 1;
-    if (n == 2) return 2;
-    if (n == 3) return 4;
-    
-    long long prev3 = 1, prev2 = 2, prev1 = 4;
-    
-    for (int i = 4; i <= n; i++) {
-        long long current = prev1 + prev2 + prev3;
-        prev3 = prev2;
-        prev2 = prev1;
-        prev1 = current;
-    }
-    
-    return static_cast<int>(prev1);
-}
-```
-
-<!-- slide -->
-```java
-public int climbStairsThreeSteps(int n) {
-    if (n <= 0) return 0;
-    if (n == 1) return 1;
-    if (n == 2) return 2;
-    if (n == 3) return 4;
-    
-    int prev3 = 1, prev2 = 2, prev1 = 4;
-    
-    for (int i = 4; i <= n; i++) {
-        int current = prev1 + prev2 + prev3;
-        prev3 = prev2;
-        prev2 = prev1;
-        prev1 = current;
-    }
-    
-    return prev1;
-}
-```
-
-<!-- slide -->
-```javascript
-function climbStairsThreeSteps(n) {
-    if (n <= 0) return 0;
-    if (n === 1) return 1;
-    if (n === 2) return 2;
-    if (n === 3) return 4;
-    
-    let prev3 = 1, prev2 = 2, prev1 = 4;
-    
-    for (let i = 4; i <= n; i++) {
-        const current = prev1 + prev2 + prev3;
-        prev3 = prev2;
-        prev2 = prev1;
-        prev1 = current;
-    }
-    
-    return prev1;
-}
-```
-````
-
-### 2. Variable Step Costs
-
-When each step has a different cost, find minimum cost to reach the top:
-
-````carousel
-```python
-def min_cost_climbing_stairs(cost: list[int]) -> int:
-    """
-    Find minimum cost to reach the top where cost[i] is the cost of step i.
-    You can start from step 0 or 1, and pay cost to step on it.
-    """
-    n = len(cost)
-    if n <= 1:
-        return 0
-    
-    # dp[i] = min cost to reach step i
-    prev2 = cost[0]  # Cost to be on step 0
-    prev1 = cost[1]  # Cost to be on step 1
-    
-    for i in range(2, n):
-        current = cost[i] + min(prev1, prev2)
-        prev2 = prev1
-        prev1 = current
-    
-    # Can finish from either of the last two steps without paying
-    return min(prev1, prev2)
-```
-
-<!-- slide -->
-```cpp
-int minCostClimbingStairs(vector<int>& cost) {
-    int n = cost.size();
-    if (n <= 1) return 0;
-    
-    int prev2 = cost[0];
-    int prev1 = cost[1];
-    
-    for (int i = 2; i < n; i++) {
-        int current = cost[i] + min(prev1, prev2);
-        prev2 = prev1;
-        prev1 = current;
-    }
-    
-    return min(prev1, prev2);
-}
-```
-
-<!-- slide -->
-```java
-public int minCostClimbingStairs(int[] cost) {
-    int n = cost.length;
-    if (n <= 1) return 0;
-    
-    int prev2 = cost[0];
-    int prev1 = cost[1];
-    
-    for (int i = 2; i < n; i++) {
-        int current = cost[i] + Math.min(prev1, prev2);
-        prev2 = prev1;
-        prev1 = current;
-    }
-    
-    return Math.min(prev1, prev2);
-}
-```
-
-<!-- slide -->
-```javascript
-function minCostClimbingStairs(cost) {
-    const n = cost.length;
-    if (n <= 1) return 0;
-    
-    let prev2 = cost[0];
-    let prev1 = cost[1];
-    
-    for (let i = 2; i < n; i++) {
-        const current = cost[i] + Math.min(prev1, prev2);
-        prev2 = prev1;
-        prev1 = current;
-    }
-    
-    return Math.min(prev1, prev2);
-}
-```
-````
-
-### 3. Count Ways with Forbidden Steps
-
-When certain steps are broken/unsafe:
-
-````carousel
-```python
-def climb_stairs_with_forbidden(n: int, broken: set[int]) -> int:
-    """
-    Count ways when some steps are broken (cannot step on them).
-    """
-    if n in broken or n <= 0:
-        return 0
-    if n == 1:
-        return 0 if 1 in broken else 1
-    
-    # Use DP array since we need to check forbidden steps
-    dp = [0] * (n + 1)
-    dp[0] = 1  # One way to be at ground level
-    
-    for i in range(1, n + 1):
-        if i in broken:
-            dp[i] = 0
-        else:
-            dp[i] = dp[i - 1]
-            if i >= 2:
-                dp[i] += dp[i - 2]
-    
-    return dp[n]
-```
-
-<!-- slide -->
-```cpp
-int climbStairsWithForbidden(int n, vector<bool>& broken) {
-    if (n <= 0 || broken[n]) return 0;
-    
-    vector<long long> dp(n + 1, 0);
-    dp[0] = 1;
-    
-    for (int i = 1; i <= n; i++) {
-        if (broken[i]) {
-            dp[i] = 0;
-        } else {
-            dp[i] = dp[i - 1];
-            if (i >= 2) dp[i] += dp[i - 2];
-        }
-    }
-    
-    return static_cast<int>(dp[n]);
-}
-```
-
-<!-- slide -->
-```java
-public int climbStairsWithForbidden(int n, boolean[] broken) {
-    if (n <= 0 || broken[n]) return 0;
-    
-    long[] dp = new long[n + 1];
-    dp[0] = 1;
-    
-    for (int i = 1; i <= n; i++) {
-        if (broken[i]) {
-            dp[i] = 0;
-        } else {
-            dp[i] = dp[i - 1];
-            if (i >= 2) dp[i] += dp[i - 2];
-        }
-    }
-    
-    return (int) dp[n];
-}
-```
-
-<!-- slide -->
-```javascript
-function climbStairsWithForbidden(n, broken) {
-    if (n <= 0 || broken.has(n)) return 0;
-    
-    const dp = new Array(n + 1).fill(0);
-    dp[0] = 1;
-    
-    for (let i = 1; i <= n; i++) {
-        if (broken.has(i)) {
-            dp[i] = 0;
-        } else {
-            dp[i] = dp[i - 1];
-            if (i >= 2) dp[i] += dp[i - 2];
-        }
-    }
-    
-    return dp[n];
-}
-```
-````
+- **Integer overflow**: For large n, results exceed 64-bit integers (use modulo)
+- **Linear time for DP**: O(n) may be too slow for n > 10⁹ (use matrix exponentiation)
+- **Only works for additive patterns**: Different step rules need different approaches
 
 ---
 
@@ -813,7 +647,7 @@ function climbStairsWithForbidden(n, broken) {
 
 ---
 
-### Problem 3: Tribonacci Sequence
+### Problem 3: N-th Tribonacci Number
 
 **Problem:** [LeetCode 1137 - N-th Tribonacci Number](https://leetcode.com/problems/n-th-tribonacci-number/)
 
@@ -904,7 +738,6 @@ Time complexity: O(n × k), space: O(k) with sliding window optimization.
 ```python
 def fib_mod(n, mod):
     if n == 0: return 0
-    # Use fast doubling method
     def helper(k):
         if k == 0: return (0, 1)
         a, b = helper(k >> 1)
@@ -969,13 +802,3 @@ The **Climbing Stairs** problem is a fundamental dynamic programming problem tha
 - ❌ Not recognizing the Fibonacci pattern
 
 This pattern appears frequently in interviews and competitive programming. Mastering it provides a solid foundation for tackling more advanced dynamic programming problems.
-
----
-
-## Related Algorithms
-
-- [House Robber](./house-robber.md) - Maximum sum with constraints
-- [Coin Change](./coin-change.md) - Minimum coins for amount
-- [Unique Paths](./unique-paths.md) - 2D grid path counting
-- [Fibonacci Number](./fibonacci-number.md) - The underlying sequence
-- [Decode Ways](./decode-ways.md) - String decoding with DP
