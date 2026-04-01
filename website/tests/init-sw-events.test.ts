@@ -144,7 +144,7 @@ describe('Init Module - Service Worker Events', () => {
 
             // Simulate bundle ready event
             bundleReadyHandlers![0]({
-                version: '1.0.0',
+                bundleVersion: '1.0.0',
                 downloadedAt: Date.now(),
             });
 
@@ -161,8 +161,8 @@ describe('Init Module - Service Worker Events', () => {
             const bundleReadyHandlers = eventHandlers.get('bundleReady');
             
             // Fire bundleReady twice
-            bundleReadyHandlers![0]({ version: '1.0.0', downloadedAt: Date.now() });
-            bundleReadyHandlers![0]({ version: '1.0.1', downloadedAt: Date.now() });
+            bundleReadyHandlers![0]({ bundleVersion: '1.0.0', downloadedAt: Date.now() });
+            bundleReadyHandlers![0]({ bundleVersion: '1.0.1', downloadedAt: Date.now() });
 
             // Toast should only be shown once
             expect(showToast).toHaveBeenCalledTimes(1);
@@ -208,7 +208,7 @@ describe('Init Module - Service Worker Events', () => {
             expect(showToast).not.toHaveBeenCalled();
 
             // Then bundleReady fires (should show toast)
-            bundleReadyHandlers![0]({ version: '1.0.0', downloadedAt: Date.now() });
+            bundleReadyHandlers![0]({ bundleVersion: '1.0.0', downloadedAt: Date.now() });
             expect(showToast).toHaveBeenCalledTimes(1);
 
             // If updateAvailable fires again, no additional toast

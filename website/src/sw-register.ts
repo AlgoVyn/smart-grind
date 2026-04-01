@@ -9,7 +9,7 @@ import { getConnectivityChecker } from './sw/connectivity-checker';
 type SWEventMap = {
     authRequired: { message?: string };
     updateAvailable: { worker?: ServiceWorker | null; reason?: string };
-    bundleReady: { version?: string; downloadedAt?: number };
+    bundleReady: { bundleVersion?: string; downloadedAt?: number };
     swActivated: { version?: string; controlling: boolean };
     activated: { version?: string; controlling: boolean };
     syncStatus: { pendingCount: number; isSyncing: boolean; lastSyncAt: number | null };
@@ -477,7 +477,8 @@ function handleSWMessage(event: MessageEvent): void {
             break;
 
         case 'BUNDLE_READY':
-            emit('bundleReady', data);
+            // Extract the state object from the message data
+            emit('bundleReady', data?.state);
             break;
 
         case 'CONTENT_UPDATE':

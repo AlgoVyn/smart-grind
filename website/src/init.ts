@@ -448,11 +448,15 @@ const checkAuth = async () => {
 
     // Listen for bundle ready - show toast after offline bundle is fully extracted
     swRegister.on('bundleReady', (data: unknown) => {
-        const { version, downloadedAt } = (data || {}) as {
-            version?: string;
+        const { bundleVersion, downloadedAt } = (data || {}) as {
+            bundleVersion?: string;
             downloadedAt?: number;
         };
-        console.log('[Init] Bundle ready:', version, new Date(downloadedAt || 0).toLocaleString());
+        console.log(
+            '[Init] Bundle ready:',
+            bundleVersion,
+            downloadedAt ? new Date(downloadedAt).toLocaleString() : 'unknown'
+        );
 
         // Show toast only once (prevents duplicates from multiple events)
         if (!updateToastShown) {
