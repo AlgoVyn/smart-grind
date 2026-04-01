@@ -148,6 +148,40 @@ export async function setupAPIMocks(page: Page, options: MockOptions = {}): Prom
       body: JSON.stringify({ success: true }),
     });
   });
+
+  // Flashcards markdown files
+  await page.route('**/smartgrind/flashcards/*.md', async (route) => {
+    const url = route.request().url();
+    const cardId = url.split('/').pop()?.replace('.md', '') || 'unknown';
+    
+    // Return mock markdown content for any flashcard
+    await route.fulfill({
+      status: 200,
+      contentType: 'text/markdown',
+      body: `---
+title: "Flashcard: ${cardId}"
+difficulty: easy
+type: algorithm
+category: general
+---
+
+## Question
+
+What is the ${cardId} pattern/algorithm?
+
+## Answer
+
+This is a sample answer for ${cardId}. The actual implementation would depend on the specific problem requirements.
+
+## Key Points
+
+- Important concept 1
+- Important concept 2
+- Time complexity: O(n)
+- Space complexity: O(1)
+`,
+    });
+  });
 }
 
 /**

@@ -315,6 +315,7 @@ const createProblemCard = (_p: Problem): HTMLElement => {
     const { className, innerHTML } = htmlGenerators.generateProblemCardHTML(_p);
     el.className = className;
     el.dataset['problemId'] = _p.id;
+    el.dataset['testid'] = 'problem-card';
     // SECURITY: htmlGenerators.generateProblemCardHTML properly escapes all user data
     // via escapeHtml() before including in HTML content
     el.innerHTML = innerHTML;

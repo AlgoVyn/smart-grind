@@ -135,6 +135,10 @@ export const escapeHtml = (str: string): string =>
 export const safeGetItem = <T>(key: string, defaultValue: T): T => {
     try {
         const item = localStorage.getItem(key);
+        // Handle corrupted data from improper localStorage writes
+        if (item === '[object Object]') {
+            return defaultValue;
+        }
         return item ? JSON.parse(item) : defaultValue;
     } catch {
         return defaultValue;

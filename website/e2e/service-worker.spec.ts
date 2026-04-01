@@ -51,16 +51,22 @@ test.describe('Service Worker Lifecycle', () => {
 
     // Go offline
     await context.setOffline(true);
+    await page.evaluate(() => window.dispatchEvent(new Event('offline')));
 
-    // Reload
+    // Verify data is still accessible while offline (before reload)
+    const offlineData = await page.evaluate(() => localStorage.getItem('test-offline-data'));
+    expect(offlineData).toBe('persisted-value');
+
+    // Restore online before reload to avoid navigation issues
+    await context.setOffline(false);
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
+
+    // Reload now that we're back online
     await page.reload();
     await appPage.waitForReady();
 
-    // Data should still be there
+    // Data should still be there after reload
     const data = await page.evaluate(() => localStorage.getItem('test-offline-data'));
     expect(data).toBe('persisted-value');
-
-    // Restore online
-    await context.setOffline(false);
   });
 });

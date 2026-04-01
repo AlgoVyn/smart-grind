@@ -49,10 +49,11 @@ export class VirtualProblemList {
             (element) => this.cleanupItem(element)
         );
 
-        // Set up container
+        // Set up container - use overflow: hidden to prevent double scrollbars
+        // Virtual scrolling manages scroll through the parent scroll container
         container.innerHTML = '';
         container.style.position = 'relative';
-        container.style.overflow = 'auto';
+        container.style.overflow = 'hidden';
 
         // Attach scroller
         const scrollContainer = (container.closest('.overflow-y-auto') as HTMLElement) || container;

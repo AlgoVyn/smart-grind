@@ -202,16 +202,25 @@ test.describe('Offline Functionality', () => {
         await context.setOffline(true);
         await page.evaluate(() => window.dispatchEvent(new Event('offline')));
 
-        // Toggle theme while offline
-        await page.locator('#theme-toggle-btn').click();
-        const offlineClasses = await page.locator('html').getAttribute('class');
-
-        // Theme should have toggled
-        if (initialIsDark) {
-            expect(offlineClasses).not.toContain('dark');
-        } else {
-            expect(offlineClasses).toContain('dark');
-        }
+        // Toggle theme while offline using JavaScript click for reliability
+        await page.locator('#theme-toggle-btn').evaluate((el: HTMLElement) => {
+            el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        });
+        await page.waitForTimeout(800);
+        
+        // Wait for theme change with polling
+        await expect.poll(
+            async () => {
+                const classes = await page.locator('html').getAttribute('class');
+                const hasDark = classes?.includes('dark') || false;
+                return hasDark;
+            },
+            {
+                message: 'Theme did not toggle while offline',
+                timeout: 10000,
+                intervals: [100, 200, 500],
+            }
+        ).toBe(!initialIsDark);
 
         // Verify localStorage was updated
         const savedTheme = await page.evaluate(() => localStorage.getItem('theme'));
@@ -223,12 +232,18 @@ test.describe('Offline Functionality', () => {
         await page.reload();
         await waitForAppReady(page);
 
-        const reloadedClasses = await page.locator('html').getAttribute('class');
-        if (initialIsDark) {
-            expect(reloadedClasses).not.toContain('dark');
-        } else {
-            expect(reloadedClasses).toContain('dark');
-        }
+        // Verify theme persisted after reload using polling
+        await expect.poll(
+            async () => {
+                const classes = await page.locator('html').getAttribute('class');
+                return classes?.includes('dark') || false;
+            },
+            {
+                message: 'Theme did not persist after reload',
+                timeout: 10000,
+                intervals: [100, 200, 500],
+            }
+        ).toBe(!initialIsDark);
     });
 
     test('should show sign-in modal when background sync fails due to auth error', async ({

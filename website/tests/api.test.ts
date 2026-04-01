@@ -78,6 +78,19 @@ jest.mock('../src/renderers', () => {
 // Import the mocked module for test access
 import * as renderersMod from '../src/renderers';
 
+// Mock the api module to add spies on queueOperation and forceSync
+jest.mock('../src/api', () => {
+    const actualApi = jest.requireActual('../src/api');
+    return {
+        ...actualApi,
+        queueOperation: jest.fn().mockResolvedValue('op-id'),
+        forceSync: jest.fn().mockResolvedValue({ success: true, synced: 1, failed: 0 }),
+    };
+});
+
+// Import the mocked api module for test access
+import * as apiModule from '../src/api';
+
 // Mock the utils module
 jest.mock('../src/utils', () => ({
     updateUrlParameter: jest.fn(),
@@ -417,11 +430,9 @@ describe('SmartGrind API Module', () => {
             const onStatsUpdateMock = jest.fn();
             registerSaveCallbacks({ onStatsUpdate: onStatsUpdateMock });
 
-            // Mock the dynamic import of api module
-            jest.mock('../src/api', () => ({
-                queueOperation: jest.fn().mockResolvedValue('op-id'),
-                forceSync: jest.fn().mockResolvedValue({ success: true, synced: 1, failed: 0 }),
-            }));
+            // Reset the api module mocks before the test
+            (apiModule.queueOperation as jest.Mock).mockClear().mockResolvedValue('op-id');
+            (apiModule.forceSync as jest.Mock).mockClear().mockResolvedValue({ success: true, synced: 1, failed: 0 });
 
             await apiSave._performSave();
 
@@ -433,10 +444,8 @@ describe('SmartGrind API Module', () => {
         test('should handle background sync trigger failure gracefully', async () => {
             state.user.type = 'signed-in';
 
-            // Mock the dynamic import to fail
-            jest.mock('../src/api', () => {
-                throw new Error('Import failed');
-            });
+            // Mock the dynamic import to fail by making queueOperation throw
+            (apiModule.queueOperation as jest.Mock).mockRejectedValue(new Error('Import failed'));
 
             // Should not throw - background sync is non-blocking
             await expect(apiSave._performSave()).resolves.not.toThrow();
@@ -991,16 +1000,30 @@ describe('SmartGrind API Module', () => {
     });
 
     describe('Sync Debounce', () => {
-        test('_resetDebounceState should clear pending timer and data', () => {
-            // Set up some state
+        beforeEach(() => {
+            // Reset debounce state before each test
+            apiSave._resetDebounceState();
+            jest.clearAllMocks();
+        });
+
+        afterEach(() => {
+            apiSave._resetDebounceState();
+        });
+
+        test('_resetDebounceState should clear pending timer and data', async () => {
+            // Set up some state by triggering background sync
+            state.user.type = 'signed-in';
             apiSave._triggerBackgroundSync();
 
             // Reset should clear it
             apiSave._resetDebounceState();
 
-            // Verify state is cleared (indirectly via flushPendingSync not making calls)
-            // This test just verifies the reset function doesn't throw
-            expect(true).toBe(true);
+            // Verify state is cleared by flushing - should not trigger any API calls
+            await apiSave.flushPendingSync();
+            
+            // Verify no API calls were made since data was cleared
+            expect(mockFetch).not.toHaveBeenCalled();
+            expect(apiModule.queueOperation).not.toHaveBeenCalled();
         });
 
         test('flushPendingSync should handle no pending data gracefully', async () => {
@@ -1012,16 +1035,44 @@ describe('SmartGrind API Module', () => {
             expect(mockFetch).not.toHaveBeenCalled();
         });
 
-        test('_triggerBackgroundSync should set pending data', async () => {
+        test('_triggerBackgroundSync should set pending data that flushPendingSync can execute', async () => {
             apiSave._resetDebounceState();
             state.user.type = 'signed-in';
+            
+            // Reset api module mocks
+            (apiModule.queueOperation as jest.Mock).mockClear().mockResolvedValue('op-id');
+            (apiModule.forceSync as jest.Mock).mockClear().mockResolvedValue({ success: true });
 
-            // Trigger background sync
+            // Trigger background sync - this sets up pending data
             apiSave._triggerBackgroundSync();
 
-            // Immediately flush and verify it would have synced
-            // (We're testing that the debounce mechanism captures data)
-            expect(true).toBe(true);
+            // Immediately flush and verify it syncs
+            await apiSave.flushPendingSync();
+            
+            // Verify that the sync was attempted
+            expect(apiModule.queueOperation).toHaveBeenCalled();
+
+            // Clean up
+            apiSave._resetDebounceState();
+        });
+
+        test('_triggerBackgroundSync should debounce multiple rapid calls', async () => {
+            apiSave._resetDebounceState();
+            state.user.type = 'signed-in';
+            
+            // Reset api module mocks
+            (apiModule.queueOperation as jest.Mock).mockClear().mockResolvedValue('op-id');
+
+            // Trigger multiple background syncs rapidly
+            apiSave._triggerBackgroundSync();
+            apiSave._triggerBackgroundSync();
+            apiSave._triggerBackgroundSync();
+
+            // Flush once should handle all pending data
+            await apiSave.flushPendingSync();
+            
+            // queueOperation should only be called once due to debouncing clearing pending data
+            expect(apiModule.queueOperation).toHaveBeenCalledTimes(1);
 
             // Clean up
             apiSave._resetDebounceState();

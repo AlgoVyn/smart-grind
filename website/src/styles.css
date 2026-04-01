@@ -3033,3 +3033,66 @@ code:focus-visible {
 #loading-screen:focus-visible {
     outline: none;
 }
+
+/* ============================================
+   ERROR BOUNDARY STYLES
+   ============================================ */
+
+.error-boundary-fallback {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.error-boundary-fallback .error-retry-btn,
+.error-boundary-fallback .error-reload-btn {
+    transition: all 0.2s ease;
+}
+
+.error-boundary-fallback .error-retry-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 133, 208, 0.3);
+}
+
+.error-boundary-fallback .error-reload-btn:hover {
+    transform: translateY(-1px);
+}
+
+.error-boundary-fallback details summary {
+    user-select: none;
+}
+
+.error-boundary-fallback details[open] summary {
+    margin-bottom: 0.5rem;
+}
+
+/* Error state indicator on containers */
+.has-error-boundary-fallback {
+    position: relative;
+}
+
+.has-error-boundary-fallback::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid rgba(239, 68, 68, 0.3);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Error fallback loading state */
+.error-boundary-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+/* Application error boundary specific styles */
+.error-fallback {
+    animation: fadeIn 0.3s ease-out;
+    max-width: 600px;
+    margin: 2rem auto;
+}

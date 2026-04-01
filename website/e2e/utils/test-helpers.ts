@@ -5,7 +5,7 @@
  * Includes DOM helpers, wait conditions, and state management.
  */
 
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 
 // Default timeouts
 export const DEFAULT_TIMEOUT = 15000;
@@ -297,17 +297,28 @@ export async function waitForAttribute(
 }
 
 /**
- * Verify theme is set correctly
+ * Verify theme is set correctly using polling
  */
 export async function verifyTheme(page: Page, expectedTheme: 'light' | 'dark'): Promise<void> {
-  const htmlClasses = await page.locator('html').getAttribute('class');
-  const hasDarkClass = htmlClasses?.includes('dark') || false;
+  const htmlLocator = page.locator('html');
   
-  if (expectedTheme === 'dark') {
-    if (!hasDarkClass) throw new Error('Expected dark theme but got light');
-  } else {
-    if (hasDarkClass) throw new Error('Expected light theme but got dark');
-  }
+  await expect.poll(
+    async () => {
+      try {
+        const htmlClasses = await htmlLocator.getAttribute('class', { timeout: 2000 });
+        const hasDarkClass = htmlClasses?.includes('dark') || false;
+        return hasDarkClass;
+      } catch {
+        // If getAttribute fails, return current expectation's inverse to trigger retry
+        return expectedTheme === 'light';
+      }
+    },
+    {
+      message: `Expected ${expectedTheme} theme but theme did not change in time`,
+      timeout: 15000,
+      intervals: [100, 200, 500, 1000],
+    }
+  ).toBe(expectedTheme === 'dark');
 }
 
 /**

@@ -12,15 +12,15 @@
     <!-- Content Security Policy -->
     <!-- SECURITY: CSP prevents XSS by controlling resource loading -->
     <!-- - 'unsafe-inline' is required for inline theme script (could use nonce with SSR) -->
-    <!-- - External CDNs are trusted sources only -->
+    <!-- - Marked and PrismJS are now bundled for offline support -->
     <!-- - frame-src allows Google OAuth popup -->
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; 
-                 script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; 
+                 script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; 
                  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
                  font-src 'self' https://fonts.gstatic.com; 
                  img-src 'self' https://algovyn.com data: blob:; 
-                 connect-src 'self' https://algovyn.com https://leetcode.com https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; 
+                 connect-src 'self' https://algovyn.com https://leetcode.com https://fonts.googleapis.com https://static.cloudflareinsights.com; 
                  frame-src https://accounts.google.com; 
                  object-src 'none'; 
                  base-uri 'self';
@@ -971,30 +971,7 @@
         </button>
     </div>
 
-    <!-- LOGIC -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"
-        integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+"
-        crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
-        integrity="sha384-06z5D//U/xpvxZHuUz92xBvq3DqBBFi7Up53HRrbV7Jlv7Yvh/MZ7oenfUe9iCEt"
-        crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"
-        integrity="sha384-7LHwxHIDSHTBleLmgDWZbC/IMJsfYfFVOihKhvsrxYW4j47YQcRwZja4ToFE3bA8" crossorigin="anonymous"
-        referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"
-        integrity="sha384-gaD4ncierlmWk42Z3BmTp37/z+Dqt8V4Wf74UjTvFeo+M+SgnEI6Ysd98pWhksQv" crossorigin="anonymous"
-        referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"
-        integrity="sha384-NiOrAquf32LSG3Vuig99LKS03EZPUuM8a51NOp+XXsqx08hUVo3wbNWALY7K/2J8" crossorigin="anonymous"
-        referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"
-        integrity="sha384-DioAMZB4yk91W6LuFit5wJDh8c5Ov09f/MBvja94y0PodMqTpTZeBeejqpRUru7D" crossorigin="anonymous"
-        referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"
-        integrity="sha384-WJdEkJKrbsqw0evQ4GB6mlsKe5cGTxBOw4KAEIa52ZLB7DDpliGkwdme/HMa5n1m" crossorigin="anonymous"
-        referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Dependencies (marked, prismjs) are now bundled via npm for offline PWA support -->
     <script type="module" src="/src/main.ts"></script>
 </body>
 

@@ -32,6 +32,25 @@ const PENDING_OPS_KEY = 'pending-operations';
 const generateOperationId = (): string =>
     `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
+/**
+ * Safely parse pending operations from localStorage
+ */
+const safeParsePendingOps = (): APIOperation[] => {
+    try {
+        const rawValue = localStorage.getItem(PENDING_OPS_KEY);
+        // Handle corrupted data from improper localStorage writes
+        if (rawValue === '[object Object]') {
+            localStorage.removeItem(PENDING_OPS_KEY);
+            return [];
+        }
+        return JSON.parse(rawValue || '[]');
+    } catch {
+        // Clear corrupted data on parse failure
+        localStorage.removeItem(PENDING_OPS_KEY);
+        return [];
+    }
+};
+
 // ============================================================================
 // REQUEST DEDUPLICATION
 // Prevents redundant API calls for the same operation in flight
@@ -103,7 +122,7 @@ export function clearDedupCache(): void {
 
 /** Stores operations in localStorage fallback (when SW is unavailable) */
 const storeOperationsLocally = (operations: APIOperation[]): string[] => {
-    const pendingOps = JSON.parse(localStorage.getItem(PENDING_OPS_KEY) || '[]');
+    const pendingOps = safeParsePendingOps();
 
     if (pendingOps.length + operations.length > MAX_PENDING_OPERATIONS) {
         throw new Error(
@@ -198,7 +217,7 @@ export const queueOperations = (operations: APIOperation[]): Promise<string[]> =
  */
 export async function getSyncStatus(): Promise<SyncStatus | null> {
     if (!isServiceWorkerAvailable()) {
-        const pendingOps = JSON.parse(localStorage.getItem(PENDING_OPS_KEY) || '[]');
+        const pendingOps = safeParsePendingOps();
         return {
             pendingCount: pendingOps.length,
             isSyncing: false,
@@ -230,7 +249,7 @@ export async function updateSyncStatus(): Promise<void> {
  */
 export async function forceSync(): Promise<{ success: boolean; synced: number; failed: number }> {
     if (!isServiceWorkerAvailable()) {
-        const pendingOps = JSON.parse(localStorage.getItem(PENDING_OPS_KEY) || '[]');
+        const pendingOps = safeParsePendingOps();
         if (pendingOps.length === 0) return { success: true, synced: 0, failed: 0 };
         return { success: false, synced: 0, failed: pendingOps.length };
     }
@@ -317,7 +336,7 @@ export async function deleteProblemWithSync(problemId: string): Promise<void> {
 
 /** Migrates operations stored in localStorage to the service worker queue. */
 async function migrateLocalStorageOperations(): Promise<void> {
-    const pendingOps = JSON.parse(localStorage.getItem(PENDING_OPS_KEY) || '[]');
+    const pendingOps = safeParsePendingOps();
     if (pendingOps.length === 0) return;
     if (!isServiceWorkerAvailable()) return;
 

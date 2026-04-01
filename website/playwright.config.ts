@@ -14,7 +14,7 @@ import path from 'path';
 
 // Environment detection
 const IS_CI = !!process.env.CI;
-const TEST_WORKERS = parseInt(process.env.TEST_WORKERS || '1', 10);
+const TEST_WORKERS = parseInt(process.env.TEST_WORKERS || '8', 10);
 const TEST_TIMEOUT = parseInt(process.env.TEST_TIMEOUT || '60000', 10);
 
 // Select projects based on environment or command line

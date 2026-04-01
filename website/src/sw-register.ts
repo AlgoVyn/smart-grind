@@ -656,7 +656,21 @@ export function isOffline(): boolean {
  * @returns {Promise<number>} Number of operations migrated
  */
 export async function migrateLocalStorageOperations(): Promise<number> {
-    const pendingOps = JSON.parse(localStorage.getItem('pending-operations') || '[]');
+    let pendingOps: unknown[] = [];
+    try {
+        const rawValue = localStorage.getItem('pending-operations');
+        // Handle corrupted data from improper localStorage writes
+        if (rawValue === '[object Object]') {
+            localStorage.removeItem('pending-operations');
+            return 0;
+        }
+        pendingOps = JSON.parse(rawValue || '[]');
+    } catch {
+        // Clear corrupted data on parse failure
+        localStorage.removeItem('pending-operations');
+        return 0;
+    }
+
     if (pendingOps.length === 0) return 0;
 
     // Check if service worker is now available

@@ -188,6 +188,7 @@ export const sidebarRenderers = {
         header.type = 'button';
         header.className =
             'sidebar-section-header w-full flex items-center justify-between cursor-pointer';
+        header.dataset['testid'] = 'sidebar-section-header';
         header.innerHTML = `
             <div class="flex items-center gap-2">
                 <svg aria-hidden="true" class="sidebar-chevron w-4 h-4 text-theme-muted transition-transform duration-200 ${expanded ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">

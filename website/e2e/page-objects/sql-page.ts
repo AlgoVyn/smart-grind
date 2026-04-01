@@ -49,7 +49,8 @@ export class SQLPage extends BasePage {
   async expandSQLSection(): Promise<void> {
     const header = this.sqlSectionHeader.locator('.sidebar-section-header').first();
     await header.click();
-    await this.page.waitForTimeout(200);
+    // Wait for section to expand
+    await this.page.waitForSelector('.sidebar-collapsible-section.expanded, [aria-expanded="true"]', { timeout: 1000 }).catch(() => {});
   }
 
   /**
@@ -58,7 +59,8 @@ export class SQLPage extends BasePage {
   async clickSQLCategory(categoryId: string): Promise<void> {
     const link = this.page.locator(`.sidebar-link[data-topic="${categoryId}"], a[href*="/s/${categoryId}"]`).first();
     await link.click();
-    await this.page.waitForTimeout(300);
+    // Wait for navigation
+    await this.page.waitForURL(new RegExp(`s/${categoryId}`), { timeout: 3000 }).catch(() => {});
   }
 
   /**
@@ -67,7 +69,8 @@ export class SQLPage extends BasePage {
   async clickAllSQL(): Promise<void> {
     const link = this.page.locator('text=All SQL').first();
     await link.click();
-    await this.page.waitForTimeout(300);
+    // Wait for SQL view to load
+    await this.page.waitForSelector('.sql-view, [data-view="sql"]', { timeout: 3000 }).catch(() => {});
   }
 
   /**
@@ -97,7 +100,8 @@ export class SQLPage extends BasePage {
   async toggleProblemStatus(index: number): Promise<void> {
     const toggle = this.sqlStatusToggles.nth(index);
     await toggle.click();
-    await this.page.waitForTimeout(200);
+    // Wait for status change to be reflected in UI
+    await this.page.waitForLoadState('domcontentloaded', { timeout: 500 }).catch(() => {});
   }
 
   /**

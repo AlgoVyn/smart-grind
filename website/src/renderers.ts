@@ -10,6 +10,16 @@ export { statsRenderers } from './renderers/stats';
 export { sqlViewRenderers } from './renderers/sql-view';
 export { combinedViewRenderers } from './renderers/combined-view';
 
+// Error Boundaries for safe rendering
+export {
+    RendererErrorBoundary,
+    createRendererErrorBoundaries,
+    withErrorBoundary,
+    type ErrorBoundaryOptions,
+    type ErrorInfo,
+    type RenderResult,
+} from './lib/renderer-error-boundary';
+
 import { sidebarRenderers } from './renderers/sidebar';
 import { mainViewRenderers } from './renderers/main-view';
 import { statsRenderers } from './renderers/stats';
@@ -17,6 +27,10 @@ import { combinedViewRenderers } from './renderers/combined-view';
 import { sqlViewRenderers } from './renderers/sql-view';
 import { htmlGenerators } from './renderers/html-generators';
 import { problemCardRenderers } from './renderers/problem-cards';
+import {
+    RendererErrorBoundary,
+    createRendererErrorBoundaries,
+} from './lib/renderer-error-boundary';
 
 // Direct exports of commonly used functions
 export const renderSidebar = sidebarRenderers.renderSidebar;
@@ -31,7 +45,7 @@ export const updateStats = statsRenderers.updateStats;
 export const renderCombinedView = combinedViewRenderers.renderCombinedView;
 export const renderSQLView = sqlViewRenderers.renderSQLView;
 
-// Backward-compatible renderers object
+// Backward-compatible renderers object with error boundary integration
 export const renderers = {
     ...mainViewRenderers,
     ...problemCardRenderers,
@@ -40,4 +54,10 @@ export const renderers = {
     ...statsRenderers,
     ...sqlViewRenderers,
     ...combinedViewRenderers,
+    // Error boundary utilities
+    RendererErrorBoundary,
+    createRendererErrorBoundaries,
 };
+
+// Initialize error boundaries for main containers on module load
+export const rendererErrorBoundaries = createRendererErrorBoundaries();

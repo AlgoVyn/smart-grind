@@ -32,6 +32,10 @@ export default defineConfig({
                     if (id.includes('/api.ts') && !id.includes('/sw/')) {
                         return 'api';
                     }
+                    // BUNDLED DEPENDENCIES: marked and prismjs for offline support
+                    if (id.includes('marked') || id.includes('prismjs')) {
+                        return 'markdown';
+                    }
                     return undefined;
                 },
                 // Ensure consistent chunk naming

@@ -5,7 +5,7 @@
  * Provides methods for interacting with the main app UI.
  */
 
-import { Locator } from '@playwright/test';
+import { Locator, expect } from '@playwright/test';
 import { BasePage } from './base-page';
 import { SHORT_TIMEOUT, verifyTheme } from '../utils/test-helpers';
 
@@ -101,8 +101,8 @@ export class AppPage extends BasePage {
    */
   async search(query: string): Promise<void> {
     await this.searchInput.fill(query);
-    // Wait for debounce
-    await this.page.waitForTimeout(300);
+    // Wait for debounce and search to apply using networkidle instead of fixed timeout
+    await this.page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
   }
 
   /**
@@ -123,9 +123,32 @@ export class AppPage extends BasePage {
    * Toggle theme between light and dark
    */
   async toggleTheme(): Promise<void> {
-    await this.themeToggle.click();
+    // Get initial theme state
+    const initialClasses = await this.page.locator('html').getAttribute('class');
+    const initialIsDark = initialClasses?.includes('dark') || false;
+    
+    // Wait for any loading to complete
+    await this.page.waitForLoadState('networkidle').catch(() => {});
+    
+    // Click the theme toggle
+    await this.themeToggle.evaluate((el: HTMLElement) => {
+      el.scrollIntoView({ behavior: 'instant', block: 'center' });
+      el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    });
+    
+    // Wait for theme change with polling instead of fixed timeout
+    await expect.poll(
+      async () => {
+        const classes = await this.page.locator('html').getAttribute('class');
+        return classes?.includes('dark') || false;
+      },
+      {
+        message: 'Theme did not change after toggle',
+        timeout: 5000,
+        intervals: [50, 100, 200],
+      }
+    ).toBe(!initialIsDark);
   }
-
   /**
    * Verify current theme
    */
@@ -145,8 +168,8 @@ export class AppPage extends BasePage {
     }[filter];
     
     await button.click();
-    // Wait for filter to apply
-    await this.page.waitForTimeout(200);
+    // Wait for filter to apply using networkidle instead of fixed timeout
+    await this.page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
   }
 
   /**
@@ -165,19 +188,11 @@ export class AppPage extends BasePage {
 
   /**
    * Get visible problem count (excluding filtered out)
+   * Optimized using Playwright's :visible pseudo-class
    */
   async getVisibleProblemCount(): Promise<number> {
-    const cards = this.getProblemCards();
-    const allCards = await cards.all();
-    let visibleCount = 0;
-    
-    for (const card of allCards) {
-      if (await card.isVisible()) {
-        visibleCount++;
-      }
-    }
-    
-    return visibleCount;
+    // Use native Playwright visible selector for better performance
+    return this.page.locator('.problem-card:visible').count();
   }
 
   /**
@@ -228,10 +243,46 @@ export class AppPage extends BasePage {
    * Click sidebar category
    */
   async clickCategory(categoryId: string): Promise<void> {
-    const categoryLink = this.page.locator(`.sidebar-link[data-topic="${categoryId}"]`);
+    const categoryLink = this.page.locator(`.sidebar-link[data-topic-id="${categoryId}"]`);
     await categoryLink.click();
-    // Wait for navigation
-    await this.page.waitForTimeout(200);
+    // Wait for navigation to complete
+    await this.page.waitForURL(new RegExp(`c/${categoryId}`), { timeout: 3000 }).catch(() => {});
+  }
+
+  /**
+   * Navigate to SQL section
+   * Returns true if navigation successful, false if SQL section not found
+   */
+  async navigateToSQLSection(): Promise<boolean> {
+    const sqlLink = this.page.locator('.sidebar-link').filter({ hasText: /SQL/i }).first();
+    const count = await sqlLink.count();
+    
+    if (count === 0) {
+      return false;
+    }
+    
+    await sqlLink.click();
+    
+    // Wait for navigation using URL pattern instead of arbitrary timeout
+    try {
+      await this.page.waitForURL(/s\//, { timeout: 3000 });
+      await this.page.waitForSelector('.sql-view, [data-view="sql"], .sql-problems', { 
+        state: 'visible', 
+        timeout: 3000 
+      });
+    } catch (error) {
+      // Navigation or selector failed
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Get SQL section link locator (for checking existence)
+   */
+  getSQLSectionLink(): Locator {
+    return this.page.locator('.sidebar-link').filter({ hasText: /SQL/i }).first();
   }
 
   /**
@@ -294,7 +345,9 @@ export class AppPage extends BasePage {
     const mobileMenuBtn = this.page.locator('#mobile-menu-btn, #mobile-menu-btn-main').first();
     if (await mobileMenuBtn.isVisible()) {
       // Scroll into view if needed and force click
-      await mobileMenuBtn.scrollIntoViewIfNeeded().catch(() => {});
+      await mobileMenuBtn.scrollIntoViewIfNeeded().catch((error) => {
+        console.error('[AppPage] Error scrolling mobile menu into view:', error);
+      });
       await mobileMenuBtn.click({ force: true });
     }
   }

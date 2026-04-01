@@ -473,21 +473,64 @@ describe('SmartGrind Utils', () => {
     });
 
     describe('copyToClipboard', () => {
+        let writeTextSpy: jest.SpyInstance;
+        let execCommandSpy: jest.SpyInstance;
+        let showToastSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            // Reset all mocks
+            jest.clearAllMocks();
+            
+            // Spy on clipboard API
+            writeTextSpy = jest.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+            // Spy on execCommand
+            execCommandSpy = jest.spyOn(document, 'execCommand').mockReturnValue(true);
+            // Spy on showToast - we need to spy on the actual imported function
+            showToastSpy = jest.spyOn({ showToast }, 'showToast').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            writeTextSpy.mockRestore();
+            execCommandSpy.mockRestore();
+            showToastSpy.mockRestore();
+        });
+
         test('calls clipboard API with provided text', async () => {
             const text = 'Test prompt';
             
-            // Just verify the clipboard API is called - toast handling is tested separately
-            (navigator.clipboard.writeText as jest.Mock).mockResolvedValue(undefined);
+            // Mock successful clipboard write
+            writeTextSpy.mockResolvedValue(undefined);
             
-            // We can't easily test the full flow due to toast dependencies,
-            // but we can verify the clipboard API was invoked
-            try {
-                await copyToClipboard(text);
-            } catch {
-                // Expected to fail due to mock limitations
-            }
+            // Call the function
+            await copyToClipboard(text);
 
-            expect(navigator.clipboard.writeText).toHaveBeenCalledWith(text);
+            // Verify the clipboard API was called with the correct text
+            expect(writeTextSpy).toHaveBeenCalledWith(text);
+        });
+
+        test('falls back to execCommand when clipboard API fails', async () => {
+            const text = 'Test prompt';
+            
+            // Mock clipboard API to fail
+            writeTextSpy.mockRejectedValue(new Error('Clipboard failed'));
+            
+            // Call the function
+            await copyToClipboard(text);
+
+            // Verify execCommand was called as fallback
+            expect(execCommandSpy).toHaveBeenCalledWith('copy');
+        });
+
+        test('handles execCommand failure gracefully', async () => {
+            const text = 'Test prompt';
+            
+            // Mock clipboard API to fail
+            writeTextSpy.mockRejectedValue(new Error('Clipboard failed'));
+            // Mock execCommand to fail
+            execCommandSpy.mockReturnValue(false);
+            
+            // Call the function - should not throw
+            await expect(copyToClipboard(text)).resolves.not.toThrow();
         });
     });
 
@@ -565,9 +608,30 @@ describe('SmartGrind Utils', () => {
     });
 
     describe('askAI', () => {
+        let originalUserAgent: string;
+        let windowOpenSpy: jest.SpyInstance;
+        let consoleSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            originalUserAgent = navigator.userAgent;
+            consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            // Restore all mocks
+            consoleSpy.mockRestore();
+            if (windowOpenSpy) {
+                windowOpenSpy.mockRestore();
+            }
+            // Restore original user agent
+            Object.defineProperty(navigator, 'userAgent', {
+                value: originalUserAgent,
+                configurable: true,
+            });
+        });
+
         test('asks Gemini on desktop', async () => {
             // Ensure desktop user agent
-            const originalUserAgent = navigator.userAgent;
             Object.defineProperty(navigator, 'userAgent', {
                 value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 configurable: true,
@@ -575,9 +639,7 @@ describe('SmartGrind Utils', () => {
 
             const problemName = 'Two Sum';
             const provider = 'aistudio';
-            const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
-
-            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+            windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
 
             await askAI(problemName, provider);
 
@@ -586,20 +648,10 @@ describe('SmartGrind Utils', () => {
                 'https://aistudio.google.com/prompts/new_chat?prompt=Explain%20the%20solution%20for%20LeetCode%20problem%3A%20%22Two%20Sum%22.%20Provide%20the%20detailed%20problem%20statement%2C%20examples%2C%20intuition%2C%20multiple%20approaches%20with%20code%2C%20and%20time%2Fspace%20complexity%20analysis.%20Include%20related%20problems%2C%20video%20tutorial%20links%20and%20followup%20questions%20with%20brief%20answers%20without%20code.',
                 '_blank'
             );
-
-            consoleSpy.mockRestore();
-            windowOpenSpy.mockRestore();
-
-            // Restore original user agent
-            Object.defineProperty(navigator, 'userAgent', {
-                value: originalUserAgent,
-                configurable: true,
-            });
         });
 
         test('asks Grok on desktop', async () => {
             // Ensure desktop user agent
-            const originalUserAgent = navigator.userAgent;
             Object.defineProperty(navigator, 'userAgent', {
                 value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 configurable: true,
@@ -607,9 +659,7 @@ describe('SmartGrind Utils', () => {
 
             const problemName = 'Two Sum';
             const provider = 'grok';
-            const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
-
-            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+            windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
 
             await askAI(problemName, provider);
 
@@ -618,15 +668,6 @@ describe('SmartGrind Utils', () => {
                 'https://grok.com/?q=Explain%20the%20solution%20for%20LeetCode%20problem%3A%20%22Two%20Sum%22.%20Provide%20the%20detailed%20problem%20statement%2C%20examples%2C%20intuition%2C%20multiple%20approaches%20with%20code%2C%20and%20time%2Fspace%20complexity%20analysis.%20Include%20related%20problems%2C%20video%20tutorial%20links%20and%20followup%20questions%20with%20brief%20answers%20without%20code.',
                 '_blank'
             );
-
-            consoleSpy.mockRestore();
-            windowOpenSpy.mockRestore();
-
-            // Restore original user agent
-            Object.defineProperty(navigator, 'userAgent', {
-                value: originalUserAgent,
-                configurable: true,
-            });
         });
     });
 });

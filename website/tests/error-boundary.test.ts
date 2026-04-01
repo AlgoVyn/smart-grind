@@ -64,7 +64,7 @@ describe('Error Boundary Module', () => {
             const result = await errorBoundary.execute(mockFn);
 
             expect(result).toBeNull();
-            expect(console.error).toHaveBeenCalledWith('ErrorBoundary caught an error:', error);
+            expect(console.error).toHaveBeenCalledWith('[AppErrorBoundary] Caught error:', error);
             expect(mockShowAlert).toHaveBeenCalledWith('An error occurred: Test error');
         });
 
@@ -87,7 +87,7 @@ describe('Error Boundary Module', () => {
             await errorBoundary.execute(mockFn);
 
             expect(mockContainer.innerHTML).toContain('error-fallback');
-            expect(mockContainer.innerHTML).toContain('Something went wrong');
+            expect(mockContainer.innerHTML).toContain('Application Error');
             expect(mockContainer.innerHTML).toContain('Test error');
         });
 
@@ -102,7 +102,9 @@ describe('Error Boundary Module', () => {
             // and that the escaped version is in the HTML
             const innerHTML = mockContainer.innerHTML;
             // Should not contain unescaped script tag
-            expect(innerHTML.includes('<script>') && !innerHTML.includes('<script>')).toBe(false);
+            expect(innerHTML).not.toContain('<script>');
+            // Should contain escaped script tag
+            expect(innerHTML).toContain('&lt;script&gt;');
             // Should contain the error message (either escaped or as text content)
             expect(innerHTML).toContain('alert');
         });
@@ -198,6 +200,7 @@ describe('Error Boundary Module', () => {
             const mockEvent = {
                 error: new Error('Global error'),
                 message: 'Global error message',
+                filename: 'http://localhost/smartgrind/app.js',
                 preventDefault: jest.fn(),
             };
 
@@ -205,7 +208,7 @@ describe('Error Boundary Module', () => {
                 errorHandler(mockEvent);
             }
 
-            expect(console.error).toHaveBeenCalledWith('Global error:', mockEvent.error);
+            expect(console.error).toHaveBeenCalledWith('[Global Error]', mockEvent.error, expect.any(Object));
             expect(mockShowAlert).toHaveBeenCalledWith(
                 'An error occurred: Global error message'
             );
@@ -232,15 +235,14 @@ describe('Error Boundary Module', () => {
                 reason: new Error('Promise rejection'),
                 preventDefault: jest.fn(),
             };
+            // Add stack to satisfy smartgrind filter
+            (mockEvent.reason as Error).stack = 'Error: Promise rejection at smartgrind/app.js:1:1';
 
             if (rejectionHandler) {
                 rejectionHandler(mockEvent);
             }
 
-            expect(console.error).toHaveBeenCalledWith(
-                'Unhandled rejection:',
-                mockEvent.reason
-            );
+            expect(console.error).toHaveBeenCalledWith('[Unhandled Rejection]', mockEvent.reason);
             expect(mockShowAlert).toHaveBeenCalledWith(
                 'An error occurred: Promise rejection'
             );
@@ -260,7 +262,7 @@ describe('Error Boundary Module', () => {
             )?.[1];
 
             const mockEvent = {
-                reason: 'String rejection',
+                reason: 'String rejection from smartgrind',
                 preventDefault: jest.fn(),
             };
 
@@ -269,7 +271,7 @@ describe('Error Boundary Module', () => {
             }
 
             expect(mockShowAlert).toHaveBeenCalledWith(
-                'An error occurred: String rejection'
+                'An error occurred: String rejection from smartgrind'
             );
         });
     });
@@ -291,7 +293,7 @@ describe('Error Boundary Module', () => {
             const result = await withErrorHandling(mockOperation, 'Custom error message');
 
             expect(result).toBeNull();
-            expect(console.error).toHaveBeenCalledWith('Custom error message', error);
+            expect(console.error).toHaveBeenCalledWith('[withErrorHandling] Custom error message:', error);
             expect(mockShowAlert).toHaveBeenCalledWith('Custom error message: Operation failed');
         });
 
@@ -332,7 +334,7 @@ describe('Error Boundary Module', () => {
             const result = withSyncErrorHandling(mockOperation, 'Custom error message');
 
             expect(result).toBeNull();
-            expect(console.error).toHaveBeenCalledWith('Custom error message', error);
+            expect(console.error).toHaveBeenCalledWith('[withSyncErrorHandling] Custom error message:', error);
             expect(mockShowAlert).toHaveBeenCalledWith(
                 'Custom error message: Sync operation failed'
             );

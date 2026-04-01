@@ -17,11 +17,13 @@ export default {
     '^.+\\.(js|mjs)$': ['babel-jest'],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(jest-environment-jsdom|jose)/)',
+    'node_modules/(?!(jest-environment-jsdom|jose|marked|prismjs)/)',
   ],
   testMatch: [
     '<rootDir>/tests/**/*.test.(js|ts)',
   ],
+  // COVERAGE: src/**/* includes lib/, renderers/, ui/, utils/, etc.
+  // This ensures all source modules including new library code are tracked
   collectCoverageFrom: [
     'src/**/*.(js|ts)',
     'functions/**/*.(js|ts)',

@@ -1203,3 +1203,93 @@ beforeEach(() => {
   globalDatabaseStorage.clear();
   globalCacheStorage.clear();
 });
+
+// Mock Prism.js for syntax highlighting in tests
+jest.mock('prismjs', () => ({
+  __esModule: true,
+  default: {
+    highlightAllUnder: jest.fn(),
+    highlightElement: jest.fn(),
+    highlightAll: jest.fn(),
+    highlight: jest.fn((code) => code),
+  },
+  highlightAllUnder: jest.fn(),
+  highlightElement: jest.fn(),
+  highlightAll: jest.fn(),
+  highlight: jest.fn((code) => code),
+}));
+
+// Mock Prism language components
+jest.mock('prismjs/components/prism-c', () => ({}));
+jest.mock('prismjs/components/prism-cpp', () => ({}));
+jest.mock('prismjs/components/prism-java', () => ({}));
+jest.mock('prismjs/components/prism-python', () => ({}));
+jest.mock('prismjs/components/prism-sql', () => ({}));
+jest.mock('prismjs/components/prism-javascript', () => ({}));
+jest.mock('prismjs/components/prism-typescript', () => ({}));
+
+// Mock marked for markdown rendering in tests
+// marked is a function with additional methods (use, parse, etc.)
+const createMockMarked = () => {
+  const fn = jest.fn((text) => {
+    // Simple markdown parsing for test purposes
+    if (typeof text !== 'string') return '<p></p>';
+    
+    // Handle headings (# Heading)
+    const lines = text.split('\n');
+    const html = lines.map(line => {
+      const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
+      if (headingMatch) {
+        const level = headingMatch[1].length;
+        const content = headingMatch[2];
+        return `<h${level} id="${content.toLowerCase().replace(/\s+/g, '-')}">${content}</h${level}>`;
+      }
+      if (line.trim()) {
+        return `<p>${line}</p>`;
+      }
+      return '';
+    }).join('');
+    
+    return html || '<p></p>';
+  });
+  fn.use = jest.fn();
+  fn.parse = jest.fn((text) => {
+    if (typeof text !== 'string') return '<p></p>';
+    
+    const lines = text.split('\n');
+    const html = lines.map(line => {
+      const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
+      if (headingMatch) {
+        const level = headingMatch[1].length;
+        const content = headingMatch[2];
+        return `<h${level} id="${content.toLowerCase().replace(/\s+/g, '-')}">${content}</h${level}>`;
+      }
+      if (line.trim()) {
+        return `<p>${line}</p>`;
+      }
+      return '';
+    }).join('');
+    
+    return html || '<p></p>';
+  });
+  return fn;
+};
+
+jest.mock('marked', () => ({
+  __esModule: true,
+  marked: createMockMarked(),
+  parse: jest.fn((text) => createMockMarked()(text)),
+  use: jest.fn(),
+  Renderer: jest.fn().mockImplementation(function () {
+    this.heading = jest.fn((token) => {
+      const { text: content, depth } = token;
+      return `<h${depth}>${content}</h${depth}>`;
+    });
+    this.paragraph = jest.fn((text) => `<p>${text}</p>`);
+    this.code = jest.fn((token) => {
+      const { text: code, lang: language } = token;
+      return `<pre><code class="language-${language || 'text'}">${code}</code></pre>`;
+    });
+  }),
+  Tokens: {},
+}));

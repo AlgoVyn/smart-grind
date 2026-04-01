@@ -191,7 +191,7 @@ export const htmlGenerators = {
 
         const actionConfig = getActionConfig();
         const buttonText = p.loading ? htmlGenerators.getSpinner() : actionConfig.text;
-        return `<button class="action-btn btn-lift px-4 py-2 rounded-lg text-xs font-bold transition-all min-w-[70px] ${actionConfig.class}" ${p.loading ? 'disabled' : ''} data-action="${actionConfig.action}">${buttonText}</button>`;
+        return `<button class="action-btn btn-lift px-4 py-2 rounded-lg text-xs font-bold transition-all min-w-[70px] ${actionConfig.class}" ${p.loading ? 'disabled' : ''} data-action="${actionConfig.action}" data-testid="problem-action-btn">${buttonText}</button>`;
     },
 
     // Helper to generate problem link HTML
@@ -232,7 +232,7 @@ export const htmlGenerators = {
         const showSolutionButton = !isCustomProblem || isAlgorithm || isSQLProblem;
 
         return `
-            <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes">
+            <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes" data-testid="note-btn">
                 ${ICONS.note}
             </button>
             ${showSolutionButton ? SOLUTION_BUTTON_HTML : ''}
