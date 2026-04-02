@@ -21,7 +21,7 @@ import {
     cacheElements,
     getElement,
     type ElementCache,
-} from '../src/utils-core';
+} from '../src/utils';
 
 describe('Utils Core', () => {
     beforeEach(() => {

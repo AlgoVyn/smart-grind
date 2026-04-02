@@ -53,23 +53,17 @@ const safeInitOfflineDetection = async (): Promise<void> => {
 // URL Parameter Helpers
 // ============================================================================
 
-const getCategoryFromUrl = (): string | null => {
+const getPathParam = (prefix: string): string | null => {
     const path = window.location.pathname;
-    if (path.startsWith('/smartgrind/c/')) {
-        return path.split('/smartgrind/c/')[1] || null;
+    if (path.startsWith(`/smartgrind/${prefix}/`)) {
+        return path.split(`/smartgrind/${prefix}/`)[1] || null;
     }
-    return path === '/smartgrind/' ? 'all' : null;
+    return prefix === 'c' && path === '/smartgrind/' ? 'all' : null;
 };
 
-const getAlgorithmsFromUrl = (): string | null => {
-    const path = window.location.pathname;
-    return path.startsWith('/smartgrind/a/') ? path.split('/smartgrind/a/')[1] || null : null;
-};
-
-const getSQLFromUrl = (): string | null => {
-    const path = window.location.pathname;
-    return path.startsWith('/smartgrind/s/') ? path.split('/smartgrind/s/')[1] || null : null;
-};
+const getCategoryFromUrl = (): string | null => getPathParam('c');
+const getAlgorithmsFromUrl = (): string | null => getPathParam('a');
+const getSQLFromUrl = (): string | null => getPathParam('s');
 
 // ============================================================================
 // Auth Token Management
@@ -113,27 +107,18 @@ const getStoredTokenForOffline = async (): Promise<string | null> => {
     const DB_NAME = 'smartgrind-auth';
     const STORE_NAME = 'auth-tokens';
 
-    const openDB = (): Promise<IDBDatabase | null> =>
-        new Promise((resolve) => {
-            const req = indexedDB.open(DB_NAME, 1);
-            req.onsuccess = () => resolve(req.result);
-            req.onerror = () => resolve(null);
-            req.onupgradeneeded = (e) => {
-                const db = (e.target as IDBOpenDBRequest).result;
-                if (!db.objectStoreNames.contains(STORE_NAME)) {
-                    db.createObjectStore(STORE_NAME, { keyPath: 'key' });
-                }
-            };
-        });
+    const db = await new Promise<IDBDatabase | null>((resolve) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+        req.onupgradeneeded = (e) => {
+            const db = (e.target as IDBOpenDBRequest).result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+            }
+        };
+    });
 
-    const getValue = <T>(store: IDBObjectStore, key: string): Promise<T | null> =>
-        new Promise((resolve) => {
-            const req = store.get(key);
-            req.onsuccess = () => resolve(req.result?.value ?? null);
-            req.onerror = () => resolve(null);
-        });
-
-    const db = await openDB();
     if (!db?.objectStoreNames.contains(STORE_NAME)) {
         db?.close();
         return null;
@@ -141,9 +126,16 @@ const getStoredTokenForOffline = async (): Promise<string | null> => {
 
     try {
         const store = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME);
+        const getValue = <T>(key: string): Promise<T | null> =>
+            new Promise((resolve) => {
+                const req = store.get(key);
+                req.onsuccess = () => resolve(req.result?.value ?? null);
+                req.onerror = () => resolve(null);
+            });
+
         const [token, expiresAt] = await Promise.all([
-            getValue<string>(store, 'token'),
-            getValue<string>(store, 'tokenExpiresAt'),
+            getValue<string>('token'),
+            getValue<string>('tokenExpiresAt'),
         ]);
         db.close();
 
@@ -338,16 +330,11 @@ const restoreSession = async (
     sqlParam: string | null,
     errorMessage: string
 ): Promise<void> => {
-    await withErrorHandling(async () => {
-        await setupSignedInUser(
-            userId,
-            displayName,
-            categoryParam,
-            algorithmsParam,
-            sqlParam,
-            token
-        );
-    }, errorMessage);
+    await withErrorHandling(
+        () =>
+            setupSignedInUser(userId, displayName, categoryParam, algorithmsParam, sqlParam, token),
+        errorMessage
+    );
     await safeInitOfflineDetection();
 };
 
@@ -357,34 +344,22 @@ const handleExistingSession = async (
     algorithmsParam: string | null,
     sqlParam: string | null
 ): Promise<boolean> => {
-    // Try to get fresh auth token first
     const authData = await fetchAuthToken();
-    if (authData) {
-        const displayName = localStorage.getItem('displayName') || authData.displayName || 'User';
-        await restoreSession(
-            userId,
-            displayName,
-            authData.token,
-            categoryParam,
-            algorithmsParam,
-            sqlParam,
-            'Failed to restore user session'
-        );
-        return true;
-    }
+    const storedToken = !authData ? await getStoredTokenForOffline() : null;
+    const token = authData?.token || storedToken;
 
-    // Fallback to stored token for offline
-    const storedToken = await getStoredTokenForOffline();
-    if (storedToken) {
-        const displayName = localStorage.getItem('displayName') || 'User';
+    if (token) {
+        const displayName = localStorage.getItem('displayName') || authData?.displayName || 'User';
         await restoreSession(
             userId,
             displayName,
-            storedToken,
+            token,
             categoryParam,
             algorithmsParam,
             sqlParam,
-            'Failed to restore session with stored token'
+            authData
+                ? 'Failed to restore user session'
+                : 'Failed to restore session with stored token'
         );
         return true;
     }

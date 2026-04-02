@@ -10,38 +10,25 @@ import {
     getStringItem,
     setStringItem,
     type ElementCache,
-} from './utils-core';
+} from './utils';
 
 // Debounce timer for localStorage writes
 let storageSaveTimeout: ReturnType<typeof setTimeout> | null = null;
 const STORAGE_SAVE_DELAY = 300;
 
 const debouncedSaveToStorage = (saveFn: () => void): void => {
-    if (storageSaveTimeout) {
-        clearTimeout(storageSaveTimeout);
-    }
+    if (storageSaveTimeout) clearTimeout(storageSaveTimeout);
     storageSaveTimeout = setTimeout(() => {
         saveFn();
         storageSaveTimeout = null;
     }, STORAGE_SAVE_DELAY);
 };
 
-/**
- * Check if an error is a storage quota exceeded error
- * @param error - The error to check
- * @returns True if quota exceeded
- */
-const isQuotaExceededError = (error: unknown): boolean => {
-    if (error instanceof Error) {
-        return (
-            error.name === 'QuotaExceededError' ||
-            error.message.includes('quota') ||
-            // Removed: too broad, matches unrelated errors
-            error.message.includes('exceeded')
-        );
-    }
-    return false;
-};
+const isQuotaError = (error: unknown): boolean =>
+    error instanceof Error &&
+    (error.name === 'QuotaExceededError' ||
+        error.message.includes('quota') ||
+        error.message.includes('exceeded'));
 
 export const state = {
     user: {
@@ -73,14 +60,11 @@ export const state = {
         conflictMessage: null as string | null,
     },
 
-    // Storage error tracking
     storage: {
         lastError: null as string | null,
         lastErrorAt: null as number | null,
         quotaExceeded: false,
-        /** Whether automatic cleanup is enabled (disabled by default for safety) */
         autoCleanupEnabled: false,
-        /** Recently deleted items during cleanup (for potential recovery) */
         lastCleanupDeleted: [] as Array<{ id: string; problem?: Problem; timestamp: number }>,
     },
 
@@ -89,9 +73,8 @@ export const state = {
 
     init() {
         const storedUserType = localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE);
-        if (storedUserType === 'signed-in' || storedUserType === 'local') {
+        if (storedUserType === 'signed-in' || storedUserType === 'local')
             this.user.type = storedUserType;
-        }
         this.ui.preferredAI = localStorage.getItem('preferred-ai') || null;
         this.loadFromStorage();
         this.cacheElements();
@@ -129,18 +112,12 @@ export const state = {
         this.user.type = getStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local') as
             | 'local'
             | 'signed-in';
-
         this.hasLoadedFromStorage = true;
     },
 
-    /**
-     * Saves state to localStorage with quota error handling
-     * Emits storage-error event if save fails
-     */
     saveToStorage(options?: { silent?: boolean }): void {
         const keys = this.getStorageKeys();
-
-        const problemsWithoutLoading = Object.fromEntries(
+        const problemsClean = Object.fromEntries(
             [...this.problems.entries()].map(([id, { loading: _l, noteVisible: _n, ...rest }]) => [
                 id,
                 rest,
@@ -148,49 +125,31 @@ export const state = {
         );
 
         try {
-            // Attempt to save all data
-            const problemsSaved = safeSetItem(keys.problems, problemsWithoutLoading);
-            const deletedIdsSaved = safeSetItem(keys.deletedIds, [...this.deletedProblemIds]);
-            const flashCardSaved = safeSetItem(
-                keys.flashCardProgress,
-                Object.fromEntries(this.flashCardProgress)
-            );
-            const displayNameSaved = setStringItem(keys.displayName, this.user.displayName);
-            const userTypeSaved = setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
-
-            // Check for any failures
             const allSaved =
-                problemsSaved &&
-                deletedIdsSaved &&
-                flashCardSaved &&
-                displayNameSaved &&
-                userTypeSaved;
+                safeSetItem(keys.problems, problemsClean) &&
+                safeSetItem(keys.deletedIds, [...this.deletedProblemIds]) &&
+                safeSetItem(keys.flashCardProgress, Object.fromEntries(this.flashCardProgress)) &&
+                setStringItem(keys.displayName, this.user.displayName) &&
+                setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
 
-            if (!allSaved) {
-                throw new Error('Failed to save to localStorage');
-            }
+            if (!allSaved) throw new Error('Failed to save to localStorage');
 
-            // Clear any previous error on success
             if (this.storage.lastError) {
                 this.storage.lastError = null;
                 this.storage.lastErrorAt = null;
                 this.storage.quotaExceeded = false;
             }
         } catch (error) {
-            const isQuotaError = isQuotaExceededError(error);
-            const errorMessage = isQuotaError
+            const isQuota = isQuotaError(error);
+            const msg = isQuota
                 ? 'Storage quota exceeded. Please sync your data or export and clear some problems.'
                 : 'Failed to save progress locally.';
 
-            this.storage.lastError = errorMessage;
+            this.storage.lastError = msg;
             this.storage.lastErrorAt = Date.now();
-            this.storage.quotaExceeded = isQuotaError;
+            this.storage.quotaExceeded = isQuota;
 
-            // Emit storage error event for UI to handle (unless silent)
-            if (!options?.silent) {
-                this.emitStorageError(errorMessage, isQuotaError);
-            }
-
+            if (!options?.silent) this.emitStorageError(msg, isQuota);
             console.error('[State] Storage save failed:', error);
         }
     },
@@ -199,31 +158,16 @@ export const state = {
         debouncedSaveToStorage(() => this.saveToStorage());
     },
 
-    /**
-     * Emits a storage error event that the UI can listen to
-     */
     emitStorageError(message: string, isQuotaError: boolean): void {
         if (typeof window === 'undefined') return;
         window.dispatchEvent(
             new CustomEvent('storage-error', {
-                detail: {
-                    message,
-                    isQuotaError,
-                    timestamp: Date.now(),
-                },
+                detail: { message, isQuotaError, timestamp: Date.now() },
             })
         );
     },
 
-    /**
-     * Clears old/deleted problems to free up storage space
-     * SAFETY: Only runs if autoCleanupEnabled is true (disabled by default)
-     * Tracks deleted items for potential recovery
-     * @param force - Override autoCleanupEnabled check (use with caution)
-     * @returns Number of items freed
-     */
     freeStorageSpace(force = false): number {
-        // SAFETY: Don't auto-delete user data unless explicitly enabled or forced
         if (!force && !this.storage.autoCleanupEnabled) {
             console.warn(
                 '[State] Automatic cleanup disabled. Enable autoCleanupEnabled or pass force=true'
@@ -238,42 +182,34 @@ export const state = {
         let freedCount = 0;
         const deletedItems: Array<{ id: string; problem?: Problem; timestamp: number }> = [];
 
-        // First, try limiting deleted problem IDs to prevent unbounded growth
-        // Since we cannot reliably determine deletion order from Set storage, limit to most recent 50 items
+        // Limit deleted IDs to most recent 50
         if (this.deletedProblemIds.size > 100) {
-            const idsArray = [...this.deletedProblemIds];
-            const toRemove = idsArray.slice(0, idsArray.length - 50); // Remove excess items (order depends on insertion/storage)
-            const toKeep = idsArray.slice(-50); // Keep last 50
-            this.deletedProblemIds = new Set(toKeep);
+            const ids = [...this.deletedProblemIds];
+            const toRemove = ids.slice(0, ids.length - 50);
+            this.deletedProblemIds = new Set(ids.slice(-50));
             freedCount += toRemove.length;
             toRemove.forEach((id) => deletedItems.push({ id, timestamp: Date.now() }));
         }
 
-        // If still having issues, remove old solved problems without notes
+        // Remove old solved problems without notes if still needed
         if (freedCount === 0 && this.problems.size > 50) {
-            const problemsArray = [...this.problems.entries()];
-            const todayStr = new Date().toISOString().split('T')[0]!;
-            const candidates = problemsArray
-                .filter(([, p]) => {
-                    // Must be solved without notes
-                    if (p.status !== 'solved' || p.note) return false;
-                    // Only consider problems that have been reviewed (past review date)
-                    // and have a valid review date set
-                    return typeof p.nextReviewDate === 'string' && p.nextReviewDate < todayStr;
-                })
-                .sort((a, b) => {
-                    // Sort by review date descending (most recent first)
-                    // This puts stale problems (old review dates) at the end for removal
-                    const aDate = a[1].nextReviewDate || '0000';
-                    const bDate = b[1].nextReviewDate || '0000';
-                    return bDate.localeCompare(aDate); // Descending order
-                });
+            const today = new Date().toISOString().split('T')[0]!;
+            const candidates = [...this.problems.entries()]
+                .filter(
+                    ([, p]) =>
+                        p.status === 'solved' &&
+                        !p.note &&
+                        p.nextReviewDate &&
+                        p.nextReviewDate < today
+                )
+                .sort((a, b) =>
+                    (b[1].nextReviewDate || '0000').localeCompare(a[1].nextReviewDate || '0000')
+                );
 
-            // Take only the stalest 20% from the end
-            const removeCount = Math.min(Math.floor(problemsArray.length * 0.2), candidates.length);
-            const problemsToRemove = candidates.slice(-removeCount);
-
-            problemsToRemove.forEach(([id, problem]) => {
+            const toRemove = candidates.slice(
+                -Math.min(Math.floor(this.problems.size * 0.2), candidates.length)
+            );
+            toRemove.forEach(([id, problem]) => {
                 this.problems.delete(id);
                 freedCount++;
                 deletedItems.push({ id, problem: { ...problem }, timestamp: Date.now() });
@@ -282,14 +218,12 @@ export const state = {
 
         if (freedCount > 0) {
             console.warn(
-                `[State] Freed ${freedCount} items to save storage space`,
+                `[State] Freed ${freedCount} items`,
                 deletedItems.map((d) => d.id)
             );
-            // Store deleted items for potential recovery
             this.storage.lastCleanupDeleted = deletedItems;
-            this.saveToStorage({ silent: true }); // Silent mode to avoid cascading error events
+            this.saveToStorage({ silent: true });
 
-            // Emit event about the cleanup
             if (typeof window !== 'undefined') {
                 window.dispatchEvent(
                     new CustomEvent('storage-cleanup', {
@@ -309,29 +243,22 @@ export const state = {
         return freedCount;
     },
 
-    /**
-     * Recovers problems deleted during the last cleanup
-     * @returns Number of problems recovered
-     */
     recoverCleanedUpProblems(): number {
-        let recoveredCount = 0;
-
+        let recovered = 0;
         for (const item of this.storage.lastCleanupDeleted) {
             if (item.problem && !this.problems.has(item.id)) {
                 this.problems.set(item.id, item.problem);
-                recoveredCount++;
+                recovered++;
             }
         }
 
-        if (recoveredCount > 0) {
-            console.log(`[State] Recovered ${recoveredCount} problems from cleanup`);
+        if (recovered > 0) {
+            console.log(`[State] Recovered ${recovered} problems from cleanup`);
             this.saveToStorage();
         }
 
-        // Clear the recovery list after attempting recovery
         this.storage.lastCleanupDeleted = [];
-
-        return recoveredCount;
+        return recovered;
     },
 
     hasValidData(): boolean {
@@ -371,20 +298,11 @@ export const state = {
     },
 
     getSolvedSQLCount(): number {
-        return Array.from(this.problems.values()).filter(
+        return [...this.problems.values()].filter(
             (p) => p.status === 'solved' && p.id.startsWith('sql-')
         ).length;
     },
 
-    /**
-     * Get a typed DOM element from the cache
-     * @param key - The element key from ElementCache
-     * @returns The typed element or null if not found
-     *
-     * @example
-     * const modal = state.getEl('setupModal'); // HTMLElement | null
-     * const input = state.getEl('addProbName'); // HTMLInputElement | null
-     */
     getEl<K extends keyof ElementCache>(key: K): ElementCache[K] {
         return this.elements[key] as ElementCache[K];
     },

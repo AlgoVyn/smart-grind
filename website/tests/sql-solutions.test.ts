@@ -30,9 +30,9 @@ jest.mock('../src/data', () => ({
 
 // Import after mocking
 import * as uiMarkdown from '../src/ui/ui-markdown';
-import { getBaseUrl } from '../src/utils-core';
+import { getBaseUrl } from '../src/utils';
 
-jest.mock('../src/utils-core', () => ({
+jest.mock('../src/utils', () => ({
     getBaseUrl: jest.fn().mockReturnValue('/smartgrind/'),
     getToday: jest.fn().mockReturnValue('2024-01-01'),
     debounce: jest.fn((fn) => fn),
