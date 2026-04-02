@@ -404,10 +404,36 @@ function handleWaitingWorker(worker: ServiceWorker): void {
 export async function skipWaiting(): Promise<void> {
     if (!navigator.serviceWorker.controller) return;
 
+    // Wait for the new service worker to activate before reloading
+    const activationPromise = new Promise<void>((resolve) => {
+        const onControllerChange = () => {
+            navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+            resolve();
+        };
+        navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+
+        // Fallback: also listen for SW_ACTIVATED message
+        const onMessage = (event: MessageEvent) => {
+            if (event.data?.type === 'SW_ACTIVATED') {
+                navigator.serviceWorker.removeEventListener('message', onMessage);
+                resolve();
+            }
+        };
+        navigator.serviceWorker.addEventListener('message', onMessage);
+
+        // Timeout after 10 seconds to prevent hanging
+        setTimeout(() => {
+            navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+            navigator.serviceWorker.removeEventListener('message', onMessage);
+            resolve();
+        }, 10000);
+    });
+
     // Send message to SW to skip waiting
     navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
 
-    // Reload the page to use the new SW
+    // Wait for the new service worker to activate, then reload
+    await activationPromise;
     window.location.reload();
 }
 
