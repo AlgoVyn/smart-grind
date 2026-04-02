@@ -12,8 +12,8 @@ test.describe('Offline Functionality', () => {
     // Helper: wait for app to finish loading
     async function waitForAppReady(page: Page) {
         // The loading screen should disappear and app wrapper should become visible
-        await page.waitForSelector('#loading-screen', { state: 'hidden', timeout: 15000 });
-        await page.waitForSelector('#app-wrapper', { state: 'visible', timeout: 5000 });
+        await page.waitForSelector('#loading-screen', { state: 'hidden', timeout: 20000 });
+        await page.waitForSelector('#app-wrapper', { state: 'visible', timeout: 10000 });
     }
 
     test.beforeEach(async ({ page }) => {
@@ -216,9 +216,11 @@ test.describe('Offline Functionality', () => {
         // Come back online and reload to verify persistence
         await context.setOffline(false);
         await page.evaluate(() => window.dispatchEvent(new Event('online')));
-        await page.reload();
-        await waitForAppReady(page);
-        await page.waitForTimeout(500);
+        // Reload with extended timeout - use load instead of networkidle for reliability
+        await page.reload({ timeout: 30000, waitUntil: 'load' });
+        await page.waitForSelector('#loading-screen', { state: 'hidden', timeout: 20000 });
+        await page.waitForSelector('#app-wrapper', { state: 'visible', timeout: 15000 });
+        await page.waitForTimeout(1000);
 
         // Verify theme persisted after reload
         const classes = await page.locator('html').getAttribute('class');

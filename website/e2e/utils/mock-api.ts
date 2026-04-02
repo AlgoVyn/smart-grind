@@ -6,7 +6,7 @@
  */
 
 import { Page } from '@playwright/test';
-import { mockAPIResponses, mockUser, testScenarios } from '../fixtures/test-data';
+import { mockAPIResponses, mockUser, testScenarios, mockFlashcards } from '../fixtures/test-data';
 
 export type MockScenario = 'default' | 'authenticated' | 'offline' | 'error' | 'fresh' | 'completed';
 
@@ -82,11 +82,20 @@ export async function setupAPIMocks(page: Page, options: MockOptions = {}): Prom
         response = testScenarios.completedUser;
       }
 
+      // Include flashcards data in the response
+      const flashcardsResponse = {
+        ...response,
+        flashcards: mockFlashcards.map(fc => ({
+          ...fc,
+          nextReviewDate: new Date().toISOString().split('T')[0], // Ensure cards are due for review
+        })),
+      };
+
       await delayResponse(route, delay);
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(customResponses.user || response),
+        body: JSON.stringify(customResponses.user || flashcardsResponse),
       });
       return;
     }

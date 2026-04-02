@@ -37,13 +37,22 @@ test.describe('SQL Section', () => {
     });
 
     test('Clicking SQL category should navigate to SQL content', async ({ page }) => {
-        // Look for any SQL-related navigation element
-        const sqlLink = page.locator('.sidebar-link, .sidebar-sql-category, button').filter({ hasText: /SQL/i }).first();
+        // Look for any SQL-related navigation element in the sidebar only (not modal)
+        // First check if flashcards modal is open and close it if needed
+        const flashcardsModal = page.locator('#flashcards-modal');
+        if (await flashcardsModal.isVisible().catch(() => false)) {
+            // Press Escape to close modal
+            await page.keyboard.press('Escape');
+            await page.waitForTimeout(300);
+        }
+        
+        // Look for SQL link specifically in the sidebar
+        const sqlLink = page.locator('#main-sidebar .sidebar-link, #main-sidebar .sidebar-sql-category').filter({ hasText: /SQL/i }).first();
         
         const sqlCount = await sqlLink.count();
         
-        // If SQL link exists, click it
-        if (sqlCount > 0) {
+        // If SQL link exists in sidebar, click it
+        if (sqlCount > 0 && await sqlLink.isVisible().catch(() => false)) {
             await sqlLink.click();
             await page.waitForTimeout(500);
             
@@ -52,7 +61,8 @@ test.describe('SQL Section', () => {
             await expect(content).toBeAttached();
         } else {
             // SQL might not be in sidebar as separate category - that's ok
-            expect(true).toBe(true);
+            // Just verify the app loaded properly
+            await expect(page.locator('#app-wrapper')).toBeVisible();
         }
     });
 

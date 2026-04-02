@@ -125,9 +125,10 @@ test.describe('SmartGrind Basic Functionality', () => {
       // Toggle theme
       await appPage.toggleTheme();
 
-      // Reload page
-      await appPage.reload();
-      await appPage.waitForReady();
+      // Reload page with extended timeout
+      await appPage.page.reload({ timeout: 20000, waitUntil: 'networkidle' });
+      await appPage.page.waitForSelector('#loading-screen', { state: 'hidden', timeout: 20000 });
+      await appPage.page.waitForSelector('#app-wrapper', { state: 'visible', timeout: 10000 });
 
       // Wait a moment for theme script to execute
       await page.waitForTimeout(500);

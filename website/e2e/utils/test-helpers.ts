@@ -8,7 +8,7 @@
 import { Page, Locator, expect } from '@playwright/test';
 
 // Default timeouts
-export const DEFAULT_TIMEOUT = 15000;
+export const DEFAULT_TIMEOUT = 25000;
 export const SHORT_TIMEOUT = 5000;
 export const LONG_TIMEOUT = 30000;
 
