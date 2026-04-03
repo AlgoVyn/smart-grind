@@ -179,6 +179,7 @@ export const loadDefaultView = (): void => {
     state.ui.activeAlgorithmCategoryId = null;
     state.ui.activeSQLCategoryId = null;
     updateUrlParameter('category', null);
+    renderers.renderSidebar();
     renderers.renderCombinedView();
     renderers.updateStats();
     scrollToTop();
