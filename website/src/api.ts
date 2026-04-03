@@ -193,14 +193,18 @@ export async function queueOperation(
 
         return withDedup(dedupKey, async () => {
             await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations: [op] });
-            updateSyncStatus().catch(() => {});
+            updateSyncStatus().catch((err) => {
+                console.warn('[API] Failed to fetch initial sync status:', err);
+            });
             return generateOperationId();
         });
     }
 
     // For multiple operations with SW, send without dedup
     await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations });
-    updateSyncStatus().catch(() => {});
+    updateSyncStatus().catch((err) => {
+        console.warn('[API] Failed to fetch initial sync status:', err);
+    });
 
     const ids = operations.map(() => generateOperationId());
     return isSingle ? (ids[0] ?? null) : ids;
@@ -428,6 +432,11 @@ export async function initOfflineDetection(): Promise<() => void> {
             }
         });
     }
+
+    // Fetch initial sync status to ensure UI is up-to-date (non-blocking)
+    updateSyncStatus().catch((err) => {
+        console.warn('[API] Failed to fetch initial sync status:', err);
+    });
 
     // Return cleanup function
     const cleanup = () => {

@@ -2,16 +2,7 @@
 // Centralized service worker communication with timeout handling
 
 import { SYNC_CONFIG } from '../config/sync-config';
-import { APIOperation } from '../types/sync';
-
-/**
- * Service Worker message interface
- */
-interface SWMessage {
-    type: string;
-    data?: unknown;
-    operations?: APIOperation[];
-}
+import type { SWClientMessage } from '../types/sw-messages';
 
 /**
  * Creates a timeout promise for service worker operations
@@ -32,7 +23,7 @@ const createTimeoutPromise = (ms: number, messageType: string): Promise<never> =
  * @param message - Message to send to the service worker
  * @returns Response from service worker or null if unavailable
  */
-export async function sendMessageToSW(message: SWMessage): Promise<unknown> {
+export async function sendMessageToSW(message: SWClientMessage): Promise<unknown> {
     if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
         return null;
     }

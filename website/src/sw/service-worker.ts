@@ -494,6 +494,10 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
                 event.waitUntil(
                     operationQueue.addOperations(data.operations).then((ids) => {
                         sendReply(event, { type: 'SYNC_QUEUED', operationId: ids?.[0] ?? null });
+                        // Trigger sync immediately after queuing operations
+                        return backgroundSync.checkAndSync().catch((err) => {
+                            console.warn('[SW] Immediate sync failed:', err);
+                        });
                     })
                 );
             }
