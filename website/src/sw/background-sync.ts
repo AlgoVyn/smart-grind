@@ -346,13 +346,9 @@ export class BackgroundSyncManager {
             // Update last sync time
             await this.operationQueue.updateLastSyncTime();
 
-            // Get final stats after handling failures
-            const finalStats = await this.operationQueue.getStats();
-
-            // Calculate truly pending ops (not yet synced, not being retried)
-            // Operations with retryCount > 0 have already been synced at least once
-            const trulyPendingOps = pendingOps.filter((op) => op.retryCount === 0);
-            const trulyPendingCount = trulyPendingOps.length;
+            // Get fresh pending operations count after marking completed
+            const remainingPendingOps = await this.operationQueue.getPendingOperations();
+            const trulyPendingCount = remainingPendingOps.filter((op) => op.retryCount === 0).length;
 
             // Notify clients of sync completion
             await this.notifyClients('COMPLETED', {
@@ -363,7 +359,7 @@ export class BackgroundSyncManager {
             });
 
             // If there are still pending operations, schedule another sync
-            if (finalStats.pending > 0) {
+            if (remainingPendingOps.length > 0) {
                 // Use setTimeout to allow other operations to complete
                 setTimeout(() => {
                     this.syncUserProgress().catch((error) => {

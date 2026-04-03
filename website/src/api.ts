@@ -192,7 +192,12 @@ export async function queueOperation(
         const dedupKey = generateDedupKey(op);
 
         return withDedup(dedupKey, async () => {
+            // Update pending count immediately for responsive UI
+            const currentPending = state.sync?.pendingCount ?? 0;
+            state.setSyncStatus({ pendingCount: currentPending + 1 });
             await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations: [op] });
+            // Trigger sync immediately after queuing
+            await sendMessageToSW({ type: 'REQUEST_SYNC', tag: 'sync-user-progress' });
             updateSyncStatus().catch((err) => {
                 console.warn('[API] Failed to fetch initial sync status:', err);
             });
@@ -201,7 +206,12 @@ export async function queueOperation(
     }
 
     // For multiple operations with SW, send without dedup
+    // Update pending count immediately for responsive UI
+    const currentPending = state.sync?.pendingCount ?? 0;
+    state.setSyncStatus({ pendingCount: currentPending + operations.length });
     await sendMessageToSW({ type: 'SYNC_OPERATIONS', operations });
+    // Trigger sync immediately after queuing
+    await sendMessageToSW({ type: 'REQUEST_SYNC', tag: 'sync-user-progress' });
     updateSyncStatus().catch((err) => {
         console.warn('[API] Failed to fetch initial sync status:', err);
     });
