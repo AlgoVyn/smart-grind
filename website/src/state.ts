@@ -30,6 +30,62 @@ const isQuotaError = (error: unknown): boolean =>
         error.message.includes('quota') ||
         error.message.includes('exceeded'));
 
+// ============================================================================
+// DIRTY TRACKING FOR INCREMENTAL SAVES
+// ============================================================================
+
+/** Tracks which problem IDs have been modified since the last full save. */
+const dirtyProblemIds = new Set<string>();
+
+/** Whether deletedProblemIds has been modified since last full save. */
+let dirtyDeletedIds = false;
+
+/** Whether flashCardProgress has been modified since last full save. */
+let dirtyFlashCards = false;
+
+/** Whether user metadata has been modified since last full save. */
+let dirtyUserMeta = false;
+
+/**
+ * Marks flash card progress as dirty for incremental saving.
+ * Call this whenever state.flashCardProgress is mutated.
+ */
+export const markFlashCardsDirty = (): void => {
+    dirtyFlashCards = true;
+};
+
+/**
+ * Marks deleted problem IDs as dirty for incremental saving.
+ * Call this whenever state.deletedProblemIds is mutated (add/delete).
+ */
+export const markDeletedIdsDirty = (): void => {
+    dirtyDeletedIds = true;
+};
+
+/**
+ * Marks a problem as dirty for incremental saving.
+ * Call this whenever state.problems is mutated (set/delete/modify).
+ */
+export const markProblemDirty = (problemId: string): void => {
+    dirtyProblemIds.add(problemId);
+};
+
+/**
+ * Flushes the dirty tracking state after a successful full save.
+ */
+const flushDirtyState = (): void => {
+    dirtyProblemIds.clear();
+    dirtyDeletedIds = false;
+    dirtyFlashCards = false;
+    dirtyUserMeta = false;
+};
+
+/**
+ * Checks whether any dirty tracking state is pending.
+ */
+const hasDirtyState = (): boolean =>
+    dirtyProblemIds.size > 0 || dirtyDeletedIds || dirtyFlashCards || dirtyUserMeta;
+
 export const state = {
     user: {
         type: 'local' as 'local' | 'signed-in',
@@ -115,24 +171,84 @@ export const state = {
         this.hasLoadedFromStorage = true;
     },
 
+    /**
+     * Saves the full state to localStorage.
+     * Uses dirty tracking to perform incremental saves when possible,
+     * significantly reducing main-thread blocking for large datasets.
+     */
     saveToStorage(options?: { silent?: boolean }): void {
         const keys = this.getStorageKeys();
-        const problemsClean = Object.fromEntries(
-            [...this.problems.entries()].map(([id, { loading: _l, noteVisible: _n, ...rest }]) => [
-                id,
-                rest,
-            ])
-        );
+
+        // PERFORMANCE: If only a few problems changed, do an incremental save
+        // instead of serializing the entire problems Map.
+        // Threshold: incremental is faster when dirty count < 20% of total
+        // or when there are fewer than 30 dirty problems.
+        const incrementalThreshold = Math.max(30, Math.floor(this.problems.size * 0.2));
+        const useIncremental =
+            hasDirtyState() &&
+            dirtyProblemIds.size > 0 &&
+            dirtyProblemIds.size < incrementalThreshold &&
+            !dirtyDeletedIds &&
+            !dirtyFlashCards &&
+            !dirtyUserMeta;
 
         try {
-            const allSaved =
-                safeSetItem(keys.problems, problemsClean) &&
-                safeSetItem(keys.deletedIds, [...this.deletedProblemIds]) &&
-                safeSetItem(keys.flashCardProgress, Object.fromEntries(this.flashCardProgress)) &&
-                setStringItem(keys.displayName, this.user.displayName) &&
-                setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
+            if (useIncremental) {
+                // Incremental save: read existing data, merge dirty problems, write back
+                const existingProblems = safeGetItem<Record<string, Problem>>(keys.problems, {});
+                const problemsClean: Record<string, Omit<Problem, 'loading' | 'noteVisible'>> = {
+                    ...existingProblems,
+                };
 
-            if (!allSaved) throw new Error('Failed to save to localStorage');
+                // Apply dirty problem updates (strip runtime-only fields)
+                for (const id of dirtyProblemIds) {
+                    const p = this.problems.get(id);
+                    if (p) {
+                        const { loading: _l, noteVisible: _n, ...rest } = p;
+                        problemsClean[id] = rest;
+                    } else {
+                        // Problem was deleted from the map
+                        delete problemsClean[id];
+                    }
+                }
+
+                const allSaved =
+                    safeSetItem(keys.problems, problemsClean) &&
+                    safeSetItem(keys.deletedIds, [...this.deletedProblemIds]) &&
+                    safeSetItem(
+                        keys.flashCardProgress,
+                        Object.fromEntries(this.flashCardProgress)
+                    ) &&
+                    setStringItem(keys.displayName, this.user.displayName) &&
+                    setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
+
+                if (!allSaved) throw new Error('Failed to save to localStorage');
+
+                // Clear dirty problem IDs after successful incremental save
+                dirtyProblemIds.clear();
+            } else {
+                // Full save: serialize entire state
+                const problemsClean = Object.fromEntries(
+                    [...this.problems.entries()].map(
+                        ([id, { loading: _l, noteVisible: _n, ...rest }]) => [id, rest]
+                    )
+                );
+
+                const allSaved =
+                    safeSetItem(keys.problems, problemsClean) &&
+                    safeSetItem(keys.deletedIds, [...this.deletedProblemIds]) &&
+                    safeSetItem(
+                        keys.flashCardProgress,
+                        Object.fromEntries(this.flashCardProgress)
+                    ) &&
+                    setStringItem(keys.displayName, this.user.displayName) &&
+                    setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
+
+                if (!allSaved) throw new Error('Failed to save to localStorage');
+
+                // Flush dirty state after a successful full save
+                flushDirtyState();
+            }
 
             if (this.storage.lastError) {
                 this.storage.lastError = null;
@@ -189,6 +305,7 @@ export const state = {
             this.deletedProblemIds = new Set(ids.slice(-50));
             freedCount += toRemove.length;
             toRemove.forEach((id) => deletedItems.push({ id, timestamp: Date.now() }));
+            markDeletedIdsDirty();
         }
 
         // Remove old solved problems without notes if still needed
@@ -212,6 +329,7 @@ export const state = {
             toRemove.forEach(([id, problem]) => {
                 this.problems.delete(id);
                 freedCount++;
+                markProblemDirty(id);
                 deletedItems.push({ id, problem: { ...problem }, timestamp: Date.now() });
             });
         }
@@ -248,6 +366,7 @@ export const state = {
         for (const item of this.storage.lastCleanupDeleted) {
             if (item.problem && !this.problems.has(item.id)) {
                 this.problems.set(item.id, item.problem);
+                markProblemDirty(item.id);
                 recovered++;
             }
         }
@@ -271,6 +390,7 @@ export const state = {
 
     setUser(userData: Partial<User>): void {
         this.user = { ...this.user, ...userData };
+        dirtyUserMeta = true;
         this.saveToStorage();
     },
 
@@ -297,6 +417,77 @@ export const state = {
         return { ...this.sync };
     },
 
+    /**
+     * Sets a problem in the problems Map and marks it dirty for incremental saving.
+     * Use this instead of state.problems.set() to ensure proper dirty tracking.
+     * @param id - The problem ID
+     * @param problem - The problem object
+     */
+    setProblem(id: string, problem: Problem): void {
+        this.problems.set(id, problem);
+        markProblemDirty(id);
+    },
+
+    /**
+     * Deletes a problem from the problems Map and marks it dirty for incremental saving.
+     * Use this instead of state.problems.delete() to ensure proper dirty tracking.
+     * @param id - The problem ID
+     * @returns true if the problem was deleted, false otherwise
+     */
+    deleteProblem(id: string): boolean {
+        const result = this.problems.delete(id);
+        if (result) {
+            markProblemDirty(id);
+        }
+        return result;
+    },
+
+    /**
+     * Clears all problems from the problems Map and marks the collection dirty.
+     * Use this instead of state.problems.clear() to ensure proper dirty tracking.
+     */
+    clearProblems(): void {
+        // Mark all existing IDs as dirty before clearing
+        for (const id of this.problems.keys()) {
+            markProblemDirty(id);
+        }
+        this.problems.clear();
+    },
+
+    /**
+     * Adds a problem ID to the deleted set and marks deleted IDs as dirty.
+     * Use this instead of state.deletedProblemIds.add() to ensure proper dirty tracking.
+     * @param id - The problem ID to mark as deleted
+     */
+    addDeletedId(id: string): void {
+        this.deletedProblemIds.add(id);
+        markDeletedIdsDirty();
+    },
+
+    /**
+     * Removes a problem ID from the deleted set and marks deleted IDs as dirty.
+     * Use this instead of state.deletedProblemIds.delete() to ensure proper dirty tracking.
+     * @param id - The problem ID to remove from deleted set
+     * @returns true if the ID was in the set, false otherwise
+     */
+    removeDeletedId(id: string): boolean {
+        const result = this.deletedProblemIds.delete(id);
+        if (result) {
+            markDeletedIdsDirty();
+        }
+        return result;
+    },
+
+    /**
+     * Sets flash card progress and marks flash cards as dirty for incremental saving.
+     * Use this instead of state.flashCardProgress.set() to ensure proper dirty tracking.
+     * @param cardId - The flash card ID
+     * @param progress - The progress object
+     */
+    setFlashCardProgress(cardId: string, progress: FlashCardProgress): void {
+        this.flashCardProgress.set(cardId, progress);
+        dirtyFlashCards = true;
+    },
     getSolvedSQLCount(): number {
         return [...this.problems.values()].filter(
             (p) => p.status === 'solved' && p.id.startsWith('sql-')

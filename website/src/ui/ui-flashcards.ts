@@ -15,7 +15,7 @@ import 'prismjs/components/prism-sql';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-typescript';
 import { marked, type Tokens } from 'marked';
-import { state } from '../state';
+import { state, markFlashCardsDirty } from '../state';
 import { FlashCard, FlashCardProgress, FlashCardSession } from '../types';
 import {
     getFlashCardsByCategory,
@@ -338,6 +338,7 @@ export const updateCardProgress = (cardId: string, rating: string): void => {
     };
 
     state.flashCardProgress.set(cardId, progress);
+    markFlashCardsDirty();
 
     // Debounce storage saves to avoid performance issues during rapid reviews
     if (saveTimeout) clearTimeout(saveTimeout);

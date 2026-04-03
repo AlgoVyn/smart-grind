@@ -36,6 +36,9 @@ jest.mock('../../src/utils', () => ({
 
 // Mock state module
 jest.mock('../../src/state', () => ({
+    markDeletedIdsDirty: jest.fn(),
+    markProblemDirty: jest.fn(),
+    markFlashCardsDirty: jest.fn(),
     state: {
         ui: {
             activeTopicId: '',

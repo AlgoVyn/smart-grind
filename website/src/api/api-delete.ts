@@ -2,7 +2,7 @@
 // Delete operations
 
 import { Topic, Problem } from '../types';
-import { state } from '../state';
+import { state, markDeletedIdsDirty } from '../state';
 import { data } from '../data';
 import { ALGORITHMS_DATA, AlgorithmCategory } from '../data/algorithms-data';
 import { SQL_DATA, SQLCategory } from '../data/sql-data';
@@ -72,6 +72,7 @@ export const _removeCategoryAndProblems = (topic: Topic): void => {
     problemsToDelete.forEach((id) => {
         state.problems.delete(id);
         state.deletedProblemIds.add(id);
+        markDeletedIdsDirty();
     });
 };
 
@@ -94,6 +95,7 @@ export const _removeAlgorithmCategoryAndProblems = (
     problemsToDelete.forEach((id) => {
         state.problems.delete(id);
         state.deletedProblemIds.add(id);
+        markDeletedIdsDirty();
     });
 };
 
@@ -113,6 +115,7 @@ export const _removeSQLCategoryAndProblems = (categoryId: string, categoryTitle:
     problemsToDelete.forEach((id) => {
         state.problems.delete(id);
         state.deletedProblemIds.add(id);
+        markDeletedIdsDirty();
     });
 };
 

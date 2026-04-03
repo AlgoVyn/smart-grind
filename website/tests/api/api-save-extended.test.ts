@@ -7,6 +7,9 @@
 
 // Mock dependencies before imports
 jest.mock('../../src/state', () => ({
+    markDeletedIdsDirty: jest.fn(),
+    markProblemDirty: jest.fn(),
+    markFlashCardsDirty: jest.fn(),
     state: {
         user: { type: 'local', id: null, displayName: 'Test User' },
         problems: new Map(),

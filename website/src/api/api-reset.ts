@@ -2,7 +2,7 @@
 // Reset operations
 
 import { Topic, Pattern, ProblemDef, Problem } from '../types';
-import { state } from '../state';
+import { state, markProblemDirty, markDeletedIdsDirty } from '../state';
 import { data } from '../data';
 import { ALGORITHMS_DATA, AlgorithmCategory, AlgorithmDef } from '../data/algorithms-data';
 import { SQL_DATA, SQLCategory } from '../data/sql-data';
@@ -108,9 +108,11 @@ const restoreDeletedProblem = (id: string): boolean => {
         return false;
     }
     state.deletedProblemIds.delete(id);
+    markDeletedIdsDirty();
     const { probDef, topicTitle, patternName } = findProblemDefInfo(id);
     if (probDef) {
         state.problems.set(id, createProblemFromDef(id, probDef, topicTitle, patternName));
+        markProblemDirty(id);
     }
     return true;
 };
@@ -270,6 +272,7 @@ export const _restoreDeletedAlgorithms = (algorithmIds: Set<string>): void => {
             return;
         }
         state.deletedProblemIds.delete(id);
+        markDeletedIdsDirty();
 
         // Find the algorithm definition
         let algoDef: AlgorithmDef | undefined;
@@ -294,6 +297,7 @@ export const _restoreDeletedAlgorithms = (algorithmIds: Set<string>): void => {
                 loading: false,
                 noteVisible: false,
             });
+            markProblemDirty(id);
         }
     });
 };
@@ -386,6 +390,7 @@ export const resetSQLCategory = async (categoryId: string): Promise<void> => {
         // Restore deleted SQL problems
         sqlProblemIds.forEach((problemId) => {
             state.deletedProblemIds.delete(problemId);
+            markDeletedIdsDirty();
         });
 
         await saveData();

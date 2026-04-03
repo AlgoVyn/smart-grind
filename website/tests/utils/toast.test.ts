@@ -8,6 +8,9 @@ import { showToast } from '../../src/utils';
 
 // Mock state module
 jest.mock('../../src/state', () => ({
+    markDeletedIdsDirty: jest.fn(),
+    markProblemDirty: jest.fn(),
+    markFlashCardsDirty: jest.fn(),
     state: {
         elements: {
             toastContainer: null, // Will be set in tests

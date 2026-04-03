@@ -220,19 +220,21 @@ describe('Security Functions', () => {
             expect(isLimited).toBe(false);
         });
 
-        test('should use X-Forwarded-For when CF-Connecting-IP not available', async () => {
+        test('should NOT use X-Forwarded-For when CF-Connecting-IP not available (security)', async () => {
             mockKV.get.mockResolvedValue(null);
 
+            // X-Forwarded-For is intentionally excluded as it can be spoofed by clients
             const request = new Request('https://example.com/auth');
             request.headers.get = jest.fn()
-                .mockReturnValueOnce(null)
-                .mockReturnValueOnce('10.0.0.1');
+                .mockReturnValueOnce(null)  // CF-Connecting-IP not available
+                .mockReturnValueOnce('10.0.0.1');  // X-Forwarded-For is ignored
 
             const isLimited = await checkRateLimit(request, mockEnv, 10, 60);
             
             expect(isLimited).toBe(false);
+            // Should use 'unknown' since X-Forwarded-For is not trusted
             expect(mockKV.put).toHaveBeenCalledWith(
-                'ratelimit_10.0.0.1',
+                'ratelimit_unknown',
                 expect.any(String),
                 expect.any(Object)
             );

@@ -292,9 +292,10 @@ export async function checkRateLimit(
     maxRequests = 30,
     windowSeconds = 60
 ) {
+    // Use only CF-Connecting-IP since we're behind Cloudflare.
+    // X-Forwarded-For is intentionally excluded as it can be spoofed.
     const clientIP =
         request.headers.get('CF-Connecting-IP') ||
-        request.headers.get('X-Forwarded-For') ||
         'unknown';
     const key = `ratelimit_${clientIP}`;
 
@@ -610,6 +611,19 @@ export async function onRequestPost({
         );
     }
 
+    // SECURITY: Enforce a maximum request body size (5 MB) to prevent
+    // memory exhaustion and KV storage abuse.
+    const MAX_BODY_SIZE = 5 * 1024 * 1024; // 5 MB
+    const contentLength = parseInt(request.headers.get('Content-Length') || '0', 10);
+    if (contentLength > MAX_BODY_SIZE) {
+        return createCorsResponse(
+            JSON.stringify({ error: 'Payload too large' }),
+            { status: 413 },
+            request,
+            env
+        );
+    }
+
     const payload = await authenticate(request, env);
     if (!payload) {
         return createCorsResponse(
@@ -641,6 +655,7 @@ export async function onRequestPost({
             env
         );
     }
+
 
     let body;
     try {

@@ -18,6 +18,9 @@ const mockSaveToStorage = jest.fn();
 const mockFlashCardProgress = new Map<string, FlashCardProgress>();
 
 jest.mock('../../src/state', () => ({
+    markDeletedIdsDirty: jest.fn(),
+    markProblemDirty: jest.fn(),
+    markFlashCardsDirty: jest.fn(),
     state: {
         flashCardProgress: mockFlashCardProgress,
         saveToStorage: mockSaveToStorage,

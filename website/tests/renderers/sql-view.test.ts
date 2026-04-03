@@ -3,6 +3,9 @@
 
 // Mock dependencies - these are hoisted by Jest
 jest.mock('../../src/state', () => ({
+    markDeletedIdsDirty: jest.fn(),
+    markProblemDirty: jest.fn(),
+    markFlashCardsDirty: jest.fn(),
     state: {
         problems: new Map(),
         ui: {

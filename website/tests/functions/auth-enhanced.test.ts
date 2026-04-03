@@ -50,16 +50,18 @@ describe('Auth Functions Enhanced', () => {
             expect(isLimited).toBe(true);
         });
 
-        test('should use X-Forwarded-For when CF-Connecting-IP is not present', async () => {
+        test('should NOT use X-Forwarded-For when CF-Connecting-IP is not present (security)', async () => {
             mockKV.get.mockResolvedValue(null);
 
+            // X-Forwarded-For is intentionally excluded as it can be spoofed
             const request = new Request('https://example.com/auth', {
                 headers: { 'X-Forwarded-For': '5.6.7.8' },
             });
 
             await checkRateLimit(request, { KV: mockKV });
 
-            expect(mockKV.get).toHaveBeenCalledWith(expect.stringContaining('ratelimit_5.6.7.8'));
+            // Should fallback to 'unknown' since X-Forwarded-For is not trusted
+            expect(mockKV.get).toHaveBeenCalledWith('ratelimit_unknown');
         });
 
         test('should use "unknown" when no IP header is present', async () => {

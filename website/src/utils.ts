@@ -4,6 +4,7 @@
 import { state } from './state';
 import { data } from './data';
 import type { Problem } from './types';
+import DOMPurify from 'dompurify';
 
 // ============================================================================
 // DATE UTILITIES
@@ -66,31 +67,40 @@ export const updateUrlParameter = (name: string, value: string | null): void => 
 // SANITIZATION UTILITIES
 // ============================================================================
 
-const DANGEROUS_PATTERNS = [
-    /javascript:/gi,
-    /data:/gi,
-    /vbscript:/gi,
-    /on\w+\s*=/gi,
-    /<script[^>]*>.*?<\/script>/gi,
-    /<iframe[^>]*>.*?<\/iframe>/gi,
-];
-
+/**
+ * Sanitizes user input by stripping all HTML tags and dangerous content.
+ *
+ * SECURITY: Uses DOMPurify (a well-audited sanitization library) instead of
+ * regex-based patterns, which are notoriously fragile and have been the source
+ * of many XSS bypasses. DOMPurify is configured to strip ALL HTML tags
+ * (ALLOWED_TAGS: []) since this function is used for plain-text fields like
+ * display names, problem names, and notes.
+ *
+ * Additional hardening:
+ * - Removes control characters (except newlines for multi-line notes)
+ * - Normalizes line endings
+ * - Trims whitespace per line
+ * - Enforces a 200-character limit to prevent abuse
+ */
 export const sanitizeInput = (input: string | null | undefined): string => {
     if (input == null) return '';
 
+    // Normalize line endings and trim whitespace
     let sanitized = input
         .replace(/\r\n/g, '\n')
         .split('\n')
         .map((line) => line.trim())
         .join('\n')
-        .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, '')
-        .replace(/<[^>]*>/g, '')
-        .replace(/["'\\]/g, '');
+        // Remove control characters (except newline \x0A)
+        .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
-    DANGEROUS_PATTERNS.forEach((pattern) => {
-        sanitized = sanitized.replace(pattern, '');
-    });
+    // SECURITY: Use DOMPurify to strip all HTML tags and dangerous content.
+    // This is more robust than regex-based stripping which can be bypassed
+    // with malformed HTML, encoding tricks, or nested tags.
+    // DOMPurify with ALLOWED_TAGS: [] strips ALL HTML while preserving text content.
+    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [] });
 
+    // Enforce length limit
     return sanitized.slice(0, 200);
 };
 

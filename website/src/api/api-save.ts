@@ -1,6 +1,6 @@
 // --- API SAVE MODULE ---
 import { UserData, Problem } from '../types';
-import { state } from '../state';
+import { state, markProblemDirty, markDeletedIdsDirty } from '../state';
 import { data } from '../data';
 import { validateResponseOrigin, isBrowserOnline, getErrorMessage } from './api-utils';
 import { getCachedCsrfToken } from '../app';
@@ -138,8 +138,10 @@ export const saveProblem = async (_problem?: Problem): Promise<void> => _perform
 export const saveDeletedId = async (id: string): Promise<void> => {
     const problem = state.problems.get(id);
     try {
+        markProblemDirty(id);
         state.problems.delete(id);
         state.deletedProblemIds.add(id);
+        markDeletedIdsDirty();
         await _performSave();
         callbacks.onViewUpdate?.();
     } catch (e) {
@@ -148,7 +150,9 @@ export const saveDeletedId = async (id: string): Promise<void> => {
         showToast(`Failed to delete problem: ${msg}`, 'error');
         if (problem) {
             state.problems.set(id, problem);
+            markProblemDirty(id);
             state.deletedProblemIds.delete(id);
+            markDeletedIdsDirty();
         }
         throw e;
     }

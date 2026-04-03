@@ -71,9 +71,10 @@ export async function checkRateLimit(
     maxRequests: number = 10,
     windowSeconds: number = 60
 ): Promise<boolean> {
+    // Use only CF-Connecting-IP since we're behind Cloudflare.
+    // X-Forwarded-For is intentionally excluded as it can be spoofed.
     const clientIP =
         request.headers.get('CF-Connecting-IP') ||
-        request.headers.get('X-Forwarded-For') ||
         'unknown';
     const key = `ratelimit_${clientIP}`;
 

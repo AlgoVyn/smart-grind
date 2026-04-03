@@ -27,6 +27,9 @@ import { Topic, Problem } from '../../src/types';
 
 // Mock dependencies
 jest.mock('../../src/state', () => ({
+    markDeletedIdsDirty: jest.fn(),
+    markProblemDirty: jest.fn(),
+    markFlashCardsDirty: jest.fn(),
     state: {
         problems: new Map<string, Problem>(),
         deletedProblemIds: new Set<string>(),

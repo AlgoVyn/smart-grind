@@ -15,6 +15,9 @@ import { data } from '../../src/data';
 
 // Mock dependencies
 jest.mock('../../src/state', () => ({
+    markDeletedIdsDirty: jest.fn(),
+    markProblemDirty: jest.fn(),
+    markFlashCardsDirty: jest.fn(),
     state: {
         problems: new Map(),
         deletedProblemIds: new Set(),
