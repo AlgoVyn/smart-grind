@@ -348,7 +348,9 @@ export class BackgroundSyncManager {
 
             // Get fresh pending operations count after marking completed
             const remainingPendingOps = await this.operationQueue.getPendingOperations();
-            const trulyPendingCount = remainingPendingOps.filter((op) => op.retryCount === 0).length;
+            const trulyPendingCount = remainingPendingOps.filter(
+                (op) => op.retryCount === 0
+            ).length;
 
             // Notify clients of sync completion
             await this.notifyClients('COMPLETED', {

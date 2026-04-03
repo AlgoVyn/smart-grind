@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "npm run generate:sitemap && tsc && vite build",
     "build:bundle": "node scripts/create-offline-bundle.js",
+    "generate:sitemap": "node scripts/generate-sitemap.js",
     "preview": "vite preview",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",

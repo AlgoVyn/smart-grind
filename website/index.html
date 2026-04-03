@@ -148,9 +148,194 @@
       }
     }
     </script>
+    <!-- Structured Data - FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is SmartGrind?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SmartGrind is a free web application for mastering coding interview patterns through spaced repetition. It helps you practice LeetCode problems efficiently, track your progress, and improve algorithmic skills with AI-assisted learning."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is SmartGrind free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, SmartGrind is completely free to use. You can practice all coding patterns, algorithms, and SQL problems without any cost. We also offer optional Google account sync to track progress across devices."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What coding patterns does SmartGrind cover?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SmartGrind covers 15+ pattern categories including Two Pointers, Sliding Window, Arrays \u0026 Hashing, Linked Lists, Stacks, Heaps, Trees, Graphs, Binary Search, Backtracking, Dynamic Programming, Greedy algorithms, Bit Manipulation, String Manipulation, and Design patterns."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does SmartGrind have SQL practice problems?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! SmartGrind includes 14 SQL categories covering everything from basic SELECT statements to advanced window functions, CTEs, joins, subqueries, aggregations, and performance optimization techniques."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does the spaced repetition system work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SmartGrind uses a scientifically-proven spaced repetition algorithm that schedules problem reviews at optimal intervals (1, 3, 7, 14, 30, and 60 days) to maximize long-term retention. The system reminds you to review problems just before you are likely to forget them."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I track my progress across multiple devices?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, SmartGrind supports progress synchronization across all your devices. Simply sign in with your Google account and your solved problems, notes, and review schedules will be automatically synced."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does SmartGrind work offline?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, SmartGrind is a Progressive Web App (PWA) that works offline. Once installed, you can access all pattern explanations, algorithm tutorials, and SQL content without an internet connection. Your progress syncs when you reconnect."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is there a Chrome extension available?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, SmartGrind offers a Chrome extension that enhances your LeetCode experience with numerical difficulty ratings (0-3000 scale), smart problem picking with filters, and quick access to pattern information while solving problems on LeetCode."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What programming languages are supported in the code examples?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SmartGrind provides code examples in Python, C++, Java, and JavaScript for every algorithm and pattern. Each solution includes multiple approaches with time and space complexity analysis."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How many LeetCode problems are covered?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SmartGrind covers 500+ LeetCode problems across all difficulty levels (Easy, Medium, Hard), each categorized by pattern and algorithm type to help you practice efficiently."
+          }
+        }
+      ]
+    }
+    </script>
 </head>
 
 <body class="h-full bg-dark-950 text-theme-base antialiased flex flex-col md:flex-row overflow-hidden" role="application" aria-label="SmartGrind Coding Practice Application">
+
+    <!-- NOSCRIPT FALLBACK - Shows when JavaScript is disabled -->
+    <noscript>
+        <div style="position: fixed; inset: 0; background: #0f172a; color: #e2e8f0; font-family: Inter, system-ui, sans-serif; z-index: 9999; overflow-y: auto;">
+            <div style="max-width: 800px; margin: 0 auto; padding: 2rem;">
+                <header style="text-align: center; padding: 2rem 0; border-bottom: 1px solid #334155; margin-bottom: 2rem;">
+                    <img src="/logo.svg" alt="SmartGrind Logo" style="width: 64px; height: 64px; margin-bottom: 1rem;">
+                    <h1 style="font-size: 2rem; font-weight: 700; color: #f8fafc; margin: 0 0 0.5rem 0;">SmartGrind</h1>
+                    <p style="font-size: 1.125rem; color: #94a3b8; margin: 0;">Master Coding Patterns with Spaced Repetition</p>
+                </header>
+
+                <main>
+                    <div style="background: #1e293b; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border-left: 4px solid #f59e0b;">
+                        <h2 style="font-size: 1.25rem; font-weight: 600; color: #f59e0b; margin: 0 0 0.75rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-size: 1.5rem;">⚠️</span> JavaScript Required
+                        </h2>
+                        <p style="margin: 0; line-height: 1.6; color: #cbd5e1;">
+                            SmartGrind is an interactive web application that requires JavaScript to function.
+                            Please enable JavaScript in your browser settings to access all features.
+                        </p>
+                    </div>
+
+                    <section style="margin-bottom: 2rem;">
+                        <h2 style="font-size: 1.5rem; font-weight: 600; color: #38bdf8; margin: 0 0 1rem 0;">What is SmartGrind?</h2>
+                        <p style="line-height: 1.7; color: #cbd5e1; margin: 0 0 1rem 0;">
+                            SmartGrind is a powerful tool for mastering coding interview patterns through
+                            <strong style="color: #38bdf8;">spaced repetition</strong>. Practice LeetCode problems efficiently,
+                            track your progress, and improve your algorithmic skills with AI-assisted learning.
+                        </p>
+                        <ul style="list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: 0.75rem;">
+                            <li style="display: flex; align-items: center; gap: 0.75rem; color: #cbd5e1;">
+                                <span style="color: #22d3ee;">✓</span>
+                                <span><strong>15+ Pattern Categories</strong> - Two Pointers, Sliding Window, DP, Graphs, and more</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 0.75rem; color: #cbd5e1;">
+                                <span style="color: #22d3ee;">✓</span>
+                                <span><strong>100+ Algorithm Tutorials</strong> - Step-by-step explanations with code</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 0.75rem; color: #cbd5e1;">
+                                <span style="color: #22d3ee;">✓</span>
+                                <span><strong>14 SQL Categories</strong> - From basics to advanced window functions</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 0.75rem; color: #cbd5e1;">
+                                <span style="color: #22d3ee;">✓</span>
+                                <span><strong>500+ Problems</strong> - Comprehensive LeetCode coverage</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 0.75rem; color: #cbd5e1;">
+                                <span style="color: #22d3ee;">✓</span>
+                                <span><strong>Spaced Repetition</strong> - Smart review scheduling for long-term retention</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 0.75rem; color: #cbd5e1;">
+                                <span style="color: #22d3ee;">✓</span>
+                                <span><strong>Progress Sync</strong> - Track progress across all your devices</span>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section style="margin-bottom: 2rem;">
+                        <h2 style="font-size: 1.5rem; font-weight: 600; color: #38bdf8; margin: 0 0 1rem 0;">Available Categories</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                            <div style="background: #1e293b; padding: 1rem; border-radius: 8px;">
+                                <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin: 0 0 0.5rem 0;">Pattern Categories</h3>
+                                <p style="font-size: 0.875rem; color: #94a3b8; margin: 0;">Two Pointers, Sliding Window, Arrays  &amp; Hashing, Linked Lists, Stacks, Heaps, Trees, Graphs, Binary Search, Backtracking, DP, Greedy, Bit Manipulation</p>
+                            </div>
+                            <div style="background: #1e293b; padding: 1rem; border-radius: 8px;">
+                                <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin: 0 0 0.5rem 0;">Algorithm Categories</h3>
+                                <p style="font-size: 0.875rem; color: #94a3b8; margin: 0;">Arrays &amp; Strings, Linked List, Trees &amp; BSTs, Graphs, Dynamic Programming, Greedy, Backtracking, Bit Manipulation, Heaps, Math &amp; Number Theory</p>
+                            </div>
+                            <div style="background: #1e293b; padding: 1rem; border-radius: 8px;">
+                                <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin: 0 0 0.5rem 0;">SQL Categories</h3>
+                                <p style="font-size: 0.875rem; color: #94a3b8; margin: 0;">SQL Basics, Joins, Aggregation, Subqueries, Window Functions, CTEs, Set Operations, String Functions, Date/Time, Conditional Logic</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div style="text-align: center; padding: 2rem; background: #1e293b; border-radius: 12px;">
+                        <p style="margin: 0 0 1rem 0; color: #94a3b8;">
+                            To use SmartGrind, please enable JavaScript in your browser settings
+                            and refresh this page.
+                        </p>
+                        <a href="/" style="display: inline-block; padding: 0.75rem 1.5rem; background: #0284c7; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; transition: background 0.2s;">
+                            Refresh Page
+                        </a>
+                    </div>
+                </main>
+
+                <footer style="text-align: center; padding: 2rem 0; margin-top: 2rem; border-top: 1px solid #334155; color: #64748b; font-size: 0.875rem;">
+                    <p style="margin: 0;">© 2026 SmartGrind by AlgoVyn. All rights reserved.</p>
+                    <p style="margin: 0.5rem 0 0 0;">
+                        <a href="https://github.com/AlgoVyn/smart-grind" style="color: #38bdf8; text-decoration: none;">GitHub</a> •
+                        <a href="mailto:support@algovyn.com" style="color: #38bdf8; text-decoration: none;">Support</a>
+                    </p>
+                </footer>
+            </div>
+        </div>
+    </noscript>
     <!-- SKIP LINKS - Keyboard Navigation -->
     <a href="#main-scroll" class="skip-link">Skip to main content</a>
     <a href="#main-sidebar" class="skip-link">Skip to navigation</a>

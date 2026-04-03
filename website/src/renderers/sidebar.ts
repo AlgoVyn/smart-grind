@@ -268,8 +268,17 @@ export const sidebarRenderers = {
         allBtn.onclick = () => navigate('all', '');
         fragment.appendChild(allBtn);
 
-        // Patterns Section
-        const patternsSection = createCollapsibleSection('patterns-section', 'Patterns', false);
+        // Determine which sections should be expanded based on active category
+        const isPatternActive = !!state.ui.activeTopicId;
+        const isAlgorithmActive = !!state.ui.activeAlgorithmCategoryId;
+        const isSQLActive = !!state.ui.activeSQLCategoryId;
+
+        // Patterns Section - expanded if a pattern is active
+        const patternsSection = createCollapsibleSection(
+            'patterns-section',
+            'Patterns',
+            isPatternActive
+        );
         fragment.appendChild(patternsSection.container);
 
         const allProblemsStats = getPatternStats('all');
@@ -302,11 +311,11 @@ export const sidebarRenderers = {
             patternsSection.content.appendChild(btn);
         });
 
-        // Algorithms Section
+        // Algorithms Section - expanded if an algorithm category is active
         const algorithmsSection = createCollapsibleSection(
             'algorithms-section',
             'Algorithms',
-            false
+            isAlgorithmActive
         );
         fragment.appendChild(algorithmsSection.container);
 
@@ -340,8 +349,8 @@ export const sidebarRenderers = {
             algorithmsSection.content.appendChild(btn);
         });
 
-        // SQL Section
-        const sqlSection = createCollapsibleSection('sql-section', 'SQL', false);
+        // SQL Section - expanded if a SQL category is active
+        const sqlSection = createCollapsibleSection('sql-section', 'SQL', isSQLActive);
         fragment.appendChild(sqlSection.container);
 
         const allSqlStats = getSQLStats('all');

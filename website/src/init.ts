@@ -54,11 +54,25 @@ const safeInitOfflineDetection = async (): Promise<void> => {
 // ============================================================================
 
 const getPathParam = (prefix: string): string | null => {
+    // Check for SSR initial state first
+    if (typeof window !== 'undefined') {
+        const win = window as unknown as {
+            __INITIAL_STATE__?: { route?: { type: string; id: string } };
+        };
+        if (win.__INITIAL_STATE__?.route?.type === prefix) {
+            return win.__INITIAL_STATE__.route!.id;
+        }
+    }
+
     const path = window.location.pathname;
     if (path.startsWith(`/smartgrind/${prefix}/`)) {
         return path.split(`/smartgrind/${prefix}/`)[1] || null;
     }
-    return prefix === 'c' && path === '/smartgrind/' ? 'all' : null;
+    // Handle clean paths from SSR (without /smartgrind prefix)
+    if (path.startsWith(`/${prefix}/`)) {
+        return path.split(`/${prefix}/`)[1] || null;
+    }
+    return prefix === 'c' && (path === '/smartgrind/' || path === '/') ? 'all' : null;
 };
 
 const getCategoryFromUrl = (): string | null => getPathParam('c');
@@ -159,6 +173,18 @@ const applyCategory = async (
 ) => {
     const { renderers } = await import('./renderers');
 
+    // Ensure app wrapper is visible before rendering
+    const appWrapper = state.elements['appWrapper'] as HTMLElement | null;
+    const setupModal = state.elements['setupModal'] as HTMLElement | null;
+    const loadingScreen = state.elements['loadingScreen'] as HTMLElement | null;
+
+    setupModal?.classList.add('hidden');
+    loadingScreen?.classList.add('hidden');
+    appWrapper?.classList.remove('hidden');
+
+    // Re-cache elements to ensure we have the latest DOM references
+    state.cacheElements();
+
     // Handle SQL view
     if (sqlParam && data.sqlData.some((c) => c.id === sqlParam)) {
         state.ui.activeSQLCategoryId = sqlParam;
@@ -192,7 +218,6 @@ const applyCategory = async (
     }
 
     // Default: Show combined view with all content
-    // Ensure no category is selected and "All Content" is shown as active
     state.ui.activeTopicId = '';
     state.ui.activeAlgorithmCategoryId = null;
     state.ui.activeSQLCategoryId = null;
@@ -201,7 +226,6 @@ const applyCategory = async (
     renderers.updateStats();
     scrollToTop();
 };
-
 // Helper to initialize UI after user setup
 const initializeUIAfterSetup = async () => {
     const { ui } = await import('./ui/ui');
