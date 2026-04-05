@@ -503,7 +503,6 @@ function handleSWMessage(event: MessageEvent): void {
             break;
 
         case 'BUNDLE_READY':
-            // Extract the state object from the message data
             emit('bundleReady', data?.state);
             break;
 

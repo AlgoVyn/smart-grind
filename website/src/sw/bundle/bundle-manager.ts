@@ -397,7 +397,10 @@ export class BundleManager {
     private async notifyClientsBundleReady(state: BundleDownloadState): Promise<void> {
         const clients = await self.clients.matchAll({ type: 'window' });
         clients.forEach((client) => {
-            client.postMessage({ type: 'BUNDLE_READY', state });
+            client.postMessage({
+                type: 'BUNDLE_READY',
+                data: { state },
+            });
             client.postMessage({
                 type: 'CONTENT_UPDATE',
                 data: {

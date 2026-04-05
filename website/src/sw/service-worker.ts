@@ -290,7 +290,12 @@ async function handleStaticRequest(request: Request): Promise<Response> {
 async function handleNavigationRequest(request: Request): Promise<Response> {
     const requestUrl = new URL(request.url);
     try {
-        const networkResponse = await fetch(request);
+        // Always fetch fresh HTML for navigation requests to ensure new deployments work
+        // Use cache-busting to prevent browser HTTP cache from serving stale HTML
+        const freshRequest = new Request(request, {
+            cache: 'no-cache',
+        });
+        const networkResponse = await fetch(freshRequest);
         if (networkResponse.ok) {
             const cache = await caches.open(`${CACHE_NAMES.STATIC}-${CACHE_VERSION}`);
             cache.put(request, addCacheHeaders(networkResponse.clone())).catch(console.warn);
