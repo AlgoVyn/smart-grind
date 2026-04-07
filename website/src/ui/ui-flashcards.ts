@@ -14,7 +14,7 @@ import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-sql';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-typescript';
-import { marked, type Tokens } from 'marked';
+import { marked } from 'marked';
 import { state, markFlashCardsDirty } from '../state';
 import { FlashCard, FlashCardProgress, FlashCardSession } from '../types';
 import {
@@ -185,32 +185,10 @@ const RATING_INTERVALS: Record<string, [number, number]> = {
     easy: [7, 14], // 7-14 days
 };
 
-// Configure markdown renderer with syntax highlighting - runs once at module load
-// Helper to escape HTML in code blocks
-const escapeHtml = (unsafe: string) => {
-    return unsafe
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-};
-
-// Custom renderer for code blocks
-const customRenderer = {
-    code(token: Tokens.Code): string {
-        const { text, lang } = token;
-        const escapedCode = escapeHtml(text);
-        const langClass = lang ? `language-${lang}` : '';
-        return `<pre class="${langClass}"><code class="${langClass}">${escapedCode}</code></pre>`;
-    },
-};
-
-// Configure marked once at module load
-marked.use({ renderer: customRenderer });
-
 // Render markdown content with syntax highlighting
 export const renderMarkdownContent = (markdown: string, element: HTMLElement): void => {
+    // Use the marked instance without custom renderer to avoid overriding
+    // the carousel-supporting renderer from ui-markdown
     const html = marked.parse(markdown) as string;
 
     // Sanitize HTML before inserting
