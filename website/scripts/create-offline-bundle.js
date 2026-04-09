@@ -24,6 +24,7 @@ const PATTERNS_DIR = join(PUBLIC_DIR, 'patterns');
 const SOLUTIONS_DIR = join(PUBLIC_DIR, 'solutions');
 const ALGORITHMS_DIR = join(PUBLIC_DIR, 'algorithms');
 const FLASHCARDS_DIR = join(PUBLIC_DIR, 'flashcards');
+const SQL_DIR = join(PUBLIC_DIR, 'sql');
 // Output to dist directory for deployment
 const OUTPUT_FILE = join(DIST_DIR, 'offline-bundle.tar.gz');
 const MANIFEST_FILE = join(DIST_DIR, 'offline-manifest.json');
@@ -121,7 +122,7 @@ function collectMdFiles(dir, baseDir) {
 /**
  * Create the tar archive as a buffer
  */
-async function createTarArchive(patternFiles, solutionFiles, algorithmFiles, flashcardFiles) {
+async function createTarArchive(patternFiles, solutionFiles, algorithmFiles, flashcardFiles, sqlFiles) {
     const chunks = [];
     
     // Use timestamp for version - ensures unique version on every build
@@ -135,7 +136,8 @@ async function createTarArchive(patternFiles, solutionFiles, algorithmFiles, fla
         solutions: solutionFiles.map(f => f.relativePath),
         algorithms: algorithmFiles.map(f => f.relativePath),
         flashcards: flashcardFiles.map(f => f.relativePath),
-        totalFiles: patternFiles.length + solutionFiles.length + algorithmFiles.length + flashcardFiles.length,
+        sql: sqlFiles.map(f => f.relativePath),
+        totalFiles: patternFiles.length + solutionFiles.length + algorithmFiles.length + flashcardFiles.length + sqlFiles.length,
     };
     
     const manifestContent = JSON.stringify(manifest, null, 2);
@@ -185,7 +187,17 @@ async function createTarArchive(patternFiles, solutionFiles, algorithmFiles, fla
         chunks.push(content);
         chunks.push(createPadding(content.length));
     }
-    
+
+    // Add SQL files
+    for (const file of sqlFiles) {
+        const content = readFileSync(file.path);
+        const tarPath = `sql/${file.relativePath}`;
+
+        chunks.push(createTarHeader(tarPath, content.length));
+        chunks.push(content);
+        chunks.push(createPadding(content.length));
+    }
+
     // Add two empty blocks to mark end of archive
     chunks.push(Buffer.alloc(TAR_BLOCK_SIZE * 2));
     
@@ -241,15 +253,19 @@ async function main() {
     console.log('📁 Collecting flashcard files...');
     const flashcardFiles = collectMdFiles(FLASHCARDS_DIR, FLASHCARDS_DIR);
     console.log(`   Found ${flashcardFiles.length} flashcard files`);
-    
-    const totalFiles = patternFiles.length + solutionFiles.length + algorithmFiles.length + flashcardFiles.length;
-    const totalSize = [...patternFiles, ...solutionFiles, ...algorithmFiles, ...flashcardFiles].reduce((sum, f) => sum + f.size, 0);
+
+    console.log('📁 Collecting SQL files...');
+    const sqlFiles = collectMdFiles(SQL_DIR, SQL_DIR);
+    console.log(`   Found ${sqlFiles.length} SQL files`);
+
+    const totalFiles = patternFiles.length + solutionFiles.length + algorithmFiles.length + flashcardFiles.length + sqlFiles.length;
+    const totalSize = [...patternFiles, ...solutionFiles, ...algorithmFiles, ...flashcardFiles, ...sqlFiles].reduce((sum, f) => sum + f.size, 0);
     
     console.log(`\n📊 Total: ${totalFiles} files, ${formatBytes(totalSize)} uncompressed\n`);
-    
+
     // Create tar archive
     console.log('🗃️  Creating tar archive...');
-    const tarBuffer = await createTarArchive(patternFiles, solutionFiles, algorithmFiles, flashcardFiles);
+    const tarBuffer = await createTarArchive(patternFiles, solutionFiles, algorithmFiles, flashcardFiles, sqlFiles);
     console.log(`   Tar size: ${formatBytes(tarBuffer.length)}`);
     
     // Compress with Gzip
@@ -280,6 +296,7 @@ async function main() {
         solutions: solutionFiles.map(f => `solutions/${f.relativePath}`),
         algorithms: algorithmFiles.map(f => `algorithms/${f.relativePath}`),
         flashcards: flashcardFiles.map(f => `flashcards/${f.relativePath}`),
+        sql: sqlFiles.map(f => `sql/${f.relativePath}`),
         totalFiles,
     };
     writeFileSync(MANIFEST_FILE, JSON.stringify(manifest, null, 2));

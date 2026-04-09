@@ -18,6 +18,7 @@ const PROBLEM_PATTERNS = [
     /\/smartgrind\/patterns\/.+\.md$/,
     /\/smartgrind\/solutions\/.+\.md$/,
     /\/smartgrind\/algorithms\/.+\.md$/,
+    /\/smartgrind\/sql\/.+\.md$/,
 ];
 
 const API_ROUTES = [/\/smartgrind\/api\//];

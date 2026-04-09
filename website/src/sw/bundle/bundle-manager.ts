@@ -314,6 +314,7 @@ export class BundleManager {
                 /\/smartgrind\/patterns\/.+\.md$/,
                 /\/smartgrind\/solutions\/.+\.md$/,
                 /\/smartgrind\/algorithms\/.+\.md$/,
+                /\/smartgrind\/sql\/.+\.md$/,
             ];
             const flashcardPatterns = [/\/flashcards\/.+\.md$/];
 
