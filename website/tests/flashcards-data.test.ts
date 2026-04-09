@@ -64,7 +64,7 @@ describe('Flash Cards Data Module', () => {
             const algorithms = FLASH_CARDS_DATA.filter((c: FlashCard) => c.type === 'algorithm');
             const patterns = FLASH_CARDS_DATA.filter((c: FlashCard) => c.type === 'pattern');
             expect(algorithms.length).toBeGreaterThan(0);
-            // expect(patterns.length).toBeGreaterThan(0);  // Temporarily disabled - only algorithm cards currently
+            expect(patterns.length).toBeGreaterThan(0);  // Temporarily disabled - only algorithm cards currently
         });
     });
 
@@ -198,6 +198,8 @@ describe('Flash Cards Content Validation', () => {
             'heap-priority-queue', 'math-number-theory', 'advanced',
             'sliding-window', 'binary-search', 'tree-patterns', 'heap',
             'two-pointers', 'fast-slow-pointers', 'merge-intervals', 'stack', 'matrix',
+            // Additional pattern categories
+            'arrays', 'trees', 'strings', 'linked-list', 'trie', 'general', 'design',
             // SQL categories
             'sql-basics', 'sql-joins', 'sql-aggregation', 'sql-subqueries',
             'sql-window-functions', 'sql-cte', 'sql-conditional', 'sql-datetime',
