@@ -46,7 +46,7 @@ describe('SyncConflictResolver', () => {
             expect(result.data).toMatchObject({
                 problemId: 'p1',
                 solved: true, // OR operation
-                solveCount: 3, // SUM
+                solveCount: 2, // MAX (takes the higher of client=1 and server=2)
             });
         });
 

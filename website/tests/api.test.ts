@@ -777,7 +777,7 @@ describe('SmartGrind API Module', () => {
 
             // Check confirmation was requested
             expect(confirmSpy).toHaveBeenCalledWith(
-                'Are you sure you want to reset <b>ALL Problems</b>?</br></br>This will mark all problems as unsolved and restore any deleted problems across all categories.'
+                'Are you sure you want to reset <b>ALL Problems</b>?<br><br>This will mark all problems as unsolved and restore any deleted problems across all categories.'
             );
 
             // Check existing problems were reset
@@ -818,7 +818,7 @@ describe('SmartGrind API Module', () => {
 
             // Check confirmation was requested
             expect(confirmSpy).toHaveBeenCalledWith(
-                'Are you sure you want to reset <b>ALL Problems</b>?</br></br>This will mark all problems as unsolved and restore any deleted problems across all categories.'
+                'Are you sure you want to reset <b>ALL Problems</b>?<br><br>This will mark all problems as unsolved and restore any deleted problems across all categories.'
             );
 
             // Check no changes were made
@@ -906,7 +906,7 @@ describe('SmartGrind API Module', () => {
 
             // Check confirmation was requested
             expect(confirmSpy).toHaveBeenCalledWith(
-                'Are you sure you want to reset all problems in the category "<b>Arrays</b>"?</br></br>This will mark all problems as unsolved and restore any deleted problems.'
+                'Are you sure you want to reset all problems in the category "<b>Arrays</b>"?<br><br>This will mark all problems as unsolved and restore any deleted problems.'
             );
 
             // Check existing problem was reset
@@ -942,7 +942,7 @@ describe('SmartGrind API Module', () => {
 
             // Check confirmation was requested
             expect(confirmSpy).toHaveBeenCalledWith(
-                'Are you sure you want to reset all problems in the category "<b>Arrays</b>"?</br></br>This will mark all problems as unsolved and restore any deleted problems.'
+                'Are you sure you want to reset all problems in the category "<b>Arrays</b>"?<br><br>This will mark all problems as unsolved and restore any deleted problems.'
             );
 
             // Check no changes were made

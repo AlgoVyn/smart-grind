@@ -19,12 +19,7 @@ const DB_VERSION = 1;
 const STORE_NAME = 'problem-metadata';
 
 /** Promisify IndexedDB request */
-function promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
-    return new Promise((resolve, reject) => {
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
-}
+import { promisifyRequest } from '../utils/indexeddb-helper';
 
 export class OfflineManager {
     private db: IDBDatabase | null = null;

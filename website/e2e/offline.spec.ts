@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { verifyTheme } from './utils/test-helpers';
 
 /**
  * E2E tests for offline functionality:
@@ -194,9 +195,10 @@ test.describe('Offline Functionality', () => {
     });
 
     test('should maintain theme preference offline', async ({ page, context }) => {
-        // Get initial theme state
-        const initialClasses = await page.locator('html').getAttribute('class');
-        const initialIsDark = initialClasses?.includes('dark');
+        // Get initial theme state using classList for reliability
+        const initialIsDark = await page.evaluate(() => {
+            return document.documentElement.classList.contains('dark');
+        });
 
         // Go offline
         await context.setOffline(true);
@@ -213,6 +215,9 @@ test.describe('Offline Functionality', () => {
         const savedTheme = await page.evaluate(() => localStorage.getItem('theme'));
         expect(savedTheme).toBe(initialIsDark ? 'light' : 'dark');
 
+        // Verify theme toggled correctly before reloading
+        await verifyTheme(page, initialIsDark ? 'light' : 'dark');
+
         // Come back online and reload to verify persistence
         await context.setOffline(false);
         await page.evaluate(() => window.dispatchEvent(new Event('online')));
@@ -220,11 +225,9 @@ test.describe('Offline Functionality', () => {
         await page.reload({ timeout: 30000, waitUntil: 'load' });
         await page.waitForSelector('#loading-screen', { state: 'hidden', timeout: 20000 });
         await page.waitForSelector('#app-wrapper', { state: 'visible', timeout: 15000 });
-        await page.waitForTimeout(1000);
 
-        // Verify theme persisted after reload
-        const classes = await page.locator('html').getAttribute('class');
-        expect(classes?.includes('dark') || false).toBe(!initialIsDark);
+        // Verify theme persisted after reload using polling check
+        await verifyTheme(page, initialIsDark ? 'light' : 'dark');
     });
 
     test('should show sign-in modal when background sync fails due to auth error', async ({

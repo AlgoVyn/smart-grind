@@ -15,9 +15,24 @@ import { virtualProblemList } from './virtual-problem-list';
 
 export const mainViewRenderers = {
     // Helper to create an action button
-    _createActionBtn: (icon: string, title: string, color: string, onClick: () => void) => {
+    // NOTE: Tailwind JIT requires full class names at build time — dynamic interpolation
+    // like hover:\${color} doesn't work. Use a static map for all known color variants.
+    _createActionBtn: (icon: string, title: string, colorClass: string, onClick: () => void) => {
+        // Static map of background classes to their hover state classes.
+        // This ensures Tailwind's JIT compiler can detect and include all classes.
+        const hoverClassMap: Record<string, string> = {
+            'bg-blue-500/10': 'hover:bg-blue-500/20 hover:text-blue-400',
+            'bg-red-500/10': 'hover:bg-red-500/20 hover:text-red-400',
+            'bg-green-500/10': 'hover:bg-green-500/20 hover:text-green-400',
+            'bg-amber-500/10': 'hover:bg-amber-500/20 hover:text-amber-400',
+            'bg-purple-500/10': 'hover:bg-purple-500/20 hover:text-purple-400',
+            'bg-slate-500/10': 'hover:bg-slate-500/20 hover:text-slate-400',
+        };
+
+        const hoverClasses =
+            hoverClassMap[colorClass] || 'hover:bg-slate-500/20 hover:text-slate-400';
         const btn = document.createElement('button');
-        btn.className = `category-action-btn p-1 rounded hover:${color} text-theme-muted hover:text-${color.split('-')[1]}-400 transition-colors`;
+        btn.className = `category-action-btn p-1 rounded ${colorClass} text-theme-muted ${hoverClasses} transition-colors`;
         btn.title = title;
         btn.innerHTML = icon;
         btn.onclick = onClick;

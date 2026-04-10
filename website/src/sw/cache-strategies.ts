@@ -127,8 +127,12 @@ class CacheFirst implements CacheStrategy {
     }
 }
 
-// Cache version for cache busting - increment when bundle format changes
-export const CACHE_VERSION = 'v3';
+// Cache version for cache busting.
+// This MUST match the version injected at build time in service-worker.ts.
+// The placeholder is replaced by Vite's build process (see inject-sw-version plugin).
+// When updating, also update the version in service-worker.ts.
+const SW_VERSION: string = '__SW_VERSION_PLACEHOLDER__';
+export const CACHE_VERSION = `v${SW_VERSION}`;
 
 // Cache names for external reference (base names without version)
 export const CACHE_NAMES = {

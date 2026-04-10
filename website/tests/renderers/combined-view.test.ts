@@ -278,14 +278,6 @@ describe('combinedViewRenderers', () => {
             expect(sqlHeader).toBeTruthy();
         });
 
-        test('calls attachEventListeners at the end', async () => {
-            const attachSpy = jest.spyOn(combinedViewRenderers, 'attachEventListeners');
-            
-            await combinedViewRenderers.renderCombinedView();
-            
-            expect(attachSpy).toHaveBeenCalled();
-            attachSpy.mockRestore();
-        });
     });
 
     describe('renderAlgorithmCategory', () => {
@@ -358,116 +350,24 @@ describe('combinedViewRenderers', () => {
     });
 
     describe('attachEventListeners', () => {
-        beforeEach(() => {
-            // Create mock action buttons in the DOM
+        // DEPRECATED: attachEventListeners is now a no-op because event delegation
+        // is handled by bindProblemEvents() in ui-problems.ts on the problemsContainer.
+        // This avoids duplicate listeners accumulating on re-render.
+        test('attachEventListeners is a no-op (event delegation is handled elsewhere)', () => {
+            // Verify it doesn't throw and doesn't add listeners to individual buttons
             document.body.innerHTML = `
                 <div id="test-container">
                     <button class="action-btn" data-action="solve" data-problem-id="1">Solve</button>
-                    <button class="action-btn" data-action="reset" data-problem-id="2">Reset</button>
-                    <button class="action-btn" data-action="review" data-problem-id="3">Review</button>
-                    <button class="action-btn" data-action="toggle-note" data-problem-id="1">Note</button>
-                </div>
-                <div data-problem-id="1" id="card-1">
-                    <button class="action-btn" data-action="solve">Solve</button>
                 </div>
             `;
-        });
-
-        test('attaches click handlers to action buttons', () => {
             const buttons = document.querySelectorAll('.action-btn[data-action]');
             const addEventListenerSpy = jest.spyOn(buttons[0], 'addEventListener');
-            
+
             combinedViewRenderers.attachEventListeners();
-            
-            expect(addEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function));
+
+            // Should not have called addEventListener on individual buttons
+            expect(addEventListenerSpy).not.toHaveBeenCalled();
             addEventListenerSpy.mockRestore();
-        });
-
-        test('handles solve action by calling handleSolve', () => {
-            combinedViewRenderers.attachEventListeners();
-            
-            const solveButton = document.querySelector('[data-action="solve"]');
-            solveButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-            
-            expect(problemCardRenderers.handleSolve).toHaveBeenCalled();
-        });
-
-        test('handles reset action by calling handleSolve', () => {
-            combinedViewRenderers.attachEventListeners();
-            
-            const resetButton = document.querySelector('[data-action="reset"]');
-            resetButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-            
-            expect(problemCardRenderers.handleSolve).toHaveBeenCalled();
-        });
-
-        test('handles review action by calling handleSolve', () => {
-            combinedViewRenderers.attachEventListeners();
-            
-            const reviewButton = document.querySelector('[data-action="review"]');
-            reviewButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-            
-            expect(problemCardRenderers.handleSolve).toHaveBeenCalled();
-        });
-
-        test('handles toggle-note action by calling handleNoteToggle', () => {
-            combinedViewRenderers.attachEventListeners();
-            
-            const noteButton = document.querySelector('[data-action="toggle-note"]');
-            noteButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-            
-            expect(problemCardRenderers.handleNoteToggle).toHaveBeenCalled();
-        });
-
-        test('does nothing when problem not found in state', () => {
-            document.body.innerHTML = `
-                <div data-problem-id="non-existent">
-                    <button class="action-btn" data-action="solve">Solve</button>
-                </div>
-            `;
-            
-            combinedViewRenderers.attachEventListeners();
-            
-            const button = document.querySelector('[data-action="solve"]');
-            button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-            
-            expect(problemCardRenderers.handleSolve).not.toHaveBeenCalled();
-        });
-
-        test('does nothing when problem-id attribute is missing', () => {
-            document.body.innerHTML = `
-                <div>
-                    <button class="action-btn" data-action="solve">Solve</button>
-                </div>
-            `;
-            
-            combinedViewRenderers.attachEventListeners();
-            
-            const button = document.querySelector('[data-action="solve"]');
-            button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-            
-            expect(problemCardRenderers.handleSolve).not.toHaveBeenCalled();
-        });
-
-        test('gets correct problem from state based on clicked button', () => {
-            combinedViewRenderers.attachEventListeners();
-            
-            const solveButton = document.querySelector('[data-action="solve"][data-problem-id="1"]');
-            solveButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-            
-            // Check that handleSolve was called with the correct problem
-            const problemArg = (problemCardRenderers.handleSolve as jest.Mock).mock.calls[0][1];
-            expect(problemArg.id).toBe('1');
-        });
-
-        test('passes button element to handler functions', () => {
-            combinedViewRenderers.attachEventListeners();
-            
-            const solveButton = document.querySelector('[data-action="solve"][data-problem-id="1"]');
-            solveButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-            
-            const buttonArg = (problemCardRenderers.handleSolve as jest.Mock).mock.calls[0][0];
-            expect(buttonArg).toBe(solveButton);
         });
     });
 });

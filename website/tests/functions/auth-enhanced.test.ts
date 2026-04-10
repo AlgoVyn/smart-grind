@@ -3,7 +3,7 @@
  * @module tests/functions/auth-enhanced
  */
 
-import { checkRateLimit } from '../../functions/api/auth';
+import { checkRateLimit } from '../../functions/api/cloudflare-types';
 
 describe('Auth Functions Enhanced', () => {
     let mockKV: any;

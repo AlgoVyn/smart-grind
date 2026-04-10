@@ -377,14 +377,6 @@ describe('sqlViewRenderers', () => {
             expect(mockViewTitle.insertAdjacentElement).toHaveBeenCalled();
         });
 
-        test('7. calls attachProblemCardListeners after rendering', async () => {
-            const attachListenersSpy = jest.spyOn(sqlViewRenderers, 'attachProblemCardListeners');
-
-            await sqlViewRenderers.renderSQLView('sql-basics');
-
-            expect(attachListenersSpy).toHaveBeenCalled();
-        });
-
         test('handles undefined category gracefully', async () => {
             jest.mocked(getSQLCategoryById).mockReturnValueOnce(undefined);
 
@@ -395,220 +387,12 @@ describe('sqlViewRenderers', () => {
     });
 
     describe('attachProblemCardListeners', () => {
-        test('8. attaches handlers to action buttons', () => {
-            const mockButton = createMockElement();
-            mockButton.dataset = { action: 'toggle-solve' };
-
-            jest.spyOn(document, 'querySelectorAll').mockImplementation((selector: string) => {
-                if (selector === '.action-btn[data-action]') {
-                    return [mockButton] as any;
-                }
-                return [] as any;
-            });
-
-            sqlViewRenderers.attachProblemCardListeners();
-
-            expect(mockButton.addEventListener).toHaveBeenCalledWith('click', expect.any(Function));
-        });
-
-        test('9. handles sql-solution action', () => {
-            const mockButton = createMockElement();
-            mockButton.dataset = { action: 'sql-solution', pattern: 'Basic SELECT with WHERE' };
-
-            jest.spyOn(document, 'querySelectorAll').mockImplementation((selector: string) => {
-                if (selector === '.action-btn[data-action]') {
-                    return [mockButton] as any;
-                }
-                return [] as any;
-            });
-
-            sqlViewRenderers.attachProblemCardListeners();
-
-            // Simulate click
-            const clickHandler = mockButton.addEventListener.mock.calls[0][1];
-            const mockEvent = {
-                currentTarget: mockButton,
-            };
-            clickHandler(mockEvent);
-
-            expect(openSQLSolutionModal).toHaveBeenCalledWith('Basic SELECT with WHERE');
-        });
-
-        test('10. handles problem-level actions', () => {
-            const mockCard = createMockElement();
-            mockCard.getAttribute = jest.fn(() => 'sql-175');
-
-            const mockButton = createMockElement();
-            mockButton.dataset = { action: 'toggle-solve' };
-            mockButton.closest = jest.fn(() => mockCard);
-
-            jest.spyOn(document, 'querySelectorAll').mockImplementation((selector: string) => {
-                if (selector === '.action-btn[data-action]') {
-                    return [mockButton] as any;
-                }
-                return [] as any;
-            });
-
-            const existingProblem = {
-                id: 'sql-175',
-                name: 'Combine Two Tables',
-                url: 'https://leetcode.com/problems/combine-two-tables/',
-                status: 'unsolved' as const,
-                topic: 'SELECT Fundamentals',
-                pattern: 'Basic SELECT with WHERE',
-                reviewInterval: 0,
-                nextReviewDate: null,
-                note: '',
-            };
-            state.problems.set('sql-175', existingProblem);
-
-            const handleSolveSpy = jest.spyOn(sqlViewRenderers, 'handleSolve');
-
-            sqlViewRenderers.attachProblemCardListeners();
-
-            const clickHandler = mockButton.addEventListener.mock.calls[0][1];
-            const mockEvent = {
-                currentTarget: mockButton,
-            };
-            clickHandler(mockEvent);
-
-            expect(handleSolveSpy).toHaveBeenCalledWith(mockButton, existingProblem);
-        });
-
-        test('handles toggle-note action', () => {
-            const mockCard = createMockElement();
-            mockCard.getAttribute = jest.fn(() => 'sql-175');
-
-            const mockButton = createMockElement();
-            mockButton.dataset = { action: 'toggle-note' };
-            mockButton.closest = jest.fn(() => mockCard);
-
-            jest.spyOn(document, 'querySelectorAll').mockImplementation((selector: string) => {
-                if (selector === '.action-btn[data-action]') {
-                    return [mockButton] as any;
-                }
-                return [] as any;
-            });
-
-            const existingProblem = {
-                id: 'sql-175',
-                name: 'Combine Two Tables',
-                url: 'https://leetcode.com/problems/combine-two-tables/',
-                status: 'unsolved' as const,
-                topic: 'SELECT Fundamentals',
-                pattern: 'Basic SELECT with WHERE',
-                reviewInterval: 0,
-                nextReviewDate: null,
-                note: '',
-            };
-            state.problems.set('sql-175', existingProblem);
-
-            const handleToggleNoteSpy = jest.spyOn(sqlViewRenderers, 'handleToggleNote');
-
-            sqlViewRenderers.attachProblemCardListeners();
-
-            const clickHandler = mockButton.addEventListener.mock.calls[0][1];
-            const mockEvent = {
-                currentTarget: mockButton,
-            };
-            clickHandler(mockEvent);
-
-            expect(handleToggleNoteSpy).toHaveBeenCalledWith(mockButton, existingProblem);
-        });
-
-        test('handles problem-solution action', () => {
-            const mockCard = createMockElement();
-            mockCard.getAttribute = jest.fn(() => 'sql-175');
-
-            const mockButton = createMockElement();
-            mockButton.dataset = { action: 'problem-solution' };
-            mockButton.closest = jest.fn(() => mockCard);
-
-            jest.spyOn(document, 'querySelectorAll').mockImplementation((selector: string) => {
-                if (selector === '.action-btn[data-action]') {
-                    return [mockButton] as any;
-                }
-                return [] as any;
-            });
-
-            const existingProblem = {
-                id: 'sql-175',
-                name: 'Combine Two Tables',
-                url: 'https://leetcode.com/problems/combine-two-tables/',
-                status: 'unsolved' as const,
-                topic: 'SELECT Fundamentals',
-                pattern: 'Basic SELECT with WHERE',
-                reviewInterval: 0,
-                nextReviewDate: null,
-                note: '',
-            };
-            state.problems.set('sql-175', existingProblem);
-
-            sqlViewRenderers.attachProblemCardListeners();
-
-            const clickHandler = mockButton.addEventListener.mock.calls[0][1];
-            const mockEvent = {
-                currentTarget: mockButton,
-            };
-            clickHandler(mockEvent);
-
-            expect(openProblemSQLSolutionModal).toHaveBeenCalledWith('Combine Two Tables');
-        });
-
-        test('ignores action when problem ID not found', () => {
-            const mockCard = createMockElement();
-            mockCard.getAttribute = jest.fn(() => null);
-
-            const mockButton = createMockElement();
-            mockButton.dataset = { action: 'toggle-solve' };
-            mockButton.closest = jest.fn(() => mockCard);
-
-            jest.spyOn(document, 'querySelectorAll').mockImplementation((selector: string) => {
-                if (selector === '.action-btn[data-action]') {
-                    return [mockButton] as any;
-                }
-                return [] as any;
-            });
-
-            const handleSolveSpy = jest.spyOn(sqlViewRenderers, 'handleSolve');
-
-            sqlViewRenderers.attachProblemCardListeners();
-
-            const clickHandler = mockButton.addEventListener.mock.calls[0][1];
-            const mockEvent = {
-                currentTarget: mockButton,
-            };
-            clickHandler(mockEvent);
-
-            expect(handleSolveSpy).not.toHaveBeenCalled();
-        });
-
-        test('ignores action when problem not in state', () => {
-            const mockCard = createMockElement();
-            mockCard.getAttribute = jest.fn(() => 'nonexistent');
-
-            const mockButton = createMockElement();
-            mockButton.dataset = { action: 'toggle-solve' };
-            mockButton.closest = jest.fn(() => mockCard);
-
-            jest.spyOn(document, 'querySelectorAll').mockImplementation((selector: string) => {
-                if (selector === '.action-btn[data-action]') {
-                    return [mockButton] as any;
-                }
-                return [] as any;
-            });
-
-            const handleSolveSpy = jest.spyOn(sqlViewRenderers, 'handleSolve');
-
-            sqlViewRenderers.attachProblemCardListeners();
-
-            const clickHandler = mockButton.addEventListener.mock.calls[0][1];
-            const mockEvent = {
-                currentTarget: mockButton,
-            };
-            clickHandler(mockEvent);
-
-            expect(handleSolveSpy).not.toHaveBeenCalled();
+        // DEPRECATED: attachProblemCardListeners is now a no-op because event delegation
+        // is handled by bindProblemEvents() in ui-problems.ts on the problemsContainer.
+        // This avoids duplicate listeners accumulating on re-render.
+        test('attachProblemCardListeners is a no-op (event delegation is handled elsewhere)', () => {
+            // Verify it doesn't throw
+            expect(() => sqlViewRenderers.attachProblemCardListeners()).not.toThrow();
         });
     });
 
@@ -832,7 +616,7 @@ describe('sqlViewRenderers', () => {
             expect(mockCard.innerHTML).toContain('Combine Two Tables');
         });
 
-        test('15b. re-attaches listeners after re-rendering', () => {
+        test('15b. handleToggleNote no longer re-attaches listeners (event delegation is used)', () => {
             const mockCard = createMockElement();
             const mockButton = createMockElement();
             mockButton.closest = jest.fn(() => mockCard);
@@ -854,7 +638,8 @@ describe('sqlViewRenderers', () => {
 
             sqlViewRenderers.handleToggleNote(mockButton, problem);
 
-            expect(attachListenersSpy).toHaveBeenCalled();
+            // Event delegation is now handled by bindProblemEvents() - no per-element re-attachment
+            expect(attachListenersSpy).not.toHaveBeenCalled();
         });
 
         test('does nothing when card not found', () => {

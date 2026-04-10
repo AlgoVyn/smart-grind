@@ -6,12 +6,7 @@ import { SyncConflictResolver } from './sync-conflict-resolver';
 import { SYNC_TAGS } from '../sw-register';
 
 /** Promisify IndexedDB request */
-function promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
-    return new Promise((resolve, reject) => {
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
-}
+import { promisifyRequest } from '../utils/indexeddb-helper';
 
 /** Fetch options: use Bearer token from IndexedDB when present, else credentials (cookies). */
 async function getAuthFetchOpts(

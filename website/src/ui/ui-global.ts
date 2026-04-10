@@ -24,9 +24,15 @@ const _keyboardShortcuts = {
 
 // Keyboard shortcuts
 export const handleKeyboard = (e: KeyboardEvent): void => {
-    // Skip if typing in an input/textarea
-    if ((e.target as Element).tagName === 'INPUT' || (e.target as Element).tagName === 'TEXTAREA') {
-        // Allow Escape to close modals even when focused on input
+    const target = e.target as Element;
+    // Skip if typing in an input/textarea/select or contenteditable element
+    const isEditable =
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        (target instanceof HTMLElement && target.isContentEditable);
+    if (isEditable) {
+        // Allow Escape to close modals even when focused on editable elements
         if (e.key === 'Escape') {
             _keyboardShortcuts['Escape']();
             e.preventDefault();

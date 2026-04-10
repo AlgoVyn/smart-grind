@@ -44,7 +44,7 @@ jest.mock('jose', () => ({
 // Mock crypto
 global.crypto.randomUUID = jest.fn().mockReturnValue('mock-uuid');
 
-import { checkRateLimit } from '../functions/api/auth';
+import { checkRateLimit } from '../functions/api/cloudflare-types';
 
 describe('Security Functions', () => {
     describe('Environment Validation', () => {

@@ -90,6 +90,7 @@ export const htmlGenerators = {
             patternSolutionButton.dataset['action'] = 'pattern-solution';
             patternSolutionButton.dataset['pattern'] = pattern.name;
             patternSolutionButton.title = 'View Pattern Solution';
+            patternSolutionButton.setAttribute('aria-label', 'View Pattern Solution');
             patternSolutionButton.innerHTML = `
                 <svg aria-hidden="true" fill="currentColor" class="w-4 h-4" viewBox="0 0 24 24">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -200,7 +201,7 @@ export const htmlGenerators = {
         const badge = htmlGenerators.generateBadge(p, today);
         return `
             <div class="flex items-center gap-2 mb-1">
-                <a href="${p.url}" target="_blank" class="text-base font-medium text-theme-bold group-hover:text-brand-400 transition-colors truncate cursor-pointer">
+                <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="text-base font-medium text-theme-bold group-hover:text-brand-400 transition-colors truncate cursor-pointer">
                     ${escapeHtml(p.name || '')}
                 </a>
                 ${badge}
@@ -232,12 +233,12 @@ export const htmlGenerators = {
         const showSolutionButton = !isCustomProblem || isAlgorithm || isSQLProblem;
 
         return `
-            <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes" data-testid="note-btn">
+            <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes" aria-label="Notes" data-testid="note-btn">
                 ${ICONS.note}
             </button>
             ${showSolutionButton ? SOLUTION_BUTTON_HTML : ''}
             ${actionButton}
-            <button class="action-btn p-2 rounded-lg hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors" data-action="delete" title="Delete Problem">
+            <button class="action-btn p-2 rounded-lg hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors" data-action="delete" title="Delete Problem" aria-label="Delete Problem">
                 ${ICONS.delete}
             </button>
         `;

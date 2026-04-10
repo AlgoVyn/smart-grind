@@ -29,6 +29,19 @@ export class IDBOperationError extends Error {
 }
 
 /**
+ * Promisifies an IDBRequest, converting it from event-based to Promise-based.
+ * Shared utility used across service worker modules for IndexedDB operations.
+ * @param request - The IDBRequest to promisify
+ * @returns Promise resolving to the request result
+ */
+export function promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+/**
  * Check if error is a quota exceeded error
  */
 function isQuotaExceededError(error: unknown): boolean {

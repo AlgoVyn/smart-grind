@@ -14,36 +14,53 @@ const getAllowedOrigins = (): string[] => {
 };
 
 /**
- * Gets the current origin
- * Works in both browser and service worker contexts
- */
-const getCurrentOrigin = (): string => {
-    if (typeof window !== 'undefined') {
-        return window.location.origin;
-    }
-    // In service worker, use self.location
-    if (typeof self !== 'undefined' && self.location) {
-        return self.location.origin;
-    }
-    return '';
-};
-
-/**
- * Validates that the API response originates from an expected origin
+ * Validates that the API response originates from an expected origin.
+ * Uses strict origin comparison (not substring matching) to prevent
+ * origin confusion attacks (e.g., https://evil.algovyn.com must not match).
+ * Throws an error if the response origin is not in the allowed list.
+ *
+ * Handles three cases:
+ * 1. Same-origin absolute URLs (e.g., https://algovyn.com/api) — validated by origin
+ * 2. Relative URLs (e.g., /api/user) — assumed same-origin (native fetch behavior)
+ * 3. Empty URL (opaque redirects) — skipped, as no origin can be verified
+ *
  * @param response - The fetch response to validate
+ * @throws {Error} If the response origin is not in the allowed origins list
  */
 export const validateResponseOrigin = (response: Response): void => {
-    const currentOrigin = getCurrentOrigin();
-    // For same-origin requests, no additional validation needed
-    if (currentOrigin && response.url.startsWith(currentOrigin)) {
+    const responseUrl = response.url;
+
+    // Empty URL: opaque redirect responses have empty url property.
+    // We cannot validate origin, so we skip validation for these.
+    if (!responseUrl) {
         return;
     }
 
-    const responseOrigin = response.headers.get('Origin') || response.url;
+    // Relative URL: starts with '/' — these are same-origin by definition
+    // (browser fetch resolves relative URLs against the current origin).
+    if (responseUrl.startsWith('/')) {
+        return;
+    }
 
-    // Validate cross-origin responses
-    if (!getAllowedOrigins().some((origin) => responseOrigin.includes(origin))) {
-        // Unexpected origin - response will be handled by error handling
+    // Absolute URL: extract origin for strict comparison
+    let responseOrigin: string;
+    try {
+        responseOrigin = new URL(responseUrl).origin;
+    } catch {
+        // If URL is unparseable, reject the response
+        throw new Error(`Invalid response URL: ${responseUrl}`);
+    }
+
+    // Use strict equality comparison — substring matching (includes) would allow
+    // https://evil.algovyn.com to match https://algovyn.com
+    const allowedOrigins = getAllowedOrigins();
+    const isAllowed = allowedOrigins.some((origin) => responseOrigin === origin);
+
+    if (!isAllowed) {
+        throw new Error(
+            `Response origin validation failed: received "${responseOrigin}", ` +
+                `expected one of: ${allowedOrigins.join(', ')}`
+        );
     }
 };
 

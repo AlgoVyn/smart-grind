@@ -306,7 +306,8 @@ describe('mainViewRenderers', () => {
             expect(btn.className).toContain('category-action-btn');
             expect(btn.className).toContain('p-1');
             expect(btn.className).toContain('rounded');
-            expect(btn.className).toContain('hover:bg-blue-500/10');
+            expect(btn.className).toContain('hover:bg-blue-500/20');
+            expect(btn.className).toContain('hover:text-blue-400');
             expect(btn.className).toContain('text-theme-muted');
             expect(btn.title).toBe('Reset All Content');
             expect(btn.innerHTML).toBe(ICONS.reset);
@@ -326,7 +327,7 @@ describe('mainViewRenderers', () => {
                 mockOnClick
             );
 
-            expect(btn.className).toContain('hover:bg-red-500/10');
+            expect(btn.className).toContain('hover:bg-red-500/20');
             expect(btn.className).toContain('hover:text-red-400');
         });
     });

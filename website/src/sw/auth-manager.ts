@@ -29,12 +29,7 @@ const AUTH_STORE_NAME = 'auth-tokens';
 /**
  * Helper to promisify IndexedDB requests
  */
-function promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
-    return new Promise((resolve, reject) => {
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
-}
+import { promisifyRequest } from '../utils/indexeddb-helper';
 
 /**
  * AuthStorage class using IndexedDB (compatible with Service Workers)

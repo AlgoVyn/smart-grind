@@ -1,18 +1,39 @@
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const targetDomain = "smart-grind.pages.dev";
-    const proxyPath = "/smartgrind";
+    
+    // Define route mappings: path prefix -> target domain
+    const routes = {
+      "/smartgrind": "smart-grind.pages.dev",
+      "/markdown2social": "md-to-social.pages.dev"
+    };
+
+    // Find matching route
+    let targetDomain = null;
+    let proxyPath = null;
+    for (const [path, domain] of Object.entries(routes)) {
+      if (url.pathname.startsWith(path)) {
+        targetDomain = domain;
+        proxyPath = path;
+        break;
+      }
+    }
+
+    // Default to smart-grind if no route matches
+    if (!targetDomain) {
+      targetDomain = "smart-grind.pages.dev";
+      proxyPath = "/smartgrind";
+    }
 
     url.hostname = targetDomain;
 
-    // Special handling for service worker - it must be served from /smartgrind/sw.js
+    // Special handling for service worker - it must be served from /<proxyPath>/sw.js
     // Do NOT strip the prefix for sw.js to ensure it's served correctly
-    if (url.pathname === '/smartgrind/sw.js' || url.pathname === '/sw.js') {
+    if (url.pathname === `${proxyPath}/sw.js` || url.pathname === '/sw.js') {
       // Ensure sw.js is requested at the correct path on Pages
-      url.pathname = '/smartgrind/sw.js';
+      url.pathname = `${proxyPath}/sw.js`;
     } else if (url.pathname.startsWith(proxyPath)) {
-      // For all other paths, strip the /smartgrind prefix
+      // For all other paths, strip the proxy prefix
       url.pathname = url.pathname.replace(proxyPath, "");
     }
     

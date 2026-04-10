@@ -109,7 +109,18 @@ const executeSync = async (dataToSync: UserData | null, attempt = 1): Promise<vo
 };
 
 const debouncedSync = (): void => {
-    pendingData = prepareData();
+    // Merge new data into pending rather than replacing it, so that rapid
+    // successive calls don't lose the data from the first call.
+    const newData = prepareData();
+    if (pendingData) {
+        // Merge: newer problems overwrite older ones; deletedIds are unioned
+        pendingData = {
+            problems: { ...pendingData.problems, ...newData.problems },
+            deletedIds: [...new Set([...pendingData.deletedIds, ...newData.deletedIds])],
+        };
+    } else {
+        pendingData = newData;
+    }
     if (syncTimer) clearTimeout(syncTimer);
     syncTimer = setTimeout(() => {
         syncTimer = null;
@@ -188,19 +199,39 @@ export const _saveLocally = async (): Promise<void> => state.saveToStorageDeboun
 export const _saveRemotely = async (): Promise<void> => saveRemote(null);
 export const _triggerBackgroundSync = debouncedSync;
 
-// Page unload handler
+// Page unload handler — uses fetch with keepalive for reliable CSRF-compliant saves.
+// sendBeacon cannot set custom headers (X-CSRF-Token), so fetch+keepalive is preferred.
+// Falls back to sendBeacon with _csrf in body only if keepalive is unavailable.
 if (typeof window !== 'undefined') {
     window.addEventListener('beforeunload', () => {
         if (syncTimer && pendingData && isBrowserOnline()) {
             const token = getCachedCsrfToken();
             if (token) {
+                const payload = JSON.stringify({ data: pendingData, _csrf: token });
                 try {
-                    const blob = new Blob([JSON.stringify({ data: pendingData, _csrf: token })], {
-                        type: 'application/json',
+                    // SECURITY: Include CSRF token both as X-CSRF-Token header (primary)
+                    // and in request body (fallback for sendBeacon).
+                    // fetch+keepalive sends the header; sendBeacon only sends the body field.
+                    fetch(`${data.API_BASE}/user`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': token,
+                        },
+                        credentials: 'include',
+                        keepalive: true,
+                        body: payload,
+                    }).catch(() => {
+                        // Best-effort save on page unload; errors are expected and acceptable
                     });
-                    navigator.sendBeacon(`${data.API_BASE}/user`, blob);
-                } catch (e) {
-                    console.error('[API Save] sendBeacon failed:', e);
+                } catch (_e) {
+                    // Fallback for browsers that throw on fetch+keepalive
+                    try {
+                        const blob = new Blob([payload], { type: 'application/json' });
+                        navigator.sendBeacon(`${data.API_BASE}/user`, blob);
+                    } catch (beaconError) {
+                        console.error('[API Save] Page-unload save failed:', beaconError);
+                    }
                 }
             } else {
                 console.warn('[API Save] No CSRF token available for beforeunload sync');

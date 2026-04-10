@@ -175,6 +175,13 @@ export const sanitizeConfirmMessage = (message: string): string =>
 
 export const showConfirm = (message: string, title = 'Confirm Action') =>
     new Promise((resolve: (_value: boolean) => void) => {
+        // If a previous confirm is still pending, resolve it with false
+        // to prevent the Promise from hanging indefinitely.
+        if (_confirmResolve) {
+            _confirmResolve(false);
+            _confirmResolve = null;
+        }
+
         showModal(state.elements['confirmModal'] as HTMLElement | null, () => {
             const titleEl = state.elements['confirmTitle'] as HTMLElement | null;
             const msgEl = state.elements['confirmMessage'] as HTMLElement | null;

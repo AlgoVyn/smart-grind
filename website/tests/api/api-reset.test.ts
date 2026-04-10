@@ -440,7 +440,7 @@ describe('API Reset Module', () => {
             await resetAll();
 
             expect(ui.showConfirm).toHaveBeenCalledWith(
-                'Are you sure you want to reset <b>ALL Problems</b>?</br></br>This will mark all problems as unsolved and restore any deleted problems across all categories.'
+                'Are you sure you want to reset <b>ALL Problems</b>?<br><br>This will mark all problems as unsolved and restore any deleted problems across all categories.'
             );
             expect(data.resetTopicsData).toHaveBeenCalled();
             expect(state.problems.get('prob-1')!.status).toBe('unsolved');
@@ -515,7 +515,7 @@ describe('API Reset Module', () => {
             await resetCategory('arrays');
 
             expect(ui.showConfirm).toHaveBeenCalledWith(
-                'Are you sure you want to reset all problems in the category "<b>Arrays</b>"?</br></br>This will mark all problems as unsolved and restore any deleted problems.'
+                'Are you sure you want to reset all problems in the category "<b>Arrays</b>"?<br><br>This will mark all problems as unsolved and restore any deleted problems.'
             );
             expect(state.problems.get('two-sum')!.status).toBe('unsolved');
             expect(showToast).toHaveBeenCalledWith('Category problems reset and restored');
@@ -659,7 +659,7 @@ describe('API Reset Module', () => {
             await resetAlgorithmCategory('arrays-strings');
 
             expect(ui.showConfirm).toHaveBeenCalledWith(
-                'Are you sure you want to reset <b>Arrays & Strings</b>?</br></br>This will mark all algorithms as unsolved and restore any deleted algorithms.'
+                'Are you sure you want to reset <b>Arrays & Strings</b>?<br><br>This will mark all algorithms as unsolved and restore any deleted algorithms.'
             );
             expect(state.problems.get('algo-two-pointers')!.status).toBe('unsolved');
             expect(showToast).toHaveBeenCalledWith('Arrays & Strings reset and restored successfully');
@@ -694,7 +694,7 @@ describe('API Reset Module', () => {
             await resetAlgorithmCategory('all');
 
             expect(ui.showConfirm).toHaveBeenCalledWith(
-                'Are you sure you want to reset <b>All Algorithms</b>?</br></br>This will mark all algorithms as unsolved and restore any deleted algorithms.'
+                'Are you sure you want to reset <b>All Algorithms</b>?<br><br>This will mark all algorithms as unsolved and restore any deleted algorithms.'
             );
             expect(state.problems.get('algo-two-pointers')!.status).toBe('unsolved');
             expect(state.problems.get('algo-fast-slow-pointers')!.status).toBe('unsolved');
@@ -751,7 +751,7 @@ describe('API Reset Module', () => {
             await resetSQLCategory('sql-basics');
 
             expect(ui.showConfirm).toHaveBeenCalledWith(
-                'Are you sure you want to reset <b>SQL Basics</b>?</br></br>This will mark all SQL problems as unsolved and restore any deleted SQL problems.'
+                'Are you sure you want to reset <b>SQL Basics</b>?<br><br>This will mark all SQL problems as unsolved and restore any deleted SQL problems.'
             );
             expect(state.problems.get('sql-175')!.status).toBe('unsolved');
             expect(state.problems.get('sql-175')!.reviewInterval).toBe(0);
@@ -767,7 +767,7 @@ describe('API Reset Module', () => {
             await resetSQLCategory('all');
 
             expect(ui.showConfirm).toHaveBeenCalledWith(
-                'Are you sure you want to reset <b>All SQL</b>?</br></br>This will mark all SQL problems as unsolved and restore any deleted SQL problems.'
+                'Are you sure you want to reset <b>All SQL</b>?<br><br>This will mark all SQL problems as unsolved and restore any deleted SQL problems.'
             );
         });
 
@@ -808,7 +808,7 @@ describe('API Reset Module', () => {
             await resetSQLCategory('non-existent-sql-category');
 
             expect(ui.showConfirm).toHaveBeenCalledWith(
-                'Are you sure you want to reset <b>Unknown Category</b>?</br></br>This will mark all SQL problems as unsolved and restore any deleted SQL problems.'
+                'Are you sure you want to reset <b>Unknown Category</b>?<br><br>This will mark all SQL problems as unsolved and restore any deleted SQL problems.'
             );
             // No SQL problems to reset, but should complete without error
             expect(saveData).toHaveBeenCalled();

@@ -71,13 +71,13 @@ describe('Cache Strategies - Comprehensive', () => {
                 headers: { 'sw-cached-time': String(Date.now() - 1000) }, // 1 second ago
             });
             
-            const cache = mockCacheStorage.get('api-cache-v3') || {
+            const cache = mockCacheStorage.get(`api-cache-${CACHE_VERSION}`) || {
                 put: jest.fn().mockResolvedValue(undefined),
                 match: jest.fn().mockResolvedValue(mockResponse),
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('api-cache-v3', cache);
+            mockCacheStorage.set(`api-cache-${CACHE_VERSION}`, cache);
 
             const request = new Request('https://example.com/api/data');
             const response = await strategies.api.fetch(request);
@@ -99,7 +99,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('api-cache-v3', cache);
+            mockCacheStorage.set(`api-cache-${CACHE_VERSION}`, cache);
 
             const request = new Request('https://example.com/api/data');
             const response = await strategies.api.fetch(request);
@@ -120,7 +120,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('api-cache-v3', cache);
+            mockCacheStorage.set(`api-cache-${CACHE_VERSION}`, cache);
 
             const request = new Request('https://example.com/api/data');
             const response = await strategies.api.fetch(request);
@@ -137,7 +137,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('api-cache-v3', cache);
+            mockCacheStorage.set(`api-cache-${CACHE_VERSION}`, cache);
 
             const request = new Request('https://example.com/api/data');
             await expect(strategies.api.fetch(request)).rejects.toThrow('Network error');
@@ -155,7 +155,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('api-cache-v3', cache);
+            mockCacheStorage.set(`api-cache-${CACHE_VERSION}`, cache);
 
             const request = new Request('https://example.com/api/data');
             const response = await strategies.api.fetch(request);
@@ -175,7 +175,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('user-cache-v3', cache);
+            mockCacheStorage.set(`user-cache-${CACHE_VERSION}`, cache);
 
             const request = new Request('https://example.com/user');
             const response = await strategies.user.fetch(request);
@@ -194,7 +194,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('user-cache-v3', cache);
+            mockCacheStorage.set(`user-cache-${CACHE_VERSION}`, cache);
 
             const request = new Request('https://example.com/user');
             const response = await strategies.user.fetch(request);
@@ -211,7 +211,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('user-cache-v3', cache);
+            mockCacheStorage.set(`user-cache-${CACHE_VERSION}`, cache);
 
             const request = new Request('https://example.com/user');
             await expect(strategies.user.fetch(request)).rejects.toThrow('Network error');
@@ -228,7 +228,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('user-cache-v3', cache);
+            mockCacheStorage.set(`user-cache-${CACHE_VERSION}`, cache);
 
             const request = new Request('https://example.com/user');
             const response = await strategies.user.fetch(request);
@@ -249,7 +249,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('static-cache-v3', cache);
+            mockCacheStorage.set(`static-cache-${CACHE_VERSION}`, cache);
 
             const request = new Request('https://example.com/static.js');
             const response = await strategies.static.fetch(request);
@@ -268,7 +268,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('static-cache-v3', cache);
+            mockCacheStorage.set(`static-cache-${CACHE_VERSION}`, cache);
 
             const request = new Request('https://example.com/static.js');
             const response = await strategies.static.fetch(request);
@@ -287,7 +287,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('static-cache-v3', cache);
+            mockCacheStorage.set(`static-cache-${CACHE_VERSION}`, cache);
 
             const request = new Request('https://example.com/static.js');
             const response = await strategies.static.fetch(request);
@@ -309,7 +309,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 delete: jest.fn().mockResolvedValue(true),
                 keys: jest.fn().mockResolvedValue([]),
             };
-            mockCacheStorage.set('problems-cache-v3', cache);
+            mockCacheStorage.set(`problems-cache-${CACHE_VERSION}`, cache);
 
             const request = new Request('https://example.com/problem.md');
             const response = await strategies.problems.fetch(request);
@@ -322,7 +322,7 @@ describe('Cache Strategies - Comprehensive', () => {
         let cacheStrategies: CacheStrategies;
 
         beforeEach(() => {
-            cacheStrategies = new CacheStrategies('v3');
+            cacheStrategies = new CacheStrategies(CACHE_VERSION);
         });
 
         describe('cacheFirst', () => {
@@ -338,7 +338,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 
                 global.caches.open = jest.fn().mockResolvedValue(cache);
     
-                const cacheStrategies = new CacheStrategies('v3');
+                const cacheStrategies = new CacheStrategies(CACHE_VERSION);
                 const request = new Request('https://example.com/test');
                 const response = await cacheStrategies.cacheFirst(request, 'problems');
     
@@ -359,7 +359,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 
                 global.caches.open = jest.fn().mockResolvedValue(cache);
     
-                const cacheStrategies = new CacheStrategies('v3');
+                const cacheStrategies = new CacheStrategies(CACHE_VERSION);
                 const request = new Request('https://example.com/test');
                 const response = await cacheStrategies.cacheFirst(request, 'problems');
     
@@ -383,7 +383,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 
                 global.caches.open = jest.fn().mockResolvedValue(cache);
     
-                const cacheStrategies = new CacheStrategies('v3');
+                const cacheStrategies = new CacheStrategies(CACHE_VERSION);
                 const request = new Request('https://example.com/api');
                 const response = await cacheStrategies.networkFirst(request, 'api');
     
@@ -404,7 +404,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 
                 global.caches.open = jest.fn().mockResolvedValue(cache);
     
-                const cacheStrategies = new CacheStrategies('v3');
+                const cacheStrategies = new CacheStrategies(CACHE_VERSION);
                 const request = new Request('https://example.com/api');
                 const response = await cacheStrategies.networkFirst(request, 'api');
     
@@ -429,7 +429,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 
                 global.caches.open = jest.fn().mockResolvedValue(cache);
     
-                const cacheStrategies = new CacheStrategies('v3');
+                const cacheStrategies = new CacheStrategies(CACHE_VERSION);
                 const request = new Request('https://example.com/problem');
                 const response = await cacheStrategies.staleWhileRevalidate(request, 'problems');
     
@@ -450,7 +450,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 
                 global.caches.open = jest.fn().mockResolvedValue(cache);
     
-                const cacheStrategies = new CacheStrategies('v3');
+                const cacheStrategies = new CacheStrategies(CACHE_VERSION);
                 const request = new Request('https://example.com/problem');
                 const response = await cacheStrategies.staleWhileRevalidate(request, 'problems');
     
@@ -471,7 +471,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 
                 global.caches.open = jest.fn().mockResolvedValue(cache);
     
-                const cacheStrategies = new CacheStrategies('v3');
+                const cacheStrategies = new CacheStrategies(CACHE_VERSION);
                 const request = new Request('https://example.com/problem');
                 const response = await cacheStrategies.cacheOnly(request, 'problems');
     
@@ -488,7 +488,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 
                 global.caches.open = jest.fn().mockResolvedValue(cache);
     
-                const cacheStrategies = new CacheStrategies('v3');
+                const cacheStrategies = new CacheStrategies(CACHE_VERSION);
                 const request = new Request('https://example.com/problem');
                 await expect(cacheStrategies.cacheOnly(request, 'problems')).rejects.toThrow('Cache miss');
             });
@@ -520,7 +520,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 global.fetch = jest.fn().mockResolvedValue(new Response('data'));
                 global.caches.open = jest.fn().mockResolvedValue(cache);
     
-                const cacheStrategies = new CacheStrategies('v3');
+                const cacheStrategies = new CacheStrategies(CACHE_VERSION);
                 const urls = ['https://example.com/1.js', 'https://example.com/2.js'];
                 await cacheStrategies.preCacheUrls(urls, 'static');
     
@@ -542,7 +542,7 @@ describe('Cache Strategies - Comprehensive', () => {
                     .mockRejectedValueOnce(new Error('Failed'));
                 global.caches.open = jest.fn().mockResolvedValue(cache);
     
-                const cacheStrategies = new CacheStrategies('v3');
+                const cacheStrategies = new CacheStrategies(CACHE_VERSION);
                 const urls = ['https://example.com/1.js', 'https://example.com/2.js'];
                 await cacheStrategies.preCacheUrls(urls, 'static');
     
@@ -568,7 +568,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 
                 global.caches.open = jest.fn().mockResolvedValue(cache);
     
-                const cacheStrategies = new CacheStrategies('v3');
+                const cacheStrategies = new CacheStrategies(CACHE_VERSION);
                 const urls = await cacheStrategies.getCachedUrls('static');
     
                 expect(urls).toHaveLength(2);
@@ -593,7 +593,7 @@ describe('Cache Strategies - Comprehensive', () => {
                 
                 global.caches.open = jest.fn().mockResolvedValue(cache);
     
-                const cacheStrategies = new CacheStrategies('v3');
+                const cacheStrategies = new CacheStrategies(CACHE_VERSION);
                 await cacheStrategies.clearCache('static');
     
                 // Verify that delete was called for each cached item
@@ -634,9 +634,9 @@ describe('Cache Strategies - Comprehensive', () => {
     describe('cleanupOldCaches', () => {
         it('should remove old versioned caches', async () => {
             const allCacheNames = [
-                'problems-cache-v3',
-                'api-cache-v3',
-                'static-cache-v3',
+                `problems-cache-${CACHE_VERSION}`,
+                `api-cache-${CACHE_VERSION}`,
+                `static-cache-${CACHE_VERSION}`,
                 'old-cache-v1',
                 'problems-cache-v1',
             ];
@@ -653,10 +653,10 @@ describe('Cache Strategies - Comprehensive', () => {
 
         it('should keep current versioned caches', async () => {
             const allCacheNames = [
-                'problems-cache-v3',
-                'api-cache-v3',
-                'static-cache-v3',
-                'user-cache-v3',
+                `problems-cache-${CACHE_VERSION}`,
+                `api-cache-${CACHE_VERSION}`,
+                `static-cache-${CACHE_VERSION}`,
+                `user-cache-${CACHE_VERSION}`,
             ];
 
             global.caches.keys = jest.fn().mockResolvedValue(allCacheNames);
@@ -665,8 +665,8 @@ describe('Cache Strategies - Comprehensive', () => {
             await cleanupOldCaches();
 
             // Should not delete current caches
-            expect(global.caches.delete).not.toHaveBeenCalledWith('problems-cache-v3');
-            expect(global.caches.delete).not.toHaveBeenCalledWith('api-cache-v3');
+            expect(global.caches.delete).not.toHaveBeenCalledWith(`problems-cache-${CACHE_VERSION}`);
+            expect(global.caches.delete).not.toHaveBeenCalledWith(`api-cache-${CACHE_VERSION}`);
         });
     });
 

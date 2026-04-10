@@ -3,16 +3,7 @@ import { jwtVerify } from 'jose';
 // Type definitions for global variables
 declare const jest: typeof import('@jest/globals') | undefined;
 
-// KVNamespace type definition for Cloudflare Workers environment
-// In production, this comes from @cloudflare/workers-types
-interface KVNamespace {
-    get(key: string): Promise<string | null>;
-    get(key: string, type: 'text'): Promise<string | null>;
-    get(key: string, type: 'arrayBuffer'): Promise<ArrayBuffer | null>;
-    getWithMetadata(key: string, type?: 'text' | 'arrayBuffer', options?: { cacheTtl?: number }): Promise<{ value: string | ArrayBuffer | null; metadata: Record<string, string> | null }>;
-    put(key: string, value: string | ArrayBuffer, options?: { expirationTtl?: number; metadata?: Record<string, string> }): Promise<void>;
-    delete(key: string): Promise<void>;
-}
+import { KVNamespace, checkRateLimit } from './cloudflare-types';
 
 /**
  * Environment interface with CORS configuration
@@ -270,54 +261,7 @@ async function decompressData(
     }
 }
 
-/**
- * Implements sliding window rate limiting using Cloudflare KV.
- * Tracks request timestamps per client IP and rejects if limit exceeded.
- * Automatically cleans expired entries and updates KV atomically.
- * @param {Request} request - The HTTP request to check
- * @param {Object} env - Environment with KV namespace binding
- * @param {number} [maxRequests=30] - Maximum allowed requests in the time window
- * @param {number} [windowSeconds=60] - Time window duration in seconds
- * @returns {Promise<boolean>} True if request should be rate limited (blocked)
- * @example
- * // Check if request exceeds 10 requests per minute
- * const isLimited = await checkRateLimit(request, env, 10, 60);
- * if (isLimited) {
- *   return new Response('Rate limit exceeded', { status: 429 });
- * }
- */
-export async function checkRateLimit(
-    request: Request,
-    env: { KV: KVNamespace },
-    maxRequests = 30,
-    windowSeconds = 60
-) {
-    // Use only CF-Connecting-IP since we're behind Cloudflare.
-    // X-Forwarded-For is intentionally excluded as it can be spoofed.
-    const clientIP =
-        request.headers.get('CF-Connecting-IP') ||
-        'unknown';
-    const key = `ratelimit_${clientIP}`;
 
-    try {
-        const now = Date.now();
-        const windowStart = now - windowSeconds * 1000;
-        const requests = await env.KV.get(key);
-        const parsedRequests = requests ? JSON.parse(requests) : [];
-        const validRequests = parsedRequests.filter((t: number) => t > windowStart);
-
-        if (validRequests.length >= maxRequests) {
-            return true; // Rate limited
-        }
-
-        validRequests.push(now);
-        await env.KV.put(key, JSON.stringify(validRequests), { expirationTtl: windowSeconds });
-        return false; // Not rate limited
-    } catch (error) {
-        console.error('Rate limit check error:', error);
-        return false; // Allow request on error
-    }
-}
 
 /**
  * Verifies a JWT token using the HS256 algorithm.
@@ -387,21 +331,24 @@ async function authenticate(request: Request, env: Env) {
 
 /**
  * Validates CSRF token for state-changing POST requests.
- * Implements single-use token pattern to prevent replay attacks.
- * Token is deleted from KV immediately after successful validation.
+ * Supports two transmission methods:
+ * 1. X-CSRF-Token header (preferred, used by fetch requests)
+ * 2. _csrf field in request body (fallback, used by sendBeacon/keepalive)
+ * Token is deleted from KV after successful validation (single-use pattern).
  * @param {Request} request - The HTTP request with X-CSRF-Token header
  * @param {Object} env - Environment with KV namespace binding
  * @param {string} userId - The authenticated user's ID for token lookup
+ * @param {string} [bodyCsrf] - Optional CSRF token from request body (fallback)
  * @returns {Promise<boolean>} True if CSRF token is valid and consumed successfully
  * @example
- * const isValid = await validateCsrfToken(request, env, userId);
+ * const isValid = await validateCsrfToken(request, env, userId, body._csrf);
  * if (!isValid) {
  *   return new Response('Invalid CSRF token', { status: 403 });
  * }
- * // Token is now deleted and cannot be reused
  */
-async function validateCsrfToken(request: Request, env: { KV: KVNamespace }, userId: string) {
-    const providedCsrf = request.headers.get('X-CSRF-Token');
+async function validateCsrfToken(request: Request, env: { KV: KVNamespace }, userId: string, bodyCsrf?: string) {
+    // SECURITY: Header takes priority; body field is fallback for sendBeacon/keepalive
+    const providedCsrf = request.headers.get('X-CSRF-Token') || bodyCsrf;
     if (!providedCsrf) {
         return false;
     }
@@ -645,18 +592,8 @@ export async function onRequestPost({
         );
     }
 
-    // Validate CSRF token
-    const csrfValid = await validateCsrfToken(request, env, userId);
-    if (!csrfValid) {
-        return createCorsResponse(
-            JSON.stringify({ error: 'Invalid CSRF token' }),
-            { status: 403 },
-            request,
-            env
-        );
-    }
-
-
+    // Parse request body before CSRF validation to support _csrf field fallback
+    // (sendBeacon/keepalive cannot set custom headers, so CSRF token may be in the body)
     let body;
     try {
         body = await request.json();
@@ -664,6 +601,17 @@ export async function onRequestPost({
         return createCorsResponse(
             JSON.stringify({ error: 'Invalid JSON' }),
             { status: 400 },
+            request,
+            env
+        );
+    }
+
+    // Validate CSRF token from header (preferred) or body (fallback for sendBeacon)
+    const csrfValid = await validateCsrfToken(request, env, userId, body._csrf);
+    if (!csrfValid) {
+        return createCorsResponse(
+            JSON.stringify({ error: 'Invalid CSRF token' }),
+            { status: 403 },
             request,
             env
         );

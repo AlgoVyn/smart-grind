@@ -8,7 +8,6 @@ import { AlgorithmCategory } from '../data/algorithms-data';
 import { SQLCategory } from '../data/sql-data';
 import { getToday } from '../utils';
 import { htmlGenerators } from './html-generators';
-import { problemCardRenderers } from './problem-cards';
 import { sqlViewRenderers } from './sql-view';
 import { mainViewRenderers } from './main-view';
 import { ICONS } from './icons';
@@ -109,9 +108,6 @@ export const combinedViewRenderers = {
         });
 
         container.appendChild(sqlSection);
-
-        // Re-attach event listeners
-        combinedViewRenderers.attachEventListeners();
     },
 
     // Render algorithm category for combined view
@@ -146,26 +142,10 @@ export const combinedViewRenderers = {
         return section;
     },
 
-    // Attach event listeners for problem cards
+    // DEPRECATED: Event delegation is now handled by bindProblemEvents() in ui-problems.ts.
+    // This method is kept as a no-op for backward compatibility.
     attachEventListeners: () => {
-        document.querySelectorAll('.action-btn[data-action]').forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                const button = e.currentTarget as HTMLElement;
-                const action = button.dataset['action'];
-                const problemId = button
-                    .closest('[data-problem-id]')
-                    ?.getAttribute('data-problem-id');
-                if (!problemId) return;
-
-                const problem = state.problems.get(problemId);
-                if (!problem) return;
-
-                if (action === 'solve' || action === 'reset' || action === 'review') {
-                    problemCardRenderers.handleSolve(button, problem);
-                } else if (action === 'toggle-note') {
-                    problemCardRenderers.handleNoteToggle(button, problem);
-                }
-            });
-        });
+        // No-op: All action button clicks are now handled via event delegation
+        // on the problemsContainer element, which avoids duplicate listeners on re-render.
     },
 };

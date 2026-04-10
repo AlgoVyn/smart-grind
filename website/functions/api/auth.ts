@@ -13,15 +13,23 @@ interface Env {
     ALLOWED_ORIGINS?: string;
 }
 
-// KVNamespace type definition for Cloudflare Workers environment
-interface KVNamespace {
-    get(key: string): Promise<string | null>;
-    get(key: string, type: 'text'): Promise<string | null>;
-    get(key: string, type: 'arrayBuffer'): Promise<ArrayBuffer | null>;
-    getWithMetadata(key: string, type?: 'text' | 'arrayBuffer', options?: { cacheTtl?: number }): Promise<{ value: string | ArrayBuffer | null; metadata: Record<string, string> | null }>;
-    put(key: string, value: string | ArrayBuffer, options?: { expirationTtl?: number; metadata?: Record<string, string> }): Promise<void>;
-    delete(key: string): Promise<void>;
+import { KVNamespace, checkRateLimit } from './cloudflare-types';
+
+/**
+ * Safely serializes a value for embedding inside an inline <script> tag in HTML.
+ * Prevents XSS by escaping characters that could break out of the script context.
+ * JSON.stringify alone does NOT escape:
+ *   - </script> sequences (closes the script tag)
+ *   - <!-- sequences (starts an HTML comment within script)
+ * By replacing < with \u003c and > with \u003e, the output is safe for inline
+ * script contexts while remaining valid JavaScript that produces the original values.
+ */
+function safeJsonForScript(value: unknown): string {
+    return JSON.stringify(value)
+        .replace(/</g, '\\u003c')
+        .replace(/>/g, '\\u003e');
 }
+
 
 /**
  * Validates that required environment variables are configured.
@@ -49,54 +57,7 @@ function validateEnvironment(env: Env): void {
     }
 }
 
-/**
- * Implements sliding window rate limiting for OAuth endpoints using Cloudflare KV.
- * Tracks request timestamps per client IP to prevent brute force attacks on authentication.
- * Automatically cleans expired entries and maintains atomic updates.
- * @param request - The HTTP request to check
- * @param env - Environment with KV namespace binding
- * @param maxRequests - Maximum allowed requests in the time window (default: 10)
- * @param windowSeconds - Time window duration in seconds (default: 60)
- * @returns True if request should be rate limited (blocked)
- * @example
- * // Check OAuth initiation rate (10 requests per minute)
- * const isLimited = await checkRateLimit(request, env, 10, 60);
- * if (isLimited) {
- *   return new Response('Rate limit exceeded', { status: 429 });
- * }
- */
-export async function checkRateLimit(
-    request: Request,
-    env: { KV: KVNamespace },
-    maxRequests: number = 10,
-    windowSeconds: number = 60
-): Promise<boolean> {
-    // Use only CF-Connecting-IP since we're behind Cloudflare.
-    // X-Forwarded-For is intentionally excluded as it can be spoofed.
-    const clientIP =
-        request.headers.get('CF-Connecting-IP') ||
-        'unknown';
-    const key = `ratelimit_${clientIP}`;
 
-    try {
-        const now = Date.now();
-        const windowStart = now - windowSeconds * 1000;
-        const requests = await env.KV.get(key);
-        const parsedRequests = requests ? JSON.parse(requests) : [];
-        const validRequests = parsedRequests.filter((t: number) => t > windowStart);
-
-        if (validRequests.length >= maxRequests) {
-            return true; // Rate limited
-        }
-
-        validRequests.push(now);
-        await env.KV.put(key, JSON.stringify(validRequests), { expirationTtl: windowSeconds });
-        return false; // Not rate limited
-    } catch (error) {
-        console.error('Rate limit check error:', error);
-        return false; // Allow request on error
-    }
-}
 
 /**
  * Signs a JWT token using HS256 algorithm with the given payload.
@@ -534,7 +495,7 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
     <script>
       // SECURITY: Do NOT include token in postMessage or URL
       // The client will fetch the token via /api/auth/token using the HttpOnly cookie
-      const authData = { userId: ${JSON.stringify(userId)}, displayName: ${JSON.stringify(displayName)} };
+      const authData = { userId: ${safeJsonForScript(userId)}, displayName: ${safeJsonForScript(displayName)} };
       if (window.opener) {
         window.opener.postMessage({ type: 'auth-success', ...authData }, window.location.origin);
         setTimeout(() => window.close(), 500);

@@ -140,7 +140,8 @@ const shouldHandleRequest = (requestUrl: URL): boolean => {
     const isHttpScheme = requestUrl.protocol === 'http:' || requestUrl.protocol === 'https:';
     const isAuthRoute = AUTH_ROUTES.some((pattern) => pattern.test(requestUrl.pathname));
     const isCDN = CDN_DOMAINS.some((domain) => requestUrl.hostname === domain);
-    return isHttpScheme && !isAuthRoute && !isCDN;
+    const isMarkdown2Social = requestUrl.pathname.startsWith('/markdown2social');
+    return isHttpScheme && !isAuthRoute && !isCDN && !isMarkdown2Social;
 };
 
 const getRequestHandler = (requestUrl: URL, request: Request) => {

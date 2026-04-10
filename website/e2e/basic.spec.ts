@@ -118,24 +118,24 @@ test.describe('SmartGrind Basic Functionality', () => {
       await setupAuthStateBeforeLoad(page);
       await appPage.gotoAndWait();
 
-      // Get initial theme
-      const initialClasses = await appPage.page.locator('html').getAttribute('class');
-      const initialIsDark = initialClasses?.includes('dark') || false;
+      // Get initial theme state — default is light (no 'dark' class)
+      const initialIsDark = await appPage.page.evaluate(() => {
+        return document.documentElement.classList.contains('dark');
+      });
 
-      // Toggle theme
+      // Toggle theme — this saves to localStorage and toggles the class
       await appPage.toggleTheme();
 
-      // Reload page with extended timeout
+      // Verify the theme was toggled before reloading
+      await verifyTheme(appPage.page, initialIsDark ? 'light' : 'dark');
+
+      // Reload page — the inline theme script should restore from localStorage
       await appPage.page.reload({ timeout: 20000, waitUntil: 'networkidle' });
       await appPage.page.waitForSelector('#loading-screen', { state: 'hidden', timeout: 20000 });
       await appPage.page.waitForSelector('#app-wrapper', { state: 'visible', timeout: 10000 });
 
-      // Wait a moment for theme script to execute
-      await page.waitForTimeout(500);
-
-      // Verify theme persisted
-      const classes = await appPage.page.locator('html').getAttribute('class');
-      expect(classes?.includes('dark') || false).toBe(!initialIsDark);
+      // Verify theme persisted after reload using polling check
+      await verifyTheme(appPage.page, initialIsDark ? 'light' : 'dark');
     });
   });
 

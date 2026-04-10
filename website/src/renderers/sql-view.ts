@@ -9,7 +9,6 @@ import { sidebarRenderers } from './sidebar';
 import { renderers } from '../renderers';
 import { htmlGenerators } from './html-generators';
 import { ICONS } from './icons';
-import { openSQLSolutionModal, openProblemSQLSolutionModal } from '../ui/ui-markdown';
 
 export const sqlViewRenderers = {
     // Initialize SQL problem data in state if not exists
@@ -86,45 +85,13 @@ export const sqlViewRenderers = {
         } else {
             await sqlViewRenderers.renderAllSQLView(container);
         }
-
-        // Re-attach event listeners for the problem cards
-        sqlViewRenderers.attachProblemCardListeners();
     },
 
-    // Attach event listeners to problem cards and pattern buttons
+    // DEPRECATED: Event delegation is now handled by bindProblemEvents() in ui-problems.ts.
+    // This method is kept as a no-op for backward compatibility.
     attachProblemCardListeners: () => {
-        document.querySelectorAll('.action-btn[data-action]').forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                const button = e.currentTarget as HTMLElement;
-                const action = button.dataset['action'];
-
-                // Handle pattern-level actions (sql-solution)
-                if (action === 'sql-solution') {
-                    const patternName = button.dataset['pattern'];
-                    if (patternName) {
-                        openSQLSolutionModal(patternName);
-                    }
-                    return;
-                }
-
-                // Handle problem-level actions
-                const problemId = button
-                    .closest('[data-problem-id]')
-                    ?.getAttribute('data-problem-id');
-                if (!problemId) return;
-
-                const problem = state.problems.get(problemId);
-                if (!problem) return;
-
-                if (action === 'toggle-solve') {
-                    sqlViewRenderers.handleSolve(button, problem);
-                } else if (action === 'toggle-note') {
-                    sqlViewRenderers.handleToggleNote(button, problem);
-                } else if (action === 'problem-solution') {
-                    openProblemSQLSolutionModal(problem.name);
-                }
-            });
-        });
+        // No-op: All action button clicks are now handled via event delegation
+        // on the problemsContainer element, which avoids duplicate listeners on re-render.
     },
 
     // Handle solve toggle
@@ -176,9 +143,6 @@ export const sqlViewRenderers = {
             card.className = className;
             card.innerHTML = innerHTML;
         }
-
-        // Re-attach listeners
-        sqlViewRenderers.attachProblemCardListeners();
     },
 
     // Render specific SQL category view

@@ -68,10 +68,11 @@ export class SyncConflictResolver {
         // OR operation for solved status (if either solved, mark as solved)
         const solved = (clientData['solved'] as boolean) || (serverData['solved'] as boolean);
 
-        // SUM for solve counts
+        // MAX for solve counts — when client and server both increment
+        // independently, SUM would double-count. MAX captures the true progression.
         const clientCount = (clientData['solveCount'] as number) || 0;
         const serverCount = (serverData['solveCount'] as number) || 0;
-        const solveCount = clientCount + serverCount;
+        const solveCount = Math.max(clientCount, serverCount);
 
         // MAX for lastReviewed
         const clientReviewed = (clientData['lastReviewed'] as number) || 0;

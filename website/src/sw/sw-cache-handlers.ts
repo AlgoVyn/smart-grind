@@ -3,11 +3,7 @@
  * Handles all fetch events and caching strategies
  */
 
-import { CACHE_NAMES } from './cache-strategies';
-
-// Version management
-const SW_VERSION = '1.0.0';
-const CACHE_VERSION = `v${SW_VERSION}`;
+import { CACHE_NAMES, CACHE_VERSION } from './cache-strategies';
 
 // Cache max ages (used by cache validation)
 export const API_CACHE_MAX_AGE = 30 * 60 * 1000; // 30 minutes
@@ -38,7 +34,7 @@ const CDN_DOMAINS = [
 export function addCacheHeaders(response: Response): Response {
     const headers = new Headers(response.headers);
     headers.set('X-SW-Cached-At', Date.now().toString());
-    headers.set('X-SW-Version', SW_VERSION);
+    headers.set('X-SW-Version', CACHE_VERSION);
     return new Response(response.body, {
         status: response.status,
         statusText: response.statusText,

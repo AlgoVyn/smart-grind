@@ -76,7 +76,9 @@ describe('Auth API', () => {
 
         // Mock rate limiting to allow requests
         const authModule = require('../functions/api/auth.ts');
-        jest.spyOn(authModule, 'checkRateLimit').mockResolvedValue(false);
+        // checkRateLimit is now imported from cloudflare-types; mock it there
+        const cloudflareModule = require('../functions/api/cloudflare-types');
+        jest.spyOn(cloudflareModule, 'checkRateLimit').mockResolvedValue(false);
     });
 
     afterEach(() => {

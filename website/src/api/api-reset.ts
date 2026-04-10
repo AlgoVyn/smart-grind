@@ -171,7 +171,7 @@ export const _performResetAndRender = async (message: string): Promise<void> => 
  */
 export const resetAll = async (): Promise<void> => {
     const confirmed = await ui.showConfirm(
-        'Are you sure you want to reset <b>ALL Problems</b>?</br></br>This will mark all problems as unsolved and restore any deleted problems across all categories.'
+        'Are you sure you want to reset <b>ALL Problems</b>?<br><br>This will mark all problems as unsolved and restore any deleted problems across all categories.'
     );
     if (!confirmed) return;
 
@@ -213,7 +213,7 @@ export const resetCategory = async (topicId: string): Promise<void> => {
         return;
     }
     const confirmed = await ui.showConfirm(
-        `Are you sure you want to reset all problems in the category "<b>${topic.title}</b>"?</br></br>This will mark all problems as unsolved and restore any deleted problems.`
+        `Are you sure you want to reset all problems in the category "<b>${topic.title}</b>"?<br><br>This will mark all problems as unsolved and restore any deleted problems.`
     );
     if (!confirmed) return;
 
@@ -312,7 +312,7 @@ export const resetAlgorithmCategory = async (categoryId: string): Promise<void> 
     const title = categoryId === 'all' ? 'All Algorithms' : category?.title || 'Unknown Category';
 
     const confirmed = await ui.showConfirm(
-        `Are you sure you want to reset <b>${title}</b>?</br></br>This will mark all algorithms as unsolved and restore any deleted algorithms.`
+        `Are you sure you want to reset <b>${title}</b>?<br><br>This will mark all algorithms as unsolved and restore any deleted algorithms.`
     );
     if (!confirmed) return;
 
@@ -366,7 +366,7 @@ export const resetSQLCategory = async (categoryId: string): Promise<void> => {
     const title = categoryId === 'all' ? 'All SQL' : category?.title || 'Unknown Category';
 
     const confirmed = await ui.showConfirm(
-        `Are you sure you want to reset <b>${title}</b>?</br></br>This will mark all SQL problems as unsolved and restore any deleted SQL problems.`
+        `Are you sure you want to reset <b>${title}</b>?<br><br>This will mark all SQL problems as unsolved and restore any deleted SQL problems.`
     );
     if (!confirmed) return;
 
