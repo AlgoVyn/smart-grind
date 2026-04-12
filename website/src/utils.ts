@@ -142,11 +142,28 @@ export const safeGetItem = <T>(key: string, defaultValue: T): T => {
     }
 };
 
+/**
+ * Safely stores a value in localStorage with JSON serialization.
+ *
+ * @param key - The localStorage key
+ * @param value - The value to serialize and store
+ * @returns true if storage succeeded, false on non-quota errors
+ * @throws {Error} QuotaExceededError or NS_ERROR_DOM_QUOTA_REACHED when storage quota is exceeded.
+ *                 Callers must handle this exception for proper quota recovery.
+ */
 export const safeSetItem = (key: string, value: unknown): boolean => {
     try {
         localStorage.setItem(key, JSON.stringify(value));
         return true;
-    } catch {
+    } catch (error) {
+        // Re-throw quota errors so callers can detect and handle them appropriately
+        // (e.g., state.saveToStorage needs to distinguish quota errors from other failures)
+        if (
+            error instanceof Error &&
+            (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')
+        ) {
+            throw error;
+        }
         return false;
     }
 };
@@ -168,11 +185,27 @@ export const getStringItem = (key: string, defaultValue: string): string => {
     }
 };
 
+/**
+ * Safely stores a string value in localStorage.
+ *
+ * @param key - The localStorage key
+ * @param value - The string value to store
+ * @returns true if storage succeeded, false on non-quota errors
+ * @throws {Error} QuotaExceededError or NS_ERROR_DOM_QUOTA_REACHED when storage quota is exceeded.
+ *                 Callers must handle this exception for proper quota recovery.
+ */
 export const setStringItem = (key: string, value: string): boolean => {
     try {
         localStorage.setItem(key, value);
         return true;
-    } catch {
+    } catch (error) {
+        // Re-throw quota errors so callers can detect and handle them appropriately
+        if (
+            error instanceof Error &&
+            (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')
+        ) {
+            throw error;
+        }
         return false;
     }
 };

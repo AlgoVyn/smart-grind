@@ -72,7 +72,7 @@ export default defineConfig({
         // basicSsl() // Enable if HTTPS is needed for Google Auth testing locally
         {
             name: 'ensure-sw-directory',
-            closeBundle() {
+            async closeBundle() {
                 // Ensure sw.js is in the smartgrind directory for correct scope
                 const distPath = path.resolve(__dirname, 'dist');
                 const swPath = path.join(distPath, 'sw.js');
@@ -104,7 +104,7 @@ export default defineConfig({
         },
         {
             name: 'fix-prism-worker-handler',
-            closeBundle() {
+            async closeBundle() {
                 // Inject prism config at the TOP of the markdown chunk to prevent worker errors
                 // The prism.js patch gets wrapped in functions during bundling, so we need to add
                 // the fix at the very beginning of the chunk (outside any functions)
@@ -139,7 +139,7 @@ export default defineConfig({
         },
         {
             name: 'fix-sw-imports',
-            closeBundle() {
+            async closeBundle() {
                 // Fix relative imports in service worker to use absolute paths
                 // The SW is at /smartgrind/sw.js but imports chunks with ../assets/js/
                 // which resolves to /assets/js/ instead of /smartgrind/assets/js/
@@ -170,7 +170,7 @@ export default defineConfig({
         },
         {
             name: 'inject-sw-version',
-            closeBundle() {
+            async closeBundle() {
                 // Inject version into service worker after build
                 // This ensures cache busting happens automatically on every build
                 const distPath = path.resolve(__dirname, 'dist');
@@ -195,10 +195,11 @@ export default defineConfig({
                     const seconds = String(now.getSeconds()).padStart(2, '0');
                     
                     // Try to get git commit hash
+                    // Use dynamic import for ESM compatibility (require is not available in ESM)
                     let gitHash = 'dev';
                     try {
-                        const { execSync } = require('child_process');
-                        gitHash = execSync('git rev-parse --short HEAD', {
+                        const childProcess = await import('node:child_process');
+                        gitHash = childProcess.execSync('git rev-parse --short HEAD', {
                             encoding: 'utf-8',
                             stdio: ['pipe', 'pipe', 'ignore']
                         }).trim();

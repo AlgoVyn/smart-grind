@@ -31,6 +31,79 @@ function safeJsonForScript(value: unknown): string {
 }
 
 
+
+/**
+ * Creates an HTML response page for authentication callbacks.
+ * Uses safeJsonForScript for all dynamic values to prevent XSS.
+ * Sends a postMessage to the opener window (popup flow) or redirects (PWA flow).
+ *
+ * SECURITY: All dynamic values must go through safeJsonForScript before
+ * embedding in inline script contexts. This prevents XSS via </script> escape.
+ * PII (userId, displayName) is NOT included in URL parameters for PWA redirect.
+ *
+ * @param title - Page title shown in browser tab
+ * @param type - 'auth-success' or 'auth-failure' message type
+ * @param message - Human-readable message for display
+ * @param authData - Optional user data for success flow (userId, displayName)
+ * @param statusCode - HTTP status code
+ * @param extraHeaders - Optional additional headers (e.g., Set-Cookie, CSP)
+ */
+function createAuthHtml(
+    title: string,
+    type: 'auth-success' | 'auth-failure',
+    message: string,
+    authData?: { userId: string; displayName: string },
+    statusCode: number = type === 'auth-success' ? 200 : 400,
+    extraHeaders?: Record<string, string>
+): Response {
+    // SECURITY: Apply safeJsonForScript to ALL dynamic values embedded in script context
+    const safeType = safeJsonForScript(type);
+    const safeMessage = safeJsonForScript(message);
+
+    let scriptBlock: string;
+
+    if (type === 'auth-success' && authData) {
+        // Success flow: send auth data via postMessage (popup) or redirect with cookie-based auth (PWA)
+        // SECURITY: PII (userId, displayName) is NOT included in URL parameters.
+        // For PWA flow, the client uses the HttpOnly cookie to fetch user info via /api/auth/token
+        const safeUserId = safeJsonForScript(authData.userId);
+        const safeDisplayName = safeJsonForScript(authData.displayName);
+        scriptBlock = `
+      const authData = { userId: ${safeUserId}, displayName: ${safeDisplayName} };
+      if (window.opener) {
+        window.opener.postMessage({ type: ${safeType}, ...authData }, window.location.origin);
+        setTimeout(() => window.close(), 500);
+      } else {
+        // PWA flow: redirect without PII in URL; client will use HttpOnly cookie to fetch token
+        window.location.href = '/smartgrind/?auth=success';
+      }`;
+    } else {
+        // Failure flow: send error message via postMessage (popup) or display inline
+        scriptBlock = `
+      if (window.opener) {
+        window.opener.postMessage({ type: ${safeType}, message: ${safeMessage} }, window.location.origin);
+        setTimeout(() => window.close(), 500);
+      }`;
+    }
+
+    const html = `<!DOCTYPE html>
+<html>
+<head><title>${title}</title></head>
+<body>
+<script>${scriptBlock}</script>
+<p>${message}</p>
+</body>
+</html>`;
+
+    const headers: Record<string, string> = {
+        'Content-Type': 'text/html',
+        ...extraHeaders,
+    };
+
+    return new Response(html, { status: statusCode, headers });
+}
+
+
 /**
  * Validates that required environment variables are configured.
  * Should be called at the start of each request handler.
@@ -245,42 +318,14 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
         // Verify state parameter
         const storedState = await env.KV.get(`oauth_state_${state}`);
         if (!storedState) {
-            const html = `
-       <!DOCTYPE html>
-       <html>
-       <head><title>Sign In Failed</title></head>
-       <body>
-       <script>
-         if (window.opener) {
-           window.opener.postMessage({ type: 'auth-failure', message: 'Invalid state parameter.' }, window.location.origin);
-           setTimeout(() => window.close(), 500);
-         }
-       </script>
-       <p>Sign in failed: Invalid state.</p>
-       </body>
-       </html>`;
-            return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 400 });
+            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Invalid state.', undefined, 400);
         }
         // Delete used state
         await env.KV.delete(`oauth_state_${state}`);
 
         const code = validateOAuthCode(url.searchParams);
         if (!code) {
-            const html = `
-       <!DOCTYPE html>
-       <html>
-       <head><title>Sign In Failed</title></head>
-       <body>
-       <script>
-         if (window.opener) {
-           window.opener.postMessage({ type: 'auth-failure', message: 'Invalid authorization code.' }, window.location.origin);
-           setTimeout(() => window.close(), 500);
-         }
-       </script>
-       <p>Sign in failed: Invalid code.</p>
-       </body>
-       </html>`;
-            return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 400 });
+            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Invalid code.', undefined, 400);
         }
 
         let tokenData: { access_token?: string };
@@ -304,65 +349,17 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
                     tokenResponse.status,
                     await tokenResponse.text()
                 );
-                const html = `
-        <!DOCTYPE html>
-        <html>
-        <head><title>Sign In Failed</title></head>
-        <body>
-        <script>
-          if (window.opener) {
-            window.opener.postMessage({ type: 'auth-failure', message: 'Failed to exchange authorization code.' }, window.location.origin);
-            setTimeout(() => window.close(), 500);
-          }
-        </script>
-        <p>Sign in failed: Token exchange error.</p>
-        </body>
-        </html>`;
-                return new Response(html, {
-                    headers: { 'Content-Type': 'text/html' },
-                    status: 500,
-                });
+                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Token exchange error.', undefined, 500);
             }
 
             tokenData = await tokenResponse.json() as { access_token?: string };
             if (!tokenData.access_token) {
                 console.error('No access token in response:', tokenData);
-                const html = `
-        <!DOCTYPE html>
-        <html>
-        <head><title>Sign In Failed</title></head>
-        <body>
-        <script>
-          if (window.opener) {
-            window.opener.postMessage({ type: 'auth-failure', message: 'OAuth authorization failed.' }, window.location.origin);
-            setTimeout(() => window.close(), 500);
-          }
-        </script>
-        <p>Sign in failed: No access token.</p>
-        </body>
-        </html>`;
-                return new Response(html, {
-                    headers: { 'Content-Type': 'text/html' },
-                    status: 400,
-                });
+                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: No access token.', undefined, 400);
             }
         } catch (error) {
             console.error('Token exchange error:', error);
-            const html = `
-      <!DOCTYPE html>
-      <html>
-      <head><title>Sign In Failed</title></head>
-      <body>
-      <script>
-        if (window.opener) {
-          window.opener.postMessage({ type: 'auth-failure', message: 'Database error during sign-in.' }, window.location.origin);
-          setTimeout(() => window.close(), 500);
-        }
-      </script>
-      <p>Sign in failed: Database error.</p>
-      </body>
-      </html>`;
-            return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 500 });
+            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Token exchange error.', undefined, 500);
         }
 
         const accessToken = tokenData.access_token;
@@ -380,65 +377,17 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
                     userResponse.status,
                     await userResponse.text()
                 );
-                const html = `
-        <!DOCTYPE html>
-        <html>
-        <head><title>Sign In Failed</title></head>
-        <body>
-        <script>
-          if (window.opener) {
-            window.opener.postMessage({ type: 'auth-failure', message: 'Failed to retrieve user information.' }, window.location.origin);
-            setTimeout(() => window.close(), 500);
-          }
-        </script>
-        <p>Sign in failed: User info error.</p>
-        </body>
-        </html>`;
-                return new Response(html, {
-                    headers: { 'Content-Type': 'text/html' },
-                    status: 500,
-                });
+                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: User info error.', undefined, 500);
             }
 
             user = await userResponse.json() as { id?: string; name?: string; email?: string };
             if (!user.id) {
                 console.error('Invalid user data:', user);
-                const html = `
-        <!DOCTYPE html>
-        <html>
-        <head><title>Sign In Failed</title></head>
-        <body>
-        <script>
-          if (window.opener) {
-            window.opener.postMessage({ type: 'auth-failure', message: 'Invalid user data received.' }, window.location.origin);
-            setTimeout(() => window.close(), 500);
-          }
-        </script>
-        <p>Sign in failed: Invalid user data.</p>
-        </body>
-        </html>`;
-                return new Response(html, {
-                    headers: { 'Content-Type': 'text/html' },
-                    status: 400,
-                });
+                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Invalid user data.', undefined, 400);
             }
         } catch (error) {
             console.error('User info fetch error:', error);
-            const html = `
-      <!DOCTYPE html>
-      <html>
-      <head><title>Sign In Failed</title></head>
-      <body>
-      <script>
-        if (window.opener) {
-          window.opener.postMessage({ type: 'auth-failure', message: 'Network error during sign-in.' }, window.location.origin);
-          setTimeout(() => window.close(), 500);
-        }
-      </script>
-      <p>Sign in failed: Network error.</p>
-      </body>
-      </html>`;
-            return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 500 });
+            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Network error.', undefined, 500);
         }
 
         const userId = user.id;
@@ -464,49 +413,19 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
             }
         } catch (error) {
             console.error('KV operation error:', error);
-            const html = `
-      <!DOCTYPE html>
-      <html>
-      <head><title>Sign In Failed</title></head>
-      <body>
-      <script>
-        if (window.opener) {
-          window.opener.postMessage({ type: 'auth-failure', message: 'Network error during sign-in.' }, window.location.origin);
-          setTimeout(() => window.close(), 500);
-        }
-      </script>
-      <p>Sign in failed: Network error.</p>
-      </body>
-      </html>`;
-            return new Response(html, { headers: { 'Content-Type': 'text/html' }, status: 500 });
+            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Network error.', undefined, 500);
         }
 
         // Return HTML that handles auth for popup or fallback.
-        // SECURITY: Token is NOT exposed in HTML/URL. Client must fetch it via /api/auth/token
+        // SECURITY: Token is NOT exposed in HTML/URL. Client must fetch token via /api/auth/token
         // endpoint using the HttpOnly cookie set below. This prevents token exposure in:
         // - Browser history
         // - Referer headers
         // - XSS attacks that might read the HTML
-        const html = `
-    <!DOCTYPE html>
-    <html>
-    <head><title>Sign In Success</title></head>
-    <body>
-    <script>
-      // SECURITY: Do NOT include token in postMessage or URL
-      // The client will fetch the token via /api/auth/token using the HttpOnly cookie
-      const authData = { userId: ${safeJsonForScript(userId)}, displayName: ${safeJsonForScript(displayName)} };
-      if (window.opener) {
-        window.opener.postMessage({ type: 'auth-success', ...authData }, window.location.origin);
-        setTimeout(() => window.close(), 500);
-      } else {
-        localStorage.setItem('userId', authData.userId);
-        localStorage.setItem('displayName', authData.displayName);
-        window.location.href = '/smartgrind/';
-      }
-    </script>
-    </body>
-    </html>`;
+        //
+        // SECURITY: PII (userId, displayName) is NOT included in URL parameters for the PWA redirect.
+        // Instead, the PWA flow redirects to ?auth=success and the client uses the HttpOnly cookie
+        // to fetch user info via /api/auth/token. This prevents PII exposure in browser history and logs.
 
         // Set httpOnly cookie with the JWT
         const cookieHeader = `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}; Path=/smartgrind; Priority=High`;
@@ -524,16 +443,20 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
             "upgrade-insecure-requests",
         ].join('; ');
 
-        return new Response(html, {
-            headers: {
-                'Content-Type': 'text/html',
+        return createAuthHtml(
+            'Sign In Success',
+            'auth-success',
+            'Sign in successful! Redirecting...',
+            { userId, displayName },
+            200,
+            {
                 'Set-Cookie': cookieHeader,
                 'Content-Security-Policy': cspHeader,
                 'X-Content-Type-Options': 'nosniff',
                 'X-Frame-Options': 'DENY',
                 'Referrer-Policy': 'strict-origin-when-cross-origin',
-            },
-        });
+            }
+        );
     }
 
     // Handle token fetch endpoint - allows client to get token for Service Worker

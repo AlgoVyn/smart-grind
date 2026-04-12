@@ -118,7 +118,7 @@ describe('Auth API', () => {
             expect(response.headers.get('Content-Type')).toBe('text/html');
             const html = await response.text();
             expect(html).toContain('auth-failure');
-            expect(html).toContain('Invalid state parameter');
+            expect(html).toContain('Sign in failed: Invalid state.');
         });
 
         test('should return HTML with failure for invalid code in callback', async () => {
@@ -132,7 +132,7 @@ describe('Auth API', () => {
             expect(response.headers.get('Content-Type')).toBe('text/html');
             const html = await response.text();
             expect(html).toContain('auth-failure');
-            expect(html).toContain('Invalid authorization code');
+            expect(html).toContain('Sign in failed: Invalid code.');
         });
 
         test('should return HTML with failure for code too long', async () => {
@@ -149,7 +149,7 @@ describe('Auth API', () => {
             expect(response.headers.get('Content-Type')).toBe('text/html');
             const html = await response.text();
             expect(html).toContain('auth-failure');
-            expect(html).toContain('Invalid authorization code');
+            expect(html).toContain('Sign in failed: Invalid code.');
         });
 
         test('should return HTML with failure for OAuth failure', async () => {
@@ -164,7 +164,7 @@ describe('Auth API', () => {
             expect(response.headers.get('Content-Type')).toBe('text/html');
             const html = await response.text();
             expect(html).toContain('auth-failure');
-            expect(html).toContain('OAuth authorization failed');
+            expect(html).toContain('Sign in failed: No access token.');
         });
 
         test('should return HTML with failure for invalid user data', async () => {
@@ -184,7 +184,7 @@ describe('Auth API', () => {
             expect(response.headers.get('Content-Type')).toBe('text/html');
             const html = await response.text();
             expect(html).toContain('auth-failure');
-            expect(html).toContain('Invalid user data received');
+            expect(html).toContain('Sign in failed: Invalid user data.');
         });
 
         test('should handle successful OAuth and return HTML for new user', async () => {
@@ -315,7 +315,7 @@ describe('Auth API', () => {
             expect(response.headers.get('Content-Type')).toBe('text/html');
             const html = await response.text();
             expect(html).toContain('auth-failure');
-            expect(html).toContain('Database error during sign-in');
+            expect(html).toContain('Sign in failed: Token exchange error.');
         });
 
         test('should return HTML with failure message for user info network error', async () => {
@@ -335,7 +335,7 @@ describe('Auth API', () => {
             expect(response.headers.get('Content-Type')).toBe('text/html');
             const html = await response.text();
             expect(html).toContain('auth-failure');
-            expect(html).toContain('Network error during sign-in');
+            expect(html).toContain('Sign in failed: Network error.');
         });
 
         test('should return HTML with failure message for KV error', async () => {
@@ -361,7 +361,7 @@ describe('Auth API', () => {
             expect(response.headers.get('Content-Type')).toBe('text/html');
             const html = await response.text();
             expect(html).toContain('auth-failure');
-            expect(html).toContain('Network error during sign-in');
+            expect(html).toContain('Sign in failed: Network error.');
         });
     });
 });

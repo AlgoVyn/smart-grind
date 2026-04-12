@@ -10,7 +10,7 @@ import { data } from './data';
 import { initOfflineDetection } from './api';
 import { getConnectivityChecker } from './sw/connectivity-checker';
 import { loadData } from './api/api-load';
-import { scrollToTop, sanitizeInput, showToast } from './utils';
+import { scrollToTop, showToast } from './utils';
 import { withErrorHandling, setupGlobalErrorHandlers } from './error-boundary';
 import * as swRegister from './sw-register';
 import { openSigninModal } from './ui/ui-modals';
@@ -312,16 +312,17 @@ const setupLocalUser = async (
 // Auth Handlers
 // ============================================================================
 
-const handlePwaAuthCallback = async (
-    urlUserId: string,
-    urlDisplayName: string,
+/**
+ * Handles auth=success callback from PWA OAuth redirect.
+ * SECURITY: PII is NOT passed via URL parameters. Instead, this function uses
+ * the HttpOnly cookie set by the auth callback to fetch user info via /api/auth/token.
+ * This prevents PII exposure in browser history, server logs, and referrer headers.
+ */
+const handleAuthSuccessCallback = async (
     categoryParam: string | null,
     algorithmsParam: string | null,
     sqlParam: string | null
 ): Promise<boolean> => {
-    const sanitizedDisplayName = sanitizeInput(urlDisplayName) || 'User';
-    window.history.replaceState({}, document.title, window.location.pathname);
-
     const authData = await fetchAuthToken();
 
     if (!authData) {
@@ -332,8 +333,8 @@ const handlePwaAuthCallback = async (
 
     await withErrorHandling(async () => {
         await setupSignedInUser(
-            urlUserId,
-            sanitizedDisplayName,
+            authData.userId,
+            authData.displayName,
             categoryParam,
             algorithmsParam,
             sqlParam,
@@ -468,19 +469,17 @@ const checkAuth = async () => {
     const algorithmsParam = getAlgorithmsFromUrl();
     const sqlParam = getSQLFromUrl();
     const urlParams = new URLSearchParams(window.location.search);
-    const urlUserId = urlParams.get('userId');
-    const urlDisplayName = urlParams.get('displayName');
-
-    // Handle PWA auth callback
-    if (urlUserId && urlDisplayName) {
-        const success = await handlePwaAuthCallback(
-            urlUserId,
-            urlDisplayName,
-            categoryParam,
-            algorithmsParam,
-            sqlParam
-        );
-        if (success) return;
+    const authSuccess = urlParams.get('auth') === 'success';
+    // Handle auth=success callback (PWA redirect from OAuth)
+    // SECURITY: PII (userId, displayName) is NOT passed via URL parameters.
+    // Instead, we use the HttpOnly cookie to fetch user info via /api/auth/token.
+    if (authSuccess) {
+        const success = await handleAuthSuccessCallback(categoryParam, algorithmsParam, sqlParam);
+        if (success) {
+            // Clean up auth parameter from URL after successful auth (no PII in URL)
+            window.history.replaceState({}, document.title, window.location.pathname);
+            return;
+        }
     }
 
     // Check for existing session

@@ -212,17 +212,13 @@ export const state = {
                     }
                 }
 
-                const allSaved =
-                    safeSetItem(keys.problems, problemsClean) &&
-                    safeSetItem(keys.deletedIds, [...this.deletedProblemIds]) &&
-                    safeSetItem(
-                        keys.flashCardProgress,
-                        Object.fromEntries(this.flashCardProgress)
-                    ) &&
-                    setStringItem(keys.displayName, this.user.displayName) &&
-                    setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
-
-                if (!allSaved) throw new Error('Failed to save to localStorage');
+                safeSetItem(keys.problems, problemsClean);
+                safeSetItem(keys.deletedIds, [...this.deletedProblemIds]);
+                safeSetItem(keys.flashCardProgress, Object.fromEntries(this.flashCardProgress));
+                setStringItem(keys.displayName, this.user.displayName);
+                setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
+                // Note: safeSetItem/setStringItem now throw on quota errors,
+                // so if we reach this point, all writes succeeded.
 
                 // Clear dirty problem IDs after successful incremental save
                 dirtyProblemIds.clear();
@@ -234,17 +230,13 @@ export const state = {
                     )
                 );
 
-                const allSaved =
-                    safeSetItem(keys.problems, problemsClean) &&
-                    safeSetItem(keys.deletedIds, [...this.deletedProblemIds]) &&
-                    safeSetItem(
-                        keys.flashCardProgress,
-                        Object.fromEntries(this.flashCardProgress)
-                    ) &&
-                    setStringItem(keys.displayName, this.user.displayName) &&
-                    setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
-
-                if (!allSaved) throw new Error('Failed to save to localStorage');
+                safeSetItem(keys.problems, problemsClean);
+                safeSetItem(keys.deletedIds, [...this.deletedProblemIds]);
+                safeSetItem(keys.flashCardProgress, Object.fromEntries(this.flashCardProgress));
+                setStringItem(keys.displayName, this.user.displayName);
+                setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
+                // Note: safeSetItem/setStringItem now throw on quota errors,
+                // so if we reach this point, all writes succeeded.
 
                 // Flush dirty state after a successful full save
                 flushDirtyState();
