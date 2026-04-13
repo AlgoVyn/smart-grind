@@ -7,7 +7,7 @@ import { data } from '../data';
 import { syncPlan, mergeStructure } from './api-sync';
 import { validateResponseOrigin, getErrorMessage } from './api-utils';
 import { showAlert } from '../ui/ui-modals';
-import { renderSidebar, renderMainView, renderCombinedView, updateStats } from '../renderers';
+import { renderers } from '../renderers';
 import { initScrollButton } from '../ui/ui-scroll';
 
 /**
@@ -105,18 +105,18 @@ export const _processUserData = (userData: UserData, isOfflineFallback = false):
  * Initializes the UI components after data has been loaded.
  */
 export const _initializeUI = async (): Promise<void> => {
-    renderSidebar();
+    renderers.renderSidebar();
     // Check if any specific category is selected, otherwise show combined view
     const hasActiveCategory =
         state.ui.activeTopicId ||
         state.ui.activeAlgorithmCategoryId ||
         state.ui.activeSQLCategoryId;
     if (hasActiveCategory) {
-        renderMainView(state.ui.activeTopicId || 'all');
+        renderers.renderMainView(state.ui.activeTopicId || 'all');
     } else {
-        renderCombinedView();
+        renderers.renderCombinedView();
     }
-    updateStats();
+    renderers.updateStats();
     initScrollButton();
 
     (state.elements['setupModal'] as HTMLElement | null)?.classList.add('hidden');

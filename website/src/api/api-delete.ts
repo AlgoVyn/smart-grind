@@ -7,7 +7,7 @@ import { data } from '../data';
 import { ALGORITHMS_DATA, AlgorithmCategory } from '../data/algorithms-data';
 import { SQL_DATA, SQLCategory } from '../data/sql-data';
 import { showAlert, showConfirm } from '../ui/ui-modals';
-import { renderSidebar, renderMainView, renderAlgorithmsView, renderSQLView } from '../renderers';
+import { renderers } from '../renderers';
 import { updateUrlParameter, showToast } from '../utils';
 import { saveData } from './api-save';
 
@@ -171,8 +171,8 @@ export const deleteCategory = async (topicId: string): Promise<void> => {
         await saveData();
 
         // Re-render
-        renderSidebar();
-        renderMainView(state.ui.activeTopicId);
+        renderers.renderSidebar();
+        renderers.renderMainView(state.ui.activeTopicId);
         showToast('Category and associated problems removed');
     } catch (e) {
         // Restore original state on failure
@@ -209,9 +209,9 @@ export const deleteAlgorithmCategory = async (categoryId: string): Promise<void>
         await saveData();
 
         // Re-render
-        renderSidebar();
+        renderers.renderSidebar();
         // Re-render algorithms view to show updated state
-        await renderAlgorithmsView(categoryId);
+        await renderers.renderAlgorithmsView(categoryId);
         showToast('Algorithm category and associated algorithms removed');
     } catch (e) {
         // Restore original state on failure
@@ -254,9 +254,9 @@ export const deleteSQLCategory = async (categoryId: string): Promise<void> => {
         await saveData();
 
         // Re-render
-        renderSidebar();
+        renderers.renderSidebar();
         // Re-render SQL view to show updated state
-        await renderSQLView(categoryId);
+        await renderers.renderSQLView(categoryId);
         showToast('SQL category and associated SQL problems removed');
     } catch (e) {
         // Restore original state on failure

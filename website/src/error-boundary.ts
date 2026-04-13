@@ -1,10 +1,8 @@
 // --- ERROR BOUNDARY MODULE ---
-// Global error handling utilities with renderer error boundary integration
+// Global error handling utilities
 
 import { ui } from './ui/ui';
 import { escapeHtml } from './utils';
-
-export { RendererErrorBoundary } from './lib/renderer-error-boundary';
 
 /**
  * Global Error Boundary for application-level error handling

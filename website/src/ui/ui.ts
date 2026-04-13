@@ -1,21 +1,6 @@
 // --- UI MODULE ---
-// UI-specific functions and event handlers - direct re-exports
+// UI-specific functions and event handlers - combined as a single ui object
 
-export * from './ui-pull-to-refresh';
-export * from './ui-sidebar-resizer';
-export * from './ui-flashcards';
-export * from './ui-modals';
-export * from './ui-auth';
-export * from './ui-navigation';
-export * from './ui-problems';
-export * from './ui-global';
-export * from './ui-scroll';
-export * from './ui-markdown';
-export * from './ui-bindings';
-export * from './ui-constants';
-export * from './ui-sync-indicators';
-
-// Import all UI modules to create combined ui object
 import * as uiModals from './ui-modals';
 import * as uiAuth from './ui-auth';
 import * as uiNavigation from './ui-navigation';
@@ -33,7 +18,7 @@ import * as uiSyncIndicators from './ui-sync-indicators';
 import { state } from '../state';
 import { scrollToTop } from '../utils';
 
-// Backward-compatible ui object - combines all UI modules
+// Combined ui object - provides access to all UI module functions
 export const ui = {
     ...uiModals,
     ...uiAuth,

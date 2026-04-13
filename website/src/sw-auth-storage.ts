@@ -4,6 +4,8 @@
  * Uses the same DB/store as the SW's auth-manager (smartgrind-auth / auth-tokens).
  */
 
+import { promisifyRequest } from './utils/indexeddb-helper';
+
 const AUTH_DB_NAME = 'smartgrind-auth';
 const AUTH_DB_VERSION = 1;
 const AUTH_STORE_NAME = 'auth-tokens';
@@ -23,14 +25,6 @@ function openDB(): Promise<IDBDatabase> {
     });
 }
 
-function put(store: IDBObjectStore, key: string, value: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const request = store.put({ key, value });
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-    });
-}
-
 /**
  * Store the JWT so the Service Worker can send Authorization: Bearer for sync.
  * Call this after sign-in when you have the token (popup success or URL callback).
@@ -40,8 +34,8 @@ export async function storeTokenForServiceWorker(token: string): Promise<void> {
     const db = await openDB();
     const tx = db.transaction(AUTH_STORE_NAME, 'readwrite');
     const store = tx.objectStore(AUTH_STORE_NAME);
-    await put(store, 'token', token);
-    await put(store, 'tokenExpiresAt', String(expiresAt));
+    await promisifyRequest(store.put({ key: 'token', value: token }));
+    await promisifyRequest(store.put({ key: 'tokenExpiresAt', value: String(expiresAt) }));
     db.close();
 }
 
@@ -52,14 +46,8 @@ export async function clearTokenForServiceWorker(): Promise<void> {
     const db = await openDB();
     const tx = db.transaction(AUTH_STORE_NAME, 'readwrite');
     const store = tx.objectStore(AUTH_STORE_NAME);
-    const del = (key: string) =>
-        new Promise<void>((resolve, reject) => {
-            const r = store.delete(key);
-            r.onsuccess = () => resolve();
-            r.onerror = () => reject(r.error);
-        });
-    await del('token');
-    await del('tokenExpiresAt');
-    await del('refreshToken');
+    await promisifyRequest(store.delete('token'));
+    await promisifyRequest(store.delete('tokenExpiresAt'));
+    await promisifyRequest(store.delete('refreshToken'));
     db.close();
 }

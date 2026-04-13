@@ -41,8 +41,8 @@ jest.mock('../src/renderers', () => {
     const mockRenderCombinedView = jest.fn();
     const mockUpdateStats = jest.fn();
     const mockUpdateFilterBtns = jest.fn();
-    
-    return {
+
+    const renderers = {
         renderSidebar: mockRenderSidebar,
         renderMainView: mockRenderMainView,
         renderAlgorithmsView: mockRenderAlgorithmsView,
@@ -50,15 +50,11 @@ jest.mock('../src/renderers', () => {
         renderCombinedView: mockRenderCombinedView,
         updateStats: mockUpdateStats,
         updateFilterBtns: mockUpdateFilterBtns,
-        // Keep backward compatible renderers object
-        renderers: {
-            renderSidebar: mockRenderSidebar,
-            renderMainView: mockRenderMainView,
-            renderCombinedView: mockRenderCombinedView,
-            updateStats: mockUpdateStats,
-            updateFilterBtns: mockUpdateFilterBtns,
-        },
-        // Individual setters for tests
+    };
+
+    return {
+        renderers,
+        // Namespace re-exports for module access
         setActiveTopic: jest.fn(),
         setActiveAlgorithmCategory: jest.fn(),
         setActiveSQLCategory: jest.fn(),
@@ -167,18 +163,18 @@ describe('SmartGrind API Module', () => {
         mockRenderSidebar = jest.fn();
         mockRenderMainView = jest.fn();
         mockUpdateFilterBtns = jest.fn();
-        renderers.updateStats = mockUpdateStats;
         renderers.renderSidebar = mockRenderSidebar;
         renderers.renderMainView = mockRenderMainView;
         renderers.renderCombinedView = jest.fn();
+        renderers.updateStats = mockUpdateStats;
         renderers.updateFilterBtns = mockUpdateFilterBtns;
         
         // Reset renderers module mocks
-        renderersMod.renderSidebar.mockClear();
-        renderersMod.renderMainView.mockClear();
-        renderersMod.renderCombinedView.mockClear();
-        renderersMod.updateStats.mockClear();
-        renderersMod.updateFilterBtns.mockClear();
+        renderersMod.renderers.renderSidebar.mockClear();
+        renderersMod.renderers.renderMainView.mockClear();
+        renderersMod.renderers.renderCombinedView.mockClear();
+        renderersMod.renderers.updateStats.mockClear();
+        renderersMod.renderers.updateFilterBtns.mockClear();
         mockSaveToStorage = jest.fn();
         state.user = { type: 'local' };
         state.problems = new Map([['1', { id: '1', name: 'Test Problem', status: 'unsolved' }]]);
@@ -541,8 +537,8 @@ describe('SmartGrind API Module', () => {
                 noteVisible: false,
             });
             expect(state.deletedProblemIds.has('2')).toBe(true);
-            expect(renderersMod.renderSidebar).toHaveBeenCalled();
-            expect(renderersMod.renderCombinedView).toHaveBeenCalled();
+            expect(renderersMod.renderers.renderSidebar).toHaveBeenCalled();
+            expect(renderersMod.renderers.renderCombinedView).toHaveBeenCalled();
         });
 
         test('should handle auth error', async () => {
@@ -651,8 +647,8 @@ describe('SmartGrind API Module', () => {
             expect(state.problems.has('1')).toBe(false);
             expect(state.deletedProblemIds.has('1')).toBe(true);
             expect(state.ui.activeTopicId).toBe('');
-            expect(renderersMod.renderSidebar).toHaveBeenCalled();
-            expect(renderersMod.renderMainView).toHaveBeenCalledWith('');
+            expect(renderersMod.renderers.renderSidebar).toHaveBeenCalled();
+            expect(renderersMod.renderers.renderMainView).toHaveBeenCalledWith('');
         });
 
         test('should not delete if not confirmed', async () => {

@@ -3,7 +3,7 @@ import { UserData, Problem } from '../types';
 import { state, markProblemDirty, markDeletedIdsDirty } from '../state';
 import { data } from '../data';
 import { validateResponseOrigin, isBrowserOnline, getErrorMessage } from './api-utils';
-import { getCachedCsrfToken } from '../app';
+import { getCachedCsrfToken } from '../utils/csrf';
 import { showToast } from '../utils';
 
 // Callbacks for UI updates (breaks circular dependency with renderers/ui)

@@ -1,20 +1,15 @@
 // --- DATA MODULE ---
-// Contains static data references and data structures
+// Central data hub - provides the `data` object with all static data and helpers
 
 import { Topic } from './types';
 import { PROBLEMS_DATA, TOTAL_UNIQUE_PROBLEMS } from './data/problems-data';
-import {
-    ALGORITHMS_DATA,
-    TOTAL_UNIQUE_ALGORITHMS,
-    AlgorithmCategory,
-} from './data/algorithms-data';
+import { ALGORITHMS_DATA, TOTAL_UNIQUE_ALGORITHMS } from './data/algorithms-data';
 import {
     SQL_DATA,
     TOTAL_UNIQUE_SQL_PROBLEMS,
     getAllSQLProblems,
     getSQLCategoryById,
     flattenSQLData,
-    SQLCategory,
 } from './data/sql-data';
 
 const cloneData = <T>(obj: T): T => {
@@ -79,10 +74,5 @@ export const data = {
     flattenSQLData,
     LOCAL_STORAGE_KEYS,
 };
-
-export { _topicsData as topicsData, ALGORITHMS_DATA as algorithmsData, SQL_DATA as sqlData };
-export { TOTAL_UNIQUE_PROBLEMS, TOTAL_UNIQUE_ALGORITHMS, TOTAL_UNIQUE_SQL_PROBLEMS };
-export { getAllSQLProblems, getSQLCategoryById, flattenSQLData };
-export type { AlgorithmCategory, SQLCategory };
 
 ensureOriginalData();

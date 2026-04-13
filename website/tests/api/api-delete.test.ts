@@ -20,7 +20,8 @@ import { data } from '../../src/data';
 import { ALGORITHMS_DATA, AlgorithmCategory } from '../../src/data/algorithms-data';
 import { SQL_DATA, SQLCategory } from '../../src/data/sql-data';
 import { showAlert, showConfirm } from '../../src/ui/ui-modals';
-import { renderSidebar, renderMainView, renderAlgorithmsView, renderSQLView } from '../../src/renderers';
+import { renderers } from '../../src/renderers';
+const { renderSidebar, renderMainView, renderAlgorithmsView, renderSQLView } = renderers;
 import { updateUrlParameter, showToast } from '../../src/utils';
 import { saveData } from '../../src/api/api-save';
 import { Topic, Problem } from '../../src/types';
@@ -63,10 +64,12 @@ jest.mock('../../src/ui/ui-modals', () => ({
 }));
 
 jest.mock('../../src/renderers', () => ({
-    renderSidebar: jest.fn(),
-    renderMainView: jest.fn(),
-    renderAlgorithmsView: jest.fn(),
-    renderSQLView: jest.fn(),
+    renderers: {
+        renderSidebar: jest.fn(),
+        renderMainView: jest.fn(),
+        renderAlgorithmsView: jest.fn(),
+        renderSQLView: jest.fn(),
+    },
 }));
 
 jest.mock('../../src/utils', () => ({

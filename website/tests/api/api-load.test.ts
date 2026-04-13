@@ -52,10 +52,12 @@ jest.mock('../../src/ui/ui-modals', () => ({
 }));
 
 jest.mock('../../src/renderers', () => ({
-    renderSidebar: jest.fn(),
-    renderMainView: jest.fn(),
-    renderCombinedView: jest.fn(),
-    updateStats: jest.fn(),
+    renderers: {
+        renderSidebar: jest.fn(),
+        renderMainView: jest.fn(),
+        renderCombinedView: jest.fn(),
+        updateStats: jest.fn(),
+    },
 }));
 
 jest.mock('../../src/ui/ui-scroll', () => ({
@@ -65,12 +67,8 @@ jest.mock('../../src/ui/ui-scroll', () => ({
 import { syncPlan, mergeStructure } from '../../src/api/api-sync';
 import { validateResponseOrigin, getErrorMessage } from '../../src/api/api-utils';
 import { showAlert } from '../../src/ui/ui-modals';
-import {
-    renderSidebar,
-    renderMainView,
-    renderCombinedView,
-    updateStats,
-} from '../../src/renderers';
+import { renderers } from '../../src/renderers';
+const { renderSidebar, renderMainView, renderCombinedView, updateStats } = renderers;
 import { initScrollButton } from '../../src/ui/ui-scroll';
 
 describe('API Load Module', () => {

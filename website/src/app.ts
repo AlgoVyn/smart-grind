@@ -7,11 +7,7 @@ import { api } from './api';
 import { renderers } from './renderers';
 import { ui } from './ui/ui';
 import { showToast } from './utils';
-import { fetchCsrfToken, getCsrfToken, getCachedCsrfToken, clearCsrfToken } from './utils/csrf';
 import type { Problem } from './types';
-
-// Re-export CSRF functions for backward compatibility
-export { fetchCsrfToken, getCsrfToken, getCachedCsrfToken, clearCsrfToken };
 
 // Export data limits for sanitization
 const EXPORT_LIMITS = {
@@ -206,9 +202,6 @@ export const getAllProblems = (): Problem[] => {
 export const app = {
     initializeLocalUser,
     exportProgress,
-    fetchCsrfToken,
-    getCsrfToken,
-    clearCsrfToken,
     getCategoryStats,
     getProblemsByCategory,
     getAllProblems,

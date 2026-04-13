@@ -289,7 +289,7 @@ const setupSignedInUser = async (
         return;
     }
 
-    const { fetchCsrfToken } = await import('./app');
+    const { fetchCsrfToken } = await import('./utils/csrf');
     await fetchCsrfToken();
 
     await loadData();
