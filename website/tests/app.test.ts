@@ -46,6 +46,18 @@ jest.mock('../src/state', () => ({
         elements: {},
         problems: new Map(),
         deletedProblemIds: new Set(),
+
+        setProblem: jest.fn(),
+        deleteProblem: jest.fn(),
+        clearProblems: jest.fn(),
+        addDeletedId: jest.fn(),
+        removeDeletedId: jest.fn(),
+        clearDeletedIds: jest.fn(),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
+        setFlashCardProgress: jest.fn(),
+        saveToStorage: jest.fn(),
+        saveToStorageDebounced: jest.fn(),
         loadFromStorage: jest.fn(),
         saveToStorage: jest.fn(),
         setUser: jest.fn(),
@@ -131,8 +143,8 @@ describe('App Module', () => {
             reviewDateFilter: null,
         };
         state.elements = {};
-        state.problems.clear();
-        state.deletedProblemIds.clear();
+        state.clearProblems();
+        state.clearDeletedIds();
 
         // Reset data
         data.topicsData = [];
@@ -266,9 +278,9 @@ describe('App Module', () => {
     describe('exportProgress', () => {
         test('should export progress data', () => {
             // Set up test data
-            state.problems.set('1', { id: '1', name: 'Problem 1', status: 'solved' });
-            state.problems.set('2', { id: '2', name: 'Problem 2', status: 'unsolved' });
-            state.deletedProblemIds.add('3');
+            state.setProblem('1', { id: '1', name: 'Problem 1', status: 'solved' });
+            state.setProblem('2', { id: '2', name: 'Problem 2', status: 'unsolved' });
+            state.addDeletedId('3');
 
             exportProgress();
 
@@ -281,8 +293,8 @@ describe('App Module', () => {
 
         test('should create correct export data structure', () => {
             // Set up test data
-            state.problems.set('1', { id: '1', name: 'Problem 1', status: 'solved' });
-            state.deletedProblemIds.add('2');
+            state.setProblem('1', { id: '1', name: 'Problem 1', status: 'solved' });
+            state.addDeletedId('2');
 
             exportProgress();
 
@@ -311,8 +323,8 @@ describe('App Module', () => {
         });
 
         test('should handle empty progress data', () => {
-            state.problems.clear();
-            state.deletedProblemIds.clear();
+            state.clearProblems();
+            state.clearDeletedIds();
 
             exportProgress();
 
@@ -327,7 +339,7 @@ describe('App Module', () => {
         test('should handle large progress data', () => {
             // Add many problems
             for (let i = 0; i < 1000; i++) {
-                state.problems.set(String(i), {
+                state.setProblem(String(i), {
                     id: String(i),
                     name: `Problem ${i}`,
                     status: i % 2 === 0 ? 'solved' : 'unsolved',
@@ -430,9 +442,9 @@ describe('App Module', () => {
             const problem1 = { id: '1', name: 'Problem 1', status: 'solved', difficulty: 'easy' };
             const problem2 = { id: '2', name: 'Problem 2', status: 'unsolved', difficulty: 'hard' };
 
-            state.problems.set('1', problem1);
-            state.problems.set('2', problem2);
-            state.deletedProblemIds.add('3');
+            state.setProblem('1', problem1);
+            state.setProblem('2', problem2);
+            state.addDeletedId('3');
 
             exportProgress();
 

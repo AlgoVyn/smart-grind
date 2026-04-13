@@ -21,6 +21,18 @@ jest.mock('@/state', () => ({
             activeSQLCategoryId: null,
             currentFilter: 'all',
         },
+
+        setProblem: jest.fn(),
+        deleteProblem: jest.fn(),
+        clearProblems: jest.fn(),
+        addDeletedId: jest.fn(),
+        removeDeletedId: jest.fn(),
+        clearDeletedIds: jest.fn(),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
+        setFlashCardProgress: jest.fn(),
+        saveToStorage: jest.fn(),
+        saveToStorageDebounced: jest.fn(),
         elements: {
             statTotal: null,
             statSolved: null,
@@ -64,13 +76,21 @@ import { renderers } from '@/renderers';
 describe('Stats Renderer Enhanced', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        // Make state methods actually update the mock Map/Set
+        (state.setProblem as jest.Mock).mockImplementation((id: string, p: any) => { (state.problems as Map<string, any>).set(id, p); });
+        (state.deleteProblem as jest.Mock).mockImplementation((id: string) => { (state.problems as Map<string, any>).delete(id); });
+        (state.clearProblems as jest.Mock).mockImplementation(() => { (state.problems as Map<string, any>).clear(); });
+        (state.addDeletedId as jest.Mock).mockImplementation((id: string) => { (state.deletedProblemIds as Set<string>).add(id); });
+        (state.removeDeletedId as jest.Mock).mockImplementation((id: string) => { (state.deletedProblemIds as Set<string>).delete(id); });
+        (state.clearDeletedIds as jest.Mock).mockImplementation(() => { (state.deletedProblemIds as Set<string>).clear(); });
+
 
         // Reset state
         state.ui.activeTopicId = '';
         state.ui.activeAlgorithmCategoryId = null;
         state.ui.activeSQLCategoryId = null;
         state.ui.currentFilter = 'all';
-        state.problems.clear();
+        state.clearProblems();
 
         // Reset elements
         state.elements.statTotal = { innerText: '' } as HTMLElement;
@@ -148,8 +168,8 @@ describe('Stats Renderer Enhanced', () => {
     describe('_updateSidebarStats', () => {
         test('should update sidebar stat elements', () => {
             // Add some problems
-            state.problems.set('1', { id: '1', status: 'solved' } as any);
-            state.problems.set('2', { id: '2', status: 'unsolved' } as any);
+            state.setProblem('1', { id: '1', status: 'solved' } as any);
+            state.setProblem('2', { id: '2', status: 'unsolved' } as any);
 
             statsRenderers._updateSidebarStats();
 
@@ -159,7 +179,7 @@ describe('Stats Renderer Enhanced', () => {
 
         test('should handle unique problem IDs', () => {
             // Add duplicate problem IDs (shouldn't happen but test resilience)
-            state.problems.set('1', { id: '1', status: 'solved' } as any);
+            state.setProblem('1', { id: '1', status: 'solved' } as any);
 
             statsRenderers._updateSidebarStats();
 
@@ -177,7 +197,7 @@ describe('Stats Renderer Enhanced', () => {
             state.elements.sidebarTotalStat = null;
             state.elements.sidebarTotalBar = null;
 
-            state.problems.set('1', { id: '1', status: 'solved' } as any);
+            state.setProblem('1', { id: '1', status: 'solved' } as any);
 
             // Should not throw
             expect(() => {
@@ -232,7 +252,7 @@ describe('Stats Renderer Enhanced', () => {
             ];
 
             // Mark one as solved
-            state.problems.set('algo-1', { id: 'algo-1', status: 'solved', nextReviewDate: '2023-01-01' } as any);
+            state.setProblem('algo-1', { id: 'algo-1', status: 'solved', nextReviewDate: '2023-01-01' } as any);
 
             const stats = statsRenderers._getAlgorithmCategoryStats('all');
 
@@ -260,7 +280,7 @@ describe('Stats Renderer Enhanced', () => {
                 },
             ];
 
-            state.problems.set('algo-1', { id: 'algo-1', status: 'solved', nextReviewDate: '2024-01-01' } as any);
+            state.setProblem('algo-1', { id: 'algo-1', status: 'solved', nextReviewDate: '2024-01-01' } as any);
 
             const stats = statsRenderers._getAlgorithmCategoryStats('arrays');
 
@@ -294,7 +314,7 @@ describe('Stats Renderer Enhanced', () => {
             ];
 
             // Problem due today
-            state.problems.set('algo-1', {
+            state.setProblem('algo-1', {
                 id: 'algo-1',
                 status: 'solved',
                 nextReviewDate: today,
@@ -320,7 +340,7 @@ describe('Stats Renderer Enhanced', () => {
             ];
 
             // Unsolved problem
-            state.problems.set('algo-1', {
+            state.setProblem('algo-1', {
                 id: 'algo-1',
                 status: 'unsolved',
                 nextReviewDate: today,
@@ -357,7 +377,7 @@ describe('Stats Renderer Enhanced', () => {
                 },
             ];
 
-            state.problems.set('sql-1', { id: 'sql-1', status: 'solved', nextReviewDate: '2024-01-01' } as any);
+            state.setProblem('sql-1', { id: 'sql-1', status: 'solved', nextReviewDate: '2024-01-01' } as any);
 
             const stats = statsRenderers._getSQLCategoryStats('all');
 
@@ -491,9 +511,9 @@ describe('Stats Renderer Enhanced', () => {
             ];
 
             // Mark some as solved
-            state.problems.set('p1', { id: 'p1', status: 'solved', nextReviewDate: '2024-01-01' } as any);
-            state.problems.set('a1', { id: 'a1', status: 'solved', nextReviewDate: '2024-01-01' } as any);
-            state.problems.set('s1', { id: 's1', status: 'unsolved' } as any);
+            state.setProblem('p1', { id: 'p1', status: 'solved', nextReviewDate: '2024-01-01' } as any);
+            state.setProblem('a1', { id: 'a1', status: 'solved', nextReviewDate: '2024-01-01' } as any);
+            state.setProblem('s1', { id: 's1', status: 'unsolved' } as any);
 
             const stats = statsRenderers._getAllContentStats();
 
@@ -560,7 +580,7 @@ describe('Stats Renderer Enhanced', () => {
             ];
 
             // Due problem
-            state.problems.set('p1', { id: 'p1', status: 'solved', nextReviewDate: today } as any);
+            state.setProblem('p1', { id: 'p1', status: 'solved', nextReviewDate: today } as any);
 
             const stats = statsRenderers._getAllContentStats();
 

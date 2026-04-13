@@ -12,6 +12,15 @@ import {
     type ElementCache,
 } from './utils';
 
+// ============================================================================
+// PRIVATE STATE — Mutable collections backing the readonly public getters.
+// These MUST NOT be accessed directly outside this module; use the wrapper
+// methods (setProblem, deleteProblem, addDeletedId, etc.) instead.
+// ============================================================================
+
+const _problems = new Map<string, Problem>();
+const _deletedProblemIds = new Set<string>();
+
 // Debounce timer for localStorage writes
 let storageSaveTimeout: ReturnType<typeof setTimeout> | null = null;
 const STORAGE_SAVE_DELAY = 300;
@@ -93,8 +102,14 @@ export const state = {
         displayName: 'Local User',
     },
 
-    problems: new Map<string, Problem>(),
-    deletedProblemIds: new Set<string>(),
+    /** Read-only view of problems Map. Use setProblem/deleteProblem for mutations. */
+    get problems(): ReadonlyMap<string, Problem> {
+        return _problems;
+    },
+    /** Read-only view of deleted problem IDs. Use addDeletedId/removeDeletedId for mutations. */
+    get deletedProblemIds(): ReadonlySet<string> {
+        return _deletedProblemIds;
+    },
     flashCardProgress: new Map<string, FlashCardProgress>(),
 
     ui: {
@@ -160,9 +175,11 @@ export const state = {
             {}
         );
 
-        this.problems = new Map(Object.entries(problemsObj));
-        this.problems.forEach((p) => (p.loading = false));
-        this.deletedProblemIds = new Set(deletedIdsArr);
+        _problems.clear();
+        for (const [k, v] of Object.entries(problemsObj)) _problems.set(k, v);
+        _problems.forEach((p) => (p.loading = false));
+        _deletedProblemIds.clear();
+        for (const id of deletedIdsArr) _deletedProblemIds.add(id);
         this.flashCardProgress = new Map(Object.entries(flashCardProgressObj));
         this.user.displayName = getStringItem(keys.displayName, isSignedIn ? '' : 'Local User');
         this.user.type = getStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local') as
@@ -291,17 +308,18 @@ export const state = {
         const deletedItems: Array<{ id: string; problem?: Problem; timestamp: number }> = [];
 
         // Limit deleted IDs to most recent 50
-        if (this.deletedProblemIds.size > 100) {
-            const ids = [...this.deletedProblemIds];
+        if (_deletedProblemIds.size > 100) {
+            const ids = [..._deletedProblemIds];
             const toRemove = ids.slice(0, ids.length - 50);
-            this.deletedProblemIds = new Set(ids.slice(-50));
+            _deletedProblemIds.clear();
+            for (const id of ids.slice(-50)) _deletedProblemIds.add(id);
             freedCount += toRemove.length;
             toRemove.forEach((id) => deletedItems.push({ id, timestamp: Date.now() }));
             markDeletedIdsDirty();
         }
 
         // Remove old solved problems without notes if still needed
-        if (freedCount === 0 && this.problems.size > 50) {
+        if (freedCount === 0 && _problems.size > 50) {
             const today = new Date().toISOString().split('T')[0]!;
             const candidates = [...this.problems.entries()]
                 .filter(
@@ -319,9 +337,8 @@ export const state = {
                 -Math.min(Math.floor(this.problems.size * 0.2), candidates.length)
             );
             toRemove.forEach(([id, problem]) => {
-                this.problems.delete(id);
+                this.deleteProblem(id);
                 freedCount++;
-                markProblemDirty(id);
                 deletedItems.push({ id, problem: { ...problem }, timestamp: Date.now() });
             });
         }
@@ -356,9 +373,8 @@ export const state = {
     recoverCleanedUpProblems(): number {
         let recovered = 0;
         for (const item of this.storage.lastCleanupDeleted) {
-            if (item.problem && !this.problems.has(item.id)) {
-                this.problems.set(item.id, item.problem);
-                markProblemDirty(item.id);
+            if (item.problem && !_problems.has(item.id)) {
+                this.setProblem(item.id, item.problem);
                 recovered++;
             }
         }
@@ -416,7 +432,7 @@ export const state = {
      * @param problem - The problem object
      */
     setProblem(id: string, problem: Problem): void {
-        this.problems.set(id, problem);
+        _problems.set(id, problem);
         markProblemDirty(id);
     },
 
@@ -427,7 +443,7 @@ export const state = {
      * @returns true if the problem was deleted, false otherwise
      */
     deleteProblem(id: string): boolean {
-        const result = this.problems.delete(id);
+        const result = _problems.delete(id);
         if (result) {
             markProblemDirty(id);
         }
@@ -440,10 +456,10 @@ export const state = {
      */
     clearProblems(): void {
         // Mark all existing IDs as dirty before clearing
-        for (const id of this.problems.keys()) {
+        for (const id of _problems.keys()) {
             markProblemDirty(id);
         }
-        this.problems.clear();
+        _problems.clear();
     },
 
     /**
@@ -452,7 +468,7 @@ export const state = {
      * @param id - The problem ID to mark as deleted
      */
     addDeletedId(id: string): void {
-        this.deletedProblemIds.add(id);
+        _deletedProblemIds.add(id);
         markDeletedIdsDirty();
     },
 
@@ -463,7 +479,7 @@ export const state = {
      * @returns true if the ID was in the set, false otherwise
      */
     removeDeletedId(id: string): boolean {
-        const result = this.deletedProblemIds.delete(id);
+        const result = _deletedProblemIds.delete(id);
         if (result) {
             markDeletedIdsDirty();
         }
@@ -480,6 +496,36 @@ export const state = {
         this.flashCardProgress.set(cardId, progress);
         dirtyFlashCards = true;
     },
+    /**
+     * Replaces the entire problems Map with a new one.
+     * Use for rollback scenarios where the full Map must be swapped.
+     * Marks all new entries as dirty for incremental saving.
+     */
+    replaceProblems(newMap: Map<string, Problem>): void {
+        _problems.clear();
+        for (const [k, v] of newMap) _problems.set(k, v);
+        for (const id of _problems.keys()) markProblemDirty(id);
+    },
+
+    /**
+     * Replaces the entire deletedProblemIds set with a new one.
+     * Use for rollback scenarios where the full Set must be swapped.
+     */
+    replaceDeletedIds(newSet: Set<string>): void {
+        _deletedProblemIds.clear();
+        for (const id of newSet) _deletedProblemIds.add(id);
+        markDeletedIdsDirty();
+    },
+
+    /**
+     * Clears all deleted problem IDs and marks the collection as dirty.
+     * Use this instead of state.deletedProblemIds.clear() to ensure proper dirty tracking.
+     */
+    clearDeletedIds(): void {
+        _deletedProblemIds.clear();
+        markDeletedIdsDirty();
+    },
+
     getSolvedSQLCount(): number {
         return [...this.problems.values()].filter(
             (p) => p.status === 'solved' && p.id.startsWith('sql-')

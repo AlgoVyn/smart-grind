@@ -2,7 +2,7 @@
 // Reset operations
 
 import { Topic, Pattern, ProblemDef, Problem } from '../types';
-import { state, markProblemDirty, markDeletedIdsDirty } from '../state';
+import { state } from '../state';
 import { data } from '../data';
 import { ALGORITHMS_DATA, AlgorithmCategory, AlgorithmDef } from '../data/algorithms-data';
 import { SQL_DATA, SQLCategory } from '../data/sql-data';
@@ -107,12 +107,10 @@ const restoreDeletedProblem = (id: string): boolean => {
     if (!state.deletedProblemIds.has(id) || id.startsWith('custom-')) {
         return false;
     }
-    state.deletedProblemIds.delete(id);
-    markDeletedIdsDirty();
+    state.removeDeletedId(id);
     const { probDef, topicTitle, patternName } = findProblemDefInfo(id);
     if (probDef) {
-        state.problems.set(id, createProblemFromDef(id, probDef, topicTitle, patternName));
-        markProblemDirty(id);
+        state.setProblem(id, createProblemFromDef(id, probDef, topicTitle, patternName));
     }
     return true;
 };
@@ -193,8 +191,8 @@ export const resetAll = async (): Promise<void> => {
         await _performResetAndRender('All problems reset and restored');
     } catch (e) {
         // Restore original state on failure
-        state.problems = originalProblems;
-        state.deletedProblemIds = originalDeletedIds;
+        state.replaceProblems(originalProblems);
+        state.replaceDeletedIds(originalDeletedIds);
         const message = e instanceof Error ? e.message : 'Unknown error';
         ui.showAlert(`Failed to reset all problems: ${message}`);
         throw e;
@@ -228,8 +226,8 @@ export const resetCategory = async (topicId: string): Promise<void> => {
         await _performResetAndRender('Category problems reset and restored');
     } catch (e) {
         // Restore original state on failure
-        state.problems = originalProblems;
-        state.deletedProblemIds = originalDeletedIds;
+        state.replaceProblems(originalProblems);
+        state.replaceDeletedIds(originalDeletedIds);
         const message = e instanceof Error ? e.message : String(e);
         ui.showAlert(`Failed to reset category: ${message}`);
         throw e;
@@ -271,8 +269,7 @@ export const _restoreDeletedAlgorithms = (algorithmIds: Set<string>): void => {
         if (!state.deletedProblemIds.has(id)) {
             return;
         }
-        state.deletedProblemIds.delete(id);
-        markDeletedIdsDirty();
+        state.removeDeletedId(id);
 
         // Find the algorithm definition
         let algoDef: AlgorithmDef | undefined;
@@ -284,7 +281,7 @@ export const _restoreDeletedAlgorithms = (algorithmIds: Set<string>): void => {
         if (algoDef) {
             // Find which category this algorithm belongs to
             const category = ALGORITHMS_DATA.find((c) => c.algorithms.some((a) => a.id === id));
-            state.problems.set(id, {
+            state.setProblem(id, {
                 id: algoDef.id,
                 name: algoDef.name,
                 url: algoDef.url,
@@ -297,7 +294,6 @@ export const _restoreDeletedAlgorithms = (algorithmIds: Set<string>): void => {
                 loading: false,
                 noteVisible: false,
             });
-            markProblemDirty(id);
         }
     });
 };
@@ -327,8 +323,8 @@ export const resetAlgorithmCategory = async (categoryId: string): Promise<void> 
         await _performResetAndRender(`${title} reset and restored successfully`);
     } catch (e) {
         // Restore original state on failure
-        state.problems = originalProblems;
-        state.deletedProblemIds = originalDeletedIds;
+        state.replaceProblems(originalProblems);
+        state.replaceDeletedIds(originalDeletedIds);
         const message = e instanceof Error ? e.message : String(e);
         ui.showAlert(`Failed to reset algorithm category: ${message}`);
         throw e;
@@ -389,8 +385,7 @@ export const resetSQLCategory = async (categoryId: string): Promise<void> => {
 
         // Restore deleted SQL problems
         sqlProblemIds.forEach((problemId) => {
-            state.deletedProblemIds.delete(problemId);
-            markDeletedIdsDirty();
+            state.removeDeletedId(problemId);
         });
 
         await saveData();
@@ -402,8 +397,8 @@ export const resetSQLCategory = async (categoryId: string): Promise<void> => {
         showToast(`${title} reset and restored successfully`);
     } catch (e) {
         // Restore original state on failure
-        state.problems = originalProblems;
-        state.deletedProblemIds = originalDeletedIds;
+        state.replaceProblems(originalProblems);
+        state.replaceDeletedIds(originalDeletedIds);
         const message = e instanceof Error ? e.message : String(e);
         ui.showAlert(`Failed to reset SQL category: ${message}`);
         throw e;

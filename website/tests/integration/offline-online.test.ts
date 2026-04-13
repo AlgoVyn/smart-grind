@@ -28,8 +28,8 @@ describe('Integration: Offline/Online Transitions', () => {
         jest.clearAllMocks();
         
         // Reset state
-        state.problems.clear();
-        state.deletedProblemIds.clear();
+        state.clearProblems();
+        state.clearDeletedIds();
         state.user = { type: 'local', id: null, displayName: 'Local User' };
         state.ui = { activeTopicId: '', currentFilter: 'all', searchQuery: '', preferredAI: null, reviewDateFilter: null };
         state.sync = { isOnline: true, isSyncing: false, pendingCount: 0, lastSyncAt: null, hasConflicts: false, conflictMessage: null };
@@ -87,7 +87,7 @@ describe('Integration: Offline/Online Transitions', () => {
             state.setOnlineStatus(false);
             
             // Add problem
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Test Problem',
                 url: 'https://example.com',
@@ -292,7 +292,7 @@ describe('Integration: Offline/Online Transitions', () => {
             state.setOnlineStatus(true);
             
             // Add problem
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Test Problem',
                 url: 'https://example.com',
@@ -315,7 +315,7 @@ describe('Integration: Offline/Online Transitions', () => {
             // Update problem
             const problem = state.problems.get('1')!;
             problem.note = 'Updated note';
-            state.problems.set('1', problem);
+            state.setProblem('1', problem);
             
             // Save again
             state.saveToStorage();
@@ -337,7 +337,7 @@ describe('Integration: Offline/Online Transitions', () => {
                 expect(state.sync.isOnline).toBe(false);
                 
                 // Add data
-                state.problems.set(`cycle-${i}`, {
+                state.setProblem(`cycle-${i}`, {
                     id: `cycle-${i}`,
                     name: `Cycle ${i}`,
                     url: 'https://example.com',

@@ -93,12 +93,13 @@ export const _processUserData = (userData: UserData, isOfflineFallback = false):
         return;
     }
 
-    state.problems = new Map(Object.entries(userData.problems || {}));
-    state.problems.forEach((p: Problem) => {
+    const problemsMap = new Map(Object.entries(userData.problems || {}));
+    problemsMap.forEach((p: Problem) => {
         p.loading = false;
         p.noteVisible = false;
     });
-    state.deletedProblemIds = new Set(userData.deletedIds || []);
+    state.replaceProblems(problemsMap);
+    state.replaceDeletedIds(new Set(userData.deletedIds || []));
 };
 
 /**

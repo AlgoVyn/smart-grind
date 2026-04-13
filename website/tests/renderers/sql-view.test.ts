@@ -17,6 +17,18 @@ jest.mock('../../src/state', () => ({
             preferredAI: null,
             reviewDateFilter: null,
         },
+
+        setProblem: jest.fn(),
+        deleteProblem: jest.fn(),
+        clearProblems: jest.fn(),
+        addDeletedId: jest.fn(),
+        removeDeletedId: jest.fn(),
+        clearDeletedIds: jest.fn(),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
+        setFlashCardProgress: jest.fn(),
+        saveToStorage: jest.fn(),
+        saveToStorageDebounced: jest.fn(),
         elements: {},
     },
 }));
@@ -258,7 +270,15 @@ describe('sqlViewRenderers', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        state.problems.clear();
+        // Make state methods actually update the mock Map/Set
+        (state.setProblem as jest.Mock).mockImplementation((id: string, p: any) => { (state.problems as Map<string, any>).set(id, p); });
+        (state.deleteProblem as jest.Mock).mockImplementation((id: string) => { (state.problems as Map<string, any>).delete(id); });
+        (state.clearProblems as jest.Mock).mockImplementation(() => { (state.problems as Map<string, any>).clear(); });
+        (state.addDeletedId as jest.Mock).mockImplementation((id: string) => { (state.deletedProblemIds as Set<string>).add(id); });
+        (state.removeDeletedId as jest.Mock).mockImplementation((id: string) => { (state.deletedProblemIds as Set<string>).delete(id); });
+        (state.clearDeletedIds as jest.Mock).mockImplementation(() => { (state.deletedProblemIds as Set<string>).clear(); });
+
+        state.clearProblems();
 
         // Setup mock DOM elements
         mockContainer = createMockElement({ id: 'problems-container' });
@@ -321,7 +341,7 @@ describe('sqlViewRenderers', () => {
                 nextReviewDate: '2023-01-15',
                 note: 'My note',
             };
-            state.problems.set('sql-175', existingProblem);
+            state.setProblem('sql-175', existingProblem);
 
             const problemDef = {
                 id: 'sql-175',

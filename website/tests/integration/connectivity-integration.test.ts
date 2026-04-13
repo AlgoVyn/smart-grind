@@ -20,8 +20,8 @@ describe('Integration: Connectivity Scenarios', () => {
         jest.clearAllMocks();
         
         // Reset state
-        state.problems.clear();
-        state.deletedProblemIds.clear();
+        state.clearProblems();
+        state.clearDeletedIds();
         state.user = { type: 'local', id: null, displayName: 'Local User' };
         state.sync = { isOnline: true, isSyncing: false, pendingCount: 0, lastSyncAt: null, hasConflicts: false, conflictMessage: null };
 
@@ -261,7 +261,7 @@ describe('Integration: Connectivity Scenarios', () => {
             state.setOnlineStatus(isOnline);
 
             // Add problem while offline
-            state.problems.set('offline-problem', {
+            state.setProblem('offline-problem', {
                 id: 'offline-problem',
                 name: 'Offline Problem',
                 url: 'https://example.com',
@@ -286,7 +286,7 @@ describe('Integration: Connectivity Scenarios', () => {
             let isOnline = await checker.checkConnectivity();
             state.setOnlineStatus(isOnline);
 
-            state.problems.set('sync-test', {
+            state.setProblem('sync-test', {
                 id: 'sync-test',
                 name: 'Sync Test',
                 url: 'https://example.com',

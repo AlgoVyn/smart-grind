@@ -184,8 +184,8 @@ export const handleLogout = async () => {
         localStorage.setItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local');
 
         // Clear current data and reload local data
-        state.problems.clear();
-        state.deletedProblemIds.clear();
+        state.clearProblems();
+        state.clearDeletedIds();
 
         // Reset filter to 'all'
         state.ui.currentFilter = 'all';

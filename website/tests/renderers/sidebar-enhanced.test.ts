@@ -39,7 +39,14 @@ jest.mock('@/state', () => ({
         elements: {
             topicList: null,
         },
-        problems: new Map(),
+        problems: new Map(),        setProblem: jest.fn(),
+        deleteProblem: jest.fn(),
+        clearProblems: jest.fn(),
+        addDeletedId: jest.fn(),
+        removeDeletedId: jest.fn(),
+        clearDeletedIds: jest.fn(),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
     },
 }));
 

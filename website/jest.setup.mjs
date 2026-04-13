@@ -208,14 +208,19 @@ global.document.execCommand = jest.fn(() => true);
 // Spy on document.execCommand
 jest.spyOn(global.document, 'execCommand');
 
-// Mock console methods to reduce noise in tests
+// Mock console methods to reduce noise in tests, but preserve error and warn
+// so that real errors during tests are visible.
+// Save originals before overriding to avoid infinite recursion.
+const _originalWarn = console.warn.bind(console);
+const _originalError = console.error.bind(console);
 global.console = {
   ...console,
-  // Mock all console methods to reduce noise
+  // Suppress noisy log/info output during tests
   log: jest.fn(),
-  warn: jest.fn(),
   info: jest.fn(),
-  error: jest.fn(),
+  // Preserve warn and error so test failures from runtime errors are visible
+  warn: jest.fn((...args) => { _originalWarn(...args); }),
+  error: jest.fn((...args) => { _originalError(...args); }),
 };
 
 // Mock crypto.subtle for JWT signing

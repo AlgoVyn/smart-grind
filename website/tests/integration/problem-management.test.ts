@@ -14,8 +14,8 @@ describe('Integration: Problem Management', () => {
         jest.clearAllMocks();
         
         // Reset state
-        state.problems.clear();
-        state.deletedProblemIds.clear();
+        state.clearProblems();
+        state.clearDeletedIds();
         state.user = { type: 'local', id: null, displayName: 'Local User' };
         state.ui = { activeTopicId: '', currentFilter: 'all', searchQuery: '', preferredAI: null, reviewDateFilter: null };
         
@@ -60,7 +60,7 @@ describe('Integration: Problem Management', () => {
     describe('Problem Status Updates', () => {
         test('should mark problem as solved and update review schedule', async () => {
             // Setup existing problem
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -80,7 +80,7 @@ describe('Integration: Problem Management', () => {
             problem.reviewInterval = 1;
             problem.nextReviewDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             
-            state.problems.set('1', problem);
+            state.setProblem('1', problem);
             await api.saveProblem(problem);
             
             // Verify state update
@@ -90,7 +90,7 @@ describe('Integration: Problem Management', () => {
         });
 
         test('should handle problem note updates', async () => {
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -107,7 +107,7 @@ describe('Integration: Problem Management', () => {
             // Add note
             const problem = state.problems.get('1')!;
             problem.note = 'Use hash map for O(n) solution';
-            state.problems.set('1', problem);
+            state.setProblem('1', problem);
             
             // Save with sync for signed-in user
             state.user.type = 'signed-in';
@@ -127,7 +127,7 @@ describe('Integration: Problem Management', () => {
         });
 
         test('should update review date and interval', async () => {
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -145,7 +145,7 @@ describe('Integration: Problem Management', () => {
             const problem = state.problems.get('1')!;
             problem.reviewInterval = 3;
             problem.nextReviewDate = '2024-01-18';
-            state.problems.set('1', problem);
+            state.setProblem('1', problem);
             
             await api.saveProblem(problem);
             
@@ -157,7 +157,7 @@ describe('Integration: Problem Management', () => {
     describe('Problem Deletion', () => {
         test('should delete problem and track in deletedIds', async () => {
             // Setup problem
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -181,7 +181,7 @@ describe('Integration: Problem Management', () => {
 
         test('should handle delete with sync for signed-in user', async () => {
             state.user.type = 'signed-in';
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -213,10 +213,10 @@ describe('Integration: Problem Management', () => {
 
         test('should restore deleted problem on reset', async () => {
             // Setup deleted problem
-            state.deletedProblemIds.add('2');
+            state.addDeletedId('2');
             
             // Add problem back to state (simulating reset)
-            state.problems.set('2', {
+            state.setProblem('2', {
                 id: '2',
                 name: 'Add Two Numbers',
                 url: 'https://leetcode.com/problems/add-two-numbers/',
@@ -229,7 +229,7 @@ describe('Integration: Problem Management', () => {
                 noteVisible: false,
                 note: ''
             });
-            state.deletedProblemIds.delete('2');
+            state.removeDeletedId('2');
             
             expect(state.problems.has('2')).toBe(true);
             expect(state.deletedProblemIds.has('2')).toBe(false);
@@ -253,7 +253,7 @@ describe('Integration: Problem Management', () => {
             };
             
             // Add to state
-            state.problems.set(customProblem.id, customProblem);
+            state.setProblem(customProblem.id, customProblem);
             
             // Merge into topicsData
             api.mergeStructure();
@@ -278,7 +278,7 @@ describe('Integration: Problem Management', () => {
                 note: ''
             };
             
-            state.problems.set(customProblem.id, customProblem);
+            state.setProblem(customProblem.id, customProblem);
             api.mergeStructure();
             
             // Verify new category was created
@@ -291,7 +291,7 @@ describe('Integration: Problem Management', () => {
     describe('Problem Filtering and Search', () => {
         beforeEach(() => {
             // Setup test problems
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -304,7 +304,7 @@ describe('Integration: Problem Management', () => {
                 noteVisible: false,
                 note: ''
             });
-            state.problems.set('2', {
+            state.setProblem('2', {
                 id: '2',
                 name: 'Add Two Numbers',
                 url: 'https://leetcode.com/problems/add-two-numbers/',
@@ -317,7 +317,7 @@ describe('Integration: Problem Management', () => {
                 noteVisible: false,
                 note: ''
             });
-            state.problems.set('3', {
+            state.setProblem('3', {
                 id: '3',
                 name: 'Maximum Subarray',
                 url: 'https://leetcode.com/problems/maximum-subarray/',
@@ -374,7 +374,7 @@ describe('Integration: Problem Management', () => {
         beforeEach(() => {
             // Setup multiple problems
             for (let i = 1; i <= 5; i++) {
-                state.problems.set(String(i), {
+                state.setProblem(String(i), {
                     id: String(i),
                     name: `Problem ${i}`,
                     url: `https://leetcode.com/problems/problem-${i}/`,
@@ -396,7 +396,7 @@ describe('Integration: Problem Management', () => {
                 problem.status = 'unsolved';
                 problem.reviewInterval = 0;
                 problem.nextReviewDate = null;
-                state.problems.set(id, problem);
+                state.setProblem(id, problem);
             }
             
             // Verify all reset
@@ -438,7 +438,7 @@ describe('Integration: Problem Management', () => {
 
     describe('Problem Statistics', () => {
         beforeEach(() => {
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Problem 1',
                 url: 'https://example.com/1',
@@ -451,7 +451,7 @@ describe('Integration: Problem Management', () => {
                 noteVisible: false,
                 note: ''
             });
-            state.problems.set('2', {
+            state.setProblem('2', {
                 id: '2',
                 name: 'Problem 2',
                 url: 'https://example.com/2',
@@ -464,7 +464,7 @@ describe('Integration: Problem Management', () => {
                 noteVisible: false,
                 note: ''
             });
-            state.problems.set('3', {
+            state.setProblem('3', {
                 id: '3',
                 name: 'Problem 3',
                 url: 'https://example.com/3',

@@ -369,8 +369,8 @@ describe('SmartGrind UI', () => {
                 value: '',
             },
         };
-        state.problems = new Map();
-        state.deletedProblemIds = new Set();
+        state.replaceProblems(new Map());
+        state.replaceDeletedIds(new Set());
 
         data.topicsData = [{ id: 'arrays', title: 'Arrays' }];
         data.LOCAL_STORAGE_KEYS = { USER_TYPE: 'userType' };
@@ -1740,7 +1740,7 @@ describe('SmartGrind UI', () => {
                 stopPropagation: jest.fn(),
             };
 
-            state.problems.set('test-problem', { id: 'test-problem' });
+            state.setProblem('test-problem', { id: 'test-problem' });
 
             state.elements.problemsContainer.dispatchEvent(event);
 

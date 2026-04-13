@@ -149,7 +149,7 @@ describe('SmartGrind Renderers', () => {
             sidebarSolvedText: { ...mockElement },
             sidebarSolvedBar: { style: { width: '' } },
         };
-        state.problems = new Map();
+        state.replaceProblems(new Map());
 
         data.topicsData = [
             {
@@ -332,7 +332,7 @@ describe('SmartGrind Renderers', () => {
             ];
 
             // Set problem as solved
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Problem 1',
                 url: 'url1',
@@ -542,7 +542,7 @@ describe('SmartGrind Renderers', () => {
 
     describe('renderTopicSection', () => {
         test('renders topic section with visible problems', () => {
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -563,7 +563,7 @@ describe('SmartGrind Renderers', () => {
         });
 
         test('returns null when no visible problems', () => {
-            state.problems.clear();
+            state.clearProblems();
 
             const result = htmlGenerators.renderTopicSection(data.topicsData[0], 'all', '2023-01-01', {
                 count: 0,
@@ -573,7 +573,7 @@ describe('SmartGrind Renderers', () => {
         });
 
         test('handles probDef as object with id property', () => {
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',

@@ -2,7 +2,7 @@
 // Delete operations
 
 import { Topic, Problem } from '../types';
-import { state, markDeletedIdsDirty } from '../state';
+import { state } from '../state';
 import { data } from '../data';
 import { ALGORITHMS_DATA, AlgorithmCategory } from '../data/algorithms-data';
 import { SQL_DATA, SQLCategory } from '../data/sql-data';
@@ -70,9 +70,8 @@ export const _removeCategoryAndProblems = (topic: Topic): void => {
         }
     });
     problemsToDelete.forEach((id) => {
-        state.problems.delete(id);
-        state.deletedProblemIds.add(id);
-        markDeletedIdsDirty();
+        state.deleteProblem(id);
+        state.addDeletedId(id);
     });
 };
 
@@ -93,9 +92,8 @@ export const _removeAlgorithmCategoryAndProblems = (
         }
     });
     problemsToDelete.forEach((id) => {
-        state.problems.delete(id);
-        state.deletedProblemIds.add(id);
-        markDeletedIdsDirty();
+        state.deleteProblem(id);
+        state.addDeletedId(id);
     });
 };
 
@@ -113,9 +111,8 @@ export const _removeSQLCategoryAndProblems = (categoryId: string, categoryTitle:
         }
     });
     problemsToDelete.forEach((id) => {
-        state.problems.delete(id);
-        state.deletedProblemIds.add(id);
-        markDeletedIdsDirty();
+        state.deleteProblem(id);
+        state.addDeletedId(id);
     });
 };
 
@@ -147,8 +144,8 @@ export const _restoreOriginalState = (originalState: {
     // Clear and repopulate to maintain reference (don't reassign data.topicsData)
     data.topicsData.length = 0;
     data.topicsData.push(...originalState.topicsData);
-    state.problems = originalState.problems;
-    state.deletedProblemIds = originalState.deletedProblemIds;
+    state.replaceProblems(originalState.problems);
+    state.replaceDeletedIds(originalState.deletedProblemIds);
     state.ui.activeTopicId = originalState.activeTopicId;
 };
 

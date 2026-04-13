@@ -11,8 +11,8 @@ describe('Integration: Import/Export Functionality', () => {
         jest.clearAllMocks();
         
         // Reset state
-        state.problems.clear();
-        state.deletedProblemIds.clear();
+        state.clearProblems();
+        state.clearDeletedIds();
         state.user = { type: 'local', id: null, displayName: 'Local User' };
         state.ui = { activeTopicId: '', currentFilter: 'all', searchQuery: '', preferredAI: null, reviewDateFilter: null };
         
@@ -38,7 +38,7 @@ describe('Integration: Import/Export Functionality', () => {
     describe('Export Progress', () => {
         test('should export progress data with correct structure', () => {
             // Setup test problems
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -51,7 +51,7 @@ describe('Integration: Import/Export Functionality', () => {
                 noteVisible: false,
                 note: 'Use hash map'
             });
-            state.problems.set('2', {
+            state.setProblem('2', {
                 id: '2',
                 name: 'Add Two Numbers',
                 url: 'https://leetcode.com/problems/add-two-numbers/',
@@ -64,7 +64,7 @@ describe('Integration: Import/Export Functionality', () => {
                 noteVisible: false,
                 note: ''
             });
-            state.deletedProblemIds.add('3');
+            state.addDeletedId('3');
             
             // Create export data
             const exportData = {
@@ -143,9 +143,9 @@ describe('Integration: Import/Export Functionality', () => {
             
             // Import data
             Object.entries(importData.problems).forEach(([id, problem]) => {
-                state.problems.set(id, problem as any);
+                state.setProblem(id, problem as any);
             });
-            importData.deletedIds.forEach(id => state.deletedProblemIds.add(id));
+            importData.deletedIds.forEach(id => state.addDeletedId(id));
             
             // Verify import
             expect(state.problems.get('1')).toBeDefined();
@@ -157,7 +157,7 @@ describe('Integration: Import/Export Functionality', () => {
 
         test('should merge import with existing data', () => {
             // Setup existing data
-            state.problems.set('existing', {
+            state.setProblem('existing', {
                 id: 'existing',
                 name: 'Existing Problem',
                 url: 'https://example.com',
@@ -192,7 +192,7 @@ describe('Integration: Import/Export Functionality', () => {
             // Merge
             Object.entries(importData.problems).forEach(([id, problem]) => {
                 if (!state.problems.has(id)) {
-                    state.problems.set(id, problem as any);
+                    state.setProblem(id, problem as any);
                 }
             });
             
@@ -204,7 +204,7 @@ describe('Integration: Import/Export Functionality', () => {
 
         test('should handle import with newer data', () => {
             // Setup existing problem
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Problem',
                 url: 'https://example.com',
@@ -237,7 +237,7 @@ describe('Integration: Import/Export Functionality', () => {
             };
             
             // Update with imported data
-            state.problems.set('1', importData.problems['1'] as any);
+            state.setProblem('1', importData.problems['1'] as any);
             
             // Verify updated
             expect(state.problems.get('1')?.status).toBe('solved');
@@ -257,9 +257,9 @@ describe('Integration: Import/Export Functionality', () => {
                 const deletedIds = Array.isArray(invalidData.deletedIds) ? invalidData.deletedIds : [];
                 
                 Object.entries(problems).forEach(([id, problem]) => {
-                    state.problems.set(id, problem as any);
+                    state.setProblem(id, problem as any);
                 });
-                deletedIds.forEach(id => state.deletedProblemIds.add(id));
+                deletedIds.forEach(id => state.addDeletedId(id));
             }).not.toThrow();
         });
     });
@@ -296,8 +296,8 @@ describe('Integration: Import/Export Functionality', () => {
                 }
             ];
             
-            originalProblems.forEach(p => state.problems.set(p.id, p));
-            state.deletedProblemIds.add('3');
+            originalProblems.forEach(p => state.setProblem(p.id, p));
+            state.addDeletedId('3');
             
             // Export
             const exported = {
@@ -308,14 +308,14 @@ describe('Integration: Import/Export Functionality', () => {
             };
             
             // Clear state
-            state.problems.clear();
-            state.deletedProblemIds.clear();
+            state.clearProblems();
+            state.clearDeletedIds();
             
             // Import
             Object.entries(exported.problems).forEach(([id, problem]) => {
-                state.problems.set(id, problem as any);
+                state.setProblem(id, problem as any);
             });
-            exported.deletedIds.forEach(id => state.deletedProblemIds.add(id));
+            exported.deletedIds.forEach(id => state.addDeletedId(id));
             
             // Verify integrity
             expect(state.problems.get('1')?.name).toBe('Problem 1');
@@ -336,7 +336,7 @@ describe('Integration: Import/Export Functionality', () => {
         });
 
         test('should create valid JSON export', () => {
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Test',
                 url: 'https://example.com',
@@ -396,7 +396,7 @@ describe('Integration: Import/Export Functionality', () => {
                 ...incompleteProblem
             };
             
-            state.problems.set('1', problemWithDefaults as any);
+            state.setProblem('1', problemWithDefaults as any);
             
             expect(state.problems.get('1')).toBeDefined();
             expect(state.problems.get('1')?.status).toBe('unsolved');
@@ -425,7 +425,7 @@ describe('Integration: Import/Export Functionality', () => {
             
             // Import
             Object.entries(largeImport.problems).forEach(([id, problem]) => {
-                state.problems.set(id, problem as any);
+                state.setProblem(id, problem as any);
             });
             
             expect(state.problems.size).toBe(1000);
@@ -467,7 +467,7 @@ describe('Integration: Import/Export Functionality', () => {
                 };
             });
             
-            state.problems.set('1', migrated.problems['1'] as any);
+            state.setProblem('1', migrated.problems['1'] as any);
             
             expect(state.problems.get('1')).toBeDefined();
             expect(state.problems.get('1')?.url).toBeDefined();

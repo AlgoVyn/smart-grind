@@ -6,7 +6,14 @@
 // Mock dependencies before importing the module - use path alias for consistent resolution
 jest.mock('@/state', () => ({
     state: {
-        problems: new Map(),
+        problems: new Map(),        setProblem: jest.fn(),
+        deleteProblem: jest.fn(),
+        clearProblems: jest.fn(),
+        addDeletedId: jest.fn(),
+        removeDeletedId: jest.fn(),
+        clearDeletedIds: jest.fn(),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
     },
 }));
 

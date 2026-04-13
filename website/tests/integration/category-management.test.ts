@@ -170,8 +170,8 @@ describe('Integration: Category Management', () => {
         jest.clearAllMocks();
         
         // Reset state
-        state.problems.clear();
-        state.deletedProblemIds.clear();
+        state.clearProblems();
+        state.clearDeletedIds();
         state.user = { type: 'local', id: null, displayName: 'Local User' };
         state.ui = { activeTopicId: '', currentFilter: 'all', searchQuery: '', preferredAI: null, reviewDateFilter: null };
         state.sync = { isOnline: true, isSyncing: false, pendingCount: 0, lastSyncAt: null, hasConflicts: false, conflictMessage: null };
@@ -217,7 +217,7 @@ describe('Integration: Category Management', () => {
     describe('Category Deletion', () => {
         test('should delete category and all associated problems', async () => {
             // Setup problems in state
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -230,7 +230,7 @@ describe('Integration: Category Management', () => {
                 noteVisible: false,
                 note: 'Note 1'
             });
-            state.problems.set('2', {
+            state.setProblem('2', {
                 id: '2',
                 name: 'Add Two Numbers',
                 url: 'https://leetcode.com/problems/add-two-numbers/',
@@ -243,7 +243,7 @@ describe('Integration: Category Management', () => {
                 noteVisible: false,
                 note: ''
             });
-            state.problems.set('3', {
+            state.setProblem('3', {
                 id: '3',
                 name: 'Reverse Linked List',
                 url: 'https://leetcode.com/problems/reverse-linked-list/',
@@ -295,7 +295,7 @@ describe('Integration: Category Management', () => {
     describe('Category Reset', () => {
         test('should reset all problems in category to unsolved', async () => {
             // Setup solved problems
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -308,7 +308,7 @@ describe('Integration: Category Management', () => {
                 noteVisible: false,
                 note: 'Solved note'
             });
-            state.problems.set('2', {
+            state.setProblem('2', {
                 id: '2',
                 name: 'Add Two Numbers',
                 url: 'https://leetcode.com/problems/add-two-numbers/',
@@ -337,7 +337,7 @@ describe('Integration: Category Management', () => {
 
         test('should restore deleted problems when resetting category', async () => {
             // Add deleted problem ID
-            state.deletedProblemIds.add('1');
+            state.addDeletedId('1');
             
             // Reset category
             await api.resetCategory('arrays');
@@ -358,7 +358,7 @@ describe('Integration: Category Management', () => {
     describe('Category Statistics', () => {
         test('should calculate correct statistics for category', () => {
             // Setup problems
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -371,7 +371,7 @@ describe('Integration: Category Management', () => {
                 noteVisible: false,
                 note: ''
             });
-            state.problems.set('2', {
+            state.setProblem('2', {
                 id: '2',
                 name: 'Add Two Numbers',
                 url: 'https://leetcode.com/problems/add-two-numbers/',
@@ -415,7 +415,7 @@ describe('Integration: Category Management', () => {
 
         test('should filter problems by category', () => {
             // Setup problems in different categories
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -428,7 +428,7 @@ describe('Integration: Category Management', () => {
                 noteVisible: false,
                 note: ''
             });
-            state.problems.set('3', {
+            state.setProblem('3', {
                 id: '3',
                 name: 'Reverse Linked List',
                 url: 'https://leetcode.com/problems/reverse-linked-list/',
@@ -452,7 +452,7 @@ describe('Integration: Category Management', () => {
 
         test('should show all problems when no category selected', () => {
             // Setup problems
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -465,7 +465,7 @@ describe('Integration: Category Management', () => {
                 noteVisible: false,
                 note: ''
             });
-            state.problems.set('3', {
+            state.setProblem('3', {
                 id: '3',
                 name: 'Reverse Linked List',
                 url: 'https://leetcode.com/problems/reverse-linked-list/',
@@ -490,7 +490,7 @@ describe('Integration: Category Management', () => {
     describe('Category Persistence', () => {
         test('should persist category data across sessions', () => {
             // Setup category data
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -545,7 +545,7 @@ describe('Integration: Category Management', () => {
     describe('Custom Categories', () => {
         test('should handle custom problems in categories', () => {
             // Add custom problem
-            state.problems.set('custom-1', {
+            state.setProblem('custom-1', {
                 id: 'custom-1',
                 name: 'Custom Problem',
                 url: 'https://example.com/custom',
@@ -570,7 +570,7 @@ describe('Integration: Category Management', () => {
 
         test('should preserve custom category data during sync', async () => {
             // Add custom problem
-            state.problems.set('custom-1', {
+            state.setProblem('custom-1', {
                 id: 'custom-1',
                 name: 'Custom Problem',
                 url: 'https://example.com/custom',

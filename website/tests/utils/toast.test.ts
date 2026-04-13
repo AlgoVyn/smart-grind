@@ -15,6 +15,14 @@ jest.mock('../../src/state', () => ({
         elements: {
             toastContainer: null, // Will be set in tests
         },
+        setProblem: jest.fn(),
+        deleteProblem: jest.fn(),
+        clearProblems: jest.fn(),
+        addDeletedId: jest.fn(),
+        removeDeletedId: jest.fn(),
+        clearDeletedIds: jest.fn(),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
     },
 }));
 

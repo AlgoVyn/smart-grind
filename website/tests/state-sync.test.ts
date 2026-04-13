@@ -254,7 +254,7 @@ describe('State Sync Module', () => {
         });
 
         test('should maintain sync state independently of problems', () => {
-            state.problems = new Map([
+            state.replaceProblems(new Map([
                 [
                     '1',
                     {
@@ -269,7 +269,7 @@ describe('State Sync Module', () => {
                         note: '',
                     },
                 ],
-            ]);
+            ]));
             state.sync.isSyncing = true;
 
             expect(state.problems.has('1')).toBe(true);

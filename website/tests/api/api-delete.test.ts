@@ -34,6 +34,17 @@ jest.mock('../../src/state', () => ({
     state: {
         problems: new Map<string, Problem>(),
         deletedProblemIds: new Set<string>(),
+        setProblem: jest.fn((id: string, p: unknown) => { if (state.problems instanceof Map) state.problems.set(id, p as any); }),
+        deleteProblem: jest.fn((id: string) => { if (state.problems instanceof Map) state.problems.delete(id); return true; }),
+        clearProblems: jest.fn(() => { if (state.problems instanceof Map) state.problems.clear(); }),
+        addDeletedId: jest.fn((id: string) => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.add(id); }),
+        removeDeletedId: jest.fn((id: string) => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.delete(id); return true; }),
+        clearDeletedIds: jest.fn(() => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.clear(); }),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
+        setFlashCardProgress: jest.fn(),
+        saveToStorage: jest.fn(),
+        saveToStorageDebounced: jest.fn(),
         ui: {
             activeTopicId: '',
             activeAlgorithmCategoryId: null as string | null,
@@ -83,6 +94,15 @@ jest.mock('../../src/api/api-save', () => ({
 
 describe('API Delete Module', () => {
     beforeEach(() => {
+        // Make replaceProblems/replaceDeletedIds actually update the mock state
+        (state.replaceProblems as jest.Mock).mockImplementation((m: Map<string, any>) => {
+            state.problems.clear();
+            if (m) m.forEach((v: any, k: string) => { (state.problems as Map<string, any>).set(k, v); });
+        });
+        (state.replaceDeletedIds as jest.Mock).mockImplementation((s: Set<string>) => {
+            state.deletedProblemIds.clear();
+            if (s) s.forEach((id: string) => { (state.deletedProblemIds as Set<string>).add(id); });
+        });
         jest.clearAllMocks();
 
         // Reset state
@@ -173,11 +193,11 @@ describe('API Delete Module', () => {
                 nextReviewDate: null,
                 note: '',
             };
-            state.problems.set('prob-1', problem1);
-            state.problems.set('prob-2', problem2);
+            state.setProblem('prob-1', problem1);
+            state.setProblem('prob-2', problem2);
 
-            state.deletedProblemIds.add('deleted-1');
-            state.deletedProblemIds.add('deleted-2');
+            state.addDeletedId('deleted-1');
+            state.addDeletedId('deleted-2');
 
             state.ui.activeTopicId = 'arrays';
 
@@ -253,9 +273,9 @@ describe('API Delete Module', () => {
                 nextReviewDate: '2024-01-01',
                 note: '',
             };
-            state.problems.set('prob-1', problem1);
-            state.problems.set('prob-2', problem2);
-            state.problems.set('prob-3', otherProblem);
+            state.setProblem('prob-1', problem1);
+            state.setProblem('prob-2', problem2);
+            state.setProblem('prob-3', otherProblem);
 
             _removeCategoryAndProblems(topicToRemove);
 
@@ -327,10 +347,10 @@ describe('API Delete Module', () => {
                 note: '',
             };
 
-            state.problems.set('algo-1', algoProblem1);
-            state.problems.set('algo-2', algoProblem2);
-            state.problems.set('prob-3', otherPatternProblem);
-            state.problems.set('algo-3', otherTopicAlgo);
+            state.setProblem('algo-1', algoProblem1);
+            state.setProblem('algo-2', algoProblem2);
+            state.setProblem('prob-3', otherPatternProblem);
+            state.setProblem('algo-3', otherTopicAlgo);
 
             _removeAlgorithmCategoryAndProblems('sorting-algorithms', 'Sorting Algorithms');
 
@@ -364,7 +384,7 @@ describe('API Delete Module', () => {
                 note: '',
             };
 
-            state.problems.set('algo-1', algoProblem);
+            state.setProblem('algo-1', algoProblem);
 
             _removeAlgorithmCategoryAndProblems('sorting-algorithms', 'Sorting Algorithms');
 
@@ -423,10 +443,10 @@ describe('API Delete Module', () => {
                 note: '',
             };
 
-            state.problems.set('sql-175', sqlProblem1);
-            state.problems.set('sql-181', sqlProblem2);
-            state.problems.set('sql-200', otherTopicSql);
-            state.problems.set('prob-1', nonSqlProblem);
+            state.setProblem('sql-175', sqlProblem1);
+            state.setProblem('sql-181', sqlProblem2);
+            state.setProblem('sql-200', otherTopicSql);
+            state.setProblem('prob-1', nonSqlProblem);
 
             _removeSQLCategoryAndProblems('sql-basics', 'SQL Basics');
 
@@ -460,7 +480,7 @@ describe('API Delete Module', () => {
                 note: '',
             };
 
-            state.problems.set('sql-175', sqlProblem);
+            state.setProblem('sql-175', sqlProblem);
 
             _removeSQLCategoryAndProblems('sql-basics', 'SQL Basics');
 
@@ -516,6 +536,18 @@ describe('API Delete Module', () => {
                 topicsData: originalTopics,
                 problems: originalProblems,
                 deletedProblemIds: originalDeletedIds,
+
+        setProblem: jest.fn((id: string, p: unknown) => { if (state.problems instanceof Map) state.problems.set(id, p as any); }),
+        deleteProblem: jest.fn((id: string) => { if (state.problems instanceof Map) state.problems.delete(id); return true; }),
+        clearProblems: jest.fn(() => { if (state.problems instanceof Map) state.problems.clear(); }),
+        addDeletedId: jest.fn((id: string) => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.add(id); }),
+        removeDeletedId: jest.fn((id: string) => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.delete(id); return true; }),
+        clearDeletedIds: jest.fn(() => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.clear(); }),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
+        setFlashCardProgress: jest.fn(),
+        saveToStorage: jest.fn(),
+        saveToStorageDebounced: jest.fn(),
                 activeTopicId: 'arrays',
             };
 
@@ -546,11 +578,11 @@ describe('API Delete Module', () => {
             expect(data.topicsData).toEqual(originalTopics);
 
             // Verify problems are restored
-            expect(state.problems).toBe(originalProblems);
+            expect(state.problems).toEqual(originalProblems);
             expect(state.problems.get('prob-1')).toEqual(problem1);
 
             // Verify deletedProblemIds are restored
-            expect(state.deletedProblemIds).toBe(originalDeletedIds);
+            expect(state.deletedProblemIds).toEqual(originalDeletedIds);
             expect(state.deletedProblemIds.has('deleted-1')).toBe(true);
 
             // Verify activeTopicId is restored
@@ -624,7 +656,7 @@ describe('API Delete Module', () => {
                 nextReviewDate: '2024-01-01',
                 note: '',
             };
-            state.problems.set('prob-1', problem);
+            state.setProblem('prob-1', problem);
             state.ui.activeTopicId = 'arrays';
 
             (showConfirm as jest.Mock).mockResolvedValue(true);
@@ -717,7 +749,7 @@ describe('API Delete Module', () => {
                 nextReviewDate: '2024-01-01',
                 note: '',
             };
-            state.problems.set('algo-1', algoProblem);
+            state.setProblem('algo-1', algoProblem);
 
             (showConfirm as jest.Mock).mockResolvedValue(true);
             (saveData as jest.Mock).mockRejectedValue(new Error('Save failed'));
@@ -807,7 +839,7 @@ describe('API Delete Module', () => {
                 nextReviewDate: '2024-01-01',
                 note: '',
             };
-            state.problems.set('sql-175', sqlProblem);
+            state.setProblem('sql-175', sqlProblem);
             state.ui.activeTopicId = 'arrays'; // Set activeTopicId (stored in original state)
 
             (showConfirm as jest.Mock).mockResolvedValue(true);

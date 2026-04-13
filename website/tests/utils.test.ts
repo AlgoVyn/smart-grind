@@ -68,12 +68,12 @@ describe('SmartGrind Utils', () => {
                 scrollTo: mockContentScrollTo,
             } as unknown as HTMLElement,
         } as typeof state.elements;
-        state.problems = new Map();
+        state.replaceProblems(new Map());
         data.SPACED_REPETITION_INTERVALS = [1, 3, 7, 14, 30];
         data.topicsData = [];
 
         // Reset state
-        state.problems.clear();
+        state.clearProblems();
         state.ui = {} as typeof state.ui;
     });
 
@@ -205,7 +205,7 @@ describe('SmartGrind Utils', () => {
 
     describe('Problem filtering', () => {
         beforeEach(() => {
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Problem 1',
                 url: 'https://leetcode.com/1',
@@ -216,7 +216,7 @@ describe('SmartGrind Utils', () => {
                 nextReviewDate: '2023-01-01',
                 note: '',
             });
-            state.problems.set('2', {
+            state.setProblem('2', {
                 id: '2',
                 name: 'Problem 2',
                 url: 'https://leetcode.com/2',
@@ -244,7 +244,7 @@ describe('SmartGrind Utils', () => {
 
         test('getUniqueProblemsForTopic handles due dates correctly', () => {
             // Add a solved problem with future review date
-            state.problems.set('3', {
+            state.setProblem('3', {
                 id: '3',
                 name: 'Problem 3',
                 url: 'https://leetcode.com/3',
@@ -261,7 +261,7 @@ describe('SmartGrind Utils', () => {
             expect(result.solved).toBe(2);
             expect(result.due).toBe(1); // Only the one with past date is due
 
-            state.problems.delete('3');
+            state.deleteProblem('3');
         });
 
         test('shouldShowProblem filters correctly', () => {
@@ -362,8 +362,8 @@ describe('SmartGrind Utils', () => {
 
     describe('getAvailableReviewDates', () => {
         beforeEach(() => {
-            state.problems.clear();
-            state.problems.set('1', {
+            state.clearProblems();
+            state.setProblem('1', {
                 id: '1',
                 name: 'Problem 1',
                 url: 'https://leetcode.com/1',
@@ -374,7 +374,7 @@ describe('SmartGrind Utils', () => {
                 nextReviewDate: '2023-01-01',
                 note: '',
             });
-            state.problems.set('2', {
+            state.setProblem('2', {
                 id: '2',
                 name: 'Problem 2',
                 url: 'https://leetcode.com/2',
@@ -385,7 +385,7 @@ describe('SmartGrind Utils', () => {
                 nextReviewDate: '2023-01-15',
                 note: '',
             });
-            state.problems.set('3', {
+            state.setProblem('3', {
                 id: '3',
                 name: 'Problem 3',
                 url: 'https://leetcode.com/3',
@@ -396,7 +396,7 @@ describe('SmartGrind Utils', () => {
                 nextReviewDate: '2023-01-10',
                 note: '',
             });
-            state.problems.set('4', {
+            state.setProblem('4', {
                 id: '4',
                 name: 'Problem 4',
                 url: 'https://leetcode.com/4',
@@ -429,8 +429,8 @@ describe('SmartGrind Utils', () => {
         });
 
         test('returns empty array when no due problems', () => {
-            state.problems.clear();
-            state.problems.set('1', {
+            state.clearProblems();
+            state.setProblem('1', {
                 id: '1',
                 name: 'Problem 1',
                 url: 'https://leetcode.com/1',
@@ -454,8 +454,8 @@ describe('SmartGrind Utils', () => {
         });
 
         test('includes dates equal to today', () => {
-            state.problems.clear();
-            state.problems.set('1', {
+            state.clearProblems();
+            state.setProblem('1', {
                 id: '1',
                 name: 'Problem 1',
                 url: 'https://leetcode.com/1',

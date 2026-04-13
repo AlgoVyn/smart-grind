@@ -30,8 +30,8 @@ describe('End-to-End User Flows', () => {
         });
         
         // Reset state
-        state.problems.clear();
-        state.deletedProblemIds.clear();
+        state.clearProblems();
+        state.clearDeletedIds();
         state.user = {
             type: 'local',
             id: null,
@@ -78,18 +78,18 @@ describe('End-to-End User Flows', () => {
             };
             
             // 2. Add problem to state
-            state.problems.set(problem.id, problem);
+            state.setProblem(problem.id, problem);
             expect(state.problems.has('two-sum')).toBe(true);
             expect(state.problems.get('two-sum')?.status).toBe('unsolved');
             
             // 3. User marks problem as solved
             const updatedProblem = { ...problem, status: 'solved' as const };
-            state.problems.set('two-sum', updatedProblem);
+            state.setProblem('two-sum', updatedProblem);
             expect(state.problems.get('two-sum')?.status).toBe('solved');
             
             // 4. User adds notes
             const problemWithNote = { ...updatedProblem, note: 'Use hash map for O(n) solution' };
-            state.problems.set('two-sum', problemWithNote);
+            state.setProblem('two-sum', problemWithNote);
             expect(state.problems.get('two-sum')?.note).toBe('Use hash map for O(n) solution');
             
             // 5. Save to storage
@@ -139,7 +139,7 @@ describe('End-to-End User Flows', () => {
                 { id: 'p3', name: 'Problem 3', url: '', status: 'solved', topic: 'Trees', pattern: '', reviewInterval: 1, nextReviewDate: null, note: '' },
                 { id: 'p4', name: 'Problem 4', url: '', status: 'unsolved', topic: 'DP', pattern: '', reviewInterval: 1, nextReviewDate: null, note: '' },
             ];
-            problems.forEach(p => state.problems.set(p.id, p));
+            problems.forEach(p => state.setProblem(p.id, p));
         });
 
         it('should track solved vs unsolved problems', () => {
@@ -176,7 +176,7 @@ describe('End-to-End User Flows', () => {
                 { id: 'p3', name: 'Binary Search', url: '', status: 'solved', topic: 'Binary Search', pattern: 'Binary Search', reviewInterval: 1, nextReviewDate: null, note: '' },
                 { id: 'p4', name: 'Tree Traversal', url: '', status: 'unsolved', topic: 'Trees', pattern: 'DFS', reviewInterval: 1, nextReviewDate: null, note: '' },
             ];
-            problems.forEach(p => state.problems.set(p.id, p));
+            problems.forEach(p => state.setProblem(p.id, p));
         });
 
         it('should filter by status', () => {
@@ -228,7 +228,7 @@ describe('End-to-End User Flows', () => {
                 note: 'Test note',
             };
             
-            state.problems.set(problem.id, problem);
+            state.setProblem(problem.id, problem);
             state.saveToStorage();
             
             expect(setItemSpy).toHaveBeenCalled();
@@ -260,8 +260,8 @@ describe('End-to-End User Flows', () => {
         });
 
         it('should handle deleted problem IDs', () => {
-            state.deletedProblemIds.add('deleted-1');
-            state.deletedProblemIds.add('deleted-2');
+            state.addDeletedId('deleted-1');
+            state.addDeletedId('deleted-2');
             
             state.saveToStorage();
             
@@ -322,7 +322,7 @@ describe('End-to-End User Flows', () => {
     describe('Bulk Operations Flow', () => {
         beforeEach(() => {
             for (let i = 1; i <= 5; i++) {
-                state.problems.set(`bulk-${i}`, {
+                state.setProblem(`bulk-${i}`, {
                     id: `bulk-${i}`,
                     name: `Bulk Problem ${i}`,
                     url: '',
@@ -342,7 +342,7 @@ describe('End-to-End User Flows', () => {
             problemIds.forEach(id => {
                 const problem = state.problems.get(id);
                 if (problem) {
-                    state.problems.set(id, { ...problem, status: 'solved' });
+                    state.setProblem(id, { ...problem, status: 'solved' });
                 }
             });
             
@@ -356,8 +356,8 @@ describe('End-to-End User Flows', () => {
             const problemIds = ['bulk-1', 'bulk-2'];
             
             problemIds.forEach(id => {
-                state.problems.delete(id);
-                state.deletedProblemIds.add(id);
+                state.deleteProblem(id);
+                state.addDeletedId(id);
             });
             
             expect(state.problems.has('bulk-1')).toBe(false);
@@ -371,13 +371,13 @@ describe('End-to-End User Flows', () => {
             ['bulk-1', 'bulk-3'].forEach(id => {
                 const problem = state.problems.get(id);
                 if (problem) {
-                    state.problems.set(id, { ...problem, status: 'solved' });
+                    state.setProblem(id, { ...problem, status: 'solved' });
                 }
             });
             
             // Reset all
             state.problems.forEach((problem, id) => {
-                state.problems.set(id, { ...problem, status: 'unsolved' });
+                state.setProblem(id, { ...problem, status: 'unsolved' });
             });
             
             // All should be unsolved
@@ -421,7 +421,7 @@ describe('End-to-End User Flows', () => {
         it('should validate data before operations', () => {
             expect(state.hasValidData()).toBe(false);
             
-            state.problems.set('test', {
+            state.setProblem('test', {
                 id: 'test',
                 name: 'Test',
                 url: '',

@@ -26,8 +26,8 @@ describe('State Enhanced - Storage Management', () => {
         jest.useFakeTimers();
         
         // Reset state
-        state.problems.clear();
-        state.deletedProblemIds.clear();
+        state.clearProblems();
+        state.clearDeletedIds();
         state.flashCardProgress.clear();
         state.user = {
             type: 'local',
@@ -88,7 +88,7 @@ describe('State Enhanced - Storage Management', () => {
             
             // Add 150 deleted IDs (more than 100 threshold)
             for (let i = 0; i < 150; i++) {
-                state.deletedProblemIds.add(`problem-${i}`);
+                state.addDeletedId(`problem-${i}`);
             }
             
             const freed = state.freeStorageSpace();
@@ -103,7 +103,7 @@ describe('State Enhanced - Storage Management', () => {
             
             // Add only 50 deleted IDs (below 100 threshold)
             for (let i = 0; i < 50; i++) {
-                state.deletedProblemIds.add(`problem-${i}`);
+                state.addDeletedId(`problem-${i}`);
             }
             
             // Add 60 solved problems without notes
@@ -116,7 +116,7 @@ describe('State Enhanced - Storage Management', () => {
                     loading: false,
                     noteVisible: false,
                 };
-                state.problems.set(problem.id, problem);
+                state.setProblem(problem.id, problem);
             }
             
             const freed = state.freeStorageSpace();
@@ -137,7 +137,7 @@ describe('State Enhanced - Storage Management', () => {
                     loading: false,
                     noteVisible: false,
                 };
-                state.problems.set(problem.id, problem);
+                state.setProblem(problem.id, problem);
             }
             
             // Add 10 solved problems with notes (should not be removed)
@@ -150,7 +150,7 @@ describe('State Enhanced - Storage Management', () => {
                     loading: false,
                     noteVisible: false,
                 };
-                state.problems.set(problem.id, problem);
+                state.setProblem(problem.id, problem);
             }
             
             // Add 10 unsolved problems (should not be removed)
@@ -162,7 +162,7 @@ describe('State Enhanced - Storage Management', () => {
                     loading: false,
                     noteVisible: false,
                 };
-                state.problems.set(problem.id, problem);
+                state.setProblem(problem.id, problem);
             }
             
             const freed = state.freeStorageSpace();
@@ -177,7 +177,7 @@ describe('State Enhanced - Storage Management', () => {
             state.storage.autoCleanupEnabled = true;
             
             for (let i = 0; i < 150; i++) {
-                state.deletedProblemIds.add(`problem-${i}`);
+                state.addDeletedId(`problem-${i}`);
             }
             
             const eventListener = jest.fn();
@@ -197,7 +197,7 @@ describe('State Enhanced - Storage Management', () => {
             state.storage.autoCleanupEnabled = true;
             
             for (let i = 0; i < 150; i++) {
-                state.deletedProblemIds.add(`problem-${i}`);
+                state.addDeletedId(`problem-${i}`);
             }
             
             const saveSpy = jest.spyOn(state, 'saveToStorage');
@@ -211,7 +211,7 @@ describe('State Enhanced - Storage Management', () => {
             state.storage.autoCleanupEnabled = false;
             
             for (let i = 0; i < 150; i++) {
-                state.deletedProblemIds.add(`problem-${i}`);
+                state.addDeletedId(`problem-${i}`);
             }
             
             const freed = state.freeStorageSpace(true); // force=true
@@ -223,7 +223,7 @@ describe('State Enhanced - Storage Management', () => {
             state.storage.autoCleanupEnabled = true;
             
             for (let i = 0; i < 150; i++) {
-                state.deletedProblemIds.add(`problem-${i}`);
+                state.addDeletedId(`problem-${i}`);
             }
             
             state.freeStorageSpace();
@@ -263,7 +263,7 @@ describe('State Enhanced - Storage Management', () => {
                 noteVisible: false,
             };
             
-            state.problems.set('existing-problem', problem);
+            state.setProblem('existing-problem', problem);
             state.storage.lastCleanupDeleted = [
                 { id: 'existing-problem', problem: { ...problem }, timestamp: Date.now() },
             ];
@@ -406,14 +406,14 @@ describe('State Enhanced - Storage Management', () => {
 
     describe('hasValidData', () => {
         test('should return false when no data exists', () => {
-            state.problems.clear();
-            state.deletedProblemIds.clear();
+            state.clearProblems();
+            state.clearDeletedIds();
             
             expect(state.hasValidData()).toBe(false);
         });
 
         test('should return true when problems exist', () => {
-            state.problems.set('test-problem', {
+            state.setProblem('test-problem', {
                 id: 'test-problem',
                 status: 'unsolved',
                 loading: false,
@@ -424,8 +424,8 @@ describe('State Enhanced - Storage Management', () => {
         });
 
         test('should return true when deleted problem IDs exist', () => {
-            state.problems.clear();
-            state.deletedProblemIds.add('deleted-problem');
+            state.clearProblems();
+            state.addDeletedId('deleted-problem');
             
             expect(state.hasValidData()).toBe(true);
         });
@@ -433,7 +433,7 @@ describe('State Enhanced - Storage Management', () => {
 
     describe('getSolvedSQLCount', () => {
         test('should return 0 when no SQL problems are solved', () => {
-            state.problems.set('regular-problem', {
+            state.setProblem('regular-problem', {
                 id: 'regular-problem',
                 status: 'solved',
                 loading: false,
@@ -444,25 +444,25 @@ describe('State Enhanced - Storage Management', () => {
         });
 
         test('should count only solved SQL problems', () => {
-            state.problems.set('sql-1', {
+            state.setProblem('sql-1', {
                 id: 'sql-1',
                 status: 'solved',
                 loading: false,
                 noteVisible: false,
             });
-            state.problems.set('sql-2', {
+            state.setProblem('sql-2', {
                 id: 'sql-2',
                 status: 'solved',
                 loading: false,
                 noteVisible: false,
             });
-            state.problems.set('sql-3', {
+            state.setProblem('sql-3', {
                 id: 'sql-3',
                 status: 'unsolved',
                 loading: false,
                 noteVisible: false,
             });
-            state.problems.set('regular', {
+            state.setProblem('regular', {
                 id: 'regular',
                 status: 'solved',
                 loading: false,
@@ -473,7 +473,7 @@ describe('State Enhanced - Storage Management', () => {
         });
 
         test('should return 0 when problems map is empty', () => {
-            state.problems.clear();
+            state.clearProblems();
             expect(state.getSolvedSQLCount()).toBe(0);
         });
     });

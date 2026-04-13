@@ -11,7 +11,14 @@ const mockCaptureException = jest.fn();
 jest.mock('../src/state', () => ({
     state: {
         init: jest.fn(),
-        user: { type: 'signed-out' },
+        user: { type: 'signed-out' },        setProblem: jest.fn(),
+        deleteProblem: jest.fn(),
+        clearProblems: jest.fn(),
+        addDeletedId: jest.fn(),
+        removeDeletedId: jest.fn(),
+        clearDeletedIds: jest.fn(),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
         setOnlineStatus: jest.fn(),
         setSyncStatus: jest.fn(),
     },

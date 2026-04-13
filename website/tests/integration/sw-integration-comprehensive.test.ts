@@ -62,8 +62,8 @@ describe('Service Worker Integration Tests', () => {
     jest.clearAllMocks();
     
     // Reset state
-    state.problems.clear();
-    state.deletedProblemIds.clear();
+    state.clearProblems();
+    state.clearDeletedIds();
     state.user = { type: 'local', id: null, displayName: 'Local User' };
     state.sync = {
       isOnline: true,
@@ -911,7 +911,7 @@ describe('Service Worker Integration Tests', () => {
       state.setOnlineStatus(true);
 
       // Add problem
-      state.problems.set('transition-test', {
+      state.setProblem('transition-test', {
         id: 'transition-test',
         name: 'Transition Test',
         url: 'https://example.com',
@@ -931,7 +931,7 @@ describe('Service Worker Integration Tests', () => {
       // Update while offline
       const problem = state.problems.get('transition-test')!;
       problem.note = 'Updated offline';
-      state.problems.set('transition-test', problem);
+      state.setProblem('transition-test', problem);
 
       // Come back online
       state.setOnlineStatus(true);
@@ -949,7 +949,7 @@ describe('Service Worker Integration Tests', () => {
         expect(state.sync.isOnline).toBe(false);
         
         // Add data
-        state.problems.set(`cycle-${i}`, {
+        state.setProblem(`cycle-${i}`, {
           id: `cycle-${i}`,
           name: `Cycle ${i}`,
           url: 'https://example.com',

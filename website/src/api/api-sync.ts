@@ -2,7 +2,7 @@
 // Syncing and merging operations
 
 import { Topic, Pattern, ProblemDef, Problem } from '../types';
-import { state, markProblemDirty } from '../state';
+import { state } from '../state';
 import { data } from '../data';
 import { ui } from '../ui/ui';
 import { _performSave } from './api-save';
@@ -58,8 +58,7 @@ export const syncPlan = async (): Promise<void> => {
                     note: '',
                     loading: false,
                 };
-                state.problems.set(id, newProb);
-                markProblemDirty(id);
+                state.setProblem(id, newProb);
                 saveObj[id] = newProb;
                 changed = true;
             }
@@ -71,8 +70,7 @@ export const syncPlan = async (): Promise<void> => {
                     p.pattern = def.pattern;
                     p.url = def.url;
                     p.name = def.name;
-                    state.problems.set(id, p);
-                    markProblemDirty(id);
+                    state.setProblem(id, p);
                     saveObj[id] = p;
                     changed = true;
                 }

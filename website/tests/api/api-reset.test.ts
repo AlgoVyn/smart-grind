@@ -38,6 +38,18 @@ jest.mock('../../src/state', () => ({
             activeAlgorithmCategoryId: null as string | null,
             currentFilter: 'all',
         },
+        // Wrapper methods for type-safe mutations
+        setProblem: jest.fn((id: string, p: unknown) => { if (state.problems instanceof Map) state.problems.set(id, p as any); }),
+        deleteProblem: jest.fn((id: string) => { if (state.problems instanceof Map) state.problems.delete(id); return true; }),
+        clearProblems: jest.fn(() => { if (state.problems instanceof Map) state.problems.clear(); }),
+        addDeletedId: jest.fn((id: string) => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.add(id); }),
+        removeDeletedId: jest.fn((id: string) => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.delete(id); return true; }),
+        clearDeletedIds: jest.fn(() => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.clear(); }),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
+        setFlashCardProgress: jest.fn(),
+        saveToStorage: jest.fn(),
+        saveToStorageDebounced: jest.fn(),
     },
 }));
 
@@ -124,8 +136,8 @@ describe('API Reset Module', () => {
         jest.clearAllMocks();
         // Reset saveData to resolve successfully by default
         (saveData as jest.Mock).mockResolvedValue(undefined);
-        state.problems.clear();
-        state.deletedProblemIds.clear();
+        state.clearProblems();
+        state.clearDeletedIds();
         state.ui.activeTopicId = '';
         state.ui.activeAlgorithmCategoryId = null;
         state.ui.currentFilter = 'all';
@@ -192,7 +204,7 @@ describe('API Reset Module', () => {
     describe('_resetProblems', () => {
         test('resets status, reviewInterval, nextReviewDate', () => {
             const problemIds = new Set(['prob-1', 'prob-2']);
-            state.problems.set('prob-1', {
+            state.setProblem('prob-1', {
                 id: 'prob-1',
                 name: 'Problem 1',
                 url: 'https://example.com/1',
@@ -203,7 +215,7 @@ describe('API Reset Module', () => {
                 nextReviewDate: '2025-01-01',
                 note: 'Some note',
             });
-            state.problems.set('prob-2', {
+            state.setProblem('prob-2', {
                 id: 'prob-2',
                 name: 'Problem 2',
                 url: 'https://example.com/2',
@@ -231,7 +243,7 @@ describe('API Reset Module', () => {
 
         test('ignores problem IDs not in state', () => {
             const problemIds = new Set(['non-existent']);
-            state.problems.set('existing', {
+            state.setProblem('existing', {
                 id: 'existing',
                 name: 'Existing',
                 url: 'https://example.com/existing',
@@ -271,7 +283,7 @@ describe('API Reset Module', () => {
         });
 
         test('restores only non-custom problems with valid def', () => {
-            state.deletedProblemIds.add('prob-1');
+            state.addDeletedId('prob-1');
             const problemIds = new Set(['prob-1']);
 
             _restoreDeletedProblems(problemIds);
@@ -286,7 +298,7 @@ describe('API Reset Module', () => {
         });
 
         test('skips custom problems (starting with custom-)', () => {
-            state.deletedProblemIds.add('custom-abc123');
+            state.addDeletedId('custom-abc123');
             const problemIds = new Set(['custom-abc123']);
 
             _restoreDeletedProblems(problemIds);
@@ -305,7 +317,7 @@ describe('API Reset Module', () => {
         });
 
         test('handles string problem definitions correctly', () => {
-            state.deletedProblemIds.add('prob-2');
+            state.addDeletedId('prob-2');
             const problemIds = new Set(['prob-2']);
 
             _restoreDeletedProblems(problemIds);
@@ -338,9 +350,9 @@ describe('API Reset Module', () => {
         });
 
         test('restores all except custom', () => {
-            state.deletedProblemIds.add('prob-1');
-            state.deletedProblemIds.add('prob-2');
-            state.deletedProblemIds.add('custom-abc123');
+            state.addDeletedId('prob-1');
+            state.addDeletedId('prob-2');
+            state.addDeletedId('custom-abc123');
 
             _restoreAllDeletedProblems();
 
@@ -424,7 +436,7 @@ describe('API Reset Module', () => {
                     ],
                 },
             ];
-            state.problems.set('prob-1', {
+            state.setProblem('prob-1', {
                 id: 'prob-1',
                 name: 'Problem 1',
                 url: 'https://leetcode.com/problems/1/',
@@ -435,7 +447,7 @@ describe('API Reset Module', () => {
                 nextReviewDate: '2025-01-01',
                 note: '',
             });
-            state.deletedProblemIds.add('custom-123'); // Custom, should stay deleted
+            state.addDeletedId('custom-123'); // Custom, should stay deleted
 
             await resetAll();
 
@@ -462,7 +474,7 @@ describe('API Reset Module', () => {
             (ui.showConfirm as jest.Mock).mockResolvedValue(true);
             (saveData as jest.Mock).mockRejectedValue(new Error('Save failed'));
 
-            state.problems.set('prob-1', {
+            state.setProblem('prob-1', {
                 id: 'prob-1',
                 name: 'Problem 1',
                 url: 'https://example.com/1',
@@ -473,7 +485,7 @@ describe('API Reset Module', () => {
                 nextReviewDate: '2025-01-01',
                 note: 'Original note',
             });
-            state.deletedProblemIds.add('deleted-prob');
+            state.addDeletedId('deleted-prob');
 
             const originalProblems = new Map(state.problems);
             const originalDeletedIds = new Set(state.deletedProblemIds);
@@ -500,7 +512,7 @@ describe('API Reset Module', () => {
             };
             data.topicsData = [topic];
 
-            state.problems.set('two-sum', {
+            state.setProblem('two-sum', {
                 id: 'two-sum',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -562,7 +574,7 @@ describe('API Reset Module', () => {
                 },
             ];
 
-            state.problems.set('prob-1', {
+            state.setProblem('prob-1', {
                 id: 'prob-1',
                 name: 'Problem 1',
                 url: 'https://example.com/1',
@@ -606,7 +618,7 @@ describe('API Reset Module', () => {
 
     describe('_restoreDeletedAlgorithms', () => {
         test('restores algorithms with proper data', () => {
-            state.deletedProblemIds.add('algo-two-pointers');
+            state.addDeletedId('algo-two-pointers');
             const algorithmIds = new Set(['algo-two-pointers']);
 
             _restoreDeletedAlgorithms(algorithmIds);
@@ -631,7 +643,7 @@ describe('API Reset Module', () => {
         });
 
         test('ignores non-existent algorithm IDs', () => {
-            state.deletedProblemIds.add('non-existent-algo');
+            state.addDeletedId('non-existent-algo');
             const algorithmIds = new Set(['non-existent-algo']);
 
             _restoreDeletedAlgorithms(algorithmIds);
@@ -644,7 +656,7 @@ describe('API Reset Module', () => {
         test('success flow', async () => {
             (ui.showConfirm as jest.Mock).mockResolvedValue(true);
 
-            state.problems.set('algo-two-pointers', {
+            state.setProblem('algo-two-pointers', {
                 id: 'algo-two-pointers',
                 name: 'Two Pointers',
                 url: 'https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/',
@@ -668,7 +680,7 @@ describe('API Reset Module', () => {
         test('reset all algorithms', async () => {
             (ui.showConfirm as jest.Mock).mockResolvedValue(true);
 
-            state.problems.set('algo-two-pointers', {
+            state.setProblem('algo-two-pointers', {
                 id: 'algo-two-pointers',
                 name: 'Two Pointers',
                 url: 'https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/',
@@ -679,7 +691,7 @@ describe('API Reset Module', () => {
                 nextReviewDate: '2025-01-01',
                 note: '',
             });
-            state.problems.set('algo-fast-slow-pointers', {
+            state.setProblem('algo-fast-slow-pointers', {
                 id: 'algo-fast-slow-pointers',
                 name: 'Fast & Slow Pointers',
                 url: 'https://leetcode.com/problems/linked-list-cycle/',
@@ -713,7 +725,7 @@ describe('API Reset Module', () => {
             (ui.showConfirm as jest.Mock).mockResolvedValue(true);
             (saveData as jest.Mock).mockRejectedValue(new Error('Save failed'));
 
-            state.problems.set('algo-two-pointers', {
+            state.setProblem('algo-two-pointers', {
                 id: 'algo-two-pointers',
                 name: 'Two Pointers',
                 url: 'https://example.com',
@@ -724,7 +736,7 @@ describe('API Reset Module', () => {
                 nextReviewDate: '2025-01-01',
                 note: 'Note',
             });
-            state.deletedProblemIds.add('algo-deleted');
+            state.addDeletedId('algo-deleted');
 
             await expect(resetAlgorithmCategory('arrays-strings')).rejects.toThrow('Save failed');
 
@@ -736,7 +748,7 @@ describe('API Reset Module', () => {
         test('success flow', async () => {
             (ui.showConfirm as jest.Mock).mockResolvedValue(true);
 
-            state.problems.set('sql-175', {
+            state.setProblem('sql-175', {
                 id: 'sql-175',
                 name: 'Combine Two Tables',
                 url: 'https://leetcode.com/problems/combine-two-tables/',
@@ -784,7 +796,7 @@ describe('API Reset Module', () => {
             (ui.showConfirm as jest.Mock).mockResolvedValue(true);
             (saveData as jest.Mock).mockRejectedValue(new Error('Save error'));
 
-            state.problems.set('sql-175', {
+            state.setProblem('sql-175', {
                 id: 'sql-175',
                 name: 'Combine Two Tables',
                 url: 'https://example.com',
@@ -795,7 +807,7 @@ describe('API Reset Module', () => {
                 nextReviewDate: '2025-01-01',
                 note: 'Note',
             });
-            state.deletedProblemIds.add('sql-deleted');
+            state.addDeletedId('sql-deleted');
 
             await expect(resetSQLCategory('sql-basics')).rejects.toThrow('Save error');
 

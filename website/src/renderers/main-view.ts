@@ -2,7 +2,7 @@
 // Main view rendering functions
 
 import { Topic, Problem } from '../types';
-import { state, markProblemDirty } from '../state';
+import { state } from '../state';
 import { data } from '../data';
 import { getToday, shouldShowProblem } from '../utils';
 // renderers import removed to break cycle
@@ -264,8 +264,7 @@ export const mainViewRenderers = {
 
             const problem = mainViewRenderers._algorithmToProblem(algoDef, catId);
             if (!state.problems.has(algoDef.id)) {
-                state.problems.set(algoDef.id, problem);
-                markProblemDirty(algoDef.id);
+                state.setProblem(algoDef.id, problem);
             }
 
             // Apply the same filtering logic as pattern problems
@@ -283,8 +282,7 @@ export const mainViewRenderers = {
                     if (state.deletedProblemIds.has(algoDef.id)) return;
                     const problem = mainViewRenderers._algorithmToProblem(algoDef, category.id);
                     if (!state.problems.has(algoDef.id)) {
-                        state.problems.set(algoDef.id, problem);
-                        markProblemDirty(algoDef.id);
+                        state.setProblem(algoDef.id, problem);
                     }
                     if (shouldShowProblem(problem, state.ui.currentFilter, searchQuery, today)) {
                         matchingAlgorithms.push(algoDef);

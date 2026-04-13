@@ -10,8 +10,8 @@ import { UserData } from '../../src/types';
 describe('API Load - Decompression and Error Handling', () => {
     beforeEach(() => {
         // Reset state
-        state.problems = new Map();
-        state.deletedProblemIds = new Set();
+        state.replaceProblems(new Map());
+        state.replaceDeletedIds(new Set());
         jest.clearAllMocks();
     });
 
@@ -116,7 +116,7 @@ describe('API Load - Decompression and Error Handling', () => {
 
         it('should preserve local state during offline fallback when problems exist', () => {
             // Set up existing state
-            state.problems.set('existing-problem', {
+            state.setProblem('existing-problem', {
                 id: 'existing-problem',
                 name: 'Existing Problem',
                 url: 'https://example.com/existing',
@@ -160,7 +160,7 @@ describe('API Load - Decompression and Error Handling', () => {
 
         it('should process new data during offline fallback when no existing problems', () => {
             // Ensure no existing problems
-            state.problems = new Map();
+            state.replaceProblems(new Map());
 
             const newUserData: UserData = {
                 problems: {

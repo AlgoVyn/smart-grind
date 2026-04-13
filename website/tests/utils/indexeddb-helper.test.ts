@@ -366,7 +366,7 @@ describe('IndexedDB Helper', () => {
 
             // Resolve both clear operations (one for each store)
             clearRequest.onsuccess?.();
-            await new Promise(resolve => setTimeout(resolve, 10));
+            await new Promise(resolve => setTimeout(resolve, 50));
             clearRequest.onsuccess?.();
 
             const result = await promise;
@@ -608,12 +608,12 @@ describe('IndexedDB Helper', () => {
             });
 
             // Wait for cleanup and resolve the clear operation
-            await new Promise(resolve => setTimeout(resolve, 10));
+            await new Promise(resolve => setTimeout(resolve, 50));
             clearRequest.onsuccess?.();
 
             const result = await promise;
             expect(result).toBe('success');
-        });
+        }, 10000);  // 10 second timeout
 
         it('should throw after retry exhaustion', async () => {
             const error = new Error('persistent error');

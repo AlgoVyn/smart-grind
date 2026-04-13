@@ -31,7 +31,6 @@ export default {
   moduleFileExtensions: ['js', 'ts', 'mjs'],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  // Suppress console output in tests
-  silent: true,
-  verbose: false,
+  // Show test output for debugging
+  verbose: true,
 };

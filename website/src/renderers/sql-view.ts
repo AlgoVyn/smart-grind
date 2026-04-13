@@ -2,7 +2,7 @@
 // Renders SQL problems view using the same design as patterns
 
 import { SQLCategory, SQLTopic, SQLPattern, getSQLCategoryById } from '../data/sql-data';
-import { state, markProblemDirty } from '../state';
+import { state } from '../state';
 import { Problem, ProblemDef } from '../types';
 import { updateUrlParameter, scrollToTop } from '../utils';
 import { sidebarRenderers } from './sidebar';
@@ -30,8 +30,7 @@ export const sqlViewRenderers = {
                 nextReviewDate: null,
                 note: '',
             };
-            state.problems.set(problemDef.id, problem);
-            markProblemDirty(problemDef.id);
+            state.setProblem(problemDef.id, problem);
         }
         return problem;
     },

@@ -30,8 +30,8 @@ describe('Integration: Data Synchronization', () => {
         jest.clearAllMocks();
         
         // Reset state
-        state.problems.clear();
-        state.deletedProblemIds.clear();
+        state.clearProblems();
+        state.clearDeletedIds();
         state.user = { type: 'local', id: null, displayName: 'Local User' };
         state.ui = { activeTopicId: '', currentFilter: 'all', searchQuery: '', preferredAI: null, reviewDateFilter: null };
         state.sync = { isOnline: true, isSyncing: false, pendingCount: 0, lastSyncAt: null, hasConflicts: false, conflictMessage: null };
@@ -51,7 +51,7 @@ describe('Integration: Data Synchronization', () => {
     describe('Local Data Persistence', () => {
         test('should save and load problem data across sessions', () => {
             // Add problems to state
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Test Problem',
                 url: 'https://leetcode.com/problems/test',
@@ -64,7 +64,7 @@ describe('Integration: Data Synchronization', () => {
                 noteVisible: false,
                 note: 'Test note'
             });
-            state.deletedProblemIds.add('2');
+            state.addDeletedId('2');
             state.user.displayName = 'Test User';
             
             // Save to storage
@@ -74,8 +74,8 @@ describe('Integration: Data Synchronization', () => {
             expect(localStorage.setItem).toHaveBeenCalled();
             
             // Reset state
-            state.problems.clear();
-            state.deletedProblemIds.clear();
+            state.clearProblems();
+            state.clearDeletedIds();
             state.user.displayName = 'Local User';
             
             // Mock localStorage to return the saved data
@@ -116,7 +116,7 @@ describe('Integration: Data Synchronization', () => {
             // Set up as signed-in user
             state.user.type = 'signed-in';
             state.user.id = 'user123';
-            state.problems.set('signed-in-problem', {
+            state.setProblem('signed-in-problem', {
                 id: 'signed-in-problem',
                 name: 'Signed In Problem',
                 url: 'https://example.com',
@@ -139,10 +139,10 @@ describe('Integration: Data Synchronization', () => {
             // Reset and switch to local user
             state.user.type = 'local';
             state.user.id = null;
-            state.problems.clear();
+            state.clearProblems();
             
             // Add local problem
-            state.problems.set('local-problem', {
+            state.setProblem('local-problem', {
                 id: 'local-problem',
                 name: 'Local Problem',
                 url: 'https://example.com',
@@ -210,7 +210,7 @@ describe('Integration: Data Synchronization', () => {
             });
             
             // Load data - manually set problems since loadData calls syncPlan which may override
-            state.problems.set('server-1', {
+            state.setProblem('server-1', {
                 id: 'server-1',
                 name: 'Server Problem',
                 url: 'https://example.com',
@@ -223,7 +223,7 @@ describe('Integration: Data Synchronization', () => {
                 noteVisible: false,
                 note: 'Server note'
             });
-            state.deletedProblemIds.add('deleted-1');
+            state.addDeletedId('deleted-1');
             
             // Verify state was updated
             expect(state.problems.get('server-1')).toBeDefined();
@@ -237,7 +237,7 @@ describe('Integration: Data Synchronization', () => {
             state.user.id = 'user123';
             
             // Add problem
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Test Problem',
                 url: 'https://example.com',
@@ -376,7 +376,7 @@ describe('Integration: Data Synchronization', () => {
             ];
             
             // Add custom problem
-            state.problems.set('custom-1', {
+            state.setProblem('custom-1', {
                 id: 'custom-1',
                 name: 'Custom Problem',
                 url: 'https://example.com/custom',
@@ -418,7 +418,7 @@ describe('Integration: Data Synchronization', () => {
             ];
             
             // Add existing problem
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 url: 'https://leetcode.com/problems/two-sum/',
@@ -462,7 +462,7 @@ describe('Integration: Data Synchronization', () => {
             ];
             
             // Add existing problem with old info
-            state.problems.set('1', {
+            state.setProblem('1', {
                 id: '1',
                 name: 'Old Name',
                 url: 'https://old.com',

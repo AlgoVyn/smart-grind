@@ -28,8 +28,8 @@ describe('SmartGrind State', () => {
         jest.clearAllMocks();
 
         // Reset state properties
-        state.problems.clear();
-        state.deletedProblemIds.clear();
+        state.clearProblems();
+        state.clearDeletedIds();
         state.user = {
             type: 'local',
             id: null,
@@ -100,8 +100,8 @@ describe('SmartGrind State', () => {
 
     describe('saveToStorage', () => {
         test('saves problems, deletedIds, displayName, and userType to localStorage', () => {
-            state.problems.set('1', { id: '1', name: 'Test Problem' });
-            state.deletedProblemIds.add('2');
+            state.setProblem('1', { id: '1', name: 'Test Problem' });
+            state.addDeletedId('2');
             state.user.displayName = 'Test User';
             state.user.type = 'signed-in';
 

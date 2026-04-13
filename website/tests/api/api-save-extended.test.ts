@@ -14,6 +14,17 @@ jest.mock('../../src/state', () => ({
         user: { type: 'local', id: null, displayName: 'Test User' },
         problems: new Map(),
         deletedProblemIds: new Set(),
+        setProblem: jest.fn((id: string, p: unknown) => { if (state.problems instanceof Map) state.problems.set(id, p as any); }),
+        deleteProblem: jest.fn((id: string) => { if (state.problems instanceof Map) state.problems.delete(id); return true; }),
+        clearProblems: jest.fn(() => { if (state.problems instanceof Map) state.problems.clear(); }),
+        addDeletedId: jest.fn((id: string) => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.add(id); }),
+        removeDeletedId: jest.fn((id: string) => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.delete(id); return true; }),
+        clearDeletedIds: jest.fn(() => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.clear(); }),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
+        setFlashCardProgress: jest.fn(),
+        saveToStorage: jest.fn(),
+        saveToStorageDebounced: jest.fn(),
         ui: { activeTopicId: '', activeAlgorithmCategoryId: null },
         saveToStorage: jest.fn(),
         saveToStorageDebounced: jest.fn(),
@@ -62,6 +73,15 @@ describe('API Save Module - Extended', () => {
     let originalNavigator: typeof navigator;
 
     beforeEach(() => {
+        // Make replaceProblems/replaceDeletedIds actually update the mock state
+        (state.replaceProblems as jest.Mock).mockImplementation((m: Map<string, any>) => {
+            state.problems.clear();
+            if (m) m.forEach((v: any, k: string) => { (state.problems as Map<string, any>).set(k, v); });
+        });
+        (state.replaceDeletedIds as jest.Mock).mockImplementation((s: Set<string>) => {
+            state.deletedProblemIds.clear();
+            if (s) s.forEach((id: string) => { (state.deletedProblemIds as Set<string>).add(id); });
+        });
         jest.clearAllMocks();
         jest.useFakeTimers();
         _resetDebounceState();
@@ -69,8 +89,8 @@ describe('API Save Module - Extended', () => {
         mockFetch = jest.fn();
         global.fetch = mockFetch;
         
-        state.problems = new Map();
-        state.deletedProblemIds = new Set();
+        state.replaceProblems(new Map());
+        state.replaceDeletedIds(new Set());
         state.user = { type: 'local', id: null, displayName: 'Test User' };
         state.ui.activeAlgorithmCategoryId = null;
         state.saveToStorage = jest.fn();
@@ -280,7 +300,7 @@ describe('API Save Module - Extended', () => {
                 onViewUpdate: onViewUpdateMock
             });
 
-            state.problems.set('algo-1', { id: 'algo-1', status: 'solved' });
+            state.setProblem('algo-1', { id: 'algo-1', status: 'solved' });
             state.ui.activeAlgorithmCategoryId = 'sorting';
 
             await saveDeletedId('algo-1');
@@ -297,7 +317,7 @@ describe('API Save Module - Extended', () => {
                 onViewUpdate: onViewUpdateMock
             });
             
-            state.problems.set('problem-1', { id: 'problem-1', status: 'solved' });
+            state.setProblem('problem-1', { id: 'problem-1', status: 'solved' });
             state.ui.activeAlgorithmCategoryId = null;
 
             await saveDeletedId('problem-1');
@@ -327,7 +347,7 @@ describe('API Save Module - Extended', () => {
 
     describe('prepareDataForSave', () => {
         it('should strip loading and noteVisible from problems', async () => {
-            state.problems.set('problem-1', {
+            state.setProblem('problem-1', {
                 id: 'problem-1',
                 status: 'solved',
                 loading: true,
@@ -341,8 +361,8 @@ describe('API Save Module - Extended', () => {
         });
 
         it('should include deletedIds in saved data', async () => {
-            state.deletedProblemIds.add('deleted-1');
-            state.deletedProblemIds.add('deleted-2');
+            state.addDeletedId('deleted-1');
+            state.addDeletedId('deleted-2');
 
             await _saveLocally();
 

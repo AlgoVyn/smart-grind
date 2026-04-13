@@ -177,8 +177,8 @@ describe('SmartGrind API Module', () => {
         renderersMod.renderers.updateFilterBtns.mockClear();
         mockSaveToStorage = jest.fn();
         state.user = { type: 'local' };
-        state.problems = new Map([['1', { id: '1', name: 'Test Problem', status: 'unsolved' }]]);
-        state.deletedProblemIds = new Set(['2']);
+        state.replaceProblems(new Map([['1', { id: '1', name: 'Test Problem', status: 'unsolved' }]]));
+        state.replaceDeletedIds(new Set(['2']));
         state.saveToStorage = mockSaveToStorage;
         state.saveToStorageDebounced = mockSaveToStorage;
         state.elements = {
@@ -241,8 +241,8 @@ describe('SmartGrind API Module', () => {
     describe('mergeStructure', () => {
         test('should add custom problems to topicsData', () => {
             data.topicsData = [];
-            state.problems.clear();
-            state.problems.set('custom-1', {
+            state.clearProblems();
+            state.setProblem('custom-1', {
                 id: 'custom-1',
                 name: 'Custom Problem',
                 url: 'https://example.com',
@@ -282,8 +282,8 @@ describe('SmartGrind API Module', () => {
                     ],
                 },
             ];
-            state.problems.clear();
-            state.problems.set('existing-1', {
+            state.clearProblems();
+            state.setProblem('existing-1', {
                 id: 'existing-1',
                 name: 'Existing Problem',
                 url: 'https://example.com',
@@ -475,7 +475,7 @@ describe('SmartGrind API Module', () => {
 
     describe('saveDeletedId', () => {
         test('should delete problem and call _performSave', async () => {
-            state.problems.set('1', { id: '1' });
+            state.setProblem('1', { id: '1' });
             const _performSaveSpy = jest
                 .spyOn(apiSave, '_performSave')
                 .mockResolvedValue(undefined);
@@ -489,7 +489,7 @@ describe('SmartGrind API Module', () => {
         });
 
         test('should restore problem on save failure', async () => {
-            state.problems.set('1', { id: '1', name: 'Test' });
+            state.setProblem('1', { id: '1', name: 'Test' });
             const _performSaveSpy = jest
                 .spyOn(apiSave, '_performSave')
                 .mockRejectedValue(new Error('Save failed'));
@@ -605,7 +605,7 @@ describe('SmartGrind API Module', () => {
                     ],
                 },
             ];
-            state.problems.set('existing-1', {
+            state.setProblem('existing-1', {
                 id: 'existing-1',
                 name: 'Old Name',
                 url: 'https://old.com',
@@ -634,7 +634,7 @@ describe('SmartGrind API Module', () => {
     describe('deleteCategory', () => {
         test('should delete category and associated problems', async () => {
             data.topicsData = [{ id: 'test-topic', title: 'Test Topic', patterns: [] }];
-            state.problems.set('1', { id: '1', topic: 'Test Topic' });
+            state.setProblem('1', { id: '1', topic: 'Test Topic' });
             state.ui.activeTopicId = 'test-topic';
             const confirmSpy = jest.spyOn(uiModals, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
@@ -669,7 +669,7 @@ describe('SmartGrind API Module', () => {
 
         test('should restore state on save failure', async () => {
             data.topicsData = [{ id: 'test-topic', title: 'Test Topic', patterns: [] }];
-            state.problems.set('1', { id: '1', topic: 'Test Topic' });
+            state.setProblem('1', { id: '1', topic: 'Test Topic' });
             state.ui.activeTopicId = 'test-topic';
             const confirmSpy = jest.spyOn(uiModals, 'showConfirm');
             confirmSpy.mockResolvedValue(true);
@@ -731,8 +731,8 @@ describe('SmartGrind API Module', () => {
             ];
 
             // Set up existing problems
-            state.problems.clear();
-            state.problems.set('1', {
+            state.clearProblems();
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 status: 'solved',
@@ -744,7 +744,7 @@ describe('SmartGrind API Module', () => {
                 noteVisible: false,
                 note: '',
             });
-            state.problems.set('3', {
+            state.setProblem('3', {
                 id: '3',
                 name: 'Valid Palindrome',
                 status: 'solved',
@@ -758,8 +758,8 @@ describe('SmartGrind API Module', () => {
             });
 
             // Set up deleted problems
-            state.deletedProblemIds.clear();
-            state.deletedProblemIds.add('2'); // Add Two Numbers is deleted
+            state.clearDeletedIds();
+            state.addDeletedId('2'); // Add Two Numbers is deleted
         });
 
         test('should reset all problems to unsolved and restore deleted problems when confirmed', async () => {
@@ -872,8 +872,8 @@ describe('SmartGrind API Module', () => {
             ];
 
             // Set up existing problems
-            state.problems.clear();
-            state.problems.set('1', {
+            state.clearProblems();
+            state.setProblem('1', {
                 id: '1',
                 name: 'Two Sum',
                 status: 'solved',
@@ -887,8 +887,8 @@ describe('SmartGrind API Module', () => {
             });
 
             // Set up deleted problems
-            state.deletedProblemIds.clear();
-            state.deletedProblemIds.add('2'); // Add Two Numbers is deleted
+            state.clearDeletedIds();
+            state.addDeletedId('2'); // Add Two Numbers is deleted
         });
 
         test('should reset category problems and restore deleted problems when confirmed', async () => {

@@ -21,6 +21,17 @@ jest.mock('../../src/state', () => ({
     state: {
         problems: new Map(),
         deletedProblemIds: new Set(),
+        setProblem: jest.fn((id: string, p: unknown) => { if (state.problems instanceof Map) state.problems.set(id, p as any); }),
+        deleteProblem: jest.fn((id: string) => { if (state.problems instanceof Map) state.problems.delete(id); return true; }),
+        clearProblems: jest.fn(() => { if (state.problems instanceof Map) state.problems.clear(); }),
+        addDeletedId: jest.fn((id: string) => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.add(id); }),
+        removeDeletedId: jest.fn((id: string) => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.delete(id); return true; }),
+        clearDeletedIds: jest.fn(() => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.clear(); }),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
+        setFlashCardProgress: jest.fn(),
+        saveToStorage: jest.fn(),
+        saveToStorageDebounced: jest.fn(),
         ui: {
             activeTopicId: '',
             activeAlgorithmCategoryId: null,
@@ -77,10 +88,19 @@ describe('API Load Module', () => {
     let mockDecompressionStream: jest.Mock;
 
     beforeEach(() => {
+        // Make replaceProblems/replaceDeletedIds actually update the mock state
+        (state.replaceProblems as jest.Mock).mockImplementation((m: Map<string, any>) => {
+            state.problems.clear();
+            if (m) m.forEach((v: any, k: string) => { (state.problems as Map<string, any>).set(k, v); });
+        });
+        (state.replaceDeletedIds as jest.Mock).mockImplementation((s: Set<string>) => {
+            state.deletedProblemIds.clear();
+            if (s) s.forEach((id: string) => { (state.deletedProblemIds as Set<string>).add(id); });
+        });
         jest.clearAllMocks();
         // Reset state
-        state.problems = new Map();
-        state.deletedProblemIds = new Set();
+        state.replaceProblems(new Map());
+        state.replaceDeletedIds(new Set());
         state.ui = {
             activeTopicId: '',
             activeAlgorithmCategoryId: null,
@@ -380,7 +400,7 @@ describe('API Load Module', () => {
 
         test('with offline fallback and existing data - preserves local state', () => {
             // Set up existing state
-            state.problems.set('existing-problem', {
+            state.setProblem('existing-problem', {
                 id: 'existing-problem',
                 name: 'Existing',
                 url: 'https://example.com',
@@ -411,7 +431,7 @@ describe('API Load Module', () => {
 
         test('with offline fallback but no local data - processes normally', () => {
             // Ensure no existing data
-            state.problems = new Map();
+            state.replaceProblems(new Map());
 
             const userData = {
                 problems: {
@@ -561,7 +581,7 @@ describe('API Load Module', () => {
 
         test('with network error and existing data - preserves state and continues', async () => {
             // Set up existing data
-            state.problems.set('existing-problem', {
+            state.setProblem('existing-problem', {
                 id: 'existing-problem',
                 name: 'Existing',
                 url: 'https://example.com',
@@ -594,8 +614,8 @@ describe('API Load Module', () => {
 
         test('with network error and no data - shows alert and shows modal', async () => {
             // Ensure no existing data
-            state.problems = new Map();
-            state.deletedProblemIds = new Set();
+            state.replaceProblems(new Map());
+            state.replaceDeletedIds(new Set());
 
             // Mock offline
             Object.defineProperty(navigator, 'onLine', {
@@ -616,8 +636,8 @@ describe('API Load Module', () => {
 
         test('with auth error - shows signin modal', async () => {
             // Ensure no existing data
-            state.problems = new Map();
-            state.deletedProblemIds = new Set();
+            state.replaceProblems(new Map());
+            state.replaceDeletedIds(new Set());
 
             // Mock auth error
             mockFetch.mockRejectedValue(new Error('Authentication failed'));
@@ -632,8 +652,8 @@ describe('API Load Module', () => {
 
         test('with other error - shows setup modal', async () => {
             // Ensure no existing data
-            state.problems = new Map();
-            state.deletedProblemIds = new Set();
+            state.replaceProblems(new Map());
+            state.replaceDeletedIds(new Set());
 
             // Mock generic error
             mockFetch.mockRejectedValue(new Error('Some other error'));
@@ -663,7 +683,7 @@ describe('API Load Module', () => {
 
         test('hides loading screen even when error occurs', async () => {
             // Ensure no existing data to trigger error path
-            state.problems = new Map();
+            state.replaceProblems(new Map());
 
             mockFetch.mockRejectedValue(new Error('Network error'));
 
@@ -683,7 +703,7 @@ describe('API Load Module', () => {
             (getErrorMessage as jest.Mock).mockReturnValue('Server error occurred');
 
             // Ensure no existing data
-            state.problems = new Map();
+            state.replaceProblems(new Map());
 
             await loadData();
 
@@ -700,7 +720,7 @@ describe('API Load Module', () => {
             (getErrorMessage as jest.Mock).mockReturnValue('User data not found. Starting with fresh data.');
 
             // Ensure no existing data
-            state.problems = new Map();
+            state.replaceProblems(new Map());
 
             await loadData();
 

@@ -42,7 +42,14 @@ jest.mock('../../src/state', () => ({
     markFlashCardsDirty: jest.fn(),
     state: {
         flashCardProgress: mockFlashCardProgress,
-        saveToStorageDebounced: mockSaveToStorageDebounced,
+        saveToStorageDebounced: mockSaveToStorageDebounced,        setProblem: jest.fn(),
+        deleteProblem: jest.fn(),
+        clearProblems: jest.fn(),
+        addDeletedId: jest.fn(),
+        removeDeletedId: jest.fn(),
+        clearDeletedIds: jest.fn(),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
         user: {
             type: 'local',
             id: null,

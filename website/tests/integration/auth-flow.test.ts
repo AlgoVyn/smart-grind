@@ -63,8 +63,8 @@ describe('Integration: Authentication Flow', () => {
         jest.clearAllMocks();
         
         // Reset state to clean slate
-        state.problems.clear();
-        state.deletedProblemIds.clear();
+        state.clearProblems();
+        state.clearDeletedIds();
         state.user = { type: 'local', id: null, displayName: 'Local User' };
         state.ui = { activeTopicId: '', currentFilter: 'all', searchQuery: '', preferredAI: null, reviewDateFilter: null };
         state.sync = { isOnline: true, isSyncing: false, pendingCount: 0, lastSyncAt: null, hasConflicts: false, conflictMessage: null };
@@ -142,7 +142,7 @@ describe('Integration: Authentication Flow', () => {
             const originalLength = dataModule.topicsData.length;
             
             // Add custom problem with all required fields
-            state.problems.set('custom-1', {
+            state.setProblem('custom-1', {
                 id: 'custom-1',
                 name: 'Custom Problem',
                 url: 'https://example.com/custom',
@@ -306,7 +306,7 @@ describe('Integration: Authentication Flow', () => {
         test('should transition from local to signed-in user', async () => {
             // Start as local user with data
             state.user.type = 'local';
-            state.problems.set('local-problem', {
+            state.setProblem('local-problem', {
                 id: 'local-problem',
                 name: 'Local Problem',
                 url: 'https://example.com',

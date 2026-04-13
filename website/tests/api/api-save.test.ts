@@ -22,6 +22,17 @@ jest.mock('../../src/state', () => ({
         user: { type: 'local', id: null, displayName: 'Test User' },
         problems: new Map(),
         deletedProblemIds: new Set(),
+        setProblem: jest.fn((id: string, p: unknown) => { if (state.problems instanceof Map) state.problems.set(id, p as any); }),
+        deleteProblem: jest.fn((id: string) => { if (state.problems instanceof Map) state.problems.delete(id); return true; }),
+        clearProblems: jest.fn(() => { if (state.problems instanceof Map) state.problems.clear(); }),
+        addDeletedId: jest.fn((id: string) => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.add(id); }),
+        removeDeletedId: jest.fn((id: string) => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.delete(id); return true; }),
+        clearDeletedIds: jest.fn(() => { if (state.deletedProblemIds instanceof Set) state.deletedProblemIds.clear(); }),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
+        setFlashCardProgress: jest.fn(),
+        saveToStorage: jest.fn(),
+        saveToStorageDebounced: jest.fn(),
         ui: { activeTopicId: '', activeAlgorithmCategoryId: null },
         saveToStorage: jest.fn(),
         saveToStorageDebounced: jest.fn(),
@@ -49,11 +60,20 @@ jest.mock('../../src/api/api-utils', () => ({
 
 describe('API Save Module', () => {
     beforeEach(() => {
+        // Make replaceProblems/replaceDeletedIds actually update the mock state
+        (state.replaceProblems as jest.Mock).mockImplementation((m: Map<string, any>) => {
+            state.problems.clear();
+            if (m) m.forEach((v: any, k: string) => { (state.problems as Map<string, any>).set(k, v); });
+        });
+        (state.replaceDeletedIds as jest.Mock).mockImplementation((s: Set<string>) => {
+            state.deletedProblemIds.clear();
+            if (s) s.forEach((id: string) => { (state.deletedProblemIds as Set<string>).add(id); });
+        });
         jest.clearAllMocks();
         _resetDebounceState();
         jest.useFakeTimers();
-        state.problems = new Map();
-        state.deletedProblemIds = new Set();
+        state.replaceProblems(new Map());
+        state.replaceDeletedIds(new Set());
         state.user = { type: 'local', id: null, displayName: 'Test User' };
         // Reset saveToStorage and saveToStorageDebounced to fresh mocks
         state.saveToStorage = jest.fn();
@@ -77,7 +97,7 @@ describe('API Save Module', () => {
 
     describe('saveDeletedId', () => {
         test('should delete problem from state', async () => {
-            state.problems.set('problem-1', { id: 'problem-1', status: 'solved' });
+            state.setProblem('problem-1', { id: 'problem-1', status: 'solved' });
             
             await saveDeletedId('problem-1');
             
@@ -88,7 +108,7 @@ describe('API Save Module', () => {
 
         test('should restore problem on save failure', async () => {
             const problemData = { id: 'problem-1', status: 'solved' as const };
-            state.problems.set('problem-1', problemData);
+            state.setProblem('problem-1', problemData);
             state.saveToStorageDebounced = jest.fn().mockImplementation(() => {
                 throw new Error('Save failed');
             });
@@ -176,7 +196,7 @@ describe('API Save Module', () => {
             state.user.type = 'signed-in';
             
             // Set up pending data
-            state.problems.set('test', { id: 'test', status: 'solved' });
+            state.setProblem('test', { id: 'test', status: 'solved' });
             
             // First flush
             await flushPendingSync();

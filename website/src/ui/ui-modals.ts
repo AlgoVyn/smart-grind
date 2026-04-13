@@ -1,7 +1,7 @@
 // --- MODAL MANAGEMENT ---
 
 import DOMPurify from 'dompurify';
-import { state, markProblemDirty } from '../state';
+import { state } from '../state';
 import { data } from '../data';
 import { sanitizeInput, sanitizeUrl, showToast, escapeHtml } from '../utils';
 import { api } from '../api';
@@ -366,8 +366,7 @@ export const saveNewProblem = async () => {
         return;
     }
 
-    state.problems.set(newProb.id, newProb);
-    markProblemDirty(newProb.id);
+    state.setProblem(newProb.id, newProb);
     api.mergeStructure();
     await api.saveProblem(newProb);
     await _updateUIAfterAddingProblem();

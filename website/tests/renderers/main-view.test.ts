@@ -52,6 +52,18 @@ jest.mock('../../src/state', () => ({
         elements: {} as Record<string, HTMLElement>,
         problems: new Map(),
         deletedProblemIds: new Set<string>(),
+
+        setProblem: jest.fn(),
+        deleteProblem: jest.fn(),
+        clearProblems: jest.fn(),
+        addDeletedId: jest.fn(),
+        removeDeletedId: jest.fn(),
+        clearDeletedIds: jest.fn(),
+        replaceProblems: jest.fn(),
+        replaceDeletedIds: jest.fn(),
+        setFlashCardProgress: jest.fn(),
+        saveToStorage: jest.fn(),
+        saveToStorageDebounced: jest.fn(),
         user: {
             type: 'local' as const,
             id: null,
@@ -233,6 +245,16 @@ describe('mainViewRenderers', () => {
     let originalCreateElement: typeof document.createElement;
 
     beforeEach(() => {
+
+        // Make state methods actually update the mock Map/Set
+        (state.setProblem as jest.Mock).mockImplementation((id: string, p: any) => { (state.problems as Map<string, any>).set(id, p); });
+        (state.deleteProblem as jest.Mock).mockImplementation((id: string) => { (state.problems as Map<string, any>).delete(id); });
+        (state.clearProblems as jest.Mock).mockImplementation(() => { (state.problems as Map<string, any>).clear(); });
+        (state.addDeletedId as jest.Mock).mockImplementation((id: string) => { (state.deletedProblemIds as Set<string>).add(id); });
+        (state.removeDeletedId as jest.Mock).mockImplementation((id: string) => { (state.deletedProblemIds as Set<string>).delete(id); });
+        (state.clearDeletedIds as jest.Mock).mockImplementation(() => { (state.deletedProblemIds as Set<string>).clear(); });
+        (state.replaceProblems as jest.Mock).mockImplementation((m: Map<string, any>) => { (state.problems as Map<string, any>).clear(); if (m) m.forEach((v: any, k: string) => { (state.problems as Map<string, any>).set(k, v); }); });
+        (state.replaceDeletedIds as jest.Mock).mockImplementation((s: Set<string>) => { (state.deletedProblemIds as Set<string>).clear(); if (s) s.forEach((id: string) => { (state.deletedProblemIds as Set<string>).add(id); }); });
         // Store original
         originalCreateElement = document.createElement.bind(document);
 
@@ -249,8 +271,8 @@ describe('mainViewRenderers', () => {
             preferredAI: null,
             reviewDateFilter: null,
         };
-        state.problems = new Map();
-        state.deletedProblemIds = new Set();
+        state.replaceProblems(new Map());
+        state.replaceDeletedIds(new Set());
 
         // Reset DOM
         document.body.innerHTML = '';
@@ -653,7 +675,7 @@ describe('mainViewRenderers', () => {
                 loading: false,
                 noteVisible: false,
             };
-            state.problems.set('algo-two-pointers', existingProblem);
+            state.setProblem('algo-two-pointers', existingProblem);
 
             const algoDef: AlgorithmDef = {
                 id: 'algo-two-pointers',
@@ -714,8 +736,8 @@ describe('mainViewRenderers', () => {
     describe('renderAlgorithmsView', () => {
         beforeEach(() => {
             // Reset problems map
-            state.problems = new Map();
-            state.deletedProblemIds = new Set();
+            state.replaceProblems(new Map());
+            state.replaceDeletedIds(new Set());
         });
 
         test('16. renderAlgorithmsView sets activeAlgorithmCategoryId', async () => {
@@ -736,7 +758,7 @@ describe('mainViewRenderers', () => {
         });
 
         test('18. renderAlgorithmsView filters deleted problems', async () => {
-            state.deletedProblemIds.add('algo-two-pointers');
+            state.addDeletedId('algo-two-pointers');
 
             const container = state.elements['problemsContainer'] as HTMLElement;
 
@@ -884,7 +906,7 @@ describe('mainViewRenderers', () => {
                 loading: false,
                 noteVisible: true,
             };
-            state.problems.set('algo-reverse-linked-list', existingProblem);
+            state.setProblem('algo-reverse-linked-list', existingProblem);
 
             await mainViewRenderers.renderAlgorithmsView('linked-list');
 
