@@ -4,7 +4,7 @@
 import { Topic } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-import { getToday, getUniqueProblemsForTopic } from '../utils';
+import { getToday, getUniqueProblemsForTopic, showEl, hideEl } from '../utils';
 import { renderers } from '../renderers';
 import { AlgorithmCategory } from '../data/algorithms-data';
 import { SQLCategory } from '../data/sql-data';
@@ -66,12 +66,12 @@ export const statsRenderers = {
         const reviewCountBanner = state.elements['reviewCountBanner'] as HTMLElement | null;
 
         if (due > 0) {
-            reviewBanner?.classList.remove('hidden');
+            showEl(reviewBanner);
             if (reviewCountBanner) {
                 reviewCountBanner.innerText = due.toString();
             }
         } else {
-            reviewBanner?.classList.add('hidden');
+            hideEl(reviewBanner);
         }
     },
 

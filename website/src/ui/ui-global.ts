@@ -3,7 +3,7 @@
 import { Topic } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-import { getUrlParameter, scrollToTop } from '../utils';
+import { getUrlParameter, scrollToTop, hideEl } from '../utils';
 import { renderers } from '../renderers';
 import { app } from '../app';
 
@@ -14,9 +14,7 @@ const _keyboardShortcuts = {
     },
     Escape: () => {
         if (!state.elements['setupModal']?.classList.contains('hidden')) return; // Don't close setup modal
-        if (!state.elements['addProblemModal']?.classList.contains('hidden')) {
-            state.elements['addProblemModal']?.classList.add('hidden');
-        }
+        hideEl(state.elements['addProblemModal']);
     },
     e: () => app.exportProgress(),
     E: () => app.exportProgress(),

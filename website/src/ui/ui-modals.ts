@@ -3,7 +3,7 @@
 import DOMPurify from 'dompurify';
 import { state } from '../state';
 import { data } from '../data';
-import { sanitizeInput, sanitizeUrl, showToast, escapeHtml } from '../utils';
+import { sanitizeInput, sanitizeUrl, showToast, escapeHtml, hideEl } from '../utils';
 import { api } from '../api';
 import { errorTracker } from '../utils/error-tracker';
 
@@ -339,7 +339,7 @@ export const _createNewProblem = (
 });
 
 export const _updateUIAfterAddingProblem = async () => {
-    (state.elements['addProblemModal'] as HTMLElement | null)?.classList.add('hidden');
+    hideEl(state.elements['addProblemModal']);
     const { renderers } = await import('../renderers');
     renderers.renderSidebar();
     renderers.renderMainView(state.ui.activeTopicId);

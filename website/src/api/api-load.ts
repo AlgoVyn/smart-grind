@@ -9,6 +9,7 @@ import { validateResponseOrigin, getErrorMessage } from './api-utils';
 import { showAlert } from '../ui/ui-modals';
 import { renderers } from '../renderers';
 import { initScrollButton } from '../ui/ui-scroll';
+import { hideEl, showEl } from '../utils';
 
 /**
  * Gets response text with automatic decompression handling.
@@ -120,8 +121,8 @@ export const _initializeUI = async (): Promise<void> => {
     renderers.updateStats();
     initScrollButton();
 
-    (state.elements['setupModal'] as HTMLElement | null)?.classList.add('hidden');
-    (state.elements['appWrapper'] as HTMLElement | null)?.classList.remove('hidden');
+    hideEl(state.elements['setupModal']);
+    showEl(state.elements['appWrapper']);
 };
 
 /**
@@ -131,7 +132,7 @@ export const _initializeUI = async (): Promise<void> => {
 export const loadData = async (): Promise<void> => {
     const loadingScreen = state.elements['loadingScreen'] as HTMLElement | null;
     const appWrapper = state.elements['appWrapper'] as HTMLElement | null;
-    loadingScreen?.classList.remove('hidden');
+    showEl(loadingScreen);
 
     try {
         const response = await fetch(`${data.API_BASE}/user`, { credentials: 'include' });
@@ -171,9 +172,9 @@ export const loadData = async (): Promise<void> => {
         const modalEl = state.elements[
             isAuthError ? 'signinModal' : 'setupModal'
         ] as HTMLElement | null;
-        modalEl?.classList.remove('hidden');
-        appWrapper?.classList.add('hidden');
+        showEl(modalEl);
+        hideEl(appWrapper);
     } finally {
-        (state.elements['loadingScreen'] as HTMLElement | null)?.classList.add('hidden');
+        hideEl(state.elements['loadingScreen']);
     }
 };

@@ -37,6 +37,8 @@ jest.mock('../src/utils', () => ({
     getToday: jest.fn().mockReturnValue('2024-01-01'),
     debounce: jest.fn((fn) => fn),
     throttle: jest.fn((fn) => fn),
+    showEl: jest.fn(),
+    hideEl: jest.fn(),
 }));
 
 describe('SQL Solutions', () => {

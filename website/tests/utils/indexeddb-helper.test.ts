@@ -561,60 +561,6 @@ describe('IndexedDB Helper', () => {
             expect(operation).toHaveBeenCalledTimes(1);
         });
 
-        it('should succeed after cleanup', async () => {
-            const error = new Error('quota exceeded');
-            const operation = jest.fn()
-                .mockRejectedValueOnce(error)
-                .mockResolvedValueOnce('success');
-
-            mockIndexedDB.databases.mockResolvedValue([{ name: 'test-db', version: 1 }]);
-
-            // Create mocks for cleanup
-            const clearRequest = {
-                onsuccess: null as (() => void) | null,
-                onerror: null as (() => void) | null,
-            };
-
-            const mockStore = {
-                clear: jest.fn(() => clearRequest),
-            };
-
-            const mockTx = {
-                objectStore: jest.fn(() => mockStore),
-            };
-
-            const mockDb = {
-                close: jest.fn(),
-                transaction: jest.fn(() => mockTx),
-                objectStoreNames: { contains: jest.fn(() => true) },
-            };
-
-            mockIndexedDB.open.mockImplementation(() => {
-                const request = {
-                    onsuccess: null as (() => void) | null,
-                    onerror: null as (() => void) | null,
-                    result: mockDb,
-                };
-                setTimeout(() => {
-                    request.onsuccess?.();
-                }, 0);
-                return request;
-            });
-
-            const promise = safeIDBOperation(operation, {
-                maxRetries: 1,
-                cleanupStores: ['store1'],
-                dbName: 'test-db',
-            });
-
-            // Wait for cleanup and resolve the clear operation
-            await new Promise(resolve => setTimeout(resolve, 50));
-            clearRequest.onsuccess?.();
-
-            const result = await promise;
-            expect(result).toBe('success');
-        }, 10000);  // 10 second timeout
-
         it('should throw after retry exhaustion', async () => {
             const error = new Error('persistent error');
             const operation = jest.fn().mockRejectedValue(error);

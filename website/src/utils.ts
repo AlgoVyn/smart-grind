@@ -130,6 +130,21 @@ export const escapeHtml = (str: string): string =>
         .replace(/'/g, '&#039;');
 
 // ============================================================================
+// DOM HELPERS
+// ============================================================================
+
+/** Hide an element by adding the 'hidden' class. */
+export const hideEl = (el: HTMLElement | null | undefined): void => el?.classList.add('hidden');
+
+/** Show an element by removing the 'hidden' class. */
+export const showEl = (el: HTMLElement | null | undefined): void => el?.classList.remove('hidden');
+
+/** Toggle the 'hidden' class: shown when `visible` is true. */
+export const toggleEl = (el: HTMLElement | null | undefined, visible: boolean): void => {
+    if (el) el.classList.toggle('hidden', !visible);
+};
+
+// ============================================================================
 // STORAGE UTILITIES
 // ============================================================================
 
@@ -142,28 +157,23 @@ export const safeGetItem = <T>(key: string, defaultValue: T): T => {
     }
 };
 
+/** Returns true if the error is a storage quota error that should be re-thrown. */
+const isQuotaError = (error: unknown): boolean =>
+    error instanceof Error &&
+    (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED');
+
 /**
  * Safely stores a value in localStorage with JSON serialization.
  *
- * @param key - The localStorage key
- * @param value - The value to serialize and store
  * @returns true if storage succeeded, false on non-quota errors
  * @throws {Error} QuotaExceededError or NS_ERROR_DOM_QUOTA_REACHED when storage quota is exceeded.
- *                 Callers must handle this exception for proper quota recovery.
  */
 export const safeSetItem = (key: string, value: unknown): boolean => {
     try {
         localStorage.setItem(key, JSON.stringify(value));
         return true;
     } catch (error) {
-        // Re-throw quota errors so callers can detect and handle them appropriately
-        // (e.g., state.saveToStorage needs to distinguish quota errors from other failures)
-        if (
-            error instanceof Error &&
-            (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')
-        ) {
-            throw error;
-        }
+        if (isQuotaError(error)) throw error;
         return false;
     }
 };
@@ -188,24 +198,15 @@ export const getStringItem = (key: string, defaultValue: string): string => {
 /**
  * Safely stores a string value in localStorage.
  *
- * @param key - The localStorage key
- * @param value - The string value to store
  * @returns true if storage succeeded, false on non-quota errors
  * @throws {Error} QuotaExceededError or NS_ERROR_DOM_QUOTA_REACHED when storage quota is exceeded.
- *                 Callers must handle this exception for proper quota recovery.
  */
 export const setStringItem = (key: string, value: string): boolean => {
     try {
         localStorage.setItem(key, value);
         return true;
     } catch (error) {
-        // Re-throw quota errors so callers can detect and handle them appropriately
-        if (
-            error instanceof Error &&
-            (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')
-        ) {
-            throw error;
-        }
+        if (isQuotaError(error)) throw error;
         return false;
     }
 };

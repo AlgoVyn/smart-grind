@@ -33,9 +33,11 @@ const debouncedSaveToStorage = (saveFn: () => void): void => {
     }, STORAGE_SAVE_DELAY);
 };
 
+// Extended quota error check — includes message-based detection for broader compatibility
 const isQuotaError = (error: unknown): boolean =>
     error instanceof Error &&
     (error.name === 'QuotaExceededError' ||
+        error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
         error.message.includes('quota') ||
         error.message.includes('exceeded'));
 
@@ -210,52 +212,41 @@ export const state = {
             !dirtyUserMeta;
 
         try {
-            if (useIncremental) {
-                // Incremental save: read existing data, merge dirty problems, write back
-                const existingProblems = safeGetItem<Record<string, Problem>>(keys.problems, {});
-                const problemsClean: Record<string, Omit<Problem, 'loading' | 'noteVisible'>> = {
-                    ...existingProblems,
-                };
+            // Build problems object based on save type
+            let problemsClean: Record<string, Omit<Problem, 'loading' | 'noteVisible'>>;
 
-                // Apply dirty problem updates (strip runtime-only fields)
+            if (useIncremental) {
+                // Incremental: merge dirty problems into existing data
+                const existingProblems = safeGetItem<Record<string, Problem>>(keys.problems, {});
+                problemsClean = { ...existingProblems };
                 for (const id of dirtyProblemIds) {
                     const p = this.problems.get(id);
                     if (p) {
                         const { loading: _l, noteVisible: _n, ...rest } = p;
                         problemsClean[id] = rest;
                     } else {
-                        // Problem was deleted from the map
                         delete problemsClean[id];
                     }
                 }
-
-                safeSetItem(keys.problems, problemsClean);
-                safeSetItem(keys.deletedIds, [...this.deletedProblemIds]);
-                safeSetItem(keys.flashCardProgress, Object.fromEntries(this.flashCardProgress));
-                setStringItem(keys.displayName, this.user.displayName);
-                setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
-                // Note: safeSetItem/setStringItem now throw on quota errors,
-                // so if we reach this point, all writes succeeded.
-
-                // Clear dirty problem IDs after successful incremental save
-                dirtyProblemIds.clear();
             } else {
-                // Full save: serialize entire state
-                const problemsClean = Object.fromEntries(
+                // Full: serialize entire state
+                problemsClean = Object.fromEntries(
                     [...this.problems.entries()].map(
                         ([id, { loading: _l, noteVisible: _n, ...rest }]) => [id, rest]
                     )
                 );
+            }
 
-                safeSetItem(keys.problems, problemsClean);
-                safeSetItem(keys.deletedIds, [...this.deletedProblemIds]);
-                safeSetItem(keys.flashCardProgress, Object.fromEntries(this.flashCardProgress));
-                setStringItem(keys.displayName, this.user.displayName);
-                setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
-                // Note: safeSetItem/setStringItem now throw on quota errors,
-                // so if we reach this point, all writes succeeded.
+            // Common write operations for both paths
+            safeSetItem(keys.problems, problemsClean);
+            safeSetItem(keys.deletedIds, [...this.deletedProblemIds]);
+            safeSetItem(keys.flashCardProgress, Object.fromEntries(this.flashCardProgress));
+            setStringItem(keys.displayName, this.user.displayName);
+            setStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, this.user.type);
 
-                // Flush dirty state after a successful full save
+            if (useIncremental) {
+                dirtyProblemIds.clear();
+            } else {
                 flushDirtyState();
             }
 

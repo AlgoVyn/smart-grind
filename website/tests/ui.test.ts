@@ -250,6 +250,8 @@ jest.mock('../src/utils', () => ({
     getToday: jest.fn(() => '2024-01-15'),
     getTodayDate: jest.fn(() => '2024-01-01'),
     getNextReviewDate: jest.fn(),
+    showEl: jest.fn(),
+    hideEl: jest.fn(),
     safeParseInt: jest.fn(),
     safeParseFloat: jest.fn(),
     isValidDate: jest.fn(),

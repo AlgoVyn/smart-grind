@@ -19,6 +19,8 @@ jest.mock('dompurify', () => {
 jest.mock('../src/utils', () => ({
     getBaseUrl: jest.fn().mockReturnValue('/smartgrind/'),
     showToast: jest.fn(),
+    showEl: jest.fn(),
+    hideEl: jest.fn(),
 }));
 
 jest.mock('../src/data', () => ({

@@ -114,6 +114,8 @@ jest.mock('../src/utils', () => ({
     sanitizeInput: jest.fn((input) => input),
     updateUrlParameter: jest.fn(),
     showToast: jest.fn(),
+    showEl: jest.fn(),
+    hideEl: jest.fn(),
 }));
 
 // Import after mocks
@@ -123,7 +125,7 @@ import { data } from '../src/data';
 import { api } from '../src/api';
 import { renderers } from '../src/renderers';
 import { ui } from '../src/ui/ui';
-import { showToast } from '../src/utils';
+import { showToast, showEl, hideEl } from '../src/utils';
 
 describe('App Module', () => {
     beforeEach(() => {
@@ -244,9 +246,9 @@ describe('App Module', () => {
 
             await initializeLocalUser();
 
-            expect(mockSetupModal.classList.add).toHaveBeenCalledWith('hidden');
-            expect(mockAppWrapper.classList.remove).toHaveBeenCalledWith('hidden');
-            expect(mockLoadingScreen.classList.add).toHaveBeenCalledWith('hidden');
+            expect(hideEl).toHaveBeenCalledWith(mockSetupModal);
+            expect(showEl).toHaveBeenCalledWith(mockAppWrapper);
+            expect(hideEl).toHaveBeenCalledWith(mockLoadingScreen);
         });
 
         test('should update auth UI', async () => {
@@ -432,9 +434,9 @@ describe('App Module', () => {
             expect(ui.updateAuthUI).toHaveBeenCalled();
 
             // Verify UI state changes
-            expect(mockSetupModal.classList.add).toHaveBeenCalledWith('hidden');
-            expect(mockAppWrapper.classList.remove).toHaveBeenCalledWith('hidden');
-            expect(mockLoadingScreen.classList.add).toHaveBeenCalledWith('hidden');
+            expect(hideEl).toHaveBeenCalledWith(mockSetupModal);
+            expect(showEl).toHaveBeenCalledWith(mockAppWrapper);
+            expect(hideEl).toHaveBeenCalledWith(mockLoadingScreen);
         });
 
         test('should export and verify JSON structure', () => {

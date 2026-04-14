@@ -5,6 +5,12 @@ import { ui } from './ui/ui';
 import { escapeHtml } from './utils';
 
 /**
+ * Extracts an error message from an unknown error value.
+ */
+const getErrorMessage = (error: unknown): string =>
+    error instanceof Error ? error.message : String(error);
+
+/**
  * Global Error Boundary for application-level error handling
  */
 export class AppErrorBoundary {
@@ -30,8 +36,8 @@ export class AppErrorBoundary {
 
     private handleError(error: unknown, fallbackContent?: string): void {
         this.hasError = true;
-        const message = error instanceof Error ? error.message : String(error);
         console.error('[AppErrorBoundary] Caught error:', error);
+        const message = getErrorMessage(error);
 
         // Show user-friendly alert
         ui.showAlert(`An error occurred: ${message}`);
@@ -136,8 +142,7 @@ export const withErrorHandling = async <T>(
         return await operation();
     } catch (_error) {
         console.error(`[withErrorHandling] ${errorMessage}:`, _error);
-        const message = _error instanceof Error ? _error.message : String(_error);
-        ui.showAlert(`${errorMessage}: ${message}`);
+        ui.showAlert(`${errorMessage}: ${getErrorMessage(_error)}`);
         return null;
     }
 };
@@ -153,8 +158,7 @@ export const withSyncErrorHandling = <T>(
         return operation();
     } catch (_error) {
         console.error(`[withSyncErrorHandling] ${errorMessage}:`, _error);
-        const message = _error instanceof Error ? _error.message : String(_error);
-        ui.showAlert(`${errorMessage}: ${message}`);
+        ui.showAlert(`${errorMessage}: ${getErrorMessage(_error)}`);
         return null;
     }
 };

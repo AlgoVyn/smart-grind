@@ -115,7 +115,7 @@ import { api } from '../src/api';
 import { loadData } from '../src/api/api-load';
 import { renderers as _renderers } from '../src/renderers';
 import { ui } from '../src/ui/ui';
-import { scrollToTop, sanitizeInput, updateUrlParameter, showToast } from '../src/utils';
+import { scrollToTop, sanitizeInput, updateUrlParameter, showToast, showEl, hideEl } from '../src/utils';
 import * as swRegister from '../src/sw-register';
 
 import {
@@ -177,6 +177,8 @@ jest.mock('../src/utils', () => ({
     sanitizeInput: jest.fn((input) => input),
     updateUrlParameter: jest.fn(),
     showToast: jest.fn(),
+    showEl: jest.fn(),
+    hideEl: jest.fn(),
 }));
 
 jest.mock('../src/app', () => ({
@@ -498,9 +500,9 @@ describe('Initialization Module', () => {
             await checkAuth();
 
             // Should show setup modal
-            expect(mockSetupModal.classList.remove).toHaveBeenCalledWith('hidden');
-            expect(mockAppWrapper.classList.add).toHaveBeenCalledWith('hidden');
-            expect(mockLoadingScreen.classList.add).toHaveBeenCalledWith('hidden');
+            expect(showEl).toHaveBeenCalledWith(mockSetupModal);
+            expect(hideEl).toHaveBeenCalledWith(mockAppWrapper);
+            expect(hideEl).toHaveBeenCalledWith(mockLoadingScreen);
 
             // Should enable Google login button
             expect(mockGoogleLoginButton.disabled).toBe(false);

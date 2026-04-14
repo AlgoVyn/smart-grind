@@ -11,6 +11,8 @@
 jest.mock('@/utils', () => ({
     getToday: jest.fn(() => '2023-01-01'),
     getUniqueProblemsForTopic: jest.fn(() => ({ total: 10, solved: 5, due: 2 })),
+    showEl: jest.fn(),
+    hideEl: jest.fn(),
 }));
 
 jest.mock('@/state', () => ({
@@ -70,7 +72,7 @@ jest.mock('@/renderers', () => ({
 import { statsRenderers } from '@/renderers/stats';
 import { state } from '@/state';
 import { data } from '@/data';
-import { getToday, getUniqueProblemsForTopic } from '@/utils';
+import { getToday, getUniqueProblemsForTopic, showEl, hideEl } from '@/utils';
 import { renderers } from '@/renderers';
 
 describe('Stats Renderer Enhanced', () => {
@@ -210,14 +212,14 @@ describe('Stats Renderer Enhanced', () => {
         test('should show review banner when there are due problems', () => {
             statsRenderers._updateReviewBanner(5);
 
-            expect(state.elements.reviewBanner!.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(showEl).toHaveBeenCalledWith(state.elements.reviewBanner);
             expect(state.elements.reviewCountBanner!.innerText).toBe('5');
         });
 
         test('should hide review banner when no due problems', () => {
             statsRenderers._updateReviewBanner(0);
 
-            expect(state.elements.reviewBanner!.classList.add).toHaveBeenCalledWith('hidden');
+            expect(hideEl).toHaveBeenCalledWith(state.elements.reviewBanner);
         });
 
         test('should handle null elements gracefully', () => {

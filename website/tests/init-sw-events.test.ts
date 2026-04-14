@@ -45,6 +45,8 @@ jest.mock('../src/utils', () => ({
     showToast: jest.fn(),
     scrollToTop: jest.fn(),
     sanitizeInput: jest.fn((str) => str),
+    showEl: jest.fn(),
+    hideEl: jest.fn(),
 }));
 
 jest.mock('../src/data', () => ({

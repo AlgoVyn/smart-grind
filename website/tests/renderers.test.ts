@@ -51,6 +51,8 @@ jest.mock('../src/utils', () => ({
     getStringItem: jest.fn(),
     setStringItem: jest.fn(),
     removeItem: jest.fn(),
+    showEl: jest.fn(),
+    hideEl: jest.fn(),
     STORAGE_KEYS: {
         PROBLEMS: jest.fn(() => 'problems'),
         DELETED_IDS: jest.fn(() => 'deleted_ids'),
@@ -487,7 +489,7 @@ describe('SmartGrind Renderers', () => {
 
             renderers.updateStats();
 
-            expect(state.elements.reviewBanner?.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(utils.showEl).toHaveBeenCalledWith(state.elements.reviewBanner);
             expect(state.elements.reviewCountBanner?.innerText).toBe('3');
         });
 
@@ -497,7 +499,7 @@ describe('SmartGrind Renderers', () => {
 
             renderers.updateStats();
 
-            expect(state.elements.reviewBanner?.classList.add).toHaveBeenCalledWith('hidden');
+            expect(utils.hideEl).toHaveBeenCalledWith(state.elements.reviewBanner);
         });
 
         test('updates main due badge when due problems exist', () => {
@@ -506,7 +508,7 @@ describe('SmartGrind Renderers', () => {
 
             renderers.updateStats();
 
-            expect(state.elements.mainDueBadge?.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(utils.showEl).toHaveBeenCalledWith(state.elements.mainDueBadge);
         });
 
         test('hides main due badge when no due problems', () => {
@@ -515,7 +517,7 @@ describe('SmartGrind Renderers', () => {
 
             renderers.updateStats();
 
-            expect(state.elements.mainDueBadge?.classList.add).toHaveBeenCalledWith('hidden');
+            expect(utils.hideEl).toHaveBeenCalledWith(state.elements.mainDueBadge);
         });
     });
 

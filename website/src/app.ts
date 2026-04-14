@@ -6,7 +6,7 @@ import { data } from './data';
 import { api } from './api';
 import { renderers } from './renderers';
 import { ui } from './ui/ui';
-import { showToast } from './utils';
+import { showToast, hideEl, showEl } from './utils';
 import type { Problem } from './types';
 
 // Export data limits for sanitization
@@ -62,9 +62,9 @@ export const initializeLocalUser = async (): Promise<void> => {
     ui.initScrollButton();
 
     // Toggle visibility of modal elements
-    (state.elements['setupModal'] as HTMLElement | null)?.classList.add('hidden');
-    (state.elements['appWrapper'] as HTMLElement | null)?.classList.remove('hidden');
-    (state.elements['loadingScreen'] as HTMLElement | null)?.classList.add('hidden');
+    hideEl(state.elements['setupModal']);
+    showEl(state.elements['appWrapper']);
+    hideEl(state.elements['loadingScreen']);
 
     // Update auth UI
     ui.updateAuthUI();

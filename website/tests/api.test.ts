@@ -3,7 +3,7 @@ import { state } from '../src/state';
 import { data } from '../src/data';
 import { renderers } from '../src/renderers';
 import { ui } from '../src/ui/ui';
-import { updateUrlParameter, showToast } from '../src/utils';
+import { updateUrlParameter, showToast, showEl } from '../src/utils';
 
 // Import the api-save module
 import * as apiSave from '../src/api/api-save';
@@ -126,6 +126,8 @@ jest.mock('../src/utils', () => ({
     getStringItem: jest.fn(),
     setStringItem: jest.fn(),
     removeItem: jest.fn(),
+    showEl: jest.fn(),
+    hideEl: jest.fn(),
     STORAGE_KEYS: {
         PROBLEMS: jest.fn(() => 'problems'),
         DELETED_IDS: jest.fn(() => 'deleted_ids'),
@@ -546,7 +548,7 @@ describe('SmartGrind API Module', () => {
 
             await api.loadData();
 
-            expect(state.elements.signinModal.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(showEl).toHaveBeenCalledWith(state.elements.signinModal);
             expect(uiModals.showAlert).toHaveBeenCalledWith(
                 'Failed to load data: Authentication failed. Please sign in again.'
             );

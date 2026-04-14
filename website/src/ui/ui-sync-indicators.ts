@@ -2,7 +2,7 @@
 // UI components for displaying offline/sync status
 
 import { state } from '../state';
-import { showToast } from '../utils';
+import { showToast, showEl, hideEl, toggleEl } from '../utils';
 
 // DOM element cache for sync indicators
 interface SyncIndicatorElements {
@@ -29,32 +29,22 @@ const getElements = (): SyncIndicatorElements => ({
 // Update online indicator visibility
 const updateOnlineIndicator = (isOnline: boolean): void => {
     const elements = getElements();
-    if (elements.onlineIndicator) {
-        if (isOnline) {
-            elements.onlineIndicator.classList.remove('hidden');
-        } else {
-            elements.onlineIndicator.classList.add('hidden');
-        }
-    }
+    toggleEl(elements.onlineIndicator, isOnline);
 };
 
 // Update offline indicator visibility
 const updateOfflineIndicator = (isOnline: boolean, previousState?: boolean): void => {
     const elements = getElements();
-    if (elements.offlineIndicator) {
-        if (isOnline) {
-            elements.offlineIndicator.classList.add('hidden');
-        } else {
-            elements.offlineIndicator.classList.remove('hidden');
-            // Hide syncing when offline (can't sync while offline)
-            elements.syncingIndicator?.classList.add('hidden');
-            // Show toast when going offline
-            if (previousState !== false) {
-                showToast(
-                    'You are now offline. Changes will sync when connection is restored.',
-                    'warning'
-                );
-            }
+    toggleEl(elements.offlineIndicator, !isOnline);
+    if (!isOnline) {
+        // Hide syncing when offline (can't sync while offline)
+        hideEl(elements.syncingIndicator);
+        // Show toast when going offline
+        if (previousState !== false) {
+            showToast(
+                'You are now offline. Changes will sync when connection is restored.',
+                'warning'
+            );
         }
     }
 };
@@ -62,22 +52,13 @@ const updateOfflineIndicator = (isOnline: boolean, previousState?: boolean): voi
 // Update syncing indicator visibility
 const updateSyncingIndicator = (isSyncing: boolean, previousState?: boolean): void => {
     const elements = getElements();
-    if (elements.syncingIndicator) {
-        if (isSyncing) {
-            elements.syncingIndicator.classList.remove('hidden');
-        } else {
-            elements.syncingIndicator.classList.add('hidden');
-            // Show toast when sync completes
-            if (previousState === true) {
-                showToast('Sync completed successfully', 'success');
-            }
-        }
+    toggleEl(elements.syncingIndicator, isSyncing);
+    if (!isSyncing && previousState === true) {
+        showToast('Sync completed successfully', 'success');
     }
 };
 
 // Update pending indicator visibility and count
-// Hide when syncing is in progress to avoid UI clutter
-// Show in both online and offline mode to indicate queued changes
 const updatePendingIndicator = (
     pendingCount: number,
     _isOnline: boolean,
@@ -85,15 +66,11 @@ const updatePendingIndicator = (
 ): void => {
     const elements = getElements();
     if (elements.pendingIndicator && elements.pendingCount) {
-        // Only show pending indicator when:
-        // 1. There are pending operations
-        // 2. We're NOT currently syncing (to avoid showing both indicators)
-        // Note: Show in both online and offline mode to indicate queued changes
         if (pendingCount > 0 && !isSyncing) {
-            elements.pendingIndicator.classList.remove('hidden');
+            showEl(elements.pendingIndicator);
             elements.pendingCount.textContent = `${pendingCount} pending`;
         } else {
-            elements.pendingIndicator.classList.add('hidden');
+            hideEl(elements.pendingIndicator);
         }
     }
 };
@@ -101,16 +78,9 @@ const updatePendingIndicator = (
 // Update conflict indicator visibility
 const updateConflictIndicator = (hasConflicts: boolean, previousState?: boolean): void => {
     const elements = getElements();
-    if (elements.conflictIndicator) {
-        if (hasConflicts) {
-            elements.conflictIndicator.classList.remove('hidden');
-            // Show toast when conflicts detected
-            if (previousState !== true) {
-                showToast('Sync conflict detected. Please review your changes.', 'error');
-            }
-        } else {
-            elements.conflictIndicator.classList.add('hidden');
-        }
+    toggleEl(elements.conflictIndicator, hasConflicts);
+    if (hasConflicts && previousState !== true) {
+        showToast('Sync conflict detected. Please review your changes.', 'error');
     }
 };
 

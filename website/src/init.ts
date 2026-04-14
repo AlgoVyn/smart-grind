@@ -10,7 +10,7 @@ import { data } from './data';
 import { initOfflineDetection } from './api';
 import { getConnectivityChecker } from './sw/connectivity-checker';
 import { loadData } from './api/api-load';
-import { scrollToTop, showToast } from './utils';
+import { scrollToTop, showToast, showEl, hideEl } from './utils';
 import { withErrorHandling, setupGlobalErrorHandlers } from './error-boundary';
 import * as swRegister from './sw-register';
 import { openSigninModal } from './ui/ui-modals';
@@ -174,13 +174,9 @@ const applyCategory = async (
     const { renderers } = await import('./renderers');
 
     // Ensure app wrapper is visible before rendering
-    const appWrapper = state.elements['appWrapper'] as HTMLElement | null;
-    const setupModal = state.elements['setupModal'] as HTMLElement | null;
-    const loadingScreen = state.elements['loadingScreen'] as HTMLElement | null;
-
-    setupModal?.classList.add('hidden');
-    loadingScreen?.classList.add('hidden');
-    appWrapper?.classList.remove('hidden');
+    hideEl(state.elements['setupModal']);
+    hideEl(state.elements['loadingScreen']);
+    showEl(state.elements['appWrapper']);
 
     // Re-cache elements to ensure we have the latest DOM references
     state.cacheElements();
@@ -248,9 +244,9 @@ const initializeUIAfterSetup = async () => {
     ui.initScrollButton();
     ui.updateAuthUI();
 
-    (state.elements['setupModal'] as HTMLElement | null)?.classList.add('hidden');
-    (state.elements['appWrapper'] as HTMLElement | null)?.classList.remove('hidden');
-    (state.elements['loadingScreen'] as HTMLElement | null)?.classList.add('hidden');
+    hideEl(state.elements['setupModal']);
+    showEl(state.elements['appWrapper']);
+    hideEl(state.elements['loadingScreen']);
 };
 
 const setupSignedInUser = async (
@@ -399,15 +395,11 @@ const handleExistingSession = async (
 };
 
 const showSetupModal = async () => {
-    const setupModal = state.elements['setupModal'] as HTMLElement | null;
-    const appWrapper = state.elements['appWrapper'] as HTMLElement | null;
-    const loadingScreen = state.elements['loadingScreen'] as HTMLElement | null;
+    showEl(state.elements['setupModal']);
+    hideEl(state.elements['appWrapper']);
+    hideEl(state.elements['loadingScreen']);
+
     const googleLoginButton = state.elements['googleLoginButton'] as HTMLButtonElement | null;
-
-    setupModal?.classList.remove('hidden');
-    appWrapper?.classList.add('hidden');
-    loadingScreen?.classList.add('hidden');
-
     if (googleLoginButton) {
         googleLoginButton.disabled = false;
         googleLoginButton.innerHTML = window.SmartGrind?.GOOGLE_BUTTON_HTML || '';

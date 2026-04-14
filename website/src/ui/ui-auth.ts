@@ -13,7 +13,7 @@ import { GOOGLE_BUTTON_HTML } from './ui-constants';
 import { state } from '../state';
 import { data } from '../data';
 import { api } from '../api';
-import { showToast } from '../utils';
+import { showToast, hideEl } from '../utils';
 import { app } from '../app';
 import { renderers } from '../renderers';
 import { openSigninModal } from './ui-modals';
@@ -117,8 +117,8 @@ export const handleGoogleLogin = () => {
         updateAuthUI();
 
         // Close any open sign-in modals
-        (state.elements['setupModal'] as HTMLElement | null)?.classList.add('hidden');
-        (state.elements['signinModal'] as HTMLElement | null)?.classList.add('hidden');
+        hideEl(state.elements['setupModal']);
+        hideEl(state.elements['signinModal']);
     };
 
     const handleAuthFailure = (data: { message: string }) => {

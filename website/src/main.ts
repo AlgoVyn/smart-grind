@@ -29,22 +29,14 @@ const initApp = async () => {
 };
 
 // Start initialization when DOM is ready
-if (typeof document !== 'undefined') {
+if (typeof window !== 'undefined') {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initApp);
     } else {
         initApp();
     }
-}
 
-// Cleanup on page unload
-if (typeof window !== 'undefined') {
-    window.addEventListener('beforeunload', () => {
-        runCleanup();
-    });
-}
-
-// Expose necessary globals
-if (typeof window !== 'undefined') {
+    // Expose globals and cleanup
+    window.addEventListener('beforeunload', runCleanup);
     window.SmartGrind = window.SmartGrind || {};
 }
