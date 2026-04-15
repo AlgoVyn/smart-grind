@@ -33,6 +33,11 @@ test.describe('Flashcards Feature', () => {
     await appPage.gotoAndWait();
   });
 
+  test.afterEach(async ({ page }) => {
+    // Clean up routes
+    await page.unroute('**/*').catch(() => {});
+  });
+
   test.describe('Modal Setup', () => {
     test('should open flashcards modal when clicking button', async () => {
       // Click flashcards button

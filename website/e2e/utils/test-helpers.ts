@@ -149,10 +149,10 @@ export async function clearLocalStorage(page: Page): Promise<void> {
  * Setup authenticated user state - navigates to page first if needed
  */
 export async function setupAuthState(
-  page: Page, 
-  userId = 'test-user', 
+  page: Page,
+  userId = 'test-user',
   displayName = 'Test User',
-  baseUrl = 'http://localhost:3000/smartgrind/'
+  baseUrl = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3001/smartgrind/'
 ): Promise<void> {
   // Ensure we're on a valid page
   const currentUrl = page.url();

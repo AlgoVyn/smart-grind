@@ -5,8 +5,6 @@
  * All data follows the same structure as real API responses.
  */
 
-import type { Problem, FlashCard } from '../../../src/types';
-
 // Mock user data
 export const mockUser = {
   userId: 'test-user-123',
@@ -16,105 +14,93 @@ export const mockUser = {
   csrfToken: 'mock-csrf-token',
 };
 
-// Mock problem data
-export const mockProblems: Problem[] = [
+// Mock problem data - aligned with src/types.ts Problem interface
+export const mockProblems = [
   {
     id: 'two-sum',
-    title: 'Two Sum',
+    name: 'Two Sum',
     url: 'https://leetcode.com/problems/two-sum',
     topic: 'Arrays',
     pattern: 'Two Pointers',
-    difficulty: 'Easy',
-    status: 'solved',
-    lastReviewed: '2024-01-15',
+    status: 'solved' as const,
+    reviewInterval: 3,
     nextReviewDate: '2024-01-20',
-    reviewCount: 3,
-    confidence: 0.8,
+    note: '',
   },
   {
     id: 'three-sum',
-    title: '3Sum',
+    name: '3Sum',
     url: 'https://leetcode.com/problems/3sum',
     topic: 'Arrays',
     pattern: 'Two Pointers',
-    difficulty: 'Medium',
-    status: 'unsolved',
-    reviewCount: 0,
-    confidence: 0,
+    status: 'unsolved' as const,
+    reviewInterval: 0,
+    nextReviewDate: null,
+    note: '',
   },
   {
     id: 'binary-search',
-    title: 'Binary Search',
+    name: 'Binary Search',
     url: 'https://leetcode.com/problems/binary-search',
     topic: 'Binary Search',
     pattern: 'Binary Search',
-    difficulty: 'Easy',
-    status: 'solved',
-    lastReviewed: '2024-01-10',
+    status: 'solved' as const,
+    reviewInterval: 5,
     nextReviewDate: '2024-01-25',
-    reviewCount: 5,
-    confidence: 0.9,
+    note: '',
   },
   {
     id: 'merge-intervals',
-    title: 'Merge Intervals',
+    name: 'Merge Intervals',
     url: 'https://leetcode.com/problems/merge-intervals',
     topic: 'Intervals',
     pattern: 'Merge Intervals',
-    difficulty: 'Medium',
-    status: 'due',
-    lastReviewed: '2024-01-01',
+    status: 'solved' as const,
+    reviewInterval: 2,
     nextReviewDate: '2024-01-15',
-    reviewCount: 2,
-    confidence: 0.5,
+    note: '',
   },
   {
     id: 'lru-cache',
-    title: 'LRU Cache',
+    name: 'LRU Cache',
     url: 'https://leetcode.com/problems/lru-cache',
     topic: 'Design',
     pattern: 'Design',
-    difficulty: 'Medium',
-    status: 'unsolved',
-    reviewCount: 0,
-    confidence: 0,
+    status: 'unsolved' as const,
+    reviewInterval: 0,
+    nextReviewDate: null,
+    note: '',
   },
 ];
 
-// Mock flashcard data
-export const mockFlashcards: Flashcard[] = [
+// Mock flashcard data - aligned with src/types.ts FlashCard interface
+export const mockFlashcards = [
   {
     id: 'fc-1',
-    type: 'algorithm',
+    type: 'algorithm' as const,
     category: 'Arrays',
-    title: 'Two Pointers Pattern',
-    question: 'What is the Two Pointers pattern and when should you use it?',
-    answer: 'Two Pointers is a pattern where two pointers iterate through a data structure in a coordinated manner. Use it for sorted arrays, finding pairs, or palindrome checking.',
-    difficulty: 'Easy',
-    nextReviewDate: new Date().toISOString().split('T')[0],
-    reviewCount: 2,
+    front: 'Two Pointers Pattern: What is the Two Pointers pattern and when should you use it?',
+    back: 'Two Pointers is a pattern where two pointers iterate through a data structure in a coordinated manner. Use it for sorted arrays, finding pairs, or palindrome checking.',
+    difficulty: 'easy' as const,
+    tags: ['arrays', 'two-pointers', 'pattern'],
   },
   {
     id: 'fc-2',
-    type: 'pattern',
+    type: 'pattern' as const,
     category: 'Binary Search',
-    title: 'Binary Search Template',
-    question: 'What is the basic template for binary search?',
-    answer: 'Initialize left=0, right=len-1. While left <= right: mid = left + (right-left)/2. Compare target with mid, adjust left/right accordingly.',
-    difficulty: 'Medium',
-    nextReviewDate: new Date().toISOString().split('T')[0],
-    reviewCount: 3,
+    front: 'Binary Search Template: What is the basic template for binary search?',
+    back: 'Initialize left=0, right=len-1. While left <= right: mid = left + (right-left)/2. Compare target with mid, adjust left/right accordingly.',
+    difficulty: 'medium' as const,
+    tags: ['binary-search', 'template', 'algorithm'],
   },
   {
     id: 'fc-3',
-    type: 'sql',
+    type: 'sql' as const,
     category: 'SQL Basics',
-    title: 'SQL SELECT Statement',
-    question: 'Write a query to select all columns from a table named "users".',
-    answer: 'SELECT * FROM users;',
-    difficulty: 'Easy',
-    nextReviewDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-    reviewCount: 1,
+    front: 'SQL SELECT Statement: Write a query to select all columns from a table named "users".',
+    back: 'SELECT * FROM users;',
+    difficulty: 'easy' as const,
+    tags: ['sql', 'select', 'basics'],
   },
 ];
 
@@ -196,7 +182,7 @@ export const testScenarios = {
     userId: 'completed-user',
     displayName: 'Expert User',
     problems: Object.fromEntries(
-      mockProblems.map(p => [p.id, { ...p, status: 'solved' as const, reviewCount: 5, confidence: 0.95 }])
+      mockProblems.map(p => [p.id, { ...p, status: 'solved' as const, reviewInterval: 5 }])
     ),
     deletedIds: [],
     settings: { theme: 'dark', notifications: true },
@@ -235,10 +221,10 @@ export const testScenarios = {
 };
 
 // Stats calculations helper
-export const calculateStats = (problems: Problem[]) => {
+export const calculateStats = (problems: typeof mockProblems) => {
   const total = problems.length;
   const solved = problems.filter(p => p.status === 'solved').length;
-  const due = problems.filter(p => p.status === 'due' || (p.status === 'solved' && p.nextReviewDate <= new Date().toISOString().split('T')[0])).length;
+  const due = problems.filter(p => p.status === 'solved' && p.nextReviewDate && p.nextReviewDate <= new Date().toISOString().split('T')[0]).length;
   return {
     total,
     solved,

@@ -76,6 +76,11 @@ wrangler.toml
 playwright-report
 test-results
 
+# Backup files
+*.bak
+*.orig
+*.rej
+
 # Generated files
 public/modules/**/*.js
 public/modules/**/*.js.map

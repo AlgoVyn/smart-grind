@@ -183,7 +183,7 @@ export class FlashcardsPage extends BasePage {
     // Wait for DOM to update and CSS transitions to complete
     await this.page.waitForTimeout(800);
   }
-  /**
+
   /**
    * Rate card
    */

@@ -1298,3 +1298,75 @@ jest.mock('marked', () => ({
   }),
   Tokens: {},
 }));
+
+// Better DecompressionStream mock that properly handles transform
+class BetterMockDecompressionStream {
+  constructor(format) {
+    this.format = format;
+    this._chunks = [];
+    this._readableController = null;
+    
+    this.writable = {
+      getWriter: () => {
+        return {
+          write: (chunk) => {
+            if (chunk) this._chunks.push(chunk);
+            return Promise.resolve();
+          },
+          close: () => {
+            // Combine all chunks and enqueue to readable
+            if (this._chunks.length > 0) {
+              const totalLength = this._chunks.reduce((acc, c) => acc + c.length, 0);
+              const combined = new Uint8Array(totalLength);
+              let offset = 0;
+              for (const c of this._chunks) {
+                combined.set(c, offset);
+                offset += c.length;
+              }
+              if (this._readableController) {
+                this._readableController.enqueue(combined);
+                this._readableController.close();
+              }
+            } else if (this._readableController) {
+              this._readableController.close();
+            }
+            return Promise.resolve();
+          },
+          abort: () => Promise.resolve(),
+          releaseLock: () => {},
+        };
+      },
+    };
+    
+    this.readable = {
+      getReader: () => {
+        return {
+          read: () => {
+            return new Promise((resolve) => {
+              setTimeout(() => {
+                resolve({ done: true });
+              }, 0);
+            });
+          },
+          releaseLock: () => {},
+          cancel: () => Promise.resolve(),
+        };
+      },
+      pipeThrough: (transform) => {
+        // Return a new ReadableStream that will produce data
+        return new global.ReadableStream({
+          start: (controller) => {
+            this._readableController = controller;
+          },
+        });
+      },
+    };
+  }
+}
+
+// Override the DecompressionStream with the better mock
+Object.defineProperty(global, 'DecompressionStream', {
+  value: BetterMockDecompressionStream,
+  writable: true,
+  configurable: true,
+});

@@ -71,16 +71,13 @@ test.describe('SmartGrind Basic Functionality', () => {
 
   test.describe('Authentication', () => {
     test('should show setup modal when user type is signed-in but no userId', async () => {
-      await appPage.goto();
-
-      // Set userType to 'signed-in' without a userId
-      await appPage.page.evaluate(() => {
+      // Use init script to set up state before page load for reliability
+      await appPage.page.addInitScript(() => {
         localStorage.setItem('smartgrind-user-type', 'signed-in');
         localStorage.removeItem('userId');
       });
 
-      // Reload to apply the new state
-      await appPage.reload();
+      await appPage.goto();
 
       // Wait for loading screen to disappear
       await appPage.page.waitForSelector('#loading-screen', { state: 'hidden', timeout: 15000 });

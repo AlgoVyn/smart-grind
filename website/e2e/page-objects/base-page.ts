@@ -9,7 +9,7 @@ import { Page, Locator } from '@playwright/test';
 import { waitForAppReady, SHORT_TIMEOUT, DEFAULT_TIMEOUT } from '../utils/test-helpers';
 
 // Base URL for the application
-const BASE_URL = 'http://localhost:3000/smartgrind/';
+const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3001/smartgrind/';
 
 export abstract class BasePage {
   constructor(public page: Page) {}
