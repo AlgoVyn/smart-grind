@@ -119,6 +119,8 @@ const PROBLEM_PATTERNS = [
     /\/smartgrind\/patterns\/.+\.md$/,
     /\/smartgrind\/solutions\/.+\.md$/,
     /\/smartgrind\/algorithms\/.+\.md$/,
+    /\/smartgrind\/sql\/solutions\/.+\.md$/,
+    /\/smartgrind\/sql\/patterns\/.+\.md$/,
 ];
 
 const FLASHCARD_PATTERNS = [/\/flashcards\/.+\.md$/];

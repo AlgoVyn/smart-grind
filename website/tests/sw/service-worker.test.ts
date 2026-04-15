@@ -526,6 +526,211 @@ describe('Service Worker', () => {
             }
         });
 
+        it('should handle SQL solution markdown requests', async () => {
+            const mockResponse = new Response('# SQL Solution', {
+                headers: { 'Content-Type': 'text/markdown' },
+            });
+
+            // Pre-cache the SQL solution
+            const cache = await caches.open('smartgrind-problems');
+            await cache.put('https://example.com/smartgrind/sql/solutions/combine-two-tables.md', mockResponse);
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/sql/solutions/combine-two-tables.md');
+                const _event = {
+                    request,
+                    respondWith: jest.fn(),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
+        it('should handle SQL pattern markdown requests', async () => {
+            const mockResponse = new Response('# SQL Pattern', {
+                headers: { 'Content-Type': 'text/markdown' },
+            });
+
+            // Pre-cache the SQL pattern
+            const cache = await caches.open('smartgrind-problems');
+            await cache.put('https://example.com/smartgrind/sql/patterns/basic-inner-join.md', mockResponse);
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/sql/patterns/basic-inner-join.md');
+                const _event = {
+                    request,
+                    respondWith: jest.fn(),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
+        it('should handle flashcard markdown requests', async () => {
+            const mockResponse = new Response('# Flashcard', {
+                headers: { 'Content-Type': 'text/markdown' },
+            });
+
+            // Pre-cache the flashcard
+            const cache = await caches.open('smartgrind-problems');
+            await cache.put('https://example.com/smartgrind/flashcards/array-vs-linked-list.md', mockResponse);
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/flashcards/array-vs-linked-list.md');
+                const _event = {
+                    request,
+                    respondWith: jest.fn(),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
+        it('should fetch SQL files from network when not cached', async () => {
+            const mockResponse = new Response('# SQL Content', {
+                headers: { 'Content-Type': 'text/markdown' },
+            });
+
+            global.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+            const mockCache = {
+                match: jest.fn().mockResolvedValue(undefined),
+                put: jest.fn(),
+            };
+
+            (global.caches as unknown as { open: jest.Mock }).open = jest
+                .fn()
+                .mockResolvedValue(mockCache);
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/sql/solutions/new-sql-problem.md');
+                const _event = {
+                    request,
+                    respondWith: jest.fn(),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
+        it('should fetch flashcard files from network when not cached', async () => {
+            const mockResponse = new Response('# Flashcard Content', {
+                headers: { 'Content-Type': 'text/markdown' },
+            });
+
+            global.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+            const mockCache = {
+                match: jest.fn().mockResolvedValue(undefined),
+                put: jest.fn(),
+            };
+
+            (global.caches as unknown as { open: jest.Mock }).open = jest
+                .fn()
+                .mockResolvedValue(mockCache);
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/flashcards/new-flashcard.md');
+                const _event = {
+                    request,
+                    respondWith: jest.fn(),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
+        it('should return offline response for SQL files when not cached and offline', async () => {
+            const mockCache = {
+                match: jest.fn().mockResolvedValue(undefined),
+            };
+
+            (global.caches as unknown as { open: jest.Mock }).open = jest
+                .fn()
+                .mockResolvedValue(mockCache);
+            global.fetch = jest.fn().mockRejectedValue(new TypeError('Network error'));
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/sql/solutions/offline-sql.md');
+                const _event = {
+                    request,
+                    respondWith: jest.fn(),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
+        it('should return offline response for flashcards when not cached and offline', async () => {
+            const mockCache = {
+                match: jest.fn().mockResolvedValue(undefined),
+            };
+
+            (global.caches as unknown as { open: jest.Mock }).open = jest
+                .fn()
+                .mockResolvedValue(mockCache);
+            global.fetch = jest.fn().mockRejectedValue(new TypeError('Network error'));
+
+            await jest.isolateModules(async () => {
+                await import('../../src/sw/service-worker');
+            });
+
+            const fetchHandler = eventHandlers.get('fetch');
+
+            if (fetchHandler) {
+                const request = new Request('https://example.com/smartgrind/flashcards/offline-flashcard.md');
+                const _event = {
+                    request,
+                    respondWith: jest.fn(),
+                };
+
+                await fetchHandler(_event);
+                expect(_event.respondWith).toHaveBeenCalled();
+            }
+        });
+
         it('should skip non-GET requests', async () => {
             await jest.isolateModules(async () => {
                 await import('../../src/sw/service-worker');

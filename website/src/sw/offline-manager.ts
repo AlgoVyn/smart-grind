@@ -184,7 +184,10 @@ export class OfflineManager {
         const lastPart = pathParts[pathParts.length - 1];
         const pattern = lastPart?.replace('.md', '') || 'unknown';
 
-        if (pathParts.includes('patterns')) category = 'patterns';
+        // Check for more specific paths first (sql contains solutions/patterns subdirs)
+        if (pathParts.includes('sql')) category = 'sql';
+        else if (pathParts.includes('flashcards')) category = 'flashcards';
+        else if (pathParts.includes('patterns')) category = 'patterns';
         else if (pathParts.includes('solutions')) category = 'solutions';
         else if (pathParts.includes('algorithms')) category = 'algorithms';
 
@@ -248,6 +251,10 @@ export class OfflineManager {
             return `${base}/solutions/${metadata.id}.md`;
         } else if (metadata.category === 'algorithms') {
             return `${base}/algorithms/${metadata.id}.md`;
+        } else if (metadata.category === 'sql') {
+            return `${base}/sql/${metadata.id}.md`;
+        } else if (metadata.category === 'flashcards') {
+            return `${base}/flashcards/${metadata.id}.md`;
         }
         return `${base}/${metadata.id}.md`;
     }
