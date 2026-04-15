@@ -9,8 +9,8 @@ import {
 
 import type { TarFile } from '../../../src/sw/bundle/types';
 
-/** Maximum safe tar file size (15MB) - must match source */
-const MAX_TAR_SIZE = 15 * 1024 * 1024;
+/** Maximum safe tar file size (25MB) - must match source */
+const MAX_TAR_SIZE = 25 * 1024 * 1024;
 
 /** Maximum safe file count in tar archive - must match source */
 const MAX_TAR_FILES = 10000;
@@ -368,7 +368,7 @@ describe('parseTar', () => {
     });
 
     describe('Security Checks - Size Limits', () => {
-        it('should reject archive exceeding MAX_TAR_SIZE (15MB)', () => {
+        it('should reject archive exceeding MAX_TAR_SIZE', () => {
             const oversized = new Uint8Array(MAX_TAR_SIZE + 1);
             expect(() => parseTar(oversized)).toThrow(
                 `Tar archive too large: ${MAX_TAR_SIZE + 1} bytes (max: ${MAX_TAR_SIZE})`
@@ -389,20 +389,22 @@ describe('parseTar', () => {
         });
 
         it('should reject file with size exceeding MAX_TAR_SIZE', () => {
-            const header = createTarHeader('huge.bin', 100); // Small declared size
             const encoder = new TextEncoder();
 
-            // But actually set the size field to exceed limit
+            // Create header with size field exceeding MAX_TAR_SIZE
             const badHeader = new Uint8Array(512);
             badHeader.set(encoder.encode('huge.bin'), 0);
 
-            // Set size to exceed max
+            // Set size to exceed max (this is what triggers the validation error)
             const hugeSize = MAX_TAR_SIZE + 1000;
             const sizeStr = hugeSize.toString(8).padStart(11, '0') + ' ';
             badHeader.set(encoder.encode(sizeStr), 124);
             badHeader[156] = 48;
 
-            const archive = new Uint8Array(512 + 512 + 1024);
+            // Archive size must be <= MAX_TAR_SIZE to pass total size check,
+            // but large enough that the file size validation triggers before incomplete content check.
+            // Just use MAX_TAR_SIZE - the file size check happens before content extraction.
+            const archive = new Uint8Array(MAX_TAR_SIZE);
             archive.set(badHeader, 0);
 
             expect(() => parseTar(archive)).toThrow('Invalid tar entry size');
