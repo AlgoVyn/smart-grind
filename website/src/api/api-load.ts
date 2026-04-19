@@ -13,6 +13,10 @@ import { hideEl, showEl } from '../utils';
 
 /**
  * Gets response text with automatic decompression handling.
+ * Supports gzip, deflate, and brotli compression formats.
+ * Automatically detects uncompressed responses and handles them appropriately.
+ * @param response - The fetch Response object to process
+ * @returns Promise resolving to the decompressed response text
  */
 export async function _getResponseText(response: Response): Promise<string> {
     const contentEncoding = response.headers.get('Content-Encoding');
@@ -76,6 +80,9 @@ export async function _getResponseText(response: Response): Promise<string> {
 
 /**
  * Handles API response errors by throwing appropriate error messages.
+ * Maps HTTP status codes to user-friendly error messages.
+ * @param response - The fetch Response object with an error status
+ * @throws {Error} Always throws an error with a descriptive message
  */
 export const _handleApiError = (response: Response): never => {
     throw new Error(
@@ -86,6 +93,9 @@ export const _handleApiError = (response: Response): never => {
 /**
  * Processes the loaded user data and updates the application state.
  * Preserves existing local state when offline to prevent data loss.
+ * Normalizes problem data by setting UI-specific flags (loading, noteVisible).
+ * @param userData - The user data object containing problems and deletedIds
+ * @param isOfflineFallback - Whether this is an offline fallback load (preserves local state if true)
  */
 export const _processUserData = (userData: UserData, isOfflineFallback = false): void => {
     // If we're using offline fallback and already have local data, preserve it
@@ -105,6 +115,8 @@ export const _processUserData = (userData: UserData, isOfflineFallback = false):
 
 /**
  * Initializes the UI components after data has been loaded.
+ * Renders the sidebar, main view, and statistics. Shows the appropriate
+ * view based on current navigation state (category selected or combined view).
  */
 export const _initializeUI = async (): Promise<void> => {
     renderers.renderSidebar();
@@ -127,7 +139,19 @@ export const _initializeUI = async (): Promise<void> => {
 
 /**
  * Loads user data from the API and initializes the application.
+ *
+ * This is the main entry point for application initialization. It:
+ * 1. Shows the loading screen
+ * 2. Fetches user data from the remote API with credentials
+ * 3. Processes and normalizes the loaded data
+ * 4. Syncs the problem plan and merges structure
+ * 5. Initializes the UI components
+ *
  * Falls back to localStorage data when offline to preserve state.
+ * Handles authentication errors by showing the sign-in modal.
+ *
+ * @returns Promise that resolves when loading and initialization complete
+ * @throws {Error} Does not throw - errors are handled internally with user alerts
  */
 export const loadData = async (): Promise<void> => {
     const loadingScreen = state.elements['loadingScreen'] as HTMLElement | null;

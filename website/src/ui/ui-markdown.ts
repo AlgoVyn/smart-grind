@@ -8,7 +8,7 @@ import '../config/prism-config';
 
 import { getBaseUrl, showToast } from '../utils';
 import { data } from '../data';
-import { patterns, sqlSolutions } from './pattern-solutions';
+import { patterns, sqlSolutions } from './ui-pattern-solutions';
 import DOMPurify from 'dompurify';
 
 // BUNDLED DEPENDENCIES - Self-hosted for offline PWA support

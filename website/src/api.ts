@@ -17,13 +17,11 @@ import {
 } from './types/sync';
 import { sendMessageToSW, isServiceWorkerAvailable } from './sw/sw-messaging';
 import { SYNC_CONFIG } from './config/sync-config';
+import { MAX_PENDING_OPERATIONS, DEDUP_WINDOW_MS } from './config/limits';
 import { errorTracker } from './utils/error-tracker';
 
 // Re-export types
 export type { APIOperationType, APIOperation, SyncStatus } from './types/sync';
-
-/** Maximum number of pending operations to prevent localStorage quota exceeded */
-const MAX_PENDING_OPERATIONS = 1000;
 
 /** Key for storing pending operations in localStorage */
 const PENDING_OPS_KEY = 'pending-operations';
@@ -57,16 +55,107 @@ const safeParsePendingOps = (): APIOperation[] => {
 // Only used when Service Worker is available (for sync operations)
 // ============================================================================
 
-/** In-flight request deduplication map */
-const inFlightRequests = new Map<string, Promise<unknown>>();
+/** Entry in the in-flight requests map with timestamp for TTL cleanup */
+interface InFlightEntry {
+    promise: Promise<unknown>;
+    timestamp: number;
+}
 
-/** Deduplication window in milliseconds */
-const DEDUP_WINDOW_MS = 100;
+/** In-flight request deduplication map with TTL-based cleanup */
+const inFlightRequests = new Map<string, InFlightEntry>();
+
+/** Maximum number of entries to keep in the deduplication map */
+const MAX_INFLIGHT_ENTRIES = 100;
+
+/** TTL for in-flight requests in milliseconds (5 minutes) */
+const INFLIGHT_TTL_MS = 5 * 60 * 1000;
 
 /** Type for operation data with problemId */
 interface OperationData {
     problemId?: string;
     [key: string]: unknown;
+}
+
+/**
+ * Cleans up expired entries from the in-flight requests map
+ * This prevents memory leaks from stale entries
+ */
+const cleanupExpiredInFlightRequests = (): void => {
+    const now = Date.now();
+    let cleaned = 0;
+
+    for (const [key, entry] of inFlightRequests.entries()) {
+        if (now - entry.timestamp > INFLIGHT_TTL_MS) {
+            inFlightRequests.delete(key);
+            cleaned++;
+        }
+    }
+
+    if (cleaned > 0) {
+        console.log(`[API] Cleaned up ${cleaned} expired in-flight request(s)`);
+    }
+};
+
+/**
+ * Cleans up oldest entries when the map exceeds max size
+ * This prevents unbounded memory growth
+ */
+const cleanupOldestInFlightRequests = (): void => {
+    if (inFlightRequests.size <= MAX_INFLIGHT_ENTRIES) return;
+
+    // Sort by timestamp and remove oldest entries
+    const entries = Array.from(inFlightRequests.entries());
+    entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+    const toRemove = entries.slice(0, entries.length - MAX_INFLIGHT_ENTRIES);
+    for (const [key] of toRemove) {
+        inFlightRequests.delete(key);
+    }
+
+    console.log(
+        `[API] Cleaned up ${toRemove.length} oldest in-flight request(s) due to size limit`
+    );
+};
+
+/**
+ * Periodic cleanup to prevent memory leaks
+ * Runs every 60 seconds to clean up stale entries
+ */
+let cleanupInterval: ReturnType<typeof setInterval> | null = null;
+
+/** Request counter for lazy-starting the cleanup interval */
+let requestCount = 0;
+
+const startCleanupInterval = (): void => {
+    if (cleanupInterval) return; // Already running
+    cleanupInterval = setInterval(() => {
+        cleanupExpiredInFlightRequests();
+        cleanupOldestInFlightRequests();
+    }, 60000);
+    // Allow Node.js to exit if this is the only timer (for tests)
+    if (cleanupInterval.unref) {
+        cleanupInterval.unref();
+    }
+};
+
+/**
+ * Starts the cleanup interval lazily (only after first request)
+ */
+const maybeStartCleanup = (): void => {
+    requestCount++;
+    if (requestCount === 1) {
+        startCleanupInterval();
+    }
+};
+
+/**
+ * Stops the cleanup interval (useful for testing)
+ */
+export function stopDedupCleanup(): void {
+    if (cleanupInterval) {
+        clearInterval(cleanupInterval);
+        cleanupInterval = null;
+    }
 }
 
 /**
@@ -90,14 +179,23 @@ const generateDedupKey = (operation: APIOperation): string => {
  * @returns Promise resolving to the function result
  */
 async function withDedup<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    // Lazy-start cleanup interval on first request
+    maybeStartCleanup();
+
     // Check if there's already an in-flight request with this key
     const existing = inFlightRequests.get(key);
     if (existing) {
         console.log(`[API] Deduplicating request: ${key}`);
-        return existing as Promise<T>;
+        return existing.promise as Promise<T>;
+    }
+
+    // Clean up old entries if we're at the limit
+    if (inFlightRequests.size >= MAX_INFLIGHT_ENTRIES) {
+        cleanupOldestInFlightRequests();
     }
 
     // Create new request
+    const timestamp = Date.now();
     const promise = fn().finally(() => {
         // Clean up after completion (success or failure)
         setTimeout(() => {
@@ -105,8 +203,8 @@ async function withDedup<T>(key: string, fn: () => Promise<T>): Promise<T> {
         }, DEDUP_WINDOW_MS);
     });
 
-    // Store the in-flight request
-    inFlightRequests.set(key, promise);
+    // Store the in-flight request with timestamp
+    inFlightRequests.set(key, { promise, timestamp });
 
     return promise;
 }

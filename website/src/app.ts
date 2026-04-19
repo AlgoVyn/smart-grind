@@ -4,18 +4,11 @@
 import { state } from './state';
 import { data } from './data';
 import { api } from './api';
+import { LIMITS } from './config/limits';
 import { renderers } from './renderers';
 import { ui } from './ui/ui';
 import { showToast, hideEl, showEl } from './utils';
 import type { Problem } from './types';
-
-// Export data limits for sanitization
-const EXPORT_LIMITS = {
-    /** Maximum length for string values in exported data (10KB) */
-    MAX_STRING_LENGTH: 10000,
-    /** Maximum length for object keys in exported data */
-    MAX_KEY_LENGTH: 100,
-} as const;
 
 // Control characters regex: matches ASCII control characters (0x00-0x1F) and DEL (0x7F)
 const CONTROL_CHARS_REGEX = /[\x00-\x1F\x7F]/g;
@@ -77,7 +70,9 @@ export const initializeLocalUser = async (): Promise<void> => {
 const sanitizeExportData = (data: unknown): unknown => {
     if (typeof data === 'string') {
         // Remove control characters and limit length (more permissive than sanitizeInput for export)
-        return data.replace(CONTROL_CHARS_REGEX, '').slice(0, EXPORT_LIMITS.MAX_STRING_LENGTH);
+        return data
+            .replace(CONTROL_CHARS_REGEX, '')
+            .slice(0, LIMITS.STORAGE.MAX_EXPORT_STRING_LENGTH);
     }
     if (Array.isArray(data)) {
         return data.map(sanitizeExportData);
@@ -85,7 +80,7 @@ const sanitizeExportData = (data: unknown): unknown => {
     if (data && typeof data === 'object') {
         return Object.fromEntries(
             Object.entries(data).map(([key, value]) => [
-                key.replace(SAFE_KEY_REGEX, '').slice(0, EXPORT_LIMITS.MAX_KEY_LENGTH),
+                key.replace(SAFE_KEY_REGEX, '').slice(0, LIMITS.STORAGE.MAX_EXPORT_KEY_LENGTH),
                 sanitizeExportData(value),
             ])
         );

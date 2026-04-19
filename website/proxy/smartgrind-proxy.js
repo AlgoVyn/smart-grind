@@ -5,7 +5,7 @@ export default {
     // Define route mappings: path prefix -> target domain
     const routes = {
       "/smartgrind": "smart-grind.pages.dev",
-      "/markdown2social": "md-to-social.pages.dev"
+      "/marksocial": "mark-social.pages.dev"
     };
 
     // Find matching route

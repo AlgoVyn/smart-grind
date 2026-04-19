@@ -5,6 +5,7 @@ import { state } from './state';
 import { data } from './data';
 import type { Problem } from './types';
 import DOMPurify from 'dompurify';
+import { LIMITS } from './config/limits';
 
 // ============================================================================
 // DATE UTILITIES
@@ -101,7 +102,7 @@ export const sanitizeInput = (input: string | null | undefined): string => {
     sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [] });
 
     // Enforce length limit
-    return sanitized.slice(0, 200);
+    return sanitized.slice(0, LIMITS.STATE.MAX_INPUT_LENGTH);
 };
 
 export const sanitizeUrl = (url: string | null | undefined): string => {
@@ -115,7 +116,7 @@ export const sanitizeUrl = (url: string | null | undefined): string => {
     try {
         const withScheme = /^https?:\/\//i.test(lower) ? sanitized : 'https://' + sanitized;
         new URL(withScheme);
-        return withScheme.slice(0, 500);
+        return withScheme.slice(0, LIMITS.STATE.MAX_URL_LENGTH);
     } catch {
         return '';
     }

@@ -12,6 +12,12 @@ const callbacks: {
     onSaveError?: (_msg: string) => void;
     onViewUpdate?: () => void;
 } = {};
+
+/**
+ * Registers callbacks for save operation lifecycle events.
+ * Used by UI components to update state after save operations complete or fail.
+ * @param cb - Partial callback object containing the handlers to register
+ */
 export const registerSaveCallbacks = (cb: Partial<typeof callbacks>): void => {
     if (cb.onStatsUpdate) callbacks.onStatsUpdate = cb.onStatsUpdate;
     if (cb.onSaveError) callbacks.onSaveError = cb.onSaveError;
@@ -136,6 +142,12 @@ const debouncedSync = (): void => {
     }, SYNC_DEBOUNCE);
 };
 
+/**
+ * Performs a save operation, storing data locally and triggering remote sync for signed-in users.
+ * This is the core save function used by all other save operations.
+ * @returns Promise that resolves when the save operation completes
+ * @throws {Error} If the save operation fails and cannot be recovered
+ */
 export const _performSave = async (): Promise<void> => {
     await trySave(() => {
         state.saveToStorageDebounced();
@@ -144,8 +156,22 @@ export const _performSave = async (): Promise<void> => {
     if (state.user.type === 'signed-in') debouncedSync();
 };
 
+/**
+ * Saves a single problem's state to storage.
+ * This is a convenience wrapper around _performSave.
+ * @param _problem - Optional problem to save (currently unused, saves all state)
+ * @returns Promise that resolves when the save operation completes
+ */
 export const saveProblem = async (_problem?: Problem): Promise<void> => _performSave();
 
+/**
+ * Marks a problem as deleted and saves the state.
+ * The problem is removed from the active problems map and added to the deleted IDs set.
+ * This operation is reversible via recoverCleanedUpProblems().
+ * @param id - The unique identifier of the problem to delete
+ * @returns Promise that resolves when the delete operation completes
+ * @throws {Error} If the delete operation fails, automatically reverts the deletion
+ */
 export const saveDeletedId = async (id: string): Promise<void> => {
     const problem = state.problems.get(id);
     try {
@@ -165,8 +191,18 @@ export const saveDeletedId = async (id: string): Promise<void> => {
     }
 };
 
+/**
+ * Saves all user data to storage (local and remote if signed in).
+ * This is the main entry point for explicit save operations.
+ * @returns Promise that resolves when the save operation completes
+ */
 export const saveData = async (): Promise<void> => _performSave();
 
+/**
+ * Immediately flushes any pending sync operations without waiting for debounce.
+ * Use this when navigating away or when immediate persistence is required.
+ * @returns Promise that resolves when all pending operations are synced
+ */
 export const flushPendingSync = async (): Promise<void> => {
     if (syncTimer) {
         clearTimeout(syncTimer);
@@ -182,6 +218,10 @@ export const flushPendingSync = async (): Promise<void> => {
     }
 };
 
+/**
+ * Resets the debounce state. Primarily used for testing.
+ * Clears any pending sync timer and resets the last sync timestamp.
+ */
 export const _resetDebounceState = (): void => {
     if (syncTimer) {
         clearTimeout(syncTimer);
@@ -191,8 +231,23 @@ export const _resetDebounceState = (): void => {
     lastSync = 0;
 };
 
+/**
+ * Saves data to local storage with debouncing.
+ * @returns Promise that resolves when local save is queued
+ */
 export const _saveLocally = async (): Promise<void> => state.saveToStorageDebounced();
+
+/**
+ * Saves data to remote server immediately.
+ * @returns Promise that resolves when remote save completes
+ * @throws {Error} If offline or network request fails
+ */
 export const _saveRemotely = async (): Promise<void> => saveRemote(null);
+
+/**
+ * Triggers a debounced background sync operation.
+ * Used internally to queue sync operations without immediate execution.
+ */
 export const _triggerBackgroundSync = debouncedSync;
 
 // Page unload handler — uses fetch with keepalive for reliable CSRF-compliant saves.

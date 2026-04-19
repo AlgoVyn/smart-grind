@@ -2,6 +2,7 @@
 // Centralized state management for the application
 
 import { User, Problem, UIState, SyncStatusUpdate, FlashCardProgress } from './types';
+import { STORAGE_SAVE_DELAY, LIMITS } from './config/limits';
 import { data } from './data';
 import {
     cacheElements,
@@ -23,7 +24,6 @@ const _deletedProblemIds = new Set<string>();
 
 // Debounce timer for localStorage writes
 let storageSaveTimeout: ReturnType<typeof setTimeout> | null = null;
-const STORAGE_SAVE_DELAY = 300;
 
 const debouncedSaveToStorage = (saveFn: () => void): void => {
     if (storageSaveTimeout) clearTimeout(storageSaveTimeout);
@@ -202,7 +202,10 @@ export const state = {
         // instead of serializing the entire problems Map.
         // Threshold: incremental is faster when dirty count < 20% of total
         // or when there are fewer than 30 dirty problems.
-        const incrementalThreshold = Math.max(30, Math.floor(this.problems.size * 0.2));
+        const incrementalThreshold = Math.max(
+            LIMITS.STATE.INCREMENTAL_SAVE_MAX_DIRTY,
+            Math.floor(this.problems.size * LIMITS.STATE.INCREMENTAL_SAVE_PERCENTAGE)
+        );
         const useIncremental =
             hasDirtyState() &&
             dirtyProblemIds.size > 0 &&
@@ -299,18 +302,18 @@ export const state = {
         const deletedItems: Array<{ id: string; problem?: Problem; timestamp: number }> = [];
 
         // Limit deleted IDs to most recent 50
-        if (_deletedProblemIds.size > 100) {
+        if (_deletedProblemIds.size > LIMITS.STORAGE.CLEANUP_THRESHOLD) {
             const ids = [..._deletedProblemIds];
-            const toRemove = ids.slice(0, ids.length - 50);
+            const toRemove = ids.slice(0, ids.length - LIMITS.STORAGE.MAX_DELETED_IDS);
             _deletedProblemIds.clear();
-            for (const id of ids.slice(-50)) _deletedProblemIds.add(id);
+            for (const id of ids.slice(-LIMITS.STORAGE.MAX_DELETED_IDS)) _deletedProblemIds.add(id);
             freedCount += toRemove.length;
             toRemove.forEach((id) => deletedItems.push({ id, timestamp: Date.now() }));
             markDeletedIdsDirty();
         }
 
         // Remove old solved problems without notes if still needed
-        if (freedCount === 0 && _problems.size > 50) {
+        if (freedCount === 0 && _problems.size > LIMITS.STORAGE.MIN_PROBLEMS_BEFORE_CLEANUP) {
             const today = new Date().toISOString().split('T')[0]!;
             const candidates = [...this.problems.entries()]
                 .filter(
@@ -325,7 +328,10 @@ export const state = {
                 );
 
             const toRemove = candidates.slice(
-                -Math.min(Math.floor(this.problems.size * 0.2), candidates.length)
+                -Math.min(
+                    Math.floor(this.problems.size * LIMITS.STORAGE.CLEANUP_BATCH_SIZE),
+                    candidates.length
+                )
             );
             toRemove.forEach(([id, problem]) => {
                 this.deleteProblem(id);

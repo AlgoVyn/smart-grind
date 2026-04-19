@@ -12,10 +12,18 @@ import {
     flattenSQLData,
 } from './data/sql-data';
 
+/**
+ * Deep clone data using structuredClone API with JSON fallback.
+ * Note: structuredClone is supported in all modern browsers (Chrome 98+, Firefox 94+, Safari 15.4+, Edge 98+).
+ * Falls back to JSON.parse/stringify for legacy browsers (with limitations on Date, undefined, etc.).
+ */
 const cloneData = <T>(obj: T): T => {
     if (typeof structuredClone === 'function') {
         return structuredClone(obj);
     }
+    // Fallback for legacy browsers - JSON method has limitations (Dates become strings,
+    // undefined values stripped, circular refs throw). Warn to help debug data issues.
+    console.warn('[Data] Using JSON fallback clone - some types may not be preserved');
     return JSON.parse(JSON.stringify(obj));
 };
 

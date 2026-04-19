@@ -101,9 +101,14 @@ const bundleManager = new BundleManager(SW_VERSION);
 // ============================================================================
 
 function addCacheHeaders(response: Response): Response {
+    // SECURITY: Add security headers to cached responses
+    // These headers protect against clickjacking and MIME-type sniffing attacks
     const headers = new Headers(response.headers);
     headers.set('X-SW-Cached-At', Date.now().toString());
     headers.set('X-SW-Version', SW_VERSION);
+    headers.set('X-Frame-Options', 'DENY');
+    headers.set('X-Content-Type-Options', 'nosniff');
+    headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     return new Response(response.body, {
         status: response.status,
         statusText: response.statusText,

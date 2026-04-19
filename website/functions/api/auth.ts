@@ -14,6 +14,7 @@ interface Env {
 }
 
 import { KVNamespace, checkRateLimit } from './cloudflare-types';
+import { LIMITS } from '../../src/config/limits';
 
 /**
  * Safely serializes a value for embedding inside an inline <script> tag in HTML.
@@ -30,20 +31,31 @@ function safeJsonForScript(value: unknown): string {
         .replace(/>/g, '\\u003e');
 }
 
+/**
+ * Generates a cryptographically secure nonce for CSP.
+ * Used to allow specific inline scripts while blocking others.
+ */
+function generateNonce(): string {
+    return crypto.randomUUID();
+}
 
 
 /**
  * Creates an HTML response page for authentication callbacks.
- * Uses safeJsonForScript for all dynamic values to prevent XSS.
+ * Uses safeJsonForScript for all dynamic values and nonce-based CSP for inline scripts.
  * Sends a postMessage to the opener window (popup flow) or redirects (PWA flow).
  *
  * SECURITY: All dynamic values must go through safeJsonForScript before
- * embedding in inline script contexts. This prevents XSS via </script> escape.
+ * embedding in inline script contexts. The nonce parameter ensures only
+ * scripts with the matching nonce attribute are executed, eliminating the
+ * need for 'unsafe-inline' in the CSP.
+ *
  * PII (userId, displayName) is NOT included in URL parameters for PWA redirect.
  *
  * @param title - Page title shown in browser tab
  * @param type - 'auth-success' or 'auth-failure' message type
  * @param message - Human-readable message for display
+ * @param nonce - CSP nonce for the inline script
  * @param authData - Optional user data for success flow (userId, displayName)
  * @param statusCode - HTTP status code
  * @param extraHeaders - Optional additional headers (e.g., Set-Cookie, CSP)
@@ -52,6 +64,7 @@ function createAuthHtml(
     title: string,
     type: 'auth-success' | 'auth-failure',
     message: string,
+    nonce: string,
     authData?: { userId: string; displayName: string },
     statusCode: number = type === 'auth-success' ? 200 : 400,
     extraHeaders?: Record<string, string>
@@ -90,7 +103,7 @@ function createAuthHtml(
 <html>
 <head><title>${title}</title></head>
 <body>
-<script>${scriptBlock}</script>
+<script nonce="${nonce}">${scriptBlock}</script>
 <p>${message}</p>
 </body>
 </html>`;
@@ -154,7 +167,7 @@ async function signJWT(
     const secretKey = new TextEncoder().encode(secret);
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: 'HS256' })
-        .setExpirationTime(Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60) // 1 week
+        .setExpirationTime(Math.floor(Date.now() / 1000) + LIMITS.API.JWT_EXPIRATION_SECONDS)
         .sign(secretKey);
 }
 
@@ -174,7 +187,7 @@ function validateOAuthCode(
     params: URLSearchParams
 ): string | null {
     const code = params.get('code');
-    if (!code || typeof code !== 'string' || code.length > 1000) {
+    if (!code || typeof code !== 'string' || code.length > LIMITS.VALIDATION.MAX_OAUTH_CODE_LENGTH) {
         return null;
     }
     return code;
@@ -269,6 +282,7 @@ interface RequestContext {
  * 
  * SECURITY: Token is no longer exposed in HTML/URL. Client must fetch token via 
  * /api/auth/token endpoint after successful authentication using the HttpOnly cookie.
+ * Uses nonce-based CSP to eliminate 'unsafe-inline' requirement.
  * 
  * @param context - Cloudflare Pages Function context
  * @param context.request - The HTTP request (login initiation or callback)
@@ -287,7 +301,7 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
     // Validate environment configuration at startup
     validateEnvironment(env);
     // Rate limiting: 10 requests per minute (skip in tests)
-    if (typeof jest === 'undefined' && (await checkRateLimit(request, env, 10, 60))) {
+    if (typeof jest === 'undefined' && (await checkRateLimit(request, env, LIMITS.API.OAUTH_RATE_LIMIT, 60))) {
         return new Response('Rate limit exceeded', { status: 429 });
     }
 
@@ -299,7 +313,7 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
         // Generate random state for CSRF protection
         const state = crypto.randomUUID();
         // Store state in KV with short TTL (5 minutes)
-        await env.KV.put(`oauth_state_${state}`, 'valid', { expirationTtl: 300 });
+        await env.KV.put(`oauth_state_${state}`, 'valid', { expirationTtl: LIMITS.API.OAUTH_STATE_TTL });
 
         // Redirect to Google OAuth
         const googleAuthUrl =
@@ -318,14 +332,16 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
         // Verify state parameter
         const storedState = await env.KV.get(`oauth_state_${state}`);
         if (!storedState) {
-            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Invalid state.', undefined, 400);
+            const nonce = generateNonce();
+            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Invalid state.', nonce, undefined, 400);
         }
         // Delete used state
         await env.KV.delete(`oauth_state_${state}`);
 
         const code = validateOAuthCode(url.searchParams);
         if (!code) {
-            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Invalid code.', undefined, 400);
+            const nonce = generateNonce();
+            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Invalid code.', nonce, undefined, 400);
         }
 
         let tokenData: { access_token?: string };
@@ -349,17 +365,20 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
                     tokenResponse.status,
                     await tokenResponse.text()
                 );
-                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Token exchange error.', undefined, 500);
+                const nonce = generateNonce();
+                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Token exchange error.', nonce, undefined, 500);
             }
 
             tokenData = await tokenResponse.json() as { access_token?: string };
             if (!tokenData.access_token) {
                 console.error('No access token in response:', tokenData);
-                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: No access token.', undefined, 400);
+                const nonce = generateNonce();
+                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: No access token.', nonce, undefined, 400);
             }
         } catch (error) {
             console.error('Token exchange error:', error);
-            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Token exchange error.', undefined, 500);
+            const nonce = generateNonce();
+            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Token exchange error.', nonce, undefined, 500);
         }
 
         const accessToken = tokenData.access_token;
@@ -377,17 +396,20 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
                     userResponse.status,
                     await userResponse.text()
                 );
-                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: User info error.', undefined, 500);
+                const nonce = generateNonce();
+                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: User info error.', nonce, undefined, 500);
             }
 
             user = await userResponse.json() as { id?: string; name?: string; email?: string };
             if (!user.id) {
                 console.error('Invalid user data:', user);
-                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Invalid user data.', undefined, 400);
+                const nonce = generateNonce();
+                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Invalid user data.', nonce, undefined, 400);
             }
         } catch (error) {
             console.error('User info fetch error:', error);
-            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Network error.', undefined, 500);
+            const nonce = generateNonce();
+            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Network error.', nonce, undefined, 500);
         }
 
         const userId = user.id;
@@ -413,8 +435,12 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
             }
         } catch (error) {
             console.error('KV operation error:', error);
-            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Network error.', undefined, 500);
+            const nonce = generateNonce();
+            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Network error.', nonce, undefined, 500);
         }
+
+        // Generate CSP nonce for this request
+        const nonce = generateNonce();
 
         // Return HTML that handles auth for popup or fallback.
         // SECURITY: Token is NOT exposed in HTML/URL. Client must fetch token via /api/auth/token
@@ -428,12 +454,13 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
         // to fetch user info via /api/auth/token. This prevents PII exposure in browser history and logs.
 
         // Set httpOnly cookie with the JWT
-        const cookieHeader = `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}; Path=/smartgrind; Priority=High`;
+        const cookieHeader = `auth_token=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=${LIMITS.API.JWT_EXPIRATION_SECONDS}; Path=/smartgrind; Priority=High`;
 
-        // Comprehensive CSP to prevent XSS and other injection attacks
+        // Comprehensive CSP with nonce to prevent XSS and other injection attacks
+        // Eliminates 'unsafe-inline' by using the generated nonce
         const cspHeader = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline'", // Required for inline postMessage script
+            `script-src 'self' 'nonce-${nonce}'`,
             "style-src 'self' 'unsafe-inline' https://accounts.google.com",
             "img-src 'self' data: https:",
             "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com",
@@ -447,6 +474,7 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
             'Sign In Success',
             'auth-success',
             'Sign in successful! Redirecting...',
+            nonce,
             { userId, displayName },
             200,
             {
@@ -464,7 +492,7 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
     if (action === 'token') {
         // Rate limiting: 60 requests per minute for token fetches (skip in tests)
         // Separate from OAuth login/callback rate limit to allow frequent syncs
-        if (typeof jest === 'undefined' && (await checkRateLimit(request, env, 60, 60))) {
+        if (typeof jest === 'undefined' && (await checkRateLimit(request, env, LIMITS.API.TOKEN_RATE_LIMIT, 60))) {
             return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
                 status: 429,
                 headers: { 'Content-Type': 'application/json' },
@@ -507,7 +535,7 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
                 token, 
                 userId: payload.userId,
                 displayName: payload.displayName,
-                expiresIn: 7 * 24 * 60 * 60 // 1 week
+                expiresIn: LIMITS.API.JWT_EXPIRATION_SECONDS
             }), {
                 headers: { 'Content-Type': 'application/json' },
             });

@@ -413,33 +413,40 @@ const showSetupModal = async () => {
 // Main Auth Check
 // ============================================================================
 
-const checkAuth = async () => {
-    // Track if update toast has already been shown (prevents duplicates)
-    let updateToastShown = false;
+// ============================================================================
+// Main Auth Check - Refactored into smaller, testable units
+// ============================================================================
 
+/** State for tracking if update toast has already been shown */
+let updateToastShown = false;
+
+/**
+ * Sets up Service Worker event listeners for auth and update events
+ * @returns Cleanup function to remove event listeners
+ */
+const setupSWEventListeners = (): (() => void) => {
     // Listen for auth required events from Service Worker
-    swRegister.on('authRequired', (data: unknown) => {
+    const authRequiredHandler = (data: unknown) => {
         const { message } = (data || {}) as { message?: string };
         console.warn('[Init] Auth required:', message);
         openSigninModal();
         showToast('Session expired. Please sign in again.', 'error');
-    });
+    };
 
     // Listen for update available events (first install or new version)
-    swRegister.on('updateAvailable', (data: unknown) => {
+    const updateAvailableHandler = (data: unknown) => {
         const { reason } = (data || {}) as { reason?: string };
         console.log('[Init] Update available:', reason);
 
         // For updates (not first install), show notification
-        // For first install, bundleReady event will handle it
         if (reason !== 'first-install' && !updateToastShown) {
             updateToastShown = true;
             showToast('New version is ready, reload', 'success', 15000);
         }
-    });
+    };
 
     // Listen for bundle ready - show toast after offline bundle is fully extracted
-    swRegister.on('bundleReady', (data: unknown) => {
+    const bundleReadyHandler = (data: unknown) => {
         const { bundleVersion, downloadedAt } = (data || {}) as {
             bundleVersion?: string;
             downloadedAt?: number;
@@ -455,32 +462,72 @@ const checkAuth = async () => {
             updateToastShown = true;
             showToast('New version is ready, reload', 'success', 15000);
         }
-    });
+    };
 
-    const categoryParam = getCategoryFromUrl();
-    const algorithmsParam = getAlgorithmsFromUrl();
-    const sqlParam = getSQLFromUrl();
+    swRegister.on('authRequired', authRequiredHandler);
+    swRegister.on('updateAvailable', updateAvailableHandler);
+    swRegister.on('bundleReady', bundleReadyHandler);
+
+    // Return cleanup function
+    // Currently a no-op - event handlers remain registered for application lifetime.
+    // Implement swRegister.off() if dynamic registration/unregistration is needed.
+    return () => {
+        console.log('[Init] SW event listeners cleanup (no-op - handlers persist)');
+    };
+};
+
+/**
+ * Resets the update toast shown flag (useful for testing)
+ */
+export const resetUpdateToastFlag = (): void => {
+    updateToastShown = false;
+};
+
+/**
+ * Handles OAuth success callback from PWA redirect
+ * SECURITY: PII is NOT passed via URL parameters.
+ */
+const handleAuthFlowCallback = async (
+    categoryParam: string | null,
+    algorithmsParam: string | null,
+    sqlParam: string | null
+): Promise<boolean> => {
     const urlParams = new URLSearchParams(window.location.search);
     const authSuccess = urlParams.get('auth') === 'success';
-    // Handle auth=success callback (PWA redirect from OAuth)
-    // SECURITY: PII (userId, displayName) is NOT passed via URL parameters.
-    // Instead, we use the HttpOnly cookie to fetch user info via /api/auth/token.
-    if (authSuccess) {
-        const success = await handleAuthSuccessCallback(categoryParam, algorithmsParam, sqlParam);
-        if (success) {
-            // Clean up auth parameter from URL after successful auth (no PII in URL)
-            window.history.replaceState({}, document.title, window.location.pathname);
-            return;
-        }
-    }
 
-    // Check for existing session
+    if (!authSuccess) return false;
+
+    const success = await handleAuthSuccessCallback(categoryParam, algorithmsParam, sqlParam);
+    if (success) {
+        // Clean up auth parameter from URL after successful auth (no PII in URL)
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    return success;
+};
+
+/**
+ * Attempts to restore an existing user session
+ */
+const attemptSessionRestore = async (
+    categoryParam: string | null,
+    algorithmsParam: string | null,
+    sqlParam: string | null
+): Promise<boolean> => {
     const userId = localStorage.getItem('userId');
-    if (userId && (await handleExistingSession(userId, categoryParam, algorithmsParam, sqlParam))) {
-        return;
-    }
+    if (!userId) return false;
 
-    // Default to local user or show setup modal
+    return await handleExistingSession(userId, categoryParam, algorithmsParam, sqlParam);
+};
+
+/**
+ * Initializes the appropriate user flow based on user type
+ */
+const initializeUserFlow = async (
+    categoryParam: string | null,
+    algorithmsParam: string | null,
+    sqlParam: string | null
+): Promise<void> => {
+    const userId = localStorage.getItem('userId');
     const userType = localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE);
 
     if (userType === 'local' || (!userId && !userType)) {
@@ -491,7 +538,41 @@ const checkAuth = async () => {
     } else {
         await showSetupModal();
     }
+};
 
+/**
+ * Main authentication check function
+ * Orchestrates the auth flow by delegating to smaller, focused functions
+ */
+const checkAuth = async () => {
+    // Reset toast flag at start of new auth check
+    updateToastShown = false;
+
+    // Setup event listeners
+    const cleanupListeners = setupSWEventListeners();
+    registerCleanup(cleanupListeners);
+
+    // Get URL parameters
+    const categoryParam = getCategoryFromUrl();
+    const algorithmsParam = getAlgorithmsFromUrl();
+    const sqlParam = getSQLFromUrl();
+
+    // Try OAuth callback flow first
+    const callbackHandled = await handleAuthFlowCallback(categoryParam, algorithmsParam, sqlParam);
+    if (callbackHandled) {
+        await safeInitOfflineDetection();
+        return;
+    }
+
+    // Try to restore existing session
+    const sessionRestored = await attemptSessionRestore(categoryParam, algorithmsParam, sqlParam);
+    if (sessionRestored) {
+        await safeInitOfflineDetection();
+        return;
+    }
+
+    // Initialize appropriate user flow
+    await initializeUserFlow(categoryParam, algorithmsParam, sqlParam);
     await safeInitOfflineDetection();
 };
 

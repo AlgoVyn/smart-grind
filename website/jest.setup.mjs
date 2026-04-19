@@ -2,6 +2,14 @@
 import 'jest-environment-jsdom';
 import { TextEncoder, TextDecoder } from 'util';
 
+// TODO: Remove when project minimum Node version is >= 17.
+// Polyfill structuredClone for Jest/jsdom environment (not available in Node < 17)
+if (typeof global.structuredClone !== "function") {
+  global.structuredClone = function structuredClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  };
+}
+
 // Mock base URL for Vite environment
 global.window.VITE_BASE_URL = '/smartgrind/';
 
