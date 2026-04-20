@@ -4,7 +4,7 @@
 
 import { state } from '../state';
 import { renderers } from '../renderers';
-import { openPatternSolutionModal, openProblemSQLSolutionModal } from './ui-markdown';
+import { openPatternSolutionModal, openSQLSolutionModal } from './ui-markdown';
 
 // Bind problem-related events using event delegation
 export const bindProblemEvents = () => {
@@ -22,7 +22,7 @@ export const bindProblemEvents = () => {
         if (sqlSolutionButton) {
             const patternName = sqlSolutionButton.dataset['pattern'];
             if (patternName) {
-                openProblemSQLSolutionModal(patternName);
+                openSQLSolutionModal(patternName);
             }
             return;
         }

@@ -32,6 +32,8 @@ jest.mock('../../src/utils', () => ({
     getUniqueProblemIdsForTopic: jest.fn(() => new Set()),
     getUniqueProblemsForTopic: jest.fn(() => ({ total: 10, solved: 5, due: 0 })),
     getAllUniqueProblemsIncludingAlgorithms: jest.fn(() => ({ total: 15, solved: 7, due: 2 })),
+    updateBreadcrumbs: jest.fn(),
+    generateBreadcrumbs: jest.fn(() => []),
 }));
 
 // Mock state module

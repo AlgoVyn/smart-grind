@@ -4,7 +4,7 @@
 import { Topic, Problem } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-import { getToday, shouldShowProblem } from '../utils';
+import { getToday, shouldShowProblem, updateBreadcrumbs, generateBreadcrumbs } from '../utils';
 // renderers import removed to break cycle
 import { api } from '../api';
 import { ICONS } from './icons';
@@ -101,6 +101,7 @@ export const mainViewRenderers = {
         if (container) container.innerHTML = '';
 
         mainViewRenderers._setViewTitle(state.ui.activeTopicId);
+        updateBreadcrumbs(generateBreadcrumbs());
 
         // Update date filter for review/solved modes
         const showDateFilter = ['review', 'solved'].includes(state.ui.currentFilter);
@@ -242,6 +243,7 @@ export const mainViewRenderers = {
 
         container.innerHTML = '';
         mainViewRenderers._setAlgorithmViewTitle(categoryId);
+        updateBreadcrumbs(generateBreadcrumbs());
 
         // Update date filter for review/solved modes
         const showDateFilter = ['review', 'solved'].includes(state.ui.currentFilter);

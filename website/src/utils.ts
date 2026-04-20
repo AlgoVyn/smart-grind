@@ -576,3 +576,87 @@ export const copyToClipboard = async (text: string): Promise<void> => {
     }
     fallback();
 };
+
+// ============================================================================
+// BREADCRUMB UTILITIES
+// ============================================================================
+
+interface BreadcrumbItem {
+    label: string;
+    href?: string;
+}
+
+export const updateBreadcrumbs = (items: BreadcrumbItem[]): void => {
+    const breadcrumbNav = document.getElementById('breadcrumb-nav');
+    const breadcrumbList = document.getElementById('breadcrumb-list');
+    if (!breadcrumbNav || !breadcrumbList) return;
+
+    // Show/hide breadcrumb nav based on items
+    if (items.length === 0) {
+        breadcrumbNav.classList.add('hidden');
+        return;
+    }
+    breadcrumbNav.classList.remove('hidden');
+
+    // Build breadcrumb HTML
+    breadcrumbList.innerHTML = items
+        .map((item, index) => {
+            const isLast = index === items.length - 1;
+            if (isLast) {
+                return `<li class="text-theme-bold font-medium" aria-current="page">${_escapeBreadcrumbHtml(item.label)}</li>`;
+            }
+            return `<li><a href="${item.href || '#'}" class="hover:text-brand-400 transition-colors">${_escapeBreadcrumbHtml(item.label)}</a><span class="mx-1 text-theme-muted">/</span></li>`;
+        })
+        .join('');
+};
+
+// Generate breadcrumbs based on current route
+export const generateBreadcrumbs = (): BreadcrumbItem[] => {
+    const path = window.location.pathname;
+    const pathMatch = path.match(/^\/smartgrind\/(c|a|s)\/([^/]+)$/);
+
+    if (!pathMatch) {
+        // Default/Dashboard view - no breadcrumbs needed
+        return [];
+    }
+
+    const type = pathMatch[1];
+    const id = pathMatch[2];
+
+    if (!type || !id) {
+        return [];
+    }
+
+    const typeLabels: Record<string, string> = {
+        c: 'Patterns',
+        a: 'Algorithms',
+        s: 'SQL',
+    };
+    const typeUrls: Record<string, string> = {
+        c: '/smartgrind/',
+        a: '/smartgrind/',
+        s: '/smartgrind/',
+    };
+
+    // Find the category name from data
+    let categoryName = id.replace(/-/g, ' ');
+
+    // Try to find in topics data for patterns
+    const topic = data.topicsData.find((t) => t.id === id);
+    if (topic) {
+        categoryName = topic.title;
+    }
+
+    return [
+        { label: 'Home', href: typeUrls[type] || '/smartgrind/' },
+        { label: typeLabels[type] || 'Category', href: typeUrls[type] || '/smartgrind/' },
+        { label: categoryName },
+    ];
+};
+
+// Escape HTML for safe rendering
+const _escapeBreadcrumbHtml = (text: string): string => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+};

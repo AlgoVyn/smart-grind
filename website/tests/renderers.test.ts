@@ -53,6 +53,8 @@ jest.mock('../src/utils', () => ({
     removeItem: jest.fn(),
     showEl: jest.fn(),
     hideEl: jest.fn(),
+    updateBreadcrumbs: jest.fn(),
+    generateBreadcrumbs: jest.fn(() => []),
     STORAGE_KEYS: {
         PROBLEMS: jest.fn(() => 'problems'),
         DELETED_IDS: jest.fn(() => 'deleted_ids'),

@@ -1,3 +1,18 @@
 User-agent: *
 Allow: /
+
+# Sitemap Index (contains links to all sitemaps)
+Sitemap: https://algovyn.com/smartgrind/sitemap-index.xml
+
+# Individual Sitemaps (for backwards compatibility)
 Sitemap: https://algovyn.com/smartgrind/sitemap.xml
+
+# Crawl-delay for better server performance
+Crawl-delay: 1
+
+# Disallow non-essential paths
+Disallow: /api/
+Disallow: /*?filter=
+Disallow: /*?search=
+Allow: /?filter=review
+Allow: /?filter=solved

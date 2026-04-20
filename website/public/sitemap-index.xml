@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://algovyn.com/smartgrind/sitemap-main.xml</loc>
+    <lastmod>2026-04-20</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://algovyn.com/smartgrind/sitemap-patterns.xml</loc>
+    <lastmod>2026-04-20</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://algovyn.com/smartgrind/sitemap-algorithms.xml</loc>
+    <lastmod>2026-04-20</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://algovyn.com/smartgrind/sitemap-sql.xml</loc>
+    <lastmod>2026-04-20</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://algovyn.com/smartgrind/sitemap-problems.xml</loc>
+    <lastmod>2026-04-20</lastmod>
+  </sitemap>
+</sitemapindex>
