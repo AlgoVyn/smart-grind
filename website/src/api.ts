@@ -67,6 +67,9 @@ const inFlightRequests = new Map<string, InFlightEntry>();
 /** Maximum number of entries to keep in the deduplication map */
 const MAX_INFLIGHT_ENTRIES = 100;
 
+/** Hard maximum - triggers immediate aggressive cleanup when reached */
+const HARD_MAX_INFLIGHT = 200;
+
 /** TTL for in-flight requests in milliseconds (5 minutes) */
 const INFLIGHT_TTL_MS = 5 * 60 * 1000;
 
@@ -97,10 +100,28 @@ const cleanupExpiredInFlightRequests = (): void => {
 };
 
 /**
- * Cleans up oldest entries when the map exceeds max size
- * This prevents unbounded memory growth
+ * Cleans up oldest entries when the map exceeds max size.
+ * This prevents unbounded memory growth.
+ * If HARD_MAX_INFLIGHT is exceeded, clears 50% of entries aggressively.
  */
 const cleanupOldestInFlightRequests = (): void => {
+    // Hard limit check - aggressive cleanup if we're critically over limit
+    if (inFlightRequests.size >= HARD_MAX_INFLIGHT) {
+        const entries = Array.from(inFlightRequests.entries());
+        // Sort by timestamp (oldest first)
+        entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+        // Remove the oldest 50%
+        const toRemove = entries.slice(0, Math.floor(entries.length / 2));
+        for (const [key] of toRemove) {
+            inFlightRequests.delete(key);
+        }
+        console.warn(
+            `[API] HARD LIMIT REACHED: Aggressively cleaned up ${toRemove.length} in-flight request(s)`
+        );
+        return;
+    }
+
+    // Soft limit - normal cleanup
     if (inFlightRequests.size <= MAX_INFLIGHT_ENTRIES) return;
 
     // Sort by timestamp and remove oldest entries
@@ -116,7 +137,6 @@ const cleanupOldestInFlightRequests = (): void => {
         `[API] Cleaned up ${toRemove.length} oldest in-flight request(s) due to size limit`
     );
 };
-
 /**
  * Periodic cleanup to prevent memory leaks
  * Runs every 60 seconds to clean up stale entries

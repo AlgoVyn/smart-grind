@@ -125,7 +125,10 @@ export default defineConfig({
                         // Only add if not already at the very beginning
                         if (!content.startsWith(prismFix)) {
                             content = prismFix + content;
-                            fs.writeFileSync(chunkPath, content);
+                            // ATOMIC WRITE: Write to temp file then rename
+                            const tempPath = chunkPath + '.tmp';
+                            fs.writeFileSync(tempPath, content);
+                            fs.renameSync(tempPath, chunkPath);
                             console.log('[vite] Prism worker handler fix injected at top of', markdownChunk);
                         } else {
                             console.log('[vite] Prism fix already at top of', markdownChunk);
@@ -160,7 +163,10 @@ export default defineConfig({
                         '$1/smartgrind/assets/js/'
                     );
                     
-                    fs.writeFileSync(swFile, swContent);
+                    // ATOMIC WRITE: Write to temp file then rename
+                    const tempPath = swFile + '.tmp';
+                    fs.writeFileSync(tempPath, swContent);
+                    fs.renameSync(tempPath, swFile);
                     console.log('[vite] Service worker imports fixed to use absolute paths');
                 } catch (error) {
                     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -225,7 +231,10 @@ export default defineConfig({
                     
                     const updatedContent = swContent.replace(placeholder, replacement);
                     
-                    fs.writeFileSync(swFile, updatedContent);
+                    // ATOMIC WRITE: Write to temp file then rename
+                    const tempPath = swFile + '.tmp';
+                    fs.writeFileSync(tempPath, updatedContent);
+                    fs.renameSync(tempPath, swFile);
                     console.log(`[vite] Service worker version injected: ${version}`);
                 } catch (error) {
                     const errorMessage = error instanceof Error ? error.message : String(error);

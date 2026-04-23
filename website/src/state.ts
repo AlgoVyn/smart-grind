@@ -12,6 +12,7 @@ import {
     setStringItem,
     type ElementCache,
 } from './utils';
+import { validateProblem, validateFlashCardProgress, sanitizeProblemId } from './utils/validation';
 
 // ============================================================================
 // PRIVATE STATE — Mutable collections backing the readonly public getters.
@@ -178,11 +179,62 @@ export const state = {
         );
 
         _problems.clear();
-        for (const [k, v] of Object.entries(problemsObj)) _problems.set(k, v);
+        let invalidProblemCount = 0;
+        for (const [k, v] of Object.entries(problemsObj)) {
+            // Validate problem ID
+            const sanitizedId = sanitizeProblemId(k);
+            if (!sanitizedId) {
+                console.warn('[State] Skipping problem with invalid ID:', k);
+                invalidProblemCount++;
+                continue;
+            }
+
+            // Validate problem data
+            const validation = validateProblem(v);
+            if (!validation.valid) {
+                console.warn(
+                    '[State] Skipping invalid problem data:',
+                    sanitizedId,
+                    validation.errors
+                );
+                invalidProblemCount++;
+                continue;
+            }
+
+            _problems.set(sanitizedId, validation.data!);
+        }
+
+        if (invalidProblemCount > 0) {
+            console.warn(
+                `[State] Loaded ${invalidProblemCount} invalid/problematic problems from storage`
+            );
+        }
+
         _problems.forEach((p) => (p.loading = false));
         _deletedProblemIds.clear();
-        for (const id of deletedIdsArr) _deletedProblemIds.add(id);
-        this.flashCardProgress = new Map(Object.entries(flashCardProgressObj));
+        for (const id of deletedIdsArr) {
+            const sanitizedId = sanitizeProblemId(id);
+            if (sanitizedId) {
+                _deletedProblemIds.add(sanitizedId);
+            }
+        }
+
+        // Validate flashcard progress entries
+        const validatedFlashCards = new Map<string, FlashCardProgress>();
+        for (const [k, v] of Object.entries(flashCardProgressObj)) {
+            const cardValidation = validateFlashCardProgress(v);
+            if (cardValidation.valid) {
+                validatedFlashCards.set(k, cardValidation.data!);
+            } else {
+                console.warn(
+                    '[State] Skipping invalid flashcard progress:',
+                    k,
+                    cardValidation.errors
+                );
+            }
+        }
+        this.flashCardProgress = validatedFlashCards;
+
         this.user.displayName = getStringItem(keys.displayName, isSignedIn ? '' : 'Local User');
         this.user.type = getStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, 'local') as
             | 'local'
@@ -371,8 +423,15 @@ export const state = {
         let recovered = 0;
         for (const item of this.storage.lastCleanupDeleted) {
             if (item.problem && !_problems.has(item.id)) {
-                this.setProblem(item.id, item.problem);
-                recovered++;
+                const success = this.setProblem(item.id, item.problem);
+                if (success) {
+                    recovered++;
+                } else {
+                    console.error(
+                        `[State] Failed to recover problem during cleanup recovery: ${item.id}`,
+                        item.problem
+                    );
+                }
             }
         }
 
@@ -424,13 +483,30 @@ export const state = {
 
     /**
      * Sets a problem in the problems Map and marks it dirty for incremental saving.
+     * Validates the problem data before storage to prevent corrupted data.
      * Use this instead of state.problems.set() to ensure proper dirty tracking.
      * @param id - The problem ID
      * @param problem - The problem object
+     * @returns true if problem was set successfully, false if validation failed
      */
-    setProblem(id: string, problem: Problem): void {
-        _problems.set(id, problem);
-        markProblemDirty(id);
+    setProblem(id: string, problem: Problem): boolean {
+        // Validate the problem ID
+        const sanitizedId = sanitizeProblemId(id);
+        if (!sanitizedId) {
+            console.error('[State] Invalid problem ID:', id);
+            return false;
+        }
+
+        // Validate the problem data
+        const validation = validateProblem(problem);
+        if (!validation.valid) {
+            console.error('[State] Problem validation failed:', validation.errors, problem);
+            return false;
+        }
+
+        _problems.set(sanitizedId, validation.data!);
+        markProblemDirty(sanitizedId);
+        return true;
     },
 
     /**

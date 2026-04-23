@@ -855,6 +855,7 @@ describe('ui-modals', () => {
             (state as unknown as Record<string, unknown>).problems = mockProblems;
             (state as unknown as Record<string, unknown>).setProblem = jest.fn((id: string, problem: unknown) => {
                 mockProblems.set(id, problem);
+                return true; // Return success to match new signature
             });
             (state as unknown as Record<string, unknown>).ui = { activeTopicId: 'arrays' };
         });

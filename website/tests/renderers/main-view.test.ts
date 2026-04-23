@@ -249,7 +249,10 @@ describe('mainViewRenderers', () => {
     beforeEach(() => {
 
         // Make state methods actually update the mock Map/Set
-        (state.setProblem as jest.Mock).mockImplementation((id: string, p: any) => { (state.problems as Map<string, any>).set(id, p); });
+        (state.setProblem as jest.Mock).mockImplementation((id: string, p: any) => {
+            (state.problems as Map<string, any>).set(id, p);
+            return true; // Return success to match new signature
+        });
         (state.deleteProblem as jest.Mock).mockImplementation((id: string) => { (state.problems as Map<string, any>).delete(id); });
         (state.clearProblems as jest.Mock).mockImplementation(() => { (state.problems as Map<string, any>).clear(); });
         (state.addDeletedId as jest.Mock).mockImplementation((id: string) => { (state.deletedProblemIds as Set<string>).add(id); });

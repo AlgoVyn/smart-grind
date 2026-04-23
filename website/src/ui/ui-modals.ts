@@ -366,7 +366,13 @@ export const saveNewProblem = async () => {
         return;
     }
 
-    state.setProblem(newProb.id, newProb);
+    const success = state.setProblem(newProb.id, newProb);
+    if (!success) {
+        showToast('Failed to save problem: validation failed', 'error');
+        console.error('[UI] Failed to add problem: setProblem validation failed', newProb);
+        return;
+    }
+
     api.mergeStructure();
     await api.saveProblem(newProb);
     await _updateUIAfterAddingProblem();

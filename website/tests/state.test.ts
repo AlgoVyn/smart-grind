@@ -80,11 +80,11 @@ describe('SmartGrind State', () => {
 
             state.loadFromStorage();
 
-            expect(state.problems.get('1')).toEqual({
+            expect(state.problems.get('1')).toEqual(expect.objectContaining({
                 id: '1',
                 name: 'Test Problem',
                 loading: false,
-            });
+            }));
             expect(state.deletedProblemIds.has('2')).toBe(true);
             expect(state.deletedProblemIds.has('3')).toBe(true);
             expect(state.user.displayName).toBe('Test User');
@@ -109,6 +109,57 @@ describe('SmartGrind State', () => {
 
             // Verify setItem was called for each key
             expect(mockSetItem).toHaveBeenCalled();
+        });
+    });
+
+    describe('setProblem', () => {
+        test('returns true and stores valid problem', () => {
+            const result = state.setProblem('valid-id', { 
+                id: 'valid-id', 
+                name: 'Valid Problem',
+                status: 'unsolved'
+            });
+            
+            expect(result).toBe(true);
+            expect(state.problems.has('valid-id')).toBe(true);
+        });
+
+        test('returns false for invalid problem ID', () => {
+            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+            
+            const result = state.setProblem('', { 
+                id: '', 
+                name: 'Invalid ID Problem' 
+            });
+            
+            expect(result).toBe(false);
+            expect(state.problems.has('')).toBe(false);
+            
+            consoleSpy.mockRestore();
+        });
+
+        test('returns false for problem with invalid data', () => {
+            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+            
+            // Test with null as problem data
+            const result = state.setProblem('test-id', null as unknown as Record<string, unknown>);
+            
+            expect(result).toBe(false);
+            expect(state.problems.has('test-id')).toBe(false);
+            
+            consoleSpy.mockRestore();
+        });
+
+        test('sanitizes problem ID before storage', () => {
+            const result = state.setProblem('  valid-id-123  ', { 
+                id: 'valid-id-123', 
+                name: 'Test Problem' 
+            });
+            
+            expect(result).toBe(true);
+            // Should be stored with trimmed ID
+            expect(state.problems.has('valid-id-123')).toBe(true);
+            expect(state.problems.has('  valid-id-123  ')).toBe(false);
         });
     });
 

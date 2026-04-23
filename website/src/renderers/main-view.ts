@@ -266,7 +266,16 @@ export const mainViewRenderers = {
 
             const problem = mainViewRenderers._algorithmToProblem(algoDef, catId);
             if (!state.problems.has(algoDef.id)) {
-                state.setProblem(algoDef.id, problem);
+                const success = state.setProblem(algoDef.id, problem);
+                if (!success) {
+                    console.error(
+                        '[MainView] Failed to initialize algorithm problem:',
+                        algoDef.id,
+                        problem
+                    );
+                    // Skip rendering this card if we can't store the problem
+                    return;
+                }
             }
 
             // Apply the same filtering logic as pattern problems
@@ -284,7 +293,16 @@ export const mainViewRenderers = {
                     if (state.deletedProblemIds.has(algoDef.id)) return;
                     const problem = mainViewRenderers._algorithmToProblem(algoDef, category.id);
                     if (!state.problems.has(algoDef.id)) {
-                        state.setProblem(algoDef.id, problem);
+                        const success = state.setProblem(algoDef.id, problem);
+                        if (!success) {
+                            console.error(
+                                '[MainView] Failed to initialize algorithm problem:',
+                                algoDef.id,
+                                problem
+                            );
+                            // Skip this algorithm if we can't store it
+                            return;
+                        }
                     }
                     if (shouldShowProblem(problem, state.ui.currentFilter, searchQuery, today)) {
                         matchingAlgorithms.push(algoDef);

@@ -184,7 +184,19 @@ export const saveDeletedId = async (id: string): Promise<void> => {
         callbacks.onSaveError?.(`Failed to delete problem: ${msg}`);
         showToast(`Failed to delete problem: ${msg}`, 'error');
         if (problem) {
-            state.setProblem(id, problem);
+            const restored = state.setProblem(id, problem);
+            if (!restored) {
+                console.error('[API] Failed to restore problem after delete error:', id, problem);
+                showToast(
+                    'Critical: Problem data may be corrupted. Please refresh the page.',
+                    'error'
+                );
+                // Still try to remove from deleted IDs since we couldn't restore it
+                state.removeDeletedId(id);
+                throw new Error(
+                    `Failed to restore problem ${id} after delete error: validation failed`
+                );
+            }
             state.removeDeletedId(id);
         }
         throw e;

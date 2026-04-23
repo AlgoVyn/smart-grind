@@ -31,6 +31,9 @@ jest.mock('../src/utils', () => ({
     showToast: mockShowToast,
 }));
 
+// Ensure validation module gets actual implementation
+jest.unmock('../src/utils/validation');
+
 // Now import the module
 import {
     getToday,

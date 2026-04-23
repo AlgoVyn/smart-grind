@@ -37,6 +37,7 @@ jest.mock('../src/utils', () => ({
     isValidDate: jest.fn(),
     deepClone: jest.fn((obj) => JSON.parse(JSON.stringify(obj))),
     generateId: jest.fn(() => 'test-id'),
+    sanitizeInput: jest.fn((str) => str),
     truncate: jest.fn((str) => str),
     capitalize: jest.fn((str) => str.charAt(0).toUpperCase() + str.slice(1)),
     kebabToTitle: jest.fn((str) => str.replace(/-/g, ' ')),
