@@ -6,7 +6,7 @@ import { data } from '../data';
 import { Topic } from '../types';
 import { AlgorithmCategory } from '../data/algorithms-data';
 import { SQLCategory } from '../data/sql-data';
-import { getToday } from '../utils';
+import { getToday, shouldShowProblem } from '../utils';
 import { htmlGenerators } from './html-generators';
 import { sqlViewRenderers } from './sql-view';
 import { mainViewRenderers } from './main-view';
@@ -81,10 +81,20 @@ export const combinedViewRenderers = {
         algorithmsHeader.textContent = 'Algorithms';
         algorithmsSection.appendChild(algorithmsHeader);
 
-        // Render all algorithm categories
+        // Render all algorithm categories (with filtering)
+        const searchQuery =
+            (state.elements?.['problemSearch'] as HTMLInputElement | null)?.value
+                ?.toLowerCase()
+                .trim() || '';
         data.algorithmsData.forEach((category: AlgorithmCategory) => {
-            const categoryEl = combinedViewRenderers.renderAlgorithmCategory(category);
-            algorithmsSection.appendChild(categoryEl);
+            const categoryEl = combinedViewRenderers.renderAlgorithmCategory(
+                category,
+                searchQuery,
+                today
+            );
+            if (categoryEl) {
+                algorithmsSection.appendChild(categoryEl);
+            }
         });
 
         container.appendChild(algorithmsSection);
@@ -101,17 +111,40 @@ export const combinedViewRenderers = {
         sqlHeader.textContent = 'SQL';
         sqlSection.appendChild(sqlHeader);
 
-        // Render all SQL categories
+        // Render all SQL categories (with filtering)
         data.sqlData.forEach((category: SQLCategory) => {
-            const categoryEl = sqlViewRenderers.renderSQLCategoryViewForCombined(category);
-            sqlSection.appendChild(categoryEl);
+            const categoryEl = sqlViewRenderers.renderSQLCategoryViewForCombined(
+                category,
+                searchQuery,
+                today
+            );
+            if (categoryEl) {
+                sqlSection.appendChild(categoryEl);
+            }
         });
 
         container.appendChild(sqlSection);
     },
 
     // Render algorithm category for combined view
-    renderAlgorithmCategory: (category: AlgorithmCategory): HTMLElement => {
+    renderAlgorithmCategory: (
+        category: AlgorithmCategory,
+        searchQuery: string = '',
+        today: string
+    ): HTMLElement | null => {
+        const currentFilter = state.ui?.currentFilter || 'all';
+        // Collect visible algorithms first
+        const visibleAlgorithms: Array<{ id: string; name: string; url: string }> = [];
+        category.algorithms.forEach((algo: { id: string; name: string; url: string }) => {
+            const problem = state.problems.get(algo.id);
+            if (problem && shouldShowProblem(problem, currentFilter, searchQuery, today)) {
+                visibleAlgorithms.push(algo);
+            }
+        });
+
+        // Don't render category if no visible algorithms
+        if (visibleAlgorithms.length === 0) return null;
+
         const section = document.createElement('div');
         section.className = 'mb-8';
 
@@ -126,7 +159,7 @@ export const combinedViewRenderers = {
         const grid = document.createElement('div');
         grid.className = 'grid grid-cols-1 gap-3';
 
-        category.algorithms.forEach((algo: { id: string; name: string; url: string }) => {
+        visibleAlgorithms.forEach((algo) => {
             const problem = state.problems.get(algo.id);
             if (problem) {
                 const { className, innerHTML } = htmlGenerators.generateProblemCardHTML(problem);

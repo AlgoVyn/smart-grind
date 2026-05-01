@@ -4,7 +4,7 @@
 import { SQLCategory, SQLTopic, SQLPattern, getSQLCategoryById } from '../data/sql-data';
 import { state } from '../state';
 import { Problem, ProblemDef } from '../types';
-import { updateUrlParameter, scrollToTop } from '../utils';
+import { updateUrlParameter, scrollToTop, shouldShowProblem } from '../utils';
 import { sidebarRenderers } from './sidebar';
 import { renderers } from '../renderers';
 import { htmlGenerators } from './html-generators';
@@ -275,7 +275,11 @@ export const sqlViewRenderers = {
     },
 
     // Render SQL category for combined view (returns HTMLElement instead of appending to container)
-    renderSQLCategoryViewForCombined: (category: SQLCategory): HTMLElement => {
+    renderSQLCategoryViewForCombined: (
+        category: SQLCategory,
+        searchQuery: string = '',
+        today: string
+    ): HTMLElement | null => {
         const section = document.createElement('div');
         section.className = 'mb-8';
 
@@ -286,17 +290,33 @@ export const sqlViewRenderers = {
         categoryHeader.textContent = category.title;
         section.appendChild(categoryHeader);
 
-        // Render all topics in this category
+        let hasVisibleContent = false;
+
+        // Render all topics in this category (with filtering)
         category.topics.forEach((topic) => {
-            const topicSection = sqlViewRenderers.renderSQLTopicForCombined(topic, category.title);
-            section.appendChild(topicSection);
+            const topicSection = sqlViewRenderers.renderSQLTopicForCombined(
+                topic,
+                category.title,
+                searchQuery,
+                today
+            );
+            if (topicSection) {
+                hasVisibleContent = true;
+                section.appendChild(topicSection);
+            }
         });
 
-        return section;
+        // Don't render category if no visible content
+        return hasVisibleContent ? section : null;
     },
 
     // Render SQL topic for combined view
-    renderSQLTopicForCombined: (topic: SQLTopic, categoryTitle: string): HTMLElement => {
+    renderSQLTopicForCombined: (
+        topic: SQLTopic,
+        categoryTitle: string,
+        searchQuery: string = '',
+        today: string
+    ): HTMLElement | null => {
         const section = document.createElement('section');
         section.className = 'mb-6';
 
@@ -311,25 +331,35 @@ export const sqlViewRenderers = {
 
         section.appendChild(topicHeader);
 
-        // Render patterns
+        let hasVisiblePatterns = false;
+
+        // Render patterns (with filtering)
         topic.patterns.forEach((pattern) => {
             const patternSection = sqlViewRenderers.renderSQLPatternForCombined(
                 pattern,
                 topic.name,
-                categoryTitle
+                categoryTitle,
+                searchQuery,
+                today
             );
-            section.appendChild(patternSection);
+            if (patternSection) {
+                hasVisiblePatterns = true;
+                section.appendChild(patternSection);
+            }
         });
 
-        return section;
+        // Don't render topic if no visible patterns
+        return hasVisiblePatterns ? section : null;
     },
 
     // Render SQL pattern for combined view
     renderSQLPatternForCombined: (
         pattern: SQLPattern,
         topicName: string,
-        _categoryTitle: string
-    ): HTMLElement => {
+        _categoryTitle: string,
+        searchQuery: string = '',
+        today: string
+    ): HTMLElement | null => {
         const section = document.createElement('div');
         section.className = 'mb-4';
 
@@ -362,23 +392,33 @@ export const sqlViewRenderers = {
 
         section.appendChild(patternHeader);
 
-        // Problems grid
+        // Problems grid (with filtering)
         const problemsGrid = document.createElement('div');
         problemsGrid.className = 'grid grid-cols-1 gap-3';
 
+        let hasVisibleProblems = false;
+
+        const currentFilter = state.ui?.currentFilter || 'all';
         pattern.problems.forEach((problemDef) => {
             const problem = sqlViewRenderers.initializeSQLProblem(
                 problemDef,
                 topicName,
                 pattern.name
             );
-            const { className, innerHTML } = htmlGenerators.generateProblemCardHTML(problem);
-            const card = document.createElement('div');
-            card.className = className;
-            card.setAttribute('data-problem-id', problem.id);
-            card.innerHTML = innerHTML;
-            problemsGrid.appendChild(card);
+            // Apply filter
+            if (shouldShowProblem(problem, currentFilter, searchQuery, today)) {
+                hasVisibleProblems = true;
+                const { className, innerHTML } = htmlGenerators.generateProblemCardHTML(problem);
+                const card = document.createElement('div');
+                card.className = className;
+                card.setAttribute('data-problem-id', problem.id);
+                card.innerHTML = innerHTML;
+                problemsGrid.appendChild(card);
+            }
         });
+
+        // Don't render pattern if no visible problems
+        if (!hasVisibleProblems) return null;
 
         section.appendChild(problemsGrid);
         return section;

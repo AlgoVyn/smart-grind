@@ -130,6 +130,7 @@ jest.mock('../../src/utils', () => ({
         return date.toISOString().split('T')[0];
     }),
     formatDate: jest.fn((date: string) => date),
+    shouldShowProblem: jest.fn((_problem, _filter, _searchQuery, _today) => true),
 }));
 
 jest.mock('../../src/renderers/sidebar', () => ({
@@ -893,13 +894,16 @@ describe('sqlViewRenderers', () => {
         test('adds solution button for combined view', () => {
             const pattern = {
                 name: 'Basic SELECT with WHERE',
-                problems: [],
+                problems: [
+                    { id: 'sql-175', name: 'Combine Two Tables', url: 'https://leetcode.com/problems/combine-two-tables/' },
+                ],
             };
 
             const result = sqlViewRenderers.renderSQLPatternForCombined(pattern, 'SELECT Fundamentals', 'SQL Basics');
 
-            // Solution button should be appended
-            expect(result.appendChild).toHaveBeenCalled();
+            // Solution button should be appended (when there are visible problems)
+            expect(result).not.toBeNull();
+            expect(result!.appendChild).toHaveBeenCalled();
         });
 
         test('initializes and creates cards for all problems', () => {
@@ -956,20 +960,35 @@ describe('sqlViewRenderers', () => {
                     {
                         id: 'topic-1',
                         name: 'Topic 1',
-                        patterns: [],
+                        patterns: [
+                            {
+                                name: 'Pattern with Problem',
+                                problems: [
+                                    { id: 'sql-175', name: 'Combine Two Tables', url: 'https://leetcode.com/problems/combine-two-tables/' },
+                                ],
+                            },
+                        ],
                     },
                     {
                         id: 'topic-2',
                         name: 'Topic 2',
-                        patterns: [],
+                        patterns: [
+                            {
+                                name: 'Another Pattern',
+                                problems: [
+                                    { id: 'sql-181', name: 'Employees Earning More Than Their Managers', url: 'https://leetcode.com/problems/employees-earning-more-than-their-managers/' },
+                                ],
+                            },
+                        ],
                     },
                 ],
             };
 
             const result = sqlViewRenderers.renderSQLCategoryViewForCombined(category);
 
-            // Should append 2 topics + 1 category header
-            expect(result.appendChild).toHaveBeenCalled();
+            // Should have visible content with problems
+            expect(result).not.toBeNull();
+            expect(result!.appendChild).toHaveBeenCalled();
         });
     });
 

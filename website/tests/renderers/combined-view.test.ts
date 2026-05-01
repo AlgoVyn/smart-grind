@@ -27,6 +27,7 @@ jest.mock('@/data', () => ({
 
 jest.mock('@/utils', () => ({
     getToday: jest.fn(() => '2025-06-15'),
+    shouldShowProblem: jest.fn((_problem: Problem, _filter: string, _searchQuery: string, _today: string) => true),
 }));
 
 jest.mock('@/renderers/html-generators', () => ({
@@ -276,10 +277,10 @@ describe('combinedViewRenderers', () => {
 
         test('renders SQL section with all categories', async () => {
             await combinedViewRenderers.renderCombinedView();
-            
+
             expect(sqlViewRenderers.renderSQLCategoryViewForCombined).toHaveBeenCalledTimes(mockSQLCategories.length);
-            expect(sqlViewRenderers.renderSQLCategoryViewForCombined).toHaveBeenCalledWith(mockSQLCategories[0]);
-            
+            expect(sqlViewRenderers.renderSQLCategoryViewForCombined).toHaveBeenCalledWith(mockSQLCategories[0], '', '2025-06-15');
+
             const headers = mockContainer.querySelectorAll('h2');
             const sqlHeader = Array.from(headers).find(h => h.textContent === 'SQL');
             expect(sqlHeader).toBeTruthy();
