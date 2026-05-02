@@ -68,6 +68,86 @@ export const ALGORITHMS_DATA: AlgorithmCategory[] = [
                 name: 'Cyclic Sort',
                 url: 'https://leetcode.com/problems/missing-number/',
             },
+            {
+                id: 'algo-stack',
+                name: 'Stack (LIFO Data Structure)',
+                url: 'https://leetcode.com/problems/valid-parentheses/',
+            },
+            {
+                id: 'algo-difference-array',
+                name: 'Difference Array',
+                url: 'https://leetcode.com/problems/range-addition/',
+            },
+            {
+                id: 'algo-heap-sort',
+                name: 'Heap Sort',
+                url: 'https://leetcode.com/problems/sort-an-array/',
+            },
+            {
+                id: 'algo-monotonic-deque',
+                name: 'Monotonic Deque',
+                url: 'https://leetcode.com/problems/sliding-window-maximum/',
+            },
+            {
+                id: 'algo-bubble-sort',
+                name: 'Bubble Sort',
+                url: 'https://leetcode.com/problems/sort-an-array/',
+            },
+            {
+                id: 'algo-insertion-sort',
+                name: 'Insertion Sort',
+                url: 'https://leetcode.com/problems/sort-an-array/',
+            },
+            {
+                id: 'algo-selection-sort',
+                name: 'Selection Sort',
+                url: 'https://leetcode.com/problems/sort-an-array/',
+            },
+            {
+                id: 'algo-merge-sort',
+                name: 'Merge Sort',
+                url: 'https://leetcode.com/problems/sort-an-array/',
+            },
+            {
+                id: 'algo-quick-sort',
+                name: 'Quick Sort',
+                url: 'https://leetcode.com/problems/sort-an-array/',
+            },
+            {
+                id: 'algo-count-inversions',
+                name: 'Count Inversions',
+                url: 'https://leetcode.com/problems/global-and-local-inversions/',
+            },
+            {
+                id: 'algo-interleaving-placement',
+                name: 'Interleaving Placement',
+                url: 'https://leetcode.com/problems/wiggle-sort/',
+            },
+            {
+                id: 'algo-at-most-to-equal',
+                name: 'At Most To Equal',
+                url: 'https://leetcode.com/problems/partition-to-k-equal-sum-subsets/',
+            },
+            {
+                id: 'algo-left-to-right-state-transition',
+                name: 'Left To Right State Transition',
+                url: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock/',
+            },
+            {
+                id: 'algo-quick-select',
+                name: 'Quick Select',
+                url: 'https://leetcode.com/problems/kth-largest-element-in-an-array/',
+            },
+            {
+                id: 'algo-binary-answer',
+                name: 'Binary Answer (Search on Answer)',
+                url: 'https://leetcode.com/problems/koko-eating-bananas/',
+            },
+            {
+                id: 'algo-reverse-polish-notation',
+                name: 'Reverse Polish Notation (Postfix)',
+                url: 'https://leetcode.com/problems/evaluate-reverse-polish-notation/',
+            },
         ],
     },
     {
@@ -150,6 +230,67 @@ export const ALGORITHMS_DATA: AlgorithmCategory[] = [
                 name: 'Trie (Prefix Tree)',
                 url: 'https://leetcode.com/problems/implement-trie-prefix-tree/',
             },
+            {
+                id: 'algo-tree-ring-order-traversal',
+                name: 'Tree Ring Order Traversal (年轮遍历)',
+                url: 'https://leetcode.com/problems/binary-tree-level-order-traversal/',
+            },
+            {
+                id: 'algo-tree-diameter',
+                name: 'Tree Diameter',
+                url: 'https://leetcode.com/problems/diameter-of-binary-tree/',
+            },
+            {
+                id: 'algo-avl-tree',
+                name: 'AVL Tree (Self-Balancing BST)',
+                url: 'https://leetcode.com/problems/insert-into-a-binary-search-tree/',
+            },
+            {
+                id: 'algo-treap',
+                name: 'Treap (Tree + Heap)',
+                url: 'https://leetcode.com/problems/insert-into-a-binary-search-tree/',
+            },
+        ],
+    },
+    {
+        id: 'strings',
+        title: 'String Algorithms',
+        algorithms: [
+            {
+                id: 'algo-kmp',
+                name: 'KMP (Knuth-Morris-Pratt)',
+                url: 'https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/',
+            },
+            {
+                id: 'algo-rabin-karp',
+                name: 'Rabin-Karp',
+                url: 'https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/',
+            },
+            {
+                id: 'algo-manachers',
+                name: "Manacher's Algorithm",
+                url: 'https://leetcode.com/problems/longest-palindromic-substring/',
+            },
+            {
+                id: 'algo-z-algorithm',
+                name: 'Z Algorithm',
+                url: 'https://leetcode.com/problems/implement-strstr/',
+            },
+            {
+                id: 'algo-aho-corasick',
+                name: 'Aho-Corasick (Multi-pattern Matching)',
+                url: 'https://leetcode.com/problems/multi-search/',
+            },
+            {
+                id: 'algo-string-processing',
+                name: 'String Processing Techniques',
+                url: 'https://leetcode.com/problems/string-compression/',
+            },
+            {
+                id: 'algo-palindrome',
+                name: 'Palindrome Algorithms',
+                url: 'https://leetcode.com/problems/valid-palindrome/',
+            },
         ],
     },
     {
@@ -205,6 +346,56 @@ export const ALGORITHMS_DATA: AlgorithmCategory[] = [
                 id: 'algo-a-star',
                 name: 'A* Search',
                 url: 'https://leetcode.com/problems/shortest-path-in-binary-matrix/',
+            },
+            {
+                id: 'algo-bidirectional-bfs',
+                name: 'Bidirectional BFS',
+                url: 'https://leetcode.com/problems/word-ladder/',
+            },
+            {
+                id: 'algo-kosaraju',
+                name: "Kosaraju's Algorithm (SCC)",
+                url: 'https://leetcode.com/problems/critical-connections-in-a-network/',
+            },
+            {
+                id: 'algo-bridge-finding',
+                name: 'Bridge Finding',
+                url: 'https://leetcode.com/problems/critical-connections-in-a-network/',
+            },
+            {
+                id: 'algo-bipartite-check',
+                name: 'Bipartite Check',
+                url: 'https://leetcode.com/problems/is-graph-bipartite/',
+            },
+            {
+                id: 'algo-eulerian-path',
+                name: 'Eulerian Path/Circuit',
+                url: 'https://leetcode.com/problems/reconstruct-itinerary/',
+            },
+            {
+                id: 'algo-max-bipartite-matching',
+                name: 'Maximum Bipartite Matching',
+                url: 'https://leetcode.com/problems/maximum-matching-of-players-with-trainers/',
+            },
+            {
+                id: 'algo-2sat',
+                name: '2-SAT (Satisfiability)',
+                url: 'https://leetcode.com/problems/course-schedule-iv/',
+            },
+            {
+                id: 'algo-component-coloring',
+                name: 'Component Coloring',
+                url: 'https://leetcode.com/problems/bicoloring/',
+            },
+            {
+                id: 'algo-johnson',
+                name: "Johnson's Algorithm (All Pairs Shortest Path)",
+                url: 'https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/',
+            },
+            {
+                id: 'algo-spfa',
+                name: 'SPFA (Shortest Path Faster Algorithm)',
+                url: 'https://leetcode.com/problems/cheapest-flights-within-k-stops/',
             },
         ],
     },
@@ -262,6 +453,56 @@ export const ALGORITHMS_DATA: AlgorithmCategory[] = [
                 name: 'Word Break',
                 url: 'https://leetcode.com/problems/word-break/',
             },
+            {
+                id: 'algo-bitmask-dp',
+                name: 'Bitmask DP',
+                url: 'https://leetcode.com/problems/maximum-compatibility-score-sum/',
+            },
+            {
+                id: 'algo-digit-dp',
+                name: 'Digit DP',
+                url: 'https://leetcode.com/problems/numbers-at-most-n-given-digit-set/',
+            },
+            {
+                id: 'algo-dp-on-trees',
+                name: 'DP on Trees',
+                url: 'https://leetcode.com/problems/house-robber-iii/',
+            },
+            {
+                id: 'algo-bounded-knapsack',
+                name: 'Bounded Knapsack',
+                url: 'https://leetcode.com/problems/combination-sum-iv/',
+            },
+            {
+                id: 'algo-unbounded-knapsack',
+                name: 'Unbounded Knapsack',
+                url: 'https://leetcode.com/problems/coin-change/',
+            },
+            {
+                id: 'algo-dp-on-subsets',
+                name: 'DP on Subsets',
+                url: 'https://leetcode.com/problems/maximum-compatibility-score-sum/',
+            },
+            {
+                id: 'algo-dp-with-sorting',
+                name: 'DP with Sorting',
+                url: 'https://leetcode.com/problems/russian-doll-envelopes/',
+            },
+            {
+                id: 'algo-k-subset-partitioning',
+                name: 'K-Subset Partitioning',
+                url: 'https://leetcode.com/problems/partition-to-k-equal-sum-subsets/',
+            },
+            {
+                id: 'algo-prefix-state-map',
+                name: 'Prefix State Map DP',
+                url: 'https://leetcode.com/problems/subarray-sums-divisible-by-k/',
+            },
+            {
+                id: 'algo-selective-state-dp',
+                name: 'Selective State DP',
+                url: 'https://leetcode.com/problems/greatest-sum-divisible-by-three/',
+            },
         ],
     },
     {
@@ -287,6 +528,21 @@ export const ALGORITHMS_DATA: AlgorithmCategory[] = [
                 id: 'algo-gas-station',
                 name: 'Gas Station',
                 url: 'https://leetcode.com/problems/gas-station/',
+            },
+            {
+                id: 'algo-bin-packing',
+                name: 'Bin Packing',
+                url: 'https://leetcode.com/problems/maximum-units-on-a-truck/',
+            },
+            {
+                id: 'algo-regret-greedy',
+                name: 'Regret Greedy',
+                url: 'https://leetcode.com/problems/advantage-shuffle/',
+            },
+            {
+                id: 'algo-interval-scheduling-maximization',
+                name: 'Interval Scheduling Maximization',
+                url: 'https://leetcode.com/problems/maximum-number-of-events-that-can-be-attended/',
             },
         ],
     },
@@ -453,6 +709,101 @@ export const ALGORITHMS_DATA: AlgorithmCategory[] = [
                 name: 'Karatsuba Multiplication',
                 url: 'https://leetcode.com/problems/multiply-strings/',
             },
+            {
+                id: 'algo-fast-pow',
+                name: 'Fast Pow (Binary Exponentiation)',
+                url: 'https://leetcode.com/problems/powx-n/',
+            },
+            {
+                id: 'algo-get-digits',
+                name: 'Get Digits (Digit Extraction)',
+                url: 'https://leetcode.com/problems/numbers-with-same-consecutive-differences/',
+            },
+            {
+                id: 'algo-median-minimizes-sum-of-absolute-deviations',
+                name: 'Median Minimizes Sum of Absolute Deviations',
+                url: 'https://leetcode.com/problems/best-position-for-a-service-centre/',
+            },
+            {
+                id: 'algo-mode',
+                name: 'Mode (Most Frequent Element)',
+                url: 'https://leetcode.com/problems/find-mode-in-binary-search-tree/',
+            },
+            {
+                id: 'algo-prime-number',
+                name: 'Prime Number (Primality Testing)',
+                url: 'https://leetcode.com/problems/count-primes/',
+            },
+            {
+                id: 'algo-round-up',
+                name: 'Round Up (Ceiling Division)',
+                url: 'https://leetcode.com/problems/concatenation-of-consecutive-binary-numbers/',
+            },
+            {
+                id: 'algo-stars-and-bars',
+                name: 'Stars and Bars (Combinatorics)',
+                url: 'https://leetcode.com/problems/number-of-ways-to-form-a-target-string-given-a-dictionary/',
+            },
+            {
+                id: 'algo-sum-of-sequence',
+                name: 'Sum of Sequence (Arithmetic/Geometric)',
+                url: 'https://leetcode.com/problems/missing-number-in-arithmetic-progression/',
+            },
+            {
+                id: 'algo-factorial',
+                name: 'Factorial',
+                url: 'https://leetcode.com/problems/factorial-trailing-zeroes/',
+            },
+            {
+                id: 'algo-factorization',
+                name: 'Prime Factorization',
+                url: 'https://leetcode.com/problems/2-keys-keyboard/',
+            },
+            {
+                id: 'algo-lcm',
+                name: 'LCM (Least Common Multiple)',
+                url: 'https://leetcode.com/problems/ugly-number-ii/',
+            },
+            {
+                id: 'algo-date',
+                name: 'Date Algorithms',
+                url: 'https://leetcode.com/problems/day-of-the-week/',
+            },
+            {
+                id: 'algo-geometry',
+                name: 'Computational Geometry Basics',
+                url: 'https://leetcode.com/problems/erect-the-fence/',
+            },
+            {
+                id: 'algo-component-count',
+                name: 'Connected Component Count',
+                url: 'https://leetcode.com/problems/number-of-provinces/',
+            },
+            {
+                id: 'algo-meet-in-middle',
+                name: 'Meet in the Middle',
+                url: 'https://leetcode.com/problems/closest-subsequence-sum/',
+            },
+            {
+                id: 'algo-gray-code',
+                name: 'Gray Code',
+                url: 'https://leetcode.com/problems/gray-code/',
+            },
+            {
+                id: 'algo-tsp',
+                name: 'Traveling Salesman Problem',
+                url: 'https://leetcode.com/problems/find-the-shortest-superstring/',
+            },
+            {
+                id: 'algo-convex-hull',
+                name: 'Convex Hull (Graham Scan)',
+                url: 'https://leetcode.com/problems/erect-the-fence/',
+            },
+            {
+                id: 'algo-minmax',
+                name: 'Minimax Algorithm',
+                url: 'https://leetcode.com/problems/predict-the-winner/',
+            },
         ],
     },
     {
@@ -475,21 +826,6 @@ export const ALGORITHMS_DATA: AlgorithmCategory[] = [
                 url: 'https://leetcode.com/problems/range-sum-query-immutable/',
             },
             {
-                id: 'algo-kmp',
-                name: 'KMP String Matching',
-                url: 'https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/',
-            },
-            {
-                id: 'algo-rabin-karp',
-                name: 'Rabin-Karp',
-                url: 'https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/',
-            },
-            {
-                id: 'algo-manachers',
-                name: "Manacher's Algorithm",
-                url: 'https://leetcode.com/problems/longest-palindromic-substring/',
-            },
-            {
                 id: 'algo-union-by-rank',
                 name: 'Union by Rank + Path Compression',
                 url: 'https://leetcode.com/problems/accounts-merge/',
@@ -505,9 +841,79 @@ export const ALGORITHMS_DATA: AlgorithmCategory[] = [
                 url: 'https://leetcode.com/problems/kth-ancestor-of-a-tree-node/',
             },
             {
+                id: 'algo-heavy-light-decomposition',
+                name: 'Heavy Light Decomposition',
+                url: 'https://leetcode.com/problems/kth-ancestor-of-a-tree-node/',
+            },
+            {
+                id: 'algo-persistent-segment-tree',
+                name: 'Persistent Segment Tree',
+                url: 'https://leetcode.com/problems/range-sum-query-mutable/',
+            },
+            {
+                id: 'algo-dinic',
+                name: "Dinic's Algorithm (Max Flow)",
+                url: 'https://leetcode.com/problems/maximum-number-of-accepted-invitations/',
+            },
+            {
                 id: 'algo-lru-cache',
                 name: 'LRU Cache',
                 url: 'https://leetcode.com/problems/lru-cache/',
+            },
+            {
+                id: 'algo-discretization',
+                name: 'Coordinate Compression (Discretization)',
+                url: 'https://leetcode.com/problems/range-sum-query-mutable/',
+            },
+            {
+                id: 'algo-divide-and-conquer',
+                name: 'Divide and Conquer',
+                url: 'https://leetcode.com/problems/construct-quad-tree/',
+            },
+            {
+                id: 'algo-hungarian',
+                name: 'Hungarian Algorithm (Assignment Problem)',
+                url: 'https://leetcode.com/problems/maximum-number-of-accepted-invitations/',
+            },
+            {
+                id: 'algo-io-optimization',
+                name: 'IO Optimization (Fast IO)',
+                url: 'https://codeforces.com/problemset/problem/4/A',
+            },
+            {
+                id: 'algo-lazy-propagation',
+                name: 'Lazy Propagation (Segment Tree)',
+                url: 'https://leetcode.com/problems/range-sum-query-mutable/',
+            },
+            {
+                id: 'algo-line-sweep',
+                name: 'Line Sweep Algorithm',
+                url: 'https://leetcode.com/problems/rectangle-area-ii/',
+            },
+            {
+                id: 'algo-offline-query',
+                name: 'Offline Query Processing',
+                url: 'https://leetcode.com/problems/process-queries/',
+            },
+            {
+                id: 'algo-p-and-np',
+                name: 'P vs NP Theory',
+                url: 'https://leetcode.com/problems/partition-to-k-equal-sum-subsets/',
+            },
+            {
+                id: 'algo-randomized-algorithms',
+                name: 'Randomized Algorithms',
+                url: 'https://leetcode.com/problems/random-pick-with-blacklist/',
+            },
+            {
+                id: 'algo-reservoir-sampling',
+                name: 'Reservoir Sampling',
+                url: 'https://leetcode.com/problems/linked-list-random-node/',
+            },
+            {
+                id: 'algo-sqrt-decomposition',
+                name: "Sqrt Decomposition (Mo's Algorithm)",
+                url: 'https://leetcode.com/problems/range-sum-query-mutable/',
             },
         ],
     },
