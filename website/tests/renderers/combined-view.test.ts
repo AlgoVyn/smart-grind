@@ -6,7 +6,8 @@
 // Mock dependencies before importing the module - use path alias for consistent resolution
 jest.mock('@/state', () => ({
     state: {
-        problems: new Map(),        setProblem: jest.fn(),
+        problems: new Map(),
+        setProblem: jest.fn(),
         deleteProblem: jest.fn(),
         clearProblems: jest.fn(),
         addDeletedId: jest.fn(),
@@ -14,7 +15,14 @@ jest.mock('@/state', () => ({
         clearDeletedIds: jest.fn(),
         replaceProblems: jest.fn(),
         replaceDeletedIds: jest.fn(),
-    },
+        ui: {
+            currentFilter: 'all',
+            reviewDateFilter: null,
+            activeTopicId: '',
+            activeAlgorithmCategoryId: null,
+            activeSQLCategoryId: null,
+            preferredAI: 'chatgpt',
+        },    },
 }));
 
 jest.mock('@/data', () => ({
@@ -69,6 +77,15 @@ jest.mock('@/api', () => ({
     },
 }));
 
+// Mock ui module for toggleDateFilterVisibility and populateDateFilter
+jest.mock('@/ui/ui', () => ({
+    ui: {
+        toggleDateFilterVisibility: jest.fn(),
+        populateDateFilter: jest.fn(),
+        updateDateFilterForCurrentMode: jest.fn(),
+    },
+}));
+
 // Now import the module - use path alias
 import { combinedViewRenderers } from '@/renderers/combined-view';
 import { state } from '@/state';
@@ -83,6 +100,7 @@ import { sqlViewRenderers } from '@/renderers/sql-view';
 import { mainViewRenderers } from '@/renderers/main-view';
 import { ICONS } from '@/renderers/icons';
 import { api } from '@/api';
+import { ui } from '@/ui/ui';
 
 describe('combinedViewRenderers', () => {
     // Mock data structures

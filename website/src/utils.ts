@@ -462,11 +462,8 @@ export const shouldShowProblem = (
     )
         return false;
 
-    if (
-        (filter === 'review' || filter === 'solved') &&
-        state.ui.reviewDateFilter &&
-        problem.nextReviewDate !== state.ui.reviewDateFilter
-    )
+    // Apply date filter if set (regardless of current filter mode)
+    if (state.ui.reviewDateFilter && problem.nextReviewDate !== state.ui.reviewDateFilter)
         return false;
 
     if (!searchQuery) return true;

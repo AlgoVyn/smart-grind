@@ -103,11 +103,9 @@ export const mainViewRenderers = {
         mainViewRenderers._setViewTitle(state.ui.activeTopicId);
         updateBreadcrumbs(generateBreadcrumbs());
 
-        // Update date filter for review/solved modes
-        const showDateFilter = ['review', 'solved'].includes(state.ui.currentFilter);
+        // Update date filter visibility and populate dropdown based on current filter mode
         const { ui } = await import('../ui/ui');
-        ui.toggleDateFilterVisibility(showDateFilter);
-        if (showDateFilter) ui.populateDateFilter();
+        ui.updateDateFilterForCurrentMode();
 
         const today = getToday();
         const visibleCount = { count: 0 };
@@ -169,12 +167,20 @@ export const mainViewRenderers = {
             if (section && container) container.appendChild(section);
         });
 
-        // Show empty state only in review filter with no visible problems
-        const showEmpty = visibleCount.count === 0 && state.ui.currentFilter === 'review';
-        (state.elements['emptyState'] as HTMLElement | null)?.classList.toggle(
-            'hidden',
-            !showEmpty
-        );
+        // Show empty state if no visible problems match the current filters
+        const hasVisibleProblems = visibleCount.count > 0;
+
+        // Add inline empty state if container is empty (no sections rendered)
+        if (!hasVisibleProblems && container) {
+            const inlineEmptyState = document.createElement('div');
+            inlineEmptyState.className = 'text-center py-12 text-secondary';
+            inlineEmptyState.innerHTML = `
+                <div class="text-6xl mb-4">🔍</div>
+                <p class="text-lg">No problems match your current filters.</p>
+                <p class="text-sm mt-2">Try adjusting your search or filter criteria.</p>
+            `;
+            container.appendChild(inlineEmptyState);
+        }
 
         import('../renderers').then(({ renderers }) => renderers.updateStats());
     },
@@ -245,11 +251,9 @@ export const mainViewRenderers = {
         mainViewRenderers._setAlgorithmViewTitle(categoryId);
         updateBreadcrumbs(generateBreadcrumbs());
 
-        // Update date filter for review/solved modes
-        const showDateFilter = ['review', 'solved'].includes(state.ui.currentFilter);
+        // Update date filter visibility and populate dropdown based on current filter mode
         const { ui } = await import('../ui/ui');
-        ui.toggleDateFilterVisibility(showDateFilter);
-        if (showDateFilter) ui.populateDateFilter();
+        ui.updateDateFilterForCurrentMode();
 
         const today = getToday();
         const visibleCount = { count: 0 };
@@ -338,12 +342,20 @@ export const mainViewRenderers = {
             }
         }
 
-        // Show empty state only in review filter with no visible problems
-        const showEmpty = visibleCount.count === 0 && state.ui.currentFilter === 'review';
-        (state.elements['emptyState'] as HTMLElement | null)?.classList.toggle(
-            'hidden',
-            !showEmpty
-        );
+        // Show empty state if no visible problems match the current filters
+        const hasVisibleProblems = visibleCount.count > 0;
+
+        // Add inline empty state if section has no content
+        if (!hasVisibleProblems) {
+            const inlineEmptyState = document.createElement('div');
+            inlineEmptyState.className = 'text-center py-12 text-secondary';
+            inlineEmptyState.innerHTML = `
+                <div class="text-6xl mb-4">🔍</div>
+                <p class="text-lg">No problems match your current filters.</p>
+                <p class="text-sm mt-2">Try adjusting your search or filter criteria.</p>
+            `;
+            section.appendChild(inlineEmptyState);
+        }
 
         container.appendChild(section);
         import('../renderers').then(({ renderers }) => renderers.updateStats());

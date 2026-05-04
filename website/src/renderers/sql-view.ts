@@ -43,6 +43,10 @@ export const sqlViewRenderers = {
         // Clear existing content
         container.innerHTML = '';
 
+        // Update date filter visibility and populate dropdown based on current filter mode
+        const { ui } = await import('../ui/ui');
+        ui.updateDateFilterForCurrentMode();
+
         // Update view title and add action buttons
         const viewTitle = document.getElementById('current-view-title');
         if (viewTitle) {
@@ -76,13 +80,30 @@ export const sqlViewRenderers = {
             }
         }
 
+        let hasVisibleContent = false;
+
         if (categoryId && categoryId !== 'all') {
             const category = getSQLCategoryById(categoryId);
             if (category) {
-                await sqlViewRenderers.renderSQLCategoryView(container, category);
+                hasVisibleContent = await sqlViewRenderers.renderSQLCategoryView(
+                    container,
+                    category
+                );
             }
         } else {
-            await sqlViewRenderers.renderAllSQLView(container);
+            hasVisibleContent = await sqlViewRenderers.renderAllSQLView(container);
+        }
+
+        // Show empty state if no content is visible
+        if (!hasVisibleContent) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'text-center py-12 text-secondary';
+            emptyState.innerHTML = `
+                <div class="text-6xl mb-4">🔍</div>
+                <p class="text-lg">No SQL problems match your current filters.</p>
+                <p class="text-sm mt-2">Try adjusting your search or filter criteria.</p>
+            `;
+            container.appendChild(emptyState);
         }
     },
 
@@ -145,18 +166,29 @@ export const sqlViewRenderers = {
     },
 
     // Render specific SQL category view
-    renderSQLCategoryView: async (container: HTMLElement, category: SQLCategory) => {
+    renderSQLCategoryView: async (
+        container: HTMLElement,
+        category: SQLCategory
+    ): Promise<boolean> => {
+        let hasVisibleContent = false;
         // Render each topic
         category.topics.forEach((topic) => {
             const topicSection = sqlViewRenderers.renderSQLTopic(topic, category.title);
+            if (topicSection && topicSection.childElementCount > 1) {
+                // Has header + at least one pattern
+                hasVisibleContent = true;
+            }
             container.appendChild(topicSection);
         });
+        return hasVisibleContent;
     },
 
     // Render all SQL categories overview - follows "All Problems" design
-    renderAllSQLView: async (container: HTMLElement) => {
+    renderAllSQLView: async (container: HTMLElement): Promise<boolean> => {
         // Import data dynamically
         const { data } = await import('../data');
+
+        let hasVisibleContent = false;
 
         // Render each category with its topics (similar to All Problems)
         data.sqlData.forEach((category) => {
@@ -176,8 +208,14 @@ export const sqlViewRenderers = {
                 categorySection.appendChild(topicSection);
             });
 
+            // Check if category has visible content (more than just the header)
+            if (categorySection.childElementCount > 1) {
+                hasVisibleContent = true;
+            }
             container.appendChild(categorySection);
         });
+
+        return hasVisibleContent;
     },
 
     // Render a SQL topic section - similar to pattern sections

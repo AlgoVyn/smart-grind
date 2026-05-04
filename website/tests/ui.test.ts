@@ -317,6 +317,8 @@ describe('SmartGrind UI', () => {
         };
         state.ui = {
             activeTopicId: '',
+            activeAlgorithmCategoryId: null,
+            activeSQLCategoryId: null,
         };
         state.elements = {
             googleLoginButton: mockElement,
@@ -2010,7 +2012,8 @@ describe('SmartGrind UI', () => {
 
             expect(state.ui.currentFilter).toBe('solved');
             expect(renderers.updateFilterBtns).toHaveBeenCalled();
-            expect(renderers.renderMainView).toHaveBeenCalledWith(state.ui.activeTopicId);
+            // When activeTopicId is empty and no algorithm/SQL category is active, renderCombinedView is called
+            expect(renderers.renderCombinedView).toHaveBeenCalled();
         });
     });
 

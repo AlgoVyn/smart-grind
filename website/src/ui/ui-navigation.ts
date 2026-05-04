@@ -10,6 +10,23 @@ import {
     scrollToTop,
 } from '../utils';
 
+/**
+ * Re-renders the current view based on the active category context.
+ * Centralizes view routing logic to ensure consistency across event handlers.
+ */
+const rerenderCurrentView = (): void => {
+    if (state.ui.activeAlgorithmCategoryId) {
+        renderers.renderAlgorithmsView(state.ui.activeAlgorithmCategoryId);
+    } else if (state.ui.activeSQLCategoryId) {
+        renderers.renderSQLView(state.ui.activeSQLCategoryId);
+    } else if (state.ui.activeTopicId) {
+        renderers.renderMainView(state.ui.activeTopicId);
+    } else {
+        // All Content view (combined view)
+        renderers.renderCombinedView();
+    }
+};
+
 // Bind navigation-related events
 export const bindNavigationEvents = (): void => {
     // Filter buttons
@@ -18,8 +35,8 @@ export const bindNavigationEvents = (): void => {
         (filterBtns as unknown as HTMLElement[]).forEach((btn: HTMLElement) => {
             btn.addEventListener('click', () => {
                 const newFilter = btn.dataset['filter'] || 'all';
-                // Reset date filter when switching to review or solved
-                if (newFilter === 'review' || newFilter === 'solved') {
+                // Clear date filter when leaving review/solved modes (it only applies there)
+                if (newFilter !== 'review' && newFilter !== 'solved') {
                     state.ui.reviewDateFilter = null;
                     // Also reset the dropdown to "All Dates"
                     const reviewDateFilterEl = state.elements[
@@ -31,12 +48,8 @@ export const bindNavigationEvents = (): void => {
                 }
                 state.ui.currentFilter = newFilter;
                 renderers.updateFilterBtns();
-                // Check if we're viewing algorithms or problems
-                if (state.ui.activeAlgorithmCategoryId) {
-                    renderers.renderAlgorithmsView(state.ui.activeAlgorithmCategoryId);
-                } else {
-                    renderers.renderMainView(state.ui.activeTopicId);
-                }
+                // Re-render the appropriate view based on current context
+                rerenderCurrentView();
             });
         });
     }
@@ -50,12 +63,16 @@ export const bindNavigationEvents = (): void => {
                 problemSearch.value = '';
             }
             state.ui.currentFilter = 'all';
-            renderers.updateFilterBtns();
-            if (state.ui.activeAlgorithmCategoryId) {
-                renderers.renderAlgorithmsView(state.ui.activeAlgorithmCategoryId);
-            } else {
-                renderers.renderMainView(state.ui.activeTopicId);
+            state.ui.reviewDateFilter = null;
+            // Reset the date filter dropdown
+            const reviewDateFilterEl = state.elements[
+                'reviewDateFilter'
+            ] as HTMLSelectElement | null;
+            if (reviewDateFilterEl) {
+                reviewDateFilterEl.value = '';
             }
+            renderers.updateFilterBtns();
+            rerenderCurrentView();
         });
     }
 
@@ -64,7 +81,8 @@ export const bindNavigationEvents = (): void => {
     if (reviewDateFilter) {
         reviewDateFilter.addEventListener('change', () => {
             state.ui.reviewDateFilter = reviewDateFilter.value || null;
-            renderers.renderMainView(state.ui.activeTopicId);
+            // Re-render the appropriate view based on current context
+            rerenderCurrentView();
         });
     }
 
@@ -72,12 +90,8 @@ export const bindNavigationEvents = (): void => {
     const problemSearch = state.elements['problemSearch'];
     if (problemSearch) {
         problemSearch.addEventListener('input', () => {
-            // Check if we're viewing algorithms or problems
-            if (state.ui.activeAlgorithmCategoryId) {
-                renderers.renderAlgorithmsView(state.ui.activeAlgorithmCategoryId);
-            } else {
-                renderers.renderMainView(state.ui.activeTopicId);
-            }
+            // Re-render the appropriate view based on current context
+            rerenderCurrentView();
         });
     }
 
@@ -134,6 +148,20 @@ export const populateDateFilter = (): void => {
     // Restore selection if still valid
     if (currentSelection && availableDates.includes(currentSelection)) {
         reviewDateFilter.value = currentSelection;
+    }
+};
+
+/**
+ * Updates the date filter visibility and populates the dropdown
+ * based on the current filter mode. Date filter is only shown in
+ * review or solved modes.
+ */
+export const updateDateFilterForCurrentMode = (): void => {
+    const showDateFilter =
+        state.ui.currentFilter === 'review' || state.ui.currentFilter === 'solved';
+    toggleDateFilterVisibility(showDateFilter);
+    if (showDateFilter) {
+        populateDateFilter();
     }
 };
 

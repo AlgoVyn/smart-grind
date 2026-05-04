@@ -208,6 +208,7 @@ jest.mock('../../src/ui/ui', () => ({
     ui: {
         toggleDateFilterVisibility: jest.fn(),
         populateDateFilter: jest.fn(),
+        updateDateFilterForCurrentMode: jest.fn(),
         openSolutionModal: jest.fn(),
         showConfirm: jest.fn().mockResolvedValue(true),
     },
@@ -503,8 +504,7 @@ describe('mainViewRenderers', () => {
 
             await mainViewRenderers.renderMainView('all');
 
-            expect(ui.toggleDateFilterVisibility).toHaveBeenCalledWith(true);
-            expect(ui.populateDateFilter).toHaveBeenCalled();
+            expect(ui.updateDateFilterForCurrentMode).toHaveBeenCalled();
         });
 
         test('7b. renderMainView shows date filter for solved mode', async () => {
@@ -512,16 +512,15 @@ describe('mainViewRenderers', () => {
 
             await mainViewRenderers.renderMainView('all');
 
-            expect(ui.toggleDateFilterVisibility).toHaveBeenCalledWith(true);
-            expect(ui.populateDateFilter).toHaveBeenCalled();
+            expect(ui.updateDateFilterForCurrentMode).toHaveBeenCalled();
         });
 
-        test('7c. renderMainView hides date filter for other modes', async () => {
+        test('7c. renderMainView hides date filter for non-review/solved modes', async () => {
             state.ui.currentFilter = 'all';
 
             await mainViewRenderers.renderMainView('all');
 
-            expect(ui.toggleDateFilterVisibility).toHaveBeenCalledWith(false);
+            expect(ui.updateDateFilterForCurrentMode).toHaveBeenCalled();
         });
 
         test('8. renderMainView renders topics based on activeTopicId - all topics', async () => {
@@ -548,48 +547,51 @@ describe('mainViewRenderers', () => {
             );
         });
 
-        test('9. renderMainView shows empty state when no visible problems in review mode', async () => {
+        test('9. renderMainView shows inline empty state when no visible problems in any mode', async () => {
             state.ui.currentFilter = 'review';
             jest.mocked(htmlGenerators.renderTopicSection).mockReturnValue(null);
 
-            const emptyState = state.elements['emptyState'] as HTMLElement;
-            emptyState.classList.add('hidden');
+            const container = state.elements['problemsContainer'] as HTMLElement;
 
             await mainViewRenderers.renderMainView('all');
 
-            expect(emptyState.classList.contains('hidden')).toBe(false);
+            // Should show inline empty state when no problems match
+            const inlineEmptyState = container.querySelector('.text-center.py-12');
+            expect(inlineEmptyState).not.toBeNull();
+            expect(inlineEmptyState?.textContent).toContain('No problems match your current filters');
         });
 
-        test('9b. renderMainView hides empty state when there are visible problems', async () => {
+        test('9b. renderMainView does not add empty state when there are visible problems', async () => {
             state.ui.currentFilter = 'review';
             // Setup mock to properly increment visible count
-            let visibleCount = 0;
-            jest.mocked(htmlGenerators.renderTopicSection).mockImplementation((topic, filterTopicId, today, visibleCountRef) => {
+            jest.mocked(htmlGenerators.renderTopicSection).mockImplementation((_topic, _filterTopicId, _today, visibleCountRef) => {
                 const section = document.createElement('div');
                 section.className = 'topic-section';
-                section.dataset.topicId = topic.id;
                 visibleCountRef.count += 5; // Add visible problems
                 return section;
             });
 
-            const emptyState = state.elements['emptyState'] as HTMLElement;
-            emptyState.classList.remove('hidden');
+            const container = state.elements['problemsContainer'] as HTMLElement;
 
             await mainViewRenderers.renderMainView('all');
 
-            expect(emptyState.classList.contains('hidden')).toBe(true);
+            // Should not have inline empty state when there are visible problems
+            const inlineEmptyState = container.querySelector('.text-center.py-12');
+            expect(inlineEmptyState).toBeNull();
         });
 
-        test('9c. renderMainView does not show empty state in non-review mode', async () => {
+        test('9c. renderMainView shows inline empty state when no problems match', async () => {
             state.ui.currentFilter = 'all';
             jest.mocked(htmlGenerators.renderTopicSection).mockReturnValue(null);
 
-            const emptyState = state.elements['emptyState'] as HTMLElement;
+            const container = state.elements['problemsContainer'] as HTMLElement;
 
             await mainViewRenderers.renderMainView('all');
 
-            // Should remain hidden (not toggle to show)
-            expect(emptyState.classList.contains('hidden')).toBe(true);
+            // Should show inline empty state when no problems match
+            const inlineEmptyState = container.querySelector('.text-center.py-12');
+            expect(inlineEmptyState).not.toBeNull();
+            expect(inlineEmptyState?.textContent).toContain('No problems match your current filters');
         });
 
         test('9d. renderMainView calls updateStats at the end', async () => {
@@ -834,40 +836,45 @@ describe('mainViewRenderers', () => {
             expect(container.children.length).toBe(0);
         });
 
-        test('22. renderAlgorithmsView shows empty state when no visible problems in review mode', async () => {
+        test('22. renderAlgorithmsView shows inline empty state when no visible problems in any mode', async () => {
             state.ui.currentFilter = 'review';
             jest.mocked(shouldShowProblem).mockReturnValue(false);
 
-            const emptyState = state.elements['emptyState'] as HTMLElement;
-            emptyState.classList.add('hidden');
+            const container = state.elements['problemsContainer'] as HTMLElement;
 
             await mainViewRenderers.renderAlgorithmsView('all');
 
-            expect(emptyState.classList.contains('hidden')).toBe(false);
+            // Should show inline empty state when no problems match
+            const inlineEmptyState = container.querySelector('.text-center.py-12');
+            expect(inlineEmptyState).not.toBeNull();
+            expect(inlineEmptyState?.textContent).toContain('No problems match your current filters');
         });
 
-        test('22b. renderAlgorithmsView hides empty state when there are visible problems', async () => {
+        test('22b. renderAlgorithmsView does not add empty state when there are visible problems', async () => {
             state.ui.currentFilter = 'review';
             jest.mocked(shouldShowProblem).mockReturnValue(true);
 
-            const emptyState = state.elements['emptyState'] as HTMLElement;
-            emptyState.classList.remove('hidden');
+            const container = state.elements['problemsContainer'] as HTMLElement;
 
             await mainViewRenderers.renderAlgorithmsView('all');
 
-            expect(emptyState.classList.contains('hidden')).toBe(true);
+            // Should not have inline empty state when there are visible problems
+            const inlineEmptyState = container.querySelector('.text-center.py-12');
+            expect(inlineEmptyState).toBeNull();
         });
 
-        test('22c. renderAlgorithmsView does not show empty state in non-review mode', async () => {
+        test('22c. renderAlgorithmsView shows inline empty state when no problems match', async () => {
             state.ui.currentFilter = 'all';
             jest.mocked(shouldShowProblem).mockReturnValue(false);
 
-            const emptyState = state.elements['emptyState'] as HTMLElement;
+            const container = state.elements['problemsContainer'] as HTMLElement;
 
             await mainViewRenderers.renderAlgorithmsView('all');
 
-            // Should remain hidden
-            expect(emptyState.classList.contains('hidden')).toBe(true);
+            // Should show inline empty state when no problems match
+            const inlineEmptyState = container.querySelector('.text-center.py-12');
+            expect(inlineEmptyState).not.toBeNull();
+            expect(inlineEmptyState?.textContent).toContain('No problems match your current filters');
         });
 
         test('22d. renderAlgorithmsView calls updateStats at the end', async () => {
@@ -923,16 +930,15 @@ describe('mainViewRenderers', () => {
 
             await mainViewRenderers.renderAlgorithmsView('all');
 
-            expect(ui.toggleDateFilterVisibility).toHaveBeenCalledWith(true);
-            expect(ui.populateDateFilter).toHaveBeenCalled();
+            expect(ui.updateDateFilterForCurrentMode).toHaveBeenCalled();
         });
 
-        test('hides date filter for other modes', async () => {
+        test('hides date filter for non-review/solved modes', async () => {
             state.ui.currentFilter = 'all';
 
             await mainViewRenderers.renderAlgorithmsView('all');
 
-            expect(ui.toggleDateFilterVisibility).toHaveBeenCalledWith(false);
+            expect(ui.updateDateFilterForCurrentMode).toHaveBeenCalled();
         });
 
         test('applies search query filter', async () => {

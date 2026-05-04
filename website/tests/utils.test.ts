@@ -361,6 +361,46 @@ describe('SmartGrind Utils', () => {
             expect(shouldShowProblem(problem1, 'solved', '', '2023-01-15')).toBe(true);
             expect(shouldShowProblem(problem2, 'solved', '', '2023-01-15')).toBe(true);
         });
+
+        test('shouldShowProblem applies date filter regardless of filter mode', () => {
+            const problem1 = {
+                id: '1',
+                name: 'Two Sum',
+                url: 'https://leetcode.com/1',
+                status: 'solved' as const,
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
+                nextReviewDate: '2023-01-01',
+                note: '',
+            };
+            const problem2 = {
+                id: '2',
+                name: 'Three Sum',
+                url: 'https://leetcode.com/2',
+                status: 'solved' as const,
+                topic: 'arrays',
+                pattern: 'two-pointers',
+                reviewInterval: 1,
+                nextReviewDate: '2023-01-15',
+                note: '',
+            };
+
+            // Set date filter - should apply even in 'all' mode
+            state.ui.reviewDateFilter = '2023-01-01';
+
+            // Date filter applies regardless of filter mode
+            expect(shouldShowProblem(problem1, 'all', '', '2023-01-15')).toBe(true);
+            expect(shouldShowProblem(problem2, 'all', '', '2023-01-15')).toBe(false);
+
+            // Also applies in 'unsolved' mode (though only solved problems have nextReviewDate)
+            expect(shouldShowProblem(problem1, 'unsolved', '', '2023-01-15')).toBe(false); // false because status is solved
+
+            // Clear date filter
+            state.ui.reviewDateFilter = null;
+            expect(shouldShowProblem(problem1, 'all', '', '2023-01-15')).toBe(true);
+            expect(shouldShowProblem(problem2, 'all', '', '2023-01-15')).toBe(true);
+        });
     });
 
     describe('getAvailableReviewDates', () => {
