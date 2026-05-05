@@ -3,7 +3,7 @@
 import { Topic } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-import { getUrlParameter, scrollToTop, hideEl } from '../utils';
+import { scrollToTop, hideEl, parseRoute } from '../utils';
 import { renderers } from '../renderers';
 import { app } from '../app';
 
@@ -45,22 +45,47 @@ export const handleKeyboard = (e: KeyboardEvent): void => {
     }
 };
 
-// Browser navigation
+// Browser navigation - path-based routing
 export const handlePopState = (): void => {
-    const categoryParam = getUrlParameter('category');
-    const category =
-        categoryParam &&
-        (data.topicsData.some((t: Topic) => t.id === categoryParam) || categoryParam === 'all')
-            ? categoryParam
-            : '';
+    const route = parseRoute(window.location.pathname);
 
-    state.ui.activeTopicId = category;
-    renderers.renderSidebar();
-    if (category) {
-        renderers.renderMainView(state.ui.activeTopicId);
-    } else {
-        renderers.renderCombinedView();
+    if (route) {
+        const { type, id } = route;
+
+        if (type === 'c') {
+            // Patterns/category route
+            const category =
+                data.topicsData.some((t: Topic) => t.id === id) || id === 'all' ? id : '';
+            state.ui.activeTopicId = category;
+            renderers.renderSidebar();
+            renderers.renderMainView(category || 'all');
+            scrollToTop();
+            return;
+        } else if (type === 'a') {
+            // Algorithms route
+            state.ui.activeTopicId = '';
+            state.ui.activeAlgorithmCategoryId = id;
+            renderers.renderSidebar();
+            renderers.renderAlgorithmsView(id);
+            scrollToTop();
+            return;
+        } else if (type === 's') {
+            // SQL route
+            state.ui.activeTopicId = '';
+            state.ui.activeSQLCategoryId = id;
+            renderers.renderSidebar();
+            renderers.renderSQLView(id);
+            scrollToTop();
+            return;
+        }
     }
+
+    // Default/Dashboard view
+    state.ui.activeTopicId = '';
+    state.ui.activeAlgorithmCategoryId = null;
+    state.ui.activeSQLCategoryId = null;
+    renderers.renderSidebar();
+    renderers.renderCombinedView();
     scrollToTop();
 };
 

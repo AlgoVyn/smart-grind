@@ -131,6 +131,9 @@ jest.mock('../../src/utils', () => ({
     }),
     formatDate: jest.fn((date: string) => date),
     shouldShowProblem: jest.fn((_problem, _filter, _searchQuery, _today) => true),
+    parseRoute: jest.fn(),
+    updateBreadcrumbs: jest.fn(),
+    generateBreadcrumbs: jest.fn(() => []),
 }));
 
 jest.mock('../../src/renderers/sidebar', () => ({

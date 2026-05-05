@@ -4,7 +4,13 @@
 import { SQLCategory, SQLTopic, SQLPattern, getSQLCategoryById } from '../data/sql-data';
 import { state } from '../state';
 import { Problem, ProblemDef } from '../types';
-import { updateUrlParameter, scrollToTop, shouldShowProblem } from '../utils';
+import {
+    updateUrlParameter,
+    scrollToTop,
+    shouldShowProblem,
+    updateBreadcrumbs,
+    generateBreadcrumbs,
+} from '../utils';
 import { sidebarRenderers } from './sidebar';
 import { renderers } from '../renderers';
 import { htmlGenerators } from './html-generators';
@@ -79,6 +85,9 @@ export const sqlViewRenderers = {
                 viewTitle?.insertAdjacentElement('afterend', actionContainer);
             }
         }
+
+        // Update breadcrumbs based on current route
+        updateBreadcrumbs(generateBreadcrumbs());
 
         let hasVisibleContent = false;
 

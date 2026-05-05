@@ -6,7 +6,7 @@ import { data } from '../data';
 import { Topic } from '../types';
 import { AlgorithmCategory } from '../data/algorithms-data';
 import { SQLCategory } from '../data/sql-data';
-import { getToday, shouldShowProblem } from '../utils';
+import { getToday, shouldShowProblem, updateBreadcrumbs, generateBreadcrumbs } from '../utils';
 import { htmlGenerators } from './html-generators';
 import { sqlViewRenderers } from './sql-view';
 import { mainViewRenderers } from './main-view';
@@ -47,6 +47,9 @@ export const combinedViewRenderers = {
         // Update date filter visibility and populate dropdown based on current filter mode
         const { ui } = await import('../ui/ui');
         ui.updateDateFilterForCurrentMode();
+
+        // Hide breadcrumbs on dashboard/combined view
+        updateBreadcrumbs(generateBreadcrumbs());
 
         const today = getToday();
 

@@ -64,6 +64,17 @@ export const updateUrlParameter = (name: string, value: string | null): void => 
     window.history.pushState({ path: newUrl }, '', newUrl);
 };
 
+// Route parsing for path-based routing: /smartgrind/{c|a|s}/{id}
+// Returns { type: 'c'|'a'|'s', id: string } or null if not a category route
+export const parseRoute = (path: string): { type: string; id: string } | null => {
+    const pathMatch = path.match(/^\/smartgrind\/(c|a|s)\/([^/]+)$/);
+    if (!pathMatch) return null;
+    const type = pathMatch[1];
+    const id = pathMatch[2];
+    if (!type || !id) return null;
+    return { type, id };
+};
+
 // ============================================================================
 // SANITIZATION UTILITIES
 // ============================================================================
@@ -607,46 +618,51 @@ export const updateBreadcrumbs = (items: BreadcrumbItem[]): void => {
         .join('');
 };
 
-// Generate breadcrumbs based on current route
+// Generate breadcrumbs based on current route (path-based)
 export const generateBreadcrumbs = (): BreadcrumbItem[] => {
-    const path = window.location.pathname;
-    const pathMatch = path.match(/^\/smartgrind\/(c|a|s)\/([^/]+)$/);
+    const route = parseRoute(window.location.pathname);
 
-    if (!pathMatch) {
+    if (!route) {
         // Default/Dashboard view - no breadcrumbs needed
         return [];
     }
 
-    const type = pathMatch[1];
-    const id = pathMatch[2];
-
-    if (!type || !id) {
-        return [];
-    }
+    const { type, id } = route;
 
     const typeLabels: Record<string, string> = {
         c: 'Patterns',
         a: 'Algorithms',
         s: 'SQL',
     };
-    const typeUrls: Record<string, string> = {
-        c: '/smartgrind/',
-        a: '/smartgrind/',
-        s: '/smartgrind/',
-    };
 
     // Find the category name from data
     let categoryName = id.replace(/-/g, ' ');
 
-    // Try to find in topics data for patterns
-    const topic = data.topicsData.find((t) => t.id === id);
-    if (topic) {
-        categoryName = topic.title;
+    // Try to find in topics data for patterns (c)
+    if (type === 'c') {
+        const topic = data.topicsData.find((t) => t.id === id);
+        if (topic) {
+            categoryName = topic.title;
+        }
+    }
+    // Try to find in algorithms data for algorithms (a)
+    else if (type === 'a') {
+        const algoCategory = data.algorithmsData.find((c) => c.id === id);
+        if (algoCategory) {
+            categoryName = algoCategory.title;
+        }
+    }
+    // Try to find in SQL data for SQL (s)
+    else if (type === 's') {
+        const sqlCategory = data.sqlData.find((c) => c.id === id);
+        if (sqlCategory) {
+            categoryName = sqlCategory.title;
+        }
     }
 
     return [
-        { label: 'Home', href: typeUrls[type] || '/smartgrind/' },
-        { label: typeLabels[type] || 'Category', href: typeUrls[type] || '/smartgrind/' },
+        { label: 'Home', href: '/smartgrind/' },
+        { label: typeLabels[type] || 'Category' }, // No href - current page context
         { label: categoryName },
     ];
 };

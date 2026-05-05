@@ -255,6 +255,7 @@ jest.mock('../src/utils', () => ({
     safeParseInt: jest.fn(),
     safeParseFloat: jest.fn(),
     isValidDate: jest.fn(),
+    parseRoute: jest.fn(),
     deepClone: jest.fn((obj) => JSON.parse(JSON.stringify(obj))),
     generateId: jest.fn(() => 'test-id'),
     truncate: jest.fn((str) => str),
@@ -1313,23 +1314,67 @@ describe('SmartGrind UI', () => {
     });
 
     describe('handlePopState', () => {
-        test('handles category from URL', () => {
-            getUrlParameter = jest.fn(() => 'arrays');
-            data.topicsData = [{ id: 'arrays' }];
+        const { parseRoute } = jest.requireMock('../src/utils');
+
+        beforeEach(() => {
+            // Reset state before each test
+            state.ui.activeTopicId = '';
+            state.ui.activeAlgorithmCategoryId = null;
+            state.ui.activeSQLCategoryId = null;
+        });
+
+        test('handles patterns category route (/smartgrind/c/{id})', () => {
+            parseRoute.mockReturnValue({ type: 'c', id: 'arrays' });
+            data.topicsData = [{ id: 'arrays', title: 'Arrays' }];
 
             ui.handlePopState();
 
             expect(state.ui.activeTopicId).toBe('arrays');
             expect(renderers.renderSidebar).toHaveBeenCalled();
-            expect(renderers.renderMainView).toHaveBeenCalled();
+            expect(renderers.renderMainView).toHaveBeenCalledWith('arrays');
         });
 
-        test('defaults to all when no category', () => {
-            getUrlParameter = jest.fn(() => null);
+        test('handles algorithms category route (/smartgrind/a/{id})', () => {
+            parseRoute.mockReturnValue({ type: 'a', id: 'dynamic-programming' });
 
             ui.handlePopState();
 
             expect(state.ui.activeTopicId).toBe('');
+            expect(state.ui.activeAlgorithmCategoryId).toBe('dynamic-programming');
+            expect(renderers.renderSidebar).toHaveBeenCalled();
+            expect(renderers.renderAlgorithmsView).toHaveBeenCalledWith('dynamic-programming');
+        });
+
+        test('handles SQL category route (/smartgrind/s/{id})', () => {
+            parseRoute.mockReturnValue({ type: 's', id: 'sql-joins' });
+
+            ui.handlePopState();
+
+            expect(state.ui.activeTopicId).toBe('');
+            expect(state.ui.activeSQLCategoryId).toBe('sql-joins');
+            expect(renderers.renderSidebar).toHaveBeenCalled();
+            expect(renderers.renderSQLView).toHaveBeenCalledWith('sql-joins');
+        });
+
+        test('renders dashboard for non-route paths', () => {
+            parseRoute.mockReturnValue(null);
+
+            ui.handlePopState();
+
+            expect(state.ui.activeTopicId).toBe('');
+            expect(state.ui.activeAlgorithmCategoryId).toBeNull();
+            expect(state.ui.activeSQLCategoryId).toBeNull();
+            expect(renderers.renderSidebar).toHaveBeenCalled();
+            expect(renderers.renderCombinedView).toHaveBeenCalled();
+        });
+
+        test('falls back to dashboard for invalid category type', () => {
+            // This shouldn't happen with the regex, but test defensive handling
+            parseRoute.mockReturnValue(null);
+
+            ui.handlePopState();
+
+            expect(renderers.renderCombinedView).toHaveBeenCalled();
         });
     });
 

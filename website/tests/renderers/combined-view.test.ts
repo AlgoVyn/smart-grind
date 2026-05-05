@@ -36,6 +36,9 @@ jest.mock('@/data', () => ({
 jest.mock('@/utils', () => ({
     getToday: jest.fn(() => '2025-06-15'),
     shouldShowProblem: jest.fn((_problem: Problem, _filter: string, _searchQuery: string, _today: string) => true),
+    parseRoute: jest.fn(),
+    updateBreadcrumbs: jest.fn(),
+    generateBreadcrumbs: jest.fn(() => []),
 }));
 
 jest.mock('@/renderers/html-generators', () => ({
