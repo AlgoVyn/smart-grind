@@ -2,7 +2,7 @@
 // Global error handling utilities
 
 import { ui } from './ui/ui';
-import { escapeHtml } from './utils';
+import { escapeHtml } from './utils/sanitization';
 
 /**
  * Extracts an error message from an unknown error value.

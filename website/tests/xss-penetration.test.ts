@@ -8,31 +8,16 @@
  * Any failure in these tests indicates a potential security vulnerability.
  */
 
-import { sanitizeInput, sanitizeUrl, escapeHtml } from '../src/utils';
+import { sanitizeInput, sanitizeUrl, escapeHtml } from '../src/utils/sanitization';
 
-// Mock DOMPurify to simulate proper sanitization behavior in test environment
-// This mock approximates DOMPurify's default behavior of stripping all HTML tags
-jest.mock('dompurify', () => ({
-    __esModule: true,
-    default: {
-        sanitize: jest.fn((input: string, options: { ALLOWED_TAGS?: string[]; ALLOWED_ATTR?: string[] } = {}) => {
-            // If ALLOWED_TAGS is explicitly empty array, strip all tags (secure mode)
-            if (options.ALLOWED_TAGS?.length === 0) {
-                return input.replace(/<[^>]*>/g, '');
-            }
-            // Default: strip common dangerous tags and attributes
-            // This is a simplified approximation - real DOMPurify has more complex rules
-            let result = input;
-            // Remove script and event handler attributes
-            result = result.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
-            result = result.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
-            result = result.replace(/on\w+\s*=\s*[^\s>]+/gi, '');
-            // Remove javascript: protocols
-            result = result.replace(/javascript\s*:\s*[^"']*/gi, '');
-            return result;
-        }),
-    },
-}));
+// SECURITY: These tests run against the REAL DOMPurify library.
+// This ensures we test actual production behavior, not a mock approximation.
+// DOMPurify requires a DOM environment (jsdom) to function.
+
+// Jest's ESM interop breaks dompurify's default import, so we mock it to
+// return the real module via jest.requireActual (which correctly resolves
+// the CommonJS exports).
+jest.mock('dompurify', () => jest.requireActual('dompurify'));
 
 describe('XSS Penetration Tests', () => {
     describe('sanitizeInput() - DOMPurify Integration', () => {
@@ -41,7 +26,8 @@ describe('XSS Penetration Tests', () => {
             const result = sanitizeInput(input);
             expect(result).not.toContain('<script>');
             expect(result).not.toContain('</script>');
-            expect(result).toBe('alert("XSS")');
+            // Real DOMPurify removes the entire <script> element including its text content
+            expect(result).toBe('');
         });
 
         test('should strip JavaScript protocol from anchors', () => {

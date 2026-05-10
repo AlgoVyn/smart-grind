@@ -158,10 +158,24 @@ export default defineConfig({
                     
                     // Replace ALL relative imports with absolute imports
                     // Handle both: from"../assets/js/... and import"../assets/js/...
+                    const originalContent = swContent;
                     swContent = swContent.replace(
                         /(from"|import")\.\.\/assets\/js\//g,
                         '$1/smartgrind/assets/js/'
                     );
+                    
+                    // VERIFICATION: Ensure replacements actually happened
+                    const matches = originalContent.match(/(from"|import")\.\.\/assets\/js\//g);
+                    const replacementCount = matches ? matches.length : 0;
+                    if (replacementCount === 0 && originalContent.includes('../assets/js/')) {
+                        throw new Error(
+                            '[vite] SW import fix failed: expected relative imports were found but not replaced. '
+                            + 'Check the regex pattern matches the current Rollup output format.'
+                        );
+                    }
+                    if (replacementCount > 0) {
+                        console.log(`[vite] Fixed ${replacementCount} relative import(s) in service worker`);
+                    }
                     
                     // ATOMIC WRITE: Write to temp file then rename
                     const tempPath = swFile + '.tmp';
@@ -170,7 +184,8 @@ export default defineConfig({
                     console.log('[vite] Service worker imports fixed to use absolute paths');
                 } catch (error) {
                     const errorMessage = error instanceof Error ? error.message : String(error);
-                    console.warn('[vite] Failed to fix SW imports:', errorMessage);
+                    console.error('[vite] Failed to fix SW imports:', errorMessage);
+                    throw error; // Fail the build so the issue is caught immediately
                 }
             },
         },

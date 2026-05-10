@@ -4,14 +4,8 @@
 import { User, Problem, UIState, SyncStatusUpdate, FlashCardProgress } from './types';
 import { STORAGE_SAVE_DELAY, LIMITS } from './config/limits';
 import { data } from './data';
-import {
-    cacheElements,
-    safeGetItem,
-    safeSetItem,
-    getStringItem,
-    setStringItem,
-    type ElementCache,
-} from './utils';
+import { cacheElements, type ElementCache } from './utils/dom';
+import { safeGetItem, safeSetItem, getStringItem, setStringItem } from './utils/storage';
 import { validateProblem, validateFlashCardProgress, sanitizeProblemId } from './utils/validation';
 
 // ============================================================================

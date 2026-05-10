@@ -1,20 +1,15 @@
 // Test suite for input sanitization functions
 import { expect } from '@jest/globals';
-import { sanitizeInput, sanitizeUrl, escapeHtml } from '../src/utils';
+import { sanitizeInput, sanitizeUrl, escapeHtml } from '../src/utils/sanitization';
 
-// Mock DOMPurify to simulate proper sanitization behavior in test environment
-jest.mock('dompurify', () => ({
-    __esModule: true,
-    default: {
-        sanitize: jest.fn((input: string, options?: { ALLOWED_TAGS?: string[] }) => {
-            // Simple tag stripping simulation for tests
-            if (options?.ALLOWED_TAGS?.length === 0) {
-                return input.replace(/<[^>]*>/g, '');
-            }
-            return input;
-        }),
-    },
-}));
+// SECURITY: These tests run against the REAL DOMPurify library.
+// This ensures we test actual production behavior, not a mock approximation.
+// DOMPurify requires a DOM environment (jsdom) to function.
+//
+// Jest's ESM interop can break dompurify's default import, so we mock it to
+// return the real module via jest.requireActual (which correctly resolves
+// the CommonJS exports).
+jest.mock('dompurify', () => jest.requireActual('dompurify'));
 
 describe('Input Sanitization Tests', () => {
     describe('sanitizeInput()', () => {
@@ -23,26 +18,27 @@ describe('Input Sanitization Tests', () => {
             expect(result).toBe('test');
         });
 
-        it('should remove HTML tags via DOMPurify', () => {
-            // DOMPurify strips HTML tags but preserves text content (including quotes)
+        it('should remove HTML tags via real DOMPurify', () => {
+            // Real DOMPurify with ALLOWED_TAGS: [] strips the entire element
+            // including text content inside <script>
             const result = sanitizeInput('<script>alert("xss")</script>');
-            expect(result).toBe('alert("xss")');
+            expect(result).not.toContain('<script>');
+            expect(result).not.toContain('</script>');
+            expect(result).not.toContain('alert');
         });
 
-        it('should preserve quotes and backslashes (DOMPurify behavior)', () => {
+        it('should preserve quotes and backslashes in plain text', () => {
             const result = sanitizeInput('test\'s "quoted" \\backslash');
             expect(result).toBe('test\'s "quoted" \\backslash');
         });
 
-        it('should preserve scheme prefixes (DOMPurify behavior)', () => {
-            // DOMPurify doesn't strip javascript: prefix - it's just text
-            // This is actually more secure as DOMPurify properly handles HTML parsing
+        it('should preserve scheme prefixes in plain text', () => {
+            // Without HTML tags, DOMPurify leaves plain text untouched
             const result = sanitizeInput('javascript:alert(1)');
             expect(result).toBe('javascript:alert(1)');
         });
 
-        it('should preserve event handler-like text (DOMPurify behavior)', () => {
-            // DOMPurify strips HTML tags - event handler patterns are just text
+        it('should preserve event handler-like text in plain text', () => {
             const result = sanitizeInput('onclick=alert(1)');
             expect(result).toBe('onclick=alert(1)');
         });
@@ -107,11 +103,12 @@ describe('Input Sanitization Tests', () => {
     });
 
     describe('Integration Tests', () => {
-        it('should sanitize problem name correctly via DOMPurify', () => {
-            // DOMPurify strips HTML tags while preserving text content (including quotes)
+        it('should sanitize problem name correctly via real DOMPurify', () => {
             const maliciousName = '<script>alert("xss")</script> Test Problem';
             const result = sanitizeInput(maliciousName);
-            expect(result).toBe('alert("xss") Test Problem');
+            expect(result).not.toContain('<script>');
+            expect(result).not.toContain('alert');
+            expect(result).toContain('Test Problem');
         });
 
         it('should sanitize URL correctly and return empty string for invalid URLs', () => {

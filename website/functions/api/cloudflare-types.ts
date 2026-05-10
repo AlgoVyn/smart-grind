@@ -1,17 +1,14 @@
+/// <reference types="@cloudflare/workers-types" />
 /**
  * Shared Cloudflare Workers type definitions.
  * Centralized to avoid duplication across API function files.
+ *
+ * NOTE: Uses official @cloudflare/workers-types KVNamespace instead of a
+ * hand-rolled shim. The global KVNamespace type is provided by the
+ * triple-slash reference above.
  */
 
-// KVNamespace type definition for Cloudflare Workers environment
-export interface KVNamespace {
-    get(key: string): Promise<string | null>;
-    get(key: string, type: 'text'): Promise<string | null>;
-    get(key: string, type: 'arrayBuffer'): Promise<ArrayBuffer | null>;
-    getWithMetadata(key: string, type?: 'text' | 'arrayBuffer', options?: { cacheTtl?: number }): Promise<{ value: string | ArrayBuffer | null; metadata: Record<string, string> | null }>;
-    put(key: string, value: string | ArrayBuffer, options?: { expirationTtl?: number; metadata?: Record<string, string> }): Promise<void>;
-    delete(key: string): Promise<void>;
-}
+export type { KVNamespace };
 
 /**
  * Sliding window rate limiter for Cloudflare KV.

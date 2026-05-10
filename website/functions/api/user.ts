@@ -466,15 +466,17 @@ export async function onRequestGet({
     }
 
     try {
-        // Get KV value with metadata
-        const { value: data, metadata } = await env.KV.getWithMetadata(userId, 'arrayBuffer', {
+        // Get KV value with metadata (official Cloudflare type uses options object)
+        const { value: data, metadata } = await env.KV.getWithMetadata(userId, {
+            type: 'arrayBuffer',
             cacheTtl: 30,
         });
         if (data) {
             // Get Content-Encoding from metadata
-            const contentEncoding = metadata?.['Content-Encoding'];
-
-            // Determine compression type from metadata (supports 'br' for Brotli and 'gzip')
+            const contentEncoding =
+                metadata && typeof metadata === 'object' && !Array.isArray(metadata)
+                    ? String((metadata as Record<string, unknown>)['Content-Encoding'] ?? '')
+                    : '';
             const compressionType =
                 contentEncoding === 'br' || contentEncoding === 'gzip' ? contentEncoding : null;
 

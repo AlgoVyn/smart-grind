@@ -45,7 +45,7 @@ describe('User API', () => {
         };
 
         // Make getWithMetadata return value and metadata
-        mockKV.getWithMetadata.mockImplementation((_key, _type, _options) => {
+        mockKV.getWithMetadata.mockImplementation((_key, _options) => {
             return new Promise((resolve) => {
                 mockKV.get.mockImplementationOnce((_k, _t, _o) => {
                     return Promise.resolve(null);

@@ -17,7 +17,7 @@ export default {
     '^.+\\.(js|mjs)$': ['babel-jest'],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(jest-environment-jsdom|jose|marked|prismjs)/)',
+    'node_modules/(?!(jest-environment-jsdom|jose|marked|prismjs|dompurify)/)',
   ],
   testMatch: [
     '<rootDir>/tests/**/*.test.(js|ts)',

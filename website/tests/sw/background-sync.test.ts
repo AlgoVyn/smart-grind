@@ -332,6 +332,79 @@ describe('BackgroundSyncManager', () => {
             // Verify that failed operations are handled
             expect(mockOperationQueue.updateRetryCount).toHaveBeenCalledWith('op1');
         });
+
+        it('should skip auth verification when navigator.onLine is false', async () => {
+            // Simulate offline browser state
+            Object.defineProperty(navigator, 'onLine', {
+                value: false,
+                writable: true,
+                configurable: true,
+            });
+
+            const mockOps: QueuedOperation[] = [
+                {
+                    id: 'op1',
+                    type: 'MARK_SOLVED' as OperationType,
+                    data: { problemId: 'two-sum', solved: true },
+                    timestamp: Date.now(),
+                    deviceId: 'device1',
+                    retryCount: 0,
+                    status: 'pending',
+                    createdAt: Date.now(),
+                },
+            ];
+            mockOperationQueue.getPendingOperations.mockResolvedValue(mockOps);
+
+            await manager.syncUserProgress();
+
+            // Should NOT make any fetch calls because offline short-circuit triggers early return
+            expect(global.fetch).not.toHaveBeenCalled();
+            // Should notify clients that auth is required
+            expect(mockClients.matchAll).toHaveBeenCalled();
+
+            // Restore online state
+            Object.defineProperty(navigator, 'onLine', {
+                value: true,
+                writable: true,
+                configurable: true,
+            });
+        });
+
+        it('should abort sync and reset isSyncing when sync timeout is reached', () => {
+            jest.useFakeTimers();
+
+            mockOperationQueue.getPendingOperations.mockResolvedValue([
+                { id: 'op1' },
+            ] as QueuedOperation[]);
+
+            // Fast-path auth so we reach the sync operations
+            jest.spyOn(manager as any, 'verifyAuthentication').mockResolvedValue(true);
+
+            // Make the inner sync hang so the outer 60s timeout fires first
+            jest
+                .spyOn(manager as any, 'syncProblemProgressWithTimeout')
+                .mockImplementation(() => new Promise(() => {}));
+            jest
+                .spyOn(manager as any, 'syncCustomProblemsWithTimeout')
+                .mockResolvedValue(undefined);
+            jest
+                .spyOn(manager as any, 'syncUserSettingsWithTimeout')
+                .mockResolvedValue(undefined);
+
+            manager.syncUserProgress();
+
+            expect((manager as any).isSyncing).toBe(true);
+            expect((manager as any).syncAbortController).not.toBeNull();
+
+            // Advance past the 60s outer sync timeout
+            jest.advanceTimersByTime(60001);
+
+            // Timeout callback fired: abort controller was aborted and isSyncing reset
+            expect((manager as any).syncAbortController?.signal.aborted).toBe(true);
+            expect((manager as any).isSyncing).toBe(false);
+
+            jest.useRealTimers();
+        });
     });
 
     describe('Sync Custom Problems', () => {

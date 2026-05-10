@@ -11,12 +11,12 @@
     <title>SmartGrind: Master Coding Patterns with Spaced Repetition</title>
     <!-- Content Security Policy -->
     <!-- SECURITY: CSP prevents XSS by controlling resource loading -->
-    <!-- - 'unsafe-inline' is required for inline theme script (could use nonce with SSR) -->
+    <!-- - All executable scripts are loaded via 'src' (no inline 'unsafe-inline' needed) -->
     <!-- - Marked and PrismJS are now bundled for offline support -->
     <!-- - frame-src allows Google OAuth popup -->
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; 
-                 script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; 
+                 script-src 'self' https://static.cloudflareinsights.com; 
                  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
                  font-src 'self' https://fonts.gstatic.com; 
                  img-src 'self' https://algovyn.com data: blob:; 
@@ -54,68 +54,13 @@
     <link href="/src/styles.css" rel="stylesheet">
 
     <!-- PrismJS Worker Fix: Disable worker message handler to prevent JSON parse errors -->
-    <script>
-        // SECURITY FIX: PrismJS has a worker feature that listens to all messages and tries to JSON.parse them.
-        // When other code posts objects (not strings) to workers, this causes "[object Object] is not valid JSON" errors.
-        // This must be set BEFORE any PrismJS code loads.
-        if (typeof window !== 'undefined') {
-            window.Prism = window.Prism || {};
-            window.Prism.disableWorkerMessageHandler = true;
-        }
-        if (typeof self !== 'undefined') {
-            self.Prism = self.Prism || {};
-            self.Prism.disableWorkerMessageHandler = true;
-        }
-    </script>
+    <script src="./scripts/prism-fix.js"></script>
 
     <!-- Theme Initialization and Trailing Slash Redirect -->
-    <script>
-        (function () {
-            // Ensure trailing slash for Service Worker scope
-            // Page: /smartgrind -> Scope: /smartgrind/ (Mismatch)
-            // Page: /smartgrind/ -> Scope: /smartgrind/ (Match)
-            if (window.location.pathname === '/smartgrind') {
-                window.location.pathname = '/smartgrind/';
-                return;
-            }
-
-            // Theme detection - defaults to light theme
-            const savedTheme = localStorage.getItem('theme');
-            
-            // Default to light theme unless explicitly saved as dark
-            if (savedTheme === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-                // Save light as default if no theme set
-                if (!savedTheme) {
-                    try {
-                        localStorage.setItem('theme', 'light');
-                    } catch (e) {
-                        // Ignore storage errors
-                    }
-                }
-            }
-            
-            window.VITE_BASE_URL = '/smartgrind/';
-        })();
-    </script>
+    <script src="./scripts/theme-init.js"></script>
 
     <!-- Service Worker Registration -->
-    <script type="module">
-        import { registerServiceWorker } from '/src/sw-register.ts';
-        
-        // Register service worker for offline support
-        if ('serviceWorker' in navigator) {
-            registerServiceWorker().then(success => {
-                if (success) {
-                    console.log('[App] Service Worker registered successfully');
-                } else {
-                    console.log('[App] Service Worker registration failed or not supported');
-                }
-            });
-        }
-    </script>
+    <script type="module" src="/src/entry-sw-register.ts"></script>
 
     <!-- Structured Data - Organization -->
     <script type="application/ld+json">

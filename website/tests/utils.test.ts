@@ -24,21 +24,12 @@ const mockDocument = {
 global.window.document = mockDocument;
 global.window.scrollTo = mockScrollTo;
 
-// Mock the consolidated utils module
-const mockShowToast = jest.fn();
-jest.mock('../src/utils', () => ({
-    ...jest.requireActual('../src/utils'),
-    showToast: mockShowToast,
-}));
-
-// Ensure validation module gets actual implementation
-jest.unmock('../src/utils/validation');
-
-// Now import the module
+// Import pure utilities directly from sub-modules to avoid barrel-file
+// circular-dependency risks. Domain-specific helpers that depend on state/data
+// are still imported from the barrel file.
+import { getToday, addDays, formatDate } from '../src/utils/date';
+import { sanitizeInput } from '../src/utils/sanitization';
 import {
-    getToday,
-    addDays,
-    formatDate,
     getUrlParameter,
     updateUrlParameter,
     scrollToTop,
@@ -49,7 +40,6 @@ import {
     shouldShowProblem,
     getAvailableReviewDates,
     copyToClipboard,
-    sanitizeInput,
     countLines,
     askAI,
 } from '../src/utils';
@@ -188,14 +178,30 @@ describe('SmartGrind Utils', () => {
     });
 
     describe('Toast notifications', () => {
-        test('showToast displays success message', () => {
-            showToast('Test message', 'success');
-            expect(mockShowToast).toHaveBeenCalledWith('Test message', 'success');
+        test('showToast creates and appends toast element', () => {
+            showToast('Test message', 'success', 10);
+            expect(mockAppendChild).toHaveBeenCalled();
+            const toastEl = mockAppendChild.mock.calls[0][0] as HTMLElement;
+            expect(toastEl.tagName).toBe('DIV');
+            expect(toastEl.className).toContain('toast');
+            expect(toastEl.className).toContain('success');
+            expect(toastEl.innerHTML).toContain('Test message');
         });
 
-        test('showToast displays error message', () => {
-            showToast('Error message', 'error');
-            expect(mockShowToast).toHaveBeenCalledWith('Error message', 'error');
+        test('showToast creates error toast with correct styling', () => {
+            showToast('Error message', 'error', 10);
+            expect(mockAppendChild).toHaveBeenCalled();
+            const toastEl = mockAppendChild.mock.calls[0][0] as HTMLElement;
+            expect(toastEl.className).toContain('bg-red-500');
+            expect(toastEl.innerHTML).toContain('Error message');
+        });
+
+        test('showToast escapes HTML in message', () => {
+            showToast('<script>alert(1)</script>', 'success', 10);
+            expect(mockAppendChild).toHaveBeenCalled();
+            const toastEl = mockAppendChild.mock.calls[0][0] as HTMLElement;
+            expect(toastEl.innerHTML).toContain('&lt;script&gt;');
+            expect(toastEl.innerHTML).not.toContain('<script>');
         });
     });
 

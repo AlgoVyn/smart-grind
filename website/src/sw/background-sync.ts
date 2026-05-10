@@ -207,6 +207,13 @@ export class BackgroundSyncManager {
      * and the network is still stabilizing.
      */
     private async verifyAuthentication(): Promise<boolean> {
+        // If the browser reports offline, skip the network probe entirely.
+        // This avoids queuing failed operations when we know there is no connectivity.
+        if (!navigator.onLine) {
+            console.log('[BackgroundSync] Offline, skipping auth verification');
+            return false;
+        }
+
         try {
             const opts = await getAuthFetchOpts();
             const response = await fetch('/smartgrind/api/user?action=csrf', {
@@ -276,6 +283,8 @@ export class BackgroundSyncManager {
 
         // Set up timeout to prevent stuck sync
         const timeoutId = setTimeout(() => {
+            console.warn('[BackgroundSync] Sync timeout reached, aborting');
+            this.syncAbortController?.abort();
             this.isSyncing = false;
         }, CONFIG.SYNC_TIMEOUT_MS);
 

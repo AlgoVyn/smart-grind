@@ -1,374 +1,29 @@
 // --- UTILITIES MODULE ---
-// Consolidated utilities for the application
+// Barrel file: re-exports pure utilities from sub-modules and provides
+// domain-specific helpers that depend on application state / data.
+//
+// CIRCULAR-DEPENDENCY FIX: state.ts no longer imports from this file.
+// Instead, state.ts imports directly from utils/storage.ts and utils/dom.ts.
 
+// Re-exports from sub-modules (backward compatible for all other importers)
+export * from './utils/date';
+export * from './utils/sanitization';
+export * from './utils/storage';
+export * from './utils/dom';
+
+// Domain-specific imports
 import { state } from './state';
 import { data } from './data';
 import type { Problem } from './types';
-import DOMPurify from 'dompurify';
-import { LIMITS } from './config/limits';
+import { escapeHtml } from './utils/sanitization';
+import { getToday, addDays } from './utils/date';
 
 // ============================================================================
-// DATE UTILITIES
+// DATE UTILITIES (domain-specific)
 // ============================================================================
-
-export const getToday = (): string => new Date().toISOString().split('T')[0]!;
-
-export const addDays = (date: string, days: number): string => {
-    const result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result.toISOString().split('T')[0]!;
-};
-
-export const formatDate = (date: string): string =>
-    new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 
 export const getNextReviewDate = (today: string, intervalIndex: number): string =>
     addDays(today, data.SPACED_REPETITION_INTERVALS[intervalIndex] ?? 1);
-
-// ============================================================================
-// URL UTILITIES
-// ============================================================================
-
-declare global {
-    interface Window {
-        VITE_BASE_URL?: string;
-    }
-}
-
-export const getUrlParameter = (name: string): string | null =>
-    new URLSearchParams(window.location.search).get(name);
-
-export const getBaseUrl = (): string =>
-    window.VITE_BASE_URL ||
-    (window.location.pathname.startsWith('/smartgrind/') ? '/smartgrind/' : '/');
-
-const PATH_PREFIXES: Record<string, string> = { category: 'c', algorithms: 'a', sql: 's' };
-
-export const updateUrlParameter = (name: string, value: string | null): void => {
-    if (name in PATH_PREFIXES) {
-        const prefix = PATH_PREFIXES[name];
-        const newPath =
-            value && value !== 'all' ? `/smartgrind/${prefix}/${value}` : '/smartgrind/';
-        window.history.pushState({ path: newPath }, '', newPath);
-        return;
-    }
-
-    const urlParams = new URLSearchParams(window.location.search);
-    if (value) {
-        urlParams.set(name, value);
-    } else {
-        urlParams.delete(name);
-    }
-    const newUrl =
-        window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
-    window.history.pushState({ path: newUrl }, '', newUrl);
-};
-
-// Route parsing for path-based routing: /smartgrind/{c|a|s}/{id}
-// Returns { type: 'c'|'a'|'s', id: string } or null if not a category route
-export const parseRoute = (path: string): { type: string; id: string } | null => {
-    const pathMatch = path.match(/^\/smartgrind\/(c|a|s)\/([^/]+)$/);
-    if (!pathMatch) return null;
-    const type = pathMatch[1];
-    const id = pathMatch[2];
-    if (!type || !id) return null;
-    return { type, id };
-};
-
-// ============================================================================
-// SANITIZATION UTILITIES
-// ============================================================================
-
-/**
- * Sanitizes user input by stripping all HTML tags and dangerous content.
- *
- * SECURITY: Uses DOMPurify (a well-audited sanitization library) instead of
- * regex-based patterns, which are notoriously fragile and have been the source
- * of many XSS bypasses. DOMPurify is configured to strip ALL HTML tags
- * (ALLOWED_TAGS: []) since this function is used for plain-text fields like
- * display names, problem names, and notes.
- *
- * Additional hardening:
- * - Removes control characters (except newlines for multi-line notes)
- * - Normalizes line endings
- * - Trims whitespace per line
- * - Enforces a 200-character limit to prevent abuse
- */
-export const sanitizeInput = (input: string | null | undefined): string => {
-    if (input == null) return '';
-
-    // Normalize line endings and trim whitespace
-    let sanitized = input
-        .replace(/\r\n/g, '\n')
-        .split('\n')
-        .map((line) => line.trim())
-        .join('\n')
-        // Remove control characters (except newline \x0A)
-        .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, '');
-
-    // SECURITY: Use DOMPurify to strip all HTML tags and dangerous content.
-    // This is more robust than regex-based stripping which can be bypassed
-    // with malformed HTML, encoding tricks, or nested tags.
-    // DOMPurify with ALLOWED_TAGS: [] strips ALL HTML while preserving text content.
-    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [] });
-
-    // Enforce length limit
-    return sanitized.slice(0, LIMITS.STATE.MAX_INPUT_LENGTH);
-};
-
-export const sanitizeUrl = (url: string | null | undefined): string => {
-    if (!url) return '';
-
-    const sanitized = url.trim();
-    const lower = sanitized.toLowerCase();
-
-    if (['javascript:', 'data:', 'vbscript:'].some((p) => lower.includes(p))) return '';
-
-    try {
-        const withScheme = /^https?:\/\//i.test(lower) ? sanitized : 'https://' + sanitized;
-        new URL(withScheme);
-        return withScheme.slice(0, LIMITS.STATE.MAX_URL_LENGTH);
-    } catch {
-        return '';
-    }
-};
-
-export const escapeHtml = (str: string): string =>
-    str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-
-// ============================================================================
-// DOM HELPERS
-// ============================================================================
-
-/** Hide an element by adding the 'hidden' class. */
-export const hideEl = (el: HTMLElement | null | undefined): void => el?.classList.add('hidden');
-
-/** Show an element by removing the 'hidden' class. */
-export const showEl = (el: HTMLElement | null | undefined): void => el?.classList.remove('hidden');
-
-/** Toggle the 'hidden' class: shown when `visible` is true. */
-export const toggleEl = (el: HTMLElement | null | undefined, visible: boolean): void => {
-    if (el) el.classList.toggle('hidden', !visible);
-};
-
-// ============================================================================
-// STORAGE UTILITIES
-// ============================================================================
-
-export const safeGetItem = <T>(key: string, defaultValue: T): T => {
-    try {
-        const item = localStorage.getItem(key);
-        return item && item !== '[object Object]' ? JSON.parse(item) : defaultValue;
-    } catch {
-        return defaultValue;
-    }
-};
-
-/** Returns true if the error is a storage quota error that should be re-thrown. */
-const isQuotaError = (error: unknown): boolean =>
-    error instanceof Error &&
-    (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED');
-
-/**
- * Safely stores a value in localStorage with JSON serialization.
- *
- * @returns true if storage succeeded, false on non-quota errors
- * @throws {Error} QuotaExceededError or NS_ERROR_DOM_QUOTA_REACHED when storage quota is exceeded.
- */
-export const safeSetItem = (key: string, value: unknown): boolean => {
-    try {
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
-    } catch (error) {
-        if (isQuotaError(error)) throw error;
-        return false;
-    }
-};
-
-export const safeRemoveItem = (key: string): boolean => {
-    try {
-        localStorage.removeItem(key);
-        return true;
-    } catch {
-        return false;
-    }
-};
-
-export const getStringItem = (key: string, defaultValue: string): string => {
-    try {
-        return localStorage.getItem(key) || defaultValue;
-    } catch {
-        return defaultValue;
-    }
-};
-
-/**
- * Safely stores a string value in localStorage.
- *
- * @returns true if storage succeeded, false on non-quota errors
- * @throws {Error} QuotaExceededError or NS_ERROR_DOM_QUOTA_REACHED when storage quota is exceeded.
- */
-export const setStringItem = (key: string, value: string): boolean => {
-    try {
-        localStorage.setItem(key, value);
-        return true;
-    } catch (error) {
-        if (isQuotaError(error)) throw error;
-        return false;
-    }
-};
-
-// ============================================================================
-// ELEMENT CACHE TYPE & UTILITIES
-// ============================================================================
-
-export interface ElementCache {
-    setupModal: HTMLElement | null;
-    addProblemModal: HTMLElement | null;
-    signinModal: HTMLElement | null;
-    signinModalContent: HTMLElement | null;
-    alertModal: HTMLElement | null;
-    confirmModal: HTMLElement | null;
-    solutionModal: HTMLElement | null;
-    alertMessage: HTMLElement | null;
-    confirmMessage: HTMLElement | null;
-    alertTitle: HTMLElement | null;
-    confirmTitle: HTMLElement | null;
-    alertOkBtn: HTMLElement | null;
-    confirmOkBtn: HTMLElement | null;
-    confirmCancelBtn: HTMLElement | null;
-    solutionCloseBtn: HTMLElement | null;
-    appWrapper: HTMLElement | null;
-    loadingScreen: HTMLElement | null;
-    topicList: HTMLElement | null;
-    problemsContainer: HTMLElement | null;
-    contentScroll: HTMLElement | null;
-    emptyState: HTMLElement | null;
-    currentViewTitle: HTMLElement | null;
-    googleLoginButton: HTMLElement | null;
-    modalGoogleLoginButton: HTMLElement | null;
-    setupError: HTMLElement | null;
-    signinError: HTMLElement | null;
-    userDisplay: HTMLElement | null;
-    disconnectBtn: HTMLElement | null;
-    sidebarTotalStat: HTMLElement | null;
-    sidebarTotalBar: HTMLElement | null;
-    statTotal: HTMLElement | null;
-    statSolved: HTMLElement | null;
-    progressBarSolved: HTMLElement | null;
-    statDue: HTMLElement | null;
-    statDueBadge: HTMLElement | null;
-    reviewBanner: HTMLElement | null;
-    reviewCountBanner: HTMLElement | null;
-    mobileMenuBtn: HTMLElement | null;
-    mobileMenuBtnMain: HTMLElement | null;
-    openAddModalBtn: HTMLElement | null;
-    cancelAddBtn: HTMLElement | null;
-    saveAddBtn: HTMLElement | null;
-    themeToggleBtn: HTMLElement | null;
-    scrollToTopBtn: HTMLElement | null;
-    sidebarLogo: HTMLElement | null;
-    mobileLogo: HTMLElement | null;
-    mainSidebar: HTMLElement | null;
-    sidebarResizer: HTMLElement | null;
-    sidebarBackdrop: HTMLElement | null;
-    dateFilterContainer: HTMLElement | null;
-    toastContainer: HTMLElement | null;
-    addProbName: HTMLInputElement | null;
-    addProbUrl: HTMLInputElement | null;
-    addProbCategoryNew: HTMLInputElement | null;
-    addProbPatternNew: HTMLInputElement | null;
-    problemSearch: HTMLInputElement | null;
-    addProbCategory: HTMLSelectElement | null;
-    addProbPattern: HTMLSelectElement | null;
-    reviewDateFilter: HTMLSelectElement | null;
-    filterBtns: NodeListOf<Element> | null;
-    [key: string]: HTMLElement | HTMLInputElement | HTMLSelectElement | NodeListOf<Element> | null;
-}
-
-const ELEMENT_IDS: (keyof ElementCache)[] = [
-    'setupModal',
-    'addProblemModal',
-    'signinModal',
-    'signinModalContent',
-    'alertModal',
-    'confirmModal',
-    'solutionModal',
-    'alertMessage',
-    'confirmMessage',
-    'alertTitle',
-    'confirmTitle',
-    'alertOkBtn',
-    'confirmOkBtn',
-    'confirmCancelBtn',
-    'solutionCloseBtn',
-    'appWrapper',
-    'loadingScreen',
-    'topicList',
-    'problemsContainer',
-    'contentScroll',
-    'emptyState',
-    'currentViewTitle',
-    'googleLoginButton',
-    'modalGoogleLoginButton',
-    'setupError',
-    'signinError',
-    'userDisplay',
-    'disconnectBtn',
-    'sidebarTotalStat',
-    'sidebarTotalBar',
-    'statTotal',
-    'statSolved',
-    'progressBarSolved',
-    'statDue',
-    'statDueBadge',
-    'reviewBanner',
-    'reviewCountBanner',
-    'mobileMenuBtn',
-    'mobileMenuBtnMain',
-    'openAddModalBtn',
-    'cancelAddBtn',
-    'saveAddBtn',
-    'themeToggleBtn',
-    'scrollToTopBtn',
-    'sidebarLogo',
-    'mobileLogo',
-    'mainSidebar',
-    'sidebarResizer',
-    'sidebarBackdrop',
-    'dateFilterContainer',
-    'toastContainer',
-    'addProbName',
-    'addProbUrl',
-    'addProbCategoryNew',
-    'addProbPatternNew',
-    'problemSearch',
-    'addProbCategory',
-    'addProbPattern',
-    'reviewDateFilter',
-];
-
-const toKebab = (str: string): string => str.replace(/([A-Z])/g, '-$1').toLowerCase();
-
-export const cacheElements = (): Partial<ElementCache> => {
-    const elements: Partial<ElementCache> = {};
-    ELEMENT_IDS.forEach((id) => {
-        (elements as Record<string, HTMLElement | null>)[id as string] = document.getElementById(
-            toKebab(id as string)
-        );
-    });
-    (elements as Record<string, NodeListOf<Element> | null>)['filterBtns'] =
-        document.querySelectorAll('.filter-btn');
-    return elements;
-};
-
-export const getElement = <T extends HTMLElement>(id: string): T | null =>
-    document.getElementById(id.includes('-') ? id : toKebab(id)) as T | null;
 
 // ============================================================================
 // COUNTING UTILITIES
@@ -415,6 +70,56 @@ export const scrollToTop = (smooth = false): void => {
     const behavior = smooth ? 'smooth' : 'instant';
     state.elements.contentScroll?.scrollTo({ top: 0, behavior });
     window.scrollTo({ top: 0, behavior });
+};
+
+// ============================================================================
+// URL UTILITIES (domain-specific parts)
+// ============================================================================
+
+declare global {
+    interface Window {
+        VITE_BASE_URL?: string;
+    }
+}
+
+export const getUrlParameter = (name: string): string | null =>
+    new URLSearchParams(window.location.search).get(name);
+
+export const getBaseUrl = (): string =>
+    window.VITE_BASE_URL ||
+    (window.location.pathname.startsWith('/smartgrind/') ? '/smartgrind/' : '/');
+
+const PATH_PREFIXES: Record<string, string> = { category: 'c', algorithms: 'a', sql: 's' };
+
+export const updateUrlParameter = (name: string, value: string | null): void => {
+    if (name in PATH_PREFIXES) {
+        const prefix = PATH_PREFIXES[name];
+        const newPath =
+            value && value !== 'all' ? `/smartgrind/${prefix}/${value}` : '/smartgrind/';
+        window.history.pushState({ path: newPath }, '', newPath);
+        return;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (value) {
+        urlParams.set(name, value);
+    } else {
+        urlParams.delete(name);
+    }
+    const newUrl =
+        window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+    window.history.pushState({ path: newUrl }, '', newUrl);
+};
+
+// Route parsing for path-based routing: /smartgrind/{c|a|s}/{id}
+// Returns { type: 'c'|'a'|'s', id: string } or null if not a category route
+export const parseRoute = (path: string): { type: string; id: string } | null => {
+    const pathMatch = path.match(/^\/smartgrind\/(c|a|s)\/([^/]+)$/);
+    if (!pathMatch) return null;
+    const type = pathMatch[1];
+    const id = pathMatch[2];
+    if (!type || !id) return null;
+    return { type, id };
 };
 
 // ============================================================================
