@@ -50,16 +50,17 @@ describe('Breadcrumb Utilities - updateBreadcrumbs', () => {
         expect(mockBreadcrumbNav.classList.remove).not.toHaveBeenCalled();
     });
 
-    it('should show breadcrumb nav and render items correctly', () => {
+    it('should keep breadcrumb nav hidden and render items correctly', () => {
         const items = [
             { label: 'Home', href: '/smartgrind/' },
             { label: 'Patterns', href: '/smartgrind/' },
             { label: 'Two Pointers Pattern' },
         ];
-        
+
         updateBreadcrumbs(items);
-        
-        expect(mockBreadcrumbNav.classList.remove).toHaveBeenCalledWith('hidden');
+
+        expect(mockBreadcrumbNav.classList.add).toHaveBeenCalledWith('hidden');
+        expect(mockBreadcrumbNav.classList.remove).not.toHaveBeenCalled();
         expect(mockBreadcrumbList.innerHTML).toContain('Home');
         expect(mockBreadcrumbList.innerHTML).toContain('Patterns');
         expect(mockBreadcrumbList.innerHTML).toContain('Two Pointers Pattern');

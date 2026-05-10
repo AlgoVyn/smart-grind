@@ -304,12 +304,11 @@ export const updateBreadcrumbs = (items: BreadcrumbItem[]): void => {
     const breadcrumbList = document.getElementById('breadcrumb-list');
     if (!breadcrumbNav || !breadcrumbList) return;
 
-    // Show/hide breadcrumb nav based on items
+    // Breadcrumbs are hidden visually but JSON-LD structured data is kept for SEO
+    breadcrumbNav.classList.add('hidden');
     if (items.length === 0) {
-        breadcrumbNav.classList.add('hidden');
         return;
     }
-    breadcrumbNav.classList.remove('hidden');
 
     // Build breadcrumb HTML
     breadcrumbList.innerHTML = items
