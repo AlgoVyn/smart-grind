@@ -245,7 +245,7 @@ describe('SmartGrind Renderers', () => {
     describe('generateActionButton', () => {
         test('generates solve button for unsolved problems', () => {
             const result = htmlGenerators.generateActionButton({ status: 'unsolved', loading: false });
-            expect(result).toContain('Solve');
+            expect(result).toContain('Solved');
             expect(result).toContain('bg-brand-600');
         });
 
@@ -634,7 +634,7 @@ describe('SmartGrind Renderers', () => {
             expect(result.className).toContain('bg-dark-800');
             expect(result.className).toContain('border-brand-500/20');
             expect(result.innerHTML).toContain('Two Sum');
-            expect(result.innerHTML).toContain('Solve');
+            expect(result.innerHTML).toContain('Solved');
         });
 
         test('generates HTML for unsolved problem', () => {

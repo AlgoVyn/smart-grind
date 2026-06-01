@@ -173,7 +173,7 @@ export const htmlGenerators = {
                 return {
                     action: 'solve',
                     class: 'bg-brand-600 text-white hover:bg-brand-500 shadow-lg shadow-brand-500/20',
-                    text: 'Solve',
+                    text: 'Solved',
                 };
             }
             if (isDue) {

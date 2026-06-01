@@ -386,7 +386,7 @@ describe('combinedViewRenderers', () => {
             // Verify it doesn't throw and doesn't add listeners to individual buttons
             document.body.innerHTML = `
                 <div id="test-container">
-                    <button class="action-btn" data-action="solve" data-problem-id="1">Solve</button>
+                    <button class="action-btn" data-action="solve" data-problem-id="1">Solved</button>
                 </div>
             `;
             const buttons = document.querySelectorAll('.action-btn[data-action]');
