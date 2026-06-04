@@ -40,6 +40,12 @@ export const bindEvents = () => {
     bindNavigationEvents();
     bindProblemEvents();
     bindGlobalEvents();
+
+    // Review now button (must be bound in JS because CSP blocks inline onclick)
+    const reviewNowBtn = document.getElementById('review-now-btn');
+    if (reviewNowBtn && window.scrollToReview) {
+        reviewNowBtn.addEventListener('click', window.scrollToReview);
+    }
 };
 
 // Helper to safely add event listener
