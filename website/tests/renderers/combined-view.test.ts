@@ -7,6 +7,7 @@
 jest.mock('@/state', () => ({
     state: {
         problems: new Map(),
+        deletedProblemIds: new Set(),
         setProblem: jest.fn(),
         deleteProblem: jest.fn(),
         clearProblems: jest.fn(),
@@ -65,6 +66,19 @@ jest.mock('@/renderers/main-view', () => ({
     mainViewRenderers: {
         _removeActionContainer: jest.fn(),
         _createActionBtn: jest.fn(),
+        _algorithmToProblem: jest.fn(
+            (algoDef: { id: string; name: string; url: string }, categoryId: string) => ({
+                id: algoDef.id,
+                name: algoDef.name,
+                url: algoDef.url,
+                status: 'unsolved',
+                topic: categoryId,
+                pattern: '',
+                reviewInterval: 0,
+                nextReviewDate: null,
+                note: '',
+            })
+        ),
     },
 }));
 
@@ -346,6 +360,13 @@ describe('combinedViewRenderers', () => {
             const cards = result.querySelectorAll('[data-problem-id]');
             expect(cards.length).toBe(1);
             expect(cards[0].getAttribute('data-problem-id')).toBe('algo-1');
+
+            // Missing problems are seeded into state so fresh users see the
+            // Algorithms section in the combined view
+            expect(state.setProblem).toHaveBeenCalledWith(
+                'non-existent',
+                expect.objectContaining({ id: 'non-existent' })
+            );
         });
 
         test('creates problem cards with correct attributes', () => {

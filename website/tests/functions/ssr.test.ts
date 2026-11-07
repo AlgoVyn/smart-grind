@@ -194,15 +194,15 @@ describe('SSR Function - SEO Integration Tests', () => {
             expect(html).toContain('@type":"WebApplication"');
         });
 
-        it('should include SoftwareApplication schema with ratings', async () => {
+        it('should include WebApplication schema without fabricated ratings', async () => {
             const request = new Request('https://algovyn.com/smartgrind/');
             const env = createMockEnv();
             
             const response = await onRequest({ request, env, next: mockNext });
             const html = await response.text();
             
-            expect(html).toContain('"ratingValue":"4.8"');
-            expect(html).toContain('"ratingCount":"1500"');
+            // No self-declared ratings: Google treats unbacked AggregateRating as spam
+            expect(html).not.toContain('aggregateRating');
             expect(html).toContain('featureList');
         });
     });
@@ -252,7 +252,9 @@ describe('SSR Function - SEO Integration Tests', () => {
             expect(html).toContain('@type":"BreadcrumbList"');
             expect(html).toContain('"position":1');
             expect(html).toContain('"position":2');
-            expect(html).toContain('"position":3');
+            // Two levels only; every non-final crumb must be a URL that returns 200
+            expect(html).not.toContain('"position":3');
+            expect(html).not.toMatch(/"item":"https:\/\/algovyn\.com\/smartgrind\/[cas]\/"/);
         });
     });
 
@@ -425,10 +427,18 @@ describe('SSR Function - SEO Integration Tests', () => {
             const response = await onRequest({ request, env, next: mockNext });
             const html = await response.text();
             
-            expect(html).toContain('window.__INITIAL_STATE__');
-            // Handle both escaped and unescaped quotes
-            expect(html).toMatch(/type[:=]\\?"c\\?"/);
-            expect(html).toMatch(/id[:=]\\?"two-pointers\\?"/);
+            expect(html).toContain(
+                '<script type="application/json" id="__INITIAL_STATE__">'
+            );
+
+            // The block must be valid JSON the client can parse
+            const match = html.match(
+                /<script type="application\/json" id="__INITIAL_STATE__">([\s\S]*?)<\/script>/
+            );
+            expect(match).not.toBeNull();
+            expect(JSON.parse(match![1]!)).toEqual({
+                route: { type: 'c', id: 'two-pointers' },
+            });
         });
 
         it('should inject initial state for problem pages', async () => {
@@ -438,7 +448,7 @@ describe('SSR Function - SEO Integration Tests', () => {
             const response = await onRequest({ request, env, next: mockNext });
             const html = await response.text();
             
-            expect(html).toContain('window.__INITIAL_STATE__');
+            expect(html).toContain('id="__INITIAL_STATE__"');
         });
     });
 });

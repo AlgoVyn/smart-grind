@@ -1307,6 +1307,11 @@ describe('SmartGrind UI', () => {
 
     describe('initScrollButton', () => {
         test('adds scroll event listener', () => {
+            // Fresh elements: initScrollButton attaches listeners only once per
+            // element pair, and earlier tests already initialized the cached ones
+            state.elements.contentScroll = createMockElement();
+            state.elements.scrollToTopBtn = createMockElement();
+
             ui.initScrollButton();
 
             expect(mockAddEventListener).toHaveBeenCalledWith('scroll', expect.any(Function));

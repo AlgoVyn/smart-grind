@@ -3096,3 +3096,22 @@ code:focus-visible {
     max-width: 600px;
     margin: 2rem auto;
 }
+
+/* --- SEO server-rendered content (functions/[[path]].ts + scripts/seo-fragments.ts) --- */
+.seo-header { padding-bottom: 0.25rem; }
+#seo-content { padding-bottom: 5rem; }
+.seo-guide { line-height: 1.65; color: var(--theme-text-base, inherit); }
+.seo-guide h2 { font-size: 1.25rem; font-weight: 700; margin: 2rem 0 0.75rem; }
+.seo-guide h3 { font-size: 1.05rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
+.seo-guide p,
+.seo-guide ul,
+.seo-guide ol { margin: 0 0 0.75rem; }
+.seo-guide ul { list-style: disc; padding-left: 1.25rem; }
+.seo-guide ol { list-style: decimal; padding-left: 1.25rem; }
+.seo-guide a { color: #38bdf8; text-decoration: underline; text-underline-offset: 2px; }
+.seo-guide pre { overflow-x: auto; padding: 0.75rem 1rem; border-radius: 0.5rem; background: rgba(15, 23, 42, 0.6); font-size: 0.8125rem; }
+.seo-guide code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; }
+.seo-guide table { display: block; overflow-x: auto; border-collapse: collapse; margin-bottom: 1rem; }
+.seo-guide th,
+.seo-guide td { border: 1px solid rgba(148, 163, 184, 0.25); padding: 0.35rem 0.6rem; }
+.seo-guide-related ul { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; list-style: none; padding-left: 0; }

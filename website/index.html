@@ -8,7 +8,7 @@
         content="Master coding interview patterns with SmartGrind's spaced repetition system. Practice 500+ LeetCode problems with detailed solutions in Python, Java, C++, and JavaScript. Track progress, learn 15+ essential patterns including Two Pointers, Dynamic Programming, Graphs, and more. Free coding interview prep tool with offline support.">
     <meta name="keywords"
         content="leetcode patterns, coding interview prep, spaced repetition coding, algorithm patterns, data structures and algorithms, technical interview preparation, FAANG interview, coding practice, leetcode solutions, two pointers pattern, sliding window technique, dynamic programming tutorial, graph algorithms, sql interview questions, python coding interview, system design interview">
-    <title>SmartGrind: Master Coding Patterns with Spaced Repetition</title>
+    <title>AlgoVyn SmartGrind: Master Coding Patterns with Spaced Repetition</title>
     <!-- Content Security Policy -->
     <!-- SECURITY: CSP prevents XSS by controlling resource loading -->
     <!-- - All executable scripts are loaded via 'src' (no inline 'unsafe-inline' needed) -->
@@ -26,21 +26,23 @@
                  base-uri 'self';
                  form-action 'self';
                  upgrade-insecure-requests;">
-    <link rel="canonical" href="https://algovyn.com/smartgrind">
-    <meta property="og:site_name" content="AlgoVyn - SmartGrind">
+    <link rel="canonical" href="https://algovyn.com/smartgrind/">
+    <meta property="og:site_name" content="AlgoVyn SmartGrind">
     <!-- Open Graph -->
-    <meta property="og:title" content="SmartGrind: Master Coding Patterns with Spaced Repetition">
+    <meta property="og:title" content="AlgoVyn SmartGrind: Master Coding Patterns with Spaced Repetition">
     <meta property="og:description"
         content="Master coding interview patterns with spaced repetition. Practice 500+ LeetCode problems with solutions in Python, Java, C++, and JavaScript. Free with offline support.">
-    <meta property="og:image" content="https://algovyn.com/smartgrind/logo.svg">
-    <meta property="og:url" content="https://algovyn.com/smartgrind">
+    <meta property="og:image" content="https://algovyn.com/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://algovyn.com/smartgrind/">
     <meta property="og:type" content="website">
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="SmartGrind: Master Coding Patterns with Spaced Repetition">
+    <meta name="twitter:title" content="AlgoVyn SmartGrind: Master Coding Patterns with Spaced Repetition">
     <meta name="twitter:description"
         content="Master coding interview patterns with spaced repetition. Practice 500+ LeetCode problems with solutions in Python, Java, C++, and JavaScript. Free with offline support.">
-    <meta name="twitter:image" content="https://algovyn.com/smartgrind/logo.svg">
+    <meta name="twitter:image" content="https://algovyn.com/og-image.png">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -110,8 +112,15 @@
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "AlgoVyn",
-      "url": "https://algovyn.com",
-      "logo": "https://algovyn.com/favicon.svg"
+      "url": "https://algovyn.com/",
+      "logo": "https://algovyn.com/company-logo.png",
+      "sameAs": [
+        "https://www.linkedin.com/company/algovyn",
+        "https://github.com/AlgoVyn",
+        "https://x.com/algovyn",
+        "https://youtube.com/@algovyn",
+        "https://medium.com/@algovyn"
+      ]
     }
     </script>
     <!-- Structured Data - WebApplication -->
@@ -120,8 +129,13 @@
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "SmartGrind",
+      "alternateName": "AlgoVyn SmartGrind",
       "description": "A web app for mastering coding patterns through spaced repetition.",
-      "url": "https://algovyn.com/smartgrind",
+      "url": "https://algovyn.com/smartgrind/",
+      "sameAs": [
+        "https://github.com/AlgoVyn/smart-grind",
+        "https://chromewebstore.google.com/detail/smartgrind/eaolfkdmfnnanbfkaejnkcfafpankcmp"
+      ],
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Web",
       "offers": {
@@ -270,7 +284,7 @@
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "SmartGrind",
-      "url": "https://algovyn.com/smartgrind",
+      "url": "https://algovyn.com/smartgrind/",
       "potentialAction": {
         "@type": "SearchAction",
         "target": "https://algovyn.com/smartgrind/?search={search_term_string}",
@@ -354,7 +368,7 @@
             <div style="max-width: 800px; margin: 0 auto; padding: 2rem;">
                 <header style="text-align: center; padding: 2rem 0; border-bottom: 1px solid #334155; margin-bottom: 2rem;">
                     <img src="/logo.svg" alt="SmartGrind Logo" style="width: 64px; height: 64px; margin-bottom: 1rem;">
-                    <h1 style="font-size: 2rem; font-weight: 700; color: #f8fafc; margin: 0 0 0.5rem 0;">SmartGrind</h1>
+                    <p style="font-size: 2rem; font-weight: 700; color: #f8fafc; margin: 0 0 0.5rem 0;">SmartGrind</p>
                     <p style="font-size: 1.125rem; color: #94a3b8; margin: 0;">Master Coding Patterns with Spaced Repetition</p>
                 </header>
 
@@ -1156,6 +1170,8 @@
             <!-- Scrollable Content Area -->
             <div id="content-scroll" class="flex-1 overflow-y-auto p-4 md:p-8">
                 <div class="max-w-4xl mx-auto space-y-8">
+                    <!-- SEO: server-rendered h1 + intro (functions/[[path]].ts); removed on in-app navigation -->
+                    <!--SEO_HEADER-->
 
                     <!-- Stats Overview (Main Dashboard) -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1250,6 +1266,9 @@
                     <div id="problems-container" class="space-y-10 pb-20">
                         <!-- Problems injected here -->
                     </div>
+
+                    <!-- SEO: server-rendered guide + problem links (scripts/seo-fragments.ts) -->
+                    <!--SEO_CONTENT-->
 
                     <!-- Empty State -->
                     <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center">

@@ -531,10 +531,18 @@ describe('SmartGrind API Module', () => {
 
             await api.loadData();
 
+            // Server data passes through validateProblem, which fills the
+            // sanitized defaults for fields missing on the wire
             expect(state.problems.get('1')).toEqual({
                 id: '1',
                 name: 'Test Problem',
+                url: '',
                 status: 'unsolved',
+                topic: '',
+                pattern: '',
+                reviewInterval: 0,
+                nextReviewDate: null,
+                note: '',
                 loading: false,
                 noteVisible: false,
             });

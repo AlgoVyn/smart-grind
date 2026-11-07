@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SmartGrind",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Enhance LeetCode with problem ratings and smart random selection for optimal coding practice.",
   "icons": {
     "16": "logo-16.png",
@@ -10,9 +10,6 @@
     "128": "logo-128.png"
   },
   "permissions": ["storage"],
-  "background": {
-    "service_worker": "background.js"
-  },
   "action": {
     "default_popup": "popup.html"
   },
@@ -25,7 +22,8 @@
   "web_accessible_resources": [
     {
       "resources": ["ratings.txt", "tags.txt"],
-      "matches": ["https://leetcode.com/*"]
+      "matches": ["https://leetcode.com/*"],
+      "use_dynamic_url": true
     }
   ]
 }

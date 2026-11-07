@@ -402,7 +402,12 @@ function handleWaitingWorker(worker: ServiceWorker): void {
  * Skip waiting and activate new service worker
  */
 export async function skipWaiting(): Promise<void> {
-    if (!navigator.serviceWorker.controller) return;
+    // The SKIP_WAITING message must go to the WAITING worker — only the
+    // worker that calls self.skipWaiting() activates. The controlling
+    // (active) worker receiving it would be a no-op.
+    const registration = await navigator.serviceWorker.getRegistration();
+    const target = registration?.waiting ?? navigator.serviceWorker.controller;
+    if (!target) return;
 
     // Wait for the new service worker to activate before reloading
     const activationPromise = new Promise<void>((resolve) => {
@@ -429,8 +434,8 @@ export async function skipWaiting(): Promise<void> {
         }, 10000);
     });
 
-    // Send message to SW to skip waiting
-    navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+    // Send message to the waiting service worker to skip waiting
+    target.postMessage({ type: 'SKIP_WAITING' });
 
     // Wait for the new service worker to activate, then reload
     await activationPromise;
@@ -441,7 +446,8 @@ export async function skipWaiting(): Promise<void> {
  * Handle messages from service worker
  */
 function handleSWMessage(event: MessageEvent): void {
-    const { type, data } = event.data;
+    // Guard against null/undefined payloads
+    const { type, data } = event.data || {};
 
     if (!type) return;
 

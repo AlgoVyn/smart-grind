@@ -9,6 +9,7 @@ import { showToast } from '../src/utils';
 // Mock dependencies
 jest.mock('../src/sw-register', () => ({
     on: jest.fn(),
+    skipWaiting: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../src/state', () => ({
@@ -184,7 +185,7 @@ describe('Init Module - Service Worker Events', () => {
     });
 
     describe('updateAvailable event', () => {
-        test('should show toast for non-first-install updates', async () => {
+        test('should show an actionable toast for non-first-install updates', async () => {
             await checkAuth();
 
             const updateHandlers = eventHandlers.get('updateAvailable');
@@ -194,10 +195,16 @@ describe('Init Module - Service Worker Events', () => {
             updateHandlers![0]({ reason: 'update', worker: null });
 
             expect(showToast).toHaveBeenCalledWith(
-                'New version is ready, reload',
+                'New version is ready — click to update',
                 'success',
-                15000
+                15000,
+                expect.any(Function)
             );
+
+            // The toast action must activate the waiting worker
+            const activate = (showToast as jest.Mock).mock.calls[0][3] as () => Promise<void>;
+            await activate();
+            expect(swRegister.skipWaiting).toHaveBeenCalled();
         });
 
         test('should NOT show toast for first install (waits for bundleReady)', async () => {

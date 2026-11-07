@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite';
 import path from 'path';
 import fs from 'fs';
+import { writeFragments } from './scripts/seo-fragments';
 
 export default defineConfig({
     base: '/smartgrind/',
@@ -69,6 +70,19 @@ export default defineConfig({
         },
     },
     plugins: [
+        {
+            // SEO: prerender per-category / per-problem HTML fragments that the
+            // Pages Function inlines into the shell (see scripts/seo-fragments.ts)
+            name: 'seo-prerender',
+            apply: 'build',
+            closeBundle() {
+                const n = writeFragments(
+                    path.resolve(__dirname, 'public'),
+                    path.resolve(__dirname, 'dist')
+                );
+                console.log(`[vite] SEO fragments written: ${n}`);
+            },
+        },
         // basicSsl() // Enable if HTTPS is needed for Google Auth testing locally
         {
             name: 'ensure-sw-directory',
@@ -244,7 +258,10 @@ export default defineConfig({
                         return;
                     }
                     
-                    const updatedContent = swContent.replace(placeholder, replacement);
+                    // Replace EVERY occurrence: the placeholder is declared in
+                    // more than one module and a single replace() would leave
+                    // mismatched cache versions between them
+                    const updatedContent = swContent.split(placeholder).join(replacement);
                     
                     // ATOMIC WRITE: Write to temp file then rename
                     const tempPath = swFile + '.tmp';

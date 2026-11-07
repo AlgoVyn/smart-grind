@@ -3,7 +3,14 @@
 import { Topic } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-import { scrollToTop, hideEl, parseRoute } from '../utils';
+import {
+    scrollToTop,
+    hideEl,
+    parseRoute,
+    syncSeoForView,
+    getViewTitle,
+    type ViewTitleType,
+} from '../utils';
 import { renderers } from '../renderers';
 import { app } from '../app';
 
@@ -48,6 +55,15 @@ export const handleKeyboard = (e: KeyboardEvent): void => {
 // Browser navigation - path-based routing
 export const handlePopState = (): void => {
     const route = parseRoute(window.location.pathname);
+    // Server-rendered SEO blocks only describe the initially loaded URL
+    if (typeof syncSeoForView === 'function') {
+        const viewType = route
+            ? ({ c: 'topic', a: 'algorithm', s: 'sql' } as Record<string, ViewTitleType>)[
+                  route.type
+              ]
+            : undefined;
+        syncSeoForView(viewType && route ? getViewTitle(viewType, route.id) : null);
+    }
 
     if (route) {
         const { type, id } = route;

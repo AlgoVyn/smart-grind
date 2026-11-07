@@ -50,10 +50,16 @@ export const sanitizeUrl = (url: string | null | undefined): string => {
 
     if (['javascript:', 'data:', 'vbscript:'].some((p) => lower.includes(p))) return '';
 
+    // Reject characters that could break out of an HTML attribute context —
+    // a URL containing them is either invalid or an injection attempt
+    if (/[<>"`]/.test(sanitized)) return '';
+
     try {
         const withScheme = /^https?:\/\//i.test(lower) ? sanitized : 'https://' + sanitized;
-        new URL(withScheme);
-        return withScheme.slice(0, LIMITS.STATE.MAX_URL_LENGTH);
+        // Encode raw spaces (invalid in URLs) instead of rejecting outright
+        const normalized = /\s/.test(withScheme) ? encodeURI(withScheme) : withScheme;
+        new URL(normalized);
+        return normalized.slice(0, LIMITS.STATE.MAX_URL_LENGTH);
     } catch {
         return '';
     }

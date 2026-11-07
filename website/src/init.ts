@@ -53,14 +53,24 @@ const safeInitOfflineDetection = async (): Promise<void> => {
 // URL Parameter Helpers
 // ============================================================================
 
+/** Read the non-executable JSON block emitted by the SSR Function. */
+const getInitialState = (): { route?: { type: string; id: string } } | null => {
+    if (typeof document === 'undefined') return null;
+    const el = document.getElementById('__INITIAL_STATE__');
+    if (!el) return null;
+    try {
+        return JSON.parse(el.textContent || '{}');
+    } catch {
+        return null;
+    }
+};
+
 const getPathParam = (prefix: string): string | null => {
     // Check for SSR initial state first
     if (typeof window !== 'undefined') {
-        const win = window as unknown as {
-            __INITIAL_STATE__?: { route?: { type: string; id: string } };
-        };
-        if (win.__INITIAL_STATE__?.route?.type === prefix) {
-            return win.__INITIAL_STATE__.route!.id;
+        const route = getInitialState()?.route;
+        if (route?.type === prefix) {
+            return route.id;
         }
     }
 
@@ -438,10 +448,16 @@ const setupSWEventListeners = (): (() => void) => {
         const { reason } = (data || {}) as { reason?: string };
         console.log('[Init] Update available:', reason);
 
-        // For updates (not first install), show notification
+        // For updates (not first install), show a notification the user can
+        // click to activate the waiting worker. Without this action the new
+        // worker would only activate after every app tab is closed.
         if (reason !== 'first-install' && !updateToastShown) {
             updateToastShown = true;
-            showToast('New version is ready, reload', 'success', 15000);
+            showToast('New version is ready — click to update', 'success', 15000, () => {
+                swRegister.skipWaiting().catch((error) => {
+                    console.error('[Init] Failed to activate update:', error);
+                });
+            });
         }
     };
 

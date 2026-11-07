@@ -201,7 +201,7 @@ export const htmlGenerators = {
         const badge = htmlGenerators.generateBadge(p, today);
         return `
             <div class="flex items-center gap-2 mb-1">
-                <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="text-base font-medium text-theme-bold group-hover:text-brand-400 transition-colors truncate cursor-pointer">
+                <a href="${escapeHtml(p.url || '')}" target="_blank" rel="noopener noreferrer" class="text-base font-medium text-theme-bold group-hover:text-brand-400 transition-colors truncate cursor-pointer">
                     ${escapeHtml(p.name || '')}
                 </a>
                 ${badge}

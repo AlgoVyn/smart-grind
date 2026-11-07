@@ -24,10 +24,15 @@
     return text.split('\n').filter(t => t.trim()).map(t => t.trim());
   };
 
+  // Cache is version-stamped so dataset updates shipped with a new extension
+  // version actually reach existing users (storage.local persists across
+  // updates; without the stamp users kept stale ratings forever)
+  const EXTENSION_VERSION = chrome.runtime.getManifest().version;
+
   const loadProblemsAndTags = async () => {
-    const cached = await chrome.storage.local.get(['problems', 'tags']);
-    if (cached.problems && cached.tags) {
-      return { problems: cached.problems, tags: cached.tags };
+    const cached = await chrome.storage.local.get('datasetCache');
+    if (cached.datasetCache?.version === EXTENSION_VERSION && cached.datasetCache.data) {
+      return cached.datasetCache.data;
     }
     const [problemsResponse, tags] = await Promise.all([
       fetch(chrome.runtime.getURL('ratings.txt')),
@@ -35,8 +40,28 @@
     ]);
     const problemsText = await problemsResponse.text();
     const problems = parseProblems(problemsText);
-    await chrome.storage.local.set({ problems, tags });
-    return { problems, tags };
+    const data = { problems, tags };
+    await chrome.storage.local.set({ datasetCache: { version: EXTENSION_VERSION, data } });
+    return data;
+  };
+
+  // The solved/opened collections live in storage.local (they overflow the
+  // 8KB-per-item storage.sync quota at ~100-150 entries); legacy sync data is
+  // migrated on first read. Mirrors the helpers in content.js.
+  const getCollection = async (key) => {
+    const local = await chrome.storage.local.get(key);
+    if (local[key]) return local[key];
+
+    const legacy = await chrome.storage.sync.get(key);
+    if (Array.isArray(legacy[key])) {
+      // Normalize old string-array format to objects
+      const migrated = legacy[key].map((entry) =>
+        typeof entry === 'string' ? { slug: entry, solvedAt: Date.now() } : entry
+      );
+      await chrome.storage.local.set({ [key]: migrated });
+      return migrated;
+    }
+    return [];
   };
 
   const populateTagDropdown = (tags) => {
@@ -93,24 +118,28 @@
   };
 
   const trackOpenedProblem = async (slug) => {
-    const { openedProblems = [] } = await chrome.storage.sync.get(['openedProblems']);
+    const openedProblems = await getCollection('openedProblems');
     const existing = openedProblems.find(o => o.slug === slug);
     if (!existing) {
       openedProblems.push({ slug, openedAt: Date.now() });
-      await chrome.storage.sync.set({ openedProblems });
+      // Bound growth: entries are pruned by the content script once a problem
+      // is solved, but unsolved entries could accumulate forever
+      const bounded = openedProblems.slice(-500);
+      await chrome.storage.local.set({ openedProblems: bounded });
     }
+  };
+
+  // parseFloat('') and parseFloat('0') differ: an explicit 0 must be kept,
+  // only non-numeric input falls back to the default
+  const parseRating = (value, fallback) => {
+    const parsed = parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
   };
 
   try {
     const { problems, tags } = await loadProblemsAndTags();
     populateTagDropdown(tags);
-    let { solvedProblems = [] } = await chrome.storage.sync.get(['solvedProblems']);
-
-    // Migrate old format (array of slugs) to new format (array of objects)
-    if (solvedProblems.length > 0 && typeof solvedProblems[0] === 'string') {
-      solvedProblems = solvedProblems.map(slug => ({ slug, solvedAt: Date.now() }));
-      await chrome.storage.sync.set({ solvedProblems });
-    }
+    const solvedProblems = await getCollection('solvedProblems');
 
     const currentRating = calculateCurrentRating(problems, solvedProblems);
     document.getElementById('currentRating').textContent = `Current Rating: ${currentRating}`;
@@ -118,8 +147,8 @@
 
     document.getElementById('randomBtn').addEventListener('click', async () => {
       try {
-        const minRating = parseFloat(document.getElementById('minRating').value) || 0;
-        const maxRating = parseFloat(document.getElementById('maxRating').value) || 3000;
+        const minRating = parseRating(document.getElementById('minRating').value, 0);
+        const maxRating = parseRating(document.getElementById('maxRating').value, 3000);
         const selectedTag = document.getElementById('tagSelect').value;
         if (minRating > maxRating) {
           alert('Min rating cannot be greater than max rating');

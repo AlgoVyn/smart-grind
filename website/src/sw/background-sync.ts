@@ -44,6 +44,9 @@ const CONFIG = {
 const RETRY_DB_NAME = 'smartgrind-sync-retry';
 const RETRY_STORE_NAME = 'pending-retries';
 
+/** How long a fetched CSRF token is reused by the service worker */
+const CSRF_TOKEN_TTL_MS = 30 * 60 * 1000;
+
 interface PersistedRetry {
     id: string;
     operationId: string;
@@ -58,9 +61,17 @@ export class BackgroundSyncManager {
     private syncAbortController: AbortController | null = null;
     private retryCheckInterval: number | null = null;
     private retryDB: IDBDatabase | null = null;
+    private csrfToken: string | null = null;
+    private csrfTokenExpiresAt: number = 0;
+    private lastAuthRequiredNoticeAt: number = 0;
 
-    constructor() {
-        this.operationQueue = new OperationQueue();
+    /** Minimum gap between AUTH_REQUIRED notifications to clients */
+    private static readonly AUTH_REQUIRED_NOTICE_INTERVAL_MS = 5 * 60 * 1000;
+
+    constructor(operationQueue?: OperationQueue) {
+        // Accept an injected queue so the service worker and the sync manager
+        // share one OperationQueue instead of creating divergent instances
+        this.operationQueue = operationQueue ?? new OperationQueue();
         this.conflictResolver = new SyncConflictResolver();
         this.initRetryDB().catch((error) => {
             console.warn(
@@ -69,6 +80,11 @@ export class BackgroundSyncManager {
             );
         });
         this.startRetryCheckInterval();
+    }
+
+    /** Whether a sync run is currently in flight (used for GET_SYNC_STATUS) */
+    get syncing(): boolean {
+        return this.isSyncing;
     }
 
     /**
@@ -150,6 +166,100 @@ export class BackgroundSyncManager {
     }
 
     /**
+     * True when an operation's last failure looks transient (network error,
+     * timeout, 429 or 5xx). Permanent failures (4xx, invalid payloads,
+     * unresolvable conflicts) must not be retried forever.
+     */
+    private isRetryableFailure(errorMessage: string | undefined): boolean {
+        if (!errorMessage) return false;
+
+        const httpMatch = errorMessage.match(/HTTP\s+(\d{3})/i);
+        if (httpMatch?.[1]) {
+            const status = Number(httpMatch[1]);
+            return status === 408 || status === 425 || status === 429 || status >= 500;
+        }
+
+        return /network|fetch|timeout|timed out|aborted|offline/i.test(errorMessage);
+    }
+
+    /**
+     * Move transiently failed operations back into the pending queue so a
+     * temporary outage cannot permanently lose offline data. Permanent
+     * failures stay parked, and requeued operations keep their retry count so
+     * they get one attempt per requeue cycle instead of a fresh
+     * MAX_RETRY_ATTEMPTS burst every 30 seconds.
+     */
+    private async requeueFailedOperations(): Promise<void> {
+        try {
+            const failedOps = await this.operationQueue.getFailedOperations();
+            for (const op of failedOps) {
+                if (!this.isRetryableFailure(op.errorMessage)) continue;
+                await this.operationQueue.requeueOperation(op);
+            }
+        } catch (error) {
+            console.warn('[BackgroundSync] Requeueing failed operations error:', error);
+        }
+    }
+
+    /** Invalidate the cached CSRF token after an auth rejection */
+    private invalidateCsrfToken(): void {
+        this.csrfToken = null;
+        this.csrfTokenExpiresAt = 0;
+    }
+
+    /** Store a token returned by `GET /api/user?action=csrf` */
+    private async captureCsrfToken(response: Response): Promise<void> {
+        try {
+            const { csrfToken } = (await this.parseJsonResponse(response)) as {
+                csrfToken?: string;
+            };
+            if (csrfToken) {
+                this.csrfToken = csrfToken;
+                this.csrfTokenExpiresAt = Date.now() + CSRF_TOKEN_TTL_MS;
+            }
+        } catch {
+            // Non-JSON response (e.g. tests): getCsrfToken() fetches on demand
+        }
+    }
+
+    /**
+     * Returns a valid CSRF token for state-changing requests. The incremental
+     * sync endpoints require the same CSRF protection as the full-blob save.
+     */
+    private async getCsrfToken(): Promise<string> {
+        if (this.csrfToken && Date.now() < this.csrfTokenExpiresAt) {
+            return this.csrfToken;
+        }
+
+        const opts = await getAuthFetchOpts();
+        const response = await fetch('/smartgrind/api/user?action=csrf', {
+            headers: opts.headers,
+            credentials: opts.credentials,
+            signal: this.syncAbortController?.signal || null,
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            this.invalidateCsrfToken();
+            await this.handleAuthError();
+            throw new Error('Authentication failed');
+        }
+        if (!response.ok) {
+            throw new Error(`Failed to fetch CSRF token (HTTP ${response.status})`);
+        }
+
+        const { csrfToken } = (await this.parseJsonResponse(response)) as {
+            csrfToken?: string;
+        };
+        if (!csrfToken) {
+            throw new Error('Failed to fetch CSRF token');
+        }
+
+        this.csrfToken = csrfToken;
+        this.csrfTokenExpiresAt = Date.now() + CSRF_TOKEN_TTL_MS;
+        return csrfToken;
+    }
+
+    /**
      * Process any persisted retries that are due
      */
     private async processPersistedRetries(): Promise<void> {
@@ -157,6 +267,10 @@ export class BackgroundSyncManager {
         if (!this.retryDB) return;
 
         try {
+            // Requeue parked failures first so the sync below gives them a
+            // fresh attempt
+            await this.requeueFailedOperations();
+
             const transaction = this.retryDB.transaction(RETRY_STORE_NAME, 'readwrite');
             const store = transaction.objectStore(RETRY_STORE_NAME);
             const index = store.index('scheduledFor');
@@ -164,13 +278,15 @@ export class BackgroundSyncManager {
                 index.getAll(IDBKeyRange.upperBound(Date.now()))
             );
 
+            // One sync run processes every due retry. The records are only
+            // dropped when the sync actually succeeded — syncUserProgress
+            // resolves even on total failure, so deleting unconditionally here
+            // would defeat SW-termination recovery.
+            const ok = await this.syncUserProgress();
+            if (!ok) return;
+
             for (const retry of retries) {
-                try {
-                    await this.syncUserProgress();
-                    await this.removePersistedRetry(retry.id);
-                } catch {
-                    // Individual retry failed, will be retried
-                }
+                await this.removePersistedRetry(retry.id);
             }
         } catch (error) {
             // Database connection may be closing, ignore and retry later
@@ -202,16 +318,19 @@ export class BackgroundSyncManager {
      * Verify authentication: try Bearer token from IndexedDB (set by main app on sign-in),
      * then cookies. SW often does not receive HttpOnly cookies on fetch.
      *
-     * If we have a stored token, we assume authentication is valid even if the network
-     * request fails. This prevents false AUTH_REQUIRED events when coming back online
-     * and the network is still stabilizing.
+     * Semantics:
+     * - Explicit 401/403 means the server rejected our credentials — the stored
+     *   token is stale, so this reports unauthenticated (presence of a stored
+     *   token is not proof of validity).
+     * - Network errors are optimistic: with a stored token we assume the session
+     *   is fine to avoid false AUTH_REQUIRED events while the network stabilizes.
      */
     private async verifyAuthentication(): Promise<boolean> {
-        // If the browser reports offline, skip the network probe entirely.
-        // This avoids queuing failed operations when we know there is no connectivity.
-        if (!navigator.onLine) {
-            console.log('[BackgroundSync] Offline, skipping auth verification');
-            return false;
+        // A cached CSRF token proves the session was verified recently. Reuse
+        // it instead of minting a new token on every probe.
+        if (this.csrfToken && Date.now() < this.csrfTokenExpiresAt) {
+            this.lastAuthRequiredNoticeAt = 0;
+            return true;
         }
 
         try {
@@ -222,18 +341,20 @@ export class BackgroundSyncManager {
                 credentials: opts.credentials,
             });
 
-            if (response.ok) return true;
+            if (response.ok) {
+                // Keep the token so the incremental sync POSTs can use it
+                await this.captureCsrfToken(response);
+                this.lastAuthRequiredNoticeAt = 0;
+                return true;
+            }
 
-            // If we got 401/403, check if we have a stored token
-            // If we do, assume it's a network issue and proceed
+            // Server explicitly rejected the session
             if (response.status === 401 || response.status === 403) {
-                const hasToken = await this.hasStoredToken();
-                if (hasToken) {
-                    // We have a stored token, assume network issue
-                    return true;
-                }
+                this.invalidateCsrfToken();
                 return false;
             }
+            // Other statuses (5xx, 429, ...) — server is reachable; let the
+            // sync attempt proceed and handle failures per operation
             return true;
         } catch {
             // Network error - if we have a stored token, assume authenticated
@@ -271,28 +392,40 @@ export class BackgroundSyncManager {
     }
 
     /**
-     * Handle sync event from service worker
+     * Handle sync event from service worker.
+     * @returns True when the run left no work behind (nothing pending, or all
+     * pending work was sent successfully) — callers use this to decide whether
+     * persisted retry records can be dropped.
      */
-    async syncUserProgress(): Promise<void> {
+    async syncUserProgress(): Promise<boolean> {
         if (this.isSyncing) {
-            return;
+            // A run is already in flight; it will process these operations
+            return true;
+        }
+
+        // Skip entirely when offline: avoids doomed network probes and spurious
+        // AUTH_REQUIRED notifications (offline is not an auth problem)
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            console.log('[BackgroundSync] Offline, skipping sync');
+            return false;
         }
 
         this.isSyncing = true;
         this.syncAbortController = new AbortController();
 
-        // Set up timeout to prevent stuck sync
+        // Set up timeout to prevent stuck sync. Note: isSyncing is NOT cleared
+        // here — the aborted run is still unwinding, and clearing the flag now
+        // would let a new sync interleave with it. The finally block clears it.
         const timeoutId = setTimeout(() => {
             console.warn('[BackgroundSync] Sync timeout reached, aborting');
             this.syncAbortController?.abort();
-            this.isSyncing = false;
         }, CONFIG.SYNC_TIMEOUT_MS);
 
         try {
             // Get pending operations
             const pendingOps = await this.operationQueue.getPendingOperations();
             if (pendingOps.length === 0) {
-                return;
+                return true;
             }
 
             // Check authentication by making a lightweight request to verify session
@@ -304,26 +437,24 @@ export class BackgroundSyncManager {
                 const trulyPendingCount = trulyPendingOps.length;
 
                 // Notify clients that authentication is required
-                await this.notifyClients('AUTH_REQUIRED', {
-                    message: 'Authentication required for sync.',
-                    pendingCount: trulyPendingCount,
-                    timestamp: Date.now(),
-                });
-                return;
+                await this.notifyAuthRequired({ pendingCount: trulyPendingCount });
+                return false;
             }
 
             // Group operations by type for efficient batching
             const groupedOps = this.groupOperations(pendingOps);
 
-            // Sync each group with individual error handling
-            const failedOps: QueuedOperation[] = [];
+            // Sync each group with individual error handling. The failure
+            // reason is kept so permanent errors can be parked instead of
+            // being retried forever.
+            const failedOps: Array<{ op: QueuedOperation; error: unknown }> = [];
 
             try {
                 await this.syncProblemProgressWithTimeout(groupedOps['problemProgress'] || []);
             } catch (error) {
                 console.warn('[BackgroundSync] Problem progress sync failed:', error);
                 const progressOps = groupedOps['problemProgress'] || [];
-                failedOps.push(...progressOps);
+                failedOps.push(...progressOps.map((op) => ({ op, error })));
             }
 
             try {
@@ -331,7 +462,7 @@ export class BackgroundSyncManager {
             } catch (error) {
                 console.warn('[BackgroundSync] Custom problems sync failed:', error);
                 const customOps = groupedOps['customProblems'] || [];
-                failedOps.push(...customOps);
+                failedOps.push(...customOps.map((op) => ({ op, error })));
             }
 
             try {
@@ -339,12 +470,12 @@ export class BackgroundSyncManager {
             } catch (error) {
                 console.warn('[BackgroundSync] User settings sync failed:', error);
                 const settingsOps = groupedOps['settings'] || [];
-                failedOps.push(...settingsOps);
+                failedOps.push(...settingsOps.map((op) => ({ op, error })));
             }
 
             // Handle failed operations with exponential backoff
-            for (const op of failedOps) {
-                await this.handleFailedOperation(op);
+            for (const { op, error } of failedOps) {
+                await this.handleFailedOperation(op, error);
             }
 
             // Update last sync time
@@ -373,8 +504,11 @@ export class BackgroundSyncManager {
                     });
                 }, CONFIG.SCHEDULED_RETRY_DELAY_MS);
             }
+
+            return failedOps.length === 0;
         } catch (error) {
             console.warn('[BackgroundSync] Sync operation failed:', error);
+            return false;
             // Sync failed, will be retried
         } finally {
             clearTimeout(timeoutId);
@@ -387,7 +521,7 @@ export class BackgroundSyncManager {
      * Handle a failed operation with retry logic
      * Uses both setTimeout for immediate retry and IndexedDB persistence for SW termination recovery
      */
-    private async handleFailedOperation(op: QueuedOperation): Promise<void> {
+    private async handleFailedOperation(op: QueuedOperation, error?: unknown): Promise<void> {
         const retryCount = await this.operationQueue.updateRetryCount(op.id);
 
         if (retryCount < CONFIG.MAX_RETRY_ATTEMPTS) {
@@ -411,7 +545,13 @@ export class BackgroundSyncManager {
                 }
             }, actualDelay);
         } else {
-            await this.operationQueue.markFailed(op.id, 'Max retries exceeded');
+            const detail =
+                error instanceof Error
+                    ? error.message
+                    : error !== undefined
+                      ? String(error)
+                      : 'unknown error';
+            await this.operationQueue.markFailed(op.id, `Max retries exceeded: ${detail}`);
         }
     }
 
@@ -451,15 +591,35 @@ export class BackgroundSyncManager {
     private syncUserSettingsWithTimeout = () =>
         this.executeWithTimeout(() => this.syncUserSettings());
 
-    /** Handle auth error (401/403) - notifies clients if no stored token */
+    /** Handle auth error (401/403): the server explicitly rejected the
+     * session, so always notify clients — a stale stored token must not
+     * suppress the AUTH_REQUIRED signal. */
     private async handleAuthError(): Promise<void> {
-        const hasToken = await this.hasStoredToken();
-        if (!hasToken) {
-            await this.notifyClients('AUTH_REQUIRED', {
-                message: 'Authentication required for sync.',
-                timestamp: Date.now(),
-            });
+        // The server rejected the session; do not keep presenting the old
+        // token on the next sync attempt.
+        this.invalidateCsrfToken();
+        await this.notifyAuthRequired();
+    }
+
+    /**
+     * Notify clients that sync needs authentication, throttled so a pending
+     * queue with an expired session does not open the sign-in modal and show a
+     * toast every retry cycle.
+     */
+    private async notifyAuthRequired(data: Record<string, unknown> = {}): Promise<void> {
+        const now = Date.now();
+        if (
+            now - this.lastAuthRequiredNoticeAt <
+            BackgroundSyncManager.AUTH_REQUIRED_NOTICE_INTERVAL_MS
+        ) {
+            return;
         }
+        this.lastAuthRequiredNoticeAt = now;
+        await this.notifyClients('AUTH_REQUIRED', {
+            message: 'Authentication required for sync.',
+            timestamp: now,
+            ...data,
+        });
     }
 
     /** Check if sync was aborted and throw if so */
@@ -471,40 +631,72 @@ export class BackgroundSyncManager {
 
     /** Sync custom problems */
     async syncCustomProblems(): Promise<void> {
-        const pendingOps = await this.operationQueue.getOperationsByType('ADD_CUSTOM_PROBLEM');
-        if (pendingOps.length === 0) return;
+        const addOps = await this.operationQueue.getOperationsByType('ADD_CUSTOM_PROBLEM');
+        const deleteOps = await this.operationQueue.getOperationsByType('DELETE_PROBLEM');
+        if (addOps.length === 0 && deleteOps.length === 0) return;
 
-        for (const op of pendingOps) {
-            this.checkAborted();
-
-            const opts = await getAuthFetchOpts({ 'Content-Type': 'application/json' });
-            const response = await fetch('/smartgrind/api/user/custom-problems', {
-                method: 'POST',
-                headers: opts.headers,
-                credentials: opts.credentials,
-                body: JSON.stringify(op.data),
-                signal: this.syncAbortController?.signal || null,
+        // Both op types are handled here: sending only adds left deletes
+        // queued forever, producing an endless 5-second sync cycle while the
+        // deletion never reached the server.
+        for (const op of addOps) {
+            await this.syncCustomProblemOperation(op, {
+                action: 'upsert',
+                problem: op.data as Record<string, unknown>,
             });
+        }
+        for (const op of deleteOps) {
+            const problemId = (op.data as { problemId?: string }).problemId;
+            await this.syncCustomProblemOperation(op, { action: 'delete', problemId });
+        }
+    }
 
-            if (response.ok) {
-                await this.operationQueue.markCompleted(op.id);
-            } else if (response.status === 401 || response.status === 403) {
-                await this.handleAuthError();
-                throw new Error('Authentication failed');
-            } else if (response.status === 409) {
-                const serverData = await response.json();
-                const resolution = await this.conflictResolver.resolveCustomProblemConflict(
-                    op.data as { id: string; name: string; difficulty: 'Easy' | 'Medium' | 'Hard' },
-                    serverData
-                );
-                if (resolution.status !== 'error') {
-                    await this.applyConflictResolution(op.id, resolution);
-                } else {
-                    throw new Error(resolution.message || 'Conflict resolution failed');
-                }
+    /**
+     * Send one custom-problem operation to /api/user/custom-problems and
+     * resolve the queue entry.
+     */
+    private async syncCustomProblemOperation(
+        op: QueuedOperation,
+        body: Record<string, unknown>
+    ): Promise<void> {
+        this.checkAborted();
+
+        const csrfToken = await this.getCsrfToken();
+        const opts = await getAuthFetchOpts({
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
+        });
+        const response = await fetch('/smartgrind/api/user/custom-problems', {
+            method: 'POST',
+            headers: opts.headers,
+            credentials: opts.credentials,
+            body: JSON.stringify(body),
+            signal: this.syncAbortController?.signal || null,
+        });
+
+        if (response.ok) {
+            // 200 + JSON proves the server actually processed the request
+            await this.parseJsonResponse(response);
+            await this.operationQueue.markCompleted(op.id);
+        } else if (response.status === 401 || response.status === 403) {
+            await this.handleAuthError();
+            throw new Error('Authentication failed');
+        } else if (response.status === 409) {
+            const serverData = await this.parseJsonResponse(response);
+            const resolution = await this.conflictResolver.resolveCustomProblemConflict(
+                op.data as {
+                    id: string;
+                    name: string;
+                    difficulty: 'Easy' | 'Medium' | 'Hard';
+                } & Record<string, unknown>,
+                serverData as Record<string, unknown>
+            );
+            if (resolution.status !== 'error') {
+                await this.applyConflictResolution(op.id, resolution);
             } else {
-                throw new Error(`HTTP ${response.status}`);
+                throw new Error(resolution.message || 'Conflict resolution failed');
             }
+        } else {
+            throw new Error(`HTTP ${response.status}`);
         }
     }
 
@@ -547,21 +739,7 @@ export class BackgroundSyncManager {
 
         const latestOp = pendingOps[pendingOps.length - 1]!;
 
-        const csrfOpts = await getAuthFetchOpts();
-        const csrfResponse = await fetch('/smartgrind/api/user?action=csrf', {
-            headers: csrfOpts.headers,
-            credentials: csrfOpts.credentials,
-        });
-
-        if (!csrfResponse.ok) {
-            if (csrfResponse.status === 401 || csrfResponse.status === 403) {
-                await this.handleAuthError();
-                throw new Error('Authentication failed');
-            }
-            throw new Error('Failed to fetch CSRF token');
-        }
-
-        const { csrfToken } = await csrfResponse.json();
+        const csrfToken = await this.getCsrfToken();
         const opts = await getAuthFetchOpts({
             'Content-Type': 'application/json',
             'X-CSRF-Token': csrfToken,
@@ -598,11 +776,20 @@ export class BackgroundSyncManager {
     private async syncProblemProgress(operations: QueuedOperation[]): Promise<void> {
         if (operations.length === 0) return;
 
-        // Deduplicate: keep only the last operation per problem
-        const deduplicated = this.deduplicateByProblemId(operations);
+        // Merge partial updates per problem instead of dropping superseded
+        // ops: a field-wise merge preserves data (e.g. a note set before a
+        // status change) and avoids extra sync rounds for deferred ops.
+        const { merged, skippedIds } = this.mergeByProblemId(operations);
+
+        // Ops with no problemId can never be sent. Park them as failed so they
+        // do not stay pending forever and trigger the 5-second resync loop.
+        for (const id of skippedIds) {
+            await this.operationQueue.markFailed(id, 'Queued operation is missing problemId');
+        }
+        if (merged.length === 0) return;
 
         // Batch operations
-        const batch = deduplicated.map((op) => ({
+        const batch = merged.map(({ op }) => ({
             problemId: (op.data as { problemId: string }).problemId,
             operation: op.data,
             timestamp: op.timestamp,
@@ -610,7 +797,11 @@ export class BackgroundSyncManager {
         }));
 
         try {
-            const opts = await getAuthFetchOpts({ 'Content-Type': 'application/json' });
+            const csrfToken = await this.getCsrfToken();
+            const opts = await getAuthFetchOpts({
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken,
+            });
             const response = await fetch('/smartgrind/api/user/progress/batch', {
                 method: 'POST',
                 headers: opts.headers,
@@ -623,40 +814,42 @@ export class BackgroundSyncManager {
             });
 
             if (response.ok) {
-                const result = await response.json();
+                const result = (await this.parseJsonResponse(response)) as {
+                    conflicts?: unknown[];
+                };
 
-                // Mark successful operations as completed
-                for (const op of deduplicated) {
-                    await this.operationQueue.markCompleted(op.id);
+                // Mark every operation folded into the merged ops as completed
+                for (const { sourceIds } of merged) {
+                    for (const id of sourceIds) {
+                        await this.operationQueue.markCompleted(id);
+                    }
                 }
 
                 // Handle any conflicts returned by server using improved resolver
                 if (result.conflicts && result.conflicts.length > 0) {
                     for (const conflict of result.conflicts) {
-                        await this.handleServerConflictWithAutoResolve(conflict);
+                        await this.handleServerConflictWithAutoResolve(conflict as {
+                            operationId: string;
+                            problemId: string;
+                            clientData: unknown;
+                            serverData: unknown;
+                        });
                     }
                 }
 
                 // Notify clients of successful sync
                 const currentStats = await this.operationQueue.getStats();
                 await this.notifyClients('PROGRESS_SYNCED', {
-                    count: deduplicated.length,
+                    count: merged.length,
                     pending: currentStats.pending,
                     timestamp: Date.now(),
                 });
             } else if (response.status === 401 || response.status === 403) {
-                // Auth error - check if we have a stored token before notifying
-                const hasToken = await this.hasStoredToken();
-                if (!hasToken) {
-                    await this.notifyClients('AUTH_REQUIRED', {
-                        message: 'Authentication required for sync.',
-                        timestamp: Date.now(),
-                    });
-                }
+                await this.handleAuthError();
                 throw new Error('Authentication failed');
             } else if (response.status === 409) {
                 // Batch conflict - handle individually
-                await this.syncIndividualOperations(deduplicated);
+                await this.syncIndividualOperations(merged.map((m) => m.op));
             } else {
                 throw new Error(`HTTP ${response.status}`);
             }
@@ -664,27 +857,58 @@ export class BackgroundSyncManager {
             if (error instanceof Error && error.name === 'AbortError') {
                 throw error;
             }
+            // An auth rejection applies to every operation; retrying them
+            // individually would only produce duplicate AUTH_REQUIRED events.
+            if (error instanceof Error && error.message === 'Authentication failed') {
+                throw error;
+            }
             // Fall back to individual sync
-            await this.syncIndividualOperations(deduplicated);
+            await this.syncIndividualOperations(merged.map((m) => m.op));
         }
     }
 
     /**
-     * Deduplicate operations by problem ID, keeping the most recent
+     * Merge progress operations per problem, combining partial updates
+     * field-by-field. Operations are applied in timestamp order and later
+     * operations win per field. Each merged op carries the ids of all
+     * operations folded into it so every source op can be marked completed.
+     * Operations without a problemId cannot be sent and are returned in
+     * `skippedIds` so the caller can park them.
      */
-    private deduplicateByProblemId(operations: QueuedOperation[]): QueuedOperation[] {
-        const latestByProblem = new Map<string, QueuedOperation>();
+    private mergeByProblemId(operations: QueuedOperation[]): {
+        merged: Array<{ op: QueuedOperation; sourceIds: string[] }>;
+        skippedIds: string[];
+    } {
+        const sorted = [...operations].sort((a, b) => a.timestamp - b.timestamp);
+        const mergedByProblem = new Map<string, { op: QueuedOperation; sourceIds: string[] }>();
+        const skippedIds: string[] = [];
 
-        for (const op of operations) {
-            const problemId = (op.data as { problemId: string }).problemId;
-            const existing = latestByProblem.get(problemId);
-
-            if (!existing || op.timestamp > existing.timestamp) {
-                latestByProblem.set(problemId, op);
+        for (const op of sorted) {
+            const problemId = (op.data as { problemId?: string }).problemId;
+            if (!problemId) {
+                skippedIds.push(op.id);
+                continue;
             }
+
+            const existing = mergedByProblem.get(problemId);
+            if (!existing) {
+                mergedByProblem.set(problemId, { op: { ...op }, sourceIds: [op.id] });
+                continue;
+            }
+
+            existing.op = {
+                ...existing.op,
+                data: {
+                    ...(existing.op.data as Record<string, unknown>),
+                    ...(op.data as Record<string, unknown>),
+                },
+                timestamp: op.timestamp,
+                deviceId: op.deviceId,
+            };
+            existing.sourceIds.push(op.id);
         }
 
-        return Array.from(latestByProblem.values());
+        return { merged: Array.from(mergedByProblem.values()), skippedIds };
     }
 
     /**
@@ -698,7 +922,11 @@ export class BackgroundSyncManager {
             }
 
             try {
-                const opts = await getAuthFetchOpts({ 'Content-Type': 'application/json' });
+                const csrfToken = await this.getCsrfToken();
+                const opts = await getAuthFetchOpts({
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                });
                 const response = await fetch('/smartgrind/api/user/progress', {
                     method: 'POST',
                     headers: opts.headers,
@@ -713,19 +941,13 @@ export class BackgroundSyncManager {
                 });
 
                 if (response.ok) {
+                    await this.parseJsonResponse(response);
                     await this.operationQueue.markCompleted(op.id);
                 } else if (response.status === 401 || response.status === 403) {
-                    // Auth error - check if we have a stored token before notifying
-                    const hasToken = await this.hasStoredToken();
-                    if (!hasToken) {
-                        await this.notifyClients('AUTH_REQUIRED', {
-                            message: 'Authentication required for sync.',
-                            timestamp: Date.now(),
-                        });
-                    }
+                    await this.handleAuthError();
                     throw new Error('Authentication failed');
                 } else if (response.status === 409) {
-                    const serverData = await response.json();
+                    const serverData = await this.parseJsonResponse(response);
                     await this.handleServerConflictWithAutoResolve({
                         operationId: op.id,
                         problemId: (op.data as { problemId: string }).problemId,
@@ -827,10 +1049,27 @@ export class BackgroundSyncManager {
      * Check and sync if there are pending operations
      */
     async checkAndSync(): Promise<void> {
+        // Give parked failures a fresh attempt on every sync trigger
+        await this.requeueFailedOperations();
+
         const pendingOps = await this.operationQueue.getPendingOperations();
         if (pendingOps.length > 0) {
             await this.syncUserProgress();
         }
+    }
+
+    /**
+     * Verify the response is actually JSON from our API before trusting it.
+     * The SPA fallback in _redirects answers unknown paths with index.html and
+     * HTTP 200, so an ok status alone does not prove the server processed the
+     * request.
+     */
+    private async parseJsonResponse(response: Response): Promise<unknown> {
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            throw new Error(`Unexpected response content type: ${contentType || 'none'}`);
+        }
+        return response.json();
     }
 
     /**

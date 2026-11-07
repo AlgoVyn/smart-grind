@@ -61,7 +61,8 @@ describe('Auth Functions Enhanced', () => {
             await checkRateLimit(request, { KV: mockKV });
 
             // Should fallback to 'unknown' since X-Forwarded-For is not trusted
-            expect(mockKV.get).toHaveBeenCalledWith('ratelimit_unknown');
+            // Keys are namespaced per bucket (default bucket: 'api')
+            expect(mockKV.get).toHaveBeenCalledWith('ratelimit_api_unknown');
         });
 
         test('should use "unknown" when no IP header is present', async () => {
@@ -71,7 +72,8 @@ describe('Auth Functions Enhanced', () => {
 
             await checkRateLimit(request, { KV: mockKV });
 
-            expect(mockKV.get).toHaveBeenCalledWith('ratelimit_unknown');
+            // Keys are namespaced per bucket (default bucket: 'api')
+            expect(mockKV.get).toHaveBeenCalledWith('ratelimit_api_unknown');
         });
 
         test('should filter out expired requests', async () => {

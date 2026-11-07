@@ -2,7 +2,7 @@
 import { Topic } from '../types';
 import { state } from '../state';
 import { data } from '../data';
-import { updateUrlParameter, scrollToTop } from '../utils';
+import { updateUrlParameter, scrollToTop, syncSeoForView, getViewTitle } from '../utils';
 import { AlgorithmCategory } from '../data/algorithms-data';
 import { SQLCategory } from '../data/sql-data';
 import { ICONS } from './icons';
@@ -87,6 +87,7 @@ const setActiveState = (type: ViewType, id: string | null, clearValue: '' | null
 };
 
 const navigate = async (type: ViewType, id: string) => {
+    if (typeof syncSeoForView === 'function') syncSeoForView(getViewTitle(type, id));
     await NAV_HELPERS[type]?.(id);
     scrollToTop();
     if (window.innerWidth < 768) toggleMobileMenu();
@@ -166,11 +167,32 @@ type ButtonConfig = {
     isActive: boolean;
     className: string;
     dataset: Record<string, string>;
+    /** Crawlable URL for this view. When set, an <a href> is rendered instead of a <button>. */
+    href?: string;
 };
 
-const createSidebarButton = (config: ButtonConfig): HTMLButtonElement => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
+// Plain left-clicks are handled in-app (the caller's onclick navigates via
+// pushState); modified clicks (new tab/window) fall through to the browser.
+const preventPlainClick = (e: MouseEvent): void => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+        e.stopImmediatePropagation();
+        return;
+    }
+    e.preventDefault();
+};
+
+const createSidebarButton = (config: ButtonConfig): HTMLButtonElement | HTMLAnchorElement => {
+    let btn: HTMLButtonElement | HTMLAnchorElement;
+    if (config.href) {
+        const link = document.createElement('a');
+        link.href = config.href;
+        link.addEventListener('click', preventPlainClick);
+        btn = link;
+    } else {
+        const button = document.createElement('button');
+        button.type = 'button';
+        btn = button;
+    }
     btn.className = `${config.className} ${config.isActive ? 'active' : ''} w-full text-left px-3 py-3 text-sm font-medium text-theme-base transition-colors flex justify-between items-center group cursor-pointer`;
     Object.entries(config.dataset).forEach(([key, value]) => {
         btn.dataset[key] = value;
@@ -264,6 +286,7 @@ export const sidebarRenderers = {
             isActive: isAllActive,
             className: 'sidebar-all-content mb-4',
             dataset: { allContent: 'true' },
+            href: '/smartgrind/',
         });
         allBtn.onclick = () => navigate('all', '');
         fragment.appendChild(allBtn);
@@ -306,6 +329,7 @@ export const sidebarRenderers = {
                 isActive: state.ui.activeTopicId === topic.id,
                 className: 'sidebar-link',
                 dataset: { topicId: topic.id },
+                href: `/smartgrind/c/${topic.id}`,
             });
             btn.onclick = () => navigate('topic', topic.id);
             patternsSection.content.appendChild(btn);
@@ -344,6 +368,7 @@ export const sidebarRenderers = {
                 isActive: state.ui.activeAlgorithmCategoryId === category.id,
                 className: 'sidebar-algorithm-category',
                 dataset: { categoryId: category.id },
+                href: `/smartgrind/a/${category.id}`,
             });
             btn.onclick = () => navigate('algorithm', category.id);
             algorithmsSection.content.appendChild(btn);
@@ -378,6 +403,7 @@ export const sidebarRenderers = {
                 isActive: state.ui.activeSQLCategoryId === category.id,
                 className: 'sidebar-sql-category',
                 dataset: { sqlCategoryId: category.id },
+                href: `/smartgrind/s/${category.id}`,
             });
             btn.onclick = () => navigate('sql', category.id);
             sqlSection.content.appendChild(btn);

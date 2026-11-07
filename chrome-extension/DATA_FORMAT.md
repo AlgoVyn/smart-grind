@@ -61,4 +61,17 @@ To update the data files:
 1. Obtain updated ratings and tags from reliable sources
 2. Ensure the TSV format is maintained for ratings.txt
 3. Update the files in the extension directory
-4. Test the extension to ensure proper loading and functionality
+4. **Bump the extension version in manifest.json** — both the content script and the popup cache the parsed datasets in `chrome.storage.local` keyed by the extension version; without a version bump existing users keep the stale data indefinitely
+5. Test the extension to ensure proper loading and functionality
+
+## Storage Layout
+
+The extension uses two storage areas:
+
+- **`chrome.storage.sync`** — small user settings only: `minRating`, `maxRating`, `selectedTag`.
+- **`chrome.storage.local`** — everything that grows or is derived from the bundled datasets:
+  - `ratingsCache` / `datasetCache` — `{ version, data }` objects; `version` is the extension version that produced them, and a mismatch triggers a re-parse of the bundled files.
+  - `solvedProblems` — array of `{ slug, solvedAt }`.
+  - `openedProblems` — array of `{ slug, openedAt }`, pruned by the content script once a problem is solved.
+
+  The solved/opened collections deliberately do **not** live in `chrome.storage.sync`: sync enforces an 8,192-byte per-item quota, which overflows silently at roughly 100–150 entries. If you find legacy `solvedProblems`/`openedProblems` arrays in `chrome.storage.sync` (including the old string-array format), both scripts migrate them to `chrome.storage.local` on first read.

@@ -365,10 +365,14 @@ export class OperationQueue {
     /**
      * Requeue a failed operation
      */
-    async requeueOperation(operation: QueuedOperation): Promise<void> {
+    async requeueOperation(
+        operation: QueuedOperation,
+        options: { resetRetryCount?: boolean } = {}
+    ): Promise<void> {
         await this.updateOperation(operation.id, {
             status: 'pending',
             timestamp: Date.now(), // Update timestamp to move to end of queue
+            ...(options.resetRetryCount ? { retryCount: 0 } : {}),
         });
     }
 

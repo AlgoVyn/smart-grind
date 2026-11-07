@@ -70,12 +70,15 @@ export class OfflineManager {
         return db.transaction(STORE_NAME, mode).objectStore(STORE_NAME);
     }
 
-    /** Pre-cache the problem index/metadata - called during SW install */
+    /**
+     * Pre-cache the problem index/metadata - called during SW install.
+     * The offline bundle (downloaded by the BundleManager after activation)
+     * handles bulk problem caching; this hook only verifies the offline
+     * manifest is reachable so install diagnostics reflect reality.
+     */
     async preCacheProblemIndex(): Promise<void> {
         try {
-            const response = await fetch('/smartgrind/src/data/problems-data.ts').catch(() => null);
-            if (!response?.ok) return;
-            // Parse and cache problem metadata (production: JSON endpoint)
+            await fetch('/smartgrind/offline-manifest.json', { cache: 'no-cache' });
         } catch (error) {
             console.warn('[OfflineManager] Pre-cache index failed:', error);
         }

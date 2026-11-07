@@ -45,7 +45,8 @@ const TOAST_BG: Record<string, string> = {
 export const showToast = (
     msg: string,
     type: 'success' | 'error' | 'warning' = 'success',
-    duration: number = 3000
+    duration: number = 3000,
+    onActivate?: () => void
 ): void => {
     const toastContainer = state.elements?.toastContainer;
     if (!toastContainer) return;
@@ -53,6 +54,24 @@ export const showToast = (
     const el = document.createElement('div');
     el.className = `toast ${type} px-4 py-3 rounded-lg shadow-lg text-sm font-medium text-white flex items-center gap-2 animate-fade-in ${TOAST_BG[type] ?? TOAST_BG['success']}`;
     el.innerHTML = `<span>${escapeHtml(msg)}</span>`;
+
+    if (onActivate) {
+        // Make action toasts (e.g. "click to update") keyboard-accessible
+        el.classList.add('cursor-pointer');
+        el.setAttribute('role', 'button');
+        el.tabIndex = 0;
+        const activate = () => {
+            onActivate();
+            el.remove();
+        };
+        el.addEventListener('click', activate);
+        el.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                activate();
+            }
+        });
+    }
 
     toastContainer.appendChild(el);
     setTimeout(() => {
@@ -109,6 +128,28 @@ export const updateUrlParameter = (name: string, value: string | null): void => 
     const newUrl =
         window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
     window.history.pushState({ path: newUrl }, '', newUrl);
+};
+
+/**
+ * Server-rendered SEO blocks ([data-seo-content]) describe the URL the page was
+ * loaded with. Once the user navigates in-app they are stale, so remove them and
+ * keep document.title in sync with the visible view.
+ */
+export const syncSeoForView = (viewTitle: string | null): void => {
+    document.querySelectorAll('[data-seo-content]').forEach((el) => el.remove());
+    document.title = viewTitle
+        ? `${viewTitle} - AlgoVyn SmartGrind`
+        : 'AlgoVyn SmartGrind: Master Coding Patterns with Spaced Repetition';
+};
+
+export type ViewTitleType = 'topic' | 'algorithm' | 'sql' | 'all';
+
+/** Human-readable title for a view, or null for the combined/dashboard view */
+export const getViewTitle = (type: ViewTitleType, id: string): string | null => {
+    if (type === 'all' || id === 'all') return null;
+    if (type === 'topic') return data.topicsData.find((t) => t.id === id)?.title ?? null;
+    if (type === 'algorithm') return data.algorithmsData.find((c) => c.id === id)?.title ?? null;
+    return data.sqlData.find((c) => c.id === id)?.title ?? null;
 };
 
 // Route parsing for path-based routing: /smartgrind/{c|a|s}/{id}

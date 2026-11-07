@@ -58,6 +58,18 @@ describe('Service Worker Integration Tests', () => {
   let cacheStrategies: CacheStrategies;
   const mockFetch = global.fetch as jest.Mock;
 
+  // Mock fetch response with a JSON content type — the sync manager verifies
+  // the content type before trusting a response body
+  const jsonResponse = (body: unknown, overrides: Record<string, unknown> = {}) => ({
+    ok: true,
+    headers: {
+      get: (name: string) =>
+        name.toLowerCase() === 'content-type' ? 'application/json' : null,
+    },
+    json: () => Promise.resolve(body),
+    ...overrides,
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     
@@ -516,8 +528,8 @@ describe('Service Worker Integration Tests', () => {
     it('should return early if no pending operations', async () => {
       const result = await backgroundSync.syncUserProgress();
 
-      // Should complete without errors
-      expect(result).toBeUndefined();
+      // Nothing pending: the run reports success (no work left behind)
+      expect(result).toBe(true);
     });
 
     it('should sync user progress with pending operations', async () => {
@@ -530,11 +542,8 @@ describe('Service Worker Integration Tests', () => {
 
       // Mock successful API responses
       mockFetch
-        .mockResolvedValueOnce({ ok: true }) // CSRF check
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({ conflicts: [] }),
-        });
+        .mockResolvedValueOnce(jsonResponse({ csrfToken: 'test-csrf-token' })) // CSRF check
+        .mockResolvedValueOnce(jsonResponse({ conflicts: [] }));
 
       // Trigger sync
       await backgroundSync.syncUserProgress();
@@ -548,12 +557,10 @@ describe('Service Worker Integration Tests', () => {
 
       // Mock conflict response (409)
       mockFetch
-        .mockResolvedValueOnce({ ok: true }) // CSRF check
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 409,
-          json: () => Promise.resolve({ problemId: '1', solved: false }),
-        });
+        .mockResolvedValueOnce(jsonResponse({ csrfToken: 'test-csrf-token' })) // CSRF check
+        .mockResolvedValueOnce(
+          jsonResponse({ problemId: '1', solved: false }, { ok: false, status: 409 })
+        );
 
       // Should handle conflict without throwing
       await expect(backgroundSync.syncUserProgress()).resolves.not.toThrow();
@@ -565,7 +572,9 @@ describe('Service Worker Integration Tests', () => {
         name: 'Custom Problem',
       });
 
-      mockFetch.mockResolvedValue({ ok: true });
+      mockFetch
+        .mockResolvedValueOnce(jsonResponse({ csrfToken: 'test-csrf-token' }))
+        .mockResolvedValue(jsonResponse({ applied: 1 }));
 
       await backgroundSync.syncCustomProblems();
 
@@ -576,7 +585,7 @@ describe('Service Worker Integration Tests', () => {
       await operationQueue.addOperation('UPDATE_SETTINGS', { theme: 'dark' });
 
       mockFetch
-        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ csrfToken: 'token' }) })
+        .mockResolvedValueOnce(jsonResponse({ csrfToken: 'token' }))
         .mockResolvedValueOnce({ ok: true });
 
       await backgroundSync.syncUserSettings();
@@ -601,11 +610,8 @@ describe('Service Worker Integration Tests', () => {
       await operationQueue.addOperation('MARK_SOLVED', { problemId: '1' });
 
       mockFetch
-        .mockResolvedValueOnce({ ok: true })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({ conflicts: [] }),
-        });
+        .mockResolvedValueOnce(jsonResponse({ csrfToken: 'test-csrf-token' }))
+        .mockResolvedValueOnce(jsonResponse({ conflicts: [] }));
 
       const result = await backgroundSync.forceSync();
 

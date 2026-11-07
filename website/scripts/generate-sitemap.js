@@ -13,7 +13,7 @@
  * Usage: node scripts/generate-sitemap.js
  */
 
-import { writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 // Output file path
@@ -172,6 +172,16 @@ function main() {
     // Write file
     writeFileSync(OUTPUT_FILE, sitemap);
     console.log(`\n✅ Sitemap written to: ${OUTPUT_FILE}`);
+
+    // Keep the sitemap index (referenced from https://algovyn.com/robots.txt) in step
+    // with the deploy instead of a hand-edited date
+    const INDEX_FILE = join(process.cwd(), 'public', 'sitemap-index.xml');
+    const index = readFileSync(INDEX_FILE, 'utf-8').replace(
+        /<lastmod>[^<]*<\/lastmod>/g,
+        `<lastmod>${currentDate}</lastmod>`
+    );
+    writeFileSync(INDEX_FILE, index);
+    console.log(`✅ Sitemap index lastmod updated: ${INDEX_FILE}`);
     
     console.log('\n' + '='.repeat(50));
     console.log('📈 Summary');

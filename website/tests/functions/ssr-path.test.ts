@@ -528,9 +528,9 @@ describe('SSR Path Handler', () => {
             const html = await response.text();
             expect(html).toContain('Two Pointers Pattern');
             expect(html).toContain('application/ld+json');
-            expect(html).toContain('window.__INITIAL_STATE__');
-            expect(html).toContain('type:"c"');
-            expect(html).toContain('id:"two-pointers"');
+            expect(html).toContain('id="__INITIAL_STATE__"');
+            expect(html).toContain('"type":"c"');
+            expect(html).toContain('"id":"two-pointers"');
         });
 
         test('should handle /c/sliding-window route', async () => {
@@ -734,8 +734,8 @@ describe('SSR Path Handler', () => {
 
             const html = await response.text();
             expect(html).toContain('Arrays &amp; Strings Algorithms');
-            expect(html).toContain('type:"a"');
-            expect(html).toContain('id:"arrays-strings"');
+            expect(html).toContain('"type":"a"');
+            expect(html).toContain('\"id\":\"arrays-strings\"');
         });
 
         test('should handle /a/linked-list route', async () => {
@@ -891,8 +891,8 @@ describe('SSR Path Handler', () => {
 
             const html = await response.text();
             expect(html).toContain('SQL Basics');
-            expect(html).toContain('type:"s"');
-            expect(html).toContain('id:"sql-basics"');
+            expect(html).toContain('"type":"s"');
+            expect(html).toContain('\"id\":\"sql-basics\"');
         });
 
         test('should handle /s/sql-joins route', async () => {
@@ -1136,7 +1136,7 @@ describe('SSR Path Handler', () => {
 
             const html = await response.text();
             expect(html).toContain('Two Pointers Pattern');
-            expect(html).toContain('type:"c"');
+            expect(html).toContain('"type":"c"');
         });
 
         test('should include home page structured data', async () => {
@@ -1193,7 +1193,7 @@ describe('SSR Path Handler', () => {
             const html = await response.text();
             
             // Title
-            expect(html).toContain('<title>Two Pointers Pattern - SmartGrind</title>');
+            expect(html).toContain('<title>Two Pointers Pattern - AlgoVyn SmartGrind</title>');
             
             // Meta description
             expect(html).toContain('<meta name="description" content="');
@@ -1207,16 +1207,16 @@ describe('SSR Path Handler', () => {
             expect(html).toContain('<link rel="canonical" href="https://algovyn.com/smartgrind/c/two-pointers">');
             
             // OG tags
-            expect(html).toContain('<meta property="og:site_name" content="AlgoVyn - SmartGrind">');
+            expect(html).toContain('<meta property="og:site_name" content="AlgoVyn SmartGrind">');
             expect(html).toContain('<meta property="og:title" content="');
             expect(html).toContain('<meta property="og:description" content="');
-            expect(html).toContain('<meta property="og:image" content="https://algovyn.com/smartgrind/logo.svg">');
+            expect(html).toContain('<meta property="og:image" content="https://algovyn.com/og-image.png">');
             expect(html).toContain('<meta property="og:type" content="website">');
             
             // Twitter tags
             expect(html).toContain('<meta name="twitter:card" content="summary_large_image">');
             expect(html).toContain('<meta name="twitter:title" content="');
-            expect(html).toContain('<meta name="twitter:image" content="https://algovyn.com/smartgrind/logo.svg">');
+            expect(html).toContain('<meta name="twitter:image" content="https://algovyn.com/og-image.png">');
         });
 
         test('should set cache control headers', async () => {
@@ -1275,7 +1275,9 @@ describe('SSR Path Handler', () => {
             expect(html).toContain('"@type":"BreadcrumbList"');
             expect(html).toContain('"position":1');
             expect(html).toContain('"position":2');
-            expect(html).toContain('"position":3');
+            // Two levels only; every non-final crumb must be a URL that returns 200
+            expect(html).not.toContain('"position":3');
+            expect(html).not.toMatch(/"item":"https:\/\/algovyn\.com\/smartgrind\/[cas]\/"/);
             expect(html).toContain('SmartGrind');
             expect(html).toContain('Patterns');
             expect(html).toContain('Two Pointers Pattern');
@@ -1327,9 +1329,9 @@ describe('SSR Path Handler', () => {
             });
 
             const html = await response.text();
-            expect(html).toContain('window.__INITIAL_STATE__');
-            expect(html).toContain('type:"c"');
-            expect(html).toContain('id:"sliding-window"');
+            expect(html).toContain('id="__INITIAL_STATE__"');
+            expect(html).toContain('"type":"c"');
+            expect(html).toContain('"id":"sliding-window"');
         });
 
         test('should inject __INITIAL_STATE__ for algorithm route', async () => {
@@ -1341,9 +1343,9 @@ describe('SSR Path Handler', () => {
             });
 
             const html = await response.text();
-            expect(html).toContain('window.__INITIAL_STATE__');
-            expect(html).toContain('type:"a"');
-            expect(html).toContain('id:"graphs"');
+            expect(html).toContain('id="__INITIAL_STATE__"');
+            expect(html).toContain('"type":"a"');
+            expect(html).toContain('"id":"graphs"');
         });
 
         test('should inject __INITIAL_STATE__ for SQL route', async () => {
@@ -1355,9 +1357,9 @@ describe('SSR Path Handler', () => {
             });
 
             const html = await response.text();
-            expect(html).toContain('window.__INITIAL_STATE__');
-            expect(html).toContain('type:"s"');
-            expect(html).toContain('id:"sql-joins"');
+            expect(html).toContain('id="__INITIAL_STATE__"');
+            expect(html).toContain('"type":"s"');
+            expect(html).toContain('"id":"sql-joins"');
         });
 
         test('should not inject __INITIAL_STATE__ for home page', async () => {
@@ -1369,7 +1371,7 @@ describe('SSR Path Handler', () => {
             });
 
             const html = await response.text();
-            expect(html).not.toContain('window.__INITIAL_STATE__');
+            expect(html).not.toContain('id="__INITIAL_STATE__"');
         });
     });
 

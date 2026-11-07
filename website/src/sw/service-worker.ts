@@ -10,7 +10,7 @@ import { CACHE_NAMES } from './cache-strategies.js';
 import { OfflineManager } from './offline-manager.js';
 import { BackgroundSyncManager } from './background-sync.js';
 import { OperationQueue } from './operation-queue.js';
-import { BundleManager } from './bundle/index.js';
+import { BundleManager, BUNDLE_URL } from './bundle/index.js';
 import { isValidSWClientMessage } from '../types/sw-messages.js';
 import {
     openDatabase,
@@ -92,8 +92,10 @@ async function openInventoryDB(): Promise<IDBDatabase> {
 // ============================================================================
 
 const offlineManager = new OfflineManager();
-const backgroundSync = new BackgroundSyncManager();
+// One shared OperationQueue for both the sync manager and the message
+// handlers — separate instances reported divergent queue state to the UI
 const operationQueue = new OperationQueue();
+const backgroundSync = new BackgroundSyncManager(operationQueue);
 const bundleManager = new BundleManager(SW_VERSION);
 
 // ============================================================================
@@ -114,6 +116,47 @@ function addCacheHeaders(response: Response): Response {
         statusText: response.statusText,
         headers,
     });
+}
+
+// ============================================================================
+// API CACHE POLICY
+// ============================================================================
+
+/** Maximum number of entries kept in the API cache (prevents unbounded growth) */
+const API_CACHE_MAX_ENTRIES = 300;
+
+/**
+ * API GETs whose responses must never be cached: CSRF tokens go stale and a
+ * cached token makes the next authenticated POST fail. Auth endpoints are
+ * excluded for the same reason.
+ */
+const NEVER_CACHE_API_PATTERNS = [/action=csrf/, /\/api\/auth/];
+
+function isCacheableApiRequest(request: Request): boolean {
+    if (request.method !== 'GET') return false;
+    return !NEVER_CACHE_API_PATTERNS.some((pattern) => pattern.test(request.url));
+}
+
+/** Evicts the oldest entries (by X-SW-Cached-At) beyond the size cap */
+async function trimApiCache(cache: Cache): Promise<void> {
+    try {
+        const keys = await cache.keys();
+        if (keys.length <= API_CACHE_MAX_ENTRIES) return;
+
+        const entries = await Promise.all(
+            keys.map(async (req) => {
+                const res = await cache.match(req);
+                const cachedAt = Number(res?.headers.get('X-SW-Cached-At') || 0);
+                return { req, cachedAt };
+            })
+        );
+        entries.sort((a, b) => a.cachedAt - b.cachedAt);
+
+        const excess = entries.slice(0, entries.length - API_CACHE_MAX_ENTRIES);
+        await Promise.all(excess.map((entry) => cache.delete(entry.req)));
+    } catch (error) {
+        console.warn('[SW] API cache trim failed:', error);
+    }
 }
 
 // ============================================================================
@@ -173,10 +216,12 @@ async function handleAPIRequest(request: Request): Promise<Response> {
         if (networkResponse.status >= 300 && networkResponse.status < 400) {
             return networkResponse;
         }
-        if (networkResponse.ok && request.method === 'GET') {
+        if (networkResponse.ok && isCacheableApiRequest(request)) {
             const cache = await caches.open(`${CACHE_NAMES.API}-${CACHE_VERSION}`);
-            const responseWithHeaders = addCacheHeaders(networkResponse.clone());
-            cache.put(request, responseWithHeaders).catch(console.warn);
+            cache
+                .put(request, addCacheHeaders(networkResponse.clone()))
+                .then(() => trimApiCache(cache))
+                .catch(console.warn);
         }
         if (networkResponse.status === 401 || networkResponse.status === 403) {
             return networkResponse;
@@ -261,7 +306,10 @@ async function handleStaticRequest(request: Request): Promise<Response> {
 
     const networkFetch = fetch(request)
         .then((networkResponse) => {
-            if (networkResponse.ok) {
+            // The offline bundle tarball is extracted into the problems cache
+            // by the bundle manager; caching the archive here as well would
+            // store every markdown file twice
+            if (networkResponse.ok && !request.url.includes(BUNDLE_URL)) {
                 cache.put(request, addCacheHeaders(networkResponse.clone())).catch(() => {});
             }
             return networkResponse;
@@ -402,7 +450,10 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         (async () => {
             await offlineManager.preCacheProblemIndex();
-            await self.skipWaiting();
+            // NOTE: no automatic skipWaiting() here. The worker activates when
+            // the user consents via the update toast (SKIP_WAITING message) or
+            // when all tabs close — auto-activating mid-session while old
+            // client code is still running breaks long-lived tabs.
         })()
     );
 });
@@ -415,12 +466,19 @@ self.addEventListener('activate', (event) => {
             );
             const allCaches = await caches.keys();
 
+            // Delete stale SmartGrind caches by matching a known cache-name
+            // base followed by a version suffix (plus a legacy 'smartgrind'
+            // catch-all). Requiring the '-v' suffix keeps caches belonging to
+            // other apps on the shared origin from being deleted just because
+            // they use a generic name such as 'static-cache'.
+            const cacheNameBases = Object.values(CACHE_NAMES);
             await Promise.all(
                 allCaches
                     .filter(
                         (cacheName) =>
                             !cacheWhitelist.includes(cacheName) &&
-                            (cacheName.includes('smartgrind') || cacheName.includes('v1.'))
+                            (isVersionedCacheName(cacheName, cacheNameBases) ||
+                                cacheName.includes('smartgrind'))
                     )
                     .map((cacheName) => caches.delete(cacheName))
             );
@@ -437,8 +495,22 @@ self.addEventListener('activate', (event) => {
                 client.postMessage({ type: 'CLEAR_RELOAD_FLAG' });
             });
 
-            await bundleManager.checkAndDownload();
+            // A bundle failure must not abort the rest of activation —
+            // scheduleChecks and the cache inventory still need to run
+            try {
+                await bundleManager.checkAndDownload();
+            } catch (error) {
+                console.warn('[SW] Offline bundle download failed during activation:', error);
+            }
             bundleManager.scheduleChecks();
+
+            // Purge completed/failed operations older than a week so the
+            // IndexedDB op store does not grow without bound
+            try {
+                await operationQueue.cleanupOldOperations();
+            } catch (error) {
+                console.warn('[SW] Operation cleanup failed:', error);
+            }
 
             await saveCacheInventory({
                 version: SW_VERSION,
@@ -448,6 +520,10 @@ self.addEventListener('activate', (event) => {
         })()
     );
 });
+
+function isVersionedCacheName(cacheName: string, bases: string[]): boolean {
+    return bases.some((base) => cacheName.startsWith(`${base}-v`));
+}
 
 self.addEventListener('fetch', (event) => {
     const { request } = event;
@@ -518,7 +594,11 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
         case 'GET_SYNC_STATUS':
             event.waitUntil(
                 operationQueue.getStatus().then((status) => {
-                    sendReply(event, { type: 'SYNC_STATUS', status });
+                    // The queue cannot know this; the sync manager owns the flag
+                    sendReply(event, {
+                        type: 'SYNC_STATUS',
+                        status: { ...status, isSyncing: backgroundSync.syncing },
+                    });
                 })
             );
             break;
@@ -598,9 +678,13 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
 self.addEventListener('sync', (event: Event) => {
     const syncEvent = event as Event & { tag: string; waitUntil(_fn: Promise<void>): void };
     if (syncEvent.tag === 'sync-user-progress') {
-        syncEvent.waitUntil(backgroundSync.syncUserProgress());
+        syncEvent.waitUntil(
+            backgroundSync.syncUserProgress().then(() => undefined)
+        );
     } else if (syncEvent.tag === 'sync-custom-problems') {
         syncEvent.waitUntil(backgroundSync.syncCustomProblems());
+    } else if (syncEvent.tag === 'sync-user-settings') {
+        syncEvent.waitUntil(backgroundSync.syncUserSettings());
     }
 });
 

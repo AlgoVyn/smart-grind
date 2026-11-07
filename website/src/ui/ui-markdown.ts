@@ -140,7 +140,9 @@ const customRenderer = {
             id = `${id}-${existingCount}`;
         }
 
-        const plainText = headingText.replace(/<[^>]*>?/gm, '');
+        const plainText = DOMPurify.sanitize(headingText.replace(/<[^>]*>?/gm, ''), {
+            ALLOWED_TAGS: [],
+        });
         currentTOC.push({ id, text: plainText, level: headingLevel });
 
         return `<h${headingLevel} id="${id}" class="scroll-mt-24 mb-4 mt-8 font-bold text-theme-bold group flex items-center gap-2">
@@ -414,9 +416,12 @@ const _loadSolution = async (
         content.addEventListener('scroll', updateSolutionScrollProgress);
         updateSolutionScrollProgress();
     } catch (error) {
+        const escapeText = (text: string): string =>
+            text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const message = error instanceof Error ? error.message : String(error);
         content.innerHTML =
-            `<p>Error loading ${errorPrefix}: ${error instanceof Error ? error.message : String(error)}</p>` +
-            `<p>File: ${solutionFile}</p>${extraErrorText}`;
+            `<p>Error loading ${escapeText(errorPrefix)}: ${escapeText(message)}</p>` +
+            `<p>File: ${escapeText(solutionFile)}</p>${extraErrorText}`;
     }
 };
 

@@ -34,10 +34,14 @@ export const pullToRefresh = {
     },
 
     handleTouchStart: (e: TouchEvent) => {
+        const contentScroll = state.elements['contentScroll'];
+        const mainSidebar = state.elements['mainSidebar'];
         if (
+            contentScroll &&
+            mainSidebar &&
             window.scrollY === 0 &&
-            state.elements['contentScroll']!.scrollTop === 0 &&
-            !state.elements['mainSidebar']!.classList.contains('translate-x-0') &&
+            contentScroll.scrollTop === 0 &&
+            !mainSidebar.classList.contains('translate-x-0') &&
             !pullToRefresh.isAnyModalOpen() &&
             e.touches[0]
         ) {
@@ -98,10 +102,14 @@ export const pullToRefresh = {
 
     handleMouseDown: (e: MouseEvent) => {
         if (e.button !== 0) return; // Only left mouse button
+        const contentScroll = state.elements['contentScroll'];
+        const mainSidebar = state.elements['mainSidebar'];
         if (
+            contentScroll &&
+            mainSidebar &&
             window.scrollY === 0 &&
-            state.elements['contentScroll']!.scrollTop === 0 &&
-            !state.elements['mainSidebar']!.classList.contains('translate-x-0') &&
+            contentScroll.scrollTop === 0 &&
+            !mainSidebar.classList.contains('translate-x-0') &&
             !pullToRefresh.isAnyModalOpen() &&
             !pullToRefresh.isMousePulling
         ) {

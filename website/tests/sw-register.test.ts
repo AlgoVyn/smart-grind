@@ -143,6 +143,7 @@ describe('Service Worker Registration Module', () => {
                 ready: Promise.resolve(mockRegistration),
                 controller: mockController,
                 addEventListener: jest.fn(),
+                getRegistration: jest.fn().mockResolvedValue(null),
             },
             writable: true,
             configurable: true,
@@ -295,6 +296,8 @@ describe('Service Worker Registration Module', () => {
     describe('skipWaiting', () => {
         test('should post SKIP_WAITING message when controller exists', async () => {
             skipWaiting();
+            // The message is posted after the async getRegistration lookup
+            await new Promise((resolve) => setTimeout(resolve, 0));
             expect(mockController.postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' });
         });
 
@@ -306,6 +309,7 @@ describe('Service Worker Registration Module', () => {
             });
 
             skipWaiting();
+            await new Promise((resolve) => setTimeout(resolve, 0));
             expect(mockController.postMessage).not.toHaveBeenCalled();
         });
     });

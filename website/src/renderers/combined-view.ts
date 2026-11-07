@@ -4,7 +4,7 @@
 import { state } from '../state';
 import { data } from '../data';
 import { Topic } from '../types';
-import { AlgorithmCategory } from '../data/algorithms-data';
+import { AlgorithmCategory, AlgorithmDef } from '../data/algorithms-data';
 import { SQLCategory } from '../data/sql-data';
 import { getToday, shouldShowProblem, updateBreadcrumbs, generateBreadcrumbs } from '../utils';
 import { htmlGenerators } from './html-generators';
@@ -182,7 +182,14 @@ export const combinedViewRenderers = {
         const currentFilter = state.ui?.currentFilter || 'all';
         // Collect visible algorithms first
         const visibleAlgorithms: Array<{ id: string; name: string; url: string }> = [];
-        category.algorithms.forEach((algo: { id: string; name: string; url: string }) => {
+        category.algorithms.forEach((algo: AlgorithmDef) => {
+            // Seed algorithm problems that have not been initialized yet.
+            // Without this the default combined view shows an empty
+            // Algorithms section for fresh users: problems were only ever
+            // seeded by the algorithms view.
+            if (!state.deletedProblemIds.has(algo.id) && !state.problems.has(algo.id)) {
+                state.setProblem(algo.id, mainViewRenderers._algorithmToProblem(algo, category.id));
+            }
             const problem = state.problems.get(algo.id);
             if (problem && shouldShowProblem(problem, currentFilter, searchQuery, today)) {
                 visibleAlgorithms.push(algo);

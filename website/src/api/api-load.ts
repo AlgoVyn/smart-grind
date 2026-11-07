@@ -6,6 +6,7 @@ import { state } from '../state';
 import { data } from '../data';
 import { syncPlan, mergeStructure } from './api-sync';
 import { validateResponseOrigin, getErrorMessage } from './api-utils';
+import { validateProblem, sanitizeProblemId } from '../utils/validation';
 import { showAlert } from '../ui/ui-modals';
 import { renderers } from '../renderers';
 import { initScrollButton } from '../ui/ui-scroll';
@@ -104,13 +105,50 @@ export const _processUserData = (userData: UserData, isOfflineFallback = false):
         return;
     }
 
-    const problemsMap = new Map(Object.entries(userData.problems || {}));
-    problemsMap.forEach((p: Problem) => {
-        p.loading = false;
-        p.noteVisible = false;
-    });
+    // Server data is user-controlled (it round-trips through other devices)
+    // and reaches innerHTML sinks, so it must pass the same validation and
+    // sanitization as the localStorage load path.
+    const problemsMap = new Map<string, Problem>();
+    let invalidCount = 0;
+    for (const [key, raw] of Object.entries(userData.problems || {})) {
+        const sanitizedId = sanitizeProblemId(key);
+        if (!sanitizedId) {
+            console.warn('[API Load] Skipping problem with invalid ID:', key);
+            invalidCount++;
+            continue;
+        }
+
+        const validation = validateProblem({ ...(raw as object), id: sanitizedId });
+        if (!validation.valid || !validation.data) {
+            console.warn(
+                '[API Load] Skipping invalid problem data:',
+                sanitizedId,
+                validation.errors
+            );
+            invalidCount++;
+            continue;
+        }
+
+        const problem = validation.data;
+        problem.loading = false;
+        problem.noteVisible = false;
+        problemsMap.set(sanitizedId, problem);
+    }
+
+    if (invalidCount > 0) {
+        console.warn(`[API Load] Skipped ${invalidCount} invalid problems from server data`);
+    }
+
     state.replaceProblems(problemsMap);
-    state.replaceDeletedIds(new Set(userData.deletedIds || []));
+
+    const deletedIds = new Set<string>();
+    if (Array.isArray(userData.deletedIds)) {
+        for (const id of userData.deletedIds) {
+            const sanitized = sanitizeProblemId(id);
+            if (sanitized) deletedIds.add(sanitized);
+        }
+    }
+    state.replaceDeletedIds(deletedIds);
 };
 
 /**

@@ -38,10 +38,16 @@ const TAR_BLOCK_SIZE = 512;
  */
 function createTarHeader(filename, fileSize) {
     const header = Buffer.alloc(TAR_HEADER_SIZE);
-    
-    // File name (100 bytes)
-    const name = filename.slice(0, 100);
-    header.write(name, 0, 'ascii');
+
+    // File name (100 bytes, ustar without prefix support).
+    // Fail loudly instead of silently truncating: a truncated name would be
+    // extracted into the problems cache under a corrupted URL.
+    if (Buffer.byteLength(filename, 'ascii') > 100) {
+        throw new Error(
+            `Bundle entry path exceeds the 100-byte tar name limit (no ustar prefix support): ${filename}`
+        );
+    }
+    header.write(filename, 0, 'ascii');
     
     // File mode (8 bytes) - default 644
     header.write('0000644', 100, 'ascii');

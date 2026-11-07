@@ -32,6 +32,30 @@ function safeJsonForScript(value: unknown): string {
 }
 
 /**
+ * Escapes a value for interpolation into HTML text/attribute contexts.
+ * Used for the static <title> and message <p> of the auth pages so that a
+ * future call site passing dynamic text cannot introduce HTML injection.
+ */
+function escapeHtmlText(text: string): string {
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+}
+
+/**
+ * Extracts a cookie value by name from a Cookie header.
+ */
+function getCookieValue(cookieHeader: string | null, name: string): string | null {
+    if (!cookieHeader) return null;
+    const cookies = cookieHeader.split(';').map((c: string) => c.trim());
+    const found = cookies.find((c: string) => c.startsWith(`${name}=`));
+    return found ? found.substring(name.length + 1) : null;
+}
+
+/**
  * Generates a cryptographically secure nonce for CSP.
  * Used to allow specific inline scripts while blocking others.
  */
@@ -101,10 +125,10 @@ function createAuthHtml(
 
     const html = `<!DOCTYPE html>
 <html>
-<head><title>${title}</title></head>
+<head><title>${escapeHtmlText(title)}</title></head>
 <body>
 <script nonce="${nonce}">${scriptBlock}</script>
-<p>${message}</p>
+<p>${escapeHtmlText(message)}</p>
 </body>
 </html>`;
 
@@ -300,20 +324,58 @@ interface RequestContext {
 export async function onRequestGet({ request, env }: RequestContext): Promise<Response> {
     // Validate environment configuration at startup
     validateEnvironment(env);
-    // Rate limiting: 10 requests per minute (skip in tests)
-    if (typeof jest === 'undefined' && (await checkRateLimit(request, env, LIMITS.API.OAUTH_RATE_LIMIT, 60))) {
+
+    const url = new URL(request.url);
+    const action = url.searchParams.get('action');
+
+    // Handle token fetch endpoint - allows client to get token for Service Worker
+    // using the HttpOnly cookie set during OAuth
+    if (action === 'token') {
+        // Rate limiting: 60 requests per minute for token fetches (skip in tests).
+        // Separate bucket from OAuth login/callback so frequent syncs do not
+        // exhaust the OAuth budget.
+        if (
+            typeof jest === 'undefined' &&
+            (await checkRateLimit(request, env, LIMITS.API.TOKEN_RATE_LIMIT, 60, 'auth_token'))
+        ) {
+            return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+                status: 429,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+        return handleTokenRequest(request, env);
+    }
+
+    // Rate limiting: 10 requests per minute for OAuth login/callback (skip in tests)
+    if (
+        typeof jest === 'undefined' &&
+        (await checkRateLimit(request, env, LIMITS.API.OAUTH_RATE_LIMIT, 60, 'auth_oauth'))
+    ) {
         return new Response('Rate limit exceeded', { status: 429 });
     }
 
-    const url = new URL(request.url);
     const redirectUri = getOAuthRedirectUri(url, env);
-    const action = url.searchParams.get('action');
 
     if (action === 'login') {
         // Generate random state for CSRF protection
         const state = crypto.randomUUID();
         // Store state in KV with short TTL (5 minutes)
         await env.KV.put(`oauth_state_${state}`, 'valid', { expirationTtl: LIMITS.API.OAUTH_STATE_TTL });
+
+        // Bind the state to this browser via a cookie. Without this binding an
+        // attacker can complete the OAuth flow for their own account and hand
+        // the victim the callback URL (login CSRF: the victim is silently
+        // logged into the attacker's account). SameSite=Lax is required because
+        // the Google redirect is a top-level navigation that must carry it.
+        //
+        // The cookie must also be sent when the callback lands on a sibling
+        // host (e.g. login on www.algovyn.com, OAUTH_REDIRECT_URI on
+        // algovyn.com), so scope it to the parent domain for algovyn hosts.
+        const cookieDomain =
+            url.hostname === 'algovyn.com' || url.hostname.endsWith('.algovyn.com')
+                ? '; Domain=.algovyn.com'
+                : '';
+        const stateCookie = `oauth_state=${state}; HttpOnly; Secure; SameSite=Lax; Max-Age=${LIMITS.API.OAUTH_STATE_TTL}; Path=/smartgrind${cookieDomain}`;
 
         // Redirect to Google OAuth
         const googleAuthUrl =
@@ -324,14 +386,22 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
             'scope=openid%20email%20profile&' +
             `state=${encodeURIComponent(state)}`;
 
-        return Response.redirect(googleAuthUrl, 302);
+        return new Response(null, {
+            status: 302,
+            headers: {
+                Location: googleAuthUrl,
+                'Set-Cookie': stateCookie,
+            },
+        });
     }
 
     const state = url.searchParams.get('state');
     if (state) {
-        // Verify state parameter
+        // Verify state parameter: it must exist in KV (single-use) AND match
+        // the oauth_state cookie issued to this browser at login time
+        const stateCookie = getCookieValue(request.headers.get('Cookie'), 'oauth_state');
         const storedState = await env.KV.get(`oauth_state_${state}`);
-        if (!storedState) {
+        if (!storedState || !stateCookie || stateCookie !== state) {
             const nonce = generateNonce();
             return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Invalid state.', nonce, undefined, 400);
         }
@@ -487,65 +557,52 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
         );
     }
 
-    // Handle token fetch endpoint - allows client to get token for Service Worker
-    // using the HttpOnly cookie set during OAuth
-    if (action === 'token') {
-        // Rate limiting: 60 requests per minute for token fetches (skip in tests)
-        // Separate from OAuth login/callback rate limit to allow frequent syncs
-        if (typeof jest === 'undefined' && (await checkRateLimit(request, env, LIMITS.API.TOKEN_RATE_LIMIT, 60))) {
-            return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
-                status: 429,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-        // Extract token from cookie
-        const cookieHeader = request.headers.get('Cookie');
-        let token: string | null = null;
-        
-        if (cookieHeader) {
-            const cookies = cookieHeader.split(';').map((c: string) => c.trim());
-            const authCookie = cookies.find((c: string) => c.startsWith('auth_token='));
-            if (authCookie) {
-                token = authCookie.substring('auth_token='.length);
-            }
-        }
-        
-        if (!token) {
-            return new Response(JSON.stringify({ error: 'Not authenticated' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-        
-        // Verify the token is valid
-        if (!env.JWT_SECRET) {
-            return new Response(JSON.stringify({ error: 'Server configuration error' }), {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-        
-        try {
-            const { jwtVerify } = await import('jose');
-            const secretKey = new TextEncoder().encode(env.JWT_SECRET);
-            const { payload } = await jwtVerify(token, secretKey);
-            
-            // Return the token and user info (client stores in IndexedDB for SW)
-            return new Response(JSON.stringify({ 
-                token, 
-                userId: payload.userId,
-                displayName: payload.displayName,
-                expiresIn: LIMITS.API.JWT_EXPIRATION_SECONDS
-            }), {
-                headers: { 'Content-Type': 'application/json' },
-            });
-        } catch {
-            return new Response(JSON.stringify({ error: 'Invalid token' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
+    return new Response('Invalid action', { status: 400 });
+}
+
+/**
+ * Handles the `action=token` endpoint: exchanges the HttpOnly auth cookie for
+ * the token payload the client stores in IndexedDB for the Service Worker.
+ * @returns JSON response with token/user info (never cached) or an error
+ */
+async function handleTokenRequest(request: Request, env: Env): Promise<Response> {
+    // Extract token from cookie
+    const token = getCookieValue(request.headers.get('Cookie'), 'auth_token');
+
+    if (!token) {
+        return new Response(JSON.stringify({ error: 'Not authenticated' }), {
+            status: 401,
+            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        });
     }
 
-    return new Response('Invalid action', { status: 400 });
+    // Verify the token is valid
+    if (!env.JWT_SECRET) {
+        return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        });
+    }
+
+    try {
+        const { jwtVerify } = await import('jose');
+        const secretKey = new TextEncoder().encode(env.JWT_SECRET);
+        const { payload } = await jwtVerify(token, secretKey);
+
+        // Return the token and user info (client stores in IndexedDB for SW).
+        // SECURITY: no-store so intermediaries never cache the token response.
+        return new Response(JSON.stringify({
+            token,
+            userId: payload.userId,
+            displayName: payload.displayName,
+            expiresIn: LIMITS.API.JWT_EXPIRATION_SECONDS
+        }), {
+            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        });
+    } catch {
+        return new Response(JSON.stringify({ error: 'Invalid token' }), {
+            status: 401,
+            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        });
+    }
 }

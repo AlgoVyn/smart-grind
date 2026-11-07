@@ -35,3 +35,9 @@ Thumbs.db
 
 # Opencode
 .opencode
+# Generated sitemap (rebuilt by `npm run build`)
+website/public/sitemap.xml
+
+# Local tooling
+.vscode/
+venv/

@@ -103,6 +103,59 @@ describe('Auth API', () => {
             expect(mockKV.put).toHaveBeenCalledWith('oauth_state_mock-uuid', 'valid', {
                 expirationTtl: 300,
             });
+            // The state must be bound to the browser via a cookie (login CSRF protection)
+            const setCookie = response.headers.get('Set-Cookie');
+            expect(setCookie).toContain('oauth_state=mock-uuid');
+            expect(setCookie).toContain('HttpOnly');
+            expect(setCookie).toContain('SameSite=Lax');
+        });
+
+        test('should scope the state cookie to the parent domain for cross-host OAuth', async () => {
+            // Login starts on www, but OAUTH_REDIRECT_URI points at the apex
+            const request = new Request('https://www.algovyn.com/smartgrind/api/auth?action=login');
+
+            const response = await onRequestGet({ request, env: mockEnv });
+
+            expect(response.status).toBe(302);
+            const setCookie = response.headers.get('Set-Cookie');
+            expect(setCookie).toContain('oauth_state=mock-uuid');
+            expect(setCookie).toContain('Domain=.algovyn.com');
+        });
+
+        test('should not set a parent domain for non-algovyn hosts', async () => {
+            const request = new Request('https://example.com/auth?action=login');
+
+            const response = await onRequestGet({ request, env: mockEnv });
+
+            expect(response.headers.get('Set-Cookie')).not.toContain('Domain=');
+        });
+
+        test('should reject callback with missing oauth_state cookie (login CSRF)', async () => {
+            mockKV.get.mockResolvedValue('valid'); // State exists in KV
+
+            // Attacker replay: state param matches KV but the browser never
+            // initiated the login, so the bound cookie is absent
+            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
+
+            const response = await onRequestGet({ request, env: mockEnv });
+
+            expect(response.status).toBe(400);
+            const html = await response.text();
+            expect(html).toContain('Sign in failed: Invalid state.');
+        });
+
+        test('should reject callback with mismatched oauth_state cookie', async () => {
+            mockKV.get.mockResolvedValue('valid'); // State exists in KV
+
+            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
+                headers: { Cookie: 'oauth_state=different-state' },
+            });
+
+            const response = await onRequestGet({ request, env: mockEnv });
+
+            expect(response.status).toBe(400);
+            const html = await response.text();
+            expect(html).toContain('Sign in failed: Invalid state.');
         });
 
         test('should return HTML with failure for invalid state in callback', async () => {
@@ -124,7 +177,9 @@ describe('Auth API', () => {
         test('should return HTML with failure for invalid code in callback', async () => {
             mockKV.get.mockResolvedValue('valid'); // Valid state
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=');
+            const request = new Request('https://example.com/auth?state=mock-uuid&code=', {
+                headers: { Cookie: 'oauth_state=mock-uuid' },
+            });
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -140,7 +195,8 @@ describe('Auth API', () => {
 
             const longCode = 'a'.repeat(1001);
             const request = new Request(
-                `https://example.com/auth?state=mock-uuid&code=${longCode}`
+                `https://example.com/auth?state=mock-uuid&code=${longCode}`,
+                { headers: { Cookie: 'oauth_state=mock-uuid' } }
             );
 
             const response = await onRequestGet({ request, env: mockEnv });
@@ -156,7 +212,9 @@ describe('Auth API', () => {
             mockKV.get.mockResolvedValue('valid'); // Valid state
             mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) }); // No access_token
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
+            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
+                headers: { Cookie: 'oauth_state=mock-uuid' },
+            });
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -176,7 +234,9 @@ describe('Auth API', () => {
                 })
                 .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) }); // No id
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
+            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
+                headers: { Cookie: 'oauth_state=mock-uuid' },
+            });
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -207,7 +267,9 @@ describe('Auth API', () => {
                         }),
                 });
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
+            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
+                headers: { Cookie: 'oauth_state=mock-uuid' },
+            });
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -239,7 +301,9 @@ describe('Auth API', () => {
                     json: () => Promise.resolve({ id: 'user123', name: 'Test User' }),
                 });
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
+            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
+                headers: { Cookie: 'oauth_state=mock-uuid' },
+            });
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -270,7 +334,9 @@ describe('Auth API', () => {
                     json: () => Promise.resolve({ id: 'user123', email: 'test@example.com' }),
                 });
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
+            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
+                headers: { Cookie: 'oauth_state=mock-uuid' },
+            });
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -294,7 +360,9 @@ describe('Auth API', () => {
                     json: () => Promise.resolve({ id: 'user123' }),
                 });
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
+            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
+                headers: { Cookie: 'oauth_state=mock-uuid' },
+            });
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -307,7 +375,9 @@ describe('Auth API', () => {
             mockKV.get.mockResolvedValue('valid'); // Valid state
             mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
+            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
+                headers: { Cookie: 'oauth_state=mock-uuid' },
+            });
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -327,7 +397,9 @@ describe('Auth API', () => {
                 })
                 .mockRejectedValueOnce(new Error('Network error'));
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
+            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
+                headers: { Cookie: 'oauth_state=mock-uuid' },
+            });
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -353,7 +425,9 @@ describe('Auth API', () => {
                     json: () => Promise.resolve({ id: 'user123', name: 'Test User' }),
                 });
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code');
+            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
+                headers: { Cookie: 'oauth_state=mock-uuid' },
+            });
 
             const response = await onRequestGet({ request, env: mockEnv });
 

@@ -17,7 +17,7 @@ import {
 declare const self: ServiceWorkerGlobalScope;
 
 /** Bundle configuration */
-const BUNDLE_URL = '/smartgrind/offline-bundle.tar.gz';
+export const BUNDLE_URL = '/smartgrind/offline-bundle.tar.gz';
 const BUNDLE_MANIFEST_URL = '/smartgrind/offline-manifest.json';
 const BUNDLE_STATE_KEY = 'smartgrind-bundle-state';
 const BUNDLE_DB_NAME = 'smartgrind-offline';
@@ -66,6 +66,23 @@ export class BundleManager {
         return state.status === 'downloading' || state.status === 'extracting';
     }
 
+    /**
+     * How long an in-progress state can persist before it is assumed the
+     * service worker was terminated mid-download (downloads normally finish
+     * in well under a minute)
+     */
+    private static readonly IN_PROGRESS_STALE_MS = 10 * 60 * 1000;
+
+    /**
+     * True when an in-progress state is stale — i.e. no download can actually
+     * be running. Without this check a SW terminated mid-download would leave
+     * the state stuck forever and the bundle would never download again.
+     */
+    private isStaleInProgressState(state: BundleDownloadState): boolean {
+        if (!state.startedAt) return true; // Legacy state without a timestamp
+        return Date.now() - state.startedAt > BundleManager.IN_PROGRESS_STALE_MS;
+    }
+
     /** Check and download bundle if needed */
     async checkAndDownload(retryAttempt = 0): Promise<void> {
         if (this.isDev) return;
@@ -73,8 +90,13 @@ export class BundleManager {
         try {
             const currentState = await this.getStatus();
             if (this.isDownloadInProgress(currentState)) {
-                console.log('[BundleManager] Download already in progress, skipping');
-                return;
+                if (this.isStaleInProgressState(currentState)) {
+                    console.warn('[BundleManager] Stale in-progress state detected, resetting');
+                    await this.saveState(this.createInitialState());
+                } else {
+                    console.log('[BundleManager] Download already in progress, skipping');
+                    return;
+                }
             }
 
             const manifest = await this.fetchManifest();
@@ -147,6 +169,7 @@ export class BundleManager {
             progress: 0,
             totalFiles: 0,
             extractedFiles: 0,
+            startedAt: Date.now(),
         };
     }
 
@@ -461,6 +484,17 @@ export class BundleManager {
         ports: ReadonlyArray<MessagePort>;
     }): Promise<void> {
         try {
+            // Refuse to run concurrently with an active (or stale-stuck)
+            // in-progress download — the message path bypasses checkAndDownload
+            const currentState = await this.getStatus();
+            if (this.isDownloadInProgress(currentState)) {
+                if (!this.isStaleInProgressState(currentState)) {
+                    this.sendReply(event, { type: 'BUNDLE_ERROR', error: 'Download already in progress' });
+                    return;
+                }
+                await this.saveState(this.createInitialState());
+            }
+
             await this.downloadAndExtract(
                 (await this.fetchManifest()) || {
                     version: 'unknown',

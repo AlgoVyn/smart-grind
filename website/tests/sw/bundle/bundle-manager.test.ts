@@ -173,6 +173,7 @@ describe('BundleManager', () => {
                 progress: 50,
                 totalFiles: 10,
                 extractedFiles: 0,
+                startedAt: Date.now(),
             });
 
             await manager.checkAndDownload();
@@ -186,11 +187,41 @@ describe('BundleManager', () => {
                 progress: 75,
                 totalFiles: 10,
                 extractedFiles: 5,
+                startedAt: Date.now(),
             });
 
             await manager.checkAndDownload();
 
             expect(mockFetch).not.toHaveBeenCalled();
+        });
+
+        test('should reset a stale in-progress state left by SW termination', async () => {
+            (safeRetrieve as jest.Mock).mockResolvedValue({
+                status: 'downloading',
+                progress: 50,
+                totalFiles: 10,
+                extractedFiles: 0,
+                startedAt: Date.now() - 11 * 60 * 1000, // older than the stale threshold
+            });
+
+            await manager.checkAndDownload();
+
+            // The stale state is reset (safeStore called with idle state) and
+            // the download proceeds to fetch the manifest
+            expect(mockFetch).toHaveBeenCalledWith('/smartgrind/offline-manifest.json');
+        });
+
+        test('should reset a legacy in-progress state without a timestamp', async () => {
+            (safeRetrieve as jest.Mock).mockResolvedValue({
+                status: 'downloading',
+                progress: 50,
+                totalFiles: 10,
+                extractedFiles: 0,
+            });
+
+            await manager.checkAndDownload();
+
+            expect(mockFetch).toHaveBeenCalledWith('/smartgrind/offline-manifest.json');
         });
     });
 

@@ -21,6 +21,11 @@
 /smartgrind/sql/solutions /sql/solutions/ 200
 /smartgrind/sql/patterns /sql/patterns/ 200
 
+# SEO fragments read by the SSR Function through the ASSETS binding.
+# Keep them ahead of the SPA fallbacks so they are served as files, not index.html.
+/seo/* /seo/:splat 200
+/smartgrind/seo/* /seo/:splat 200
+
 # SPA fallback: all other /smartgrind/ paths → index.html
 /smartgrind/* /index.html 200
 

@@ -31,6 +31,9 @@ let sessionCards: FlashCard[] = [];
 let sessionStats = { again: 0, hard: 0, good: 0, easy: 0 };
 let isCardFlipped = false;
 let keyboardHandler: ((_e: KeyboardEvent) => void) | null = null;
+// Incremented on every renderCard call; async renders check it after their
+// awaits so a superseded render (rapid rating) never writes stale content
+let renderGeneration = 0;
 
 // Debounce timer for saving progress
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -376,6 +379,8 @@ export const renderCard = async (): Promise<void> => {
     const els = getElements();
     if (!currentSession || !els.cardFront || !els.cardBack) return;
 
+    const generation = ++renderGeneration;
+
     const card = sessionCards[currentSession.currentIndex];
     if (!card) return;
 
@@ -392,6 +397,9 @@ export const renderCard = async (): Promise<void> => {
 
     if (!frontContent || !backContent) {
         const mdContent = await loadMarkdownContent(card.id);
+        // A newer render was started while awaiting the markdown fetch —
+        // writing now would show card N's content for card N+1
+        if (generation !== renderGeneration) return;
         if (!frontContent) frontContent = mdContent.front;
         if (!backContent) backContent = mdContent.back;
     }
@@ -767,6 +775,14 @@ export const openFlashcardsModal = (): void => {
     // Show modal
     els.modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+
+    // Re-add the keyboard listener: closeFlashcardsModal removes it on close,
+    // and without re-adding here the shortcuts would stay dead for every
+    // session after the first one until a page reload
+    if (!keyboardHandler) {
+        keyboardHandler = handleFlashcardsKeyboard;
+        document.addEventListener('keydown', keyboardHandler);
+    }
 };
 
 export const closeFlashcardsModal = (): void => {

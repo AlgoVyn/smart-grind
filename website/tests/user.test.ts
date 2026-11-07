@@ -83,7 +83,7 @@ describe('User API', () => {
             expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
         });
 
-        test('should reject unauthorized origins with wildcard CORS', async () => {
+        test('should not reflect unauthorized origins in CORS', async () => {
             const request = new Request('https://example.com/user', {
                 headers: {
                     Authorization: 'Bearer header.payload.signature',
@@ -93,8 +93,9 @@ describe('User API', () => {
 
             const response = await onRequestGet({ request, env: mockEnv });
 
-            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
-            expect(response.headers.get('Access-Control-Allow-Credentials')).toBeFalsy();
+            // Untrusted origins are never reflected; the response is pinned to
+            // the first default origin so the browser blocks the read
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://algovyn.com');
         });
 
         test('should allow origins from ALLOWED_ORIGINS env variable', async () => {
@@ -164,8 +165,9 @@ describe('User API', () => {
 
             const response = await onRequestGet({ request, env: prodEnv });
 
-            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
-            expect(response.headers.get('Access-Control-Allow-Credentials')).toBeFalsy();
+            // localhost is only allowed in development mode; in production the
+            // origin is not reflected and the response is pinned to the default
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://algovyn.com');
         });
 
         test('should return 401 for missing authorization header', async () => {
@@ -236,8 +238,8 @@ describe('User API', () => {
             expect(data.csrfToken).toBeDefined();
             expect(typeof data.csrfToken).toBe('string');
             expect(mockKV.put).toHaveBeenCalledWith(
-                'csrf_user123',
-                expect.any(String),
+                `csrf_user123_${data.csrfToken}`,
+                'valid',
                 { expirationTtl: 3600 }
             );
         });
@@ -439,7 +441,8 @@ describe('User API', () => {
 
         test('should return 403 for mismatched CSRF token', async () => {
             jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
-            mockKV.get.mockResolvedValue('different-csrf-token');
+            // The per-token KV key does not exist for the supplied token
+            mockKV.get.mockResolvedValue(null);
 
             const request = new Request('https://example.com/user', {
                 method: 'POST',
@@ -457,7 +460,7 @@ describe('User API', () => {
             expect(data.error).toBe('Invalid CSRF token');
         });
 
-        test('should delete CSRF token after successful validation', async () => {
+        test('should keep CSRF token valid for reuse (multi-use until TTL)', async () => {
             jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
             mockKV.get.mockResolvedValue('test-csrf-token-12345');
 
@@ -472,7 +475,11 @@ describe('User API', () => {
 
             await onRequestPost({ request, env: mockEnv });
 
-            expect(mockKV.delete).toHaveBeenCalledWith('csrf_user123');
+            // Tokens live under their own key and are only removed by KV TTL;
+            // validating one must not delete it or invalidate sibling tokens.
+            expect(mockKV.delete).not.toHaveBeenCalledWith(
+                'csrf_user123_test-csrf-token-12345'
+            );
         });
 
         test('should return 400 for invalid JSON', async () => {
@@ -595,7 +602,9 @@ describe('User API', () => {
 
         test('should authenticate via cookie for POST requests', async () => {
             mockKV.get.mockImplementation((key) => {
-                if (key === 'csrf_user123') return Promise.resolve('test-csrf-token-12345');
+                if (key === 'csrf_user123_test-csrf-token-12345') {
+                    return Promise.resolve('valid');
+                }
                 return Promise.resolve(null);
             });
 

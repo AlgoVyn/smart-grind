@@ -16,12 +16,31 @@ function escapeHtml(text: string): string {
 }
 
 function escapeHtmlAttr(text: string): string {
-    return text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
 }
 
+// Escapes a string for embedding inside a <script type="application/ld+json">
+// block. Also neutralizes </script> and <!-- sequences (which JSON string
+// escapes alone do not) by Unicode-escaping angle brackets.
 function escapeJson(str: string): string {
-    return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+    return str
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r')
+        .replace(/</g, '\\u003c')
+        .replace(/>/g, '\\u003e');
 }
+
+// Security headers applied to SSR-generated HTML responses. Cloudflare Pages
+// `_headers` rules do not apply to Function responses, so these must be set
+// here to keep SSR pages protected the same way as static ones.
+const SSR_SECURITY_HEADERS: Record<string, string> = {
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+};
 
 // Category data with SEO-optimized descriptions
 const PATTERN_CATEGORIES: Record<string, { title: string; description: string; count: number }> = {
@@ -73,15 +92,22 @@ const SQL_CATEGORIES: Record<string, { title: string; description: string; count
     'sql-design': { title: 'SQL Database Design', description: 'Database design principles: normalization, denormalization, and schema design. Master 9+ design concepts for system design and database architecture interviews.', count: 9 },
 };
 
+const CATEGORY_TABLES: Record<string, Record<string, { title: string; description: string; count: number }>> = {
+    c: PATTERN_CATEGORIES,
+    a: ALGORITHM_CATEGORIES,
+    s: SQL_CATEGORIES,
+};
+
+const getCategoryData = (type: string, id: string) => CATEGORY_TABLES[type]?.[id];
+
 // Structured data generators
 const genStructuredData = (type: string, id: string, title: string, description: string, count: number): string => {
     const baseUrl = 'https://algovyn.com/smartgrind';
     const ct = type === 'c' ? 'Coding Interview Patterns' : type === 'a' ? 'Algorithms' : 'SQL';
-    const bn = type === 'c' ? 'Patterns' : type === 'a' ? 'Algorithms' : 'SQL';
-    return `<script type="application/ld+json">{"@context":"https://schema.org","@type":"LearningResource","name":"${escapeJson(title)}","description":"${escapeJson(description)}","url":"${baseUrl}/${type}/${id}","educationalLevel":"Advanced","learningResourceType":"ProblemSet","inLanguage":"en","provider":{"@type":"Organization","name":"AlgoVyn","url":"https://algovyn.com"},"about":{"@type":"Thing","name":"${escapeJson(ct)}"},"numberOfItems":${count}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"SmartGrind","item":"${baseUrl}/"},{"@type":"ListItem","position":2,"name":"${escapeJson(bn)}","item":"${baseUrl}/${type}/"},{"@type":"ListItem","position":3,"name":"${escapeJson(title)}"}]}</script>`;
+    return `<script type="application/ld+json">{"@context":"https://schema.org","@type":"LearningResource","name":"${escapeJson(title)}","description":"${escapeJson(description)}","url":"${baseUrl}/${type}/${id}","educationalLevel":"Advanced","learningResourceType":"ProblemSet","inLanguage":"en","provider":{"@type":"Organization","name":"AlgoVyn","url":"https://algovyn.com"},"about":{"@type":"Thing","name":"${escapeJson(ct)}"},"numberOfItems":${count}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"SmartGrind","item":"${baseUrl}/"},{"@type":"ListItem","position":2,"name":"${escapeJson(title)}","item":"${baseUrl}/${type}/${id}"}]}</script>`;
 };
 
-const genHomeStructuredData = (): string => `<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"SmartGrind","description":"A web app for mastering coding patterns through spaced repetition.","url":"https://algovyn.com/smartgrind","applicationCategory":"EducationalApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"aggregateRating":{"@type":"AggregateRating","ratingValue":"4.8","ratingCount":"1500","bestRating":"5"},"featureList":"Spaced repetition, 500+ LeetCode problems, 15+ coding patterns, Offline mode, Progress sync across devices, Multiple language solutions","author":{"@type":"Organization","name":"AlgoVyn"}}</script>`;
+const genHomeStructuredData = (): string => `<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"SmartGrind","description":"A web app for mastering coding patterns through spaced repetition.","url":"https://algovyn.com/smartgrind/","applicationCategory":"EducationalApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":"Spaced repetition, 500+ LeetCode problems, 15+ coding patterns, Offline mode, Progress sync across devices, Multiple language solutions","author":{"@type":"Organization","name":"AlgoVyn"}}</script>`;
 
 // Problem structured data generator
 const genProblemStructuredData = (problem: typeof TOP_PROBLEMS[0]): string => {
@@ -90,17 +116,108 @@ const genProblemStructuredData = (problem: typeof TOP_PROBLEMS[0]): string => {
         'c': 'Patterns', 'a': 'Algorithms', 's': 'SQL'
     };
     const categoryName = categoryTitles[problem.categoryType] || 'Problems';
+    // Breadcrumb level 2 must be a real, 200-returning URL (no trailing slash:
+    // /smartgrind/c/<id>/ and /smartgrind/c/ both 404)
+    const categoryUrl = `${baseUrl}/${problem.categoryType}/${problem.category}`;
+    const categoryTitle = getCategoryData(problem.categoryType, problem.category)?.title || categoryName;
     
-    return `<script type="application/ld+json">{"@context":"https://schema.org","@type":"LearningResource","name":"${escapeJson(problem.title)} LeetCode Solution","description":"${escapeJson(problem.description)} Learn how to solve ${problem.title} with detailed explanations and code in Python, Java, C++, and JavaScript.","url":"${baseUrl}/p/${problem.slug}","educationalLevel":"${problem.difficulty === 'Hard' ? 'Expert' : problem.difficulty === 'Medium' ? 'Advanced' : 'Beginner'}","learningResourceType":"CodingProblem","inLanguage":"en","isPartOf":{"@type":"LearningResource","name":"SmartGrind ${categoryName}","url":"${baseUrl}/${problem.categoryType}/${problem.category}"},"educationalUse":"Coding interview preparation","teaches":"${escapeJson(problem.topics.join(', '))}","provider":{"@type":"Organization","name":"AlgoVyn","url":"https://algovyn.com"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"SmartGrind","item":"${baseUrl}/"},{"@type":"ListItem","position":2,"name":"${escapeJson(categoryName)}","item":"${baseUrl}/${problem.categoryType}/${problem.category}/"},{"@type":"ListItem","position":3,"name":"${escapeJson(problem.title)}"}]}</script>`;
+    return `<script type="application/ld+json">{"@context":"https://schema.org","@type":"LearningResource","name":"${escapeJson(problem.title)} LeetCode Solution","description":"${escapeJson(problem.description)} Learn how to solve ${problem.title} with detailed explanations and code in Python, Java, C++, and JavaScript.","url":"${baseUrl}/p/${problem.slug}","educationalLevel":"${problem.difficulty === 'Hard' ? 'Expert' : problem.difficulty === 'Medium' ? 'Advanced' : 'Beginner'}","learningResourceType":"CodingProblem","inLanguage":"en","isPartOf":{"@type":"LearningResource","name":"SmartGrind ${escapeJson(categoryTitle)}","url":"${categoryUrl}"},"educationalUse":"Coding interview preparation","teaches":"${escapeJson(problem.topics.join(', '))}","provider":{"@type":"Organization","name":"AlgoVyn","url":"https://algovyn.com"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"SmartGrind","item":"${baseUrl}/"},{"@type":"ListItem","position":2,"name":"${escapeJson(categoryTitle)}","item":"${categoryUrl}"},{"@type":"ListItem","position":3,"name":"${escapeJson(problem.title)}"}]}</script>`;
 };
+
+// Social preview image. LinkedIn, X and Facebook do not render SVG og:image,
+// so use a 1200x630 PNG. og-image.png is served by the root algovyn.com site.
+// TODO: per-category PNGs (e.g. /smartgrind/og/c/<id>.png) generated at build.
+export const OG_IMAGE = 'https://algovyn.com/og-image.png';
+const OG_IMAGE_ALT = 'AlgoVyn SmartGrind - master coding interview patterns with spaced repetition';
 
 // Meta tags generator
 const genMetaTags = (title: string, desc: string, keywords: string, url: string, ogTitle: string, ogDesc: string): string => 
-    `<title>${title}</title><meta name="description" content="${desc}"><meta name="keywords" content="${keywords}"><link rel="canonical" href="${url}"><meta property="og:site_name" content="AlgoVyn - SmartGrind"><meta property="og:title" content="${ogTitle}"><meta property="og:description" content="${ogDesc}"><meta property="og:image" content="https://algovyn.com/smartgrind/logo.svg"><meta property="og:url" content="${url}"><meta property="og:type" content="website"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${ogTitle}"><meta name="twitter:description" content="${ogDesc}"><meta name="twitter:image" content="https://algovyn.com/smartgrind/logo.svg">`;
+    `<title>${title}</title><meta name="description" content="${desc}"><meta name="keywords" content="${keywords}"><link rel="canonical" href="${url}"><meta property="og:site_name" content="AlgoVyn SmartGrind"><meta property="og:title" content="${ogTitle}"><meta property="og:description" content="${ogDesc}"><meta property="og:image" content="${OG_IMAGE}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="${OG_IMAGE_ALT}"><meta property="og:url" content="${url}"><meta property="og:type" content="website"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${ogTitle}"><meta name="twitter:description" content="${ogDesc}"><meta name="twitter:image" content="${OG_IMAGE}"><meta name="twitter:site" content="@algovyn">`;
 
-// Generate initial state script
-const genInitialState = (type: string, id: string): string => 
-    `<script>window.__INITIAL_STATE__={route:{type:"${type}",id:"${id}"}};</script>`;
+// The static index.html template ships its own generic <title>, description,
+// keywords, canonical, og:* and twitter:* tags. Prepending per-route tags left
+// BOTH sets in the document (two canonicals, one pointing at /smartgrind), so
+// strip the template's copies before injecting the route-specific ones.
+const DEFAULT_SEO_META_RE =
+    /<meta\b[^>]*\b(?:name|property)\s*=\s*"(?:description|keywords|og:[\w:]+|twitter:[\w:]+)"[^>]*>[ \t]*\r?\n?/gi;
+const DEFAULT_TITLE_RE = /<title\b[^>]*>[\s\S]*?<\/title>[ \t]*\r?\n?/gi;
+const DEFAULT_CANONICAL_RE = /<link\b[^>]*\brel\s*=\s*"canonical"[^>]*>[ \t]*\r?\n?/gi;
+
+export const stripDefaultSeoTags = (html: string): string =>
+    html.replace(DEFAULT_TITLE_RE, '').replace(DEFAULT_SEO_META_RE, '').replace(DEFAULT_CANONICAL_RE, '');
+
+// Generate initial state — JSON.stringify plus angle-bracket escaping
+// keeps values safe even if a future route type/id ever contains request input.
+// A non-executable application/json block is used because the page's meta CSP
+// does not allow arbitrary inline scripts (it only whitelists specific hashes).
+const genInitialState = (type: string, id: string): string => {
+    const state = JSON.stringify({ route: { type, id } }).replace(/</g, '\\u003c');
+    return `<script type="application/json" id="__INITIAL_STATE__">${state}</script>`;
+};
+
+// Old / guessable category slugs -> real ones (e.g. LinkedIn posts linked
+// /c/monotonic-stack, which never existed; monotonic stacks live under /c/stacks)
+const CATEGORY_ALIASES: Record<string, string> = {
+    'c/monotonic-stack': 'c/stacks',
+    'c/monotonic-stacks': 'c/stacks',
+    'c/stack': 'c/stacks',
+    'c/two-pointer': 'c/two-pointers',
+    'c/heap': 'c/heaps',
+    'c/tree': 'c/trees',
+    'c/graph': 'c/graphs',
+    'c/linked-list': 'c/linked-lists',
+    'c/dynamic-programming': 'c/dp',
+    'c/arrays-and-hashing': 'c/arrays-hashing',
+};
+
+const routeExists = (type: string, id: string): boolean =>
+    type === 'p' ? !!getProblemBySlug(id) : !!getCategoryData(type, id);
+
+/**
+ * Returns the canonical path (without the /smartgrind prefix) a request should be
+ * 301-redirected to, or null if the path is already canonical / not a known route.
+ * Handles trailing slashes, upper-case slugs and legacy aliases.
+ */
+export const getCanonicalRedirect = (cleanPath: string): string | null => {
+    const m = cleanPath.match(/^\/([casp])\/([^/]+)\/?$/i);
+    if (!m || !m[1] || !m[2]) return null;
+    let key = `${m[1].toLowerCase()}/${m[2].toLowerCase()}`;
+    key = CATEGORY_ALIASES[key] ?? key;
+    const [type, id] = key.split('/') as [string, string];
+    if (!routeExists(type, id)) return null;
+    const canonical = `/${key}`;
+    return canonical === cleanPath ? null : canonical;
+};
+
+// --- Server-rendered body content (SEO) ---
+// Build-time fragments live at /seo/<type>/<id>.txt (scripts/seo-fragments.ts).
+// Must match FRAGMENT_MARKER in scripts/seo-fragments.ts.
+export const SEO_FRAGMENT_MARKER = '<!--seo-fragment v1-->';
+
+async function loadSeoFragment(env: Env, url: URL, key: string): Promise<string> {
+    if (!env.ASSETS) return '';
+    try {
+        const res = await env.ASSETS.fetch(new URL(`/seo/${key}.txt`, url.origin));
+        if (!res.ok) return '';
+        const text = await res.text();
+        // Guard against SPA fallbacks (index.html / 404.html) being returned instead
+        return text.startsWith(SEO_FRAGMENT_MARKER) ? text.slice(SEO_FRAGMENT_MARKER.length) : '';
+    } catch (_e) {
+        return '';
+    }
+}
+
+const genSeoHeader = (h1: string, intro: string, extra = ''): string =>
+    `<header class="seo-header" data-seo-content><h1 class="text-2xl md:text-3xl font-bold text-theme-bold">${escapeHtml(h1)}</h1><p class="text-sm text-theme-base mt-2">${escapeHtml(intro)}</p>${extra}</header>`;
+
+/** Replace the <!--SEO_HEADER--> / <!--SEO_CONTENT--> placeholders in index.html. */
+export const injectSeoBody = (html: string, header: string, fragment: string): string =>
+    html
+        .replace('<!--SEO_HEADER-->', header)
+        .replace(
+            '<!--SEO_CONTENT-->',
+            fragment ? `<section id="seo-content" data-seo-content aria-label="Guide">${fragment}</section>` : ''
+        );
 
 // Helper to serve static assets
 async function serveAsset(env: Env, url: URL, path: string): Promise<Response | null> {
@@ -114,7 +231,7 @@ async function serveAsset(env: Env, url: URL, path: string): Promise<Response | 
         if (res.ok) {
             return res;
         }
-    } catch (e) {
+    } catch (_e) {
         // Fall through to null
     }
     return null;
@@ -137,6 +254,11 @@ export async function onRequest(context: { request: Request; env: Env; next: () 
         // Try to serve the asset directly
         const assetResponse = await serveAsset(env, url, path);
         if (assetResponse) {
+            if (/^(\/smartgrind)?\/seo\//.test(path)) {
+                const headers = new Headers(assetResponse.headers);
+                headers.set('X-Robots-Tag', 'noindex');
+                return new Response(assetResponse.body, { status: assetResponse.status, headers });
+            }
             return assetResponse;
         }
         return next();
@@ -160,10 +282,23 @@ export async function onRequest(context: { request: Request; env: Env; next: () 
     // Clean the path (remove /smartgrind prefix if present)
     const cleanPath = path.replace(/^\/smartgrind\//, '/').replace(/^\/smartgrind$/, '/');
     
+    // 301 non-canonical variants (trailing slash, upper case, legacy aliases)
+    const redirectTo = getCanonicalRedirect(cleanPath);
+    if (redirectTo) {
+        return new Response(null, {
+            status: 301,
+            headers: {
+                Location: `https://algovyn.com/smartgrind${redirectTo}${url.search}`,
+                'Cache-Control': 'public, max-age=86400',
+                ...SSR_SECURITY_HEADERS,
+            },
+        });
+    }
+
     // Determine if this is a route we should handle
     let cat: { type: string; id: string; data: { title: string; description: string; count: number } } | null = null;
     let problem: typeof TOP_PROBLEMS[0] | null = null;
-    let isHome = cleanPath === '/' || cleanPath === '';
+    const isHome = cleanPath === '/' || cleanPath === '';
     
     if (!isHome) {
         const pm = cleanPath.match(/^\/c\/([^/]+)$/);
@@ -220,11 +355,11 @@ export async function onRequest(context: { request: Request; env: Env; next: () 
         
         if (isHome) {
             meta = genMetaTags(
-                escapeHtml('SmartGrind: Master Coding Patterns with Spaced Repetition'),
+                escapeHtml('AlgoVyn SmartGrind: Master Coding Patterns with Spaced Repetition'),
                 escapeHtmlAttr('Master coding interview patterns with SmartGrind\'s spaced repetition system. Practice 500+ LeetCode problems with detailed solutions in Python, Java, C++, and JavaScript. Track progress, learn 15+ essential patterns including Two Pointers, Dynamic Programming, Graphs, and more. Free coding interview prep tool with offline support.'),
                 escapeHtmlAttr('leetcode patterns, coding interview prep, spaced repetition coding, algorithm patterns, data structures and algorithms, technical interview preparation, FAANG interview'),
                 baseUrl + '/',
-                escapeHtmlAttr('SmartGrind: Master Coding Patterns with Spaced Repetition'),
+                escapeHtmlAttr('AlgoVyn SmartGrind: Master Coding Patterns with Spaced Repetition'),
                 escapeHtmlAttr('Master coding interview patterns with spaced repetition. Practice 500+ LeetCode problems with solutions in Python, Java, C++, and JavaScript. Free with offline support.')
             );
             structured = genHomeStructuredData();
@@ -233,11 +368,11 @@ export async function onRequest(context: { request: Request; env: Env; next: () 
             const ct = type === 'c' ? 'Pattern' : type === 'a' ? 'Algorithm' : 'SQL';
             const pageUrl = `${baseUrl}/${type}/${id}`;
             meta = genMetaTags(
-                escapeHtml(`${c.title} - SmartGrind`),
+                escapeHtml(`${c.title} - AlgoVyn SmartGrind`),
                 escapeHtmlAttr(c.description),
                 escapeHtmlAttr(`${ct.toLowerCase()}, coding interview, leetcode, ${id.replace(/-/g, ' ')}`),
                 pageUrl,
-                escapeHtmlAttr(`${c.title} | SmartGrind`),
+                escapeHtmlAttr(`${c.title} | AlgoVyn SmartGrind`),
                 escapeHtmlAttr(`Practice ${c.count}+ ${c.title.toLowerCase()} problems with spaced repetition.`)
             );
             structured = genStructuredData(type, id, c.title, c.description, c.count);
@@ -249,7 +384,7 @@ export async function onRequest(context: { request: Request; env: Env; next: () 
             const topicsStr = problem.topics.join(', ');
             
             meta = genMetaTags(
-                escapeHtml(`${problem.title} LeetCode Solution - ${problem.difficulty} | SmartGrind`),
+                escapeHtml(`${problem.title} LeetCode Solution (${problem.difficulty}) | AlgoVyn SmartGrind`),
                 escapeHtmlAttr(`${problem.description} Detailed solution with code in Python, Java, C++, JavaScript. Asked at ${companiesStr}.`),
                 escapeHtmlAttr(`${problem.slug}, leetcode solution, ${problem.difficulty.toLowerCase()} leetcode, ${topicsStr.toLowerCase()}, coding interview`),
                 pageUrl,
@@ -260,7 +395,31 @@ export async function onRequest(context: { request: Request; env: Env; next: () 
             initialState = genInitialState(problem.categoryType, problem.category);
         }
         
-        // Inject meta tags and structured data
+        // Server-rendered body: h1 + intro + prerendered guide/problem links
+        let seoHeader = '';
+        let seoKey = '';
+        if (isHome) {
+            seoHeader = genSeoHeader(
+                'AlgoVyn SmartGrind: coding interview patterns with spaced repetition',
+                'Practice 500+ LeetCode problems grouped into 15+ patterns, 100+ algorithm guides and 14 SQL topics, with solutions in Python, Java, C++ and JavaScript and spaced-repetition reviews. Free, works offline.'
+            );
+            seoKey = 'home';
+        } else if (cat) {
+            seoHeader = genSeoHeader(cat.data.title, cat.data.description);
+            seoKey = `${cat.type}/${cat.id}`;
+        } else if (problem) {
+            seoHeader = genSeoHeader(
+                `${problem.title}: LeetCode ${problem.id} solution (${problem.difficulty})`,
+                problem.description,
+                `<p class="text-xs text-theme-muted mt-2">Topics: ${escapeHtml(problem.topics.join(', '))}. Asked at: ${escapeHtml(problem.companies.join(', '))}.</p>`
+            );
+            seoKey = `p/${problem.slug}`;
+        }
+        const seoFragment = seoKey ? await loadSeoFragment(env, url, seoKey) : '';
+        html = injectSeoBody(html, seoHeader, seoFragment);
+
+        // Remove the template's generic SEO tags, then inject the route's own
+        html = stripDefaultSeoTags(html);
         html = html.replace(/<head>/i, `<head>${meta}`);
         html = html.replace(/<\/head>/i, `${structured}${initialState}</head>`);
         
@@ -271,6 +430,7 @@ export async function onRequest(context: { request: Request; env: Env; next: () 
             headers: {
                 'Content-Type': 'text/html; charset=utf-8',
                 'Cache-Control': 'public, max-age=300, stale-while-revalidate=86400',
+                ...SSR_SECURITY_HEADERS,
             },
         });
         

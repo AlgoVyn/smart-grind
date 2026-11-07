@@ -133,7 +133,10 @@ const debouncedSync = (): void => {
         const dataToSync = pendingData;
         pendingData = null;
         if (Date.now() - lastSync < MIN_SYNC_INTERVAL) {
-            setTimeout(() => executeSync(dataToSync), MIN_SYNC_INTERVAL - (Date.now() - lastSync));
+            setTimeout(() =>
+                executeSync(dataToSync).catch((e) =>
+                    console.error('[Sync] Deferred background sync failed:', e)
+                ), MIN_SYNC_INTERVAL - (Date.now() - lastSync));
         } else {
             executeSync(dataToSync).catch((e) =>
                 console.error('[Sync] Background sync failed:', e)

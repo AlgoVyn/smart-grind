@@ -10,6 +10,38 @@
     }
   `;
 
+  // chrome.storage.sync has an 8KB-per-item quota; the solved/opened
+  // collections grow with usage and overflowed it silently at ~100-150
+  // entries, so they live in storage.local (5MB+) while small settings stay
+  // in storage.sync. Legacy sync data is migrated on first read.
+  const getCollection = async (key) => {
+    const local = await chrome.storage.local.get(key);
+    if (local[key]) return local[key];
+
+    // One-time migration from the legacy storage.sync location
+    const legacy = await chrome.storage.sync.get(key);
+    if (Array.isArray(legacy[key])) {
+      // Normalize old string-array format to objects
+      const migrated = legacy[key].map((entry) =>
+        typeof entry === 'string' ? { slug: entry, solvedAt: Date.now() } : entry
+      );
+      await chrome.storage.local.set({ [key]: migrated });
+      return migrated;
+    }
+    return [];
+  };
+
+  const setCollection = async (key, value) =>
+    new Promise((resolve, reject) => {
+      chrome.storage.local.set({ [key]: value }, () => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(`storage.local.set failed: ${chrome.runtime.lastError.message}`));
+        } else {
+          resolve();
+        }
+      });
+    });
+
   // AI provider configurations
   const _aiProviders = {
     chatgpt: {
@@ -91,11 +123,15 @@
     }
   };
 
+  // Cache is version-stamped so dataset updates in a new extension version
+  // actually reach existing users (storage.local persists across updates)
+  const EXTENSION_VERSION = chrome.runtime.getManifest().version;
+
   const loadRatings = async () => {
     try {
-      const cached = await chrome.storage.local.get('ratings');
-      if (cached.ratings) {
-        return cached.ratings;
+      const cached = await chrome.storage.local.get('ratingsCache');
+      if (cached.ratingsCache?.version === EXTENSION_VERSION && cached.ratingsCache.data) {
+        return cached.ratingsCache.data;
       }
       const response = await fetch(chrome.runtime.getURL('ratings.txt'));
       const text = await response.text();
@@ -106,7 +142,7 @@
         }
         return acc;
       }, {});
-      await chrome.storage.local.set({ ratings });
+      await chrome.storage.local.set({ ratingsCache: { version: EXTENSION_VERSION, data: ratings } });
       return ratings;
     } catch (error) {
       console.error('Error loading ratings:', error);
@@ -116,10 +152,11 @@
 
   const findDifficultyElement = () =>
     document.querySelector('.text-difficulty-easy, .text-difficulty-medium, .text-difficulty-hard') ||
-    Array.from(document.querySelectorAll('*')).find(el => ['Easy', 'Medium', 'Hard'].includes(el.textContent.trim()));
-
-  const getSyncStorage = keys => new Promise(resolve => chrome.storage.sync.get(keys, resolve));
-  const setSyncStorage = obj => new Promise(resolve => chrome.storage.sync.set(obj, resolve));
+    // Targeted fallback only: a whole-document scan could rewrite an
+    // unrelated "Easy"/"Medium"/"Hard" chip instead of the difficulty badge
+    Array.from(document.querySelectorAll('[class*="difficulty" i]')).find((el) =>
+      ['Easy', 'Medium', 'Hard'].includes(el.textContent.trim())
+    );
 
   const findSubmitButton = () =>
     document.querySelector('button[data-cy="submit-code-btn"]') ||
@@ -131,6 +168,9 @@
     if (rating === undefined) return;
     const difficultyElement = findDifficultyElement();
     if (difficultyElement) {
+      // Drop the Easy/Medium/Hard color class so the number is not
+      // misleadingly colored green/orange/red
+      difficultyElement.classList.remove('text-difficulty-easy', 'text-difficulty-medium', 'text-difficulty-hard');
       difficultyElement.textContent = Math.round(rating);
     }
   };
@@ -146,23 +186,44 @@
       });
       const data = await response.json();
       const submissions = data?.data?.submissionList?.submissions;
-      if (!submissions) return;
+      if (!submissions) return false;
 
-      const { solvedProblems = [], openedProblems = [] } = await getSyncStorage(['solvedProblems', 'openedProblems']);
+      const [solvedProblems, openedProblems] = await Promise.all([
+        getCollection('solvedProblems'),
+        getCollection('openedProblems'),
+      ]);
       const openedEntry = openedProblems.find(o => o.slug === slug);
-      if (solvedProblems.some(p => p.slug === slug) || !openedEntry) return;
+      if (solvedProblems.some(p => p.slug === slug) || !openedEntry) return true;
 
       for (const sub of submissions) {
         if (sub.statusDisplay === 'Accepted' && sub.timestamp * 1000 > openedEntry.openedAt) {
           solvedProblems.push({ slug, solvedAt: Date.now() });
           const updatedOpened = openedProblems.filter(o => o.slug !== slug);
-          await setSyncStorage({ solvedProblems, openedProblems: updatedOpened });
-          break;
+          await setCollection('solvedProblems', solvedProblems);
+          await setCollection('openedProblems', updatedOpened);
+          return true;
         }
       }
+      return false;
     } catch (error) {
       console.error('Error fetching submissions:', error);
+      return false;
     }
+  };
+
+  // Judgments frequently take longer than a few seconds (queued runs), so a
+  // single check misses most solves. Poll until recorded or the budget is used.
+  const pollSubmissions = (slug) => {
+    const POLL_INTERVAL_MS = 3000;
+    const MAX_ATTEMPTS = 10;
+    let attempts = 0;
+    const poll = async () => {
+      const recorded = await checkSubmissions(slug);
+      if (recorded) return;
+      attempts++;
+      if (attempts < MAX_ATTEMPTS) setTimeout(poll, POLL_INTERVAL_MS);
+    };
+    setTimeout(poll, POLL_INTERVAL_MS);
   };
 
   const updateProblemsPage = (ratings) => {
@@ -172,7 +233,9 @@
       if (['Easy', 'Med.', 'Hard'].includes(text)) {
         const link = p.closest('a[href*="/problems/"]');
         if (link) {
-          const problemSlug = link.getAttribute('href').split(/\/|\?/)[2];
+          // Resolve against origin so absolute hrefs parse correctly too
+          const href = link.getAttribute('href') || '';
+          const problemSlug = new URL(href, window.location.origin).pathname.split('/')[2];
           const problemRating = ratings[problemSlug];
           if (problemRating !== undefined) {
             p.textContent = Math.round(problemRating);
@@ -183,29 +246,94 @@
   };
 
   const ratings = await loadRatings();
-  const path = window.location.pathname;
-  const updateRatings = () => updateProblemsPage(ratings);
-  const observer = new MutationObserver(updateRatings);
-  observer.observe(document.body, { childList: true, subtree: true });
+  let currentSlug = null;
+  let boundSubmitButton = null;
 
-  if (path.includes('/problems/') && !path.includes('/contest/')) {
-    const slug = path.split('/')[2];
+  const isProblemRoute = () => {
+    const path = window.location.pathname;
+    return path.includes('/problems/') && !path.includes('/contest/');
+  };
+
+  // Baseline for solve detection. Direct visits (not only popup-random
+  // opens) must create an openedProblems entry, otherwise checkSubmissions
+  // refuses to look for a fresh Accepted submission.
+  const markProblemOpened = async (slug) => {
+    try {
+      const openedProblems = await getCollection('openedProblems');
+      if (openedProblems.some((o) => o.slug === slug)) return;
+      openedProblems.push({ slug, openedAt: Date.now() });
+      await setCollection('openedProblems', openedProblems.slice(-500));
+    } catch (error) {
+      console.error('Error tracking opened problem:', error);
+    }
+  };
+
+  const setupProblemPage = () => {
+    const slug = window.location.pathname.split('/')[2];
+    if (!slug) return;
+
+    // Re-run setup for a different problem, and also when the SPA replaced
+    // the DOM of the same problem (the bound button is detached). Without
+    // the second check, leaving a problem and returning to it client-side
+    // would keep the old, detached listener and the unrated difficulty badge.
+    const needsSetup =
+      currentSlug !== slug || (boundSubmitButton !== null && !boundSubmitButton.isConnected);
+    if (!needsSetup) return;
+
+    currentSlug = slug;
+    boundSubmitButton = null;
+
+    void markProblemOpened(slug);
     updateProblemPage(ratings, slug);
 
-    const submitButton = findSubmitButton();
-    if (submitButton) {
-      submitButton.addEventListener('click', () => {
-        setTimeout(() => checkSubmissions(slug), 5000);
-      });
-    }
+    // (Re)bind the submit button: LeetCode is an SPA, so after client-side
+    // navigation the old button (and its listener) is gone
+    const bindSubmit = () => {
+      const submitButton = findSubmitButton();
+      if (submitButton && submitButton !== boundSubmitButton) {
+        boundSubmitButton = submitButton;
+        submitButton.addEventListener('click', () => pollSubmissions(slug));
+        return true;
+      }
+      return false;
+    };
+    bindSubmit();
+    setTimeout(bindSubmit, 2000);
+    setTimeout(bindSubmit, 5000);
 
     // Inject AI buttons after a short delay to ensure page is loaded
     setTimeout(() => {
       injectAIButtons(slug.replace(/-/g, ' '));
     }, 2000);
+  };
+
+  // Debounced observer: LeetCode's SPA mutates the DOM on every keystroke,
+  // and running DOM queries for each mutation is continuous wasted work
+  let observerTimer = null;
+  const scheduleUpdate = () => {
+    if (observerTimer) return;
+    observerTimer = setTimeout(() => {
+      observerTimer = null;
+      updateProblemsPage(ratings);
+      if (isProblemRoute()) {
+        setupProblemPage();
+      } else {
+        // Reset when leaving a problem route so returning to the same slug
+        // via client-side navigation runs setup again.
+        currentSlug = null;
+        boundSubmitButton = null;
+      }
+    }, 250);
+  };
+  const observer = new MutationObserver(scheduleUpdate);
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  const path = window.location.pathname;
+  if (isProblemRoute()) {
+    setupProblemPage();
   }
 
   if (path.includes('/problemset') || path.includes('/problem-list')) {
-    updateRatings();
+    updateProblemsPage(ratings);
   }
 })();

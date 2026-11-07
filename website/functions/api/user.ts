@@ -1,377 +1,32 @@
-import { jwtVerify } from 'jose';
-
-// Type definitions for global variables
-declare const jest: typeof import('@jest/globals') | undefined;
-
-import { KVNamespace, checkRateLimit } from './cloudflare-types';
-
-/**
- * Environment interface with CORS configuration
- */
-interface Env {
-    NODE_ENV?: string;
-    JWT_SECRET: string;
-    KV: KVNamespace;
-    ALLOWED_ORIGINS?: string;
-}
+import {
+    authenticate,
+    checkRateLimit,
+    createCorsResponse,
+    isValidUserId,
+    RATE_LIMIT_BUCKETS,
+    readJsonBody,
+    readUserData,
+    validateCsrfToken,
+    writeUserData,
+    type Env,
+} from './user/sync-utils';
 
 /**
- * Default allowed origins for production
+ * User data API: GET returns the user's data blob (or mints a CSRF token),
+ * POST replaces it. Incremental updates live in ./progress.ts,
+ * ./progress/batch.ts and ./custom-problems.ts, which share the helpers in
+ * ./sync-utils.ts.
  */
-const DEFAULT_ALLOWED_ORIGINS = [
-    'https://algovyn.com',
-    'https://www.algovyn.com',
-];
-
-/**
- * Validates if an origin is in the allowed list
- * @param origin - The origin to validate
- * @param allowedOriginsEnv - Comma-separated list of allowed origins from env
- * @returns True if origin is allowed
- */
-function isValidOrigin(origin: string | null, allowedOriginsEnv?: string): boolean {
-    if (!origin) return false;
-    
-    // Parse allowed origins from env or use defaults
-    const allowedOrigins = allowedOriginsEnv 
-        ? allowedOriginsEnv.split(',').map(o => o.trim()).filter(Boolean)
-        : DEFAULT_ALLOWED_ORIGINS;
-    
-    try {
-        const originUrl = new URL(origin);
-        
-        // Check for exact match or subdomain match
-        return allowedOrigins.some(allowed => {
-            try {
-                const allowedUrl = new URL(allowed);
-                // Exact match
-                if (originUrl.origin === allowedUrl.origin) return true;
-                // Subdomain match (e.g., https://app.algovyn.com matches https://algovyn.com)
-                const originHostname = originUrl.hostname;
-                const allowedHostname = allowedUrl.hostname;
-                return originHostname === allowedHostname || 
-                       originHostname.endsWith(`.${allowedHostname}`);
-            } catch {
-                return false;
-            }
-        });
-    } catch {
-        // Invalid URL format
-        return false;
-    }
-}
-
-/**
- * Creates a Response with CORS headers to allow credentials
- * SECURITY: Validates origin against allowlist for actual requests
- * For preflight/OPTIONS requests, allows any origin since preflight doesn't include credentials
- * @param body - Response body
- * @param init - Response init options
- * @param request - The request to get the origin from
- * @param env - Environment with ALLOWED_ORIGINS for validation
- * @returns Response with CORS headers
- */
-function createCorsResponse(
-    body: BodyInit | null,
-    init: ResponseInit | undefined,
-    request: Request | undefined,
-    env: Env | undefined
-): Response {
-    // Build headers object from init.headers
-    const headersObj: Record<string, string> = {};
-
-    // Copy existing headers from init if provided
-    if (init?.headers) {
-        const existingHeaders = new Headers(init.headers);
-        existingHeaders.forEach((value, key) => {
-            headersObj[key] = value;
-        });
-    }
-
-    // Determine if this is a preflight request
-    const isPreflight = request?.method === 'OPTIONS';
-    
-    // Get the Origin header
-    const origin = request?.headers.get('Origin');
-    
-    // For preflight requests, always allow (preflight doesn't include credentials)
-    // Use the request's Origin if provided, otherwise wildcard
-    if (isPreflight) {
-        // SECURITY: Never use wildcard with credentials
-        // Use request origin or first default origin
-        const allowOrigin = origin || DEFAULT_ALLOWED_ORIGINS[0]!;
-        headersObj['Access-Control-Allow-Origin'] = allowOrigin;
-        headersObj['Access-Control-Allow-Credentials'] = 'true';
-        headersObj['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS';
-        headersObj['Access-Control-Allow-Headers'] = 'Content-Type, X-CSRF-Token, Authorization';
-        headersObj['Vary'] = 'Origin';
-    } else {
-        // For actual requests, validate the origin
-        let corsOrigin = '*';
-        
-        if (origin) {
-            // Check for localhost in development/test
-            if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-                if (env?.NODE_ENV === 'development' && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))) {
-                    corsOrigin = origin;
-                }
-            } else if (env && isValidOrigin(origin, env.ALLOWED_ORIGINS)) {
-                corsOrigin = origin;
-            }
-        }
-        
-        headersObj['Access-Control-Allow-Origin'] = corsOrigin;
-        
-        // Only allow credentials for specific origins (not wildcard)
-        if (corsOrigin !== '*') {
-            headersObj['Access-Control-Allow-Credentials'] = 'true';
-        }
-        
-        headersObj['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS';
-        headersObj['Access-Control-Allow-Headers'] = 'Content-Type, X-CSRF-Token, Authorization';
-        headersObj['Vary'] = 'Origin';
-    }
-
-    // Create response without headers in init to avoid conflicts
-    const { headers: _ignored, ...restInit } = init || {};
-    return new Response(body, {
-        ...restInit,
-        headers: headersObj,
-    });
-}
-
-/**
- * Compresses string data using Brotli or deflate-raw compression.
- * Attempts Brotli first for best compression ratio, falls back to deflate-raw.
- * Used to reduce KV storage size and transfer bandwidth for user data.
- * @param {string} data - The JSON string data to compress
- * @returns {Promise<ArrayBuffer>} The compressed binary data as ArrayBuffer
- * @throws {Error} If compression fails, returns uncompressed data as fallback
- * @example
- * const jsonData = JSON.stringify({ problems: { ... } });
- * const compressed = await compressData(jsonData);
- * // Store compressed in KV with 'Content-Encoding': 'br' metadata
- */
-async function compressData(data: string): Promise<ArrayBuffer> {
-    try {
-        const encoder = new TextEncoder();
-        const input = encoder.encode(data);
-
-        // Try Brotli compression first, fall back to deflate-raw
-        let compressionStream;
-        try {
-            compressionStream = new CompressionStream('br' as any);
-        } catch (_e) {
-            compressionStream = new CompressionStream('deflate-raw');
-        }
-
-        const writer = compressionStream.writable.getWriter();
-        writer.write(input);
-        writer.close();
-
-        const compressed = await new Response(compressionStream.readable).arrayBuffer();
-        return compressed;
-    } catch (error) {
-        console.error('Compression error:', error);
-        return new TextEncoder().encode(data).buffer; // Fallback to uncompressed
-    }
-}
-
-/**
- * Decompresses Brotli or deflate-raw compressed data from KV storage.
- * Handles backward compatibility with legacy gzip format and uncompressed strings.
- * Detects compression type from Content-Encoding metadata or data format markers.
- * @param {ArrayBuffer | string} data - The compressed data or raw string
- * @param {string | null} contentType - The Content-Encoding from KV metadata ('br', 'gzip', or null)
- * @returns {Promise<string>} The decompressed JSON string, or raw data if not compressed
- * @throws {Error} Returns raw data as string if decompression fails
- * @example
- * // Decompress Brotli data from KV
- * const { value, metadata } = await env.KV.getWithMetadata(userId, 'arrayBuffer');
- * const json = await decompressData(value, metadata?.['Content-Encoding']);
- * const userData = JSON.parse(json);
- */
-async function decompressData(
-    data: ArrayBuffer | string,
-    contentType: string | null
-): Promise<string> {
-    // Check if data is compressed using Content-Type header
-    if (!contentType || !contentType.includes('br')) {
-        // If data is a string, return as-is
-        if (typeof data === 'string') {
-            return data;
-        }
-        // If data is ArrayBuffer and not compressed, decode as UTF-8 string
-        return new TextDecoder().decode(data);
-    }
-
-    try {
-        // If data is a string, it might be base64 encoded (backward compatibility)
-        let buffer: ArrayBuffer;
-        if (typeof data === 'string') {
-            // Check if it's the old format with compression marker
-            if (data.startsWith('\x00gz\x00')) {
-                const base64 = data.slice(4);
-                buffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)).buffer;
-            } else {
-                // If no compression marker, treat as uncompressed string
-                return data;
-            }
-        } else {
-            buffer = data;
-        }
-
-        // Try Brotli decompression first, fall back to deflate-raw
-        let decompressionStream;
-        try {
-            decompressionStream = new DecompressionStream('br' as any);
-        } catch (_e) {
-            decompressionStream = new DecompressionStream('deflate-raw');
-        }
-        const reader = new Response(buffer).body?.pipeThrough(decompressionStream).getReader();
-        if (!reader) {
-            throw new Error('Failed to create decompression reader');
-        }
-
-        const chunks: Uint8Array[] = [];
-        let done = false;
-        while (!done) {
-            const result = await reader.read();
-            done = result.done;
-            if (result.value) {
-                chunks.push(result.value);
-            }
-        }
-
-        const decompressed = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.length, 0));
-        let offset = 0;
-        for (const chunk of chunks) {
-            decompressed.set(chunk, offset);
-            offset += chunk.length;
-        }
-
-        return new TextDecoder().decode(decompressed);
-    } catch (error) {
-        console.error('Decompression error:', error);
-        // Fallback to returning raw data
-        if (typeof data === 'string') {
-            return data;
-        }
-        return new TextDecoder().decode(data);
-    }
-}
-
-
-
-/**
- * Verifies a JWT token using the HS256 algorithm.
- * Decodes and validates the token signature against the provided secret.
- * Used to authenticate API requests from authenticated users.
- * @param {string} token - The JWT token string to verify
- * @param {string} secret - The HMAC secret key for signature verification
- * @returns {Promise<Object | null>} Decoded JWT payload if valid, null if invalid/expired
- * @example
- * const payload = await verifyJWT(authToken, env.JWT_SECRET);
- * if (payload) {
- *   const userId = payload.userId;
- *   // Proceed with authenticated request
- * }
- */
-async function verifyJWT(token: string, secret: string) {
-    try {
-        const secretKey = new TextEncoder().encode(secret);
-        const { payload } = await jwtVerify(token, secretKey);
-        return payload;
-    } catch (_e) {
-        return null;
-    }
-}
-
-/**
- * Authenticates an HTTP request by extracting and verifying JWT token.
- * Checks for token in HttpOnly cookie first, then falls back to Authorization header.
- * Returns decoded payload containing userId and displayName if valid.
- * @param {Request} request - The incoming HTTP request
- * @param {Object} env - Environment with JWT_SECRET and KV bindings
- * @returns {Promise<Object | null>} Decoded JWT payload with userId/displayName, or null if unauthenticated
- * @example
- * const payload = await authenticate(request, env);
- * if (!payload) {
- *   return new Response('Unauthorized', { status: 401 });
- * }
- * const { userId, displayName } = payload;
- */
-async function authenticate(request: Request, env: Env) {
-    let token = null;
-
-    // Try cookie first
-    const cookieHeader = request.headers.get('Cookie');
-    if (cookieHeader) {
-        const cookies = cookieHeader.split(';').map((c: string) => c.trim());
-        const authCookie = cookies.find((c: string) => c.startsWith('auth_token='));
-        if (authCookie) {
-            token = authCookie.substring('auth_token='.length);
-        }
-    }
-
-    // Fallback to Authorization header
-    if (!token) {
-        const authHeader = request.headers.get('Authorization');
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            token = authHeader.substring(7);
-        }
-    }
-
-    if (!token || !env.JWT_SECRET) {
-        return null;
-    }
-
-    return await verifyJWT(token, env.JWT_SECRET);
-}
-
-/**
- * Validates CSRF token for state-changing POST requests.
- * Supports two transmission methods:
- * 1. X-CSRF-Token header (preferred, used by fetch requests)
- * 2. _csrf field in request body (fallback, used by sendBeacon/keepalive)
- * Token is deleted from KV after successful validation (single-use pattern).
- * @param {Request} request - The HTTP request with X-CSRF-Token header
- * @param {Object} env - Environment with KV namespace binding
- * @param {string} userId - The authenticated user's ID for token lookup
- * @param {string} [bodyCsrf] - Optional CSRF token from request body (fallback)
- * @returns {Promise<boolean>} True if CSRF token is valid and consumed successfully
- * @example
- * const isValid = await validateCsrfToken(request, env, userId, body._csrf);
- * if (!isValid) {
- *   return new Response('Invalid CSRF token', { status: 403 });
- * }
- */
-async function validateCsrfToken(request: Request, env: { KV: KVNamespace }, userId: string, bodyCsrf?: string) {
-    // SECURITY: Header takes priority; body field is fallback for sendBeacon/keepalive
-    const providedCsrf = request.headers.get('X-CSRF-Token') || bodyCsrf;
-    if (!providedCsrf) {
-        return false;
-    }
-
-    const storedCsrf = await env.KV.get(`csrf_${userId}`);
-    if (!storedCsrf || providedCsrf !== storedCsrf) {
-        return false;
-    }
-
-    // Delete used CSRF token to prevent replay attacks
-    await env.KV.delete(`csrf_${userId}`);
-    return true;
-}
 
 /**
  * Handles GET requests for user data retrieval or CSRF token generation.
  * Supports two actions: 'csrf' (generate new token) or default (fetch user data).
  * User data is automatically decompressed if stored with compression.
  * Implements rate limiting and CORS for cross-origin requests.
- * @param {Object} context - Cloudflare Pages Function context
- * @param {Request} context.request - The incoming HTTP request
- * @param {Object} context.env - Environment bindings (JWT_SECRET, KV, ALLOWED_ORIGINS)
- * @returns {Promise<Response>} JSON response with user data or CSRF token, or error response
+ * @param context - Cloudflare Pages Function context
+ * @param context.request - The incoming HTTP request
+ * @param context.env - Environment bindings (JWT_SECRET, KV, ALLOWED_ORIGINS)
+ * @returns JSON response with user data or CSRF token, or error response
  * @example
  * // Get user data
  * GET /api/user
@@ -390,23 +45,31 @@ export async function onRequestGet({
     request: Request;
     env: Env;
 }) {
-    // Handle CORS preflight requests
+    // Handle CORS preflight requests (in production these are routed to
+    // onRequestOptions; this branch keeps direct OPTIONS calls working)
     if (request.method === 'OPTIONS') {
         return createCorsResponse(null, { status: 204 }, request, env);
     }
 
-    // Rate limiting: 30 requests per minute for data access (skip in tests)
-    if (env.NODE_ENV !== 'test' && (await checkRateLimit(request, env, 30, 60))) {
-        return createCorsResponse(
-            JSON.stringify({ error: 'Rate limit exceeded' }),
-            { status: 429 },
-            request,
-            env
-        );
-    }
-
     const url = new URL(request.url);
     const action = url.searchParams.get('action');
+
+    // Rate limiting: CSRF minting happens before every save (60/min); data
+    // reads have their own 30/min budget (skip in tests)
+    if (env.NODE_ENV !== 'test') {
+        const limited =
+            action === 'csrf'
+                ? await checkRateLimit(request, env, 60, 60, RATE_LIMIT_BUCKETS.USER_CSRF)
+                : await checkRateLimit(request, env, 30, 60, RATE_LIMIT_BUCKETS.USER_DATA_GET);
+        if (limited) {
+            return createCorsResponse(
+                JSON.stringify({ error: 'Rate limit exceeded' }),
+                { status: 429 },
+                request,
+                env
+            );
+        }
+    }
 
     // Handle CSRF token generation
     if (action === 'csrf') {
@@ -420,9 +83,7 @@ export async function onRequestGet({
             );
         }
 
-        const userId = payload.userId;
-        const userIdRegex = /^[a-zA-Z0-9_-]{1,100}$/;
-        if (!userId || typeof userId !== 'string' || !userIdRegex.test(userId)) {
+        if (!isValidUserId(payload.userId)) {
             return createCorsResponse(
                 JSON.stringify({ error: 'Invalid userId' }),
                 { status: 400 },
@@ -432,7 +93,12 @@ export async function onRequestGet({
         }
 
         const csrfToken = crypto.randomUUID();
-        await env.KV.put(`csrf_${userId}`, csrfToken, { expirationTtl: 3600 });
+        // One KV key per token: tokens are multi-use and independent, so
+        // concurrent tabs, devices and network retries cannot invalidate each
+        // other by overwriting a shared per-user key.
+        await env.KV.put(`csrf_${payload.userId}_${csrfToken}`, 'valid', {
+            expirationTtl: 3600,
+        });
         return createCorsResponse(
             JSON.stringify({ csrfToken }),
             {
@@ -454,9 +120,7 @@ export async function onRequestGet({
         );
     }
 
-    const userId = payload.userId;
-    const userIdRegex = /^[a-zA-Z0-9_-]{1,100}$/;
-    if (!userId || typeof userId !== 'string' || !userIdRegex.test(userId)) {
+    if (!isValidUserId(payload.userId)) {
         return createCorsResponse(
             JSON.stringify({ error: 'Invalid userId' }),
             { status: 400 },
@@ -466,43 +130,11 @@ export async function onRequestGet({
     }
 
     try {
-        // Get KV value with metadata (official Cloudflare type uses options object)
-        const { value: data, metadata } = await env.KV.getWithMetadata(userId, {
-            type: 'arrayBuffer',
-            cacheTtl: 30,
-        });
-        if (data) {
-            // Get Content-Encoding from metadata
-            const contentEncoding =
-                metadata && typeof metadata === 'object' && !Array.isArray(metadata)
-                    ? String((metadata as Record<string, unknown>)['Content-Encoding'] ?? '')
-                    : '';
-            const compressionType =
-                contentEncoding === 'br' || contentEncoding === 'gzip' ? contentEncoding : null;
-
-            let decompressed: string;
-
-            // Check if data is in old string format (backward compatibility)
-            if (typeof data === 'string') {
-                decompressed = await decompressData(data, compressionType);
-            } else {
-                // Decompress based on metadata
-                decompressed = await decompressData(data, compressionType);
-            }
-
-            // Ensure decompressed is a valid string (handle null/undefined from failed decompression)
-            const responseBody = decompressed || JSON.stringify({ problems: {}, deletedIds: [] });
-            return createCorsResponse(
-                responseBody,
-                {
-                    headers: { 'Content-Type': 'application/json' },
-                },
-                request,
-                env
-            );
-        }
+        // No edge cacheTtl here: reads must reflect the just-written state
+        // (KV edge caching with a TTL served stale data after a successful POST)
+        const data = await readUserData(env, payload.userId);
         return createCorsResponse(
-            JSON.stringify({ problems: {}, deletedIds: [] }),
+            JSON.stringify(data),
             {
                 headers: { 'Content-Type': 'application/json' },
             },
@@ -525,10 +157,10 @@ export async function onRequestGet({
  * Validates JWT authentication and CSRF token before processing.
  * Automatically compresses data if it reduces size, stores with appropriate metadata.
  * Implements rate limiting to prevent abuse.
- * @param {Object} context - Cloudflare Pages Function context
- * @param {Request} context.request - The incoming HTTP request with JSON body
- * @param {Object} context.env - Environment bindings (JWT_SECRET, KV, ALLOWED_ORIGINS)
- * @returns {Promise<Response>} Success response or error with appropriate status code
+ * @param context - Cloudflare Pages Function context
+ * @param context.request - The incoming HTTP request with JSON body
+ * @param context.env - Environment bindings (JWT_SECRET, KV, ALLOWED_ORIGINS)
+ * @returns Success response or error with appropriate status code
  * @example
  * POST /api/user
  * Authorization: Bearer <jwt>
@@ -550,24 +182,11 @@ export async function onRequestPost({
         return createCorsResponse(null, { status: 204 }, request, env);
     }
 
-    // Rate limiting: 30 requests per minute for data access (skip in tests)
-    if (env.NODE_ENV !== 'test' && (await checkRateLimit(request, env, 30, 60))) {
+    // Rate limiting: 30 saves per minute (skip in tests)
+    if (env.NODE_ENV !== 'test' && (await checkRateLimit(request, env, 30, 60, RATE_LIMIT_BUCKETS.USER_DATA_SAVE))) {
         return createCorsResponse(
             JSON.stringify({ error: 'Rate limit exceeded' }),
             { status: 429 },
-            request,
-            env
-        );
-    }
-
-    // SECURITY: Enforce a maximum request body size (5 MB) to prevent
-    // memory exhaustion and KV storage abuse.
-    const MAX_BODY_SIZE = 5 * 1024 * 1024; // 5 MB
-    const contentLength = parseInt(request.headers.get('Content-Length') || '0', 10);
-    if (contentLength > MAX_BODY_SIZE) {
-        return createCorsResponse(
-            JSON.stringify({ error: 'Payload too large' }),
-            { status: 413 },
             request,
             env
         );
@@ -583,9 +202,7 @@ export async function onRequestPost({
         );
     }
 
-    const userId = payload.userId;
-    const userIdRegex = /^[a-zA-Z0-9_-]{1,100}$/;
-    if (!userId || typeof userId !== 'string' || !userIdRegex.test(userId)) {
+    if (!isValidUserId(payload.userId)) {
         return createCorsResponse(
             JSON.stringify({ error: 'Invalid userId' }),
             { status: 400 },
@@ -594,22 +211,34 @@ export async function onRequestPost({
         );
     }
 
-    // Parse request body before CSRF validation to support _csrf field fallback
-    // (sendBeacon/keepalive cannot set custom headers, so CSRF token may be in the body)
-    let body;
-    try {
-        body = await request.json();
-    } catch (_e) {
+    // Read the body only after authentication (so unauthenticated callers
+    // cannot force buffered allocations). The body is size-checked against the
+    // actual bytes received — Content-Length is client-controlled.
+    const parsed = await readJsonBody(request);
+    if (!parsed.ok) {
+        const status = parsed.error === 'too-large' ? 413 : 400;
+        const message =
+            parsed.error === 'too-large'
+                ? 'Payload too large'
+                : parsed.error === 'invalid-json'
+                  ? 'Invalid JSON'
+                  : 'Invalid data';
         return createCorsResponse(
-            JSON.stringify({ error: 'Invalid JSON' }),
-            { status: 400 },
+            JSON.stringify({ error: message }),
+            { status },
             request,
             env
         );
     }
+    const body = parsed.body;
 
     // Validate CSRF token from header (preferred) or body (fallback for sendBeacon)
-    const csrfValid = await validateCsrfToken(request, env, userId, body._csrf);
+    const csrfValid = await validateCsrfToken(
+        request,
+        env,
+        payload.userId,
+        typeof body['_csrf'] === 'string' ? (body['_csrf'] as string) : undefined
+    );
     if (!csrfValid) {
         return createCorsResponse(
             JSON.stringify({ error: 'Invalid CSRF token' }),
@@ -619,8 +248,8 @@ export async function onRequestPost({
         );
     }
 
-    const { data } = body;
-    if (!data || typeof data !== 'object') {
+    const data = body['data'];
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
         return createCorsResponse(
             JSON.stringify({ error: 'Invalid data' }),
             { status: 400 },
@@ -630,30 +259,7 @@ export async function onRequestPost({
     }
 
     try {
-        const jsonData = JSON.stringify(data);
-        const compressed = await compressData(jsonData);
-
-        // Determine if data should be stored as compressed
-        const shouldCompress =
-            compressed.byteLength < new TextEncoder().encode(jsonData).byteLength;
-
-        if (shouldCompress) {
-            // Store compressed data with metadata indicating brotli encoding
-            await env.KV.put(userId, compressed, {
-                metadata: {
-                    'Content-Type': 'application/json',
-                    'Content-Encoding': 'br',
-                },
-            });
-        } else {
-            // Store uncompressed data with JSON content type
-            await env.KV.put(userId, jsonData, {
-                metadata: {
-                    'Content-Type': 'application/json',
-                },
-            });
-        }
-
+        await writeUserData(env, payload.userId, data);
         return createCorsResponse('OK', undefined, request, env);
     } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Unknown error';
@@ -664,4 +270,18 @@ export async function onRequestPost({
             env
         );
     }
+}
+
+/**
+ * Handles CORS preflight requests. Method-scoped GET/POST handlers never see
+ * OPTIONS in production, so preflights are answered here.
+ */
+export async function onRequestOptions({
+    request,
+    env,
+}: {
+    request: Request;
+    env: Env;
+}) {
+    return createCorsResponse(null, { status: 204 }, request, env);
 }

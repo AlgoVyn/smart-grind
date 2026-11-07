@@ -22,7 +22,7 @@ describe('OfflineManager', () => {
     });
 
     describe('Pre-cache Problem Index', () => {
-        it('should attempt to fetch problem data', async () => {
+        it('should attempt to fetch the offline manifest', async () => {
             global.fetch = jest.fn().mockResolvedValue({
                 ok: false,
                 status: 404,
@@ -30,7 +30,9 @@ describe('OfflineManager', () => {
 
             await manager.preCacheProblemIndex();
 
-            expect(global.fetch).toHaveBeenCalledWith('/smartgrind/src/data/problems-data.ts');
+            expect(global.fetch).toHaveBeenCalledWith('/smartgrind/offline-manifest.json', {
+                cache: 'no-cache',
+            });
         });
 
         it('should handle fetch failure gracefully', async () => {

@@ -100,7 +100,17 @@ global.Request = class Request {
     }
     return this.body;
   }
-  
+
+  async text() {
+    if (typeof this.body === 'string') {
+      return this.body;
+    }
+    if (this.body == null) {
+      return '';
+    }
+    return String(this.body);
+  }
+
   clone() {
     return new Request(this.url, {
       method: this.method,

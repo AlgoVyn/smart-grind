@@ -128,6 +128,40 @@ describe('Sidebar Renderer Enhanced', () => {
             expect(mockTopicList.appendChild).toHaveBeenCalled();
         });
 
+        test('renders crawlable <a href> links for every category (SEO)', () => {
+            data.algorithmsData = [{ id: 'graphs', title: 'Graphs', algorithms: [] }];
+            data.topicsData = [{ id: 'two-pointers', title: 'Two Pointers', patterns: [] }];
+            data.sqlData = [{ id: 'sql-joins', title: 'SQL Joins', topics: [] }];
+
+            sidebarRenderers.renderSidebar();
+
+            const fragment = createdElements[0] as DocumentFragment;
+            const hrefs = Array.from(fragment.querySelectorAll('a[href]')).map((a) =>
+                a.getAttribute('href')
+            );
+            expect(hrefs).toEqual(
+                expect.arrayContaining([
+                    '/smartgrind/',
+                    '/smartgrind/c/two-pointers',
+                    '/smartgrind/a/graphs',
+                    '/smartgrind/s/sql-joins',
+                ])
+            );
+        });
+
+        test('plain clicks on sidebar links are handled in-app, not by the browser', () => {
+            data.topicsData = [{ id: 'two-pointers', title: 'Two Pointers', patterns: [] }];
+            sidebarRenderers.renderSidebar();
+            const fragment = createdElements[0] as DocumentFragment;
+            const link = fragment.querySelector('a[href="/smartgrind/c/two-pointers"]') as HTMLAnchorElement;
+            const evt = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+            link.dispatchEvent(evt);
+            expect(evt.defaultPrevented).toBe(true);
+            const modified = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ctrlKey: true });
+            link.dispatchEvent(modified);
+            expect(modified.defaultPrevented).toBe(false);
+        });
+
         test('should not throw when topicList is null', () => {
             state.elements.topicList = null as any;
 

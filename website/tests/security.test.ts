@@ -234,7 +234,7 @@ describe('Security Functions', () => {
             expect(isLimited).toBe(false);
             // Should use 'unknown' since X-Forwarded-For is not trusted
             expect(mockKV.put).toHaveBeenCalledWith(
-                'ratelimit_unknown',
+                'ratelimit_api_unknown',
                 expect.any(String),
                 expect.any(Object)
             );
@@ -252,7 +252,7 @@ describe('Security Functions', () => {
             
             expect(isLimited).toBe(false);
             expect(mockKV.put).toHaveBeenCalledWith(
-                'ratelimit_unknown',
+                'ratelimit_api_unknown',
                 expect.any(String),
                 expect.any(Object)
             );

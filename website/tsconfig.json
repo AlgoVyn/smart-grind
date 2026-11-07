@@ -25,6 +25,7 @@
     "isolatedModules": true,
     "declaration": false,
     "outDir": "./dist",
+    "noEmit": true,
     "rootDir": ".",
     "sourceMap": true,
     "types": [

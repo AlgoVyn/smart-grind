@@ -40,7 +40,9 @@ const validateEnum = <T extends string>(value: unknown, allowed: readonly T[]): 
  * Validates that a value is a valid date string (YYYY-MM-DD format or null)
  */
 const validateDateString = (value: unknown, fieldName: string): string | null => {
-    if (value === null) return null;
+    // Missing is allowed (defaults to null) — returning the error message here
+    // would leak it into the constructed problem as a bogus date value
+    if (value === null || value === undefined) return null;
     if (typeof value !== 'string') {
         return `${fieldName} must be a string or null`;
     }
@@ -100,6 +102,11 @@ const validateUrl = (url: unknown): string | null => {
     const dangerousProtocols = ['javascript:', 'data:', 'vbscript:'];
     if (dangerousProtocols.some((p) => lower.startsWith(p))) {
         return 'URL contains dangerous protocol';
+    }
+
+    // Reject characters that could break out of an HTML attribute context
+    if (/[<>"`]/.test(url)) {
+        return 'URL contains invalid characters';
     }
 
     try {

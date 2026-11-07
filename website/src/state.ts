@@ -140,10 +140,12 @@ export const state = {
     hasLoadedFromStorage: false,
 
     init() {
-        const storedUserType = localStorage.getItem(data.LOCAL_STORAGE_KEYS.USER_TYPE);
+        // Safe wrappers: raw localStorage access can throw (privacy modes,
+        // blocked storage) and would abort the whole boot from main.ts
+        const storedUserType = getStringItem(data.LOCAL_STORAGE_KEYS.USER_TYPE, '');
         if (storedUserType === 'signed-in' || storedUserType === 'local')
             this.user.type = storedUserType;
-        this.ui.preferredAI = localStorage.getItem('preferred-ai') || null;
+        this.ui.preferredAI = getStringItem('preferred-ai', '') || null;
         this.loadFromStorage();
         this.cacheElements();
     },
