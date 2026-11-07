@@ -6,6 +6,8 @@ const mockContentScrollTo = jest.fn();
 
 // Mock document
 const mockDocument = {
+    title: '',
+    querySelectorAll: jest.fn(() => []),
     createElement: jest.fn(() => ({
         className: '',
         innerHTML: '',
@@ -42,6 +44,8 @@ import {
     copyToClipboard,
     countLines,
     askAI,
+    removeSeoContent,
+    syncSeoForView,
 } from '../src/utils';
 import { state } from '../src/state';
 import { data } from '../src/data';
@@ -72,6 +76,31 @@ describe('SmartGrind Utils', () => {
 
     afterEach(() => {
         jest.clearAllMocks();
+    });
+
+    describe('SEO content helpers', () => {
+        test('removeSeoContent removes prerendered blocks without touching the title', () => {
+            const remove = jest.fn();
+            (global.window.document as unknown as { querySelectorAll: jest.Mock }).querySelectorAll =
+                jest.fn(() => [{ remove }]);
+            (global.window.document as unknown as { title: string }).title = 'Existing Title';
+
+            removeSeoContent();
+
+            expect(remove).toHaveBeenCalled();
+            expect(global.window.document.title).toBe('Existing Title');
+        });
+
+        test('syncSeoForView removes blocks and updates the title', () => {
+            const remove = jest.fn();
+            (global.window.document as unknown as { querySelectorAll: jest.Mock }).querySelectorAll =
+                jest.fn(() => [{ remove }]);
+
+            syncSeoForView('Two Pointers');
+
+            expect(remove).toHaveBeenCalled();
+            expect(global.window.document.title).toBe('Two Pointers - AlgoVyn SmartGrind');
+        });
     });
 
     describe('Date helpers', () => {

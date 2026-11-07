@@ -3097,9 +3097,11 @@ code:focus-visible {
     margin: 2rem auto;
 }
 
-/* --- SEO server-rendered content (functions/[[path]].ts + scripts/seo-fragments.ts) --- */
-.seo-header { padding-bottom: 0.25rem; }
-#seo-content { padding-bottom: 5rem; }
+/* --- SEO server-rendered content (functions/[[path]].ts + scripts/seo-fragments.ts) ---
+   The prerendered h1/guide exists for crawlers and no-JS clients. The SPA owns
+   the visible UI and removes these nodes on boot; hide them immediately so
+   users never see the prerendered text flash before hydration. */
+[data-seo-content] { display: none !important; }
 .seo-guide { line-height: 1.65; color: var(--theme-text-base, inherit); }
 .seo-guide h2 { font-size: 1.25rem; font-weight: 700; margin: 2rem 0 0.75rem; }
 .seo-guide h3 { font-size: 1.05rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }

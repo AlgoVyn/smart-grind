@@ -10,7 +10,7 @@ import { validateProblem, sanitizeProblemId } from '../utils/validation';
 import { showAlert } from '../ui/ui-modals';
 import { renderers } from '../renderers';
 import { initScrollButton } from '../ui/ui-scroll';
-import { hideEl, showEl } from '../utils';
+import { hideEl, showEl, removeSeoContent } from '../utils';
 
 /**
  * Gets response text with automatic decompression handling.
@@ -157,6 +157,10 @@ export const _processUserData = (userData: UserData, isOfflineFallback = false):
  * view based on current navigation state (category selected or combined view).
  */
 export const _initializeUI = async (): Promise<void> => {
+    // The SPA now owns the visible UI: drop the prerendered SEO blocks before
+    // the app shell is revealed (they are for crawlers/no-JS clients only).
+    removeSeoContent();
+
     renderers.renderSidebar();
     // Check if any specific category is selected, otherwise show combined view
     const hasActiveCategory =

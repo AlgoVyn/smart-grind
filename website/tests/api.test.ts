@@ -92,6 +92,7 @@ jest.mock('../src/utils', () => ({
     updateUrlParameter: jest.fn(),
     showToast: jest.fn(),
     scrollToTop: jest.fn(),
+    removeSeoContent: jest.fn(),
     sanitizeInput: jest.fn((input) => input),
     debounce: jest.fn((fn) => fn),
     getLeetCodeProblemId: jest.fn(),

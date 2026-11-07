@@ -131,12 +131,20 @@ export const updateUrlParameter = (name: string, value: string | null): void => 
 };
 
 /**
- * Server-rendered SEO blocks ([data-seo-content]) describe the URL the page was
- * loaded with. Once the user navigates in-app they are stale, so remove them and
- * keep document.title in sync with the visible view.
+ * Remove the server-rendered SEO blocks. They describe the URL the page was
+ * loaded with and are only intended for crawlers/no-JS clients; the SPA
+ * replaces them with its own UI.
+ */
+export const removeSeoContent = (): void => {
+    document.querySelectorAll('[data-seo-content]').forEach((el) => el.remove());
+};
+
+/**
+ * Drop the stale SEO blocks and keep document.title in sync with the visible
+ * view after in-app navigation.
  */
 export const syncSeoForView = (viewTitle: string | null): void => {
-    document.querySelectorAll('[data-seo-content]').forEach((el) => el.remove());
+    removeSeoContent();
     document.title = viewTitle
         ? `${viewTitle} - AlgoVyn SmartGrind`
         : 'AlgoVyn SmartGrind: Master Coding Patterns with Spaced Repetition';
