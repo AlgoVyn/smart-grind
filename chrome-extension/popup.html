@@ -3,43 +3,62 @@
 <head>
   <title>SmartGrind</title>
   <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #020617;
+      --muted: #475569;
+      --border: #94a3b8;
+      --brand: #006bb3;
+      --focus: rgba(0, 107, 179, 0.28);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #020617;
+        --card: #1e293b;
+        --text: #ffffff;
+        --muted: #94a3b8;
+        --border: #64748b;
+        --brand: #0085d0;
+        --focus: rgba(0, 133, 208, 0.35);
+      }
+    }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
       margin: 0;
-      padding: 15px;
-      background: #006bb3;
-      width: 250px;
+      padding: 12px;
+      background: var(--bg);
+      width: 280px;
       min-height: 250px;
-      color: #333;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      color: var(--text);
     }
     .container {
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      background: var(--card);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
     }
     .header {
       text-align: center;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
     }
     .logo {
       width: 40px;
       height: 40px;
-      margin-bottom: 5px;
+      margin-bottom: 6px;
     }
     h3 {
-      color: #333;
+      color: var(--text);
       margin: 0;
       font-size: 18px;
       font-weight: 600;
     }
     #currentRating {
       text-align: center;
-      font-size: 16px;
-      color: #666;
-      margin-bottom: 15px;
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 14px;
       font-weight: 500;
     }
     .form-group {
@@ -48,43 +67,45 @@
     label {
       display: block;
       margin-bottom: 6px;
-      color: #555;
+      color: var(--muted);
       font-weight: 600;
-      font-size: 14px;
+      font-size: 13px;
     }
     input, select {
       width: 100%;
-      padding: 8px 10px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
       box-sizing: border-box;
       font-size: 14px;
+      color: var(--text);
+      background: var(--card);
       transition: border-color 0.2s, box-shadow 0.2s;
     }
-    input:focus, select:focus {
+    input:focus, select:focus, button:focus-visible {
       outline: none;
-      border-color: #006bb3;
-      box-shadow: 0 0 0 3px rgba(0,107,179,0.1);
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px var(--focus);
     }
     button {
       background: #006bb3;
-      color: white;
+      color: #fff;
       border: none;
+      min-height: 44px;
       padding: 10px;
       width: 100%;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 14px;
       font-weight: 600;
-      transition: transform 0.2s, box-shadow 0.2s;
       margin-top: 10px;
     }
     button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(0,107,179,0.3);
+      filter: brightness(1.05);
     }
-    button:active {
-      transform: translateY(0);
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
     }
   </style>
 </head>

@@ -270,14 +270,15 @@ export const sqlViewRenderers = {
         patternHeader.className = 'flex items-center justify-between mb-3 mt-6';
 
         const patternTitle = document.createElement('h4');
-        patternTitle.className = 'text-sm font-bold text-brand-400 uppercase tracking-wider';
+        patternTitle.className =
+            'text-sm font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider';
         patternTitle.textContent = pattern.name;
         patternHeader.appendChild(patternTitle);
 
         // Add SQL solution button
         const patternSolutionButton = document.createElement('button');
         patternSolutionButton.className =
-            'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
+            'action-btn min-h-11 min-w-11 p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
         patternSolutionButton.dataset['action'] = 'sql-solution';
         patternSolutionButton.dataset['pattern'] = pattern.name;
         patternSolutionButton.title = 'View SQL Pattern Solution';
@@ -415,14 +416,15 @@ export const sqlViewRenderers = {
         patternHeader.className = 'flex items-center justify-between mb-2 mt-4';
 
         const patternTitle = document.createElement('h5');
-        patternTitle.className = 'text-sm font-bold text-brand-400 uppercase tracking-wider';
+        patternTitle.className =
+            'text-sm font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider';
         patternTitle.textContent = pattern.name;
         patternHeader.appendChild(patternTitle);
 
         // Add SQL solution button
         const patternSolutionButton = document.createElement('button');
         patternSolutionButton.className =
-            'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
+            'action-btn min-h-11 min-w-11 p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
         patternSolutionButton.dataset['action'] = 'sql-solution';
         patternSolutionButton.dataset['pattern'] = pattern.name;
         patternSolutionButton.title = 'View SQL Pattern Solution';

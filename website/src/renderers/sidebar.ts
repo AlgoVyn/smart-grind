@@ -129,8 +129,8 @@ const calcProgressHTML = (total: number, solved: number): string => {
     const pct = total > 0 ? Math.round((solved / total) * 100) : 0;
     const pctClass = pct === 100 ? 'text-green-400' : 'text-theme-muted';
     return `<div class="flex items-center gap-3 shrink-0">
-        <span class="sidebar-stat-total text-[10px] font-mono text-theme-muted">${total}</span>
-        <span class="sidebar-stat-pct text-[10px] ${pctClass} font-mono min-w-[24px] text-right">${pct}%</span>
+        <span class="sidebar-stat-total text-xs font-mono text-theme-muted">${total}</span>
+        <span class="sidebar-stat-pct text-xs ${pctClass} font-mono min-w-[24px] text-right">${pct}%</span>
     </div>`;
 };
 

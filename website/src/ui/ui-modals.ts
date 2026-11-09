@@ -384,9 +384,28 @@ export const saveNewProblem = async () => {
  * Shows the error tracking consent banner at the bottom of the screen
  * Called during app initialization if consent status is unknown
  */
+const hasBlockingModalOpen = (): boolean => {
+    return Array.from(document.querySelectorAll<HTMLElement>('.fixed.inset-0')).some((el) => {
+        if (
+            el.id === 'error-tracking-consent-modal' ||
+            el.id === 'loading-screen' ||
+            el.id === 'sidebar-backdrop'
+        ) {
+            return false;
+        }
+        return !el.classList.contains('hidden') && el.style.display !== 'none';
+    });
+};
+
 export const showErrorTrackingConsent = (): void => {
     // Check if modal already exists
     if (document.getElementById('error-tracking-consent-modal')) return;
+
+    // Stay below dialogs (z-[70]) so consent never covers sign-in / flashcards
+    if (hasBlockingModalOpen()) {
+        window.setTimeout(() => showErrorTrackingConsent(), 300);
+        return;
+    }
 
     const modal = document.createElement('div');
     modal.id = 'error-tracking-consent-modal';
@@ -401,14 +420,14 @@ export const showErrorTrackingConsent = (): void => {
         left: 0;
         right: 0;
         bottom: 0;
-        z-index: 9999;
+        z-index: 40;
         animation: slide-up 0.3s ease-out;
-        padding: 1rem;
+        padding: 0.5rem 0.75rem;
     `;
 
     modal.innerHTML = `
         <div style="max-width: 56rem; margin: 0 auto;">
-            <div class="bg-dark-800 border border-slate-700/50 rounded-lg shadow-2xl p-3 sm:p-4" style="background-color: var(--theme-bg-card); border-color: var(--theme-border);">
+            <div class="bg-dark-800 border border-theme rounded-lg shadow-2xl p-2.5 sm:p-4" style="background-color: var(--theme-bg-card); border-color: var(--theme-border);">
                 <!-- Header: Title + Buttons on same row for desktop -->
                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                     <div class="flex-1 min-w-0" style="min-width: 0;">
@@ -417,7 +436,7 @@ export const showErrorTrackingConsent = (): void => {
                         </h2>
                         <p class="text-xs sm:text-sm" style="color: var(--theme-text-muted);">
                             Share anonymous error reports to help us fix bugs faster. 
-                            <button type="button" id="error-tracking-learn-more" class="underline cursor-pointer bg-transparent border-none p-0 text-xs sm:text-sm" style="color: var(--brand-color, #4f46e5);">
+                            <button type="button" id="error-tracking-learn-more" class="underline cursor-pointer bg-transparent border-none p-0 text-xs sm:text-sm" style="color: var(--brand-color, #006bb3);">
                                 Learn more
                             </button>
                         </p>

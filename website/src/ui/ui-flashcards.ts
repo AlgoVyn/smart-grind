@@ -437,7 +437,7 @@ export const renderCard = async (): Promise<void> => {
             pattern: 'bg-purple-500/20 text-purple-400',
             sql: 'bg-green-500/20 text-green-400',
         };
-        els.typeBadge.className = `px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+        els.typeBadge.className = `px-2 py-0.5 rounded text-xs font-bold uppercase ${
             typeClasses[card.type] || typeClasses.pattern
         }`;
     }
@@ -453,7 +453,7 @@ export const renderCard = async (): Promise<void> => {
             medium: 'text-yellow-400',
             hard: 'text-red-400',
         };
-        els.difficultyBadge.className = `text-[10px] font-bold ${difficultyColors[card.difficulty]}`;
+        els.difficultyBadge.className = `text-xs font-bold ${difficultyColors[card.difficulty]}`;
     }
 
     // Update progress

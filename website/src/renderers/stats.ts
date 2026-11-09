@@ -347,8 +347,8 @@ export const statsRenderers = {
             pctSpan.textContent = `${pct}%`;
             pctSpan.className =
                 pct === 100
-                    ? 'sidebar-stat-pct text-[10px] text-green-400 font-mono min-w-[24px] text-right transition-colors'
-                    : 'sidebar-stat-pct text-[10px] text-theme-muted group-hover:text-theme-base font-mono min-w-[24px] text-right transition-colors';
+                    ? 'sidebar-stat-pct text-xs text-green-400 font-mono min-w-[24px] text-right transition-colors'
+                    : 'sidebar-stat-pct text-xs text-theme-muted group-hover:text-theme-base font-mono min-w-[24px] text-right transition-colors';
         }
         // Update total count if provided
         if (total !== undefined) {

@@ -31,10 +31,10 @@ describe('Breadcrumb Utilities - updateBreadcrumbs', () => {
     beforeEach(() => {
         // Reset mocks
         jest.clearAllMocks();
-        
+
         mockBreadcrumbNav = createMockElement();
         mockBreadcrumbList = { innerHTML: '' };
-        
+
         // Mock document.getElementById
         document.getElementById = jest.fn((id: string) => {
             if (id === 'breadcrumb-nav') return mockBreadcrumbNav;
@@ -45,7 +45,7 @@ describe('Breadcrumb Utilities - updateBreadcrumbs', () => {
 
     it('should hide breadcrumb nav when no items provided', () => {
         updateBreadcrumbs([]);
-        
+
         expect(mockBreadcrumbNav.classList.add).toHaveBeenCalledWith('hidden');
         expect(mockBreadcrumbNav.classList.remove).not.toHaveBeenCalled();
     });
@@ -68,31 +68,28 @@ describe('Breadcrumb Utilities - updateBreadcrumbs', () => {
     });
 
     it('should include links for non-last items', () => {
-        const items = [
-            { label: 'Home', href: '/smartgrind/' },
-            { label: 'Two Pointers Pattern' },
-        ];
-        
+        const items = [{ label: 'Home', href: '/smartgrind/' }, { label: 'Two Pointers Pattern' }];
+
         updateBreadcrumbs(items);
-        
+
         expect(mockBreadcrumbList.innerHTML).toContain('href="/smartgrind/"');
-        expect(mockBreadcrumbList.innerHTML).toContain('hover:text-brand-400');
+        expect(mockBreadcrumbList.innerHTML).toContain(
+            'hover:text-brand-600 dark:hover:text-brand-400'
+        );
     });
 
     it('should escape HTML in labels to prevent XSS', () => {
-        const items = [
-            { label: '<script>alert("xss")</script>' },
-        ];
-        
+        const items = [{ label: '<script>alert("xss")</script>' }];
+
         updateBreadcrumbs(items);
-        
+
         expect(mockBreadcrumbList.innerHTML).not.toContain('<script>');
         expect(mockBreadcrumbList.innerHTML).toContain('&lt;script&gt;');
     });
 
     it('should handle missing DOM elements gracefully', () => {
         document.getElementById = jest.fn().mockReturnValue(null);
-        
+
         // Should not throw
         expect(() => updateBreadcrumbs([{ label: 'Home' }])).not.toThrow();
     });
@@ -103,32 +100,26 @@ describe('Breadcrumb Utilities - updateBreadcrumbs', () => {
             { label: 'Patterns', href: '/patterns' },
             { label: 'Two Pointers' },
         ];
-        
+
         updateBreadcrumbs(items);
-        
+
         // Should have separators between items
         expect(mockBreadcrumbList.innerHTML).toContain('/');
     });
 
     it('should mark last item as current page', () => {
-        const items = [
-            { label: 'Home', href: '/' },
-            { label: 'Two Pointers' },
-        ];
-        
+        const items = [{ label: 'Home', href: '/' }, { label: 'Two Pointers' }];
+
         updateBreadcrumbs(items);
-        
+
         expect(mockBreadcrumbList.innerHTML).toContain('aria-current="page"');
     });
 
     it('should not add href to last item', () => {
-        const items = [
-            { label: 'Home', href: '/' },
-            { label: 'Two Pointers' },
-        ];
-        
+        const items = [{ label: 'Home', href: '/' }, { label: 'Two Pointers' }];
+
         updateBreadcrumbs(items);
-        
+
         // Last item should not have a link
         const lastLinkMatches = mockBreadcrumbList.innerHTML.match(/Two Pointers.*?<\/li>/);
         expect(lastLinkMatches).toBeTruthy();

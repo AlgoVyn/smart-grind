@@ -76,7 +76,8 @@ export const htmlGenerators = {
         patternHeader.className = 'flex items-center justify-between mb-3 mt-6';
 
         const patternTitle = document.createElement('h4');
-        patternTitle.className = 'text-sm font-bold text-brand-400 uppercase tracking-wider';
+        patternTitle.className =
+            'text-sm font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider';
         // Use textContent to prevent XSS (already safe, but good practice)
         patternTitle.textContent = pattern.name;
 
@@ -86,7 +87,7 @@ export const htmlGenerators = {
         if (!htmlGenerators.isCustomPattern(pattern.name)) {
             const patternSolutionButton = document.createElement('button');
             patternSolutionButton.className =
-                'action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
+                'action-btn min-h-11 min-w-11 p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-blue-400 transition-colors inline-flex items-center justify-center';
             patternSolutionButton.dataset['action'] = 'pattern-solution';
             patternSolutionButton.dataset['pattern'] = pattern.name;
             patternSolutionButton.title = 'View Pattern Solution';
@@ -157,8 +158,8 @@ export const htmlGenerators = {
         const isDue = p.nextReviewDate !== null && p.nextReviewDate <= today;
         const badgeClass = isDue
             ? 'bg-amber-500/20 text-amber-500'
-            : 'bg-brand-500/20 text-brand-400';
-        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass} uppercase tracking-wide">${isDue ? 'Review' : 'Solved'}</span>`;
+            : 'bg-brand-500/20 text-brand-600 dark:text-brand-400';
+        return `<span class="px-2 py-0.5 rounded text-xs font-bold ${badgeClass} uppercase tracking-wide">${isDue ? 'Review' : 'Solved'}</span>`;
     },
 
     // Helper to generate action button HTML
@@ -192,7 +193,7 @@ export const htmlGenerators = {
 
         const actionConfig = getActionConfig();
         const buttonText = p.loading ? htmlGenerators.getSpinner() : actionConfig.text;
-        return `<button class="action-btn btn-lift px-4 py-2 rounded-lg text-xs font-bold transition-all min-w-[70px] ${actionConfig.class}" ${p.loading ? 'disabled' : ''} data-action="${actionConfig.action}" data-testid="problem-action-btn">${buttonText}</button>`;
+        return `<button class="action-btn btn-lift px-4 py-2 rounded-lg text-xs font-bold transition-all min-h-11 min-w-[70px] ${actionConfig.class}" ${p.loading ? 'disabled' : ''} data-action="${actionConfig.action}" data-testid="problem-action-btn">${buttonText}</button>`;
     },
 
     // Helper to generate problem link HTML
@@ -201,7 +202,7 @@ export const htmlGenerators = {
         const badge = htmlGenerators.generateBadge(p, today);
         return `
             <div class="flex items-center gap-2 mb-1">
-                <a href="${escapeHtml(p.url || '')}" target="_blank" rel="noopener noreferrer" class="text-base font-medium text-theme-bold group-hover:text-brand-400 transition-colors truncate cursor-pointer">
+                <a href="${escapeHtml(p.url || '')}" target="_blank" rel="noopener noreferrer" class="text-base font-medium text-theme-bold group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors truncate cursor-pointer">
                     ${escapeHtml(p.name || '')}
                 </a>
                 ${badge}
@@ -213,7 +214,7 @@ export const htmlGenerators = {
     generateProblemMeta: (p: Problem) => `
         <div class="flex items-center gap-4 text-xs text-theme-muted font-mono">
             <span>Next: ${p.nextReviewDate ? formatDate(p.nextReviewDate) : '--'}</span>
-            <span class="${p.note ? 'text-brand-400' : ''}">${p.note ? 'Has Note' : ''}</span>
+            <span class="${p.note ? 'text-brand-600 dark:text-brand-400' : ''}">${p.note ? 'Has Note' : ''}</span>
         </div>
     `,
 
@@ -232,24 +233,40 @@ export const htmlGenerators = {
         const isSQLProblem = p.id.startsWith('sql-');
         const showSolutionButton = !isCustomProblem || isAlgorithm || isSQLProblem;
 
-        return `
-            <button class="action-btn p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes" aria-label="Notes" data-testid="note-btn">
+        const noteButton = `<button class="action-btn min-h-11 min-w-11 p-2 rounded-lg bg-dark-900 text-theme-muted hover:text-theme-bold transition-colors" data-action="note" title="Notes" aria-label="Notes" data-testid="note-btn">
                 ${ICONS.note}
-            </button>
+            </button>`;
+        const deleteButton = `<button class="action-btn min-h-11 min-w-11 p-2 rounded-lg hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors" data-action="delete" title="Delete Problem" aria-label="Delete Problem">
+                ${ICONS.delete}
+            </button>`;
+        const secondaryActions = `
+            ${htmlGenerators.generateAIButtons()}
+            ${noteButton}
+            ${deleteButton}
+        `;
+        return `
+            <div class="hidden md:flex items-center gap-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                ${secondaryActions}
+            </div>
+            <details class="relative md:hidden more-actions">
+                <summary class="action-btn min-h-11 min-w-11 list-none rounded-lg bg-dark-900 text-theme-muted inline-flex items-center justify-center cursor-pointer" aria-label="More actions">
+                    <span aria-hidden="true" class="text-lg leading-none">···</span>
+                </summary>
+                <div class="absolute right-0 top-full mt-1 z-20 flex flex-wrap items-center gap-1 p-2 rounded-lg border border-theme bg-dark-800 shadow-xl">
+                    ${secondaryActions}
+                </div>
+            </details>
             ${showSolutionButton ? SOLUTION_BUTTON_HTML : ''}
             ${actionButton}
-            <button class="action-btn p-2 rounded-lg hover:bg-red-500/10 text-theme-muted hover:text-red-400 transition-colors" data-action="delete" title="Delete Problem" aria-label="Delete Problem">
-                ${ICONS.delete}
-            </button>
         `;
     },
 
     // Helper to generate note area HTML
     generateNoteArea: (p: Problem) => `
         <div class="note-area ${p.noteVisible ? '' : 'hidden'} mt-3 pt-3 border-t border-theme">
-            <textarea name="note-${p.id}" class="w-full bg-dark-950 border border-theme rounded-lg p-3 text-sm text-theme-base focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none resize-y" rows="6" placeholder="Notes..." ${p.loading ? 'disabled' : ''}>${escapeHtml(p.note || '')}</textarea>
+            <textarea name="note-${p.id}" class="w-full bg-dark-950 border border-theme rounded-lg p-3 text-sm text-theme-base focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500 resize-y" rows="6" placeholder="Notes..." ${p.loading ? 'disabled' : ''}>${escapeHtml(p.note || '')}</textarea>
             <div class="flex justify-end mt-2">
-                <button class="px-4 py-1.5 rounded-lg text-xs font-bold transition-colors min-w-[60px] bg-slate-700 hover:bg-slate-600 text-white" ${p.loading ? 'disabled' : ''} data-action="save-note">
+                <button class="px-4 py-2 min-h-11 rounded-lg text-xs font-bold transition-colors min-w-[60px] bg-brand-600 hover:bg-brand-500 text-white" ${p.loading ? 'disabled' : ''} data-action="save-note">
                     ${p.loading ? htmlGenerators.getSpinner('h-3 w-3') : 'Save'}
                 </button>
             </div>
@@ -281,7 +298,6 @@ export const htmlGenerators = {
                     ${htmlGenerators.generateProblemMeta(p)}
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                    ${htmlGenerators.generateAIButtons()}
                     ${htmlGenerators.generateActionButtons(p)}
                 </div>
             </div>

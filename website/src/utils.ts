@@ -366,7 +366,7 @@ export const updateBreadcrumbs = (items: BreadcrumbItem[]): void => {
             if (isLast) {
                 return `<li class="text-theme-bold font-medium" aria-current="page">${_escapeBreadcrumbHtml(item.label)}</li>`;
             }
-            return `<li><a href="${item.href || '#'}" class="hover:text-brand-400 transition-colors">${_escapeBreadcrumbHtml(item.label)}</a><span class="mx-1 text-theme-muted">/</span></li>`;
+            return `<li><a href="${item.href || '#'}" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">${_escapeBreadcrumbHtml(item.label)}</a><span class="mx-1 text-theme-muted">/</span></li>`;
         })
         .join('');
 };
