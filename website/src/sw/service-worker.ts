@@ -678,9 +678,7 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
 self.addEventListener('sync', (event: Event) => {
     const syncEvent = event as Event & { tag: string; waitUntil(_fn: Promise<void>): void };
     if (syncEvent.tag === 'sync-user-progress') {
-        syncEvent.waitUntil(
-            backgroundSync.syncUserProgress().then(() => undefined)
-        );
+        syncEvent.waitUntil(backgroundSync.syncUserProgress().then(() => undefined));
     } else if (syncEvent.tag === 'sync-custom-problems') {
         syncEvent.waitUntil(backgroundSync.syncCustomProblems());
     } else if (syncEvent.tag === 'sync-user-settings') {

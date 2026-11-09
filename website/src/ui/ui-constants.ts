@@ -52,7 +52,6 @@ export const SOLUTION_BUTTON_HTML = `
     </button>
 `;
 
-
 // Constants
 export const UI_CONSTANTS = {
     PULL_TO_REFRESH_THRESHOLD: 100,

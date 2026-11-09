@@ -31,6 +31,14 @@ export default {
   moduleFileExtensions: ['js', 'ts', 'mjs'],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
+  coverageThreshold: {
+    global: {
+      statements: 70,
+      branches: 60,
+      functions: 70,
+      lines: 70,
+    },
+  },
   // Show test output for debugging
   verbose: true,
 };

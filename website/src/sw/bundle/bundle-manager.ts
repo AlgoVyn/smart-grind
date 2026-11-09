@@ -489,7 +489,10 @@ export class BundleManager {
             const currentState = await this.getStatus();
             if (this.isDownloadInProgress(currentState)) {
                 if (!this.isStaleInProgressState(currentState)) {
-                    this.sendReply(event, { type: 'BUNDLE_ERROR', error: 'Download already in progress' });
+                    this.sendReply(event, {
+                        type: 'BUNDLE_ERROR',
+                        error: 'Download already in progress',
+                    });
                     return;
                 }
                 await this.saveState(this.createInitialState());

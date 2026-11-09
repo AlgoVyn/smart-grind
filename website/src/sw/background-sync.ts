@@ -828,12 +828,14 @@ export class BackgroundSyncManager {
                 // Handle any conflicts returned by server using improved resolver
                 if (result.conflicts && result.conflicts.length > 0) {
                     for (const conflict of result.conflicts) {
-                        await this.handleServerConflictWithAutoResolve(conflict as {
-                            operationId: string;
-                            problemId: string;
-                            clientData: unknown;
-                            serverData: unknown;
-                        });
+                        await this.handleServerConflictWithAutoResolve(
+                            conflict as {
+                                operationId: string;
+                                problemId: string;
+                                clientData: unknown;
+                                serverData: unknown;
+                            }
+                        );
                     }
                 }
 

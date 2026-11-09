@@ -86,3 +86,6 @@ public/modules/**/*.js
 public/modules/**/*.js.map
 public/maps/*.js.map
 dist/
+
+# Real captured Playwright sessions (the committed user.json is mock-only)
+playwright/.auth/real-*.json

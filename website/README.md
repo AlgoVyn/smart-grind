@@ -620,7 +620,7 @@ X-Compressed: true  # If using compression
 ### Authentication Security
 
 - **HttpOnly Cookies**: Session tokens inaccessible to JavaScript
-- **JWT Short-Lived**: 1-hour expiration with automatic refresh
+- **JWT Short-Lived**: 1-hour expiration (`iss`/`aud`/`iat`/`jti` on new tokens). Existing longer-lived tokens remain valid until they expire so users are not forced to sign in again.
 - **CSRF Protection**: State parameter in OAuth flow
 - **Secure Storage**: Tokens stored in IndexedDB with controlled access
 

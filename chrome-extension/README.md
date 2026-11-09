@@ -2,7 +2,7 @@
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 ![Chrome Extension](https://img.shields.io/badge/Platform-Chrome-blue)
-![Version](https://img.shields.io/badge/Version-1.0.0-yellow)
+![Version](https://img.shields.io/badge/Version-0.3.0-yellow)
 
 **Smart Grind** is a Chrome extension that enhances your LeetCode practice with numerical problem ratings, smart problem selection, and AI-powered assistance.
 
@@ -204,9 +204,7 @@ Your rating uses **Exponential Moving Average (EMA)** with **Bayesian smoothing*
 
 | Permission | Purpose |
 |------------|---------|
-| `activeTab` | Interact with LeetCode pages |
-| `storage` | Cache data, store preferences |
-| `tabs` | Open new tabs for random problems |
+| `storage` | Cache ratings dataset, solved/opened problems, and popup preferences |
 
 ---
 

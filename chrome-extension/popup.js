@@ -1,22 +1,5 @@
 (async () => {
-  const parseProblems = (text) => {
-    const lines = text.split('\n');
-    const problems = [];
-    for (let i = 1; i < lines.length; i++) {
-      const parts = lines[i].split('\t');
-      if (parts.length >= 7) {
-        const rating = parseFloat(parts[0]);
-        const id = parts[1];
-        const title = parts[2];
-        const slug = parts[3];
-        const contest = parts[4];
-        const tagsStr = parts[6];
-        const problemTags = tagsStr ? tagsStr.split(',').map(t => t.trim()) : [];
-        problems.push({ rating, id, title, slug, contest, tags: problemTags });
-      }
-    }
-    return problems;
-  };
+  const { parseProblems, calculateCurrentRating, getFilteredProblems } = SmartGrindRatings;
 
   const loadTags = async () => {
     const response = await fetch(chrome.runtime.getURL('tags.txt'));
@@ -74,28 +57,6 @@
     });
   };
 
-  const calculateCurrentRating = (problems, solvedProblems) => {
-    if (solvedProblems.length === 0) return '--';
-
-    // Sort by recency (most recent first)
-    const sortedSolved = [...solvedProblems].sort((a, b) => b.solvedAt - a.solvedAt);
-
-    // Calculate recency-weighted EMA
-    const alpha = 0.2;
-    let ema = problems.find(p => p.slug === sortedSolved[0].slug)?.rating || 0;
-    for (let i = 1; i < sortedSolved.length; i++) {
-      const rating = problems.find(p => p.slug === sortedSolved[i].slug)?.rating || 0;
-      ema = alpha * rating + (1 - alpha) * ema;
-    }
-
-    // Apply Bayesian smoothing
-    const globalAvg = problems.reduce((sum, p) => sum + p.rating, 0) / problems.length;
-    const confidence = Math.min(solvedProblems.length / 100, 1);
-    const bayesianRating = confidence * ema + (1 - confidence) * globalAvg;
-
-    return Math.round(bayesianRating);
-  };
-
   const loadSettings = async () => {
     const settings = await chrome.storage.sync.get(['minRating', 'maxRating', 'selectedTag']);
     if (settings.minRating !== undefined) {
@@ -107,14 +68,6 @@
     if (settings.selectedTag !== undefined) {
       document.getElementById('tagSelect').value = settings.selectedTag;
     }
-  };
-
-  const getFilteredProblems = (problems, minRating, maxRating, selectedTag) => {
-    let filtered = problems.filter(p => p.rating >= minRating && p.rating <= maxRating);
-    if (selectedTag) {
-      filtered = filtered.filter(p => p.tags.includes(selectedTag));
-    }
-    return filtered;
   };
 
   const trackOpenedProblem = async (slug) => {
