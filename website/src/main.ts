@@ -20,6 +20,9 @@ const initApp = async () => {
         // Final UI initialization
         await ui.init();
 
+        const { openDeepContentFromLocation } = await import('./ui/ui-markdown');
+        openDeepContentFromLocation();
+
         // Show error tracking consent dialog if needed
         checkAndShowErrorTrackingConsent();
     } catch (error) {

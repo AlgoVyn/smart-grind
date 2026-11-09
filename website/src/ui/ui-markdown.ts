@@ -7,6 +7,12 @@
 import '../config/prism-config';
 
 import { getBaseUrl, showToast } from '../utils';
+import {
+    parseInternalContentHref,
+    contentRelPath,
+    rewriteAnchorHref,
+    type InternalContentRef,
+} from './ui-content-links';
 import { data } from '../data';
 import { patterns, sqlSolutions } from './ui-pattern-solutions';
 import DOMPurify from 'dompurify';
@@ -239,6 +245,21 @@ const _setupDelegatedEventHandlers = (container: HTMLElement) => {
             return;
         }
 
+        const anchor = target.closest('a[href]') as HTMLAnchorElement | null;
+        if (anchor && !anchor.closest('[data-action]')) {
+            const href = anchor.getAttribute('href') || '';
+            const ref = parseInternalContentHref(href);
+            if (ref) {
+                const ev = e as MouseEvent;
+                if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button === 1) {
+                    return;
+                }
+                e.preventDefault();
+                openContentRef(ref);
+                return;
+            }
+        }
+
         const scrollLink = target.closest(
             '[data-action="scroll-to-heading"]'
         ) as HTMLElement | null;
@@ -384,6 +405,7 @@ export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) =
     });
 
     contentElement.innerHTML = sanitizedHtml;
+    rewriteRenderedContentLinks(contentElement);
 
     _setupDelegatedEventHandlers(contentElement);
     _renderTOC();
@@ -422,6 +444,42 @@ const _loadSolution = async (
             `<p>Error loading ${escapeText(errorPrefix)}: ${escapeText(message)}</p>` +
             `<p>File: ${escapeText(solutionFile)}</p>${extraErrorText}`;
     }
+};
+
+const rewriteRenderedContentLinks = (root: HTMLElement) => {
+    if (typeof root.querySelectorAll !== 'function') return;
+    root.querySelectorAll('a[href]').forEach((node) => {
+        const anchor = node as HTMLAnchorElement;
+        const href = anchor.getAttribute('href');
+        if (!href) return;
+        const next = rewriteAnchorHref(href);
+        if (next && next !== href) {
+            anchor.setAttribute('href', next);
+        }
+    });
+};
+
+const openContentRef = (ref: InternalContentRef) => {
+    const rel = contentRelPath(ref.kind, ref.stem);
+    const label =
+        ref.kind === 'patterns'
+            ? 'pattern'
+            : ref.kind === 'algorithms'
+              ? 'algorithm'
+              : ref.kind === 'sql/patterns'
+                ? 'SQL pattern'
+                : ref.kind === 'sql/solutions'
+                  ? 'SQL solution'
+                  : 'solution';
+    _loadSolution(`${getBaseUrl()}${rel}`, `Loading ${label}...`, label, '');
+};
+
+/** Open a pattern/solution/algorithm/SQL write-up from the current URL (hard refresh). */
+export const openDeepContentFromLocation = (): boolean => {
+    const ref = parseInternalContentHref(window.location.pathname);
+    if (!ref) return false;
+    openContentRef(ref);
+    return true;
 };
 
 // Open solution modal

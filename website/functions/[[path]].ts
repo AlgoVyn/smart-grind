@@ -174,6 +174,15 @@ const CATEGORY_ALIASES: Record<string, string> = {
     'c/arrays-and-hashing': 'c/arrays-hashing',
 };
 
+const CONTENT_DEEP_LINK_RE =
+    /^\/(patterns|solutions|algorithms|flashcards|sql\/patterns|sql\/solutions)\/([^/.]+)$/;
+
+/** Extensionless write-up paths that must serve the SPA (not 404.html) so a
+ *  hard refresh of https://algovyn.com/smartgrind/patterns/foo works after
+ *  the proxy strips /smartgrind. `.md` files stay static assets. */
+export const isContentDeepLink = (cleanPath: string): boolean =>
+    CONTENT_DEEP_LINK_RE.test(cleanPath);
+
 const routeExists = (type: string, id: string): boolean =>
     type === 'p' ? !!getProblemBySlug(id) : !!getCategoryData(type, id);
 
@@ -252,7 +261,7 @@ export async function onRequest(context: { request: Request; env: Env; next: () 
     }
     
     // PASS THROUGH: Asset files by extension
-    const assetExtensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.json', '.map', '.txt'];
+    const assetExtensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.json', '.map', '.txt', '.md'];
     const isAsset = assetExtensions.some(ext => path.toLowerCase().endsWith(ext));
     if (isAsset) {
         // Try to serve the asset directly
@@ -303,6 +312,7 @@ export async function onRequest(context: { request: Request; env: Env; next: () 
     let cat: { type: string; id: string; data: { title: string; description: string; count: number } } | null = null;
     let problem: typeof TOP_PROBLEMS[0] | null = null;
     const isHome = cleanPath === '/' || cleanPath === '';
+    const contentDeepLink = isContentDeepLink(cleanPath);
     
     if (!isHome) {
         const pm = cleanPath.match(/^\/c\/([^/]+)$/);
@@ -328,7 +338,7 @@ export async function onRequest(context: { request: Request; env: Env; next: () 
     }
     
     // If not a route we handle, pass through to static assets
-    if (!cat && !isHome && !problem) {
+    if (!cat && !isHome && !problem && !contentDeepLink) {
         return next();
     }
     
@@ -357,7 +367,7 @@ export async function onRequest(context: { request: Request; env: Env; next: () 
         const baseUrl = 'https://algovyn.com/smartgrind';
         let meta: string, structured: string, initialState: string = '';
         
-        if (isHome) {
+        if (isHome || contentDeepLink) {
             meta = genMetaTags(
                 escapeHtml('AlgoVyn SmartGrind: Master Coding Patterns with Spaced Repetition'),
                 escapeHtmlAttr('Master coding interview patterns with SmartGrind\'s spaced repetition system. Practice 500+ LeetCode problems with detailed solutions in Python, Java, C++, and JavaScript. Track progress, learn 15+ essential patterns including Two Pointers, Dynamic Programming, Graphs, and more. Free coding interview prep tool with offline support.'),

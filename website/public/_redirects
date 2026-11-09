@@ -2,12 +2,16 @@
 /smartgrind/assets/* /assets/:splat 200
 /smartgrind/logo.svg /logo.svg 200
 /smartgrind/manifest.json /manifest.json 200
-/smartgrind/solutions/* /solutions/:splat 200
-/smartgrind/patterns/* /patterns/:splat 200
-/smartgrind/algorithms/* /algorithms/:splat 200
-/smartgrind/flashcards/* /flashcards/:splat 200
-/smartgrind/sql/solutions/* /sql/solutions/:splat 200
-/smartgrind/sql/patterns/* /sql/patterns/:splat 200
+
+# Only rewrite markdown files — extensionless /patterns/foo (etc.) must reach
+# the SPA so hard-refresh deep links work. After the algovyn-proxy Worker
+# strips /smartgrind, the Pages Function serves the same routes.
+/smartgrind/solutions/:name.md /solutions/:name.md 200
+/smartgrind/patterns/:name.md /patterns/:name.md 200
+/smartgrind/algorithms/:name.md /algorithms/:name.md 200
+/smartgrind/flashcards/:name.md /flashcards/:name.md 200
+/smartgrind/sql/solutions/:name.md /sql/solutions/:name.md 200
+/smartgrind/sql/patterns/:name.md /sql/patterns/:name.md 200
 
 # Service Worker - explicit rule to prevent wildcard catch
 # This ensures sw.js is served as a static file, not redirected to index.html
