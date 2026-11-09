@@ -84,11 +84,11 @@
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.2",
-    "vite": "^7.3.1",
-    "wrangler": "^4.61.0"
+    "vite": "^7.3.8",
+    "wrangler": "^4.90.0"
   },
   "dependencies": {
-    "dompurify": "^3.3.3",
+    "dompurify": "^3.4.17",
     "jose": "^5.2.0",
     "marked": "^17.0.5",
     "prismjs": "^1.30.0"
@@ -104,5 +104,8 @@
       "limit": "50 KB",
       "gzip": true
     }
-  ]
+  ],
+  "overrides": {
+    "handlebars": "4.7.10"
+  }
 }
