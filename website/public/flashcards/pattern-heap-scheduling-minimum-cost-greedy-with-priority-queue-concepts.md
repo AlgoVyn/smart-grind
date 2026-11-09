@@ -1,11 +1,9 @@
 # Flashcards: Heap - Scheduling / Minimum Cost (Greedy with Priority Queue) - Concepts
 
-## Card 1: Greedy Choice Property
-
-**Front:**
 What is the "greedy choice property" and why is it essential for this pattern?
 
-**Back:**
+<!-- front -->
+
 The greedy choice property states that a **globally optimal solution can be reached by making locally optimal (greedy) choices** at each step. It's essential because:
 - Justifies making immediate best choices without backtracking
 - Enables efficient O(N log K) solutions vs exponential brute force
@@ -15,12 +13,10 @@ The greedy choice property states that a **globally optimal solution can be reac
 
 ---
 
-## Card 2: Why Use a Max Heap for "Minimum Cost"
+### Card 2: Why Use a Max Heap for "Minimum Cost"
 
-**Front:**
 Why does the Minimum Cost to Hire K Workers problem use a **max heap** (not min heap) for qualities?
 
-**Back:**
 The max heap tracks the **largest qualities** to potentially remove when exceeding K workers. We want to:
 - Keep K workers with smallest qualities (for minimum cost)
 - When adding a new worker, if heap > K, remove the **largest quality**
@@ -31,12 +27,10 @@ The max heap tracks the **largest qualities** to potentially remove when exceedi
 
 ---
 
-## Card 3: Ratio Sorting Insight
+### Card 3: Ratio Sorting Insight
 
-**Front:**
 Why sort workers by ratio (wage/quality) in the Minimum Cost to Hire K Workers problem?
 
-**Back:**
 Sorting by ratio ascending ensures **fairness constraint** is satisfied:
 - Workers are paid proportional to their quality based on the group's ratio
 - If we pick ratio `r` as our pay scale, worker with wage/quality ≤ r is fairly compensated
@@ -47,12 +41,10 @@ Sorting by ratio ascending ensures **fairness constraint** is satisfied:
 
 ---
 
-## Card 4: Optimal Substructure
+### Card 4: Optimal Substructure
 
-**Front:**
 What is "optimal substructure" in the context of greedy heap problems?
 
-**Back:**
 **Optimal substructure** means an optimal solution to the problem contains optimal solutions to subproblems:
 - After making a greedy choice, remaining subproblem has optimal solution
 - Example: After selecting a worker, finding optimal K-1 workers from remaining
@@ -63,12 +55,10 @@ What is "optimal substructure" in the context of greedy heap problems?
 
 ---
 
-## Card 5: Two-Heap Technique
+### Card 5: Two-Heap Technique
 
-**Front:**
 What is the "Two-Heap" technique and when is it used?
 
-**Back:**
 The Two-Heap technique uses:
 - **Min heap** for candidates not yet affordable/selectable
 - **Max heap** for currently available/best options
@@ -81,3 +71,5 @@ Used when there's a **dynamic threshold** (e.g., capital constraint):
 Example: IPO problem (LeetCode 502)
 
 **Tags:** two-heap, technique, dynamic-threshold
+
+<!-- back -->

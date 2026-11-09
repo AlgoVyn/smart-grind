@@ -1,14 +1,7 @@
----
-type: flashcard
-pattern: dp-1d-array-0-1-knapsack-subset-sum
-category: framework
-tags: [dp, knapsack, subset-sum, 1d-array]
----
-
-<!-- front -->
 What is the general framework for solving 0/1 Knapsack / Subset Sum problems using 1D DP?
 
-<!-- back -->
+<!-- front -->
+
 The 5-step framework:
 
 1. **Define the target/capacity**: Identify what you're trying to achieve (sum, value, or capacity constraint)
@@ -30,3 +23,5 @@ The 5-step framework:
    - Count: `dp[i] += dp[i - num]`
 
 6. **Return result**: `dp[target]` contains the answer
+
+<!-- back -->

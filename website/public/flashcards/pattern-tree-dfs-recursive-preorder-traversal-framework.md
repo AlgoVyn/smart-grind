@@ -1,21 +1,17 @@
 # Flashcards: Tree DFS Recursive Preorder Traversal - Framework
 
-## Card 1: Pattern Core
----
-front:
 What is the fundamental order of preorder traversal in a binary tree?
-back:
+
+<!-- front -->
+
 **Root → Left → Right**
 
 The root node is visited first, then recursively the left subtree, followed by the right subtree.
 
 ---
 
-## Card 2: When to Use Preorder
----
-front:
-In what scenarios is preorder traversal the optimal choice?
-back:
+### Card 2: When to Use Preorder: In what scenarios is preorder traversal the optimal choice?
+
 1. **Root-dependent operations** - parent needed before children
 2. **Tree construction** - building expression trees from traversal
 3. **Path exploration** - finding paths requiring root info first
@@ -23,11 +19,8 @@ back:
 
 ---
 
-## Card 3: Recursive Template Structure
----
-front:
-What is the basic structure of a recursive preorder DFS function?
-back:
+### Card 3: Recursive Template Structure: What is the basic structure of a recursive preorder DFS function?
+
 ```python
 def dfs(node):
     if not node:          # Base case
@@ -39,11 +32,8 @@ def dfs(node):
 
 ---
 
-## Card 4: Pattern Characteristics
----
-front:
-What are the key benefits of the recursive preorder traversal pattern?
-back:
+### Card 4: Pattern Characteristics: What are the key benefits of the recursive preorder traversal pattern?
+
 - **Simplicity**: Elegant implementation with minimal code
 - **Top-Down Processing**: Root before children
 - **Natural Recursion**: Maps directly to recursive call stack
@@ -51,14 +41,11 @@ back:
 
 ---
 
-## Card 5: Complexity Analysis
----
-front:
-What are the time and space complexities of recursive preorder traversal?
-back:
+### Card 5: Complexity Analysis: What are the time and space complexities of recursive preorder traversal?
+
 | Complexity | Value | Notes |
 |------------|-------|-------|
 | **Time** | O(n) | Each node visited once |
 | **Space** | O(h) | h = tree height (O(n) for skewed trees) |
 
----
+<!-- back -->

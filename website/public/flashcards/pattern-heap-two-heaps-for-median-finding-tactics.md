@@ -1,11 +1,9 @@
 # Flashcard: Two Heaps for Median Finding - Tactics
 
-## Card 1
-
---- front ---
 What is the "push-through" tactic for heap insertion?
 
---- back ---
+<!-- front -->
+
 Route new elements through both heaps to maintain ordering.
 
 **Size-based approach:**
@@ -22,14 +20,10 @@ else:
 
 This guarantees correct ordering without explicit comparisons.
 
---- end ---
+---
 
-## Card 2
+### Card 2: How do you handle lazy deletion in sliding window median?
 
---- front ---
-How do you handle lazy deletion in sliding window median?
-
---- back ---
 Use a hash map to track "delayed" deletions.
 
 ```python
@@ -48,14 +42,10 @@ def prune(heap, delayed):
 
 Mark elements for deletion, actually remove when they reach the top.
 
---- end ---
+---
 
-## Card 3
+### Card 3: What is the Python trick for max-heap implementation?
 
---- front ---
-What is the Python trick for max-heap implementation?
-
---- back ---
 Negate values to use min-heap as max-heap:
 
 ```python
@@ -76,14 +66,10 @@ largest = -heapq.heappop(max_heap)  # Returns 10
 
 Remember: push with `-`, pop with `-`, peek with `-`.
 
---- end ---
+---
 
-## Card 4
+### Card 4: How do you ensure floating-point precision for even-length medians?
 
---- front ---
-How do you ensure floating-point precision for even-length medians?
-
---- back ---
 Use `2.0` or `float()` for proper division:
 
 ```python
@@ -98,14 +84,10 @@ return float(-lower[0] + upper[0]) / 2
 
 For exact problems, check if they want `float` or `double` return type.
 
---- end ---
+---
 
-## Card 5
+### Card 5: What is the size check pattern for heap balance?
 
---- front ---
-What is the size check pattern for heap balance?
-
---- back ---
 Ensure lower half has equal or one more element than upper half:
 
 ```python
@@ -126,4 +108,4 @@ elif len(small) < len(large):
 
 Always check: `len(lower) >= len(upper)` and `diff <= 1`.
 
---- end ---
+<!-- back -->

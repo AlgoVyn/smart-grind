@@ -1,14 +1,7 @@
----
-type: flashcard
-pattern: dp-1d-array-0-1-knapsack-subset-sum
-category: comparison
-tags: [dp, knapsack, 0-1-knapsack, unbounded-knapsack, comparison]
----
-
-<!-- front -->
 0/1 Knapsack vs Unbounded Knapsack: What's the difference in implementation?
 
-<!-- back -->
+<!-- front -->
+
 **The Only Difference: Iteration Direction**
 
 | Aspect | 0/1 Knapsack | Unbounded Knapsack |
@@ -43,3 +36,5 @@ for num in nums:
 | Maximization | Max value within constraint |
 | Count DP | Number of ways |
 | 2D DP | Need to reconstruct solution |
+
+<!-- back -->

@@ -1,14 +1,7 @@
----
-type: flashcard
-pattern: dp-1d-array-0-1-knapsack-subset-sum
-category: tactics
-tags: [dp, knapsack, target-sum, math-trick, partition]
----
-
-<!-- front -->
 What tactical tricks are essential for 0/1 Knapsack problems?
 
-<!-- back --
+<!-- front -->
+
 **Four Essential Tactics:**
 
 1. **Target Sum Math Transformation**
@@ -33,3 +26,5 @@ What tactical tricks are essential for 0/1 Knapsack problems?
    - For partition: check if total is even first
 
 **Complexity:** O(n × target) time, O(target) space
+
+<!-- back -->

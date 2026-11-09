@@ -1,14 +1,7 @@
----
-type: flashcard
-pattern: dp-1d-array-0-1-knapsack-subset-sum
-category: concepts
-tags: [dp, knapsack, subset-sum, backward-iteration, state-representation]
----
-
-<!-- front -->
 What are the key concepts in 0/1 Knapsack 1D DP?
 
-<!-- back -->
+<!-- front -->
+
 **Five Core Concepts:**
 
 1. **Backward Iteration Principle**
@@ -34,3 +27,5 @@ What are the key concepts in 0/1 Knapsack 1D DP?
 5. **Space Optimization Insight**
    - 1D array is sufficient because each state only depends on previous (smaller) states
    - We don't need the full 2D table for most problems
+
+<!-- back -->

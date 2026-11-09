@@ -1,10 +1,9 @@
 # Flashcards: Tree DFS Recursive Preorder Traversal - Forms
 
-## Card 1: N-ary Tree Adaptation
----
-front:
 How do you adapt preorder traversal for N-ary trees (trees with any number of children)?
-back:
+
+<!-- front -->
+
 Replace left/right with iteration over all children:
 
 ```python
@@ -21,11 +20,8 @@ Pattern: Visit node, then recursively visit each child.
 
 ---
 
-## Card 2: Collecting at Specific Depth
----
-front:
-How do you collect values only at a specific depth/level using preorder?
-back:
+### Card 2: Collecting at Specific Depth: How do you collect values only at a specific depth/level using preorder?
+
 Pass depth as a parameter and check before collecting:
 
 ```python
@@ -47,11 +43,8 @@ def collect_at_depth(root, target_depth):
 
 ---
 
-## Card 3: Path Recording Variation
----
-front:
-How do you record the full path from root to each node in preorder?
-back:
+### Card 3: Path Recording Variation: How do you record the full path from root to each node in preorder?
+
 Maintain a path list and copy it at leaves:
 
 ```python
@@ -74,11 +67,8 @@ def find_paths(root):
 
 ---
 
-## Card 4: Conditional Traversal
----
-front:
-How do you skip certain subtrees based on a condition in preorder?
-back:
+### Card 4: Conditional Traversal: How do you skip certain subtrees based on a condition in preorder?
+
 Add condition before recursive calls:
 
 ```python
@@ -101,11 +91,8 @@ def conditional_preorder(root):
 
 ---
 
-## Card 5: Bottom-Up Result Construction
----
-front:
-How can you use return values instead of shared state in preorder?
-back:
+### Card 5: Bottom-Up Result Construction: How can you use return values instead of shared state in preorder?
+
 Return constructed lists from recursive calls:
 
 ```python
@@ -122,4 +109,4 @@ def preorder_return(root):
 
 Note: Less efficient (O(n²) due to list concatenation) but demonstrates pure functional approach.
 
----
+<!-- back -->

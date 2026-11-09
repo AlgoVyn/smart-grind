@@ -1,11 +1,9 @@
 # Flashcards: Heap - Scheduling / Minimum Cost (Greedy with Priority Queue) - Tactics
 
-## Card 1: Implementing Max Heap in Python
-
-**Front:**
 How do you implement a max heap in Python using `heapq` (which only provides min heap)?
 
-**Back:**
+<!-- front -->
+
 **Negate values** to simulate max heap behavior:
 
 ```python
@@ -25,12 +23,10 @@ heapq.heappush(max_heap, (-priority, item))
 
 ---
 
-## Card 2: K-Constraint Enforcement Pattern
+### Card 2: K-Constraint Enforcement Pattern
 
-**Front:**
 What is the code pattern for enforcing "exactly K elements" using a heap?
 
-**Back:**
 ```python
 heap = []
 running_sum = 0
@@ -53,12 +49,10 @@ for item in sorted_items:
 
 ---
 
-## Card 3: Sort + Single Pass Technique
+### Card 3: Sort + Single Pass Technique
 
-**Front:**
 What is the "Sort + Single Pass" technique used in Minimum Cost to Hire K Workers?
 
-**Back:**
 1. **Preprocess**: Sort all items by a key (e.g., ratio)
 2. **Single pass**: Iterate through sorted items once
 3. **Maintain state**: Use heap to track best K items seen so far
@@ -77,12 +71,10 @@ for ratio, q in workers:
 
 ---
 
-## Card 4: Two-Pointer with Heaps (IPO Pattern)
+### Card 4: Two-Pointer with Heaps (IPO Pattern)
 
-**Front:**
 What is the "Two-Pointer with Heaps" technique used in the IPO problem?
 
-**Back:**
 ```python
 # Sort by capital requirement
 projects = sorted(zip(capital, profits))
@@ -106,12 +98,10 @@ for _ in range(k):
 
 ---
 
-## Card 5: Running Sum Maintenance
+### Card 5: Running Sum Maintenance
 
-**Front:**
 Why maintain a running sum alongside the heap, and what are the pitfalls?
 
-**Back:**
 **Purpose**: Avoid O(K) sum calculation by tracking incrementally
 
 ```python
@@ -134,3 +124,5 @@ if len(heap) > k:
 - Not handling empty heap case
 
 **Tags:** running-sum, optimization, pitfalls
+
+<!-- back -->

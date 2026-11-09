@@ -2,10 +2,10 @@
 
 ---
 
-## Front
 What is the **single-pass tactic** for Gas Station Circuit?
 
-## Back
+<!-- front -->
+
 Combine feasibility check and start-finding in **one loop**:
 
 ```python
@@ -29,10 +29,8 @@ def can_complete_circuit(gas, cost):
 
 ---
 
-## Front
-What is the **two-pass tactic** for Gas Station Circuit?
+### What is the **two-pass tactic** for Gas Station Circuit?
 
-## Back
 Separate concerns into **distinct phases**:
 
 ```python
@@ -58,10 +56,8 @@ def can_complete_circuit_two_pass(gas, cost):
 
 ---
 
-## Front
-What is the **simulation verification tactic**?
+### What is the **simulation verification tactic**?
 
-## Back
 After finding a candidate, **simulate the full journey** to verify:
 
 ```python
@@ -82,10 +78,8 @@ def verify_start(gas, cost, start):
 
 ---
 
-## Front
-What is the **pre-check optimization** tactic?
+### What is the **pre-check optimization** tactic?
 
-## Back
 Add a **quick reject** before the main algorithm:
 
 ```python
@@ -104,10 +98,8 @@ def can_complete_circuit(gas, cost):
 
 ---
 
-## Front
-What is the **prefix sum deficit tracking** tactic?
+### What is the **prefix sum deficit tracking** tactic?
 
-## Back
 Track the **minimum prefix sum** to find the optimal starting point:
 
 ```python
@@ -136,10 +128,8 @@ def find_start_prefix_sums(gas, cost):
 
 ---
 
-## Front
-What is the **candidate elimination** tactic?
+### What is the **candidate elimination** tactic?
 
-## Back
 Use the failure point to **eliminate multiple candidates at once**:
 
 ```python
@@ -165,10 +155,8 @@ return -1
 
 ---
 
-## Front
-What is the **early termination** tactic in the loop?
+### What is the **early termination** tactic in the loop?
 
-## Back
 Check if start index becomes **invalid during iteration**:
 
 ```python
@@ -186,4 +174,4 @@ for i in range(n):
 
 **Note**: Usually redundant since total_gas < total_cost check handles this, but useful for clarity.
 
----
+<!-- back -->

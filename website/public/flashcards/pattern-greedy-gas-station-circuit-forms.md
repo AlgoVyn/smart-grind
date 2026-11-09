@@ -2,10 +2,10 @@
 
 ---
 
-## Front
 What is the **classic form** of the Gas Station Circuit problem?
 
-## Back
+<!-- front -->
+
 **Problem**: Given `gas[i]` (fuel at station i) and `cost[i]` (fuel to reach i+1), find the starting station to complete the circuit.
 
 **Signature**:
@@ -20,10 +20,8 @@ def can_complete_circuit(gas: list[int], cost: list[int]) -> int:
 
 ---
 
-## Front
-What is the **find-all-starts** variant?
+### What is the **find-all-starts** variant?
 
-## Back
 **Problem**: Find **all** valid starting points, not just one.
 
 **Approach**: 
@@ -37,10 +35,8 @@ What is the **find-all-starts** variant?
 
 ---
 
-## Front
-What is the **minimum-tank** variant?
+### What is the **minimum-tank** variant?
 
-## Back
 **Problem**: Find starting point that **minimizes the maximum tank deficit** (most robust route).
 
 **Approach**: Use prefix sum tracking:
@@ -62,10 +58,8 @@ for i in range(n):
 
 ---
 
-## Front
-What is the **multiple-cars** variant?
+### What is the **multiple-cars** variant?
 
-## Back
 **Problem**: Multiple cars start at different stations. Determine which can complete the circuit.
 
 **Approach**: 
@@ -80,10 +74,8 @@ What is the **multiple-cars** variant?
 
 ---
 
-## Front
-What is the **limited-capacity** variant?
+### What is the **limited-capacity** variant?
 
-## Back
 **Problem**: Car has **fuel tank capacity C**. Can it complete the circuit without overflowing or running out?
 
 **Additional constraint**: `tank + gas[i] <= C` (can't take all gas if tank full).
@@ -101,10 +93,8 @@ if tank < 0:  # Can't proceed
 
 ---
 
-## Front
-What is the **variable-cost** variant?
+### What is the **variable-cost** variant?
 
-## Back
 **Problem**: Cost depends on current fuel level or other factors.
 
 **Example**: Cost = `base_cost[i] + penalty if tank < threshold`
@@ -119,10 +109,8 @@ What is the **variable-cost** variant?
 
 ---
 
-## Front
-What is the **partial-circuit** variant?
+### What is the **partial-circuit** variant?
 
-## Back
 **Problem**: Find start to reach a **specific destination** (not full circuit), or maximize distance traveled.
 
 **Approach**: Modified greedy:
@@ -134,10 +122,8 @@ What is the **partial-circuit** variant?
 
 ---
 
-## Front
-What is the **continuous-fuel** variant?
+### What is the **continuous-fuel** variant?
 
-## Back
 **Problem**: Gas stations are at real-number positions (not discrete indices), with varying distances.
 
 **Approach**: 
@@ -147,4 +133,4 @@ What is the **continuous-fuel** variant?
 
 **Key difference**: Still O(n) but with floating point arithmetic considerations.
 
----
+<!-- back -->

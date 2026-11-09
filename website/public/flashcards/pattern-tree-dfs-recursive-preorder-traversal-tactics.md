@@ -1,10 +1,9 @@
 # Flashcards: Tree DFS Recursive Preorder Traversal - Tactics
 
-## Card 1: Handling Null Root
----
-front:
 What is the first defensive check in preorder traversal?
-back:
+
+<!-- front -->
+
 Always handle null/empty root at entry:
 
 ```python
@@ -16,11 +15,8 @@ This prevents errors on empty trees and handles edge cases gracefully.
 
 ---
 
-## Card 2: Result Collection
----
-front:
-What are common patterns for collecting results in recursive preorder?
-back:
+### Card 2: Result Collection: What are common patterns for collecting results in recursive preorder?
+
 1. **Closure/Nonlocal**: Define result outside helper function
    ```python
    result = []
@@ -39,11 +35,8 @@ back:
 
 ---
 
-## Card 3: Modifying During Traversal
----
-front:
-How do you safely modify node values during preorder traversal?
-back:
+### Card 3: Modifying During Traversal: How do you safely modify node values during preorder traversal?
+
 Modify **before** appending to result if you want modified value:
 
 ```python
@@ -58,11 +51,8 @@ def preorder_modify(node):
 
 ---
 
-## Card 4: Passing Additional State
----
-front:
-How do you pass additional state (like depth or accumulated sum) in preorder DFS?
-back:
+### Card 4: Passing Additional State: How do you pass additional state (like depth or accumulated sum) in preorder DFS?
+
 Add parameters to the helper function:
 
 ```python
@@ -76,11 +66,8 @@ def dfs(node, depth, current_sum):
 
 ---
 
-## Card 5: Early Termination
----
-front:
-How can you implement early termination in preorder traversal?
-back:
+### Card 5: Early Termination: How can you implement early termination in preorder traversal?
+
 Use a flag or return value to stop recursion:
 
 ```python
@@ -97,4 +84,4 @@ def dfs(node):
     dfs(node.right)
 ```
 
----
+<!-- back -->

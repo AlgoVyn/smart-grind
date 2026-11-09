@@ -1,10 +1,9 @@
 # Flashcards: Tree DFS Recursive Preorder Traversal - Comparison
 
-## Card 1: Recursive vs Iterative
----
-front:
 When should you choose recursive preorder vs iterative (stack-based) preorder?
-back:
+
+<!-- front -->
+
 | Factor | Recursive | Iterative |
 |--------|-----------|-----------|
 | **Code simplicity** | Better | More verbose |
@@ -16,11 +15,8 @@ Use recursive for interviews and balanced trees; iterative for very deep trees.
 
 ---
 
-## Card 2: Space Complexity Comparison
----
-front:
-How do the three preorder traversal approaches compare in space complexity?
-back:
+### Card 2: Space Complexity Comparison: How do the three preorder traversal approaches compare in space complexity?
+
 | Approach | Space | Why |
 |----------|-------|-----|
 | **Recursive** | O(h) | Call stack |
@@ -31,11 +27,8 @@ h = tree height (worst case O(n) for skewed trees)
 
 ---
 
-## Card 3: Morris Traversal Trade-offs
----
-front:
-What are the trade-offs of using Morris traversal for preorder?
-back:
+### Card 3: Morris Traversal Trade-offs: What are the trade-offs of using Morris traversal for preorder?
+
 **Pros:**
 - O(1) space complexity
 - No recursion stack overflow
@@ -50,11 +43,8 @@ back:
 
 ---
 
-## Card 4: Traversal Order Comparison
----
-front:
-How does preorder compare to inorder and postorder traversals?
-back:
+### Card 4: Traversal Order Comparison: How does preorder compare to inorder and postorder traversals?
+
 | Traversal | Order | Use Case |
 |-----------|-------|----------|
 | **Preorder** | Root → Left → Right | Copy trees, paths, serialization |
@@ -63,11 +53,8 @@ back:
 
 ---
 
-## Card 5: Iterative Stack Key Detail
----
-front:
-In iterative preorder, why push right child before left child?
-back:
+### Card 5: Iterative Stack Key Detail: In iterative preorder, why push right child before left child?
+
 **LIFO order**: Stack is Last-In-First-Out
 
 ```python
@@ -79,4 +66,4 @@ if node.left:
 
 Left must be processed before right, so left is pushed last (popped first).
 
----
+<!-- back -->

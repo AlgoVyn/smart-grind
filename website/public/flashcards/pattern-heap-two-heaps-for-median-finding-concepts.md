@@ -1,11 +1,9 @@
 # Flashcard: Two Heaps for Median Finding - Concepts
 
-## Card 1
-
---- front ---
 Why use a max-heap for the lower half instead of another min-heap?
 
---- back ---
+<!-- front -->
+
 The max-heap gives O(1) access to the **largest element of the lower half**, which is the boundary element.
 
 - Lower half: max-heap → largest element at top
@@ -14,14 +12,10 @@ The max-heap gives O(1) access to the **largest element of the lower half**, whi
 
 With two min-heaps, you couldn't access the largest of the lower half efficiently.
 
---- end ---
+---
 
-## Card 2
+### Card 2: Why does Python require negating values for a max-heap?
 
---- front ---
-Why does Python require negating values for a max-heap?
-
---- back ---
 Python's `heapq` only implements a min-heap.
 
 To simulate a max-heap:
@@ -31,14 +25,10 @@ To simulate a max-heap:
 
 This works because negating reverses the ordering: `-5 < -3 < -1`, so `-5` pops first.
 
---- end ---
+---
 
-## Card 3
+### Card 3: What is the "aha!" moment behind the two heaps median pattern?
 
---- front ---
-What is the "aha!" moment behind the two heaps median pattern?
-
---- back ---
 **Split the data into two halves and maintain their boundary elements.**
 
 Key insights:
@@ -49,14 +39,9 @@ Key insights:
 
 This transforms the problem from "sort and find middle" to "maintain two heaps."
 
---- end ---
+---
 
-## Card 4
-
---- front ---
-When should you NOT use the two heaps approach?
-
---- back ---
+### Card 4: When should you NOT use the two heaps approach?
 
 **Don't use when:**
 - Fixed dataset with no insertions (just sort once: O(n log n))
@@ -67,14 +52,10 @@ When should you NOT use the two heaps approach?
 
 **Use when:** insertions are interleaved with median queries.
 
---- end ---
+---
 
-## Card 5
+### Card 5: How does the two heaps pattern extend to sliding window median?
 
---- front ---
-How does the two heaps pattern extend to sliding window median?
-
---- back ---
 **Lazy deletion** with a hash map to handle elements leaving the window.
 
 Key additions:
@@ -85,4 +66,4 @@ Key additions:
 
 Complexity: O(n log k) for n elements and window size k.
 
---- end ---
+<!-- back -->

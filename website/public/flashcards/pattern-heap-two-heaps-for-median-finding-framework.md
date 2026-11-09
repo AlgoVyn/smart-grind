@@ -1,11 +1,9 @@
 # Flashcard: Two Heaps for Median Finding - Framework
 
-## Card 1
-
---- front ---
 What is the core framework for finding the median from a data stream?
 
---- back ---
+<!-- front -->
+
 Two heaps: a max-heap for the lower half and a min-heap for the upper half.
 
 - Lower half (max-heap): stores smaller numbers, largest at top
@@ -13,28 +11,20 @@ Two heaps: a max-heap for the lower half and a min-heap for the upper half.
 - Balance: heaps differ by at most 1 element
 - Median: top of larger heap, or average of both tops
 
---- end ---
+---
 
-## Card 2
+### Card 2: What are the time and space complexities of the two heaps approach?
 
---- front ---
-What are the time and space complexities of the two heaps approach?
-
---- back ---
 - **Insertion:** O(log n) - heap push/pop operations
 - **Find Median:** O(1) - direct access to heap tops
 - **Space:** O(n) - stores all elements in two heaps
 
 This is optimal for comparison-based median finding in a stream.
 
---- end ---
+---
 
-## Card 3
+### Card 3: What are the three steps for inserting a number into the two heaps structure?
 
---- front ---
-What are the three steps for inserting a number into the two heaps structure?
-
---- back ---
 1. **Add to max-heap** (lower half): `heapq.heappush(lower, -num)`
 
 2. **Balance**: Move largest from lower to upper:
@@ -48,14 +38,10 @@ What are the three steps for inserting a number into the two heaps structure?
        heapq.heappush(lower, -heapq.heappop(upper))
    ```
 
---- end ---
+---
 
-## Card 4
+### Card 4: How do you compute the median from two balanced heaps?
 
---- front ---
-How do you compute the median from two balanced heaps?
-
---- back ---
 ```python
 if len(lower) > len(upper):
     # Odd count: larger heap has the median
@@ -69,14 +55,10 @@ else:
 - C++: `lower.top()` and `upper.top()` directly
 - Java: `lower.peek()` and `upper.peek()`
 
---- end ---
+---
 
-## Card 5
+### Card 5: What is the fundamental invariant maintained in the two heaps structure?
 
---- front ---
-What is the fundamental invariant maintained in the two heaps structure?
-
---- back ---
 **Size invariant:** |size(lower) - size(upper)| ≤ 1, and lower ≥ upper
 
 **Content invariant:**
@@ -86,4 +68,4 @@ What is the fundamental invariant maintained in the two heaps structure?
 
 This ensures the median is always at one of the heap tops.
 
---- end ---
+<!-- back -->

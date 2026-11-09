@@ -1,14 +1,7 @@
----
-type: flashcard
-pattern: dp-1d-array-0-1-knapsack-subset-sum
-category: forms
-tags: [dp, knapsack, subset-sum, target-sum, count-subsets]
----
-
-<!-- front -->
 What are the common problem forms for 0/1 Knapsack / Subset Sum?
 
-<!-- back -->
+<!-- front -->
+
 **Four Problem Forms:**
 
 1. **Subset Sum (Boolean)** - "Can we achieve target?"
@@ -51,3 +44,5 @@ What are the common problem forms for 0/1 Knapsack / Subset Sum?
 - LeetCode 494: Target Sum
 - LeetCode 1049: Last Stone Weight II
 - LeetCode 474: Ones and Zeroes
+
+<!-- back -->

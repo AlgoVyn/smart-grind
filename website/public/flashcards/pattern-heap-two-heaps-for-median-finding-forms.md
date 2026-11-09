@@ -1,11 +1,9 @@
 # Flashcard: Two Heaps for Median Finding - Forms
 
-## Card 1
-
---- front ---
 What is the classic form of the Two Heaps pattern?
 
---- back ---
+<!-- front -->
+
 **Find Median from Data Stream (LeetCode 295)**
 
 Operations:
@@ -19,14 +17,10 @@ Characteristics:
 
 This is the standard form that all variations build upon.
 
---- end ---
+---
 
-## Card 2
+### Card 2: What is the sliding window form of the median problem?
 
---- front ---
-What is the sliding window form of the median problem?
-
---- back ---
 **Sliding Window Median (LeetCode 480)**
 
 Problem: Find median of each window of size k as it slides through array.
@@ -40,14 +34,10 @@ Complexity: O(n log k) time, O(k) space
 
 Key challenge: Efficient element removal from heap.
 
---- end ---
+---
 
-## Card 3
+### Card 3: What variations exist for the two heaps pattern?
 
---- front ---
-What variations exist for the two heaps pattern?
-
---- back ---
 **Common Forms:**
 
 1. **Data Stream** - Classic, only insertions
@@ -58,14 +48,10 @@ What variations exist for the two heaps pattern?
 
 **Key distinction:** Static vs dynamic data, and what statistics are needed.
 
---- end ---
+---
 
-## Card 4
+### Card 4: How does the two heaps pattern adapt for other percentiles?
 
---- front ---
-How does the two heaps pattern adapt for other percentiles?
-
---- back ---
 **For arbitrary percentiles (e.g., 25th, 75th):**
 
 Option 1: **Multiple heaps**
@@ -80,14 +66,10 @@ Option 2: **Order Statistic Tree**
 Option 3: **Counting structure** (for integer data)
 - Prefix sums for O(1) percentile queries
 
---- end ---
+---
 
-## Card 5
+### Card 5: What related problems use the two heaps pattern?
 
---- front ---
-What related problems use the two heaps pattern?
-
---- back ---
 | Problem | LeetCode | Key Variation |
 |---------|----------|---------------|
 | Find Median from Data Stream | 295 | Classic form |
@@ -101,4 +83,4 @@ What related problems use the two heaps pattern?
 - "Find median in O(1) after each insertion"
 - "Sliding window" + "median"
 
---- end ---
+<!-- back -->

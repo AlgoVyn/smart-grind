@@ -2,10 +2,10 @@
 
 ---
 
-## Front
 When should you use the **Greedy - Gas Station Circuit** pattern?
 
-## Back
+<!-- front -->
+
 - **Circular route completion** problems where you need to find a valid starting point
 - **Resource balance** tracking between consecutive points (gas, cost, balance)
 - Problems with **net surplus/deficit** across a cycle
@@ -14,20 +14,16 @@ When should you use the **Greedy - Gas Station Circuit** pattern?
 
 ---
 
-## Front
-What is the **core insight** that makes the greedy approach work for Gas Station Circuit?
+### What is the **core insight** that makes the greedy approach work for Gas Station Circuit?
 
-## Back
 **Key insight**: If you can't travel from station A to station B, then **no station between A and B** can be a valid starting point.
 
 This allows us to greedily skip all stations in the failed segment and continue from the next station after the failure point.
 
 ---
 
-## Front
-What is the **framework/template** for solving Gas Station Circuit problems?
+### What is the **framework/template** for solving Gas Station Circuit problems?
 
-## Back
 ```python
 def gas_station_circuit(gas, cost):
     # 1. Track cumulative totals
@@ -51,10 +47,8 @@ def gas_station_circuit(gas, cost):
 
 ---
 
-## Front
-Why do we reset the starting index to **i + 1** (not i) when the tank goes negative?
+### Why do we reset the starting index to **i + 1** (not i) when the tank goes negative?
 
-## Back
 When `current_tank < 0` at station `i`, it means we couldn't even reach station `i+1` starting from our candidate.
 
 If we can't reach from station A to station B, then **no station between A and B** can be a valid starting point (they'd have even less fuel).
@@ -63,10 +57,8 @@ Therefore, the **earliest possible** new candidate is `i + 1`.
 
 ---
 
-## Front
-What are the **time and space complexity** of the Gas Station Circuit algorithm?
+### What are the **time and space complexity** of the Gas Station Circuit algorithm?
 
-## Back
 | Aspect | Complexity |
 |--------|------------|
 | **Time** | O(n) - Single pass through stations |
@@ -76,10 +68,8 @@ This is optimal - you must visit each station at least once, and you only need c
 
 ---
 
-## Front
-What is the **mathematical proof** that a solution exists when total_gas >= total_cost?
+### What is the **mathematical proof** that a solution exists when total_gas >= total_cost?
 
-## Back
 If `sum(gas) >= sum(cost)`, then there exists at least one valid starting point.
 
 **Proof sketch**:
@@ -89,4 +79,4 @@ If `sum(gas) >= sum(cost)`, then there exists at least one valid starting point.
 - By skipping to the station after each failure, we eventually find a point where all prior deficits are covered
 - Since total surplus >= 0, such a point must exist
 
----
+<!-- back -->

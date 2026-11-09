@@ -71,4 +71,4 @@ def merge_sort_merge(arr, left, mid, right):
 | Wrong pointer update | Infinite loop | Decrement after placing |
 | Off-by-one indices | Wrong result | Check `>= 0` not `> 0` |
 
-<!-- back --
+<!-- back -->

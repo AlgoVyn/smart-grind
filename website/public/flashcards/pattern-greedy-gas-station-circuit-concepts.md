@@ -2,10 +2,10 @@
 
 ---
 
-## Front
 What does **total feasibility** mean in the Gas Station Circuit problem?
 
-## Back
+<!-- front -->
+
 **Total feasibility** checks if completing the circuit is even possible:
 
 ```
@@ -17,10 +17,8 @@ This is a **necessary condition** - regardless of starting point, if total gas i
 
 ---
 
-## Front
-What is the **local deficit** concept in Gas Station Circuit?
+### What is the **local deficit** concept in Gas Station Circuit?
 
-## Back
 **Local deficit** is the cumulative net fuel balance as we travel:
 
 ```python
@@ -35,10 +33,8 @@ When `current_tank < 0`, we've hit a local deficit that makes our current starti
 
 ---
 
-## Front
-What is the **greedy choice property** in Gas Station Circuit?
+### What is the **greedy choice property** in Gas Station Circuit?
 
-## Back
 The **greedy choice property**: When the tank goes negative at station `i`, we can greedily skip all stations from our current start to `i`.
 
 **Why it works**:
@@ -48,10 +44,8 @@ The **greedy choice property**: When the tank goes negative at station `i`, we c
 
 ---
 
-## Front
-Explain the concept of **net balance** (gas[i] - cost[i]).
+### Explain the concept of **net balance** (gas[i] - cost[i]).
 
-## Back
 **Net balance** represents the fuel change when stopping at a station:
 
 ```
@@ -66,10 +60,8 @@ The circuit is completable if we can arrange the traversal so cumulative net bal
 
 ---
 
-## Front
-What is the **reset point** concept?
+### What is the **reset point** concept?
 
-## Back
 The **reset point** is where we abandon our current starting candidate and try the next station.
 
 ```python
@@ -82,10 +74,8 @@ Key insight: We **reset the tank to 0** (not to the deficit value) because we're
 
 ---
 
-## Front
-Explain the **circular indexing** concept in Gas Station Circuit.
+### Explain the **circular indexing** concept in Gas Station Circuit.
 
-## Back
 **Circular indexing** treats the array as a cycle:
 
 ```python
@@ -100,10 +90,8 @@ The modulo operation wraps around to the beginning after the last station.
 
 ---
 
-## Front
-What is the difference between **cumulative tank** and **total gas/cost**?
+### What is the difference between **cumulative tank** and **total gas/cost**?
 
-## Back
 | Variable | Purpose | Reset? |
 |----------|---------|--------|
 | **current_tank** | Tracks balance from candidate start | Yes, when negative |
@@ -113,4 +101,4 @@ What is the difference between **cumulative tank** and **total gas/cost**?
 - `current_tank` finds the **valid starting point** (resets on deficits)
 - `total_gas/total_cost` verifies **overall feasibility** (never reset)
 
----
+<!-- back -->

@@ -1,11 +1,9 @@
 # Flashcards: Heap - Scheduling / Minimum Cost (Greedy with Priority Queue) - Comparison
 
-## Card 1: Greedy + Heap vs Dynamic Programming
-
-**Front:**
 When should you use Greedy + Heap vs Dynamic Programming for optimization problems?
 
-**Back:**
+<!-- front -->
+
 | Greedy + Heap | Dynamic Programming |
 |--------------|---------------------|
 | Greedy choice property holds | No greedy choice property |
@@ -20,12 +18,10 @@ When should you use Greedy + Heap vs Dynamic Programming for optimization proble
 
 ---
 
-## Card 2: Max Heap vs Min Heap Selection
+### Card 2: Max Heap vs Min Heap Selection
 
-**Front:**
 When should you use a max heap vs min heap in greedy scheduling problems?
 
-**Back:**
 | Use Max Heap | Use Min Heap |
 |-------------|--------------|
 | Track largest to **remove** (keep K smallest) | Track smallest to **remove** (keep K largest) |
@@ -39,12 +35,10 @@ When should you use a max heap vs min heap in greedy scheduling problems?
 
 ---
 
-## Card 3: Sort-First vs Pure Heap
+### Card 3: Sort-First vs Pure Heap
 
-**Front:**
 Compare "Sort then Heap" vs "Pure Heap" approaches for greedy problems.
 
-**Back:**
 | Sort + Heap | Pure Heap |
 |------------|-----------|
 | O(N log N) preprocessing | O(N log K) overall |
@@ -59,12 +53,10 @@ Compare "Sort then Heap" vs "Pure Heap" approaches for greedy problems.
 
 ---
 
-## Card 4: This Pattern vs Standard Heap Problems
+### Card 4: This Pattern vs Standard Heap Problems
 
-**Front:**
 How does "Greedy with Priority Queue" differ from standard heap problems like "Find K Largest Elements"?
 
-**Back:**
 | Standard Heap | Greedy + Heap |
 |------------|---------------|
 | Static: Process all data at once | Dynamic: Decisions affect future choices |
@@ -77,12 +69,10 @@ How does "Greedy with Priority Queue" differ from standard heap problems like "F
 
 ---
 
-## Card 5: Ratio-based vs Absolute Value Selection
+### Card 5: Ratio-based vs Absolute Value Selection
 
-**Front:**
 Compare ratio-based selection (Hire K Workers) vs absolute value selection (IPO).
 
-**Back:**
 | Ratio-Based | Absolute Value |
 |------------|----------------|
 | Decision depends on **relative** measure | Decision depends on **absolute** threshold |
@@ -93,3 +83,5 @@ Compare ratio-based selection (Hire K Workers) vs absolute value selection (IPO)
 | Example: quality/wage ratio | Example: capital ≤ current |
 
 **Tags:** ratio, absolute, comparison, selection-criteria
+
+<!-- back -->

@@ -2,10 +2,10 @@
 
 ---
 
-## Front
 Compare **Single Pass vs Two Pass** approaches for Gas Station Circuit.
 
-## Back
+<!-- front -->
+
 | Aspect | Single Pass | Two Pass |
 |--------|-------------|----------|
 | **Time** | O(n) - one loop | O(n) - two loops (or sum() calls) |
@@ -18,10 +18,8 @@ Compare **Single Pass vs Two Pass** approaches for Gas Station Circuit.
 
 ---
 
-## Front
-Compare **Greedy vs Brute Force** for Gas Station Circuit.
+### Compare **Greedy vs Brute Force** for Gas Station Circuit.
 
-## Back
 | Aspect | Greedy (O(n)) | Brute Force (O(n²)) |
 |--------|---------------|---------------------|
 | **Time** | O(n) | O(n²) |
@@ -34,10 +32,8 @@ Compare **Greedy vs Brute Force** for Gas Station Circuit.
 
 ---
 
-## Front
-Compare **Gas Station Circuit** with **Jump Game** pattern.
+### Compare **Gas Station Circuit** with **Jump Game** pattern.
 
-## Back
 | Aspect | Gas Station Circuit | Jump Game |
 |--------|---------------------|-----------|
 | **Goal** | Find valid starting point | Determine if end is reachable |
@@ -50,10 +46,8 @@ Compare **Gas Station Circuit** with **Jump Game** pattern.
 
 ---
 
-## Front
-Compare **Gas Station Circuit** with **Kadane's Algorithm**.
+### Compare **Gas Station Circuit** with **Kadane's Algorithm**.
 
-## Back
 | Aspect | Gas Station Circuit | Kadane's Algorithm |
 |--------|---------------------|---------------------|
 | **Goal** | Find starting point where cumulative never negative | Find maximum subarray sum |
@@ -66,10 +60,8 @@ Compare **Gas Station Circuit** with **Kadane's Algorithm**.
 
 ---
 
-## Front
-Compare **Gas Station Circuit** vs **Circular Array Sum** problems.
+### Compare **Gas Station Circuit** vs **Circular Array Sum** problems.
 
-## Back
 | Aspect | Gas Station Circuit | Circular Array Max Sum |
 |--------|---------------------|------------------------|
 | **Structure** | Circular route | Circular array |
@@ -80,10 +72,8 @@ Compare **Gas Station Circuit** vs **Circular Array Sum** problems.
 
 ---
 
-## Front
-When should you use **Greedy** vs **DP** for circuit/route problems?
+### When should you use **Greedy** vs **DP** for circuit/route problems?
 
-## Back
 | Use Greedy | Use DP |
 |------------|--------|
 | Single valid starting point needed | Multiple constraints or choices at each step |
@@ -93,4 +83,4 @@ When should you use **Greedy** vs **DP** for circuit/route problems?
 
 **Gas Station**: Greedy works because deficits are "local" - if you can't reach point B from A, intermediates also fail.
 
----
+<!-- back -->

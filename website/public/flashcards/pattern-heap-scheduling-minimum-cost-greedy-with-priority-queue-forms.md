@@ -1,11 +1,9 @@
 # Flashcards: Heap - Scheduling / Minimum Cost (Greedy with Priority Queue) - Forms
 
-## Card 1: Minimum Cost to Hire K Workers
-
-**Front:**
 What is the classic form of the "Minimum Cost to Hire K Workers" problem (LeetCode 857)?
 
-**Back:**
+<!-- front -->
+
 **Problem**: Hire exactly K workers minimizing total cost where each worker must be paid proportionally to their quality.
 
 **Input**: `quality[]`, `wage[]`, `k`
@@ -35,12 +33,10 @@ def mincost_to_hire_workers(quality, wage, k):
 
 ---
 
-## Card 2: IPO / Capital Maximization
+### Card 2: IPO / Capital Maximization
 
-**Front:**
 What is the "IPO" (Capital Maximization) problem form (LeetCode 502)?
 
-**Back:**
 **Problem**: Complete at most K projects to maximize capital. Each project has capital requirement and profit.
 
 **Input**: `k` (max projects), `w` (initial capital), `profits[]`, `capital[]`
@@ -69,12 +65,10 @@ def find_maximized_capital(k, w, profits, capital):
 
 ---
 
-## Card 3: Course Schedule III (Deadline Scheduling)
+### Card 3: Course Schedule III (Deadline Scheduling)
 
-**Front:**
 What is the "Course Schedule III" form (LeetCode 630)?
 
-**Back:**
 **Problem**: Take maximum number of courses given duration and lastDay for each.
 
 **Key Insight**: 
@@ -105,12 +99,10 @@ def schedule_course(courses):
 
 ---
 
-## Card 4: Maximum Performance of a Team
+### Card 4: Maximum Performance of a Team
 
-**Front:**
 What is the "Maximum Performance of a Team" form (LeetCode 1383)?
 
-**Back:**
 **Problem**: Select at most K engineers to maximize team performance = sum(speed) × min(efficiency).
 
 **Key Insight**:
@@ -142,12 +134,10 @@ def max_performance(n, speed, efficiency, k):
 
 ---
 
-## Card 5: Generic Template Recognition
+### Card 5: Generic Template Recognition
 
-**Front:**
 What are the telltale signs that a problem fits the "Greedy + Priority Queue" pattern?
 
-**Back:**
 **Problem Statements Containing**:
 - "minimum cost to hire/select K..."
 - "maximize capital/profit with at most K..."
@@ -162,3 +152,5 @@ What are the telltale signs that a problem fits the "Greedy + Priority Queue" pa
 - "efficiency" × "speed/productivity" type metrics
 
 **Tags:** recognition, template, identification
+
+<!-- back -->
