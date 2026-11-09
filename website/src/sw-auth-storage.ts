@@ -4,10 +4,12 @@
  * Uses the same DB/store as the SW's auth-manager (smartgrind-auth / auth-tokens).
  */
 
+import { LIMITS } from './config/limits';
+
 const AUTH_DB_NAME = 'smartgrind-auth';
 const AUTH_DB_VERSION = 1;
 const AUTH_STORE_NAME = 'auth-tokens';
-const JWT_EXPIRY_SECONDS = 7 * 24 * 60 * 60; // 1 week, match auth API
+const JWT_EXPIRY_SECONDS = LIMITS.API.JWT_EXPIRATION_SECONDS;
 
 function openDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {

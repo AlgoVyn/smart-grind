@@ -729,6 +729,10 @@ describe('SmartGrind UI', () => {
 
             await ui.handleLogout();
 
+            expect(global.fetch).toHaveBeenCalledWith(
+                '/smartgrind/api/auth?action=logout',
+                expect.objectContaining({ method: 'POST', credentials: 'include' })
+            );
             expect(state.user.type).toBe('local');
             expect(app.initializeLocalUser).toHaveBeenCalled();
             expect(showToast).toHaveBeenCalledWith('Switched to local mode');
@@ -1882,12 +1886,14 @@ describe('SmartGrind UI', () => {
     describe('handleGoogleLogin message handling', () => {
         test('handles auth success message', async () => {
             const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
-            mockOpen.mockReturnValue({});
+            const popup = {};
+            mockOpen.mockReturnValue(popup);
 
             ui.handleGoogleLogin();
 
             const messageEvent = {
                 origin: window.location.origin,
+                source: popup,
                 data: {
                     type: 'auth-success',
                     token: 'test-token',
@@ -1937,330 +1943,334 @@ describe('SmartGrind UI', () => {
     });
 
     describe('markdown renderer functions', () => {
-    describe('markdown renderer functions', () => {
-        test('_configureMarkdownRenderer returns bundled marked instance', () => {
-            // With bundled marked, this should always return the marked instance
-            const result = ui._configureMarkdownRenderer();
+        describe('markdown renderer functions', () => {
+            test('_configureMarkdownRenderer returns bundled marked instance', () => {
+                // With bundled marked, this should always return the marked instance
+                const result = ui._configureMarkdownRenderer();
 
-            expect(result).toBeDefined();
-            expect(typeof result.parse).toBe('function');
+                expect(result).toBeDefined();
+                expect(typeof result.parse).toBe('function');
+            });
+
+            test('_renderMarkdown renders content with bundled marked', () => {
+                const contentElement = {
+                    innerHTML: '',
+                    addEventListener: jest.fn(),
+                    querySelectorAll: jest.fn(() => []),
+                };
+
+                ui._renderMarkdown('# Test\n\nContent', contentElement);
+
+                // Content should be rendered with proper heading attributes
+                expect(contentElement.innerHTML).toBeTruthy();
+                expect(contentElement.innerHTML).toContain('<h1');
+                expect(contentElement.innerHTML).toContain('id=');
+            });
+
+            test('_renderMarkdown handles TOC generation', () => {
+                const tocList = document.createElement('div');
+                tocList.id = 'toc-list';
+                document.body.appendChild(tocList);
+
+                const contentElement = {
+                    innerHTML: '',
+                    addEventListener: jest.fn(),
+                    querySelectorAll: jest.fn(() => []),
+                };
+
+                ui._renderMarkdown('# Heading', contentElement);
+
+                expect(contentElement.innerHTML).toBeTruthy();
+
+                document.body.removeChild(tocList);
+            });
+
+            test('copyCode copies code to clipboard', async () => {
+                const mockPre = {
+                    querySelector: jest.fn(() => ({ innerText: 'code content' })),
+                };
+                const mockBtn = {
+                    classList: { add: jest.fn(), remove: jest.fn() },
+                    innerHTML: '',
+                    closest: jest.fn(() => mockPre),
+                };
+                navigator.clipboard = { writeText: jest.fn(() => Promise.resolve()) };
+
+                await ui.copyCode(mockBtn as any);
+
+                expect(navigator.clipboard.writeText).toHaveBeenCalledWith('code content');
+            });
+
+            test('openSolutionModal loads and renders solution', async () => {
+                const mockResponse = {
+                    ok: true,
+                    text: jest.fn().mockResolvedValue('# Solution'),
+                };
+                global.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+                const mockModal = {
+                    classList: { remove: jest.fn(), add: jest.fn() },
+                };
+                const mockContent = {
+                    innerHTML: '',
+                    addEventListener: jest.fn(),
+                    querySelectorAll: jest.fn(() => []),
+                };
+
+                document.getElementById = jest
+                    .fn()
+                    .mockReturnValueOnce(mockModal)
+                    .mockReturnValueOnce(mockContent)
+                    .mockReturnValueOnce(mockModal);
+
+                await ui.openSolutionModal('two-sum');
+
+                expect(mockModal.classList.remove).toHaveBeenCalledWith('hidden');
+                expect(mockContent.innerHTML).toBeTruthy();
+
+                delete global.fetch;
+            });
+
+            test('closeSolutionModal hides modal', () => {
+                const mockModal = {
+                    classList: { add: jest.fn() },
+                };
+                const mockContent = {
+                    removeEventListener: jest.fn(),
+                };
+
+                document.getElementById = jest
+                    .fn()
+                    .mockReturnValueOnce(mockModal)
+                    .mockReturnValueOnce(mockContent);
+
+                ui.closeSolutionModal();
+
+                expect(mockModal.classList.add).toHaveBeenCalledWith('hidden');
+            });
+        });
+        describe('filter button click', () => {
+            test('handles filter button click', () => {
+                const btn = {
+                    dataset: { filter: 'solved' },
+                    addEventListener: jest.fn(),
+                    dispatchEvent: jest.fn(),
+                };
+                state.elements.filterBtns = [btn];
+
+                ui.bindNavigationEvents();
+
+                // Get the click handler
+                const clickHandler = btn.addEventListener.mock.calls.find(
+                    (call) => call[0] === 'click'
+                )[1];
+
+                // Simulate click
+                clickHandler();
+
+                expect(state.ui.currentFilter).toBe('solved');
+                expect(renderers.updateFilterBtns).toHaveBeenCalled();
+                // When activeTopicId is empty and no algorithm/SQL category is active, renderCombinedView is called
+                expect(renderers.renderCombinedView).toHaveBeenCalled();
+            });
         });
 
-        test('_renderMarkdown renders content with bundled marked', () => {
-            const contentElement = { 
-                innerHTML: '', 
-                addEventListener: jest.fn(),
-                querySelectorAll: jest.fn(() => []),
-            };
-            
-            ui._renderMarkdown('# Test\n\nContent', contentElement);
+        describe('handleKeyboard edge cases', () => {
+            test('closes add problem modal on Escape', () => {
+                jest.clearAllMocks();
+                state.elements.addProblemModal = {
+                    classList: { contains: jest.fn(() => true), add: jest.fn() },
+                };
+                const event = {
+                    key: 'Escape',
+                    target: { tagName: 'DIV' },
+                    preventDefault: jest.fn(),
+                };
 
-            // Content should be rendered with proper heading attributes
-            expect(contentElement.innerHTML).toBeTruthy();
-            expect(contentElement.innerHTML).toContain('<h1');
-            expect(contentElement.innerHTML).toContain('id=');
+                ui.handleKeyboard(event);
+
+                expect(state.elements.addProblemModal.classList.add).not.toHaveBeenCalled();
+            });
         });
 
-        test('_renderMarkdown handles TOC generation', () => {
-            const tocList = document.createElement('div');
-            tocList.id = 'toc-list';
-            document.body.appendChild(tocList);
-            
-            const contentElement = { 
-                innerHTML: '', 
-                addEventListener: jest.fn(),
-                querySelectorAll: jest.fn(() => []),
-            };
-            
-            ui._renderMarkdown('# Heading', contentElement);
+        describe('pullToRefresh handleTouchEnd reload', () => {
+            test('resets pulling state when threshold met and not in test env', () => {
+                // Temporarily mock jest as undefined to simulate production
+                const originalJest = global.jest;
+                delete global.jest;
 
-            expect(contentElement.innerHTML).toBeTruthy();
-            
-            document.body.removeChild(tocList);
+                ui.pullToRefresh.isPulling = true;
+                ui.pullToRefresh.startY = 0;
+
+                const event = {
+                    changedTouches: [{ clientY: 150 }],
+                };
+
+                ui.pullToRefresh.handleTouchEnd(event);
+
+                expect(ui.pullToRefresh.isPulling).toBe(false);
+
+                // Restore
+                global.jest = originalJest;
+            });
         });
 
-        test('copyCode copies code to clipboard', async () => {
-            const mockPre = {
-                querySelector: jest.fn(() => ({ innerText: 'code content' })),
-            };
-            const mockBtn = {
-                classList: { add: jest.fn(), remove: jest.fn() },
-                innerHTML: '',
-                closest: jest.fn(() => mockPre),
-            };
-            navigator.clipboard = { writeText: jest.fn(() => Promise.resolve()) };
+        describe('bindModalEvents close callbacks', () => {
+            test('confirm modal close callback calls closeConfirmModal', () => {
+                ui.bindModalEvents();
 
-            await ui.copyCode(mockBtn as any);
+                // The handler is attached to confirmModal
+                const handler = state.elements.confirmModal.addEventListener.mock.calls[0][1];
+                const event = { target: state.elements.confirmModal };
 
-            expect(navigator.clipboard.writeText).toHaveBeenCalledWith('code content');
+                handler(event);
+
+                expect(mockClassListAdd).toHaveBeenCalledWith('hidden');
+            });
         });
 
-        test('openSolutionModal loads and renders solution', async () => {
-            const mockResponse = {
-                ok: true,
-                text: jest.fn().mockResolvedValue('# Solution'),
-            };
-            global.fetch = jest.fn().mockResolvedValue(mockResponse);
+        describe('handleGoogleLogin timeout', () => {
+            test('resets buttons after timeout', () => {
+                const { UI_CONSTANTS } = require('../src/ui/ui-constants');
+                const _uiAuthModule = require('../src/ui/ui-auth');
+                jest.useFakeTimers();
+                const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
+                setButtonLoadingSpy.mockImplementation(() => {});
+                const mockPopup = { closed: false, close: jest.fn(), location: { href: '' } };
+                mockOpen.mockReturnValue(mockPopup);
 
-            const mockModal = {
-                classList: { remove: jest.fn(), add: jest.fn() },
-            };
-            const mockContent = {
-                innerHTML: '',
-                addEventListener: jest.fn(),
-                querySelectorAll: jest.fn(() => []),
-            };
+                // Mock showToast to prevent DOM operations
+                const utilsModule = require('../src/utils');
+                jest.spyOn(utilsModule, 'showToast').mockImplementation(() => {});
 
-            document.getElementById = jest.fn()
-                .mockReturnValueOnce(mockModal)
-                .mockReturnValueOnce(mockContent)
-                .mockReturnValueOnce(mockModal);
+                // Call handleGoogleLogin to start the timeout
+                ui.handleGoogleLogin();
 
-            await ui.openSolutionModal('two-sum');
+                jest.advanceTimersByTime(UI_CONSTANTS.AUTH_TIMEOUT);
 
-            expect(mockModal.classList.remove).toHaveBeenCalledWith('hidden');
-            expect(mockContent.innerHTML).toBeTruthy();
+                expect(setButtonLoadingSpy).toHaveBeenCalledWith(expect.anything(), false);
+                // Note: popup.close() is no longer called due to COOP restrictions
+                // The popup self-closes via postMessage callback
 
-            delete global.fetch;
+                setButtonLoadingSpy.mockRestore();
+                jest.useRealTimers();
+            });
         });
 
-        test('closeSolutionModal hides modal', () => {
-            const mockModal = {
-                classList: { add: jest.fn() },
-            };
-            const mockContent = {
-                removeEventListener: jest.fn(),
-            };
+        describe('handleGoogleLogin popup blocked', () => {
+            test('shows toast when popup is blocked', () => {
+                mockOpen.mockReturnValue(null);
+                const showToastSpy = jest.spyOn(require('../src/utils'), 'showToast');
+                const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
+                setButtonLoadingSpy.mockImplementation(() => {});
 
-            document.getElementById = jest.fn()
-                .mockReturnValueOnce(mockModal)
-                .mockReturnValueOnce(mockContent);
+                ui.handleGoogleLogin();
 
-            ui.closeSolutionModal();
+                expect(showToastSpy).toHaveBeenCalledWith(
+                    'Sign-in popup was blocked. Please allow popups for this site and try again.',
+                    'error'
+                );
+                expect(setButtonLoadingSpy).toHaveBeenCalledWith(
+                    state.elements.googleLoginButton,
+                    false
+                );
+                expect(setButtonLoadingSpy).toHaveBeenCalledWith(
+                    state.elements.modalGoogleLoginButton,
+                    false
+                );
 
-            expect(mockModal.classList.add).toHaveBeenCalledWith('hidden');
+                showToastSpy.mockRestore();
+                setButtonLoadingSpy.mockRestore();
+            });
+        });
+
+        describe('handleGoogleLogin auth-failure message', () => {
+            test('handles auth-failure message', () => {
+                jest.useFakeTimers();
+                const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
+                const popup = {};
+                mockOpen.mockReturnValue(popup);
+                const showToastSpy = jest.spyOn(require('../src/utils'), 'showToast');
+                const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
+                setButtonLoadingSpy.mockImplementation(() => {});
+
+                ui.handleGoogleLogin();
+
+                const messageEvent = {
+                    origin: window.location.origin,
+                    source: popup,
+                    data: {
+                        type: 'auth-failure',
+                        message: 'Test failure message',
+                    },
+                };
+
+                const messageHandler = addEventListenerSpy.mock.calls.find(
+                    (call) => call[0] === 'message'
+                )[1];
+                messageHandler(messageEvent);
+
+                // Advance timers to execute setTimeout
+                jest.advanceTimersByTime(100);
+
+                expect(showToastSpy).toHaveBeenCalledWith(
+                    'Sign-in failed: Test failure message',
+                    'error'
+                );
+                expect(setButtonLoadingSpy).toHaveBeenCalledWith(
+                    state.elements.googleLoginButton,
+                    false
+                );
+                expect(setButtonLoadingSpy).toHaveBeenCalledWith(
+                    state.elements.modalGoogleLoginButton,
+                    false
+                );
+
+                addEventListenerSpy.mockRestore();
+                showToastSpy.mockRestore();
+                setButtonLoadingSpy.mockRestore();
+                jest.useRealTimers();
+            });
+        });
+
+        describe('handleGoogleLogin popup closed', () => {
+            test('ignores unrelated same-origin messages instead of cancelling sign-in', () => {
+                jest.useFakeTimers();
+                const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
+                const mockPopup = { closed: false, close: jest.fn(), location: { href: '' } };
+                mockOpen.mockReturnValue(mockPopup);
+                const showToastSpy = jest.spyOn(require('../src/utils'), 'showToast');
+                const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
+                setButtonLoadingSpy.mockImplementation(() => {});
+
+                ui.handleGoogleLogin();
+                setButtonLoadingSpy.mockClear();
+
+                const messageEvent = {
+                    origin: window.location.origin,
+                    source: mockPopup,
+                    data: { type: 'other-type' },
+                };
+
+                const messageHandler = addEventListenerSpy.mock.calls.find(
+                    (call) => call[0] === 'message'
+                )[1];
+                messageHandler(messageEvent);
+
+                expect(setButtonLoadingSpy).not.toHaveBeenCalledWith(
+                    state.elements.googleLoginButton,
+                    false
+                );
+                expect(setButtonLoadingSpy).not.toHaveBeenCalledWith(
+                    state.elements.modalGoogleLoginButton,
+                    false
+                );
+
+                addEventListenerSpy.mockRestore();
+                showToastSpy.mockRestore();
+                setButtonLoadingSpy.mockRestore();
+                jest.useRealTimers();
+            });
         });
     });
-    describe('filter button click', () => {
-        test('handles filter button click', () => {
-            const btn = {
-                dataset: { filter: 'solved' },
-                addEventListener: jest.fn(),
-                dispatchEvent: jest.fn(),
-            };
-            state.elements.filterBtns = [btn];
-
-            ui.bindNavigationEvents();
-
-            // Get the click handler
-            const clickHandler = btn.addEventListener.mock.calls.find(
-                (call) => call[0] === 'click'
-            )[1];
-
-            // Simulate click
-            clickHandler();
-
-            expect(state.ui.currentFilter).toBe('solved');
-            expect(renderers.updateFilterBtns).toHaveBeenCalled();
-            // When activeTopicId is empty and no algorithm/SQL category is active, renderCombinedView is called
-            expect(renderers.renderCombinedView).toHaveBeenCalled();
-        });
-    });
-
-    describe('handleKeyboard edge cases', () => {
-        test('closes add problem modal on Escape', () => {
-            jest.clearAllMocks();
-            state.elements.addProblemModal = {
-                classList: { contains: jest.fn(() => true), add: jest.fn() },
-            };
-            const event = {
-                key: 'Escape',
-                target: { tagName: 'DIV' },
-                preventDefault: jest.fn(),
-            };
-
-            ui.handleKeyboard(event);
-
-            expect(state.elements.addProblemModal.classList.add).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('pullToRefresh handleTouchEnd reload', () => {
-        test('resets pulling state when threshold met and not in test env', () => {
-            // Temporarily mock jest as undefined to simulate production
-            const originalJest = global.jest;
-            delete global.jest;
-
-            ui.pullToRefresh.isPulling = true;
-            ui.pullToRefresh.startY = 0;
-
-            const event = {
-                changedTouches: [{ clientY: 150 }],
-            };
-
-            ui.pullToRefresh.handleTouchEnd(event);
-
-            expect(ui.pullToRefresh.isPulling).toBe(false);
-
-            // Restore
-            global.jest = originalJest;
-        });
-    });
-
-    describe('bindModalEvents close callbacks', () => {
-        test('confirm modal close callback calls closeConfirmModal', () => {
-            ui.bindModalEvents();
-
-            // The handler is attached to confirmModal
-            const handler = state.elements.confirmModal.addEventListener.mock.calls[0][1];
-            const event = { target: state.elements.confirmModal };
-
-            handler(event);
-
-            expect(mockClassListAdd).toHaveBeenCalledWith('hidden');
-        });
-    });
-
-    describe('handleGoogleLogin timeout', () => {
-        test('resets buttons after timeout', () => {
-            const { UI_CONSTANTS } = require('../src/ui/ui-constants');
-            const _uiAuthModule = require('../src/ui/ui-auth');
-            jest.useFakeTimers();
-            const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
-            setButtonLoadingSpy.mockImplementation(() => {});
-            const mockPopup = { closed: false, close: jest.fn(), location: { href: '' } };
-            mockOpen.mockReturnValue(mockPopup);
-
-            // Mock showToast to prevent DOM operations
-            const utilsModule = require('../src/utils');
-            jest.spyOn(utilsModule, 'showToast').mockImplementation(() => {});
-
-            // Call handleGoogleLogin to start the timeout
-            ui.handleGoogleLogin();
-
-            jest.advanceTimersByTime(UI_CONSTANTS.AUTH_TIMEOUT);
-
-            expect(setButtonLoadingSpy).toHaveBeenCalledWith(expect.anything(), false);
-            // Note: popup.close() is no longer called due to COOP restrictions
-            // The popup self-closes via postMessage callback
-
-            setButtonLoadingSpy.mockRestore();
-            jest.useRealTimers();
-        });
-    });
-
-    describe('handleGoogleLogin popup blocked', () => {
-        test('shows toast when popup is blocked', () => {
-            mockOpen.mockReturnValue(null);
-            const showToastSpy = jest.spyOn(
-                require('../src/utils'),
-                'showToast'
-            );
-            const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
-            setButtonLoadingSpy.mockImplementation(() => {});
-
-            ui.handleGoogleLogin();
-
-            expect(showToastSpy).toHaveBeenCalledWith(
-                'Sign-in popup was blocked. Please allow popups for this site and try again.',
-                'error'
-            );
-            expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginButton, false);
-            expect(setButtonLoadingSpy).toHaveBeenCalledWith(
-                state.elements.modalGoogleLoginButton,
-                false
-            );
-
-            showToastSpy.mockRestore();
-            setButtonLoadingSpy.mockRestore();
-        });
-    });
-
-    describe('handleGoogleLogin auth-failure message', () => {
-        test('handles auth-failure message', () => {
-            jest.useFakeTimers();
-            const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
-            mockOpen.mockReturnValue({});
-            const showToastSpy = jest.spyOn(
-                require('../src/utils'),
-                'showToast'
-            );
-            const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
-            setButtonLoadingSpy.mockImplementation(() => {});
-
-            ui.handleGoogleLogin();
-
-            const messageEvent = {
-                origin: window.location.origin,
-                data: {
-                    type: 'auth-failure',
-                    message: 'Test failure message',
-                },
-            };
-
-            const messageHandler = addEventListenerSpy.mock.calls.find(
-                (call) => call[0] === 'message'
-            )[1];
-            messageHandler(messageEvent);
-
-            // Advance timers to execute setTimeout
-            jest.advanceTimersByTime(100);
-
-            expect(showToastSpy).toHaveBeenCalledWith(
-                'Sign-in failed: Test failure message',
-                'error'
-            );
-            expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginButton, false);
-            expect(setButtonLoadingSpy).toHaveBeenCalledWith(
-                state.elements.modalGoogleLoginButton,
-                false
-            );
-
-            addEventListenerSpy.mockRestore();
-            showToastSpy.mockRestore();
-            setButtonLoadingSpy.mockRestore();
-            jest.useRealTimers();
-        });
-    });
-
-    describe('handleGoogleLogin popup closed', () => {
-        test('resets buttons when auth completes without success', () => {
-            jest.useFakeTimers();
-            const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
-            const mockPopup = { closed: false, close: jest.fn(), location: { href: '' } };
-            mockOpen.mockReturnValue(mockPopup);
-            const showToastSpy = jest.spyOn(
-                require('../src/utils'),
-                'showToast'
-            );
-            const setButtonLoadingSpy = jest.spyOn(ui, 'setButtonLoading');
-            setButtonLoadingSpy.mockImplementation(() => {});
-
-            ui.handleGoogleLogin();
-
-            // Simulate receiving a non-auth message (which triggers cleanup)
-            const messageEvent = {
-                origin: window.location.origin,
-                data: { type: 'other-type' }, // Not auth-success or auth-failure
-            };
-
-            const messageHandler = addEventListenerSpy.mock.calls.find(
-                (call) => call[0] === 'message'
-            )[1];
-            messageHandler(messageEvent);
-
-            // Buttons should be reset after message handling
-            expect(setButtonLoadingSpy).toHaveBeenCalledWith(state.elements.googleLoginButton, false);
-            expect(setButtonLoadingSpy).toHaveBeenCalledWith(
-                state.elements.modalGoogleLoginButton,
-                false
-            );
-
-            addEventListenerSpy.mockRestore();
-            showToastSpy.mockRestore();
-            setButtonLoadingSpy.mockRestore();
-            jest.useRealTimers();
-        });
-    });
-});
 });

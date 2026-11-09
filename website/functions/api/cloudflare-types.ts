@@ -26,6 +26,7 @@ export type { KVNamespace };
  * @param maxRequests - Maximum allowed requests in the time window (default: 10)
  * @param windowSeconds - Time window duration in seconds (default: 60)
  * @param bucket - Logical bucket name, keyed per endpoint/action (default: 'api')
+ * @param failClosed - When true, a KV error blocks the request (auth endpoints)
  * @returns True if request should be rate limited (blocked)
  */
 export async function checkRateLimit(
@@ -33,13 +34,12 @@ export async function checkRateLimit(
     env: { KV: KVNamespace },
     maxRequests: number = 10,
     windowSeconds: number = 60,
-    bucket: string = 'api'
+    bucket: string = 'api',
+    failClosed: boolean = false
 ): Promise<boolean> {
     // Use only CF-Connecting-IP since we're behind Cloudflare.
     // X-Forwarded-For is intentionally excluded as it can be spoofed.
-    const clientIP =
-        request.headers.get('CF-Connecting-IP') ||
-        'unknown';
+    const clientIP = request.headers.get('CF-Connecting-IP') || 'unknown';
     const key = `ratelimit_${bucket}_${clientIP}`;
 
     try {
@@ -58,6 +58,9 @@ export async function checkRateLimit(
         return false; // Not rate limited
     } catch (error) {
         console.error('Rate limit check error:', error);
-        return false; // Allow request on error
+        // Auth endpoints pass failClosed=true so a KV outage cannot open
+        // the login/token floodgates. User-data endpoints stay fail-open
+        // so a limiter blip does not block sync.
+        return failClosed;
     }
 }

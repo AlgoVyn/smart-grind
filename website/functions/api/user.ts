@@ -1,8 +1,10 @@
 import {
     authenticate,
     checkRateLimit,
+    CorruptUserDataError,
     createCorsResponse,
     isValidUserId,
+    peekUserGeneration,
     RATE_LIMIT_BUCKETS,
     readJsonBody,
     readUserData,
@@ -38,13 +40,7 @@ import {
  * Authorization: Bearer <jwt>
  * // Returns: { csrfToken: 'uuid-token' }
  */
-export async function onRequestGet({
-    request,
-    env,
-}: {
-    request: Request;
-    env: Env;
-}) {
+export async function onRequestGet({ request, env }: { request: Request; env: Env }) {
     // Handle CORS preflight requests (in production these are routed to
     // onRequestOptions; this branch keeps direct OPTIONS calls working)
     if (request.method === 'OPTIONS') {
@@ -134,7 +130,12 @@ export async function onRequestGet({
         // (KV edge caching with a TTL served stale data after a successful POST)
         const data = await readUserData(env, payload.userId);
         return createCorsResponse(
-            JSON.stringify(data),
+            JSON.stringify({
+                problems: data.problems,
+                deletedIds: data.deletedIds,
+                flashCardProgress: data.flashCardProgress,
+                generation: data.generation,
+            }),
             {
                 headers: { 'Content-Type': 'application/json' },
             },
@@ -142,6 +143,14 @@ export async function onRequestGet({
             env
         );
     } catch (e: unknown) {
+        if (e instanceof CorruptUserDataError) {
+            return createCorsResponse(
+                JSON.stringify({ error: 'corrupt_blob', recoverable: true }),
+                { status: 500 },
+                request,
+                env
+            );
+        }
         const errorMessage = e instanceof Error ? e.message : 'Unknown error';
         return createCorsResponse(
             JSON.stringify({ error: errorMessage }),
@@ -170,20 +179,17 @@ export async function onRequestGet({
  * Body: { data: { problems: {...}, deletedIds: [...] } }
  * // Returns: "OK" on success, or { error: "..." } on failure
  */
-export async function onRequestPost({
-    request,
-    env,
-}: {
-    request: Request;
-    env: Env;
-}) {
+export async function onRequestPost({ request, env }: { request: Request; env: Env }) {
     // Handle CORS preflight requests
     if (request.method === 'OPTIONS') {
         return createCorsResponse(null, { status: 204 }, request, env);
     }
 
     // Rate limiting: 30 saves per minute (skip in tests)
-    if (env.NODE_ENV !== 'test' && (await checkRateLimit(request, env, 30, 60, RATE_LIMIT_BUCKETS.USER_DATA_SAVE))) {
+    if (
+        env.NODE_ENV !== 'test' &&
+        (await checkRateLimit(request, env, 30, 60, RATE_LIMIT_BUCKETS.USER_DATA_SAVE))
+    ) {
         return createCorsResponse(
             JSON.stringify({ error: 'Rate limit exceeded' }),
             { status: 429 },
@@ -223,12 +229,7 @@ export async function onRequestPost({
                 : parsed.error === 'invalid-json'
                   ? 'Invalid JSON'
                   : 'Invalid data';
-        return createCorsResponse(
-            JSON.stringify({ error: message }),
-            { status },
-            request,
-            env
-        );
+        return createCorsResponse(JSON.stringify({ error: message }), { status }, request, env);
     }
     const body = parsed.body;
 
@@ -258,9 +259,58 @@ export async function onRequestPost({
         );
     }
 
+    const clientGeneration = body['generation'];
+
+    let currentGeneration = 0;
+    let existingReadable = true;
     try {
-        await writeUserData(env, payload.userId, data);
-        return createCorsResponse('OK', undefined, request, env);
+        const existing = await readUserData(env, payload.userId);
+        currentGeneration = existing.generation;
+    } catch (e: unknown) {
+        if (!(e instanceof CorruptUserDataError)) {
+            const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+            return createCorsResponse(
+                JSON.stringify({ error: errorMessage }),
+                { status: 500 },
+                request,
+                env
+            );
+        }
+        // Corrupt blob: allow this full save to repair it. Incremental
+        // endpoints still reject so they cannot silently persist garbage.
+        existingReadable = false;
+        const peek = await peekUserGeneration(env, payload.userId);
+        currentGeneration = peek.generation;
+    }
+
+    if (
+        existingReadable &&
+        typeof clientGeneration === 'number' &&
+        Number.isFinite(clientGeneration) &&
+        currentGeneration > 0 &&
+        clientGeneration !== currentGeneration
+    ) {
+        return createCorsResponse(
+            JSON.stringify({
+                error: 'generation_conflict',
+                generation: currentGeneration,
+            }),
+            { status: 409 },
+            request,
+            env
+        );
+    }
+
+    try {
+        const nextGeneration = await writeUserData(env, payload.userId, data, {
+            currentGeneration,
+        });
+        return createCorsResponse(
+            'OK',
+            { headers: { 'X-Data-Generation': String(nextGeneration) } },
+            request,
+            env
+        );
     } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Unknown error';
         return createCorsResponse(
@@ -276,12 +326,6 @@ export async function onRequestPost({
  * Handles CORS preflight requests. Method-scoped GET/POST handlers never see
  * OPTIONS in production, so preflights are answered here.
  */
-export async function onRequestOptions({
-    request,
-    env,
-}: {
-    request: Request;
-    env: Env;
-}) {
+export async function onRequestOptions({ request, env }: { request: Request; env: Env }) {
     return createCorsResponse(null, { status: 204 }, request, env);
 }

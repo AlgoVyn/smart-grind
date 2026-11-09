@@ -14,8 +14,8 @@ export const LIMITS = {
         MAX_EXPORT_STRING_LENGTH: 10000,
         /** Maximum key length for export data */
         MAX_EXPORT_KEY_LENGTH: 100,
-        /** Default maximum items to keep in deleted IDs set */
-        MAX_DELETED_IDS: 50,
+        /** Default maximum items to keep in deleted IDs set (aligned with the API) */
+        MAX_DELETED_IDS: 1000,
         /** Threshold for triggering auto-cleanup */
         CLEANUP_THRESHOLD: 100,
         /** Number of problems to remove during cleanup (20% of total, max) */
@@ -34,8 +34,12 @@ export const LIMITS = {
         TOKEN_RATE_LIMIT: 60,
         /** OAuth state TTL in seconds (5 minutes) */
         OAUTH_STATE_TTL: 300,
-        /** JWT token expiration in seconds (7 days) */
-        JWT_EXPIRATION_SECONDS: 7 * 24 * 60 * 60,
+        /** JWT token expiration in seconds (1 hour; matches documented TTL) */
+        JWT_EXPIRATION_SECONDS: 60 * 60,
+        /** JWT issuer claim for newly minted tokens */
+        JWT_ISSUER: 'smartgrind',
+        /** JWT audience claim for newly minted tokens */
+        JWT_AUDIENCE: 'smartgrind',
     },
 
     // State management thresholds
@@ -54,6 +58,8 @@ export const LIMITS = {
     VALIDATION: {
         /** Maximum length for OAuth authorization code */
         MAX_OAUTH_CODE_LENGTH: 1000,
+        /** Maximum length for a problem ID (storage key) */
+        MAX_PROBLEM_ID_LENGTH: 100,
         /** Maximum export file size in bytes (rough estimate) */
         MAX_EXPORT_FILE_SIZE: 1024 * 1024, // 1MB
     },

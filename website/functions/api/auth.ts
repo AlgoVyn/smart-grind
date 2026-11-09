@@ -26,9 +26,7 @@ import { LIMITS } from '../../src/config/limits';
  * script contexts while remaining valid JavaScript that produces the original values.
  */
 function safeJsonForScript(value: unknown): string {
-    return JSON.stringify(value)
-        .replace(/</g, '\\u003c')
-        .replace(/>/g, '\\u003e');
+    return JSON.stringify(value).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
 }
 
 /**
@@ -62,7 +60,6 @@ function getCookieValue(cookieHeader: string | null, name: string): string | nul
 function generateNonce(): string {
     return crypto.randomUUID();
 }
-
 
 /**
  * Creates an HTML response page for authentication callbacks.
@@ -134,12 +131,26 @@ function createAuthHtml(
 
     const headers: Record<string, string> = {
         'Content-Type': 'text/html',
+        'Content-Security-Policy': [
+            "default-src 'self'",
+            `script-src 'self' 'nonce-${nonce}'`,
+            "style-src 'self' 'unsafe-inline'",
+            "img-src 'self' data: https:",
+            "connect-src 'self'",
+            "frame-ancestors 'none'",
+            "form-action 'self'",
+            "base-uri 'self'",
+            "object-src 'none'",
+            'upgrade-insecure-requests',
+        ].join('; '),
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
         ...extraHeaders,
     };
 
     return new Response(html, { status: statusCode, headers });
 }
-
 
 /**
  * Validates that required environment variables are configured.
@@ -167,11 +178,11 @@ function validateEnvironment(env: Env): void {
     }
 }
 
-
-
 /**
  * Signs a JWT token using HS256 algorithm with the given payload.
- * Creates a token valid for 7 days from issuance time.
+ * Creates a token valid for LIMITS.API.JWT_EXPIRATION_SECONDS (1 hour).
+ * New tokens include iss, aud, iat, and jti. Existing tokens minted before
+ * these claims are still accepted so current sessions are not force-logged-out.
  * Used to maintain authenticated sessions after OAuth completion.
  * @param payload - The data to encode in the JWT (userId, displayName)
  * @param secret - The HMAC secret key for signing
@@ -191,6 +202,10 @@ async function signJWT(
     const secretKey = new TextEncoder().encode(secret);
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setIssuer(LIMITS.API.JWT_ISSUER)
+        .setAudience(LIMITS.API.JWT_AUDIENCE)
+        .setJti(crypto.randomUUID())
         .setExpirationTime(Math.floor(Date.now() / 1000) + LIMITS.API.JWT_EXPIRATION_SECONDS)
         .sign(secretKey);
 }
@@ -207,11 +222,13 @@ async function signJWT(
  *   return new Response('Invalid authorization code', { status: 400 });
  * }
  */
-function validateOAuthCode(
-    params: URLSearchParams
-): string | null {
+function validateOAuthCode(params: URLSearchParams): string | null {
     const code = params.get('code');
-    if (!code || typeof code !== 'string' || code.length > LIMITS.VALIDATION.MAX_OAUTH_CODE_LENGTH) {
+    if (
+        !code ||
+        typeof code !== 'string' ||
+        code.length > LIMITS.VALIDATION.MAX_OAUTH_CODE_LENGTH
+    ) {
         return null;
     }
     return code;
@@ -224,15 +241,18 @@ function validateOAuthCode(
  * @param env - Environment with ALLOWED_ORIGINS or OAUTH_REDIRECT_URI
  * @returns True if the redirect URI is allowed
  */
-function isValidRedirectUri(redirectUri: string, env: { 
-    OAUTH_REDIRECT_URI?: string; 
-    ALLOWED_ORIGINS?: string;
-}): boolean {
+function isValidRedirectUri(
+    redirectUri: string,
+    env: {
+        OAUTH_REDIRECT_URI?: string;
+        ALLOWED_ORIGINS?: string;
+    }
+): boolean {
     // Primary: Use explicit OAuth redirect URI from environment
     if (env.OAUTH_REDIRECT_URI) {
         return redirectUri === env.OAUTH_REDIRECT_URI;
     }
-    
+
     // Fallback: Check against allowed origins (for development/multi-environment)
     if (env.ALLOWED_ORIGINS) {
         const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map((o: string) => o.trim());
@@ -243,7 +263,7 @@ function isValidRedirectUri(redirectUri: string, env: {
             return false;
         }
     }
-    
+
     // Last resort: Allow in development (localhost) or test environment
     try {
         const url = new URL(redirectUri);
@@ -262,29 +282,32 @@ function isValidRedirectUri(redirectUri: string, env: {
  * @param env - Environment variables
  * @returns The validated redirect URI
  */
-function getOAuthRedirectUri(requestUrl: URL, env: { 
-    OAUTH_REDIRECT_URI?: string; 
-    ALLOWED_ORIGINS?: string;
-}): string {
+function getOAuthRedirectUri(
+    requestUrl: URL,
+    env: {
+        OAUTH_REDIRECT_URI?: string;
+        ALLOWED_ORIGINS?: string;
+    }
+): string {
     // Priority 1: Explicit environment variable
     if (env.OAUTH_REDIRECT_URI) {
         return env.OAUTH_REDIRECT_URI;
     }
-    
+
     // Priority 2: Construct from request origin (for development/staging)
     const constructedUri = `${requestUrl.origin}/smartgrind/api/auth`;
-    
+
     // Validate the constructed URI
     if (isValidRedirectUri(constructedUri, env)) {
         return constructedUri;
     }
-    
+
     // Fallback for test environment: use the constructed URI anyway
     // Tests should mock environment variables properly, but this provides a safety net
     if (typeof jest !== 'undefined') {
         return constructedUri;
     }
-    
+
     // This should not happen in production with proper config
     console.error('OAuth redirect URI validation failed');
     throw new Error('OAuth configuration error');
@@ -303,11 +326,11 @@ interface RequestContext {
  * Two modes: 'login' action initiates OAuth, callback mode completes authentication.
  * Implements CSRF protection via state parameter, rate limiting, and secure token handling.
  * Returns HTML with postMessage for popup flow or redirects for PWA flow.
- * 
- * SECURITY: Token is no longer exposed in HTML/URL. Client must fetch token via 
+ *
+ * SECURITY: Token is no longer exposed in HTML/URL. Client must fetch token via
  * /api/auth/token endpoint after successful authentication using the HttpOnly cookie.
  * Uses nonce-based CSP to eliminate 'unsafe-inline' requirement.
- * 
+ *
  * @param context - Cloudflare Pages Function context
  * @param context.request - The HTTP request (login initiation or callback)
  * @param context.env - Environment with GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET, KV, OAUTH_REDIRECT_URI
@@ -336,7 +359,14 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
         // exhaust the OAuth budget.
         if (
             typeof jest === 'undefined' &&
-            (await checkRateLimit(request, env, LIMITS.API.TOKEN_RATE_LIMIT, 60, 'auth_token'))
+            (await checkRateLimit(
+                request,
+                env,
+                LIMITS.API.TOKEN_RATE_LIMIT,
+                60,
+                'auth_token',
+                true
+            ))
         ) {
             return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
                 status: 429,
@@ -349,7 +379,7 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
     // Rate limiting: 10 requests per minute for OAuth login/callback (skip in tests)
     if (
         typeof jest === 'undefined' &&
-        (await checkRateLimit(request, env, LIMITS.API.OAUTH_RATE_LIMIT, 60, 'auth_oauth'))
+        (await checkRateLimit(request, env, LIMITS.API.OAUTH_RATE_LIMIT, 60, 'auth_oauth', true))
     ) {
         return new Response('Rate limit exceeded', { status: 429 });
     }
@@ -360,7 +390,9 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
         // Generate random state for CSRF protection
         const state = crypto.randomUUID();
         // Store state in KV with short TTL (5 minutes)
-        await env.KV.put(`oauth_state_${state}`, 'valid', { expirationTtl: LIMITS.API.OAUTH_STATE_TTL });
+        await env.KV.put(`oauth_state_${state}`, 'valid', {
+            expirationTtl: LIMITS.API.OAUTH_STATE_TTL,
+        });
 
         // Bind the state to this browser via a cookie. Without this binding an
         // attacker can complete the OAuth flow for their own account and hand
@@ -403,7 +435,14 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
         const storedState = await env.KV.get(`oauth_state_${state}`);
         if (!storedState || !stateCookie || stateCookie !== state) {
             const nonce = generateNonce();
-            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Invalid state.', nonce, undefined, 400);
+            return createAuthHtml(
+                'Sign In Failed',
+                'auth-failure',
+                'Sign in failed: Invalid state.',
+                nonce,
+                undefined,
+                400
+            );
         }
         // Delete used state
         await env.KV.delete(`oauth_state_${state}`);
@@ -411,7 +450,14 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
         const code = validateOAuthCode(url.searchParams);
         if (!code) {
             const nonce = generateNonce();
-            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Invalid code.', nonce, undefined, 400);
+            return createAuthHtml(
+                'Sign In Failed',
+                'auth-failure',
+                'Sign in failed: Invalid code.',
+                nonce,
+                undefined,
+                400
+            );
         }
 
         let tokenData: { access_token?: string };
@@ -436,19 +482,40 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
                     await tokenResponse.text()
                 );
                 const nonce = generateNonce();
-                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Token exchange error.', nonce, undefined, 500);
+                return createAuthHtml(
+                    'Sign In Failed',
+                    'auth-failure',
+                    'Sign in failed: Token exchange error.',
+                    nonce,
+                    undefined,
+                    500
+                );
             }
 
-            tokenData = await tokenResponse.json() as { access_token?: string };
+            tokenData = (await tokenResponse.json()) as { access_token?: string };
             if (!tokenData.access_token) {
                 console.error('No access token in response:', tokenData);
                 const nonce = generateNonce();
-                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: No access token.', nonce, undefined, 400);
+                return createAuthHtml(
+                    'Sign In Failed',
+                    'auth-failure',
+                    'Sign in failed: No access token.',
+                    nonce,
+                    undefined,
+                    400
+                );
             }
         } catch (error) {
             console.error('Token exchange error:', error);
             const nonce = generateNonce();
-            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Token exchange error.', nonce, undefined, 500);
+            return createAuthHtml(
+                'Sign In Failed',
+                'auth-failure',
+                'Sign in failed: Token exchange error.',
+                nonce,
+                undefined,
+                500
+            );
         }
 
         const accessToken = tokenData.access_token;
@@ -467,19 +534,40 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
                     await userResponse.text()
                 );
                 const nonce = generateNonce();
-                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: User info error.', nonce, undefined, 500);
+                return createAuthHtml(
+                    'Sign In Failed',
+                    'auth-failure',
+                    'Sign in failed: User info error.',
+                    nonce,
+                    undefined,
+                    500
+                );
             }
 
-            user = await userResponse.json() as { id?: string; name?: string; email?: string };
+            user = (await userResponse.json()) as { id?: string; name?: string; email?: string };
             if (!user.id) {
                 console.error('Invalid user data:', user);
                 const nonce = generateNonce();
-                return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Invalid user data.', nonce, undefined, 400);
+                return createAuthHtml(
+                    'Sign In Failed',
+                    'auth-failure',
+                    'Sign in failed: Invalid user data.',
+                    nonce,
+                    undefined,
+                    400
+                );
             }
         } catch (error) {
             console.error('User info fetch error:', error);
             const nonce = generateNonce();
-            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Network error.', nonce, undefined, 500);
+            return createAuthHtml(
+                'Sign In Failed',
+                'auth-failure',
+                'Sign in failed: Network error.',
+                nonce,
+                undefined,
+                500
+            );
         }
 
         const userId = user.id;
@@ -506,7 +594,14 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
         } catch (error) {
             console.error('KV operation error:', error);
             const nonce = generateNonce();
-            return createAuthHtml('Sign In Failed', 'auth-failure', 'Sign in failed: Network error.', nonce, undefined, 500);
+            return createAuthHtml(
+                'Sign In Failed',
+                'auth-failure',
+                'Sign in failed: Network error.',
+                nonce,
+                undefined,
+                500
+            );
         }
 
         // Generate CSP nonce for this request
@@ -537,7 +632,7 @@ export async function onRequestGet({ request, env }: RequestContext): Promise<Re
             "frame-ancestors 'none'", // Prevent clickjacking
             "form-action 'self' https://accounts.google.com",
             "base-uri 'self'",
-            "upgrade-insecure-requests",
+            'upgrade-insecure-requests',
         ].join('; ');
 
         return createAuthHtml(
@@ -591,18 +686,43 @@ async function handleTokenRequest(request: Request, env: Env): Promise<Response>
 
         // Return the token and user info (client stores in IndexedDB for SW).
         // SECURITY: no-store so intermediaries never cache the token response.
-        return new Response(JSON.stringify({
-            token,
-            userId: payload.userId,
-            displayName: payload.displayName,
-            expiresIn: LIMITS.API.JWT_EXPIRATION_SECONDS
-        }), {
-            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-        });
+        return new Response(
+            JSON.stringify({
+                token,
+                userId: payload.userId,
+                displayName: payload.displayName,
+                expiresIn: LIMITS.API.JWT_EXPIRATION_SECONDS,
+            }),
+            {
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+            }
+        );
     } catch {
         return new Response(JSON.stringify({ error: 'Invalid token' }), {
             status: 401,
             headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
         });
     }
+}
+
+/**
+ * POST /api/auth?action=logout — expires the HttpOnly auth cookie.
+ * Does not require a valid session so a half-cleared client can always sign out.
+ */
+export async function onRequestPost({ request, env: _env }: RequestContext): Promise<Response> {
+    const url = new URL(request.url);
+    if (url.searchParams.get('action') !== 'logout') {
+        return new Response('Invalid action', { status: 400 });
+    }
+
+    const cookieHeader =
+        'auth_token=; HttpOnly; Secure; SameSite=Strict; Max-Age=0; Path=/smartgrind; Priority=High';
+    return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: {
+            'Content-Type': 'application/json',
+            'Set-Cookie': cookieHeader,
+            'Cache-Control': 'no-store',
+        },
+    });
 }

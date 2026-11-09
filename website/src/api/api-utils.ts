@@ -79,6 +79,7 @@ export const isBrowserOnline = (): boolean => {
 export const ERROR_MESSAGES: Record<number, string> = {
     401: 'Authentication failed. Please sign in again.',
     403: 'CSRF token validation failed. Please refresh the page and try again.',
+    409: 'Your data was updated on another device. Refreshing…',
     404: 'User data not found. Starting with fresh data.',
     500: 'Server error. Please try again later.',
 };

@@ -1,6 +1,13 @@
 import { jwtVerify } from 'jose';
 
 import { KVNamespace, checkRateLimit } from '../cloudflare-types';
+import { LIMITS } from '../../../src/config/limits';
+import {
+    isIsoDateString,
+    isReservedObjectKey,
+    isSafeHttpUrl,
+    isSafeProblemId,
+} from '../../../src/utils/data-rules';
 
 /**
  * Shared helpers for the user-data API routes (functions/api/user/**).
@@ -24,10 +31,7 @@ export interface Env {
 /**
  * Default allowed origins for production
  */
-export const DEFAULT_ALLOWED_ORIGINS = [
-    'https://algovyn.com',
-    'https://www.algovyn.com',
-];
+export const DEFAULT_ALLOWED_ORIGINS = ['https://algovyn.com', 'https://www.algovyn.com'];
 
 /** Maximum request body size accepted by POST endpoints (5 MB) */
 export const MAX_BODY_SIZE = 5 * 1024 * 1024;
@@ -36,13 +40,27 @@ export const MAX_BODY_SIZE = 5 * 1024 * 1024;
 export interface StoredUserData {
     problems: Record<string, Record<string, unknown>>;
     deletedIds: string[];
+    flashCardProgress: Record<string, Record<string, unknown>>;
 }
 
-/** Fields that a progress operation may set on a problem record */
-const PROGRESS_FIELDS = ['status', 'nextReviewDate', 'reviewInterval', 'note'] as const;
+/** Thrown when a stored user blob exists but cannot be decompressed or parsed. */
+export class CorruptUserDataError extends Error {
+    constructor(message = 'Stored user data is corrupt') {
+        super(message);
+        this.name = 'CorruptUserDataError';
+    }
+}
+
+export interface ReadUserDataResult extends StoredUserData {
+    generation: number;
+}
 
 /** Upper bound for stored deletedIds so incremental deletes cannot grow it unbounded */
-const MAX_DELETED_IDS = 1000;
+const MAX_DELETED_IDS = LIMITS.STORAGE.MAX_DELETED_IDS;
+
+const MAX_PROBLEM_ID_LENGTH = LIMITS.VALIDATION.MAX_PROBLEM_ID_LENGTH;
+const MAX_INPUT_LENGTH = LIMITS.STATE.MAX_INPUT_LENGTH;
+const MAX_URL_LENGTH = LIMITS.STATE.MAX_URL_LENGTH;
 
 const USER_ID_REGEX = /^[a-zA-Z0-9_-]{1,100}$/;
 
@@ -115,12 +133,7 @@ export async function handleSyncPost(
                 : parsed.error === 'invalid-json'
                   ? 'Invalid JSON'
                   : 'Invalid data';
-        return createCorsResponse(
-            JSON.stringify({ error: message }),
-            { status },
-            request,
-            env
-        );
+        return createCorsResponse(JSON.stringify({ error: message }), { status }, request, env);
     }
 
     const csrfValid = await validateCsrfToken(
@@ -153,14 +166,29 @@ export async function handleSyncPost(
             );
         }
 
-        await writeUserData(env, payload.userId, data);
+        const nextGeneration = await writeUserData(env, payload.userId, data, {
+            currentGeneration: data.generation,
+        });
         return createCorsResponse(
-            JSON.stringify({ applied, conflicts: [] }),
-            { headers: { 'Content-Type': 'application/json' } },
+            JSON.stringify({ applied, conflicts: [], generation: nextGeneration }),
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Data-Generation': String(nextGeneration),
+                },
+            },
             request,
             env
         );
     } catch (e: unknown) {
+        if (e instanceof CorruptUserDataError) {
+            return createCorsResponse(
+                JSON.stringify({ error: 'corrupt_blob', recoverable: true }),
+                { status: 500 },
+                request,
+                env
+            );
+        }
         const errorMessage = e instanceof Error ? e.message : 'Unknown error';
         return createCorsResponse(
             JSON.stringify({ error: errorMessage }),
@@ -190,23 +218,20 @@ export function isValidOrigin(origin: string | null, allowedOriginsEnv?: string)
 
     // Parse allowed origins from env or use defaults
     const allowedOrigins = allowedOriginsEnv
-        ? allowedOriginsEnv.split(',').map(o => o.trim()).filter(Boolean)
+        ? allowedOriginsEnv
+              .split(',')
+              .map((o) => o.trim())
+              .filter(Boolean)
         : DEFAULT_ALLOWED_ORIGINS;
 
     try {
         const originUrl = new URL(origin);
 
-        // Check for exact match or subdomain match
-        return allowedOrigins.some(allowed => {
+        // Exact origin match only — a compromised or untrusted subdomain
+        // (e.g. https://app.algovyn.com) must not inherit API credentials.
+        return allowedOrigins.some((allowed) => {
             try {
-                const allowedUrl = new URL(allowed);
-                // Exact match
-                if (originUrl.origin === allowedUrl.origin) return true;
-                // Subdomain match (e.g., https://app.algovyn.com matches https://algovyn.com)
-                const originHostname = originUrl.hostname;
-                const allowedHostname = allowedUrl.hostname;
-                return originHostname === allowedHostname ||
-                       originHostname.endsWith(`.${allowedHostname}`);
+                return originUrl.origin === new URL(allowed).origin;
             } catch {
                 return false;
             }
@@ -234,7 +259,10 @@ function isAllowedLocalhost(origin: string, env?: Env): boolean {
  * origins are never reflected back with credentials enabled.
  */
 export function resolveAllowedOrigin(origin: string | null, env?: Env): string {
-    if (origin && (isValidOrigin(origin, env?.ALLOWED_ORIGINS) || isAllowedLocalhost(origin, env))) {
+    if (
+        origin &&
+        (isValidOrigin(origin, env?.ALLOWED_ORIGINS) || isAllowedLocalhost(origin, env))
+    ) {
         return origin;
     }
     return DEFAULT_ALLOWED_ORIGINS[0]!;
@@ -260,12 +288,22 @@ export function createCorsResponse(
     // Build headers object from init.headers
     const headersObj: Record<string, string> = {};
 
-    // Copy existing headers from init if provided
+    // Copy existing headers from init if provided. Plain objects keep their
+    // original names so test Response mocks (Map-based, case-sensitive) and
+    // browsers both see X-Data-Generation.
     if (init?.headers) {
-        const existingHeaders = new Headers(init.headers);
-        existingHeaders.forEach((value, key) => {
-            headersObj[key] = value;
-        });
+        if (init.headers instanceof Headers) {
+            init.headers.forEach((value, key) => {
+                headersObj[key] = value;
+            });
+        } else if (Array.isArray(init.headers)) {
+            for (const entry of init.headers) {
+                const [key, value] = entry as [string, string];
+                headersObj[key] = value;
+            }
+        } else {
+            Object.assign(headersObj, init.headers);
+        }
     }
 
     const origin = request?.headers.get('Origin');
@@ -374,7 +412,10 @@ export async function validateCsrfToken(
  */
 export async function readJsonBody(
     request: Request
-): Promise<{ ok: true; body: Record<string, unknown> } | { ok: false; error: 'too-large' | 'invalid-json' | 'not-object' }> {
+): Promise<
+    | { ok: true; body: Record<string, unknown> }
+    | { ok: false; error: 'too-large' | 'invalid-json' | 'not-object' }
+> {
     const raw = await request.text();
     if (new TextEncoder().encode(raw).byteLength > MAX_BODY_SIZE) {
         return { ok: false, error: 'too-large' };
@@ -399,9 +440,7 @@ export async function readJsonBody(
  * @returns The compressed bytes together with the encoding actually used, so
  * the caller can record it in KV metadata ('identity' means uncompressed)
  */
-export async function compressData(
-    data: string
-): Promise<{ data: ArrayBuffer; encoding: string }> {
+export async function compressData(data: string): Promise<{ data: ArrayBuffer; encoding: string }> {
     try {
         const encoder = new TextEncoder();
         const input = encoder.encode(data);
@@ -515,19 +554,34 @@ export async function decompressData(
 }
 
 export function defaultUserData(): StoredUserData {
-    return { problems: {}, deletedIds: [] };
+    return {
+        problems: Object.create(null) as StoredUserData['problems'],
+        deletedIds: [],
+        flashCardProgress: Object.create(null) as StoredUserData['flashCardProgress'],
+    };
+}
+
+export function parseGeneration(metadata: unknown): number {
+    if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+        return 0;
+    }
+    const raw = (metadata as Record<string, unknown>)['generation'];
+    const n = typeof raw === 'number' ? raw : Number(raw);
+    return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0;
 }
 
 /**
  * Reads and decompresses the user data blob from KV.
- * Always returns a usable object; corrupt/absent data yields an empty one.
+ * A missing key returns an empty dataset. A present but unreadable blob
+ * throws CorruptUserDataError so callers can avoid overwriting progress.
  */
-export async function readUserData(env: Env, userId: string): Promise<StoredUserData> {
+export async function readUserData(env: Env, userId: string): Promise<ReadUserDataResult> {
     const { value: data, metadata } = await env.KV.getWithMetadata(userId, {
         type: 'arrayBuffer',
     });
+    const generation = parseGeneration(metadata);
     if (!data) {
-        return defaultUserData();
+        return { ...defaultUserData(), generation };
     }
 
     const contentEncoding =
@@ -535,39 +589,155 @@ export async function readUserData(env: Env, userId: string): Promise<StoredUser
             ? String((metadata as Record<string, unknown>)['Content-Encoding'] ?? '')
             : '';
 
-    let parsed: Partial<StoredUserData> | null;
     try {
         const decompressed = await decompressData(data, contentEncoding || null);
-        parsed = JSON.parse(decompressed) as Partial<StoredUserData> | null;
+        const parsed = JSON.parse(decompressed) as unknown;
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            throw new CorruptUserDataError('Stored user data is not an object');
+        }
+        return { ...normalizeUserData(parsed, false), generation };
     } catch (error) {
-        // Corrupt blobs must not wedge the account: surface an empty dataset
-        // (the next full-blob POST rewrites it).
+        if (error instanceof CorruptUserDataError) {
+            throw error;
+        }
         console.error('Failed to parse stored user data:', error);
-        return defaultUserData();
+        throw new CorruptUserDataError(
+            error instanceof Error ? error.message : 'Failed to read stored user data'
+        );
     }
-    if (!parsed || typeof parsed !== 'object') {
-        return defaultUserData();
-    }
-    return {
-        problems:
-            parsed.problems && typeof parsed.problems === 'object' && !Array.isArray(parsed.problems)
-                ? (parsed.problems as StoredUserData['problems'])
-                : {},
-        deletedIds: Array.isArray(parsed.deletedIds) ? parsed.deletedIds : [],
-    };
 }
 
 /**
  * Normalizes an arbitrary parsed value into the stored blob shape.
  */
-function normalizeUserData(data: unknown): StoredUserData {
-    const obj = data && typeof data === 'object' && !Array.isArray(data) ? (data as Partial<StoredUserData>) : {};
+function sanitizeNote(value: unknown): string | undefined {
+    if (typeof value !== 'string') return undefined;
+    return value.slice(0, MAX_INPUT_LENGTH);
+}
+
+function sanitizeProblemRecord(
+    id: string,
+    raw: unknown,
+    strict: boolean
+): Record<string, unknown> | null {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+        return null;
+    }
+    const src = raw as Record<string, unknown>;
+    if (!strict) {
+        const copy: Record<string, unknown> = Object.create(null);
+        for (const [key, value] of Object.entries(src)) {
+            if (isReservedObjectKey(key)) continue;
+            copy[key] = value;
+        }
+        return copy;
+    }
+
+    const out: Record<string, unknown> = Object.create(null);
+    out['id'] = id;
+    if (typeof src['name'] === 'string') {
+        out['name'] = src['name'].slice(0, MAX_INPUT_LENGTH);
+    }
+    if (typeof src['url'] === 'string') {
+        const url = src['url'].trim().slice(0, MAX_URL_LENGTH);
+        out['url'] = isSafeHttpUrl(url, MAX_URL_LENGTH) ? url : '';
+    }
+    if (src['status'] === 'solved' || src['status'] === 'unsolved') {
+        out['status'] = src['status'];
+    }
+    if (typeof src['topic'] === 'string') {
+        out['topic'] = src['topic'].slice(0, MAX_INPUT_LENGTH);
+    }
+    if (typeof src['pattern'] === 'string') {
+        out['pattern'] = src['pattern'].slice(0, MAX_INPUT_LENGTH);
+    }
+    if (typeof src['reviewInterval'] === 'number' && Number.isFinite(src['reviewInterval'])) {
+        out['reviewInterval'] = Math.max(0, Math.floor(src['reviewInterval']));
+    }
+    if (src['nextReviewDate'] === null) {
+        out['nextReviewDate'] = null;
+    } else if (
+        typeof src['nextReviewDate'] === 'string' &&
+        isIsoDateString(src['nextReviewDate'])
+    ) {
+        out['nextReviewDate'] = src['nextReviewDate'];
+    }
+    const note = sanitizeNote(src['note']);
+    if (note !== undefined) {
+        out['note'] = note;
+    }
+    return out;
+}
+
+function sanitizeFlashCardProgress(raw: unknown): Record<string, Record<string, unknown>> {
+    const out: Record<string, Record<string, unknown>> = Object.create(null);
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+        return out;
+    }
+    for (const [cardId, value] of Object.entries(raw as Record<string, unknown>)) {
+        if (!isSafeProblemId(cardId, MAX_PROBLEM_ID_LENGTH)) continue;
+        if (!value || typeof value !== 'object' || Array.isArray(value)) continue;
+        const src = value as Record<string, unknown>;
+        const record: Record<string, unknown> = Object.create(null);
+        record['cardId'] = cardId;
+        if (typeof src['reviewInterval'] === 'number' && Number.isFinite(src['reviewInterval'])) {
+            record['reviewInterval'] = Math.max(0, Math.min(5, Math.floor(src['reviewInterval'])));
+        }
+        if (
+            src['nextReviewDate'] === null ||
+            (typeof src['nextReviewDate'] === 'string' && isIsoDateString(src['nextReviewDate']))
+        ) {
+            record['nextReviewDate'] = src['nextReviewDate'];
+        }
+        if (
+            src['lastReviewedAt'] === null ||
+            (typeof src['lastReviewedAt'] === 'string' && isIsoDateString(src['lastReviewedAt']))
+        ) {
+            record['lastReviewedAt'] = src['lastReviewedAt'];
+        }
+        if (typeof src['timesReviewed'] === 'number' && Number.isFinite(src['timesReviewed'])) {
+            record['timesReviewed'] = Math.max(0, Math.floor(src['timesReviewed']));
+        }
+        if (typeof src['timesCorrect'] === 'number' && Number.isFinite(src['timesCorrect'])) {
+            record['timesCorrect'] = Math.max(0, Math.floor(src['timesCorrect']));
+        }
+        out[cardId] = record;
+    }
+    return out;
+}
+
+/**
+ * Normalizes an arbitrary parsed value into the stored blob shape.
+ * Reserved object keys are dropped so a crafted payload cannot pollute
+ * Object.prototype. When `strict` is true (writes), only allowlisted fields
+ * with validated types are kept.
+ */
+export function normalizeUserData(data: unknown, strict = true): StoredUserData {
+    const obj =
+        data && typeof data === 'object' && !Array.isArray(data)
+            ? (data as Partial<StoredUserData>)
+            : {};
+    const problems: StoredUserData['problems'] = Object.create(null);
+    const rawProblems =
+        obj.problems && typeof obj.problems === 'object' && !Array.isArray(obj.problems)
+            ? obj.problems
+            : {};
+    for (const [id, record] of Object.entries(rawProblems)) {
+        if (!isSafeProblemId(id, MAX_PROBLEM_ID_LENGTH)) continue;
+        const sanitized = sanitizeProblemRecord(id, record, strict);
+        if (sanitized) {
+            problems[id] = sanitized;
+        }
+    }
+
+    const deletedIds = Array.isArray(obj.deletedIds)
+        ? obj.deletedIds.filter((id): id is string => isSafeProblemId(id, MAX_PROBLEM_ID_LENGTH))
+        : [];
+
     return {
-        problems:
-            obj.problems && typeof obj.problems === 'object' && !Array.isArray(obj.problems)
-                ? (obj.problems as StoredUserData['problems'])
-                : {},
-        deletedIds: Array.isArray(obj.deletedIds) ? obj.deletedIds : [],
+        problems,
+        deletedIds: deletedIds.slice(-MAX_DELETED_IDS),
+        flashCardProgress: sanitizeFlashCardProgress(obj.flashCardProgress),
     };
 }
 
@@ -577,12 +747,21 @@ function normalizeUserData(data: unknown): StoredUserData {
  * payloads so older readers (and rollbacks) can still decode them; the
  * current reader supports both the literal and legacy tags.
  */
-export async function writeUserData(env: Env, userId: string, data: unknown): Promise<void> {
-    const jsonData = JSON.stringify(normalizeUserData(data));
+export async function writeUserData(
+    env: Env,
+    userId: string,
+    data: unknown,
+    options?: { currentGeneration?: number }
+): Promise<number> {
+    const jsonData = JSON.stringify(normalizeUserData(data, true));
     const jsonBytes = new TextEncoder().encode(jsonData).byteLength;
 
     let storedValue: ArrayBuffer | string = jsonData;
-    const metadata: Record<string, string> = { 'Content-Type': 'application/json' };
+    const nextGeneration = (options?.currentGeneration ?? 0) + 1;
+    const metadata: Record<string, string> = {
+        'Content-Type': 'application/json',
+        generation: String(nextGeneration),
+    };
 
     try {
         const compressed = await compressData(jsonData);
@@ -608,6 +787,7 @@ export async function writeUserData(env: Env, userId: string, data: unknown): Pr
     }
 
     await env.KV.put(userId, storedValue, { metadata });
+    return nextGeneration;
 }
 
 /**
@@ -622,7 +802,7 @@ export function applyProgressOperation(
     op: { problemId?: unknown; operation?: unknown }
 ): boolean {
     const problemId = typeof op?.problemId === 'string' ? op.problemId : '';
-    if (!problemId || problemId.length > 200) {
+    if (!isSafeProblemId(problemId, MAX_PROBLEM_ID_LENGTH)) {
         return false;
     }
 
@@ -631,16 +811,31 @@ export function applyProgressOperation(
             ? (op.operation as Record<string, unknown>)
             : (op as Record<string, unknown>);
 
-    let record = data.problems[problemId];
+    let record = Object.prototype.hasOwnProperty.call(data.problems, problemId)
+        ? data.problems[problemId]
+        : undefined;
     if (!record || typeof record !== 'object') {
-        record = { id: problemId };
+        record = Object.assign(Object.create(null), { id: problemId });
         data.problems[problemId] = record;
     }
 
-    for (const field of PROGRESS_FIELDS) {
-        if (fields[field] !== undefined) {
-            record[field] = fields[field];
-        }
+    if (fields['status'] === 'solved' || fields['status'] === 'unsolved') {
+        record['status'] = fields['status'];
+    }
+    if (fields['nextReviewDate'] === null) {
+        record['nextReviewDate'] = null;
+    } else if (
+        typeof fields['nextReviewDate'] === 'string' &&
+        isIsoDateString(fields['nextReviewDate'])
+    ) {
+        record['nextReviewDate'] = fields['nextReviewDate'];
+    }
+    if (typeof fields['reviewInterval'] === 'number' && Number.isFinite(fields['reviewInterval'])) {
+        record['reviewInterval'] = Math.max(0, Math.floor(fields['reviewInterval']));
+    }
+    const note = sanitizeNote(fields['note']);
+    if (note !== undefined) {
+        record['note'] = note;
     }
     return true;
 }
@@ -655,10 +850,14 @@ export function applyCustomProblemUpsert(data: StoredUserData, problem: unknown)
     }
     const record = problem as Record<string, unknown>;
     const id = record['id'];
-    if (typeof id !== 'string' || !id || id.length > 200) {
+    if (!isSafeProblemId(id, MAX_PROBLEM_ID_LENGTH)) {
         return false;
     }
-    data.problems[id] = record;
+    const sanitized = sanitizeProblemRecord(id, record, true);
+    if (!sanitized) {
+        return false;
+    }
+    data.problems[id] = sanitized;
     return true;
 }
 
@@ -668,7 +867,7 @@ export function applyCustomProblemUpsert(data: StoredUserData, problem: unknown)
  * @returns True if the deletion was applied
  */
 export function applyProblemDeletion(data: StoredUserData, problemId: unknown): boolean {
-    if (typeof problemId !== 'string' || !problemId || problemId.length > 200) {
+    if (!isSafeProblemId(problemId, MAX_PROBLEM_ID_LENGTH)) {
         return false;
     }
     delete data.problems[problemId];
@@ -679,4 +878,14 @@ export function applyProblemDeletion(data: StoredUserData, problemId: unknown): 
         data.deletedIds.push(problemId);
     }
     return true;
+}
+
+export async function peekUserGeneration(
+    env: Env,
+    userId: string
+): Promise<{ exists: boolean; generation: number }> {
+    const { value, metadata } = await env.KV.getWithMetadata(userId, {
+        type: 'arrayBuffer',
+    });
+    return { exists: !!value, generation: parseGeneration(metadata) };
 }

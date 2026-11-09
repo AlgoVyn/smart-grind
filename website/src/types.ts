@@ -35,6 +35,8 @@ export interface Topic {
 export interface UserData {
     problems: Record<string, Problem>;
     deletedIds: string[];
+    flashCardProgress?: Record<string, FlashCardProgress>;
+    generation?: number;
 }
 
 export interface User {

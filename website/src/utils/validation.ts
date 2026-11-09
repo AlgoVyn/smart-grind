@@ -4,6 +4,7 @@
 import type { Problem, FlashCardProgress } from '../types';
 import { LIMITS } from '../config/limits';
 import DOMPurify from 'dompurify';
+import { isReservedObjectKey, isSafeProblemId, PROBLEM_ID_REGEX } from './data-rules';
 
 // Local sanitize function to avoid circular dependencies and mocking issues
 const sanitizeInput = (input: string | null | undefined): string => {
@@ -70,12 +71,13 @@ const validateProblemId = (id: unknown): string | null => {
     if (typeof id !== 'string') {
         return 'Problem ID must be a string';
     }
-    if (id.length === 0 || id.length > 100) {
-        return 'Problem ID must be between 1 and 100 characters';
+    if (id.length === 0 || id.length > LIMITS.VALIDATION.MAX_PROBLEM_ID_LENGTH) {
+        return `Problem ID must be between 1 and ${LIMITS.VALIDATION.MAX_PROBLEM_ID_LENGTH} characters`;
     }
-    // Allow alphanumeric, hyphens, and some common special characters
-    const validIdRegex = /^[a-zA-Z0-9\-_.:]+$/;
-    if (!validIdRegex.test(id)) {
+    if (isReservedObjectKey(id)) {
+        return 'Problem ID is reserved';
+    }
+    if (!PROBLEM_ID_REGEX.test(id)) {
         return 'Problem ID contains invalid characters';
     }
     return null;
@@ -282,7 +284,6 @@ export const validateFlashCardProgress = (input: unknown): ValidationResult<Flas
 export const sanitizeProblemId = (id: unknown): string | null => {
     if (typeof id !== 'string') return null;
     const trimmed = id.trim();
-    if (trimmed.length === 0 || trimmed.length > 100) return null;
-    // Remove any potentially dangerous characters
-    return trimmed.replace(/[<>'"&]/g, '');
+    if (!isSafeProblemId(trimmed, LIMITS.VALIDATION.MAX_PROBLEM_ID_LENGTH)) return null;
+    return trimmed;
 };

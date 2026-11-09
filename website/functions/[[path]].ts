@@ -35,11 +35,15 @@ function escapeJson(str: string): string {
 // Security headers applied to SSR-generated HTML responses. Cloudflare Pages
 // `_headers` rules do not apply to Function responses, so these must be set
 // here to keep SSR pages protected the same way as static ones.
+const SSR_CSP =
+    "default-src 'self'; script-src 'self' https://static.cloudflareinsights.com 'sha256-QovWu9otHSj5Uu1QIClQfOocK1Ub4hITj04JcwpKRhc=' 'sha256-Itqb2IM/hP8Nkag3S5cHpTkYdAnWNDc+8A17whR+nWE='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://algovyn.com data: blob:; connect-src 'self' https://algovyn.com https://leetcode.com https://fonts.googleapis.com https://static.cloudflareinsights.com; frame-src https://accounts.google.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;";
+
 const SSR_SECURITY_HEADERS: Record<string, string> = {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+    'Content-Security-Policy': SSR_CSP,
 };
 
 // Category data with SEO-optimized descriptions
@@ -288,7 +292,7 @@ export async function onRequest(context: { request: Request; env: Env; next: () 
         return new Response(null, {
             status: 301,
             headers: {
-                Location: `https://algovyn.com/smartgrind${redirectTo}${url.search}`,
+                Location: `${url.origin}/smartgrind${redirectTo}${url.search}`,
                 'Cache-Control': 'public, max-age=86400',
                 ...SSR_SECURITY_HEADERS,
             },

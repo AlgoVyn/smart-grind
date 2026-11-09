@@ -137,18 +137,35 @@ export const handleGoogleLogin = () => {
         if (event.origin !== window.location.origin) {
             return;
         }
-        authCompleted = true;
-        clearTimeout(timeoutId);
-        if (event.data.type === 'auth-success') {
-            const p = handleAuthSuccess(event.data);
+        if (popup && event.source !== popup) {
+            return;
+        }
+        const payload = event.data;
+        if (!payload || typeof payload !== 'object') {
+            return;
+        }
+        const type = (payload as { type?: unknown }).type;
+        if (type === 'auth-success') {
+            const userId = (payload as { userId?: unknown }).userId;
+            const displayName = (payload as { displayName?: unknown }).displayName;
+            if (typeof userId !== 'string' || typeof displayName !== 'string') {
+                return;
+            }
+            authCompleted = true;
+            clearTimeout(timeoutId);
+            const p = handleAuthSuccess({ userId, displayName });
             p.finally(cleanupAuth);
             return p;
         }
-        if (event.data.type === 'auth-failure') {
-            handleAuthFailure(event.data);
+        if (type === 'auth-failure') {
+            authCompleted = true;
+            clearTimeout(timeoutId);
+            const message = (payload as { message?: unknown }).message;
+            handleAuthFailure({
+                message: typeof message === 'string' ? message : 'Sign in failed',
+            });
+            cleanupAuth();
         }
-        cleanupAuth();
-        return;
     };
     window.addEventListener('message', messageHandler);
 
@@ -176,7 +193,14 @@ export const handleLogout = async () => {
         localStorage.removeItem('displayName');
         const { clearTokenForServiceWorker } = await import('../sw-auth-storage');
         clearTokenForServiceWorker().catch(() => {});
-        // Note: Cookie will be cleared by server or expire naturally
+        try {
+            await fetch('/smartgrind/api/auth?action=logout', {
+                method: 'POST',
+                credentials: 'include',
+            });
+        } catch {
+            // Still complete local sign-out if the network request fails
+        }
         state.user.id = null;
 
         // Switch to local user

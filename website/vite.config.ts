@@ -24,7 +24,7 @@ export default defineConfig({
                         return undefined;
                     }
                     // Feature-based chunks for main app only
-                    if (id.includes('/ui/ui-auth') || id.includes('/init.ts')) {
+                    if (id.includes('/ui/ui-auth')) {
                         return 'auth';
                     }
                     if (id.includes('/renderers.ts')) {
@@ -61,8 +61,8 @@ export default defineConfig({
         },
         // Optimize chunk size warnings
         chunkSizeWarningLimit: 500,
-        // Enable source maps for debugging
-        sourcemap: true,
+        // Do not publish original TypeScript via public .map files
+        sourcemap: false,
     },
     resolve: {
         alias: {

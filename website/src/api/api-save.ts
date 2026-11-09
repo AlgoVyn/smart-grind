@@ -40,6 +40,7 @@ const prepareData = (): UserData => ({
         ])
     ),
     deletedIds: [...state.deletedProblemIds],
+    flashCardProgress: Object.fromEntries(state.flashCardProgress ?? new Map()),
 });
 
 const getCsrfToken = async (): Promise<string> => {
@@ -58,12 +59,26 @@ const saveRemote = async (dataToSave: UserData | null): Promise<void> => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
         credentials: 'include',
-        body: JSON.stringify({ data: dataToSave || prepareData() }),
+        body: JSON.stringify({
+            data: dataToSave || prepareData(),
+            generation: state.sync?.generation || undefined,
+        }),
     });
 
     validateResponseOrigin(response);
-    if (!response.ok)
+    if (response.ok) {
+        const header =
+            response.headers.get('X-Data-Generation') || response.headers.get('x-data-generation');
+        if (header) {
+            const parsed = Number(header);
+            if (Number.isFinite(parsed)) state.setSyncGeneration(parsed);
+        }
+        return;
+    }
+    if (response.status === 409) {
         throw new Error(getErrorMessage(response.status, `Save failed: ${response.statusText}`));
+    }
+    throw new Error(getErrorMessage(response.status, `Save failed: ${response.statusText}`));
 };
 
 const trySave = async (fn: () => Promise<void>, isOfflineMode = false): Promise<void> => {
@@ -123,6 +138,10 @@ const debouncedSync = (): void => {
         pendingData = {
             problems: { ...pendingData.problems, ...newData.problems },
             deletedIds: [...new Set([...pendingData.deletedIds, ...newData.deletedIds])],
+            flashCardProgress: {
+                ...pendingData.flashCardProgress,
+                ...newData.flashCardProgress,
+            },
         };
     } else {
         pendingData = newData;
@@ -133,10 +152,13 @@ const debouncedSync = (): void => {
         const dataToSync = pendingData;
         pendingData = null;
         if (Date.now() - lastSync < MIN_SYNC_INTERVAL) {
-            setTimeout(() =>
-                executeSync(dataToSync).catch((e) =>
-                    console.error('[Sync] Deferred background sync failed:', e)
-                ), MIN_SYNC_INTERVAL - (Date.now() - lastSync));
+            setTimeout(
+                () =>
+                    executeSync(dataToSync).catch((e) =>
+                        console.error('[Sync] Deferred background sync failed:', e)
+                    ),
+                MIN_SYNC_INTERVAL - (Date.now() - lastSync)
+            );
         } else {
             executeSync(dataToSync).catch((e) =>
                 console.error('[Sync] Background sync failed:', e)

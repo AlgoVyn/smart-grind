@@ -86,16 +86,16 @@ describe('State Enhanced - Storage Management', () => {
         test('should cleanup deleted problem IDs when autoCleanupEnabled is true', () => {
             state.storage.autoCleanupEnabled = true;
             
-            // Add 150 deleted IDs (more than 100 threshold)
-            for (let i = 0; i < 150; i++) {
+            // Add more than MAX_DELETED_IDS (1000) plus 100 extras
+            for (let i = 0; i < 1100; i++) {
                 state.addDeletedId(`problem-${i}`);
             }
             
             const freed = state.freeStorageSpace();
             
-            // Should remove 100 items (150 - 50 kept = 100 removed)
+            // Should remove 100 items (1100 - 1000 kept = 100 removed)
             expect(freed).toBe(100);
-            expect(state.deletedProblemIds.size).toBe(50);
+            expect(state.deletedProblemIds.size).toBe(1000);
         });
 
         test('should not cleanup deleted IDs when count is below threshold', () => {
@@ -176,7 +176,7 @@ describe('State Enhanced - Storage Management', () => {
         test('should emit storage-cleanup event when items are freed', () => {
             state.storage.autoCleanupEnabled = true;
             
-            for (let i = 0; i < 150; i++) {
+            for (let i = 0; i < 1100; i++) {
                 state.addDeletedId(`problem-${i}`);
             }
             
@@ -196,7 +196,7 @@ describe('State Enhanced - Storage Management', () => {
         test('should save to storage in silent mode after cleanup', () => {
             state.storage.autoCleanupEnabled = true;
             
-            for (let i = 0; i < 150; i++) {
+            for (let i = 0; i < 1100; i++) {
                 state.addDeletedId(`problem-${i}`);
             }
             
@@ -210,7 +210,7 @@ describe('State Enhanced - Storage Management', () => {
         test('should work with force=true even when autoCleanupEnabled is false', () => {
             state.storage.autoCleanupEnabled = false;
             
-            for (let i = 0; i < 150; i++) {
+            for (let i = 0; i < 1100; i++) {
                 state.addDeletedId(`problem-${i}`);
             }
             
@@ -222,7 +222,7 @@ describe('State Enhanced - Storage Management', () => {
         test('should track lastCleanupDeleted items', () => {
             state.storage.autoCleanupEnabled = true;
             
-            for (let i = 0; i < 150; i++) {
+            for (let i = 0; i < 1100; i++) {
                 state.addDeletedId(`problem-${i}`);
             }
             

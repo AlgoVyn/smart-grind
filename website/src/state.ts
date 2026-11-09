@@ -126,6 +126,8 @@ export const state = {
         lastSyncAt: null as number | null,
         hasConflicts: false,
         conflictMessage: null as string | null,
+        /** KV blob generation from the last successful GET/POST (0 = unknown). */
+        generation: 0,
     },
 
     storage: {
@@ -349,7 +351,7 @@ export const state = {
         let freedCount = 0;
         const deletedItems: Array<{ id: string; problem?: Problem; timestamp: number }> = [];
 
-        // Limit deleted IDs to most recent 50
+        // Limit deleted IDs to the most recent MAX_DELETED_IDS entries
         if (_deletedProblemIds.size > LIMITS.STORAGE.CLEANUP_THRESHOLD) {
             const ids = [..._deletedProblemIds];
             const toRemove = ids.slice(0, ids.length - LIMITS.STORAGE.MAX_DELETED_IDS);
@@ -584,6 +586,19 @@ export const state = {
         _deletedProblemIds.clear();
         for (const id of newSet) _deletedProblemIds.add(id);
         markDeletedIdsDirty();
+    },
+
+    /**
+     * Replaces flashcard progress with server (or imported) data.
+     */
+    replaceFlashCardProgress(newMap: Map<string, FlashCardProgress>): void {
+        this.flashCardProgress = newMap;
+        dirtyFlashCards = true;
+    },
+
+    setSyncGeneration(generation: number): void {
+        if (!Number.isFinite(generation) || generation < 0) return;
+        this.sync.generation = Math.floor(generation);
     },
 
     /**

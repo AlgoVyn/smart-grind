@@ -7,6 +7,10 @@
 jest.mock('jose', () => ({
     SignJWT: jest.fn(() => ({
         setProtectedHeader: jest.fn().mockReturnThis(),
+        setIssuedAt: jest.fn().mockReturnThis(),
+        setIssuer: jest.fn().mockReturnThis(),
+        setAudience: jest.fn().mockReturnThis(),
+        setJti: jest.fn().mockReturnThis(),
         setExpirationTime: jest.fn().mockReturnThis(),
         sign: jest.fn().mockResolvedValue('mock-jwt-token'),
     })),
@@ -50,7 +54,7 @@ describe('Security Functions', () => {
     describe('Environment Validation', () => {
         test('should throw error when JWT_SECRET is missing', async () => {
             const { onRequestGet } = require('../functions/api/auth');
-            
+
             const mockEnv = {
                 // JWT_SECRET is missing
                 GOOGLE_CLIENT_ID: 'test-client-id',
@@ -72,7 +76,7 @@ describe('Security Functions', () => {
 
         test('should throw error when GOOGLE_CLIENT_ID is missing', async () => {
             const { onRequestGet } = require('../functions/api/auth');
-            
+
             const mockEnv = {
                 JWT_SECRET: 'test-secret',
                 // GOOGLE_CLIENT_ID is missing
@@ -94,7 +98,7 @@ describe('Security Functions', () => {
 
         test('should throw error when GOOGLE_CLIENT_SECRET is missing', async () => {
             const { onRequestGet } = require('../functions/api/auth');
-            
+
             const mockEnv = {
                 JWT_SECRET: 'test-secret',
                 GOOGLE_CLIENT_ID: 'test-client-id',
@@ -116,7 +120,7 @@ describe('Security Functions', () => {
 
         test('should throw error for multiple missing env vars', async () => {
             const { onRequestGet } = require('../functions/api/auth');
-            
+
             const mockEnv = {
                 // Multiple vars missing
                 KV: {
@@ -154,54 +158,62 @@ describe('Security Functions', () => {
             mockKV.get.mockResolvedValue(null);
 
             const request = new Request('https://example.com/auth');
-            request.headers.get = jest.fn()
-                .mockReturnValueOnce('192.168.1.1');
+            request.headers.get = jest.fn().mockReturnValueOnce('192.168.1.1');
 
             const isLimited = await checkRateLimit(request, mockEnv, 10, 60);
-            
+
             expect(isLimited).toBe(false);
             expect(mockKV.put).toHaveBeenCalled();
         });
 
         test('should allow requests within the limit', async () => {
             const fiveMinutesAgo = Date.now() - 300000;
-            mockKV.get.mockResolvedValue(JSON.stringify([fiveMinutesAgo, fiveMinutesAgo, fiveMinutesAgo, fiveMinutesAgo, fiveMinutesAgo]));
+            mockKV.get.mockResolvedValue(
+                JSON.stringify([
+                    fiveMinutesAgo,
+                    fiveMinutesAgo,
+                    fiveMinutesAgo,
+                    fiveMinutesAgo,
+                    fiveMinutesAgo,
+                ])
+            );
 
             const request = new Request('https://example.com/auth');
-            request.headers.get = jest.fn()
-                .mockReturnValueOnce('192.168.1.1');
+            request.headers.get = jest.fn().mockReturnValueOnce('192.168.1.1');
 
             const isLimited = await checkRateLimit(request, mockEnv, 10, 60);
-            
+
             expect(isLimited).toBe(false);
         });
 
         test('should block requests over the limit', async () => {
             const now = Date.now();
-            const recentRequests = Array(10).fill(null).map((_, i) => now - i * 1000);
+            const recentRequests = Array(10)
+                .fill(null)
+                .map((_, i) => now - i * 1000);
             mockKV.get.mockResolvedValue(JSON.stringify(recentRequests));
 
             const request = new Request('https://example.com/auth');
-            request.headers.get = jest.fn()
-                .mockReturnValueOnce('192.168.1.1');
+            request.headers.get = jest.fn().mockReturnValueOnce('192.168.1.1');
 
             const isLimited = await checkRateLimit(request, mockEnv, 10, 60);
-            
+
             expect(isLimited).toBe(true);
             expect(mockKV.put).not.toHaveBeenCalled();
         });
 
         test('should reject requests exceeding the limit', async () => {
             const now = Date.now();
-            const recentRequests = Array(15).fill(null).map((_, i) => now - i * 1000);
+            const recentRequests = Array(15)
+                .fill(null)
+                .map((_, i) => now - i * 1000);
             mockKV.get.mockResolvedValue(JSON.stringify(recentRequests));
 
             const request = new Request('https://example.com/auth');
-            request.headers.get = jest.fn()
-                .mockReturnValueOnce('192.168.1.1');
+            request.headers.get = jest.fn().mockReturnValueOnce('192.168.1.1');
 
             const isLimited = await checkRateLimit(request, mockEnv, 10, 60);
-            
+
             expect(isLimited).toBe(true);
         });
 
@@ -212,11 +224,10 @@ describe('Security Functions', () => {
             mockKV.get.mockResolvedValue(JSON.stringify([oldRequest, recentRequest]));
 
             const request = new Request('https://example.com/auth');
-            request.headers.get = jest.fn()
-                .mockReturnValueOnce('192.168.1.1');
+            request.headers.get = jest.fn().mockReturnValueOnce('192.168.1.1');
 
             const isLimited = await checkRateLimit(request, mockEnv, 10, 60);
-            
+
             expect(isLimited).toBe(false);
         });
 
@@ -225,12 +236,13 @@ describe('Security Functions', () => {
 
             // X-Forwarded-For is intentionally excluded as it can be spoofed by clients
             const request = new Request('https://example.com/auth');
-            request.headers.get = jest.fn()
-                .mockReturnValueOnce(null)  // CF-Connecting-IP not available
-                .mockReturnValueOnce('10.0.0.1');  // X-Forwarded-For is ignored
+            request.headers.get = jest
+                .fn()
+                .mockReturnValueOnce(null) // CF-Connecting-IP not available
+                .mockReturnValueOnce('10.0.0.1'); // X-Forwarded-For is ignored
 
             const isLimited = await checkRateLimit(request, mockEnv, 10, 60);
-            
+
             expect(isLimited).toBe(false);
             // Should use 'unknown' since X-Forwarded-For is not trusted
             expect(mockKV.put).toHaveBeenCalledWith(
@@ -244,12 +256,10 @@ describe('Security Functions', () => {
             mockKV.get.mockResolvedValue(null);
 
             const request = new Request('https://example.com/auth');
-            request.headers.get = jest.fn()
-                .mockReturnValueOnce(null)
-                .mockReturnValueOnce(null);
+            request.headers.get = jest.fn().mockReturnValueOnce(null).mockReturnValueOnce(null);
 
             const isLimited = await checkRateLimit(request, mockEnv, 10, 60);
-            
+
             expect(isLimited).toBe(false);
             expect(mockKV.put).toHaveBeenCalledWith(
                 'ratelimit_api_unknown',
@@ -262,11 +272,10 @@ describe('Security Functions', () => {
             mockKV.get.mockRejectedValue(new Error('KV error'));
 
             const request = new Request('https://example.com/auth');
-            request.headers.get = jest.fn()
-                .mockReturnValueOnce('192.168.1.1');
+            request.headers.get = jest.fn().mockReturnValueOnce('192.168.1.1');
 
             const isLimited = await checkRateLimit(request, mockEnv, 10, 60);
-            
+
             expect(isLimited).toBe(false);
         });
 
@@ -274,43 +283,36 @@ describe('Security Functions', () => {
             mockKV.get.mockResolvedValue(null);
 
             const request = new Request('https://example.com/auth');
-            request.headers.get = jest.fn()
-                .mockReturnValueOnce('192.168.1.1');
+            request.headers.get = jest.fn().mockReturnValueOnce('192.168.1.1');
 
             await checkRateLimit(request, mockEnv, 10, 60);
-            
-            expect(mockKV.put).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.any(String),
-                { expirationTtl: 60 }
-            );
+
+            expect(mockKV.put).toHaveBeenCalledWith(expect.any(String), expect.any(String), {
+                expirationTtl: 60,
+            });
         });
 
         test('should handle custom rate limit parameters', async () => {
             mockKV.get.mockResolvedValue(null);
 
             const request = new Request('https://example.com/auth');
-            request.headers.get = jest.fn()
-                .mockReturnValueOnce('192.168.1.1');
+            request.headers.get = jest.fn().mockReturnValueOnce('192.168.1.1');
 
             await checkRateLimit(request, mockEnv, 5, 30);
-            
-            expect(mockKV.put).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.any(String),
-                { expirationTtl: 30 }
-            );
+
+            expect(mockKV.put).toHaveBeenCalledWith(expect.any(String), expect.any(String), {
+                expirationTtl: 30,
+            });
         });
 
         test('should handle empty requests array', async () => {
             mockKV.get.mockResolvedValue('[]');
 
             const request = new Request('https://example.com/auth');
-            request.headers.get = jest.fn()
-                .mockReturnValueOnce('192.168.1.1');
+            request.headers.get = jest.fn().mockReturnValueOnce('192.168.1.1');
 
             const isLimited = await checkRateLimit(request, mockEnv, 10, 60);
-            
+
             expect(isLimited).toBe(false);
         });
 
@@ -318,11 +320,10 @@ describe('Security Functions', () => {
             mockKV.get.mockResolvedValue('not valid json');
 
             const request = new Request('https://example.com/auth');
-            request.headers.get = jest.fn()
-                .mockReturnValueOnce('192.168.1.1');
+            request.headers.get = jest.fn().mockReturnValueOnce('192.168.1.1');
 
             const isLimited = await checkRateLimit(request, mockEnv, 10, 60);
-            
+
             expect(isLimited).toBe(false);
         });
     });

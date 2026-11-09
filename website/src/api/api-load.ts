@@ -6,7 +6,8 @@ import { state } from '../state';
 import { data } from '../data';
 import { syncPlan, mergeStructure } from './api-sync';
 import { validateResponseOrigin, getErrorMessage } from './api-utils';
-import { validateProblem, sanitizeProblemId } from '../utils/validation';
+import { validateProblem, validateFlashCardProgress, sanitizeProblemId } from '../utils/validation';
+import type { FlashCardProgress } from '../types';
 import { showAlert } from '../ui/ui-modals';
 import { renderers } from '../renderers';
 import { initScrollButton } from '../ui/ui-scroll';
@@ -149,6 +150,21 @@ export const _processUserData = (userData: UserData, isOfflineFallback = false):
         }
     }
     state.replaceDeletedIds(deletedIds);
+
+    if (userData.flashCardProgress && typeof userData.flashCardProgress === 'object') {
+        const flashMap = new Map<string, FlashCardProgress>();
+        for (const [cardId, raw] of Object.entries(userData.flashCardProgress)) {
+            const result = validateFlashCardProgress({ ...(raw as object), cardId });
+            if (result.valid && result.data) {
+                flashMap.set(cardId, result.data);
+            }
+        }
+        state.replaceFlashCardProgress(flashMap);
+    }
+
+    if (typeof userData.generation === 'number') {
+        state.setSyncGeneration(userData.generation);
+    }
 };
 
 /**
@@ -203,7 +219,29 @@ export const loadData = async (): Promise<void> => {
     try {
         const response = await fetch(`${data.API_BASE}/user`, { credentials: 'include' });
         validateResponseOrigin(response);
-        if (!response.ok) _handleApiError(response);
+        if (!response.ok) {
+            if (response.status === 500) {
+                try {
+                    const errBody = JSON.parse(await response.clone().text()) as {
+                        error?: string;
+                    };
+                    if (errBody.error === 'corrupt_blob') {
+                        console.warn('[API Load] Cloud blob is corrupt; keeping local state');
+                        data.resetTopicsData();
+                        await syncPlan();
+                        mergeStructure();
+                        await _initializeUI();
+                        showAlert(
+                            'Cloud data could not be read. Your local progress is unchanged.'
+                        );
+                        return;
+                    }
+                } catch {
+                    // Fall through to the generic error path
+                }
+            }
+            _handleApiError(response);
+        }
 
         const responseText = await _getResponseText(response);
         const userData: UserData = JSON.parse(responseText);

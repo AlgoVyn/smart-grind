@@ -4,6 +4,10 @@ import { onRequestGet } from '../functions/api/auth.ts';
 jest.mock('jose', () => ({
     SignJWT: jest.fn(() => ({
         setProtectedHeader: jest.fn().mockReturnThis(),
+        setIssuedAt: jest.fn().mockReturnThis(),
+        setIssuer: jest.fn().mockReturnThis(),
+        setAudience: jest.fn().mockReturnThis(),
+        setJti: jest.fn().mockReturnThis(),
         setExpirationTime: jest.fn().mockReturnThis(),
         sign: jest.fn().mockResolvedValue('mock-jwt-token'),
     })),
@@ -147,9 +151,12 @@ describe('Auth API', () => {
         test('should reject callback with mismatched oauth_state cookie', async () => {
             mockKV.get.mockResolvedValue('valid'); // State exists in KV
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
-                headers: { Cookie: 'oauth_state=different-state' },
-            });
+            const request = new Request(
+                'https://example.com/auth?state=mock-uuid&code=valid-code',
+                {
+                    headers: { Cookie: 'oauth_state=different-state' },
+                }
+            );
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -212,9 +219,12 @@ describe('Auth API', () => {
             mockKV.get.mockResolvedValue('valid'); // Valid state
             mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) }); // No access_token
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
-                headers: { Cookie: 'oauth_state=mock-uuid' },
-            });
+            const request = new Request(
+                'https://example.com/auth?state=mock-uuid&code=valid-code',
+                {
+                    headers: { Cookie: 'oauth_state=mock-uuid' },
+                }
+            );
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -234,9 +244,12 @@ describe('Auth API', () => {
                 })
                 .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) }); // No id
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
-                headers: { Cookie: 'oauth_state=mock-uuid' },
-            });
+            const request = new Request(
+                'https://example.com/auth?state=mock-uuid&code=valid-code',
+                {
+                    headers: { Cookie: 'oauth_state=mock-uuid' },
+                }
+            );
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -267,9 +280,12 @@ describe('Auth API', () => {
                         }),
                 });
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
-                headers: { Cookie: 'oauth_state=mock-uuid' },
-            });
+            const request = new Request(
+                'https://example.com/auth?state=mock-uuid&code=valid-code',
+                {
+                    headers: { Cookie: 'oauth_state=mock-uuid' },
+                }
+            );
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -301,9 +317,12 @@ describe('Auth API', () => {
                     json: () => Promise.resolve({ id: 'user123', name: 'Test User' }),
                 });
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
-                headers: { Cookie: 'oauth_state=mock-uuid' },
-            });
+            const request = new Request(
+                'https://example.com/auth?state=mock-uuid&code=valid-code',
+                {
+                    headers: { Cookie: 'oauth_state=mock-uuid' },
+                }
+            );
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -334,9 +353,12 @@ describe('Auth API', () => {
                     json: () => Promise.resolve({ id: 'user123', email: 'test@example.com' }),
                 });
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
-                headers: { Cookie: 'oauth_state=mock-uuid' },
-            });
+            const request = new Request(
+                'https://example.com/auth?state=mock-uuid&code=valid-code',
+                {
+                    headers: { Cookie: 'oauth_state=mock-uuid' },
+                }
+            );
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -360,9 +382,12 @@ describe('Auth API', () => {
                     json: () => Promise.resolve({ id: 'user123' }),
                 });
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
-                headers: { Cookie: 'oauth_state=mock-uuid' },
-            });
+            const request = new Request(
+                'https://example.com/auth?state=mock-uuid&code=valid-code',
+                {
+                    headers: { Cookie: 'oauth_state=mock-uuid' },
+                }
+            );
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -375,9 +400,12 @@ describe('Auth API', () => {
             mockKV.get.mockResolvedValue('valid'); // Valid state
             mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
-                headers: { Cookie: 'oauth_state=mock-uuid' },
-            });
+            const request = new Request(
+                'https://example.com/auth?state=mock-uuid&code=valid-code',
+                {
+                    headers: { Cookie: 'oauth_state=mock-uuid' },
+                }
+            );
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -397,9 +425,12 @@ describe('Auth API', () => {
                 })
                 .mockRejectedValueOnce(new Error('Network error'));
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
-                headers: { Cookie: 'oauth_state=mock-uuid' },
-            });
+            const request = new Request(
+                'https://example.com/auth?state=mock-uuid&code=valid-code',
+                {
+                    headers: { Cookie: 'oauth_state=mock-uuid' },
+                }
+            );
 
             const response = await onRequestGet({ request, env: mockEnv });
 
@@ -425,9 +456,12 @@ describe('Auth API', () => {
                     json: () => Promise.resolve({ id: 'user123', name: 'Test User' }),
                 });
 
-            const request = new Request('https://example.com/auth?state=mock-uuid&code=valid-code', {
-                headers: { Cookie: 'oauth_state=mock-uuid' },
-            });
+            const request = new Request(
+                'https://example.com/auth?state=mock-uuid&code=valid-code',
+                {
+                    headers: { Cookie: 'oauth_state=mock-uuid' },
+                }
+            );
 
             const response = await onRequestGet({ request, env: mockEnv });
 

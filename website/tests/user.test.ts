@@ -113,11 +113,13 @@ describe('User API', () => {
 
             const response = await onRequestGet({ request, env: envWithCustomOrigin });
 
-            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://custom.example.com');
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe(
+                'https://custom.example.com'
+            );
             expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
         });
 
-        test('should allow subdomain origins matching allowed origins', async () => {
+        test('should not reflect unlisted subdomain origins', async () => {
             const request = new Request('https://example.com/user', {
                 headers: {
                     Authorization: 'Bearer header.payload.signature',
@@ -127,7 +129,7 @@ describe('User API', () => {
 
             const response = await onRequestGet({ request, env: mockEnv });
 
-            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://app.algovyn.com');
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://algovyn.com');
             expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
         });
 
@@ -146,7 +148,9 @@ describe('User API', () => {
 
             const response = await onRequestGet({ request, env: devEnv });
 
-            expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:3000');
+            expect(response.headers.get('Access-Control-Allow-Origin')).toBe(
+                'http://localhost:3000'
+            );
             expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
         });
 
@@ -237,11 +241,9 @@ describe('User API', () => {
             // crypto.randomUUID is mocked to return 'test-csrf-token-12345'
             expect(data.csrfToken).toBeDefined();
             expect(typeof data.csrfToken).toBe('string');
-            expect(mockKV.put).toHaveBeenCalledWith(
-                `csrf_user123_${data.csrfToken}`,
-                'valid',
-                { expirationTtl: 3600 }
-            );
+            expect(mockKV.put).toHaveBeenCalledWith(`csrf_user123_${data.csrfToken}`, 'valid', {
+                expirationTtl: 3600,
+            });
         });
 
         test('should return 401 for CSRF generation without auth', async () => {
@@ -319,7 +321,12 @@ describe('User API', () => {
 
             expect(response.status).toBe(200);
             const data = await response.json();
-            expect(data).toEqual({ problems: { '1': {} }, deletedIds: ['2'] });
+            expect(data).toEqual({
+                problems: { '1': {} },
+                deletedIds: ['2'],
+                flashCardProgress: {},
+                generation: 0,
+            });
         });
 
         test('should return user data from KV (uncompressed - backward compatibility)', async () => {
@@ -338,7 +345,12 @@ describe('User API', () => {
 
             expect(response.status).toBe(200);
             const data = await response.json();
-            expect(data).toEqual({ problems: { '1': {} }, deletedIds: ['2'] });
+            expect(data).toEqual({
+                problems: { '1': {} },
+                deletedIds: ['2'],
+                flashCardProgress: {},
+                generation: 0,
+            });
         });
 
         test('should return default data if no KV data', async () => {
@@ -355,7 +367,12 @@ describe('User API', () => {
 
             expect(response.status).toBe(200);
             const data = await response.json();
-            expect(data).toEqual({ problems: {}, deletedIds: [] });
+            expect(data).toEqual({
+                problems: {},
+                deletedIds: [],
+                flashCardProgress: {},
+                generation: 0,
+            });
         });
 
         test('should handle gzip compressed data', async () => {
@@ -379,7 +396,12 @@ describe('User API', () => {
 
             expect(response.status).toBe(200);
             const data = await response.json();
-            expect(data).toEqual({ problems: { '1': {} }, deletedIds: ['2'] });
+            expect(data).toEqual({
+                problems: { '1': {} },
+                deletedIds: ['2'],
+                flashCardProgress: {},
+                generation: 0,
+            });
         });
 
         test('should return 500 on KV error', async () => {
@@ -477,9 +499,7 @@ describe('User API', () => {
 
             // Tokens live under their own key and are only removed by KV TTL;
             // validating one must not delete it or invalidate sibling tokens.
-            expect(mockKV.delete).not.toHaveBeenCalledWith(
-                'csrf_user123_test-csrf-token-12345'
-            );
+            expect(mockKV.delete).not.toHaveBeenCalledWith('csrf_user123_test-csrf-token-12345');
         });
 
         test('should return 400 for invalid JSON', async () => {

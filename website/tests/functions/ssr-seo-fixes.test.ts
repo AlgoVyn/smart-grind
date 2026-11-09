@@ -1,7 +1,12 @@
 // --- SEO FIX REGRESSION TESTS ---
 // Covers: duplicate head tags, canonical redirects, breadcrumbs, og:image, ratings
 
-import { onRequest, stripDefaultSeoTags, getCanonicalRedirect, OG_IMAGE } from '../../functions/[[path]]';
+import {
+    onRequest,
+    stripDefaultSeoTags,
+    getCanonicalRedirect,
+    OG_IMAGE,
+} from '../../functions/[[path]]';
 
 const TEMPLATE = `<!DOCTYPE html>
 <html lang="en">
@@ -33,7 +38,10 @@ const env = {
         fetch: jest.fn(async (input: RequestInfo | URL) => {
             const u = new URL(String(input));
             if (u.pathname === '/index.html') {
-                return new Response(TEMPLATE, { status: 200, headers: { 'Content-Type': 'text/html' } });
+                return new Response(TEMPLATE, {
+                    status: 200,
+                    headers: { 'Content-Type': 'text/html' },
+                });
             }
             return new Response('Not found', { status: 404 });
         }) as unknown as typeof fetch,
@@ -65,7 +73,11 @@ describe.each([
 ])('SSR head for %s', (path, canonical) => {
     let html = '';
     beforeAll(async () => {
-        const res = await onRequest({ request: new Request(`https://smart-grind.pages.dev${path}`), env, next });
+        const res = await onRequest({
+            request: new Request(`https://smart-grind.pages.dev${path}`),
+            env,
+            next,
+        });
         html = await res.text();
     });
     it('has exactly one title, description, canonical and og:url', () => {
@@ -106,9 +118,21 @@ describe('getCanonicalRedirect', () => {
             expect(getCanonicalRedirect(p)).toBeNull();
         }
     );
-    it('returns a 301 to the algovyn.com canonical URL', async () => {
+    it('returns a 301 to an origin-relative canonical URL', async () => {
         const res = await onRequest({
             request: new Request('https://smart-grind.pages.dev/c/monotonic-stack?x=1'),
+            env,
+            next,
+        });
+        expect(res.status).toBe(301);
+        expect(res.headers.get('Location')).toBe(
+            'https://smart-grind.pages.dev/smartgrind/c/stacks?x=1'
+        );
+    });
+
+    it('keeps production redirects on the request origin', async () => {
+        const res = await onRequest({
+            request: new Request('https://algovyn.com/smartgrind/c/monotonic-stack?x=1'),
             env,
             next,
         });

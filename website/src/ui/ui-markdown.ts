@@ -350,7 +350,6 @@ export const _renderMarkdown = (markdown: string, contentElement: HTMLElement) =
             'height',
             'id',
             'class',
-            'style',
             'data-index',
             'data-id',
             'data-action',

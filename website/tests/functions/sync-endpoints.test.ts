@@ -151,7 +151,11 @@ describe('Incremental sync endpoints', () => {
                         },
                         {
                             problemId: 'p2',
-                            operation: { problemId: 'p2', nextReviewDate: '2026-09-07', reviewInterval: 7 },
+                            operation: {
+                                problemId: 'p2',
+                                nextReviewDate: '2026-09-07',
+                                reviewInterval: 7,
+                            },
                             timestamp: 2,
                             deviceId: 'd1',
                         },
@@ -205,7 +209,7 @@ describe('Incremental sync endpoints', () => {
             expect(response.status).toBe(200);
             const [, storedValue] = mockKV.put.mock.calls[0];
             const stored = JSON.parse(storedValue);
-            expect(stored.problems['custom-1']).toEqual(problem);
+            expect(stored.problems['custom-1']).toEqual({ id: 'custom-1', name: 'My Problem' });
         });
 
         test('deletes a custom problem and records the deleted id', async () => {
