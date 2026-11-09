@@ -32,7 +32,7 @@ XOR (exclusive or) returns 1 when bits differ, 0 when they match.
 
 ---
 
-### Key Insight: Cancelation
+### Key Insight: Cancellation
 
 The self-inverse property makes XOR powerful for "find the unique" problems:
 
