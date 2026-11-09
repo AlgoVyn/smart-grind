@@ -26,7 +26,7 @@ The Set Comparison pattern uses INTERSECT and EXCEPT operators to compare result
 
 ## Intuition
 
-The key insight is **set algebra from mathematics**. INTERSECT and EXECT apply fundamental set operations to SQL result sets.
+The key insight is **set algebra from mathematics**. INTERSECT and EXCEPT apply fundamental set operations to SQL result sets.
 
 The "aha!" moments:
 

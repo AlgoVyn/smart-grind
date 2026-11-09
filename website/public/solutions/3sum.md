@@ -51,7 +51,7 @@ This is one of the most classic and frequently asked interview problems. It test
 ### Example 5
 **Input:** `nums = [-2,-1,0,1,2]`
 
-**Output:** `[[-2,-1,3],[-2,0,2],[-1,0,1]]`
+**Output:** `[[-2,0,2],[-1,0,1]]`
 
 ---
 
