@@ -158,6 +158,9 @@ class Solution {
 }
 ```
 
+
+<!-- slide -->
+
 ```cpp
 #include <string>
 #include <vector>
@@ -205,6 +208,9 @@ public:
     }
 };
 ```
+
+
+<!-- slide -->
 
 ```javascript
 /**
@@ -336,6 +342,9 @@ class Solution:
         return result
 ```
 
+
+<!-- slide -->
+
 ```java
 class Solution {
     public String multiply(String num1, String num2) {
@@ -398,6 +407,9 @@ class Solution {
     }
 }
 ```
+
+
+<!-- slide -->
 
 ```cpp
 #include <string>
@@ -466,6 +478,9 @@ private:
     }
 };
 ```
+
+
+<!-- slide -->
 
 ```javascript
 /**
@@ -601,6 +616,9 @@ class Solution:
         return ''.join(str(d) for d in c[::-1])
 ```
 
+
+<!-- slide -->
+
 ```java
 import java.util.ArrayList;
 import java.util.List;
@@ -655,6 +673,9 @@ class Solution {
     }
 }
 ```
+
+
+<!-- slide -->
 
 ```cpp
 #include <vector>
@@ -713,6 +734,9 @@ public:
     }
 };
 ```
+
+
+<!-- slide -->
 
 ```javascript
 /**

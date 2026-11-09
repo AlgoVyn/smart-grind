@@ -305,6 +305,7 @@ DetectSquares.prototype.count = function(point) {
     
     return res;
 };
+```
 ````
 
 ### Complexity Analysis

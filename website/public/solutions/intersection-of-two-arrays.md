@@ -171,6 +171,7 @@ var intersection = function(nums1, nums2) {
     
     return Array.from(result);
 };
+```
 ````
 
 ### Complexity Analysis
@@ -309,6 +310,7 @@ var intersection = function(nums1, nums2) {
     
     return result;
 };
+```
 ````
 
 ### Complexity Analysis
@@ -431,6 +433,7 @@ function binarySearch(arr, target) {
     }
     return false;
 }
+```
 ````
 
 ### Complexity Analysis

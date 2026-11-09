@@ -260,6 +260,8 @@ class Solution {
 }
 ```
 
+<!-- slide -->
+
 Note: The Java implementation is complex due to step tracking. Here's a proper version:
 ```java
 class Solution {

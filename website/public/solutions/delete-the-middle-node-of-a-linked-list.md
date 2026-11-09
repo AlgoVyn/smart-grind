@@ -222,6 +222,7 @@ var deleteMiddle = function(head) {
     prev.next = slow.next;
     return head;
 };
+```
 ````
 
 ### Complexity Analysis
@@ -364,6 +365,7 @@ var deleteMiddle = function(head) {
     curr.next = curr.next.next;
     return head;
 };
+```
 ````
 
 ### Complexity Analysis

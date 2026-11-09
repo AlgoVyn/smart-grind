@@ -215,6 +215,9 @@ class Solution {
 }
 ```
 
+
+<!-- slide -->
+
 ```cpp
 #include <string>
 #include <cctype>
@@ -280,6 +283,9 @@ public:
     }
 };
 ```
+
+
+<!-- slide -->
 
 ```javascript
 /**
@@ -441,6 +447,9 @@ class Solution:
         return result
 ```
 
+
+<!-- slide -->
+
 ```java
 class Solution {
     private enum State {
@@ -503,6 +512,9 @@ class Solution {
     }
 }
 ```
+
+
+<!-- slide -->
 
 ```cpp
 #include <string>
@@ -574,6 +586,9 @@ public:
     }
 };
 ```
+
+
+<!-- slide -->
 
 ```javascript
 /**
@@ -724,6 +739,9 @@ class Solution:
         return result
 ```
 
+
+<!-- slide -->
+
 ```java
 import java.util.regex.*;
 
@@ -766,6 +784,9 @@ class Solution {
     }
 }
 ```
+
+
+<!-- slide -->
 
 ```cpp
 #include <string>
@@ -817,6 +838,9 @@ public:
     }
 };
 ```
+
+
+<!-- slide -->
 
 ```javascript
 /**
@@ -948,6 +972,9 @@ class Solution:
         return num
 ```
 
+
+<!-- slide -->
+
 ```java
 class Solution {
     public int myAtoi(String s) {
@@ -1008,6 +1035,9 @@ class Solution {
 }
 ```
 
+
+<!-- slide -->
+
 ```cpp
 #include <string>
 #include <cctype>
@@ -1067,6 +1097,9 @@ public:
     }
 };
 ```
+
+
+<!-- slide -->
 
 ```javascript
 /**
@@ -1365,6 +1398,9 @@ def myAtoi(s: str) -> int:
     return sign * result
 ```
 
+
+<!-- slide -->
+
 ```java
 public int myAtoi(String s) {
     final int INT_MAX = Integer.MAX_VALUE;
@@ -1394,6 +1430,9 @@ public int myAtoi(String s) {
     return sign * result;
 }
 ```
+
+
+<!-- slide -->
 
 ```cpp
 int myAtoi(string s) {
@@ -1427,6 +1466,9 @@ int myAtoi(string s) {
     return static_cast<int>(result);
 }
 ```
+
+
+<!-- slide -->
 
 ```javascript
 function myAtoi(s) {

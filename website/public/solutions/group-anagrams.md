@@ -157,6 +157,9 @@ class Solution {
 }
 ```
 
+
+<!-- slide -->
+
 ```cpp
 #include <vector>
 #include <string>
@@ -293,6 +296,9 @@ class Solution:
         return list(groups.values())
 ```
 
+
+<!-- slide -->
+
 ```java
 import java.util.*;
 
@@ -321,6 +327,9 @@ class Solution {
     }
 }
 ```
+
+
+<!-- slide -->
 
 ```cpp
 #include <vector>
@@ -354,6 +363,9 @@ public:
     }
 };
 ```
+
+
+<!-- slide -->
 
 ```javascript
 /**
@@ -440,6 +452,9 @@ class Solution:
         return list(groups.values())
 ```
 
+
+<!-- slide -->
+
 ```java
 import java.util.*;
 
@@ -474,6 +489,9 @@ class Solution {
     }
 }
 ```
+
+
+<!-- slide -->
 
 ```cpp
 #include <vector>
@@ -513,6 +531,9 @@ public:
     }
 };
 ```
+
+
+<!-- slide -->
 
 ```javascript
 /**
@@ -603,6 +624,9 @@ class Solution:
         return list(groups.values())
 ```
 
+
+<!-- slide -->
+
 ```java
 import java.util.*;
 
@@ -643,6 +667,9 @@ class Solution {
     }
 }
 ```
+
+
+<!-- slide -->
 
 ```cpp
 #include <vector>
@@ -686,6 +713,9 @@ public:
     }
 };
 ```
+
+
+<!-- slide -->
 
 ```javascript
 /**

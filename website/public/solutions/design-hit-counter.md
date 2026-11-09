@@ -211,6 +211,7 @@ HitCounter.prototype.getHits = function(timestamp) {
     }
     return this.hits.length;
 };
+```
 ````
 
 ### Complexity Analysis
@@ -363,6 +364,7 @@ HitCounter.prototype.getHits = function(timestamp) {
     }
     return total;
 };
+```
 ````
 
 ### Complexity Analysis

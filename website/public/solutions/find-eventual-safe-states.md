@@ -260,6 +260,7 @@ var eventualSafeNodes = function(graph) {
     }
     return result;
 };
+```
 ````
 
 ### Complexity Analysis
@@ -463,6 +464,7 @@ var eventualSafeNodes = function(graph) {
     }
     return result;
 };
+```
 ````
 
 ### Complexity Analysis

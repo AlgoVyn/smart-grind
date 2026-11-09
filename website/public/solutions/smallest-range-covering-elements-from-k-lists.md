@@ -343,7 +343,7 @@ Same algorithm, different implementation using custom comparators for clarity.
 # Alternative with custom heap comparator
 # Same logic, different implementation
 ```
-``"
+`````
 
 ### Complexity Analysis
 

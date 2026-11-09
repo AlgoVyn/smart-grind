@@ -13,6 +13,8 @@ Implement a Trie class that supports the following operations:
 ## Examples
 
 ### Example 1
+**Input:**
+```
 obj.search("apple");   // returns true
 obj.search("app");     // returns false
 obj.startsWith("app"); // returns true
