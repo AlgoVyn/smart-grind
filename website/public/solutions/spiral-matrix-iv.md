@@ -1100,5 +1100,5 @@ For more details on this pattern and its variations, see the **[Matrix Traversal
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/spiral-matrix-iv/discuss/) - Community solutions and explanations
 - [Spiral Matrix - GeeksforGeeks](https://www.geeksforgeeks.org/print-matrix-in-spiral-form/) - Detailed explanation
-- [Matrix Traversal - Wikipedia](https://en.wikipedia.org/wiki/Matrix_(mathematics)) - Matrix concepts
+- [Matrix Traversal - Wikipedia](https://en.wikipedia.org/wiki/Matrix_%28mathematics%29) - Matrix concepts
 - [Pattern: Matrix Traversal](/patterns/matrix-traversal) - Comprehensive pattern guide

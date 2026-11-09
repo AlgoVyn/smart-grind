@@ -977,6 +977,6 @@ For more details on this pattern, see the **[Stack Pattern](/algorithms/stack)**
 
 - [LeetCode 71 - Simplify Path](https://leetcode.com/problems/simplify-path/)
 - [Unix Path Documentation](https://www.gnu.org/software/bash/manual/html_node/Pathname-Resolution.html)
-- [Stack Data Structure - Wikipedia](https://en.wikipedia.org/wiki/Stack_(abstract_data_type))
+- [Stack Data Structure - Wikipedia](https://en.wikipedia.org/wiki/Stack_%28abstract_data_type%29)
 - [ GeeksforGeeks - Simplify Unix Path](https://www.geeksforgeeks.org/simplify-directory-path-unix-format/)
 

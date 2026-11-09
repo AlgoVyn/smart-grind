@@ -736,5 +736,5 @@ This is a classic tree problem that tests understanding of recursion optimizatio
 ## Additional Resources
 
 - [LeetCode Problem](https://leetcode.com/problems/balanced-binary-tree/)
-- [Tree Data Structure](https://en.wikipedia.org/wiki/Tree_(data_structure))
+- [Tree Data Structure](https://en.wikipedia.org/wiki/Tree_%28data_structure%29)
 - [Recursion Basics](https://en.wikipedia.org/wiki/Recursion)

@@ -491,4 +491,4 @@ This is a classic heap problem that tests understanding of priority queues and g
 
 - [LeetCode Problem](https://leetcode.com/problems/last-stone-weight/)
 - [Priority Queue - Wikipedia](https://en.wikipedia.org/wiki/Priority_queue)
-- [Heap Data Structure](https://en.wikipedia.org/wiki/Heap_(data_structure))
+- [Heap Data Structure](https://en.wikipedia.org/wiki/Heap_%28data_structure%29)

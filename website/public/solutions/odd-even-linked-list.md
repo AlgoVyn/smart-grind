@@ -535,7 +535,7 @@ This is a classic linked list problem that tests understanding of pointer manipu
 
 - [LeetCode Problem](https://leetcode.com/problems/odd-even-linked-list/)
 - [Linked List Basics](https://en.wikipedia.org/wiki/Linked_list)
-- [Pointer Manipulation](https://en.wikipedia.org/wiki/Pointer_(computer_programming))
+- [Pointer Manipulation](https://en.wikipedia.org/wiki/Pointer_%28computer_programming%29)
 
 ---
 

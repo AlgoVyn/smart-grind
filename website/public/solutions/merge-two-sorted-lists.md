@@ -709,4 +709,4 @@ For more details on linked list patterns, see the **[Linked List Basics](/patter
 - [LeetCode Problem Discussion](https://leetcode.com/problems/merge-two-sorted-lists/discuss/) - Community solutions
 - [Linked List Operations - GeeksforGeeks](https://www.geeksforgeeks.org/linked-list-set-2-inserting-a-node/) - Linked list basics
 - [Merge Sort](https://www.geeksforgeeks.org/merge-sort/) - The sorting algorithm using this merge
-- [Pointers and References](https://en.wikipedia.org/wiki/Pointer_(computer_programming)) - Understanding pointer manipulation
+- [Pointers and References](https://en.wikipedia.org/wiki/Pointer_%28computer_programming%29) - Understanding pointer manipulation

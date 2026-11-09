@@ -749,4 +749,4 @@ For more details on graph traversal patterns, see the **[Graph - DFS - Connected
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/number-of-provinces/discuss/) - Community solutions
 - [Union-Find - GeeksforGeeks](https://www.geeksforgeeks.org/disjoint-set-data-structures/) - DSU explanation
-- [Connected Components - Wikipedia](https://en.wikipedia.org/wiki/Connected_component_(graph_theory)) - Theory
+- [Connected Components - Wikipedia](https://en.wikipedia.org/wiki/Connected_component_%28graph_theory%29) - Theory

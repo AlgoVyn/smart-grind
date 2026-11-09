@@ -632,4 +632,4 @@ For more details on this pattern, see the **[Two Pointers Pattern](/patterns/two
 - [LeetCode Problem Discussion](https://leetcode.com/problems/interval-list-intersections/discuss/) - Community solutions
 - [Interval Scheduling - GeeksforGeeks](https://www.geeksforgeeks.org/interval-subset-problem/) - Related problems
 - [Two Pointers Technique](https://www.geeksforgeeks.org/two-pointers-technique/) - Understanding the pattern
-- [Merge Intervals Pattern](https://en.wikipedia.org/wiki/Interval_(mathematics)) - Mathematical background
+- [Merge Intervals Pattern](https://en.wikipedia.org/wiki/Interval_%28mathematics%29) - Mathematical background

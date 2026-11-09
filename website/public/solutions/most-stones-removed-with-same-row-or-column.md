@@ -1131,5 +1131,5 @@ For more details on this pattern and its variations, see the **[Union-Find Patte
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/most-stones-removed-with-same-row-or-column/discuss/) - Community solutions
 - [Union-Find - GeeksforGeeks](https://www.geeksforgeeks.org/disjoint-set-data-structures/) - DSU explanation
-- [Connected Components - Wikipedia](https://en.wikipedia.org/wiki/Connected_component_(graph_theory)) - Theory
+- [Connected Components - Wikipedia](https://en.wikipedia.org/wiki/Connected_component_%28graph_theory%29) - Theory
 - [Pattern: Union-Find](/patterns/union-find) - Comprehensive pattern guide

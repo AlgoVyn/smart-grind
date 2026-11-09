@@ -578,5 +578,5 @@ For more details on this pattern, see the **[Greedy Algorithms](/patterns/greedy
 
 - [LeetCode Problem 1642](https://leetcode.com/problems/furthest-building-you-can-reach/) - Official problem page
 - [Greedy Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/greedy-algorithms/) - Theory
-- [Heap Data Structure](https://en.wikipedia.org/wiki/Heap_(data_structure)) - Heap explanation
+- [Heap Data Structure](https://en.wikipedia.org/wiki/Heap_%28data_structure%29) - Heap explanation
 - [Pattern: Greedy](/patterns/greedy) - Comprehensive pattern guide

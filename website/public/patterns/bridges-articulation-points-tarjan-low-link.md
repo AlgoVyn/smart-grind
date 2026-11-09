@@ -748,5 +748,5 @@ For more graph pattern implementations, see:
 
 - [LeetCode Critical Connections](https://leetcode.com/problems/critical-connections-in-a-network/)
 - [GeeksforGeeks Tarjan's Algorithm](https://www.geeksforgeeks.org/bridge-in-a-graph/)
-- [Wikipedia - Bridge (Graph Theory)](https://en.wikipedia.org/wiki/Bridge_(graph_theory))
+- [Wikipedia - Bridge (Graph Theory)](https://en.wikipedia.org/wiki/Bridge_%28graph_theory%29)
 - [Wikipedia - Biconnected Component](https://en.wikipedia.org/wiki/Biconnected_component)

@@ -967,5 +967,5 @@ For more details on this pattern, see the **[Data Structure Design](/patterns/da
 
 - [LeetCode Problem 641](https://leetcode.com/problems/design-circular-deque/) - Official problem page
 - [Circular Buffer - Wikipedia](https://en.wikipedia.org/wiki/Circular_buffer) - Buffer theory
-- [Queue Data Structure](https://en.wikipedia.org/wiki/Queue_(abstract_data_type)) - Queue fundamentals
+- [Queue Data Structure](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) - Queue fundamentals
 - [Pattern: Data Structures](/patterns/data-structures) - Comprehensive pattern guide

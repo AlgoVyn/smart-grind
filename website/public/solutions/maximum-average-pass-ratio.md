@@ -567,5 +567,5 @@ This problem is excellent for learning greedy optimization with heaps and is fre
 ## Additional Resources
 
 - [LeetCode Problem 1792](https://leetcode.com/problems/maximum-average-pass-ratio/) - Official problem page
-- [Heap Data Structure](https://en.wikipedia.org/wiki/Heap_(data_structure)) - Heap fundamentals
+- [Heap Data Structure](https://en.wikipedia.org/wiki/Heap_%28data_structure%29) - Heap fundamentals
 - [Greedy Algorithms](https://en.wikipedia.org/wiki/Greedy_algorithm) - Greedy algorithm theory

@@ -594,5 +594,5 @@ For more details on this pattern, see the **[Data Structure Design](/patterns/da
 
 - [LeetCode Problem 706](https://leetcode.com/problems/design-hashmap/) - Official problem page
 - [Hash Table - Wikipedia](https://en.wikipedia.org/wiki/Hash_table) - Hash table theory
-- [Direct Addressing Table](https://en.wikipedia.org/wiki/Array_(data_type)#Direct_addressing) - DAT explanation
+- [Direct Addressing Table](https://en.wikipedia.org/wiki/Array_%28data_type)#Direct_addressing) - DAT explanation
 - [Pattern: Data Structures](/patterns/data-structures) - Comprehensive pattern guide
