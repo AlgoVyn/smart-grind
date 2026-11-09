@@ -14,6 +14,7 @@
     "format": "prettier --check \"src/**/*.ts\" \"e2e/**/*.ts\"",
     "format:fix": "prettier --write \"src/**/*.ts\" \"e2e/**/*.ts\"",
     "type-check": "tsc --noEmit",
+    "validate:content": "python3 scripts/validate-markdown-content.py",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
