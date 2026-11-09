@@ -34,11 +34,12 @@ def convert(name: str, sql: bool = False) -> str:
 
 def extract_entries(ts: Path):
     text = ts.read_text(encoding="utf-8")
-    return re.findall(
-        r"id:\s*['\"]([^'\"]+)['\"],\s*name:\s*['\"]([^'\"]+)['\"],\s*url:\s*['\"]([^'\"]+)['\"]",
+    matches = re.findall(
+        r"id:\s*'([^']+)',\s*name:\s*(?:'([^']*)'|\"([^\"]*)\"),\s*url:\s*(?:'([^']*)'|\"([^\"]*)\")",
         text,
         flags=re.S,
     )
+    return [(i, n1 or n2, u1 or u2) for i, n1, n2, u1, u2 in matches]
 
 
 def extract_pattern_names(ts: Path):

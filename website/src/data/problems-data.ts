@@ -240,6 +240,11 @@ export const PROBLEMS_DATA: Topic[] = [
                         name: 'Find X-Sum of All K-Long Subarrays I',
                         url: 'https://leetcode.com/problems/find-x-sum-of-all-k-long-subarrays-i/',
                     },
+                    {
+                        id: 'maximum-sum-subarray-of-size-k',
+                        name: 'Maximum Sum Subarray of Size K',
+                        url: 'https://www.geeksforgeeks.org/dsa/find-maximum-minimum-sum-subarray-size-k/',
+                    },
                 ],
             },
             {
@@ -1404,6 +1409,26 @@ export const PROBLEMS_DATA: Topic[] = [
                 ],
             },
             {
+                name: "Graph BFS - Topological Sort (Kahn's)",
+                problems: [
+                    {
+                        id: 'course-schedule',
+                        name: 'Course Schedule',
+                        url: 'https://leetcode.com/problems/course-schedule/',
+                    },
+                    {
+                        id: 'course-schedule-ii',
+                        name: 'Course Schedule II',
+                        url: 'https://leetcode.com/problems/course-schedule-ii/',
+                    },
+                    {
+                        id: 'parallel-courses',
+                        name: 'Parallel Courses',
+                        url: 'https://leetcode.com/problems/parallel-courses/',
+                    },
+                ],
+            },
+            {
                 name: 'Graph - Shortest Path (Bellman-Ford / BFS+K)',
                 problems: [
                     {
@@ -1415,6 +1440,21 @@ export const PROBLEMS_DATA: Topic[] = [
                         id: 'shortest-path-with-alternating-colors',
                         name: 'Shortest Path with Alternating Colors',
                         url: 'https://leetcode.com/problems/shortest-path-with-alternating-colors/',
+                    },
+                ],
+            },
+            {
+                name: "Graph - Shortest Path (Dijkstra's)",
+                problems: [
+                    {
+                        id: 'network-delay-time',
+                        name: 'Network Delay Time',
+                        url: 'https://leetcode.com/problems/network-delay-time/',
+                    },
+                    {
+                        id: 'cheapest-flights-within-k-stops',
+                        name: 'Cheapest Flights Within K Stops',
+                        url: 'https://leetcode.com/problems/cheapest-flights-within-k-stops/',
                     },
                 ],
             },
@@ -1998,6 +2038,21 @@ export const PROBLEMS_DATA: Topic[] = [
                 ],
             },
             {
+                name: "DP - 1D Array (Kadane's Algorithm for Max/Min Subarray)",
+                problems: [
+                    {
+                        id: 'maximum-subarray',
+                        name: 'Maximum Subarray',
+                        url: 'https://leetcode.com/problems/maximum-subarray/',
+                    },
+                    {
+                        id: 'maximum-sum-circular-subarray',
+                        name: 'Maximum Sum Circular Subarray',
+                        url: 'https://leetcode.com/problems/maximum-sum-circular-subarray/',
+                    },
+                ],
+            },
+            {
                 name: 'DP - 2D Array (Longest Common Subsequence - LCS)',
                 problems: [
                     {
@@ -2089,6 +2144,11 @@ export const PROBLEMS_DATA: Topic[] = [
                         id: 'remove-boxes',
                         name: 'Remove Boxes',
                         url: 'https://leetcode.com/problems/remove-boxes/',
+                    },
+                    {
+                        id: 'minimum-cost-to-merge-stones',
+                        name: 'Minimum Cost to Merge Stones',
+                        url: 'https://leetcode.com/problems/minimum-cost-to-merge-stones/',
                     },
                 ],
             },
