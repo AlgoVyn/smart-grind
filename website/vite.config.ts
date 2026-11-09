@@ -1,4 +1,3 @@
-
 import { defineConfig } from 'vite';
 import path from 'path';
 import fs from 'fs';
@@ -23,16 +22,9 @@ export default defineConfig({
                     if (id.includes('/sw/') || getModuleInfo(id)?.isEntry) {
                         return undefined;
                     }
-                    // Feature-based chunks for main app only
-                    if (id.includes('/ui/ui-auth')) {
-                        return 'auth';
-                    }
-                    if (id.includes('/renderers.ts')) {
-                        return 'renderers';
-                    }
-                    if (id.includes('/api.ts') && !id.includes('/sw/')) {
-                        return 'api';
-                    }
+                    // Do not force init/api/auth/renderers into named chunks.
+                    // Those modules import each other; splitting them caused a
+                    // production TDZ crash ("Cannot access 'X' before initialization").
                     // BUNDLED DEPENDENCIES: marked and prismjs for offline support
                     if (id.includes('marked') || id.includes('prismjs')) {
                         return 'markdown';
@@ -92,27 +84,29 @@ export default defineConfig({
                 const swPath = path.join(distPath, 'sw.js');
                 const smartgrindPath = path.join(distPath, 'smartgrind');
                 const targetPath = path.join(smartgrindPath, 'sw.js');
-                
+
                 // Create smartgrind directory if it doesn't exist
                 if (!fs.existsSync(smartgrindPath)) {
                     fs.mkdirSync(smartgrindPath, { recursive: true });
                 }
-                
+
                 // Move sw.js to smartgrind folder if it's at root
                 if (fs.existsSync(swPath) && !fs.existsSync(targetPath)) {
                     fs.renameSync(swPath, targetPath);
                     console.log('[vite] Service worker moved to dist/smartgrind/sw.js');
                 }
-                
+
                 // Also move the source map if it exists
                 const swMapPath = path.join(distPath, 'sw.js.map');
                 const targetMapPath = path.join(smartgrindPath, 'sw.js.map');
                 if (fs.existsSync(swMapPath) && !fs.existsSync(targetMapPath)) {
                     fs.renameSync(swMapPath, targetMapPath);
                 }
-                
+
                 if (fs.existsSync(targetPath)) {
-                    console.log('[vite] Service worker built successfully at dist/smartgrind/sw.js');
+                    console.log(
+                        '[vite] Service worker built successfully at dist/smartgrind/sw.js'
+                    );
                 }
             },
         },
@@ -124,18 +118,21 @@ export default defineConfig({
                 // the fix at the very beginning of the chunk (outside any functions)
                 const distPath = path.resolve(__dirname, 'dist');
                 const assetsPath = path.join(distPath, 'assets', 'js');
-                
+
                 try {
                     const files = fs.readdirSync(assetsPath);
-                    const markdownChunk = files.find(f => f.startsWith('markdown-') && f.endsWith('.js'));
-                    
+                    const markdownChunk = files.find(
+                        (f) => f.startsWith('markdown-') && f.endsWith('.js')
+                    );
+
                     if (markdownChunk) {
                         const chunkPath = path.join(assetsPath, markdownChunk);
                         let content = fs.readFileSync(chunkPath, 'utf-8');
-                        
+
                         // Add the prism fix at the very beginning (must be before any wrapped code)
-                        const prismFix = 'typeof self!=="undefined"&&(self.Prism={disableWorkerMessageHandler:true});';
-                        
+                        const prismFix =
+                            'typeof self!=="undefined"&&(self.Prism={disableWorkerMessageHandler:true});';
+
                         // Only add if not already at the very beginning
                         if (!content.startsWith(prismFix)) {
                             content = prismFix + content;
@@ -143,7 +140,10 @@ export default defineConfig({
                             const tempPath = chunkPath + '.tmp';
                             fs.writeFileSync(tempPath, content);
                             fs.renameSync(tempPath, chunkPath);
-                            console.log('[vite] Prism worker handler fix injected at top of', markdownChunk);
+                            console.log(
+                                '[vite] Prism worker handler fix injected at top of',
+                                markdownChunk
+                            );
                         } else {
                             console.log('[vite] Prism fix already at top of', markdownChunk);
                         }
@@ -162,14 +162,14 @@ export default defineConfig({
                 // which resolves to /assets/js/ instead of /smartgrind/assets/js/
                 const distPath = path.resolve(__dirname, 'dist');
                 const swFile = path.join(distPath, 'smartgrind', 'sw.js');
-                
+
                 if (!fs.existsSync(swFile)) {
                     return;
                 }
-                
+
                 try {
                     let swContent = fs.readFileSync(swFile, 'utf-8');
-                    
+
                     // Replace ALL relative imports with absolute imports
                     // Handle both: from"../assets/js/... and import"../assets/js/...
                     const originalContent = swContent;
@@ -177,20 +177,22 @@ export default defineConfig({
                         /(from"|import")\.\.\/assets\/js\//g,
                         '$1/smartgrind/assets/js/'
                     );
-                    
+
                     // VERIFICATION: Ensure replacements actually happened
                     const matches = originalContent.match(/(from"|import")\.\.\/assets\/js\//g);
                     const replacementCount = matches ? matches.length : 0;
                     if (replacementCount === 0 && originalContent.includes('../assets/js/')) {
                         throw new Error(
-                            '[vite] SW import fix failed: expected relative imports were found but not replaced. '
-                            + 'Check the regex pattern matches the current Rollup output format.'
+                            '[vite] SW import fix failed: expected relative imports were found but not replaced. ' +
+                                'Check the regex pattern matches the current Rollup output format.'
                         );
                     }
                     if (replacementCount > 0) {
-                        console.log(`[vite] Fixed ${replacementCount} relative import(s) in service worker`);
+                        console.log(
+                            `[vite] Fixed ${replacementCount} relative import(s) in service worker`
+                        );
                     }
-                    
+
                     // ATOMIC WRITE: Write to temp file then rename
                     const tempPath = swFile + '.tmp';
                     fs.writeFileSync(tempPath, swContent);
@@ -211,16 +213,16 @@ export default defineConfig({
                 const distPath = path.resolve(__dirname, 'dist');
                 const swFile = path.join(distPath, 'smartgrind', 'sw.js');
                 const packageJsonPath = path.resolve(__dirname, 'package.json');
-                
+
                 if (!fs.existsSync(swFile)) {
                     return; // SW file doesn't exist, skip
                 }
-                
+
                 try {
                     // Generate version from package.json + timestamp + git hash
                     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
                     const baseVersion = packageJson.version || '1.0.0';
-                    
+
                     const now = new Date();
                     const year = now.getFullYear();
                     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -228,41 +230,43 @@ export default defineConfig({
                     const hours = String(now.getHours()).padStart(2, '0');
                     const minutes = String(now.getMinutes()).padStart(2, '0');
                     const seconds = String(now.getSeconds()).padStart(2, '0');
-                    
+
                     // Try to get git commit hash
                     // Use dynamic import for ESM compatibility (require is not available in ESM)
                     let gitHash = 'dev';
                     try {
                         const childProcess = await import('node:child_process');
-                        gitHash = childProcess.execSync('git rev-parse --short HEAD', {
-                            encoding: 'utf-8',
-                            stdio: ['pipe', 'pipe', 'ignore']
-                        }).trim();
+                        gitHash = childProcess
+                            .execSync('git rev-parse --short HEAD', {
+                                encoding: 'utf-8',
+                                stdio: ['pipe', 'pipe', 'ignore'],
+                            })
+                            .trim();
                     } catch {
                         // Git not available, use 'dev'
                     }
-                    
+
                     const buildTimestamp = `${year}${month}${day}-${hours}${minutes}${seconds}`;
                     const version = `${baseVersion}-${buildTimestamp}-${gitHash}`;
-                    
+
                     // Read and update SW file
                     const swContent = fs.readFileSync(swFile, 'utf-8');
 
                     // Replace the SW_VERSION placeholder with the actual version
                     // Simple string replacement - more reliable than regex
-                    const placeholder = "__SW_VERSION_PLACEHOLDER__";
+                    const placeholder = '__SW_VERSION_PLACEHOLDER__';
                     const replacement = `'${version}'`;
-                    
+
                     if (!swContent.includes(placeholder)) {
-                        console.warn("[vite] SW_VERSION placeholder not found in service worker");
+                        console.warn('[vite] SW_VERSION placeholder not found in service worker');
                         return;
                     }
-                    
+
                     // Replace EVERY occurrence: the placeholder is declared in
                     // more than one module and a single replace() would leave
                     // mismatched cache versions between them
                     const updatedContent = swContent.split(placeholder).join(replacement);
-                    
+
                     // ATOMIC WRITE: Write to temp file then rename
                     const tempPath = swFile + '.tmp';
                     fs.writeFileSync(tempPath, updatedContent);
@@ -273,7 +277,7 @@ export default defineConfig({
                     console.warn('[vite] Failed to inject SW version:', errorMessage);
                 }
             },
-        }
+        },
     ],
     server: {
         port: 3000,
