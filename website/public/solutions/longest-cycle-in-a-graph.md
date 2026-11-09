@@ -227,51 +227,12 @@ public:
 ```java
 class Solution {
     public int longestCycle(int[] edges) {
-        /**
-         * Find the longest cycle in a directed graph.
-         * 
-         * Args:
-         *     edges: Array where edges[i] is the node i points to
-         * 
-         * Returns:
-         *     Length of longest cycle, or -1 if none exists
-         */
-        int n = edges.length;
-        int[] state = new int[n];  // 0: not visited, 1: visiting, 2: visited
-        int[] step = new int[n];   // Step when node was first visited
-        Arrays.fill(step, -1);
-        
-        int[] maxLen = {-1};
-        
-        dfs(edges, 0, state, step, maxLen);
-        
-        return maxLen[0];
-    }
-    
-    private int dfs(int[] edges, int node, int[] state, int[] step, int[] maxLen) {
-        int currStep = 0;
-        return dfsHelper(edges, node, state, step, maxLen, currStep);
-    }
-    
-    private int dfsHelper(int[] edges, int node, int[] state, int[] step, int[] maxLen, int currStep) {
-        // This is a simplified version - actual implementation would need careful step tracking
-        return 0;
-    }
-}
-```
-
-<!-- slide -->
-
-Note: The Java implementation is complex due to step tracking. Here's a proper version:
-```java
-class Solution {
-    public int longestCycle(int[] edges) {
         int n = edges.length;
         int[] state = new int[n];
         int[] step = new int[n];
         Arrays.fill(step, -1);
         
-        int maxLen = -1;
+        int[] maxLen = {-1};
         int[] currStep = {0};
         
         for (int i = 0; i < n; i++) {
@@ -281,10 +242,10 @@ class Solution {
             }
         }
         
-        return maxLen;
+        return maxLen[0];
     }
     
-    private void dfs(int node, int[] edges, int[] state, int[] step, int maxLen, int[] currStep) {
+    private void dfs(int node, int[] edges, int[] state, int[] step, int[] maxLen, int[] currStep) {
         state[node] = 1;
         step[node] = currStep[0]++;
         
@@ -294,7 +255,7 @@ class Solution {
                 dfs(nei, edges, state, step, maxLen, currStep);
             } else if (state[nei] == 1) {
                 int cycleLen = currStep[0] - step[nei];
-                maxLen = Math.max(maxLen, cycleLen);
+                maxLen[0] = Math.max(maxLen[0], cycleLen);
             }
         }
         

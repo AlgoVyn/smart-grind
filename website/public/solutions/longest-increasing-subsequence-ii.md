@@ -150,6 +150,8 @@ A Fenwick Tree (Binary Indexed Tree) efficiently supports:
 
 ### Code Implementation
 
+A max Fenwick tree cannot answer an arbitrary range-max query by subtracting prefix maxima (that identity only holds for sums). The working implementations below use a segment tree, which supports range-max queries correctly.
+
 ````carousel
 ```python
 from typing import List
@@ -160,87 +162,38 @@ class Solution:
             return 0
         
         max_val = max(nums)
-        tree = [0] * (max_val + 2)
+        # Segment tree for range max query
+        tree = [0] * (4 * (max_val + 1))
         
-        def update(idx: int, val: int) -> None:
-            idx += 1  # 1-indexed BIT
-            while idx < len(tree):
-                tree[idx] = max(tree[idx], val)
-                idx += idx & -idx
+        def update(node: int, start: int, end: int, idx: int, val: int) -> None:
+            if start == end:
+                tree[node] = max(tree[node], val)
+                return
+            mid = (start + end) // 2
+            if idx <= mid:
+                update(2 * node, start, mid, idx, val)
+            else:
+                update(2 * node + 1, mid + 1, end, idx, val)
+            tree[node] = max(tree[2 * node], tree[2 * node + 1])
         
-        def query(idx: int) -> int:
-            """Query max in range [0, idx]"""
-            idx += 1  # 1-indexed BIT
-            res = 0
-            while idx > 0:
-                res = max(res, tree[idx])
-                idx -= idx & -idx
-            return res
-        
-        ans = 1
-        for num in nums:
-            left = max(0, num - k)
-            # Query max dp value for values in [left, num-1]
-            prev = query(num - 1) if num > 0 else 0
-            # Get the max from range [left, num-1]
-            if left > 0:
-                prev = max(prev, query(num - 1) - query(left - 1) if prev > 0 else 0)
-            
-            # Simplified: query from 0 to num-1, then we filter by left
-            # Actually, we need range max query
-            curr = 1 + prev
-            ans = max(ans, curr)
-            update(num, curr)
-        
-        return ans
-```
-
-<!-- slide -->
-
-**Note:** The above has an issue. Let me provide the corrected version:
-
-```python
-from typing import List
-
-class Solution:
-    def lengthOfLIS(self, nums: List[int], k: int) -> int:
-        if not nums:
-            return 0
-        
-        max_val = max(nums)
-        tree = [0] * (max_val + 2)
-        
-        def update(idx: int, val: int) -> None:
-            idx += 1  # 1-indexed BIT
-            while idx < len(tree):
-                tree[idx] = max(tree[idx], val)
-                idx += idx & -idx
-        
-        def query(idx: int) -> int:
-            """Query max in range [0, idx]"""
-            idx += 1
-            res = 0
-            while idx > 0:
-                res = max(res, tree[idx])
-                idx -= idx & -idx
-            return res
-        
-        def range_query(left: int, right: int) -> int:
-            """Query max in range [left, right]"""
-            if left > right:
+        def query(node: int, start: int, end: int, left: int, right: int) -> int:
+            if left > end or right < start:
                 return 0
-            if left == 0:
-                return query(right)
-            return query(right) - query(left - 1)
+            if left <= start and end <= right:
+                return tree[node]
+            mid = (start + end) // 2
+            return max(
+                query(2 * node, start, mid, left, right),
+                query(2 * node + 1, mid + 1, end, left, right)
+            )
         
         ans = 0
         for num in nums:
             left = max(0, num - k)
-            # Get max dp value for values in [left, num-1]
-            prev = range_query(left, num - 1)
+            prev = query(1, 0, max_val, left, num - 1) if num > 0 else 0
             curr = 1 + prev
             ans = max(ans, curr)
-            update(num, curr)
+            update(1, 0, max_val, num, curr)
         
         return ans
 ```
@@ -255,39 +208,36 @@ public:
         if (nums.empty()) return 0;
         
         int maxVal = *max_element(nums.begin(), nums.end());
-        vector<int> tree(maxVal + 2, 0);
+        vector<int> tree(4 * (maxVal + 1), 0);
         
-        auto update = [&](int idx, int val) {
-            idx++;  // 1-indexed BIT
-            while (idx < tree.size()) {
-                tree[idx] = max(tree[idx], val);
-                idx += idx & -idx;
-            }
-        };
+        function<void(int, int, int, int, int)> update = 
+            [&](int node, int start, int end, int idx, int val) {
+                if (start == end) {
+                    tree[node] = max(tree[node], val);
+                    return;
+                }
+                int mid = (start + end) / 2;
+                if (idx <= mid) update(2*node, start, mid, idx, val);
+                else update(2*node+1, mid+1, end, idx, val);
+                tree[node] = max(tree[2*node], tree[2*node+1]);
+            };
         
-        auto query = [&](int idx) {
-            idx++;
-            int res = 0;
-            while (idx > 0) {
-                res = max(res, tree[idx]);
-                idx -= idx & -idx;
-            }
-            return res;
-        };
-        
-        auto rangeQuery = [&](int left, int right) {
-            if (left > right) return 0;
-            if (left == 0) return query(right);
-            return query(right) - query(left - 1);
-        };
+        function<int(int, int, int, int, int)> query = 
+            [&](int node, int start, int end, int left, int right) -> int {
+                if (left > end || right < start) return 0;
+                if (left <= start && end <= right) return tree[node];
+                int mid = (start + end) / 2;
+                return max(query(2*node, start, mid, left, right),
+                          query(2*node+1, mid+1, end, left, right));
+            };
         
         int ans = 0;
         for (int num : nums) {
             int left = max(0, num - k);
-            int prev = rangeQuery(left, num - 1);
+            int prev = (num > 0) ? query(1, 0, maxVal, left, num-1) : 0;
             int curr = 1 + prev;
             ans = max(ans, curr);
-            update(num, curr);
+            update(1, 0, maxVal, num, curr);
         }
         
         return ans;
@@ -297,100 +247,86 @@ public:
 <!-- slide -->
 ```java
 class Solution {
+    private int[] tree;
+    private int size;
+    
     public int lengthOfLIS(int[] nums, int k) {
         if (nums == null || nums.length == 0) return 0;
         
         int maxVal = 0;
         for (int num : nums) maxVal = Math.max(maxVal, num);
         
-        int[] tree = new int[maxVal + 2];
-        
-        // Update: set max value at position idx
-        update(num, val);
-        
-        int query(int idx) {
-            idx++;
-            int res = 0;
-            while (idx > 0) {
-                res = Math.max(res, tree[idx]);
-                idx -= idx & -idx;
-            }
-            return res;
-        }
-        
-        int rangeQuery(int left, int right) {
-            if (left > right) return 0;
-            if (left == 0) return query(right);
-            return query(right) - query(left - 1);
-        }
+        this.size = maxVal;
+        this.tree = new int[4 * (maxVal + 1)];
         
         int ans = 0;
         for (int num : nums) {
             int left = Math.max(0, num - k);
-            int prev = rangeQuery(left, num - 1);
+            int prev = num > 0 ? query(1, 0, maxVal, left, num - 1) : 0;
             int curr = 1 + prev;
             ans = Math.max(ans, curr);
-            update(num, curr);
+            update(1, 0, maxVal, num, curr);
         }
         
         return ans;
     }
     
-    private void update(int idx, int val) {
-        idx++;
-        while (idx < tree.length) {
-            tree[idx] = Math.max(tree[idx], val);
-            idx += idx & -idx;
+    private void update(int node, int start, int end, int idx, int val) {
+        if (start == end) {
+            tree[node] = Math.max(tree[node], val);
+            return;
         }
+        int mid = (start + end) / 2;
+        if (idx <= mid) update(2*node, start, mid, idx, val);
+        else update(2*node+1, mid+1, end, idx, val);
+        tree[node] = Math.max(tree[2*node], tree[2*node+1]);
     }
     
-    private int[] tree;
+    private int query(int node, int start, int end, int left, int right) {
+        if (left > end || right < start) return 0;
+        if (left <= start && end <= right) return tree[node];
+        int mid = (start + end) / 2;
+        return Math.max(query(2*node, start, mid, left, right),
+                       query(2*node+1, mid+1, end, left, right));
+    }
 }
 ```
 <!-- slide -->
 ```javascript
-/**
- * @param {number[]} nums
- * @param {number} k
- * @return {number}
- */
 var lengthOfLIS = function(nums, k) {
     if (!nums || nums.length === 0) return 0;
     
     const maxVal = Math.max(...nums);
-    const tree = new Array(maxVal + 2).fill(0);
+    const tree = new Array(4 * (maxVal + 1)).fill(0);
     
-    const update = (idx, val) => {
-        idx++;  // 1-indexed BIT
-        while (idx < tree.length) {
-            tree[idx] = Math.max(tree[idx], val);
-            idx += idx & -idx;
+    const update = (node, start, end, idx, val) => {
+        if (start === end) {
+            tree[node] = Math.max(tree[node], val);
+            return;
         }
+        const mid = Math.floor((start + end) / 2);
+        if (idx <= mid) update(2 * node, start, mid, idx, val);
+        else update(2 * node + 1, mid + 1, end, idx, val);
+        tree[node] = Math.max(tree[2 * node], tree[2 * node + 1]);
     };
     
-    const query = (idx) => {
-        idx++;
-        let res = 0;
-        while (idx > 0) {
-            res = Math.max(res, tree[idx]);
-            idx -= idx & -idx;
-        }
-        return res;
-    };
-    
-    const rangeQuery = (left, right) => {
-        if (left > right) return 0;
-        if (left === 0) return query(right);
-        return query(right) - query(left - 1);
+    const query = (node, start, end, left, right) => {
+        if (left > end || right < start) return 0;
+        if (left <= start && end <= right) return tree[node];
+        const mid = Math.floor((start + end) / 2);
+        return Math.max(
+            query(2 * node, start, mid, left, right),
+            query(2 * node + 1, mid + 1, end, left, right)
+        );
     };
     
     let ans = 0;
     for (const num of nums) {
         const left = Math.max(0, num - k);
-        const prev = rangeQuery(left, num - 1);
+        const prev = num > 0 ? query(1, 0, maxVal, left, num - 1) : 0;
         const curr = 1 + prev;
         ans = Math.max(ans, curr);
-        update(num, curr);
+        update(1, 0, maxVal, num, curr);
     }
     
     return ans;
@@ -403,7 +339,7 @@ var lengthOfLIS = function(nums, k) {
 | Complexity | Description |
 |------------|-------------|
 | **Time** | `O(n log M)` - n iterations, each O(log M) query/update |
-| **Space** | `O(M)` - Fenwick tree size |
+| **Space** | `O(M)` - Segment tree size |
 
 ---
 
@@ -843,4 +779,4 @@ This pattern is essential for solving problems requiring dynamic programming wit
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/longest-increasing-subsequence-ii/discuss/) - Community solutions
 - [Fenwick Tree - CP Algorithms](https://cp-algorithms.com/data_structures/fenwick.html) - Comprehensive BIT guide
-- [Segment Tree - GeeksforGeeks](https://www.geeksforgeeks.org/segment-tree-set-1-range-maximum-query/) - Segment tree tutorial
+- [Segment Tree - GeeksforGeeks](https://en.wikipedia.org/wiki/Segment_tree) - Segment tree tutorial
