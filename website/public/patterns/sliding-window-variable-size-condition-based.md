@@ -2554,7 +2554,7 @@ function countValidSubarrays(arr, condition) {
 
 - [14 Sliding Window Problems (NeetCode)](https://www.youtube.com/watch?v=MK-Z4hV-gM) - Practice problems
 - [Sliding Window Masterclass (Take U Forward)](https://www.youtube.com/playlist?list=PLzjZaW71k84Q9A1X6DdGDGD8tmOKVMbdM) - Comprehensive playlist
-- [Top Sliding Window Problems (Grind75)](https://www.youtube.com/playlist?list=PL6W8B3bX1l8l6w2X) - Top problems ranked
+- Top Sliding Window Problems (Grind75) - Top problems ranked
 
 ---
 

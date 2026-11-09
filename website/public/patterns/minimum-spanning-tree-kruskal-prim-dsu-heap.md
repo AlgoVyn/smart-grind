@@ -692,6 +692,6 @@ For more graph pattern implementations, see:
 ## Additional Resources
 
 - [LeetCode Min Cost to Connect All Points](https://leetcode.com/problems/min-cost-to-connect-all-points/)
-- [GeeksforGeeks MST](https://www.geeksforgeeks.org/minimum-spanning-tree-mst/)
+- [GeeksforGeeks MST](https://en.wikipedia.org/wiki/Minimum_spanning_tree)
 - [Wikipedia - Minimum Spanning Tree](https://en.wikipedia.org/wiki/Minimum_spanning_tree)
 - [Prim's vs Kruskal's](https://www.geeksforgeeks.org/difference-between-prims-and-kruskals-algorithm-for-mst/)

@@ -761,7 +761,7 @@ var uniquePathsWithObstacles = function(obstacleGrid) {
 | Problem | LeetCode Link | Difficulty | Related Technique |
 |---------|---------------|------------|-------------------|
 | Climbing Stairs | [Link](https://leetcode.com/problems/climbing-stairs/) | Easy | 1D DP |
-| Robot in Grid | [Link](https://www.interviewcake.com/question/python3/robot-in-grid) | Medium | Backtracking + DP |
+| Robot in Grid | [Link](https://en.wikipedia.org/wiki/Dynamic_programming) | Medium | Backtracking + DP |
 | Path Sum | [Link](https://leetcode.com/problems/path-sum/) | Easy | Tree DFS |
 
 ---

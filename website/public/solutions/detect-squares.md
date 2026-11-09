@@ -509,4 +509,4 @@ For more details on this pattern and its variations, see the **[Hash Map Pattern
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/detect-squares/discuss/) - Community solutions
 - [Hash Map - GeeksforGeeks](https://www.geeksforgeeks.org/hashing-data-structure/) - Understanding hash maps
-- [Geometry in Programming](https://www.geeksforgeeks.org/geometry-and-computational-geometry/) - Geometric algorithms
+- [Geometry in Programming](https://en.wikipedia.org/wiki/Computational_geometry) - Geometric algorithms

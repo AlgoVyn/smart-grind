@@ -881,5 +881,5 @@ This pattern extends to:
 
 - [LeetCode Problem 269](https://leetcode.com/problems/alien-dictionary/) - Official problem page
 - [Topological Sort - GeeksforGeeks](https://www.geeksforgeeks.org/topological-sorting/) - Detailed topological sort explanation
-- [Kahn's Algorithm](https://www.geeksforgeeks.org/kahns-algorithm-topological-sorting/) - BFS topological sort
+- [Kahn's Algorithm](https://en.wikipedia.org/wiki/Topological_sorting) - BFS topological sort
 - [Pattern: Topological Sort](/patterns/topological-sort) - Comprehensive pattern guide

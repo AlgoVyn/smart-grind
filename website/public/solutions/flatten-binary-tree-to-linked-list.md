@@ -802,6 +802,6 @@ This pattern extends to:
 ## Additional Resources
 
 - [LeetCode Problem 114](https://leetcode.com/problems/flatten-binary-tree-to-linked-list/) - Official problem page
-- [Tree Traversal - GeeksforGeeks](https://www.geeksforgeeks.org/tree-traversals-inorder-preorder-postorder/) - Detailed traversal explanation
-- [DFS on Binary Trees](https://www.geeksforgeeks.org/depth-first-search-traversal-of-a-binary-tree/) - DFS fundamentals
+- [Tree Traversal - GeeksforGeeks](https://en.wikipedia.org/wiki/Tree_traversal) - Detailed traversal explanation
+- [DFS on Binary Trees](https://en.wikipedia.org/wiki/Depth-first_search) - DFS fundamentals
 - [Pattern: Tree DFS](/patterns/tree-dfs) - Comprehensive pattern guide

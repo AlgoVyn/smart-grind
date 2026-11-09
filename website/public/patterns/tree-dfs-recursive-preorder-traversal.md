@@ -1081,7 +1081,7 @@ This pattern is frequently asked in interviews and forms the foundation for many
 
 - [LeetCode Binary Tree Preorder Traversal](https://leetcode.com/problems/binary-tree-preorder-traversal/) - Problem and solutions
 - [Tree Traversals - GeeksforGeeks](https://www.geeksforgeeks.org/tree-traversals-inorder-preorder-and-postorder/) - Comprehensive traversal guide
-- [Morris Traversal](https://www.geeksforgeeks.org/morris-traversal-linear-time-tree-traversal/) - O(1) space traversal
+- [Morris Traversal](https://en.wikipedia.org/wiki/Tree_traversal) - O(1) space traversal
 - [Binary Tree Data Structure](https://www.geeksforgeeks.org/binary-tree-data-structure/) - Binary tree fundamentals
 
 

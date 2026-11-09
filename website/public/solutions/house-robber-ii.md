@@ -555,5 +555,5 @@ For more details on Dynamic Programming, see the **[Dynamic Programming Pattern]
 ## Additional Resources
 
 - [LeetCode Problem 213](https://leetcode.com/problems/house-robber-ii/) - Official problem page
-- [House Robber - GeeksforGeeks](https://www.geeksforgeeks.org/maximum-sum-non-adjacent-elements/) - Related problem
+- [House Robber - GeeksforGeeks](https://en.wikipedia.org/wiki/Dynamic_programming) - Related problem
 - [Pattern: Dynamic Programming](/patterns/dynamic-programming) - Comprehensive pattern guide

@@ -740,6 +740,6 @@ For more details on MST algorithms, see:
 ## Additional Resources
 
 - [LeetCode Problem 1489](https://leetcode.com/problems/find-critical-and-pseudo-critical-edges-in-minimum-spanning-tree/) - Official problem page
-- [Kruskal's Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/kruskals-algo-minimum-spanning-tree/) - Detailed explanation
+- [Kruskal's Algorithm - GeeksforGeeks](https://en.wikipedia.org/wiki/Kruskal%27s_algorithm) - Detailed explanation
 - [Union-Find - Wikipedia](https://en.wikipedia.org/wiki/Disjoint-set_data_structure) - Data structure reference
 - [Pattern: MST](/algorithms/kruskals) - Comprehensive guide

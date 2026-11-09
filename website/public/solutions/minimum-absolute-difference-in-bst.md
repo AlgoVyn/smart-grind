@@ -850,6 +850,6 @@ For more details on this pattern and its variations, see the **[Tree DFS In-Orde
 ## Additional Resources
 
 - [LeetCode 783 - Minimum Distance Between BST Nodes](https://leetcode.com/problems/minimum-distance-between-bst-nodes/) - Official problem page
-- [Binary Tree Inorder Traversal - GeeksforGeeks](https://www.geeksforgeeks.org/tree-traversals-inorder-preorder-postorder/) - Traversal fundamentals
+- [Binary Tree Inorder Traversal - GeeksforGeeks](https://en.wikipedia.org/wiki/Tree_traversal) - Traversal fundamentals
 - [Morris Traversal - Wikipedia](https://en.wikipedia.org/wiki/Morris_traversal) - O(1) space technique
 - [Pattern: Tree DFS In-Order](/patterns/tree-dfs-recursive-inorder-traversal) - Comprehensive pattern guide

@@ -1073,7 +1073,7 @@ console.log(sameSCC(graph, 0, 3));   // Output: false
 
 ### Algorithm Visualizations
 
-- [Strongly Connected Components Visualization](https://visualgo.net/en/scc) - Interactive visualizer from VisuAlgo
+- [Strongly Connected Components Visualization](https://visualgo.net/en/dfsbfs) - Interactive visualizer from VisuAlgo
 - [Graph Algorithm Animations](https://www.cs.usfca.edu/~galles/JavascriptVisual/DFS.html) - DFS/BFS animations
 - [Tarjan's SCC Animation](https://www.youtube.com/watch?v=8B1_c8k2LQo) - Step-by-step animation
 

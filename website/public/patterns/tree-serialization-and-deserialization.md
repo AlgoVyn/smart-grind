@@ -1850,8 +1850,8 @@ Understanding serialization/deserialization is crucial for any developer working
 - [LeetCode Problem 297 - Serialize and Deserialize Binary Tree](https://leetcode.com/problems/serialize-and-deserialize-binary-tree/)
 - [LeetCode Problem 449 - Serialize and Deserialize BST](https://leetcode.com/problems/serialize-and-deserialize-bst/)
 - [GeeksforGeeks - Serialize and Deserialize a Binary Tree](https://www.geeksforgeeks.org/serialize-deserialize-binary-tree/)
-- [GeeksforGeeks - Tree Traversals](https://www.geeksforgeeks.org/tree-traversals-inorder-preorder-postorder/)
-- [Visualization - Binary Tree Serialization](https://visualgo.net/en/bt serialization)
+- [GeeksforGeeks - Tree Traversals](https://en.wikipedia.org/wiki/Tree_traversal)
+- [Visualization - Binary Tree Serialization](https://visualgo.net/en/bst serialization)
 
 
 ## Pattern Source

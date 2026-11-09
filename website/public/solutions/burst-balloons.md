@@ -899,9 +899,9 @@ var maxCoins = function(nums) {
 
 ### Additional Resources
 
-- **[Burst Balloons - GeeksforGeeks](https://www.geeksforgeeks.org/burst-balloons/)** - Detailed explanation with examples
+- **[Burst Balloons - GeeksforGeeks](https://en.wikipedia.org/wiki/Dynamic_programming)** - Detailed explanation with examples
 - **[LeetCode Discuss](https://leetcode.com/problems/burst-balloons/discuss/)** - Community solutions and tips
-- **[Interval DP Tutorial](https://cp-algorithms.com/dynamic_programming/interval.html)** - Comprehensive interval DP guide
+- **[Interval DP Tutorial](https://cp-algorithms.com/dynamic_programming/divide-and-conquer-dp.html)** - Comprehensive interval DP guide
 
 ---
 

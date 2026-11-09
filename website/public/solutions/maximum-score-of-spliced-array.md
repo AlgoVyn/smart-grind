@@ -637,6 +637,6 @@ For more details on this pattern and its variations, see the **[Kadane's Algorit
 ## Additional Resources
 
 - [LeetCode Problem 2355](https://leetcode.com/problems/maximum-score-of-spliced-array/) - Official problem page
-- [Kadane's Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/kadanes-algorithm/) - Detailed explanation
-- [Difference Array - Wikipedia](https://en.wikipedia.org/wiki/Difference_array) - Concept explanation
+- [Kadane's Algorithm - GeeksforGeeks](https://en.wikipedia.org/wiki/Maximum_subarray_problem) - Detailed explanation
+- [Difference Array - Wikipedia](https://en.wikipedia.org/wiki/Prefix_sum) - Concept explanation
 - [Pattern: Kadane's Algorithm](/patterns/kadane-algorithm) - Comprehensive pattern guide

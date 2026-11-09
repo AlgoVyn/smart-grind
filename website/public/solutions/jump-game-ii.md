@@ -379,7 +379,7 @@ var jump = function(nums) {
 | Jump Game | [Link](https://leetcode.com/problems/jump-game/) | Check if reachable |
 | Jump Game III | [Link](https://leetcode.com/problems/jump-game-iii/) | BFS approach |
 | Jump Game IV | [Link](https://leetcode.com/problems/jump-game-iv/) | BFS optimization |
-| Minimum Number of Jumps | [Link](https://www.geeksforgeeks.org/minimum-number-of-jumps-to-reach-end-of-array/) | Similar problem |
+| Minimum Number of Jumps | [Link](https://en.wikipedia.org/wiki/Greedy_algorithm) | Similar problem |
 
 ### Pattern Reference
 

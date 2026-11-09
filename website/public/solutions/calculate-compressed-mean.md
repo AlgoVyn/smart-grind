@@ -490,5 +490,5 @@ This extends to:
 ## Additional Resources
 
 - [Arithmetic Mean - Wikipedia](https://en.wikipedia.org/wiki/Arithmetic_mean) - Mathematical background
-- [Statistical Functions](https://www.geeksforgeeks.org/statistical-functions-python/) - Python statistics
-- [Overflow Handling](https://www.geeksforgeeks.org/integer-overflow/) - Understanding overflow
+- [Statistical Functions](https://docs.python.org/3/library/statistics.html) - Python statistics
+- [Overflow Handling](https://en.wikipedia.org/wiki/Integer_overflow) - Understanding overflow

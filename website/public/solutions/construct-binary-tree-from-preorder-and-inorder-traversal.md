@@ -764,5 +764,5 @@ For more details on tree problems and traversal patterns, see related resources.
 ## Additional Resources
 
 - [LeetCode Problem 105](https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/) - Official problem
-- [Tree Traversal - GeeksforGeeks](https://www.geeksforgeeks.org/tree-traversals/) - Comprehensive guide
+- [Tree Traversal - GeeksforGeeks](https://en.wikipedia.org/wiki/Tree_traversal) - Comprehensive guide
 - [Binary Tree Problems](https://en.wikipedia.org/wiki/Binary_tree) - Theory and concepts

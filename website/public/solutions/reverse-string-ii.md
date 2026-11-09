@@ -650,6 +650,6 @@ For more details on string manipulation patterns, see the **[Two Pointers - Stri
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/reverse-string-ii/discuss/) - Community solutions
-- [String Manipulation - GeeksforGeeks](https://www.geeksforgeeks.org/string-manipulation-in-programming/) - String operations
+- [String Manipulation - GeeksforGeeks](https://en.wikipedia.org/wiki/String_%28computer_science%29) - String operations
 - [Two Pointers Technique](https://www.geeksforgeeks.org/two-pointer-technique/) - Understanding two pointers
 - [Pattern: Two Pointers - String Reversal](/patterns/two-pointers-string-reversal) - Comprehensive pattern guide

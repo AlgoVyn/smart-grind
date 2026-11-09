@@ -549,5 +549,5 @@ This problem exemplifies the **Prefix Product** pattern, characterized by:
 ## Additional Resources
 
 - [LeetCode 1352 - Product of the Last K Numbers](https://leetcode.com/problems/product-of-the-last-k-numbers/) - Official problem page
-- [Prefix Sum - GeeksforGeeks](https://www.geeksforgeeks.org/prefix-sum-technique/) - Prefix technique basics
+- [Prefix Sum - GeeksforGeeks](https://en.wikipedia.org/wiki/Prefix_sum) - Prefix technique basics
 - [Pattern: Sliding Window](/patterns/sliding-window-variable-size-condition-based) - Related pattern

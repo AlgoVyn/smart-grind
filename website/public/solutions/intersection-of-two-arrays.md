@@ -594,5 +594,5 @@ For more details on this pattern and its variations, see the **[Set Operations P
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/intersection-of-two-arrays/discuss/) - Community solutions
-- [Hash Set - GeeksforGeeks](https://www.geeksforgeeks.org/hash-set-in-java/) - Understanding sets
+- [Hash Set - GeeksforGeeks](https://en.wikipedia.org/wiki/Hash_table) - Understanding sets
 - [Set Theory Basics](https://en.wikipedia.org/wiki/Set_theory) - Mathematical set operations

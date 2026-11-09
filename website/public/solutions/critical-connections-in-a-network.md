@@ -922,7 +922,7 @@ Based on similar themes (graph bridges, DFS, connectivity):
 |---------|---------------|-------------------|
 | Course Schedule | [Link](https://leetcode.com/problems/course-schedule/) | Topological sorting |
 | Redundant Connection | [Link](https://leetcode.com/problems/redundant-connection/) | Union-Find |
-| Bridges in Graph | [Link](https://practice.geeksforgeeks.org/problems/bridge-edge-in-graph/) | Finding bridges |
+| Bridges in Graph | [Link](https://en.wikipedia.org/wiki/Bridge_%28graph_theory%29) | Finding bridges |
 
 ### Pattern Reference
 

@@ -665,5 +665,5 @@ This problem exemplifies the **String Manipulation** pattern, characterized by:
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/repeated-string-match/discuss/) - Community solutions
-- [String Concatenation Performance](https://www.geeksforgeeks.org/string-concatenation/) - Optimization tips
-- [Substring Search - GeeksforGeeks](https://www.geeksforgeeks.org/substring-search/) - String matching algorithms
+- [String Concatenation Performance](https://en.wikipedia.org/wiki/Concatenation) - Optimization tips
+- [Substring Search - GeeksforGeeks](https://en.wikipedia.org/wiki/String-searching_algorithm) - String matching algorithms

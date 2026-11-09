@@ -544,6 +544,6 @@ For more details on this pattern, see the **[Prefix Sum Pattern](/patterns/prefi
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/maximum-good-subarray-sum/discuss/) - Community solutions
-- [Prefix Sum - GeeksforGeeks](https://www.geeksforgeeks.org/prefix-sum-technique/) - Detailed explanation
-- [Hash Map](https://www.geeksforgeeks.org/hash-map-in-cpp/) - Map operations
+- [Prefix Sum - GeeksforGeeks](https://en.wikipedia.org/wiki/Prefix_sum) - Detailed explanation
+- [Hash Map](https://en.wikipedia.org/wiki/Hash_table) - Map operations
 - [Pattern: Prefix Sum](/patterns/prefix-sum) - Comprehensive pattern guide

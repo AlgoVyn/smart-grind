@@ -678,6 +678,6 @@ For more details on this pattern and its variations, see the **[Union Find Patte
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/redundant-connection/discuss/) - Community solutions
-- [Union-Find Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/union-find-algorithm/) - Detailed explanation
-- [Cycle Detection in Undirected Graphs](https://www.geeksforgeeks.org/detect-cycle-in-an-undirected-graph/) - Graph theory basics
+- [Union-Find Algorithm - GeeksforGeeks](https://en.wikipedia.org/wiki/Disjoint-set_data_structure) - Detailed explanation
+- [Cycle Detection in Undirected Graphs](https://en.wikipedia.org/wiki/Cycle_detection) - Graph theory basics
 - [Disjoint Set Data Structure](https://en.wikipedia.org/wiki/Disjoint-set_data_structure) - Wikipedia

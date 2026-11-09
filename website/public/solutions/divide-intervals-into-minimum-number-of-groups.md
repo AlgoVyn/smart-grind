@@ -576,5 +576,5 @@ For more details on this pattern, see the **[Greedy Algorithms](/patterns/greedy
 
 - [LeetCode Problem 2406](https://leetcode.com/problems/divide-intervals-into-minimum-number-of-groups/) - Official problem page
 - [Meeting Rooms II](https://leetcode.com/problems/meeting-rooms-ii/) - Similar problem
-- [Interval Scheduling - GeeksforGeeks](https://www.geeksforgeeks.org/interval-scheduling/) - Theory
+- [Interval Scheduling - GeeksforGeeks](https://en.wikipedia.org/wiki/Interval_scheduling) - Theory
 - [Pattern: Greedy](/patterns/greedy) - Comprehensive pattern guide

@@ -1207,4 +1207,4 @@ This problem demonstrates fundamental string manipulation techniques and is esse
 - [LeetCode Problem Discussion](https://leetcode.com/problems/longest-palindromic-substring/discuss/) - Community solutions and explanations
 - [Manacher's Algorithm Explanation](https://cp-algorithms.com/string/manacher.html) - Detailed CP-Algorithms guide
 - [Dynamic Programming for Strings](https://www.geeksforgeeks.org/dynamic-programming/) - DP concepts
-- [Palindrome Detection Techniques](https://www.hackerearth.com/practice/basic-programming/string-manipulation/basics-of-string-manipulation/tutorial/) - String manipulation fundamentals
+- [Palindrome Detection Techniques](https://cp-algorithms.com/string/string-hashing.html) - String manipulation fundamentals

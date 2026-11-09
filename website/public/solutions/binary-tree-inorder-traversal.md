@@ -922,5 +922,5 @@ This problem exemplifies the **Tree Depth-First Search** pattern:
 ## Additional Resources
 
 - [LeetCode Problem 94](https://leetcode.com/problems/binary-tree-inorder-traversal/) - Official problem page
-- [Tree Traversal - GeeksforGeeks](https://www.geeksforgeeks.org/tree-traversals/) - Detailed explanations
-- [Morris Traversal](https://www.geeksforgeeks.org/morris-traversal-for-inorder/) - O(1) space method
+- [Tree Traversal - GeeksforGeeks](https://en.wikipedia.org/wiki/Tree_traversal) - Detailed explanations
+- [Morris Traversal](https://en.wikipedia.org/wiki/Tree_traversal) - O(1) space method

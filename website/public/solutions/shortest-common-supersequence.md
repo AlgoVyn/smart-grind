@@ -780,5 +780,5 @@ For more details on this pattern and its variations, see the **[DP - 2D Array - 
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/shortest-common-supersequence/discuss/) - Community solutions and explanations
 - [Longest Common Subsequence - GeeksforGeeks](https://www.geeksforgeeks.org/longest-common-subsequence/) - Detailed LCS explanation
-- [Dynamic Programming on Strings](https://www.geeksforgeeks.org/dynamic-programming-strings/) - String DP techniques
+- [Dynamic Programming on Strings](https://en.wikipedia.org/wiki/Dynamic_programming) - String DP techniques
 - [Shortest Common Supersequence - Wikipedia](https://en.wikipedia.org/wiki/Shortest_common_supersequence) - Theoretical background

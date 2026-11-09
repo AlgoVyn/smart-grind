@@ -998,9 +998,9 @@ var mergeStones = function(stones, K) {
 
 ### Additional Resources
 
-- **[GeeksforGeeks - Merge Stones](https://www.geeksforgeeks.org/minimum-cost-merge-stones/)** - Detailed explanation with examples
+- **[GeeksforGeeks - Merge Stones](https://en.wikipedia.org/wiki/Dynamic_programming)** - Detailed explanation with examples
 - **[LeetCode Discuss](https://leetcode.com/problems/minimum-cost-to-merge-stones/discuss/)** - Community solutions and tips
-- **[Interval DP Tutorial](https://cp-algorithms.com/dynamic_programming/interval.html)** - Comprehensive interval DP guide
+- **[Interval DP Tutorial](https://cp-algorithms.com/dynamic_programming/divide-and-conquer-dp.html)** - Comprehensive interval DP guide
 
 ---
 

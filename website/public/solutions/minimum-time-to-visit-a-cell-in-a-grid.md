@@ -729,6 +729,6 @@ This problem exemplifies the **Dijkstra's Algorithm** pattern, which is characte
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/minimum-time-to-visit-a-cell-in-a-grid/discuss/) - Community solutions
-- [Dijkstra's Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/dijkstras-algorithm/) - Detailed explanation
+- [Dijkstra's Algorithm - GeeksforGeeks](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) - Detailed explanation
 - [Graph Shortest Path - Wikipedia](https://en.wikipedia.org/wiki/Shortest_path_problem) - Learn about shortest paths
-- [Pattern: Dijkstra's Algorithm](https://www.geeksforgeeks.org/dijkstras-shortest-path-algorithm/) - Comprehensive guide
+- [Pattern: Dijkstra's Algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) - Comprehensive guide

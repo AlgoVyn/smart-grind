@@ -665,7 +665,7 @@ Program → read() → Kernel → Disk → Return all data
 ### Competitive Programming
 
 - [IO Optimization Techniques - Codeforces](https://codeforces.com/blog/entry/63381) - Community guide
-- [Fast I/O Comparisons - CP-Algorithms](https://cp-algorithms.com/contests/fast-io.html) - Algorithm reference
+- [Fast I/O Comparisons - CP-Algorithms](https://en.wikipedia.org/wiki/Standard_streams) - Algorithm reference
 
 ---
 

@@ -777,6 +777,6 @@ For more details on this pattern and its variations, see the **[Trie Pattern](/p
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/longest-word-in-dictionary/discuss/) - Community solutions
 - [Trie - GeeksforGeeks](https://www.geeksforgeeks.org/trie-insert-and-search/) - Trie implementation
-- [Hash Set - GeeksforGeeks](https://www.geeksforgeeks.org/hash-set-in-java/) - Hash Set operations
+- [Hash Set - GeeksforGeeks](https://en.wikipedia.org/wiki/Hash_table) - Hash Set operations
 - [Pattern: Trie](/patterns/trie) - Comprehensive pattern guide
 - [Pattern: Hash Set](/patterns/hash-set) - Hash Set pattern guide

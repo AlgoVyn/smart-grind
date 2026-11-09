@@ -633,6 +633,6 @@ This pattern extends to:
 ## Additional Resources
 
 - [LeetCode Problem 1490](https://leetcode.com/problems/clone-n-ary-tree/) - Official problem page
-- [Tree Traversal - GeeksforGeeks](https://www.geeksforgeeks.org/tree-traversals-inorder-preorder-postorder/) - Traversal explanations
-- [DFS on Trees](https://www.geeksforgeeks.org/depth-first-search-traversal-of-a-binary-tree/) - DFS fundamentals
+- [Tree Traversal - GeeksforGeeks](https://en.wikipedia.org/wiki/Tree_traversal) - Traversal explanations
+- [DFS on Trees](https://en.wikipedia.org/wiki/Depth-first_search) - DFS fundamentals
 - [Pattern: Tree DFS](/patterns/tree-dfs) - Comprehensive pattern guide

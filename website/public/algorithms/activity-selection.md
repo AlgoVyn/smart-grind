@@ -683,7 +683,7 @@ The Activity Selection problem satisfies two key properties that make greedy wor
 
 ### Problem 5: Minimum Platforms
 
-**Problem:** [GeeksForGeeks - Minimum Number of Platforms](https://practice.geeksforgeeks.org/problems/minimum-number-of-platforms-while-merge-sorting/)
+**Problem:** [GeeksForGeeks - Minimum Number of Platforms](https://en.wikipedia.org/wiki/Greedy_algorithm)
 
 **Description:** Given arrival and departure times of trains, find minimum number of platforms needed.
 

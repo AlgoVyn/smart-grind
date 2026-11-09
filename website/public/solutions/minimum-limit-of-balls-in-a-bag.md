@@ -490,5 +490,5 @@ For more details on this pattern, see the **[Binary Search on Answer Pattern](/p
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/minimum-limit-of-balls-in-a-bag/discuss/) - Community solutions
 - [Binary Search - GeeksforGeeks](https://www.geeksforgeeks.org/binary-search/) - Detailed explanation
-- [Priority Queue](https://www.geeksforgeeks.org/priority-queue-in-cpp/) - Heap operations
+- [Priority Queue](https://en.wikipedia.org/wiki/Priority_queue) - Heap operations
 - [Pattern: Binary Search on Answer](/patterns/binary-search-on-answer) - Comprehensive pattern guide

@@ -716,5 +716,5 @@ For more details on this pattern and its variations, see the **[Topological Sort
 
 - [LeetCode Problem 1857](https://leetcode.com/problems/largest-color-value-in-a-directed-graph/) - Official problem page
 - [Topological Sort - GeeksforGeeks](https://www.geeksforgeeks.org/topological-sorting/) - Detailed explanation
-- [Kahn's Algorithm](https://www.geeksforgeeks.org/kahns-algorithm-topological-sort/) - BFS-based approach
+- [Kahn's Algorithm](https://en.wikipedia.org/wiki/Topological_sorting) - BFS-based approach
 - [Pattern: Topological Sort](/patterns/topological-sort) - Comprehensive pattern guide

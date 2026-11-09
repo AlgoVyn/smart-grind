@@ -631,5 +631,5 @@ For more details on this pattern, see the **[Dynamic Programming Pattern](/patte
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/word-break/discuss/) - Community solutions
 - [Dynamic Programming - GeeksforGeeks](https://www.geeksforgeeks.org/dynamic-programming/) - Detailed explanation
-- [Word Break II Solution](https://www.geeksforgeeks.org/word-break-problem-using-trie/) - Using Trie
+- [Word Break II Solution](https://en.wikipedia.org/wiki/Trie) - Using Trie
 - [Pattern: Dynamic Programming](/patterns/dynamic-programming) - Comprehensive pattern guide

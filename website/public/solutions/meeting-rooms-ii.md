@@ -663,4 +663,4 @@ For more details on interval problems, see the **[Greedy - Interval Merging/Sche
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/meeting-rooms-ii/discuss/) - Community solutions
 - [Interval Scheduling - GeeksforGeeks](https://www.geeksforgeeks.org/activity-selection-problem-greedy-algo-1/) - Greedy approach
-- [Priority Queue in Java](https://www.geeksforgeeks.org/priority-queue-in-cpp/) - Heap implementations
+- [Priority Queue in Java](https://en.wikipedia.org/wiki/Priority_queue) - Heap implementations

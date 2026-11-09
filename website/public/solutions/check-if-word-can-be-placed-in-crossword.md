@@ -873,5 +873,5 @@ For more details on this pattern and its variations, see the **[Grid Traversal P
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/check-if-word-can-be-placed-in-crossword/discuss/) - Community solutions
-- [Grid Traversal - GeeksforGeeks](https://www.geeksforgeeks.org/grid-traversal-techniques/) - Understanding grid traversal
-- [2D Array Operations - GeeksforGeeks](https://www.geeksforgeeks.org/2d-array/) - Working with 2D arrays
+- [Grid Traversal - GeeksforGeeks](https://en.wikipedia.org/wiki/Graph_traversal) - Understanding grid traversal
+- [2D Array Operations - GeeksforGeeks](https://en.wikipedia.org/wiki/Array_%28data_structure%29) - Working with 2D arrays

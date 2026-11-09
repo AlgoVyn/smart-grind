@@ -447,4 +447,4 @@ The key insight is converting the expression problem into a subset selection pro
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/target-sum/discuss/)
-- [Subset Sum - GeeksforGeeks](https://www.geeksforgeeks.org/subset-sum-problem-dynamic-programming/)
+- [Subset Sum - GeeksforGeeks](https://en.wikipedia.org/wiki/Subset_sum_problem)

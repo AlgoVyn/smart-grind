@@ -538,6 +538,6 @@ For more details on this pattern and its variations, see the **[Dynamic Programm
 ## Additional Resources
 
 - [LeetCode Problem 1312](https://leetcode.com/problems/minimum-insertion-steps-to-make-a-string-palindrome/) - Official problem page
-- [Longest Palindromic Subsequence - GeeksforGeeks](https://www.geeksforgeeks.org/longest-palindromic-subsequence/) - LPS explanation
+- [Longest Palindromic Subsequence - GeeksforGeeks](https://www.geeksforgeeks.org/dsa/longest-palindromic-subsequence-in-python/) - LPS explanation
 - [Dynamic Programming on Strings](https://leetcode.com/explore/learn/card/dynamic-programming/) - LeetCode DP explore module
 - [Pattern: Dynamic Programming](/patterns/dynamic-programming) - Comprehensive pattern guide

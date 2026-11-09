@@ -1005,7 +1005,7 @@ This problem demonstrates the power of thoughtful data structure design and is f
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/sliding-window-maximum/discuss/) - Community solutions and explanations
-- [Monotonic Queue Fundamentals](https://www.geeksforgeeks.org/monotonic-queue/) - Monotonic queue concepts
+- [Monotonic Queue Fundamentals](https://en.wikipedia.org/wiki/Priority_queue) - Monotonic queue concepts
 - [Deque Data Structure](https://docs.python.org/3/library/collections.html#collections.deque) - Python deque documentation
 - [C++ deque](https://en.cppreference.com/w/cpp/container/deque) - C++ deque reference
 - [Java ArrayDeque](https://docs.oracle.com/javase/8/docs/api/java/util/ArrayDeque.html) - Java ArrayDeque API

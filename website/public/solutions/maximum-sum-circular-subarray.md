@@ -618,5 +618,5 @@ This is a classic problem that shows how a simple algorithm can be modified to h
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/maximum-sum-circular-subarray/discuss/) - Community solutions
-- [Kadane's Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/kadanes-algorithm/) - Comprehensive guide
+- [Kadane's Algorithm - GeeksforGeeks](https://en.wikipedia.org/wiki/Maximum_subarray_problem) - Comprehensive guide
 - [Circular Arrays - CP Algorithms](https://cp-algorithms.com/) - Additional patterns

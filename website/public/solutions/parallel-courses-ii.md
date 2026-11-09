@@ -672,5 +672,5 @@ For more details on this pattern and its variations, see the **[Bitmask DP Patte
 ## Additional Resources
 
 - [LeetCode Problem 1494](https://leetcode.com/problems/parallel-courses-ii/) - Official problem page
-- [Bitmask DP - GeeksforGeeks](https://www.geeksforgeeks.org/bitmask-dp/) - Detailed explanation
+- [Bitmask DP - GeeksforGeeks](https://en.wikipedia.org/wiki/Dynamic_programming) - Detailed explanation
 - [Pattern: Bitmask DP](/patterns/bitmask-dp) - Comprehensive pattern guide

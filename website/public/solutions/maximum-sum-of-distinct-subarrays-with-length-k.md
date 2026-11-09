@@ -573,5 +573,5 @@ For more details on this pattern, see the **[Sliding Window Pattern](/patterns/s
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/maximum-sum-of-distinct-subarrays-with-length-k/discuss/) - Community solutions
 - [Sliding Window - GeeksforGeeks](https://www.geeksforgeeks.org/window-sliding-technique/) - Detailed explanation
-- [Hash Set](https://www.geeksforgeeks.org/hash-set-in-java/) - Set operations
+- [Hash Set](https://en.wikipedia.org/wiki/Hash_table) - Set operations
 - [Pattern: Sliding Window](/patterns/sliding-window) - Comprehensive pattern guide

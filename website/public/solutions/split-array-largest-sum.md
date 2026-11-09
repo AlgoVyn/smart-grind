@@ -723,7 +723,7 @@ var splitArray = function(nums, k) {
 3. **[Painters Partition Problem](https://practice.geeksforgeeks.org/problems/allocate-minimum-number-of-pages0937/1)**
    - Distribute books among students with minimum maximum pages
 
-4. **[Minimum Largest Sum of M Subarrays](https://www.geeksforgeeks.org/split-the-given-array-into-k-subarrays-such-that-sum-of-each-subarray-is-minimum/)**
+4. **[Minimum Largest Sum of M Subarrays](https://en.wikipedia.org/wiki/Binary_search_algorithm)**
    - Similar problem with additional constraints
 
 5. **[Maximum Subarray Sum with One Deletion](https://leetcode.com/problems/maximum-subarray-sum-with-one-deletion/)**

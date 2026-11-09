@@ -600,5 +600,5 @@ This pattern is essential for solving optimization problems with monotonic const
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/maximum-candies-allocated-to-k-children/discuss/) - Community solutions
-- [Binary Search - CP Algorithms](https://cp-algorithms.com/binary_search.html) - Binary search guide
+- [Binary Search - CP Algorithms](https://cp-algorithms.com/num_methods/binary_search.html) - Binary search guide
 - [Monotonic Search Space](https://leetcode.com/explore/interview/card/top-interview-questions-hard/) - Pattern explanation

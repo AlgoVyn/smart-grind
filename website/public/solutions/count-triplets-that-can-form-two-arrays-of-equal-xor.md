@@ -625,5 +625,5 @@ For more details on this pattern, see the **[XOR Pattern - Prefix XOR](/patterns
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/count-triplets-that-can-form-two-arrays-of-equal-xor/discuss/) - Community solutions
-- [XOR Properties - GeeksforGeeks](https://www.geeksforgeeks.org/xor-operator/) - XOR fundamentals
+- [XOR Properties - GeeksforGeeks](https://en.wikipedia.org/wiki/Exclusive_or) - XOR fundamentals
 - [Prefix Sum Technique](https://en.wikipedia.org/wiki/Prefix_sum) - General prefix concepts

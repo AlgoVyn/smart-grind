@@ -487,5 +487,5 @@ For more details, see **[Bitwise Operations Pattern](/patterns/bitwise-operation
 ## Additional Resources
 
 - [LeetCode 342 - Power of Four](https://leetcode.com/problems/power-of-four/) - Official problem page
-- [Bit Manipulation - GeeksforGeeks](https://www.geeksforgeeks.org/bitwise-operators-in-java-c-php/) - Bit operation basics
+- [Bit Manipulation - GeeksforGeeks](https://en.wikipedia.org/wiki/Bitwise_operation) - Bit operation basics
 - [Pattern: Bitwise Operations](/patterns/bitwise-operations-power-of-two-four-check) - Comprehensive pattern guide

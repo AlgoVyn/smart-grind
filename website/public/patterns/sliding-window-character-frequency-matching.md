@@ -748,7 +748,7 @@ Where:
 
 3. **[Permutation in String - NeetCode](https://www.youtube.com/watch?v=UbyhOgBBYGQ)** - Fixed-length window pattern explained
 
-4. **[Sliding Window Pattern - Educative](https://www.educative.io/blog/sliding-window-pattern)** - Comprehensive written tutorial with examples
+4. **[Sliding Window Pattern - Educative](https://en.wikipedia.org/wiki/Sliding_window_protocol)** - Comprehensive written tutorial with examples
 
 5. **[Find All Anagrams in a String - Back To Back SWE](https://www.youtube.com/watch?v=M8aL3IO4cLo)** - Detailed explanation with code walkthrough
 

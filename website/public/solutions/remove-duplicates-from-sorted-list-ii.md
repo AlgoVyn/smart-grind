@@ -710,5 +710,5 @@ For more details on this pattern and its variations, see:
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/discuss/) - Community solutions
 - [Linked List - GeeksforGeeks](https://www.geeksforgeeks.org/linked-list-data-structure/) - Understanding linked lists
-- [Dummy Node Pattern](https://www.geeksforgeeks.org/dummy-node-in-linked-list/) - Using dummy nodes
+- [Dummy Node Pattern](https://en.wikipedia.org/wiki/Linked_list) - Using dummy nodes
 - [Pattern: Linked List - In-place Reversal](/patterns/linked-list-in-place-reversal) - Related pattern guide

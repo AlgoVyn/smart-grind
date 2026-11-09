@@ -846,7 +846,7 @@ Maximum = 49
 
 - **[LeetCode Official Solution](https://leetcode.com/problems/container-with-most-water/solutions/)** - Official solutions and community discussions
 - **[GeeksforGeeks - Container With Most Water](https://www.geeksforgeeks.org/container-with-most-water/)** - Detailed explanations
-- **[Two Pointer - Wikipedia](https://en.wikipedia.org/wiki/Two-pointers_technique)** - Theoretical background
+- **[Two Pointer - Wikipedia](https://www.geeksforgeeks.org/two-pointers-technique/)** - Theoretical background
 
 ---
 

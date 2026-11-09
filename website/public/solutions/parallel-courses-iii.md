@@ -784,7 +784,7 @@ var minimumTime = function(n, relations, time) {
 
 | Problem | LeetCode Link | Difficulty | Related Technique |
 |---------|---------------|------------|-------------------|
-| Longest Path in DAG | [Link](https://practice.geeksforgeeks.org/problems/longest-path-in-a-dag) | Medium | Topological sort |
+| Longest Path in DAG | [Link](https://en.wikipedia.org/wiki/Longest_path_problem) | Medium | Topological sort |
 | Team Selection | [Link](https://leetcode.com/problems/team-selection/) | Medium | BFS on DAG |
 | Find Safe States | [Link](https://leetcode.com/problems/find-safe-states-in-a-tour/) | Medium | Topological sort |
 

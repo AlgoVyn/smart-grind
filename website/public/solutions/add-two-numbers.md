@@ -854,4 +854,4 @@ This problem exemplifies the **Linked List - Digit Addition** pattern, which is 
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/add-two-numbers/discuss/) - Community solutions and explanations
 - [Linked List - GeeksforGeeks](https://www.geeksforgeeks.org/data-structures/linked-list/) - Understanding linked lists
-- [Understanding Big Integer Addition](https://www.geeksforgeeks.org/how-to-add-two-large-numbers-using-string/) - Adding large numbers
+- [Understanding Big Integer Addition](https://en.wikipedia.org/wiki/Arbitrary-precision_arithmetic) - Adding large numbers

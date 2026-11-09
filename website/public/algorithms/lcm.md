@@ -656,7 +656,7 @@ lcm(4, 6) = 12
 ### Competitive Programming
 
 - [Number Theory - Codeforces](https://codeforces.com/blog/entry/46492) - Blog tutorial
-- [LCM/GCD Problems - CP-Algorithms](https://cp-algorithms.com/algebra/lcm-gcd.html) - Reference
+- [LCM/GCD Problems - CP-Algorithms](https://cp-algorithms.com/algebra/euclid-algorithm.html) - Reference
 
 ---
 

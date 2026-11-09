@@ -716,6 +716,6 @@ For more details on this pattern and its variations, see the **[Binary Search - 
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/find-in-mountain-array/discuss/) - Community solutions and explanations
 - [Binary Search - GeeksforGeeks](https://www.geeksforgeeks.org/binary-search/) - Detailed explanation
-- [Peak Finding Algorithms](https://www.geeksforgeeks.org/find-a-peak-in-a-mountain-array/) - Understanding peak finding
-- [Mountain Array - Wikipedia](https://en.wikipedia.org/wiki/Mountain_array) - Learn about mountain arrays
+- [Peak Finding Algorithms](https://en.wikipedia.org/wiki/Local_maximum) - Understanding peak finding
+- [Mountain Array - Wikipedia](https://en.wikipedia.org/wiki/Local_maximum) - Learn about mountain arrays
 - [Pattern: Binary Search - Find First and Last Occurrence](/patterns/binary-search-find-first-last-occurrence) - Comprehensive pattern guide

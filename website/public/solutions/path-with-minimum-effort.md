@@ -951,5 +951,5 @@ For more details, see **[Binary Search Pattern](/patterns/binary-search-on-sorte
 ## Additional Resources
 
 - [LeetCode 1631 - Path With Minimum Effort](https://leetcode.com/problems/path-with-minimum-effort/) - Official problem page
-- [Dijkstra's Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/dijkstras-algorithm/) - Algorithm explanation
+- [Dijkstra's Algorithm - GeeksforGeeks](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) - Algorithm explanation
 - [Union-Find - GeeksforGeeks](https://www.geeksforgeeks.org/union-find/) - Data structure guide

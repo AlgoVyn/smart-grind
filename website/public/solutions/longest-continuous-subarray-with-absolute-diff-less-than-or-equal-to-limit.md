@@ -536,4 +536,4 @@ This problem exemplifies the **Sliding Window with Monotonic Deques** pattern, c
 ## Additional Resources
 
 - [LeetCode Problem 1438](https://leetcode.com/problems/longest-continuous-subarray-with-absolute-diff-less-than-or-equal-to-limit/) - Official problem page
-- [Monotonic Queue - GeeksforGeeks](https://www.geeksforgeeks.org/monotonic-queue/) - Detailed explanation
+- [Monotonic Queue - GeeksforGeeks](https://en.wikipedia.org/wiki/Priority_queue) - Detailed explanation

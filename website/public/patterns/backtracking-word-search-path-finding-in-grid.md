@@ -621,5 +621,5 @@ For more backtracking pattern implementations, see:
 ## Additional Resources
 
 - [LeetCode Word Search](https://leetcode.com/problems/word-search/)
-- [GeeksforGeeks Word Search](https://www.geeksforgeeks.org/word-search/)
+- [GeeksforGeeks Word Search](https://en.wikipedia.org/wiki/Depth-first_search)
 - [Backtracking Algorithms Guide](https://www.geeksforgeeks.org/backtracking-algorithms/)

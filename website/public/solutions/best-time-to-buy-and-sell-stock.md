@@ -586,5 +586,5 @@ This is a classic array optimization problem frequently asked in technical inter
 ## Additional Resources
 
 - [LeetCode Problem](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/)
-- [Peak Valley Definition](https://en.wikipedia.org/wiki/Peak_and_valley)
+- [Peak Valley Definition](https://en.wikipedia.org/wiki/Local_maximum)
 - [Kadane's Algorithm](https://en.wikipedia.org/wiki/Kadane%27s_algorithm) - Similar pattern

@@ -554,4 +554,4 @@ This is a classic linked list problem that tests understanding of pointers, reve
 
 - [LeetCode Problem](https://leetcode.com/problems/palindrome-linked-list/)
 - [Linked List Basics](https://en.wikipedia.org/wiki/Linked_list)
-- [Two Pointer Technique](https://en.wikipedia.org/wiki/Two-pointer_algorithm)
+- [Two Pointer Technique](https://www.geeksforgeeks.org/two-pointers-technique/)

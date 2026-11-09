@@ -749,5 +749,5 @@ For more design and data structure patterns, see:
 
 - [LeetCode LRU Cache](https://leetcode.com/problems/lru-cache/)
 - [LeetCode Min Stack](https://leetcode.com/problems/min-stack/)
-- [GeeksforGeeks Design Patterns](https://www.geeksforgeeks.org/design-patterns/)
+- [GeeksforGeeks Design Patterns](https://en.wikipedia.org/wiki/Software_design_pattern)
 - [System Design Primer - GitHub](https://github.com/donnemartin/system-design-primer)

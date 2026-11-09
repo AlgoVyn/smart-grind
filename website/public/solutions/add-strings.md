@@ -708,6 +708,6 @@ For more details on related patterns, see the **[String Multiply Strings Pattern
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/add-strings/discuss/) - Community solutions
-- [Big Integer Implementation](https://www.geeksforgeeks.org/big-integer-implementation/) - Understanding big integers
-- [String Manipulation - GeeksforGeeks](https://www.geeksforgeeks.org/string-manipulation-in-programming/) - String operations
+- [Big Integer Implementation](https://en.wikipedia.org/wiki/Arbitrary-precision_arithmetic) - Understanding big integers
+- [String Manipulation - GeeksforGeeks](https://en.wikipedia.org/wiki/String_%28computer_science%29) - String operations
 - [Pattern: String Multiply Strings](/patterns/string-multiply-strings-manual-simulation) - Comprehensive pattern guide

@@ -596,5 +596,5 @@ This pattern extends to:
 ## Additional Resources
 
 - [LeetCode Problem 1167](https://leetcode.com/problems/connecting-cities-with-minimum-cost/) - Official problem page
-- [Kruskal's Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/kruskals-minimum-spanning-tree-algorithm/)
+- [Kruskal's Algorithm - GeeksforGeeks](https://en.wikipedia.org/wiki/Kruskal%27s_algorithm)
 - [Pattern: Minimum Spanning Tree](/algorithms/kruskals)

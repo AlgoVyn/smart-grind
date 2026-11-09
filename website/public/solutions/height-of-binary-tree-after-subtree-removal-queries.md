@@ -786,6 +786,6 @@ For more details on this pattern and its variations, see the **[Tree DFS Pattern
 ## Additional Resources
 
 - [LeetCode Problem 1660](https://leetcode.com/problems/height-of-binary-tree-after-subtree-removal-queries/) - Official problem page
-- [Binary Tree Traversal - GeeksforGeeks](https://www.geeksforgeeks.org/tree-traversals/) - Tree traversal fundamentals
+- [Binary Tree Traversal - GeeksforGeeks](https://en.wikipedia.org/wiki/Tree_traversal) - Tree traversal fundamentals
 - [Tree Height - Wikipedia](https://en.wikipedia.org/wiki/Tree_%28graph_theory%29) - Tree theory basics
 - [Pattern: Tree DFS](/patterns/tree-dfs-recursive-preorder-traversal) - Comprehensive pattern guide

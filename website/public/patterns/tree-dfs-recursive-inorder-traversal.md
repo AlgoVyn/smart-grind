@@ -1134,7 +1134,7 @@ This pattern is frequently asked in interviews and forms the foundation for many
 
 - [LeetCode Binary Tree Inorder Traversal](https://leetcode.com/problems/binary-tree-inorder-traversal/) - Problem and solutions
 - [Tree Traversals - GeeksforGeeks](https://www.geeksforgeeks.org/tree-traversals-inorder-preorder-and-postorder/) - Comprehensive traversal guide
-- [Morris Traversal](https://www.geeksforgeeks.org/morris-traversal-linear-time-tree-traversal/) - O(1) space traversal
+- [Morris Traversal](https://en.wikipedia.org/wiki/Tree_traversal) - O(1) space traversal
 - [Binary Search Tree Data Structure](https://www.geeksforgeeks.org/binary-search-tree-data-structure/) - BST fundamentals
 - [Validate BST - LeetCode Solutions](https://leetcode.com/problems/validate-binary-search-tree/solutions/) - Various approaches for BST validation
 

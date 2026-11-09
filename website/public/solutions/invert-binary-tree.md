@@ -652,6 +652,6 @@ For more details on this pattern, see the **[Tree DFS Pattern](/patterns/tree-df
 ## Additional Resources
 
 - [LeetCode Problem 226](https://leetcode.com/problems/invert-binary-tree/) - Official problem page
-- [Tree Traversal - GeeksforGeeks](https://www.geeksforgeeks.org/tree-traversals/) - Detailed traversal explanation
+- [Tree Traversal - GeeksforGeeks](https://en.wikipedia.org/wiki/Tree_traversal) - Detailed traversal explanation
 - [Binary Tree - Wikipedia](https://en.wikipedia.org/wiki/Binary_tree) - Binary tree fundamentals
 - [Pattern: Tree DFS](/patterns/tree-dfs-recursive-inorder-traversal) - Comprehensive pattern guide

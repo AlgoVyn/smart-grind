@@ -621,5 +621,5 @@ For more details on this pattern and its variations, see the **[Graph Cycle Dete
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/find-eventual-safe-states/discuss/) - Community solutions
-- [DFS Cycle Detection - GeeksforGeeks](https://www.geeksforgeeks.org/detect-cycle-in-a-graph-using-dfs/) - Understanding cycle detection
+- [DFS Cycle Detection - GeeksforGeeks](https://en.wikipedia.org/wiki/Cycle_detection) - Understanding cycle detection
 - [Topological Sort](https://www.geeksforgeeks.org/topological-sorting/) - Graph ordering

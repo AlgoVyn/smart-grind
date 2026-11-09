@@ -671,5 +671,5 @@ For more details on this pattern and its variations, see:
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/continuous-subarrays/discuss/) - Community solutions
 - [Sliding Window - GeeksforGeeks](https://www.geeksforgeeks.org/window-sliding-technique/) - Understanding sliding window
-- [Monotonic Deque - GeeksforGeeks](https://www.geeksforgeeks.org/deque/set-3-monotonic-deque/) - Monotonic deque operations
+- [Monotonic Deque - GeeksforGeeks](https://en.wikipedia.org/wiki/Double-ended_queue) - Monotonic deque operations
 - [Pattern: Sliding Window - Variable Size](/patterns/sliding-window-variable-size-condition-based) - Related pattern guide

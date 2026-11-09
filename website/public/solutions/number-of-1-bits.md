@@ -692,8 +692,8 @@ var hammingWeight = function(n) {
 
 ### Additional Resources
 
-- **[Bitwise Operations - GeeksforGeeks](https://www.geeksforgeeks.org/bitwise-operators-c-cpp/)** - Language-specific examples
-- **[Brian Kernighan's Algorithm - Wikipedia](https://en.wikipedia.org/wiki/Brian_Kernighan%27s_algorithm)** - Theoretical background
+- **[Bitwise Operations - GeeksforGeeks](https://en.wikipedia.org/wiki/Bitwise_operation)** - Language-specific examples
+- **[Brian Kernighan's Algorithm - Wikipedia](https://en.wikipedia.org/wiki/Hamming_weight)** - Theoretical background
 - **[LeetCode Discuss](https://leetcode.com/problems/number-of-1-bits/discuss/)** - Community solutions and tips
 
 ---

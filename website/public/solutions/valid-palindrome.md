@@ -827,7 +827,7 @@ var isPalindrome = function(s) {
 
 - **[Valid Palindrome - GeeksforGeeks](https://www.geeksforgeeks.org/string-palindrome/)** - Detailed explanation with examples
 - **[LeetCode Discuss](https://leetcode.com/problems/valid-palindrome/discuss/)** - Community solutions and tips
-- **[Two Pointers Pattern - Interview Cake](https://www.interviewcake.com/array-string-pointers-java)** - Two-pointer patterns explained
+- **[Two Pointers Pattern - Interview Cake](https://en.wikipedia.org/wiki/Pointer_%28computer_programming%29)** - Two-pointer patterns explained
 
 ---
 

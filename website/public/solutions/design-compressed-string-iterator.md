@@ -640,4 +640,4 @@ This problem exemplifies the **Iterator Design Pattern**, which is characterized
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/design-compressed-string-iterator/discuss/) - Community solutions
 - [Iterator Pattern - Wikipedia](https://en.wikipedia.org/wiki/Iterator_pattern) - Iterator design pattern
-- [String Parsing - GeeksforGeeks](https://www.geeksforgeeks.org/how-to-split-a-string-in-cpp/) - String parsing techniques
+- [String Parsing - GeeksforGeeks](https://en.wikipedia.org/wiki/String_%28computer_science%29) - String parsing techniques

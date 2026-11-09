@@ -599,6 +599,6 @@ For more details on this pattern, see the **[Graph Traversal](/patterns/graph-bf
 ## Additional Resources
 
 - [LeetCode Problem 695](https://leetcode.com/problems/max-area-of-island/) - Official problem page
-- [Graph Traversal - GeeksforGeeks](https://www.geeksforgeeks.org/graph-traversals/) - Detailed explanation
+- [Graph Traversal - GeeksforGeeks](https://en.wikipedia.org/wiki/Graph_traversal) - Detailed explanation
 - [DFS vs BFS](https://www.geeksforgeeks.org/difference-between-bfs-and-dfs/) - Comparison
 - [Pattern: Graph BFS/DFS](/patterns/graph-bfs-connected-components-island-counting) - Comprehensive guide

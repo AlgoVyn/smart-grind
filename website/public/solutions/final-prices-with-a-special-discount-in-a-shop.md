@@ -561,4 +561,4 @@ For more details on this pattern, see the **[Monotonic Stack Pattern](/patterns/
 - [LeetCode Problem Discussion](https://leetcode.com/problems/final-prices-with-a-special-discount-in-a-shop/discuss/) - Community solutions
 - [Monotonic Stack - GeeksforGeeks](https://www.geeksforgeeks.org/introduction-to-monotonic-stack/) - Detailed explanation
 - [Stack Data Structure](https://www.geeksforgeeks.org/stack-data-structure/) - Understanding stacks
-- [Next Element Queries](https://en.wikipedia.org/wiki/Next_element_query) - Learn about the problem class
+- [Next Element Queries](https://en.wikipedia.org/wiki/Stack_%28abstract_data_type%29) - Learn about the problem class

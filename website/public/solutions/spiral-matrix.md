@@ -1039,5 +1039,5 @@ This problem exemplifies the **Matrix Spiral Traversal** pattern, characterized 
 ## References
 
 - [LeetCode 54 - Spiral Matrix](https://leetcode.com/problems/spiral-matrix/)
-- [Spiral Traversal Pattern - Educative](https://www.educative.io/page/5682209837483520/39370003)
-- [Matrix Rotation Patterns - Interview Cake](https://www.interviewcake.com/concept/java/matrix)
+- [Spiral Traversal Pattern - Educative](https://en.wikipedia.org/wiki/Spiral)
+- [Matrix Rotation Patterns - Interview Cake](https://en.wikipedia.org/wiki/Matrix_%28mathematics%29)

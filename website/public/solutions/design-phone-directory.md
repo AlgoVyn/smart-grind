@@ -927,6 +927,6 @@ For more details on data structure design patterns, see the relevant sections on
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/design-phone-directory/discuss/) - Community solutions
-- [Hash Set vs Array](https://www.geeksforgeeks.org/hash-set-vs-array/) - Choosing the right structure
-- [Bit Manipulation](https://www.geeksforgeeks.org/bit-manipulation/) - Understanding bit vectors
-- [Design Patterns for Data Structures](https://en.wikipedia.org/wiki/Data_structure_design) - Learn about design considerations
+- [Hash Set vs Array](https://en.wikipedia.org/wiki/Hash_table) - Choosing the right structure
+- [Bit Manipulation](https://en.wikipedia.org/wiki/Bit_manipulation) - Understanding bit vectors
+- [Design Patterns for Data Structures](https://en.wikipedia.org/wiki/Data_structure) - Learn about design considerations

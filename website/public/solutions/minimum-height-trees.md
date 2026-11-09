@@ -706,6 +706,6 @@ For more details on this pattern and its variations, see the **[Tree Center Patt
 ## Additional Resources
 
 - [LeetCode Problem 310](https://leetcode.com/problems/minimum-height-trees/) - Official problem page
-- [Tree Center - GeeksforGeeks](https://www.geeksforgeeks.org/find-the-centers-of-a-tree/) - Detailed explanation
-- [Topological Approach](https://www.geeksforgeeks.org/center-of-tree/) - Alternative view
+- [Tree Center - GeeksforGeeks](https://en.wikipedia.org/wiki/Centered_tree) - Detailed explanation
+- [Topological Approach](https://en.wikipedia.org/wiki/Centered_tree) - Alternative view
 - [Pattern: Tree Center](/patterns/tree-center) - Comprehensive pattern guide

@@ -531,5 +531,5 @@ This problem exemplifies the **0/1 Knapsack - Subset Sum** pattern:
 ## Additional Resources
 
 - [LeetCode Discussion](https://leetcode.com/problems/partition-equal-subset-sum/discuss/)
-- [Subset Sum - GeeksforGeeks](https://www.geeksforgeeks.org/subset-sum-problem-dp-22/)
+- [Subset Sum - GeeksforGeeks](https://en.wikipedia.org/wiki/Subset_sum_problem)
 - [Knapsack - Wikipedia](https://en.wikipedia.org/wiki/Knapsack_problem)

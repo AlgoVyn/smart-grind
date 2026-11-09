@@ -518,5 +518,5 @@ This problem exemplifies the **Modified Dijkstra** pattern, characterized by:
 ## Additional Resources
 
 - [LeetCode 1514 - Path with Maximum Probability](https://leetcode.com/problems/path-with-maximum-probability/) - Official problem page
-- [Dijkstra's Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/dijkstras-algorithm/) - Algorithm explanation
+- [Dijkstra's Algorithm - GeeksforGeeks](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) - Algorithm explanation
 - [Pattern: Graph Algorithms](/patterns/graph-bfs-connected-components-island-counting) - Related patterns

@@ -728,4 +728,4 @@ Understanding this problem builds a strong foundation for tackling more complex 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/linked-list-cycle/discuss/) - Community solutions and explanations
 - [Floyd's Cycle Finding Algorithm](https://en.wikipedia.org/wiki/Cycle_detection#Floyd's_tortoise_and_hare) - Wikipedia article
 - [Linked List Data Structure](https://www.geeksforgeeks.org/linked-list-data-structure/) - Understanding linked lists
-- [Tortoise and Hare Algorithm](https://www.geeksforgeeks.org/how-does-floyds-cycle-finding-algorithm-work/) - Detailed explanation
+- [Tortoise and Hare Algorithm](https://en.wikipedia.org/wiki/Cycle_detection) - Detailed explanation

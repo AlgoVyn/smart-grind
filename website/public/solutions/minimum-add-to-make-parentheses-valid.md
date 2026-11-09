@@ -713,6 +713,6 @@ For more details on this pattern and its variations, see the **[Stack-based Pare
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/minimum-add-to-make-parentheses-valid/discuss/) - Community solutions
-- [Valid Parentheses - GeeksforGeeks](https://www.geeksforgeeks.org/valid-parentheses/) - Related problem
+- [Valid Parentheses - GeeksforGeeks](https://en.wikipedia.org/wiki/Stack_%28abstract_data_type%29) - Related problem
 - [Stack Data Structure - GeeksforGeeks](https://www.geeksforgeeks.org/stack-data-structure/) - Understanding stacks
 - [Parentheses Matching - Wikipedia](https://en.wikipedia.org/wiki/Bracket_matching) - Theory behind matching

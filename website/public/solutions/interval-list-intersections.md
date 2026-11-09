@@ -630,6 +630,6 @@ For more details on this pattern, see the **[Two Pointers Pattern](/patterns/two
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/interval-list-intersections/discuss/) - Community solutions
-- [Interval Scheduling - GeeksforGeeks](https://www.geeksforgeeks.org/interval-subset-problem/) - Related problems
+- [Interval Scheduling - GeeksforGeeks](https://en.wikipedia.org/wiki/Interval_scheduling) - Related problems
 - [Two Pointers Technique](https://www.geeksforgeeks.org/two-pointers-technique/) - Understanding the pattern
 - [Merge Intervals Pattern](https://en.wikipedia.org/wiki/Interval_%28mathematics%29) - Mathematical background

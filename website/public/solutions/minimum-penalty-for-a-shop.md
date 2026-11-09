@@ -704,5 +704,5 @@ For more details on this pattern and its variations, see the **[Prefix Sum Patte
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/minimum-penalty-for-a-shop/discuss/) - Community solutions
-- [Prefix Sum - GeeksforGeeks](https://www.geeksforgeeks.org/prefix-sum-technique/) - Detailed explanation
+- [Prefix Sum - GeeksforGeeks](https://en.wikipedia.org/wiki/Prefix_sum) - Detailed explanation
 - [Pattern: Prefix Sum](/algorithms/prefix-sum) - Comprehensive guide

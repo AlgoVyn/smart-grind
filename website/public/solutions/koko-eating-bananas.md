@@ -574,5 +574,5 @@ For more details on this pattern and its variations, see the **[Binary Search Pa
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/koko-eating-bananas/discuss/) - Community solutions and explanations
 - [Binary Search - GeeksforGeeks](https://www.geeksforgeeks.org/binary-search/) - Detailed explanation
-- [Understanding Ceil Division](https://www.geeksforgeeks.org/ceil-division/) - Integer ceil division
+- [Understanding Ceil Division](https://en.wikipedia.org/wiki/Division_%28mathematics%29) - Integer ceil division
 - [Pattern: Binary Search](/patterns/binary-search) - Comprehensive pattern guide

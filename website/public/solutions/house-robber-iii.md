@@ -544,5 +544,5 @@ For more details on this pattern, see the **[Dynamic Programming](/patterns/dyna
 ## Additional Resources
 
 - [LeetCode Problem 337](https://leetcode.com/problems/house-robber-iii/) - Official problem page
-- [Tree DP - GeeksforGeeks](https://www.geeksforgeeks.org/dynamic-programming-on-trees/) - Tree DP explanation
+- [Tree DP - GeeksforGeeks](https://en.wikipedia.org/wiki/Dynamic_programming) - Tree DP explanation
 - [Pattern: Dynamic Programming](/patterns/dynamic-programming) - Comprehensive pattern guide

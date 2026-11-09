@@ -1062,5 +1062,5 @@ This problem is essential knowledge for coding interviews and demonstrates maste
 - [LeetCode Problem Discussion](https://leetcode.com/problems/same-tree/discuss/) - Community solutions and explanations
 - [Tree Traversal Patterns](https://www.geeksforgeeks.org/tree-traversals-inorder-preorder-and-postorder/) - Comprehensive tree traversal guide
 - [Binary Tree Fundamentals](https://www.geeksforgeeks.org/binary-tree-data-structure/) - Binary tree concepts
-- [Recursion in Trees](https://www.cs.cmu.edu/~adamchik/15-121/lectures/Trees/trees.html) - Recursive tree algorithms
+- [Recursion in Trees](https://en.wikipedia.org/wiki/Tree_%28data_structure%29) - Recursive tree algorithms
 - [BFS vs DFS](https://www.geeksforgeeks.org/bfs-vs-dfs-binary-tree/) - Choosing the right traversal strategy

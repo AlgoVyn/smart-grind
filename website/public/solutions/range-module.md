@@ -616,5 +616,5 @@ For more details on interval problems, see the **[Interval Pattern](/patterns/in
 ## Additional Resources
 
 - [LeetCode Problem 715](https://leetcode.com/problems/range-module/) - Official problem page
-- [Interval Scheduling - GeeksforGeeks](https://www.geeksforgeeks.org/interval-subset/) - Interval concepts
+- [Interval Scheduling - GeeksforGeeks](https://en.wikipedia.org/wiki/Interval_scheduling) - Interval concepts
 - [Pattern: Interval](/patterns/interval) - Comprehensive pattern guide

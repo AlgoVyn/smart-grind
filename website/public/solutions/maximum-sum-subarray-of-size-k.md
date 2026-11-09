@@ -1172,7 +1172,7 @@ Here are helpful YouTube tutorials explaining this problem and sliding window co
 ### Practice
 
 - [14 Sliding Window Problems (NeetCode)](https://www.youtube.com/watch?v=弥补内容不足) - Practice problems
-- [LeetCode Sliding Window Pattern (Grind75)](https://www.youtube.com/playlist?list=PL6W8B3bX1l8l6w2X) - Top problems
+- LeetCode Sliding Window Pattern (Grind75) - Top problems
 
 ---
 

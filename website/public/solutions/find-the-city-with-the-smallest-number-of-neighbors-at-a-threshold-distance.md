@@ -399,4 +399,4 @@ This problem is excellent for understanding graph algorithms and the Floyd-Warsh
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/discuss/)
-- [Floyd-Warshall - GeeksforGeeks](https://www.geeksforgeeks.org/floyd-warshall-algorithm-dp-32/)
+- [Floyd-Warshall - GeeksforGeeks](https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm)

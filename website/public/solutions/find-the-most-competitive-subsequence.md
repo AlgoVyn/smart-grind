@@ -528,6 +528,6 @@ For more details on this pattern and its variations, see the **[Monotonic Stack 
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/find-the-most-competitive-subsequence/discuss/) - Community solutions
-- [Monotonic Stack - GeeksforGeeks](https://www.geeksforgeeks.org/monotonic-stack/) - Detailed explanation
+- [Monotonic Stack - GeeksforGeeks](https://www.geeksforgeeks.org/dsa/monotonic-stack-in-python/) - Detailed explanation
 - [Stack Data Structure - Interview Bit](https://www.interviewbit.com/tutorial/stack-data-structure/) - Understanding stacks
 - [Pattern: Monotonic Stack](/patterns/monotonic-stack) - Comprehensive pattern guide

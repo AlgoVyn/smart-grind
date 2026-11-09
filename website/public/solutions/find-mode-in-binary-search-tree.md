@@ -847,5 +847,5 @@ For more details on tree traversals, see the **[Tree Traversal Pattern](/pattern
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/find-mode-in-binary-search-tree/discuss/) - Community solutions
 - [Binary Search Tree - GeeksforGeeks](https://www.geeksforgeeks.org/binary-search-tree/) - BST explanation
-- [Morris Traversal](https://www.geeksforgeeks.org/morris-traversal-for-inorder/) - O(1) space
+- [Morris Traversal](https://en.wikipedia.org/wiki/Tree_traversal) - O(1) space
 - [Pattern: Tree Traversal](/patterns/tree-traversal) - Comprehensive pattern guide

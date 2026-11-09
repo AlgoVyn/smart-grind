@@ -782,8 +782,8 @@ No additional data structures or variables are used beyond a few primitive types
 ### Additional Resources
 
 - **[LeetCode Official Solution](https://leetcode.com/problems/power-of-two/solutions/)** - Official solutions and community discussions
-- **[Bitwise Operations - GeeksforGeeks](https://www.geeksforgeeks.org/bitwise-operators-c-cpp/)** - Language-specific examples
-- **[Brian Kernighan's Algorithm](https://en.wikipedia.org/wiki/Brian_Kernighan%27s_algorithm)** - Theoretical background
+- **[Bitwise Operations - GeeksforGeeks](https://en.wikipedia.org/wiki/Bitwise_operation)** - Language-specific examples
+- **[Brian Kernighan's Algorithm](https://en.wikipedia.org/wiki/Hamming_weight)** - Theoretical background
 
 ---
 

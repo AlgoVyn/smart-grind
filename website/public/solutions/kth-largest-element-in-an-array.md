@@ -1019,7 +1019,7 @@ The worst case occurs when we always pick the smallest or largest element as piv
 ### Additional Resources
 
 - **[LeetCode Official Solution](https://leetcode.com/problems/kth-largest-element-in-an-array/solutions/)** - Official solutions and community discussions
-- **[GeeksforGeeks - Kth Largest Element](https://www.geeksforgeeks.org/kth-smallestlargest-element-in-unsorted-array/)** - Detailed explanations
+- **[GeeksforGeeks - Kth Largest Element](https://en.wikipedia.org/wiki/Quickselect)** - Detailed explanations
 - **[Quickselect - Wikipedia](https://en.wikipedia.org/wiki/Quickselect)** - Theoretical background
 
 ---

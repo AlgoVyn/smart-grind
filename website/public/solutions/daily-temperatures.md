@@ -481,7 +481,7 @@ var dailyTemperatures = function(temperatures) {
 
 ### Additional Resources
 
-- **[Monotonic Stack - GeeksforGeeks](https://www.geeksforgeeks.org/stack-set-1/)** - Stack guide
+- **[Monotonic Stack - GeeksforGeeks](https://en.wikipedia.org/wiki/Stack_%28abstract_data_type%29)** - Stack guide
 - **[Next Greater Element](https://www.geeksforgeeks.org/next-greater-element/)** - Pattern explanation
 
 ---

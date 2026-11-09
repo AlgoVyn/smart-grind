@@ -643,6 +643,6 @@ For more details on this pattern and its variations, see the **[MST Pattern](/pa
 ## Additional Resources
 
 - [LeetCode Problem 1584](https://leetcode.com/problems/min-cost-to-connect-all-points/) - Official problem page
-- [Prim's Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/prims-algorithm/) - Detailed explanation
-- [Kruskal's Algorithm](https://www.geeksforgeeks.org/kruskals-algorithm/) - Alternative approach
+- [Prim's Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/dsa/prims-algorithm-in-python/) - Detailed explanation
+- [Kruskal's Algorithm](https://www.geeksforgeeks.org/dsa/kruskals-algorithm-in-python/) - Alternative approach
 - [Pattern: MST](/patterns/minimum-spanning-tree) - Comprehensive pattern guide

@@ -625,6 +625,6 @@ For more details on this pattern and its variations, see:
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/sum-of-subarray-minimums/discuss/) - Community solutions
-- [Monotonic Stack - GeeksforGeeks](https://www.geeksforgeeks.org/stack/set-2/) - Understanding monotonic stack
+- [Monotonic Stack - GeeksforGeeks](https://en.wikipedia.org/wiki/Stack_%28abstract_data_type%29) - Understanding monotonic stack
 - [Sum of Subarray Problems](https://www.geeksforgeeks.org/sum-of-minimum-elements-of-all-subarrays/) - Related problems
 - [Pattern: Stack - Monotonic Stack](/patterns/stack-monotonic-stack) - Related pattern guide

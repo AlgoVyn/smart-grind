@@ -624,6 +624,6 @@ For more details on this pattern and its variations, see:
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/maximum-product-subarray/discuss/) - Community solutions
-- [Kadane's Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/kadanes-algorithm/) - Understanding Kadane's algorithm
+- [Kadane's Algorithm - GeeksforGeeks](https://en.wikipedia.org/wiki/Maximum_subarray_problem) - Understanding Kadane's algorithm
 - [Dynamic Programming - GeeksforGeeks](https://www.geeksforgeeks.org/dynamic-programming/) - DP fundamentals
 - [Pattern: DP - Kadane's Algorithm](/patterns/dp-1d-array-kadane-s-algorithm-for-max-min-subarray) - Related pattern guide

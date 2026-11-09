@@ -677,5 +677,5 @@ For more details on this pattern and its variations, see the **[Bit Manipulation
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/total-hamming-distance/discuss/) - Community solutions
 - [Hamming Distance - Wikipedia](https://en.wikipedia.org/wiki/Hamming_distance) - Theoretical background
-- [Bit Manipulation - GeeksforGeeks](https://www.geeksforgeeks.org/bit-manipulation/) - Comprehensive guide
+- [Bit Manipulation - GeeksforGeeks](https://en.wikipedia.org/wiki/Bit_manipulation) - Comprehensive guide
 - [Pattern: Bit Manipulation](/patterns/bit-manipulation) - Detailed pattern guide

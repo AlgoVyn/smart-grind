@@ -886,7 +886,7 @@ var isPalindrome = function(x) {
 
 ### Additional Resources
 
-- **[Palindrome Number - GeeksforGeeks](https://www.geeksforgeeks.org/palindrome-number/)** - Detailed explanation with examples
+- **[Palindrome Number - GeeksforGeeks](https://en.wikipedia.org/wiki/Palindrome)** - Detailed explanation with examples
 - **[LeetCode Discuss](https://leetcode.com/problems/palindrome-number/discuss/)** - Community solutions and tips
 
 ---

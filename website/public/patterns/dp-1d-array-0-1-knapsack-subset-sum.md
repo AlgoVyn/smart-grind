@@ -401,7 +401,7 @@ function findTargetSumWays(nums, target) {
 | [Ones and Zeroes](https://leetcode.com/problems/ones-and-zeroes/) | 474 | Medium | Maximize strings with limited 0s and 1s |
 | [0/1 Knapsack](https://www.geeksforgeeks.org/0-1-knapsack-problem-dp-10/) | - | Medium | Classic knapsack problem |
 | [Minimum Subset Sum Difference](https://www.geeksforgeeks.org/partition-a-set-into-two-subsets-such-that-the-difference-of-subset-sums-is-minimum/) | - | Medium | Minimize difference between two subsets |
-| [Count Subsets with Sum K](https://www.geeksforgeeks.org/count-of-subsets-with-sum-equal-to-k/) | - | Medium | Count subsets with given sum |
+| [Count Subsets with Sum K](https://en.wikipedia.org/wiki/Subset_sum_problem) | - | Medium | Count subsets with given sum |
 
 ## Video Tutorial Links
 

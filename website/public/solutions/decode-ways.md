@@ -836,5 +836,5 @@ For more details on this pattern and its variations, see the **[Dynamic Programm
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/decode-ways/discuss/) - Community solutions
 - [Dynamic Programming - GeeksforGeeks](https://www.geeksforgeeks.org/dynamic-programming/) - Detailed DP explanation
-- [String DP Patterns](https://www.geeksforgeeks.org/dp-strings/) - DP for strings
+- [String DP Patterns](https://en.wikipedia.org/wiki/Dynamic_programming) - DP for strings
 - [Pattern: Dynamic Programming](/patterns/dp-1d-basics) - Comprehensive pattern guide

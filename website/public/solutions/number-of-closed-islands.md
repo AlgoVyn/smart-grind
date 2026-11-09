@@ -732,5 +732,5 @@ For more details, see the **[Graph Traversal Pattern](/patterns/graph)**.
 ## Additional Resources
 
 - [LeetCode Problem 1254](https://leetcode.com/problems/number-of-closed-islands/) - Official problem page
-- [Island Problems - GeeksforGeeks](https://www.geeksforgeeks.org/find-the-number-of-islands/) - Related problems
+- [Island Problems - GeeksforGeeks](https://en.wikipedia.org/wiki/Connected_component_%28graph_theory%29) - Related problems
 - [Pattern: Graph Traversal](/patterns/graph) - Comprehensive pattern guide

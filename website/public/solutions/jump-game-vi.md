@@ -681,6 +681,6 @@ For more details on this pattern and its variations, see the **[Dynamic Programm
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/jump-game-vi/discuss/) - Community solutions and explanations
-- [Sliding Window Maximum - GeeksforGeeks](https://www.geeksforgeeks.org/sliding-window-maximum/) - Detailed explanation
+- [Sliding Window Maximum - GeeksforGeeks](https://en.wikipedia.org/wiki/Sliding_window_protocol) - Detailed explanation
 - [Monotonic Queue - CP Algorithms](https://cp-algorithms.com/data_structures/stack_queue_modification.html) - Understanding monotonic queues
 - [Dynamic Programming - Topcoder Tutorial](https://www.topcoder.com/thrive/articles/Dynamic%20Programming%20-%20From%20Novice%20to%20Advanced) - DP fundamentals

@@ -605,6 +605,6 @@ For more details on this pattern, see the **[BFS Pattern](/patterns/bfs)**.
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/find-the-safest-path-in-a-grid/discuss/) - Community solutions
-- [Multi-Source BFS - GeeksforGeeks](https://www.geeksforgeeks.org/multi-source-bfs/) - Detailed explanation
+- [Multi-Source BFS - GeeksforGeeks](https://en.wikipedia.org/wiki/Breadth-first_search) - Detailed explanation
 - [BFS Traversal](https://www.geeksforgeeks.org/breadth-first-search-or-bfs-for-a-graph/) - BFS fundamentals
 - [Pattern: BFS](/patterns/bfs) - Comprehensive pattern guide

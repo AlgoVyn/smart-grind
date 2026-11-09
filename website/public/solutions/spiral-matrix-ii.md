@@ -701,6 +701,6 @@ For more details on this pattern and its variations, see the **[Matrix Traversal
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/spiral-matrix-ii/discuss/) - Community solutions and explanations
-- [Matrix Traversal - GeeksforGeeks](https://www.geeksforgeeks.org/print-matrix-spiral/) - Detailed explanation
+- [Matrix Traversal - GeeksforGeeks](https://en.wikipedia.org/wiki/Spiral) - Detailed explanation
 - [2D Arrays in Python](https://docs.python.org/3/tutorial/datastructures.html#nested-list-comprehensions) - Python list comprehension for matrices
-- [Spira Matrix Algorithms](https://en.wikipedia.org/wiki/Spiral_matrix) - Mathematical properties of spiral matrices
+- [Spira Matrix Algorithms](https://en.wikipedia.org/wiki/Spiral) - Mathematical properties of spiral matrices

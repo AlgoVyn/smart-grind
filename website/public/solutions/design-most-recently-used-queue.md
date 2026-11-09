@@ -708,5 +708,5 @@ The simple list approach is sufficient for most interviews. The Fenwick Tree opt
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/find-the-winner-of-the-game/discuss/) - Community solutions
-- [Fenwick Tree - GeeksforGeeks](https://www.geeksforgeeks.org/binary-indexed-tree-fenwick-tree/) - Comprehensive guide
+- [Fenwick Tree - GeeksforGeeks](https://en.wikipedia.org/wiki/Fenwick_tree) - Comprehensive guide
 - [Order Statistics Tree](https://en.wikipedia.org/wiki/Order_statistic_tree) - Advanced concepts

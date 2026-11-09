@@ -957,6 +957,6 @@ For more details on this pattern and its variations, see the **[Minimum Spanning
 ## Additional Resources
 
 - [LeetCode Problem Discussion](https://leetcode.com/problems/optimize-water-distribution-in-a-village/discuss/) - Community solutions
-- [Kruskal's Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/kruskals-algorithm-spanning-tree/) - MST explanation
-- [Prim's Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/prims-mst-greedy-algo-4/) - Alternative MST
+- [Kruskal's Algorithm - GeeksforGeeks](https://en.wikipedia.org/wiki/Kruskal%27s_algorithm) - MST explanation
+- [Prim's Algorithm - GeeksforGeeks](https://en.wikipedia.org/wiki/Prim%27s_algorithm) - Alternative MST
 - [Pattern: MST](/patterns/mst) - Comprehensive pattern guide

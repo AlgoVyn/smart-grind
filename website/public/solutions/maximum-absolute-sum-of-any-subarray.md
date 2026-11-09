@@ -499,6 +499,6 @@ For more details on this pattern and its variations, see the **[Kadane's Algorit
 ## Additional Resources
 
 - [LeetCode Problem 1749](https://leetcode.com/problems/maximum-absolute-sum-of-any-subarray/) - Official problem page
-- [Kadane's Algorithm - GeeksforGeeks](https://www.geeksforgeeks.org/kadanes-algorithm/) - Detailed explanation
+- [Kadane's Algorithm - GeeksforGeeks](https://en.wikipedia.org/wiki/Maximum_subarray_problem) - Detailed explanation
 - [Maximum Subarray - Wikipedia](https://en.wikipedia.org/wiki/Maximum_subarray_problem) - Theory and history
 - [Pattern: Kadane's Algorithm](/patterns/kadane-algorithm) - Comprehensive pattern guide

@@ -667,5 +667,5 @@ For more details, see the **[HashMap Pattern](/patterns/hashmap)** and **[Stack 
 ## Additional Resources
 
 - [LeetCode Problem 895](https://leetcode.com/problems/maximum-frequency-stack/) - Official problem page
-- [HashMap - GeeksforGeeks](https://www.geeksforgeeks.org/hashmap-data-structure/) - Detailed explanation
-- [Deque - GeeksforGeeks](https://www.geeksforgeeks.org/deque-set-1-introduction/) - Deque operations
+- [HashMap - GeeksforGeeks](https://en.wikipedia.org/wiki/Hash_table) - Detailed explanation
+- [Deque - GeeksforGeeks](https://en.wikipedia.org/wiki/Double-ended_queue) - Deque operations
