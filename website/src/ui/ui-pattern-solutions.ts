@@ -11,7 +11,7 @@ import { getBaseUrl } from '../utils';
 export const _convertPatternNameToFilename = (patternName: string): string => {
     let cleaned = patternName
         .toLowerCase()
-        .replace(/[\s/()&`'+-]+/g, '-') // Replace spaces and special chars with hyphens
+        .replace(/[\s/()&`'+,-]+/g, '-') // Replace spaces and special chars with hyphens
         .replace(/-+/g, '-') // Collapse multiple hyphens
         .replace(/^-+|-+$/g, ''); // Trim hyphens from start/end
 
@@ -77,7 +77,7 @@ export const sqlSolutions = {
     _convertPatternNameToFilename(patternName: string): string {
         let cleaned = patternName
             .toLowerCase()
-            .replace(/[\s/()&`'+-]+/g, '-')
+            .replace(/[\s/()&`'+,-]+/g, '-')
             .replace(/-+/g, '-')
             .replace(/^-+|-+$/g, '');
 

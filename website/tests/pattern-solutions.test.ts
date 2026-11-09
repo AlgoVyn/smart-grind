@@ -2,7 +2,7 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
-import { patterns } from '../src/ui/ui-markdown';
+import { patterns, sqlSolutions } from '../src/ui/ui-markdown';
 
 describe('Pattern Solutions Functionality', () => {
     beforeEach(() => {
@@ -311,12 +311,23 @@ describe('Pattern Mapping System', () => {
             { patternName: 'Pattern (With Parentheses)', expected: 'pattern-with-parentheses' },
             { patternName: 'Pattern - With Suffix Pattern', expected: 'pattern-with-suffix' },
             { patternName: 'Pattern - With Suffix Algorithm', expected: 'pattern-with-suffix' },
+            { patternName: 'COUNT, SUM, AVG, MIN, MAX', expected: 'count-sum-avg-min-max' },
+            { patternName: 'CONCAT, SUBSTRING, LENGTH', expected: 'concat-substring-length' },
         ];
 
         edgeCases.forEach(({ patternName, expected }) => {
             const actual = patterns._convertPatternNameToFilename(patternName);
             expect(actual).toBe(expected);
         });
+    });
+
+    test('SQL converter should map comma-separated function lists to existing files', () => {
+        expect(sqlSolutions._convertPatternNameToFilename('COUNT, SUM, AVG, MIN, MAX')).toBe(
+            'count-sum-avg-min-max'
+        );
+        expect(sqlSolutions._convertPatternNameToFilename('CONCAT, SUBSTRING, LENGTH')).toBe(
+            'concat-substring-length'
+        );
     });
 });
 
