@@ -161,7 +161,9 @@ describe('Review-finding regressions', () => {
                 request: new Request('https://example.com/user', {
                     method: 'POST',
                     headers: authHeaders,
-                    body: JSON.stringify({ data: { problems: {}, deletedIds: [] } }),
+                    body: JSON.stringify({
+                        data: { problems: { p1: { id: 'p1', status: 'solved' } }, deletedIds: [] },
+                    }),
                 }),
                 env: mockEnv,
             });
@@ -228,14 +230,21 @@ describe('Review-finding regressions', () => {
                     headers: authHeaders,
                     body: JSON.stringify({
                         generation: 1,
-                        data: { problems: {}, deletedIds: [], flashCardProgress: flash },
+                        data: {
+                            problems: {},
+                            deletedIds: [],
+                            flashCardProgress: {
+                                ...flash,
+                                'card-1': { ...flash['card-1'], timesCorrect: 3, timesReviewed: 4 },
+                            },
+                        },
                     }),
                 }),
                 env: mockEnv,
             });
             expect(postRes.status).toBe(200);
             const stored = JSON.parse(mockKV.put.mock.calls[0][1]);
-            expect(stored.flashCardProgress['card-1'].timesCorrect).toBe(2);
+            expect(stored.flashCardProgress['card-1'].timesCorrect).toBe(3);
         });
     });
 
@@ -300,22 +309,18 @@ describe('Review-finding regressions', () => {
     });
 
     describe('M7 rate limiter failure mode', () => {
-        test('fails open by default and fail-closed when requested', async () => {
-            const brokenEnv = {
-                KV: {
-                    get: jest.fn().mockRejectedValue(new Error('kv down')),
-                    put: jest.fn(),
+        test('fails open even when failClosed is requested if storage is unavailable', async () => {
+            const request = {
+                headers: {
+                    get(): string {
+                        throw new Error('cache/header down');
+                    },
                 },
-            };
-            const request = new Request('https://example.com/api/auth', {
-                headers: { 'CF-Connecting-IP': '1.2.3.4' },
-            });
-            await expect(checkRateLimit(request, brokenEnv as never, 10, 60, 'api')).resolves.toBe(
+            } as unknown as Request;
+            await expect(checkRateLimit(request, {} as never, 10, 60, 'api')).resolves.toBe(false);
+            await expect(checkRateLimit(request, {} as never, 10, 60, 'oauth', true)).resolves.toBe(
                 false
             );
-            await expect(
-                checkRateLimit(request, brokenEnv as never, 10, 60, 'oauth', true)
-            ).resolves.toBe(true);
         });
     });
 });

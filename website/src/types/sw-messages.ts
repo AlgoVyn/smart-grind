@@ -21,6 +21,7 @@ export const ALLOWED_SW_MESSAGE_TYPES = [
     'GET_BUNDLE_STATUS',
     'CHECK_OFFLINE_RELOAD',
     'GET_OFFLINE_STATUS',
+    'SET_SYNC_PAUSED',
 ] as const;
 
 /**
@@ -154,6 +155,14 @@ export interface GetOfflineStatusMessage extends SWBaseMessage {
 }
 
 /**
+ * SET_SYNC_PAUSED message - pause or resume background API sync (hidden tab / signed out)
+ */
+export interface SetSyncPausedMessage extends SWBaseMessage {
+    type: 'SET_SYNC_PAUSED';
+    paused: boolean;
+}
+
+/**
  * Union type of all valid service worker messages from clients
  */
 export type SWClientMessage =
@@ -170,7 +179,8 @@ export type SWClientMessage =
     | DownloadBundleMessage
     | GetBundleStatusMessage
     | CheckOfflineReloadMessage
-    | GetOfflineStatusMessage;
+    | GetOfflineStatusMessage
+    | SetSyncPausedMessage;
 
 /**
  * Type guard to validate if a message type is allowed
@@ -220,6 +230,8 @@ export const isValidSWClientMessage = (data: unknown): data is SWClientMessage =
             );
         case 'REQUEST_SYNC':
             return typeof message['tag'] === 'string';
+        case 'SET_SYNC_PAUSED':
+            return typeof message['paused'] === 'boolean';
         default:
             // Messages without required fields
             return true;

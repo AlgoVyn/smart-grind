@@ -64,6 +64,7 @@ export class BackgroundSyncManager {
     private csrfToken: string | null = null;
     private csrfTokenExpiresAt: number = 0;
     private lastAuthRequiredNoticeAt: number = 0;
+    private syncPaused = false;
 
     /** Minimum gap between AUTH_REQUIRED notifications to clients */
     private static readonly AUTH_REQUIRED_NOTICE_INTERVAL_MS = 5 * 60 * 1000;
@@ -80,6 +81,27 @@ export class BackgroundSyncManager {
             );
         });
         this.startRetryCheckInterval();
+    }
+
+    setSyncPaused(paused: boolean): void {
+        this.syncPaused = paused;
+    }
+
+    /**
+     * Skip network sync when the tab is hidden or the user is signed out.
+     * Does not probe /api/auth?action=token just to find out.
+     */
+    private shouldSkipNetworkSync(): boolean {
+        if (this.syncPaused) return true;
+        try {
+            const auth = getAuthManager();
+            if (!auth || typeof auth.isAuthenticated !== 'function') {
+                return false;
+            }
+            return !auth.isAuthenticated();
+        } catch {
+            return false;
+        }
     }
 
     /** Whether a sync run is currently in flight (used for GET_SYNC_STATUS) */
@@ -263,6 +285,7 @@ export class BackgroundSyncManager {
      * Process any persisted retries that are due
      */
     private async processPersistedRetries(): Promise<void> {
+        if (this.shouldSkipNetworkSync()) return;
         if (!this.retryDB) await this.initRetryDB();
         if (!this.retryDB) return;
 
@@ -401,6 +424,10 @@ export class BackgroundSyncManager {
         if (this.isSyncing) {
             // A run is already in flight; it will process these operations
             return true;
+        }
+
+        if (this.shouldSkipNetworkSync()) {
+            return false;
         }
 
         // Skip entirely when offline: avoids doomed network probes and spurious
@@ -631,6 +658,8 @@ export class BackgroundSyncManager {
 
     /** Sync custom problems */
     async syncCustomProblems(): Promise<void> {
+        if (this.shouldSkipNetworkSync()) return;
+
         const addOps = await this.operationQueue.getOperationsByType('ADD_CUSTOM_PROBLEM');
         const deleteOps = await this.operationQueue.getOperationsByType('DELETE_PROBLEM');
         if (addOps.length === 0 && deleteOps.length === 0) return;
@@ -734,6 +763,8 @@ export class BackgroundSyncManager {
 
     /** Sync user settings - performs full data sync to /api/user */
     async syncUserSettings(): Promise<void> {
+        if (this.shouldSkipNetworkSync()) return;
+
         const pendingOps = await this.operationQueue.getOperationsByType('UPDATE_SETTINGS');
         if (pendingOps.length === 0) return;
 

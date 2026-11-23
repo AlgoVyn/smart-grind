@@ -379,7 +379,18 @@ export async function updateSyncStatus(): Promise<void> {
 /**
  * Forces an immediate synchronization of all pending operations.
  */
+function isTabHidden(): boolean {
+    return typeof document !== 'undefined' && document.visibilityState === 'hidden';
+}
+
+function isUserSignedIn(): boolean {
+    return state.user.type === 'signed-in';
+}
+
 export async function forceSync(): Promise<{ success: boolean; synced: number; failed: number }> {
+    if (!isUserSignedIn() || isTabHidden()) {
+        return { success: true, synced: 0, failed: 0 };
+    }
     if (!isServiceWorkerAvailable()) {
         const pendingOps = safeParsePendingOps();
         if (pendingOps.length === 0) return { success: true, synced: 0, failed: 0 };
@@ -492,10 +503,9 @@ export async function initOfflineDetection(): Promise<() => void> {
         if (!online) return;
         try {
             await migrateLocalStorageOperations();
-            if (state.user.type === 'signed-in') {
-                const { _performSave } = await import('./api/api-save');
-                await _performSave();
-            }
+            if (!isUserSignedIn() || isTabHidden()) return;
+            const { _performSave } = await import('./api/api-save');
+            await _performSave();
             await forceSync();
         } catch (error) {
             errorTracker.captureException(error, {
@@ -513,10 +523,32 @@ export async function initOfflineDetection(): Promise<() => void> {
     cleanupHandlers.push(unsubscribe);
     cleanupHandlers.push(() => checker.stopMonitoring());
 
-    const intervalId = setInterval(
-        () => updateSyncStatus().catch(() => {}),
-        SYNC_CONFIG.INTERVALS.SYNC_STATUS_POLL
-    );
+    const notifySyncPaused = (paused: boolean): void => {
+        if (!isServiceWorkerAvailable()) return;
+        sendMessageToSW({ type: 'SET_SYNC_PAUSED', paused }).catch(() => {});
+    };
+
+    const syncPollingAllowed = (): boolean => isUserSignedIn() && !isTabHidden();
+
+    const onVisibilityOrAuthChange = (): void => {
+        notifySyncPaused(!syncPollingAllowed());
+        if (syncPollingAllowed()) {
+            updateSyncStatus().catch(() => {});
+        }
+    };
+
+    if (typeof document !== 'undefined') {
+        document.addEventListener('visibilitychange', onVisibilityOrAuthChange);
+        cleanupHandlers.push(() =>
+            document.removeEventListener('visibilitychange', onVisibilityOrAuthChange)
+        );
+    }
+    onVisibilityOrAuthChange();
+
+    const intervalId = setInterval(() => {
+        if (!syncPollingAllowed()) return;
+        updateSyncStatus().catch(() => {});
+    }, SYNC_CONFIG.INTERVALS.SYNC_STATUS_POLL);
     cleanupHandlers.push(() => clearInterval(intervalId));
 
     // Service Worker message handling for sync status updates

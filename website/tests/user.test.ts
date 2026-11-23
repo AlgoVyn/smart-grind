@@ -562,7 +562,7 @@ describe('User API', () => {
             expect(data.error).toBe('Invalid data');
         });
 
-        test('should save data to KV and return OK', async () => {
+        test('should skip the KV put when the blob is unchanged', async () => {
             jwtVerify.mockResolvedValue({ payload: { userId: 'user123' } });
             mockKV.get.mockResolvedValue('test-csrf-token-12345');
 
@@ -579,16 +579,8 @@ describe('User API', () => {
 
             expect(response.status).toBe(200);
             expect(await response.text()).toBe('OK');
-            expect(mockKV.put).toHaveBeenCalled();
-
-            // Verify the data was stored with appropriate metadata
-            const putCall = mockKV.put.mock.calls[0];
-            expect(putCall.length).toBeGreaterThanOrEqual(3); // Should have key, value, options
-            expect(putCall[2].metadata).toEqual(
-                expect.objectContaining({
-                    'Content-Type': 'application/json',
-                })
-            );
+            expect(mockKV.put).not.toHaveBeenCalled();
+            expect(response.headers.get('X-Data-Generation')).toBe('0');
         });
 
         test('should store data with appropriate metadata', async () => {
@@ -657,7 +649,9 @@ describe('User API', () => {
                     Authorization: 'Bearer header.payload.signature',
                     'X-CSRF-Token': 'test-csrf-token-12345',
                 },
-                body: JSON.stringify({ data: {} }),
+                body: JSON.stringify({
+                    data: { problems: { p1: { id: 'p1', status: 'solved' } }, deletedIds: [] },
+                }),
             });
 
             const response = await onRequestPost({ request, env: mockEnv });

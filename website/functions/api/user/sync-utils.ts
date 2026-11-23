@@ -153,6 +153,7 @@ export async function handleSyncPost(
 
     try {
         const data = await readUserData(env, payload.userId);
+        const previous = normalizeUserData(data, true);
         let applied = 0;
         try {
             applied = apply(data, parsed.body);
@@ -166,8 +167,23 @@ export async function handleSyncPost(
             );
         }
 
+        if (applied === 0) {
+            return createCorsResponse(
+                JSON.stringify({ applied: 0, conflicts: [], generation: data.generation }),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Data-Generation': String(data.generation),
+                    },
+                },
+                request,
+                env
+            );
+        }
+
         const nextGeneration = await writeUserData(env, payload.userId, data, {
             currentGeneration: data.generation,
+            previous,
         });
         return createCorsResponse(
             JSON.stringify({ applied, conflicts: [], generation: nextGeneration }),
@@ -751,9 +767,15 @@ export async function writeUserData(
     env: Env,
     userId: string,
     data: unknown,
-    options?: { currentGeneration?: number }
+    options?: { currentGeneration?: number; previous?: unknown }
 ): Promise<number> {
     const jsonData = JSON.stringify(normalizeUserData(data, true));
+    if (options && 'previous' in options) {
+        const previousJson = JSON.stringify(normalizeUserData(options.previous, true));
+        if (previousJson === jsonData) {
+            return options.currentGeneration ?? 0;
+        }
+    }
     const jsonBytes = new TextEncoder().encode(jsonData).byteLength;
 
     let storedValue: ArrayBuffer | string = jsonData;

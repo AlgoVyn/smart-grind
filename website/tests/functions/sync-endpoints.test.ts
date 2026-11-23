@@ -139,6 +139,20 @@ describe('Incremental sync endpoints', () => {
     });
 
     describe('POST /api/user/progress/batch', () => {
+        test('skips the KV put when a batch applies no operations', async () => {
+            const response = await batchPost({
+                request: validRequest('https://example.com/api/user/progress/batch', {
+                    operations: [],
+                }),
+                env: mockEnv,
+            });
+
+            expect(response.status).toBe(200);
+            const result = await response.json();
+            expect(result.applied).toBe(0);
+            expect(mockKV.put).not.toHaveBeenCalled();
+        });
+
         test('applies a batch of operations in order', async () => {
             const response = await batchPost({
                 request: validRequest('https://example.com/api/user/progress/batch', {

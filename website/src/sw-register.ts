@@ -774,6 +774,9 @@ export function listenForConnectivityChanges(callback: (_online: boolean) => voi
         isProcessingSync = true;
 
         try {
+            const { state } = await import('./state');
+            if (state.user.type !== 'signed-in') return;
+            if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
             // First migrate any localStorage operations, then trigger sync
             await migrateLocalStorageOperations();
             // Wait for migration to complete before triggering sync

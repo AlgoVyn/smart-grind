@@ -21,6 +21,10 @@ const DEFAULT_OPTIONS: AuthManagerOptions = {
     tokenRefreshThreshold: 300000, // 5 minutes - refresh before expiry
 };
 
+/** First pause after a 401 / missing session, then doubles up to the max. */
+const AUTH_BACKOFF_BASE_MS = 2 * 60 * 1000;
+const AUTH_BACKOFF_MAX_MS = 30 * 60 * 1000;
+
 // IndexedDB configuration for auth storage
 const AUTH_DB_NAME = 'smartgrind-auth';
 const AUTH_DB_VERSION = 1;
@@ -125,6 +129,9 @@ export class AuthManager {
     private options: AuthManagerOptions;
     private tokenFetchPromise: Promise<string | null> | null = null;
     private storage: AuthStorage;
+    /** Do not hit /api/auth?action=token until this time (signed out / 401 backoff). */
+    private signedOutUntil = 0;
+    private backoffMs = AUTH_BACKOFF_BASE_MS;
 
     constructor(options: Partial<AuthManagerOptions> = {}) {
         this.options = { ...DEFAULT_OPTIONS, ...options };
@@ -138,6 +145,29 @@ export class AuthManager {
         this.loadFromStorage().catch((error) => {
             console.error('[AuthManager] Failed to load auth from storage:', error);
         });
+    }
+
+    private isTabHidden(): boolean {
+        return typeof document !== 'undefined' && document.visibilityState === 'hidden';
+    }
+
+    private isInAuthBackoff(): boolean {
+        return Date.now() < this.signedOutUntil;
+    }
+
+    private beginAuthBackoff(): void {
+        this.signedOutUntil = Date.now() + this.backoffMs;
+        this.backoffMs = Math.min(this.backoffMs * 2, AUTH_BACKOFF_MAX_MS);
+    }
+
+    private clearAuthBackoff(): void {
+        this.signedOutUntil = 0;
+        this.backoffMs = AUTH_BACKOFF_BASE_MS;
+    }
+
+    /** True when a token refresh / cookie probe should be attempted. */
+    canAttemptNetworkAuth(): boolean {
+        return !this.isTabHidden() && !this.isInAuthBackoff();
     }
 
     /**
@@ -199,6 +229,7 @@ export class AuthManager {
     async setTokens(token: string, expiresIn: number): Promise<void> {
         this.state.token = token;
         this.state.expiresAt = Date.now() + expiresIn * 1000;
+        this.clearAuthBackoff();
 
         await this.saveToStorage();
     }
@@ -220,9 +251,16 @@ export class AuthManager {
     /**
      * Check if token needs refresh (is expired or expiring soon)
      */
+    /**
+     * Refresh only when a token already exists and is near expiry.
+     * No token and no session must not trigger /api/auth?action=token probes.
+     */
     private needsRefresh(): boolean {
+        if (!this.canAttemptNetworkAuth()) {
+            return false;
+        }
         if (!this.state.token || !this.state.expiresAt) {
-            return true; // No token, need to fetch
+            return false;
         }
 
         const timeUntilExpiry = this.state.expiresAt - Date.now();
@@ -252,6 +290,9 @@ export class AuthManager {
      * This endpoint reads the auth_token cookie set during OAuth login
      */
     private async fetchFreshToken(): Promise<string | null> {
+        if (!this.canAttemptNetworkAuth()) {
+            return null;
+        }
         // If already fetching, return the existing promise
         if (this.tokenFetchPromise) {
             return this.tokenFetchPromise;
@@ -275,6 +316,9 @@ export class AuthManager {
 
             if (!response.ok) {
                 console.error('[AuthManager] Token fetch failed:', response.status);
+                if (response.status === 401 || response.status === 403 || response.status === 429) {
+                    this.beginAuthBackoff();
+                }
                 return null;
             }
 
@@ -287,6 +331,7 @@ export class AuthManager {
 
             if (!data.token) {
                 console.error('[AuthManager] No token in response');
+                this.beginAuthBackoff();
                 return null;
             }
 
@@ -295,6 +340,7 @@ export class AuthManager {
             return data.token;
         } catch (error) {
             console.error('[AuthManager] Token fetch error:', error);
+            this.beginAuthBackoff();
             return null;
         } finally {
             this.state.isFetchingToken = false;
@@ -320,6 +366,9 @@ export class AuthManager {
             return null;
         }
 
+        if (!this.state.token || this.isTokenExpired()) {
+            return null;
+        }
         return this.state.token;
     }
 
@@ -328,7 +377,9 @@ export class AuthManager {
      */
     async handleAuthError(response: Response): Promise<boolean> {
         if (response.status === 401 || response.status === 403) {
-            // Try to fetch a fresh token
+            if (!this.canAttemptNetworkAuth()) {
+                return false;
+            }
             const newToken = await this.fetchFreshToken();
             return newToken !== null;
         }

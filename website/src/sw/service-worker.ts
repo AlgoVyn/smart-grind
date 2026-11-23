@@ -609,6 +609,9 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
                 })
             );
             break;
+        case 'SET_SYNC_PAUSED':
+            backgroundSync.setSyncPaused(Boolean(data.paused));
+            break;
         case 'REQUEST_SYNC':
             if (data.tag) {
                 event.waitUntil(backgroundSync.performSync(data.tag));

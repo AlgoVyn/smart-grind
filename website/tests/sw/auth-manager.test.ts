@@ -122,6 +122,16 @@ describe('AuthManager', () => {
         test('should return null when no token exists', async () => {
             const token = await authManager.getToken();
             expect(token).toBeNull();
+            expect(mockFetch).not.toHaveBeenCalled();
+        });
+
+        test('should not probe the token endpoint when there is no session', async () => {
+            mockFetch.mockResolvedValue({
+                ok: false,
+                status: 401,
+            });
+            expect(await authManager.getToken()).toBeNull();
+            expect(mockFetch).not.toHaveBeenCalled();
         });
     });
 
@@ -196,6 +206,57 @@ describe('AuthManager', () => {
             const token = await authManager.getToken();
             // Should return null since token is expired and refresh failed
             expect(token).toBeNull();
+        });
+
+        test('should back off for minutes after a 401 and not keep polling', async () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(1_700_000_000_000);
+            mockFetch.mockResolvedValue({
+                ok: false,
+                status: 401,
+            });
+
+            await authManager.setTokens('expired-token', -1);
+            expect(await authManager.getToken()).toBeNull();
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+
+            mockFetch.mockClear();
+            expect(await authManager.getToken()).toBeNull();
+            expect(mockFetch).not.toHaveBeenCalled();
+
+            jest.setSystemTime(1_700_000_000_000 + 2 * 60 * 1000 + 1);
+            expect(await authManager.getToken()).toBeNull();
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+            jest.useRealTimers();
+        });
+
+        test('should not refresh a near-expiry token while the tab is hidden', async () => {
+            const original = Object.getOwnPropertyDescriptor(document, 'visibilityState');
+            Object.defineProperty(document, 'visibilityState', {
+                configurable: true,
+                get: () => 'hidden',
+            });
+            try {
+                await authManager.setTokens('old-token', 1);
+                mockFetch.mockResolvedValue({
+                    ok: true,
+                    json: jest.fn().mockResolvedValue({
+                        token: 'new-token',
+                        userId: 'user123',
+                        displayName: 'Test User',
+                        expiresIn: 3600,
+                    }),
+                });
+                const token = await authManager.getToken();
+                expect(token).toBe('old-token');
+                expect(mockFetch).not.toHaveBeenCalled();
+            } finally {
+                if (original) {
+                    Object.defineProperty(document, 'visibilityState', original);
+                } else {
+                    delete (document as { visibilityState?: unknown }).visibilityState;
+                }
+            }
         });
 
         test('should handle 401/403 auth errors by fetching fresh token', async () => {

@@ -263,9 +263,10 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
 
     let currentGeneration = 0;
     let existingReadable = true;
+    let existingData: Awaited<ReturnType<typeof readUserData>> | undefined;
     try {
-        const existing = await readUserData(env, payload.userId);
-        currentGeneration = existing.generation;
+        existingData = await readUserData(env, payload.userId);
+        currentGeneration = existingData.generation;
     } catch (e: unknown) {
         if (!(e instanceof CorruptUserDataError)) {
             const errorMessage = e instanceof Error ? e.message : 'Unknown error';
@@ -304,6 +305,7 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
     try {
         const nextGeneration = await writeUserData(env, payload.userId, data, {
             currentGeneration,
+            previous: existingReadable ? existingData : undefined,
         });
         return createCorsResponse(
             'OK',

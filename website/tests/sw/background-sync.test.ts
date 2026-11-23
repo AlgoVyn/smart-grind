@@ -70,6 +70,7 @@ jest.mock('../../src/sw/sync-conflict-resolver', () => ({
 
 // Import after mocks are set up
 import { BackgroundSyncManager } from '../../src/sw/background-sync';
+import { getAuthManager } from '../../src/sw/auth-manager';
 import { OperationQueue, QueuedOperation, OperationType } from '../../src/sw/operation-queue';
 import { SyncConflictResolver } from '../../src/sw/sync-conflict-resolver';
 
@@ -868,6 +869,46 @@ describe('BackgroundSyncManager', () => {
                 lastSyncAt: 1234567890,
                 failedCount: 0,
             });
+        });
+    });
+
+
+    describe('Signed-out and pause guards', () => {
+        it('should skip syncUserProgress when the user is signed out', async () => {
+            (getAuthManager as jest.Mock).mockReturnValue({
+                waitForLoad: jest.fn().mockResolvedValue(undefined),
+                isAuthenticated: jest.fn().mockReturnValue(false),
+            });
+            global.fetch = jest.fn();
+
+            const result = await manager.syncUserProgress();
+
+            expect(result).toBe(false);
+            expect(mockOperationQueue.getPendingOperations).not.toHaveBeenCalled();
+            expect(global.fetch).not.toHaveBeenCalled();
+        });
+
+        it('should skip syncUserProgress when sync is paused', async () => {
+            manager.setSyncPaused(true);
+            global.fetch = jest.fn();
+
+            const result = await manager.syncUserProgress();
+
+            expect(result).toBe(false);
+            expect(mockOperationQueue.getPendingOperations).not.toHaveBeenCalled();
+            expect(global.fetch).not.toHaveBeenCalled();
+        });
+
+        it('should skip custom problem and settings sync when paused', async () => {
+            manager.setSyncPaused(true);
+            mockOperationQueue.getOperationsByType.mockResolvedValue([{ id: 'op1' }]);
+            global.fetch = jest.fn();
+
+            await manager.syncCustomProblems();
+            await manager.syncUserSettings();
+
+            expect(mockOperationQueue.getOperationsByType).not.toHaveBeenCalled();
+            expect(global.fetch).not.toHaveBeenCalled();
         });
     });
 
