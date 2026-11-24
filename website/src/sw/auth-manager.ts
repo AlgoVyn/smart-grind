@@ -314,9 +314,18 @@ export class AuthManager {
                 credentials: 'include', // Important: sends httpOnly cookies
             });
 
+            if (response.status === 401 || response.status === 403) {
+                // Expected when the cookie session is absent or expired. This is
+                // not an application error, and logging it as one made normal
+                // signed-out/local usage look broken in the console.
+                console.debug('[AuthManager] No active cookie session:', response.status);
+                this.beginAuthBackoff();
+                return null;
+            }
+
             if (!response.ok) {
-                console.error('[AuthManager] Token fetch failed:', response.status);
-                if (response.status === 401 || response.status === 403 || response.status === 429) {
+                console.warn('[AuthManager] Token fetch failed:', response.status);
+                if (response.status === 429) {
                     this.beginAuthBackoff();
                 }
                 return null;
@@ -330,7 +339,7 @@ export class AuthManager {
             };
 
             if (!data.token) {
-                console.error('[AuthManager] No token in response');
+                console.warn('[AuthManager] No token in response');
                 this.beginAuthBackoff();
                 return null;
             }
@@ -353,7 +362,16 @@ export class AuthManager {
      * @returns The token or null if not authenticated
      */
     async getToken(): Promise<string | null> {
-        // If no token or about to expire, fetch a fresh one
+        // No token in IndexedDB means this device never established an SW
+        // session (local mode or signed out). Do not probe the cookie-token
+        // endpoint in that case: it can only answer 401 and used to spam the
+        // console on every sync attempt. Cookie-only auth is still checked by
+        // the sync manager's CSRF probe.
+        if (!this.state.token) {
+            return null;
+        }
+
+        // If token is about to expire, fetch a fresh one
         if (this.needsRefresh()) {
             const newToken = await this.fetchFreshToken();
             if (newToken) {

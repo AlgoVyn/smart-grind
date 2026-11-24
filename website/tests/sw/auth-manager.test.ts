@@ -122,6 +122,8 @@ describe('AuthManager', () => {
         test('should return null when no token exists', async () => {
             const token = await authManager.getToken();
             expect(token).toBeNull();
+            // Must not probe the cookie token endpoint for local/signed-out
+            // sessions (that surfaced expected 401s as console errors)
             expect(mockFetch).not.toHaveBeenCalled();
         });
 

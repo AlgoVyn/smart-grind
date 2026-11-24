@@ -143,6 +143,7 @@ describe('Service Worker Registration Module', () => {
                 ready: Promise.resolve(mockRegistration),
                 controller: mockController,
                 addEventListener: jest.fn(),
+                removeEventListener: jest.fn(),
                 getRegistration: jest.fn().mockResolvedValue(null),
             },
             writable: true,
@@ -294,14 +295,39 @@ describe('Service Worker Registration Module', () => {
     });
 
     describe('skipWaiting', () => {
-        test('should post SKIP_WAITING message when controller exists', async () => {
+        test('should post SKIP_WAITING message to the waiting worker', async () => {
+            const waitingWorker = {
+                state: 'installed',
+                postMessage: jest.fn(),
+            };
+            mockRegistration.waiting = waitingWorker;
+            (navigator.serviceWorker.getRegistration as jest.Mock).mockResolvedValue(
+                mockRegistration
+            );
+
             skipWaiting();
             // The message is posted after the async getRegistration lookup
             await new Promise((resolve) => setTimeout(resolve, 0));
-            expect(mockController.postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' });
+
+            expect(waitingWorker.postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' });
+            // The active controller must never receive the message
+            expect(mockController.postMessage).not.toHaveBeenCalled();
+            // It must wait for the new worker to take control before reloading
+            expect(navigator.serviceWorker.addEventListener).toHaveBeenCalledWith(
+                'controllerchange',
+                expect.any(Function)
+            );
+
+            // Simulate the new worker taking control so the test does not
+            // leave the activation timeout pending
+            const controllerChangeHandler = (
+                navigator.serviceWorker.addEventListener as jest.Mock
+            ).mock.calls.find((call: any[]) => call[0] === 'controllerchange')?.[1];
+            controllerChangeHandler?.();
+            await new Promise((resolve) => setTimeout(resolve, 0));
         });
 
-        test('should do nothing when no controller', async () => {
+        test('should do nothing when there is no waiting worker and no controller', async () => {
             Object.defineProperty(navigator.serviceWorker, 'controller', {
                 value: null,
                 writable: true,
@@ -311,6 +337,23 @@ describe('Service Worker Registration Module', () => {
             skipWaiting();
             await new Promise((resolve) => setTimeout(resolve, 0));
             expect(mockController.postMessage).not.toHaveBeenCalled();
+            // No waiting worker exists, so it must not start an activation
+            // wait it can never satisfy; it reloads instead.
+            expect(navigator.serviceWorker.addEventListener).not.toHaveBeenCalledWith(
+                'controllerchange',
+                expect.any(Function)
+            );
+        });
+
+        test('should not wait for activation when no worker is waiting', async () => {
+            skipWaiting();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(mockController.postMessage).not.toHaveBeenCalled();
+            expect(navigator.serviceWorker.addEventListener).not.toHaveBeenCalledWith(
+                'controllerchange',
+                expect.any(Function)
+            );
         });
     });
 

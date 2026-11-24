@@ -252,11 +252,12 @@ export default defineConfig({
                     // Read and update SW file
                     const swContent = fs.readFileSync(swFile, 'utf-8');
 
-                    // Replace the SW_VERSION placeholder with the actual version
-                    // Simple string replacement - more reliable than regex
+                    // Replace the SW_VERSION placeholder with the actual version.
+                    // The placeholder is already inside a quoted string literal
+                    // in the source, so inject the bare value — adding quotes
+                    // here produced values like "'1.0.0-...'" in cache names.
                     const placeholder = '__SW_VERSION_PLACEHOLDER__';
-                    const replacement = `'${version}'`;
-
+                    const replacement = version;
                     if (!swContent.includes(placeholder)) {
                         console.warn('[vite] SW_VERSION placeholder not found in service worker');
                         return;

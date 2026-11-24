@@ -166,7 +166,8 @@ describe('Init Module - Service Worker Events', () => {
             expect(showToast).toHaveBeenCalledWith(
                 'New version is ready, reload',
                 'success',
-                15000
+                0,
+                expect.any(Function)
             );
         });
 
@@ -197,7 +198,7 @@ describe('Init Module - Service Worker Events', () => {
             expect(showToast).toHaveBeenCalledWith(
                 'New version is ready — click to update',
                 'success',
-                15000,
+                0,
                 expect.any(Function)
             );
 

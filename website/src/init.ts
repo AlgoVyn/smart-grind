@@ -446,14 +446,14 @@ const setupSWEventListeners = (): (() => void) => {
     // Listen for update available events (first install or new version)
     const updateAvailableHandler = (data: unknown) => {
         const { reason } = (data || {}) as { reason?: string };
-        console.log('[Init] Update available:', reason);
+        console.log('[Init] Update available:', reason ?? 'update');
 
         // For updates (not first install), show a notification the user can
         // click to activate the waiting worker. Without this action the new
         // worker would only activate after every app tab is closed.
         if (reason !== 'first-install' && !updateToastShown) {
             updateToastShown = true;
-            showToast('New version is ready — click to update', 'success', 15000, () => {
+            showToast('New version is ready — click to update', 'success', 0, () => {
                 swRegister.skipWaiting().catch((error) => {
                     console.error('[Init] Failed to activate update:', error);
                 });
@@ -473,10 +473,17 @@ const setupSWEventListeners = (): (() => void) => {
             downloadedAt ? new Date(downloadedAt).toLocaleString() : 'unknown'
         );
 
-        // Show toast only once (prevents duplicates from multiple events)
+        // Show toast only once (prevents duplicates from multiple events).
+        // The toast is actionable: a new bundle usually means the app shell
+        // was refreshed too, so offer a reload (activating a waiting worker
+        // first when one exists).
         if (!updateToastShown) {
             updateToastShown = true;
-            showToast('New version is ready, reload', 'success', 15000);
+            showToast('New version is ready, reload', 'success', 0, () => {
+                swRegister.skipWaiting().catch((error) => {
+                    console.error('[Init] Failed to reload after bundle update:', error);
+                });
+            });
         }
     };
 

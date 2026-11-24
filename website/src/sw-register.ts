@@ -367,7 +367,7 @@ function handleInstallingWorker(worker: ServiceWorker): void {
                     // New update available
                     state.updateAvailable = true;
                     state.waiting = true;
-                    emit('updateAvailable', { worker });
+                    emit('updateAvailable', { worker, reason: 'update' });
                 } else {
                     // First install - SW is installed but not controlling yet
                     // The main registration flow will handle waiting for control
@@ -395,47 +395,67 @@ function handleInstallingWorker(worker: ServiceWorker): void {
 function handleWaitingWorker(worker: ServiceWorker): void {
     state.waiting = true;
     state.updateAvailable = true;
-    emit('updateAvailable', { worker });
+    emit('updateAvailable', {
+        worker,
+        reason: navigator.serviceWorker.controller ? 'update' : 'first-install',
+    });
 }
 
 /**
  * Skip waiting and activate new service worker
  */
 export async function skipWaiting(): Promise<void> {
+    let registration: ServiceWorkerRegistration | null = null;
+    try {
+        registration = (await navigator.serviceWorker.getRegistration()) ?? null;
+    } catch {
+        registration = null;
+    }
+
     // The SKIP_WAITING message must go to the WAITING worker — only the
-    // worker that calls self.skipWaiting() activates. The controlling
-    // (active) worker receiving it would be a no-op.
-    const registration = await navigator.serviceWorker.getRegistration();
-    const target = registration?.waiting ?? navigator.serviceWorker.controller;
-    if (!target) return;
+    // worker that calls self.skipWaiting() activates. The active worker
+    // receiving it would be a no-op.
+    const waitingWorker = registration?.waiting;
+
+    if (!waitingWorker) {
+        // Nothing is waiting: the update is already active (or this was a
+        // first install). The user asked to update, so reload and run the
+        // newest assets instead of leaving a stale document on screen.
+        window.location.reload();
+        return;
+    }
 
     // Wait for the new service worker to activate before reloading
     const activationPromise = new Promise<void>((resolve) => {
-        const onControllerChange = () => {
-            navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
-            resolve();
-        };
-        navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+        let settled = false;
+        const timeoutId = setTimeout(finish, 5000);
 
-        // Fallback: also listen for SW_ACTIVATED message
-        const onMessage = (event: MessageEvent) => {
-            if (event.data?.type === 'SW_ACTIVATED') {
-                navigator.serviceWorker.removeEventListener('message', onMessage);
-                resolve();
-            }
-        };
-        navigator.serviceWorker.addEventListener('message', onMessage);
-
-        // Timeout after 10 seconds to prevent hanging
-        setTimeout(() => {
+        function finish() {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeoutId);
             navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
             navigator.serviceWorker.removeEventListener('message', onMessage);
             resolve();
-        }, 10000);
+        }
+        const onControllerChange = () => finish();
+
+        // Fallback: also listen for SW_ACTIVATED message
+        const onMessage = (event: MessageEvent) => {
+            if (event.data?.type === 'SW_ACTIVATED') finish();
+        };
+        navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+        navigator.serviceWorker.addEventListener('message', onMessage);
     });
 
     // Send message to the waiting service worker to skip waiting
-    target.postMessage({ type: 'SKIP_WAITING' });
+    try {
+        waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    } catch {
+        // Worker disappeared between lookup and postMessage; reload anyway
+        window.location.reload();
+        return;
+    }
 
     // Wait for the new service worker to activate, then reload
     await activationPromise;

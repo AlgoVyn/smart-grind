@@ -56,8 +56,10 @@ export const showToast = (
     el.innerHTML = `<span>${escapeHtml(msg)}</span>`;
 
     if (onActivate) {
-        // Make action toasts (e.g. "click to update") keyboard-accessible
-        el.classList.add('cursor-pointer');
+        // Make action toasts (e.g. "click to update") keyboard-accessible.
+        // The toast container is pointer-events-none so it never blocks the
+        // page; actionable toasts must opt back in or clicks pass through.
+        el.classList.add('cursor-pointer', 'pointer-events-auto');
         el.setAttribute('role', 'button');
         el.tabIndex = 0;
         const activate = () => {
@@ -74,11 +76,17 @@ export const showToast = (
     }
 
     toastContainer.appendChild(el);
-    setTimeout(() => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(10px)';
-        setTimeout(() => el.remove(), 300);
-    }, duration);
+
+    // A non-positive duration makes the toast persistent. Update prompts use
+    // this so the activation action cannot silently expire while the user is
+    // reading it.
+    if (duration > 0) {
+        setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(10px)';
+            setTimeout(() => el.remove(), 300);
+        }, duration);
+    }
 };
 
 // ============================================================================

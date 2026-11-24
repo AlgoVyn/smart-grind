@@ -625,6 +625,14 @@ export class BackgroundSyncManager {
         // The server rejected the session; do not keep presenting the old
         // token on the next sync attempt.
         this.invalidateCsrfToken();
+        try {
+            const auth = getAuthManager();
+            // clearTokens also clears the IndexedDB copy so the next sync
+            // does not retry a bearer token the server already rejected.
+            await auth?.clearTokens?.();
+        } catch {
+            // Auth storage unavailable; nothing else to clean up
+        }
         await this.notifyAuthRequired();
     }
 

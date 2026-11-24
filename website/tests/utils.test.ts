@@ -232,6 +232,21 @@ describe('SmartGrind Utils', () => {
             expect(toastEl.innerHTML).toContain('&lt;script&gt;');
             expect(toastEl.innerHTML).not.toContain('<script>');
         });
+
+        test('showToast makes action toasts clickable despite the pointer-events-none container', () => {
+            const onActivate = jest.fn();
+            // duration 0 = persistent, like the service-worker update prompt
+            showToast('Update available', 'success', 0, onActivate);
+            expect(mockAppendChild).toHaveBeenCalled();
+
+            const toastEl = mockAppendChild.mock.calls[0][0] as HTMLElement;
+            expect(toastEl.className).toContain('pointer-events-auto');
+            expect(toastEl.className).toContain('cursor-pointer');
+            expect(toastEl.getAttribute('role')).toBe('button');
+
+            toastEl.click();
+            expect(onActivate).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('Review date calculation', () => {
